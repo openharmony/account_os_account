@@ -44,6 +44,19 @@ ErrCode OsAccountInterface::SendToBMSAccountCreate(
     return ERR_OK;
 }
 
+ErrCode OsAccountInterface::IsBundleInstalled(const std::string &bundleName, int32_t userId,
+    int32_t &appIndex, bool &isBundleInstalled)
+{
+    ACCOUNT_LOGI("mock OsAccountInterface IsBundleInstalled start");
+    if (bundleName == "com.example.not_installed") {
+        isBundleInstalled = false;
+    } else {
+        isBundleInstalled = true;
+        appIndex = 0;
+    }
+    return ERR_OK;
+}
+
 ErrCode OsAccountInterface::SendToAMSAccountDeactivate(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("mock OsAccountInterface SendToAMSAccountDeactivate start");

@@ -338,6 +338,7 @@
         "OHOS::AccountSA::AccountDataStorage::PutValueToKvStore(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::AccountSA::BundleManagerAdapter::GetInstance()";
         "OHOS::AccountSA::BundleManagerAdapter::CreateNewUser(int, std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>> const&)";
+        "OHOS::AccountSA::BundleManagerAdapter::IsBundleInstalled(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, int, int&, bool&)";
         "OHOS::AccountSA::BundleManagerAdapter::RemoveUser(int)";
         "OHOS::AccountSA::BundleManagerAdapter::QueryAbilityInfos(OHOS::AAFwk::Want const&, int, int, std::__h::vector<OHOS::AppExecFwk::AbilityInfo, std::__h::allocator<OHOS::AppExecFwk::AbilityInfo>>&)";
         "OHOS::AccountSA::BundleManagerAdapter::QueryExtensionAbilityInfos(OHOS::AAFwk::Want const&, int const&, int const&, std::__h::vector<OHOS::AppExecFwk::ExtensionAbilityInfo, std::__h::allocator<OHOS::AppExecFwk::ExtensionAbilityInfo>>&)";

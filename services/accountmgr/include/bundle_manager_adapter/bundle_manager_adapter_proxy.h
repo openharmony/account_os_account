@@ -82,6 +82,17 @@ public:
      * @return Returns a pointer to IBundleUserMgr class if exist; returns nullptr otherwise.
      */
     sptr<IBundleUserMgr> GetBundleUserMgr() override;
+    
+    /**
+     * @brief Checks whether a specified application is installed for a given user through the proxy object.
+     * @param bundleName Indicates the bundle name of the application.
+     * @param userId Indicates the user ID.
+     * @param appIndex Indicates the app index.
+     * @param isBundleInstalled Indicates whether the application is installed.
+     * @return Returns ERR_OK if the check is successfully performed; returns an error code otherwise.
+     */
+    ErrCode IsBundleInstalled(const std::string &bundleName, int32_t userId,
+        int32_t appIndex, bool &isBundleInstalled) override;
 
     /**
      * @brief Query extension info.

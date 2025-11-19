@@ -34,6 +34,8 @@ public:
     static ErrCode SendToBMSAccountCreate(
         OsAccountInfo &osAccountInfo, const std::vector<std::string> &disallowedHapList = {},
         const std::optional<std::vector<std::string>> &allowedHapList = std::nullopt);
+    static ErrCode IsBundleInstalled(const std::string &bundleName, int32_t userId,
+        int32_t &appIndex, bool &isBundleInstalled);
     static ErrCode SendToBMSAccountDelete(OsAccountInfo &osAccountInfo);
     static void SendToBMSAccountUnlocked(const OsAccountInfo &osAccountInfo);
     static void SendToBMSAccountUnlockedWithTimeout(const OsAccountInfo &osAccountInfo);
