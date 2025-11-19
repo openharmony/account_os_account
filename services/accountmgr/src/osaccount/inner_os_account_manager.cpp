@@ -2146,6 +2146,8 @@ ErrCode IInnerOsAccountManager::SetOsAccountConstraints(
         REPORT_OS_ACCOUNT_FAIL(id, Constants::OPERATION_CONSTRAINT, errCode, "Update osaccount info failed");
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
+    OsAccountInterface::PublishCommonEvent(
+        osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, OPERATION_UPDATE);
     ACCOUNT_LOGI("Set os account %{public}d constraints %{public}d success, callingUid = %{public}d",
         id, enable, IPCSkeleton::GetCallingUid());
     return ERR_OK;
