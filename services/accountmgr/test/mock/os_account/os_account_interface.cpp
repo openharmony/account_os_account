@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "os_account_constants.h"
 #include "os_account_interface.h"
 #include "account_log_wrapper.h"
 
@@ -40,6 +41,20 @@ ErrCode OsAccountInterface::SendToBMSAccountCreate(
     ACCOUNT_LOGI("mock OsAccountInterface SendToBMSAccountCreate start");
     if (osAccountInfo.GetLocalName() == "CreateOsAccountRollback001") {
         return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
+    }
+    return ERR_OK;
+}
+
+ErrCode OsAccountInterface::IsBundleInstalled(const std::string &bundleName, int32_t userId,
+    int32_t &appIndex, bool &isBundleInstalled)
+{
+    ACCOUNT_LOGI("mock OsAccountInterface IsBundleInstalled start");
+    // test not installed
+    if (userId == Constants::MAINTENANCE_MODE_ID) {
+        isBundleInstalled = false;
+    } else {
+        isBundleInstalled = true;
+        appIndex = 0;
     }
     return ERR_OK;
 }
