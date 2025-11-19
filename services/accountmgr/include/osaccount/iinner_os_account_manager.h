@@ -199,6 +199,7 @@ private:
     std::vector<int32_t> GetVerifiedAccountIds(const SafeMap<int32_t, bool> &verifiedAccounts);
     ErrCode SendToStorageAndAMSAccountStart(OsAccountInfo &osAccountInfo, const bool startStorage,
         const uint64_t displayId, const bool isAppRecovery, int32_t oldId);
+    ErrCode CheckHighestHapInstallForCreate(OsAccountInfo &osAccountInfo);
 
 private:
     std::shared_ptr<IOsAccountControl> osAccountControl_;

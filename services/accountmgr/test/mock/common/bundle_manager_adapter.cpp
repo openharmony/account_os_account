@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "os_account_constants.h"
 #include "bundle_manager_adapter.h"
 #include "account_log_wrapper.h"
 
@@ -103,6 +104,19 @@ bool BundleManagerAdapter::GetBundleInfo(const std::string &bundleName, const Ap
         return true;
     }
     return true;
+}
+
+ErrCode BundleManagerAdapter::IsBundleInstalled(const std::string &bundleName, int32_t userId,
+    int32_t &appIndex, bool &isBundleInstalled)
+{
+    ACCOUNT_LOGI("mock enter, bundleName = %{public}s, userId = %{public}d.", bundleName.c_str(), userId);
+// test not installed
+    if (userId == Constants::MAINTENANCE_MODE_ID) {
+        isBundleInstalled = false;
+    } else {
+        isBundleInstalled = true;
+    }
+    return ERR_OK;
 }
 
 bool BundleManagerAdapter::QueryAbilityInfos(const AAFwk::Want &want, int32_t flags, int32_t userId,

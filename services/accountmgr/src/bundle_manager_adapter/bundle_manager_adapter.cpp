@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "bundle_manager_adapter.h"
+#include "account_constants.h"
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "account_hisysevent_adapter.h"
@@ -148,6 +149,25 @@ ErrCode BundleManagerAdapter::CreateNewUser(int32_t userId, const std::vector<st
     FinishTraceAdapter();
     if (result != ERR_OK) {
         ReportOsAccountOperationFail(userId, "create", result, "BundleManager failed to create new user");
+    }
+    return result;
+}
+
+ErrCode BundleManagerAdapter::IsBundleInstalled(const std::string &bundleName, int32_t userId,
+    int32_t &appIndex, bool &isBundleInstalled)
+{
+    std::lock_guard<std::mutex> lock(proxyMutex_);
+    ErrCode result = Connect();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to connect bundle manager service.");
+        return Constants::E_IPC_ERROR;
+    }
+
+    StartTraceAdapter("BundleManageService IsBundleInstalled");
+    result = proxy_->IsBundleInstalled(bundleName, userId, appIndex, isBundleInstalled);
+    FinishTraceAdapter();
+    if (result != ERR_OK) {
+        ReportOsAccountOperationFail(userId, "create", result, "BundleManager check bundle install failed");
     }
     return result;
 }

@@ -603,6 +603,32 @@ void IInnerOsAccountManager::RollbackOsAccount(OsAccountInfo &osAccountInfo, boo
     }
 }
 
+ErrCode IInnerOsAccountManager::CheckHighestHapInstallForCreate(OsAccountInfo &osAccountInfo)
+{
+    if (osAccountInfo.GetLocalId() != Constants::MAINTENANCE_MODE_ID) {
+        return ERR_OK;
+    }
+    bool isInstalled = false;
+    int32_t appIdex = 0;
+    ErrCode errCode = OsAccountInterface::IsBundleInstalled("com.ohos.sceneboard",
+        osAccountInfo.GetLocalId(), appIdex, isInstalled);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Check highest hap install error, errCode %{public}d.", errCode);
+        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(),
+            Constants::OPERATION_CREATE, errCode, "Failed to check highest hap installed");
+        return errCode;
+    }
+    if (!isInstalled) {
+        ACCOUNT_LOGE("Maintenance account missing sceneboard app, errCode %{public}d.",
+            ERR_ACCOUNT_COMMON_CHECK_BUNDLE_INSTALLED_ERROR);
+        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(),
+            Constants::OPERATION_CREATE, ERR_ACCOUNT_COMMON_CHECK_BUNDLE_INSTALLED_ERROR,
+            "Highest hap is not installed");
+        return ERR_ACCOUNT_COMMON_CHECK_BUNDLE_INSTALLED_ERROR;
+    }
+    return ERR_OK;
+}
+
 ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
     OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options)
 {
@@ -619,6 +645,11 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Create os account SendToBMSAccountCreate failed, errCode %{public}d.", errCode);
         RollbackOsAccount(osAccountInfo, true, false);
+        return errCode;
+    }
+    errCode = CheckHighestHapInstallForCreate(osAccountInfo);
+    if (errCode != ERR_OK) {
+        RollbackOsAccount(osAccountInfo, true, true);
         return errCode;
     }
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
