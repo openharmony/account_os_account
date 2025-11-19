@@ -13,12 +13,15 @@
  * limitations under the License.
  */
 
+#include <memory>
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "ani_common_want.h"
 #include "app_account_authenticator_callback_stub.h"
 #include "app_account_common.h"
 #include "app_account_manager.h"
+#include "event_handler.h"
+#include "event_runner.h"
 #include "ohos.account.appAccount.impl.hpp"
 #include "ohos.account.appAccount.proj.hpp"
 #include "ohos_account_kits.h"
@@ -183,6 +186,14 @@ public:
     ~THAppAccountManagerCallback() override = default;
     ErrCode OnResult(int32_t resultCode, const AAFwk::Want &result) override
     {
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            if (isCalled_) {
+                ACCOUNT_LOGW("OnResult has been called, ignore this call");
+                return ERR_OK;
+            }
+            isCalled_ = true;
+        }
         AuthResult authResult;
         const auto &params = result.GetParams();
         if (params.HasParam(OS_ACCOUNT)) {
@@ -233,6 +244,8 @@ private:
     }
 
     ohos::account::appAccount::AuthCallback taiheCallback_;
+    std::mutex mutex_;
+    bool isCalled_ = false;
 };
 
 class OnResultCallbackImpl {
@@ -1318,9 +1331,13 @@ ohos::account::appAccount::AuthCallback ConvertToAppAccountAuthenticatorCallback
     return taiheCallback;
 }
 
-class TaiheAppAccountAuthenticator : public AccountSA::AppAccountAuthenticatorStub {
+class TaiheAppAccountAuthenticator : public AccountSA::AppAccountAuthenticatorStub,
+                                     public std::enable_shared_from_this<TaiheAppAccountAuthenticator> {
 public:
-    explicit TaiheAppAccountAuthenticator(const Authenticator &self): self_(self) {}
+    explicit TaiheAppAccountAuthenticator(
+        const Authenticator &self, const std::shared_ptr<AppExecFwk::EventHandler> &handler)
+        : self_(self), handler_(handler)
+    {}
     ~TaiheAppAccountAuthenticator() override = default;
 
     // Abandoned interface
@@ -1348,19 +1365,34 @@ public:
         const sptr<IRemoteObject>& remoteObjCallback,
         int32_t& funcResult) override
     {
-        taihe::env_guard guard;
-        ani_env *env = guard.get_env();
-        auto parameters = AppExecFwk::WrapWant(env, options.parameters);
-        auto tempParameters = reinterpret_cast<uintptr_t>(parameters);
-        ohos::account::appAccount::CreateAccountImplicitlyOptions taiheOptions =
-            ohos::account::appAccount::CreateAccountImplicitlyOptions {
-                .requiredLabels = optional <taihe::array<::taihe::string>>(std::in_place_t{},
-                    taihe::copy_data_t{}, options.requiredLabels.data(), options.requiredLabels.size()),
-                .authType = optional<string>(std::in_place_t{}, options.authType.c_str()),
-                .parameters = optional<uintptr_t>(std::in_place_t{}, tempParameters),
+        if (handler_ == nullptr) {
+            ACCOUNT_LOGE("EventHandler is null");
+            funcResult = ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION;
+            return ERR_OK;
+        }
+        auto shareThis = shared_from_this();
+        auto task = [shareThis, options, remoteObjCallback]() {
+            taihe::env_guard guard;
+            ani_env *env = guard.get_env();
+            ohos::account::appAccount::AuthCallback callback =
+                ConvertToAppAccountAuthenticatorCallback(remoteObjCallback);
+            auto parameters = AppExecFwk::WrapWant(env, options.parameters);
+            auto tempParameters = reinterpret_cast<uintptr_t>(parameters);
+            ohos::account::appAccount::CreateAccountImplicitlyOptions taiheOptions =
+                ohos::account::appAccount::CreateAccountImplicitlyOptions {
+                    .requiredLabels = optional<taihe::array<::taihe::string>>(std::in_place_t {}, taihe::copy_data_t {},
+                        options.requiredLabels.data(), options.requiredLabels.size()),
+                    .authType = optional<string>(std::in_place_t {}, options.authType.c_str()),
+                    .parameters = optional<uintptr_t>(std::in_place_t {}, tempParameters),
+                };
+            shareThis->self_->CreateAccountImplicitly(taiheOptions, callback);
         };
-        ohos::account::appAccount::AuthCallback callback = ConvertToAppAccountAuthenticatorCallback(remoteObjCallback);
-        self_->CreateAccountImplicitly(taiheOptions, callback);
+        if (!handler_->PostTask(task, __func__, 0, OHOS::AppExecFwk::EventQueue::Priority::VIP, {})) {
+            ACCOUNT_LOGE("Failed to post %{public}s task to handler", __func__);
+            funcResult = ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION;
+            return ERR_OK;
+        }
+        funcResult = ERR_OK;
         return ERR_OK;
     }
 
@@ -1371,14 +1403,29 @@ public:
         const sptr<IRemoteObject>& remoteObjCallback,
         int32_t& funcResult) override
     {
-        taihe::string taiheName = taihe::string(name.c_str());
-        taihe::string taiheAuthType = taihe::string(authType.c_str());
-        taihe::env_guard guard;
-        ani_env *env = guard.get_env();
-        auto parameters = AppExecFwk::WrapWantParams(env, options);
-        auto tempParameters = reinterpret_cast<uintptr_t>(parameters);
-        ohos::account::appAccount::AuthCallback callback = ConvertToAppAccountAuthenticatorCallback(remoteObjCallback);
-        self_->Auth(taiheName, taiheAuthType, tempParameters, callback);
+        if (handler_ == nullptr) {
+            ACCOUNT_LOGE("EventHandler is null");
+            funcResult = ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION;
+            return ERR_OK;
+        }
+        auto shareThis = shared_from_this();
+        auto task = [shareThis, name, authType, options, remoteObjCallback]() {
+            taihe::env_guard guard;
+            taihe::string taiheName = taihe::string(name.c_str());
+            taihe::string taiheAuthType = taihe::string(authType.c_str());
+            ani_env *env = guard.get_env();
+            auto parameters = AppExecFwk::WrapWantParams(env, options);
+            auto tempParameters = reinterpret_cast<uintptr_t>(parameters);
+            ohos::account::appAccount::AuthCallback callback =
+                ConvertToAppAccountAuthenticatorCallback(remoteObjCallback);
+            shareThis->self_->Auth(taiheName, taiheAuthType, tempParameters, callback);
+        };
+        if (!handler_->PostTask(task, __func__, 0, OHOS::AppExecFwk::EventQueue::Priority::VIP, {})) {
+            ACCOUNT_LOGE("Failed to post %{public}s task to handler", __func__);
+            funcResult = ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION;
+            return ERR_OK;
+        }
+        funcResult = ERR_OK;
         return ERR_OK;
     }
 
@@ -1388,20 +1435,34 @@ public:
         const sptr<IRemoteObject>& remoteObjCallback,
         int32_t& funcResult) override
     {
-        taihe::string taiheName = taihe::string(name.c_str());
-        taihe::env_guard guard;
-        ani_env *env = guard.get_env();
-        auto parameters = AppExecFwk::WrapWantParams(env, options.parameters);
-        auto tempParameters = reinterpret_cast<uintptr_t>(parameters);
-
-        ohos::account::appAccount::VerifyCredentialOptions taiheOptions =
-            ohos::account::appAccount::VerifyCredentialOptions {
-                .credentialType = optional<string>(std::in_place_t{}, options.credentialType.c_str()),
-                .credential = optional<string>(std::in_place_t{}, options.credential.c_str()),
-                .parameters = optional<uintptr_t>(std::in_place_t{}, tempParameters),
+        if (handler_ == nullptr) {
+            ACCOUNT_LOGE("EventHandler is null");
+            funcResult = ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION;
+            return ERR_OK;
+        }
+        auto shareThis = shared_from_this();
+        auto task = [shareThis, name, options, remoteObjCallback]() {
+            taihe::env_guard guard;
+            taihe::string taiheName = taihe::string(name.c_str());
+            ani_env *env = guard.get_env();
+            auto parameters = AppExecFwk::WrapWantParams(env, options.parameters);
+            auto tempParameters = reinterpret_cast<uintptr_t>(parameters);
+            ohos::account::appAccount::VerifyCredentialOptions taiheOptions =
+                ohos::account::appAccount::VerifyCredentialOptions {
+                    .credentialType = optional<string>(std::in_place_t {}, options.credentialType.c_str()),
+                    .credential = optional<string>(std::in_place_t {}, options.credential.c_str()),
+                    .parameters = optional<uintptr_t>(std::in_place_t {}, tempParameters),
+                };
+            ohos::account::appAccount::AuthCallback callback =
+                ConvertToAppAccountAuthenticatorCallback(remoteObjCallback);
+            shareThis->self_->VerifyCredential(taiheName, taiheOptions, callback);
         };
-        ohos::account::appAccount::AuthCallback callback = ConvertToAppAccountAuthenticatorCallback(remoteObjCallback);
-        self_->VerifyCredential(taiheName, taiheOptions, callback);
+        if (!handler_->PostTask(task, __func__, 0, OHOS::AppExecFwk::EventQueue::Priority::VIP, {})) {
+            ACCOUNT_LOGE("Failed to post %{public}s task to handler", __func__);
+            funcResult = ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION;
+            return ERR_OK;
+        }
+        funcResult = ERR_OK;
         return ERR_OK;
     }
 
@@ -1411,16 +1472,32 @@ public:
         const sptr<IRemoteObject>& remoteObjCallback,
         int32_t& funcResult) override
     {
-        taihe::string taiheName = taihe::string(name.c_str());
-        std::vector<taihe::string> tempLabels;
-        tempLabels.reserve(labels.size());
-        for (const auto &label : labels) {
-            tempLabels.emplace_back(taihe::string(label.c_str()));
+        if (handler_ == nullptr) {
+            ACCOUNT_LOGE("EventHandler is null");
+            funcResult = ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION;
+            return ERR_OK;
         }
-        taihe::array<taihe::string> taiheLabels = taihe::array<taihe::string>(taihe::copy_data_t{},
-            tempLabels.data(), tempLabels.size());
-        ohos::account::appAccount::AuthCallback callback = ConvertToAppAccountAuthenticatorCallback(remoteObjCallback);
-        self_->CheckAccountLabels(taiheName, taiheLabels, callback);
+        auto shareThis = shared_from_this();
+        auto task = [shareThis, name, labels, remoteObjCallback]() {
+            taihe::env_guard guard;
+            taihe::string taiheName = taihe::string(name.c_str());
+            std::vector<taihe::string> tempLabels;
+            tempLabels.reserve(labels.size());
+            for (const auto &label : labels) {
+                tempLabels.emplace_back(taihe::string(label.c_str()));
+            }
+            taihe::array<taihe::string> taiheLabels =
+                taihe::array<taihe::string>(taihe::copy_data_t {}, tempLabels.data(), tempLabels.size());
+            ohos::account::appAccount::AuthCallback callback =
+                ConvertToAppAccountAuthenticatorCallback(remoteObjCallback);
+            shareThis->self_->CheckAccountLabels(taiheName, taiheLabels, callback);
+        };
+        if (!handler_->PostTask(task, __func__, 0, OHOS::AppExecFwk::EventQueue::Priority::VIP, {})) {
+            ACCOUNT_LOGE("Failed to post %{public}s task to handler", __func__);
+            funcResult = ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION;
+            return ERR_OK;
+        }
+        funcResult = ERR_OK;
         return ERR_OK;
     }
 
@@ -1429,19 +1506,34 @@ public:
         const sptr<IRemoteObject>& remoteObjCallback,
         int32_t& funcResult) override
     {
-        taihe::env_guard guard;
-        ani_env *env = guard.get_env();
-        auto properties = AppExecFwk::WrapWantParams(env, options.properties);
-        auto tempProperties = reinterpret_cast<uintptr_t>(properties);
-        auto parameters = AppExecFwk::WrapWantParams(env, options.parameters);
-        auto tempParameters = reinterpret_cast<uintptr_t>(parameters);
-        ohos::account::appAccount::SetPropertiesOptions taiheOptions =
-            ohos::account::appAccount::SetPropertiesOptions {
-                .properties = optional<uintptr_t>(std::in_place_t{}, tempProperties),
-                .parameters = optional<uintptr_t>(std::in_place_t{}, tempParameters),
+        if (handler_ == nullptr) {
+            ACCOUNT_LOGE("EventHandler is null");
+            funcResult = ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION;
+            return ERR_OK;
+        }
+        auto shareThis = shared_from_this();
+        auto task = [shareThis, options, remoteObjCallback]() {
+            taihe::env_guard guard;
+            ani_env *env = guard.get_env();
+            auto properties = AppExecFwk::WrapWantParams(env, options.properties);
+            auto tempProperties = reinterpret_cast<uintptr_t>(properties);
+            auto parameters = AppExecFwk::WrapWantParams(env, options.parameters);
+            auto tempParameters = reinterpret_cast<uintptr_t>(parameters);
+            ohos::account::appAccount::SetPropertiesOptions taiheOptions =
+                ohos::account::appAccount::SetPropertiesOptions {
+                    .properties = optional<uintptr_t>(std::in_place_t {}, tempProperties),
+                    .parameters = optional<uintptr_t>(std::in_place_t {}, tempParameters),
+                };
+            ohos::account::appAccount::AuthCallback callback =
+                ConvertToAppAccountAuthenticatorCallback(remoteObjCallback);
+            shareThis->self_->SetProperties(taiheOptions, callback);
         };
-        ohos::account::appAccount::AuthCallback callback = ConvertToAppAccountAuthenticatorCallback(remoteObjCallback);
-        self_->SetProperties(taiheOptions, callback);
+        if (!handler_->PostTask(task, __func__, 0, OHOS::AppExecFwk::EventQueue::Priority::VIP, {})) {
+            ACCOUNT_LOGE("Failed to post %{public}s task to handler", __func__);
+            funcResult = ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION;
+            return ERR_OK;
+        }
+        funcResult = ERR_OK;
         return ERR_OK;
     }
 
@@ -1450,25 +1542,43 @@ public:
         const sptr<IRemoteObject>& remoteObjCallback,
         int32_t& funcResult) override
     {
-        taihe::string taiheName = taihe::string(name.c_str());
-        ohos::account::appAccount::AuthCallback callback = ConvertToAppAccountAuthenticatorCallback(remoteObjCallback);
-        self_->CheckAccountRemovable(taiheName, callback);
+        if (handler_ == nullptr) {
+            ACCOUNT_LOGE("EventHandler is null");
+            funcResult = ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION;
+            return ERR_OK;
+        }
+        auto shareThis = shared_from_this();
+        auto task = [shareThis, name, remoteObjCallback]() {
+            taihe::env_guard guard;
+            taihe::string taiheName = taihe::string(name.c_str());
+            ohos::account::appAccount::AuthCallback callback =
+                ConvertToAppAccountAuthenticatorCallback(remoteObjCallback);
+            shareThis->self_->CheckAccountRemovable(taiheName, callback);
+        };
+        if (!handler_->PostTask(task, __func__, 0, OHOS::AppExecFwk::EventQueue::Priority::VIP, {})) {
+            ACCOUNT_LOGE("Failed to post %{public}s task to handler", __func__);
+            funcResult = ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION;
+            return ERR_OK;
+        }
+        funcResult = ERR_OK;
         return ERR_OK;
     }
 
 private:
     Authenticator self_;
+    std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
 };
 
 class AuthenticatorImpl {
 public:
     explicit AuthenticatorImpl(const Authenticator &self): self_(self)
     {
-        authenticator_ = std::make_unique<TaiheAppAccountAuthenticator>(self);
-        if (authenticator_ == nullptr) {
-        ACCOUNT_LOGE("null authenticator_");
+        auto runner = AppExecFwk::EventRunner::GetMainEventRunner();
+        if (runner == nullptr) {
             return;
         }
+        auto handler = std::make_shared<AppExecFwk::EventHandler>(runner);
+        authenticator_ = std::make_shared<TaiheAppAccountAuthenticator>(self, handler);
         ani_env* env = get_env();
         if (env == nullptr) {
             authenticator_.reset();
@@ -1532,7 +1642,7 @@ public:
 private:
     uintptr_t remoteObject_;
     Authenticator self_;
-    std::unique_ptr<TaiheAppAccountAuthenticator> authenticator_ = nullptr;
+    std::shared_ptr<TaiheAppAccountAuthenticator> authenticator_ = nullptr;
 };
 
 Authenticator MakeAuthenticator(weak::Authenticator self)
