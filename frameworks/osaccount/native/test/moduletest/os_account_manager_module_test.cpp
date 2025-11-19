@@ -427,6 +427,29 @@ HWTEST_F(OsAccountManagerModuleTest, CreateOsAccountWithFullInfo003, TestSize.Le
 }
 
 /**
+ * @tc.name: CreateOsAccountWithFullInfo004
+ * @tc.desc: Test CreateOsAccount create maintenance account without preinstall hap.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, CreateOsAccountWithFullInfo004, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    CreateOsAccountOptions options;
+    std::vector<std::string> list = {};
+    options.allowedHapList = std::make_optional<std::vector<std::string>>(list);
+    OsAccountInfo fullOsAccountInfo;
+    fullOsAccountInfo.SetType(OsAccountType::NORMAL);
+    fullOsAccountInfo.SetLocalId(Constants::MAINTENANCE_MODE_ID);
+    fullOsAccountInfo.SetLocalName("CreateOsAccountWithFullInfo004");
+    fullOsAccountInfo.SetSerialNumber(2023023100000033); // test random input
+    fullOsAccountInfo.SetCreateTime(1695883215000);      // test random input
+    fullOsAccountInfo.SetLastLoginTime(1695863215000);   // test random input
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_CHECK_BUNDLE_INSTALLED_ERROR,
+        OsAccountManager::CreateOsAccountWithFullInfo(fullOsAccountInfo, options));
+}
+
+/**
  * @tc.name: OsAccountManagerModuleTest001
  * @tc.desc: Test create guest account.
  * @tc.type: FUNC

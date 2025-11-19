@@ -212,6 +212,7 @@ private:
     ErrCode PrepareActivateOsAccount(const int32_t id, const uint64_t displayId,
         OsAccountInfo &osAccountInfo, int32_t &foregroundId);
     ErrCode ResetDefaultActivatedAccount(int32_t localId);
+    ErrCode CheckHighestHapInstallForCreate(OsAccountInfo &osAccountInfo);
 #ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
     void QueryAllDisplayIds(std::vector<uint64_t> &displayIds);
     ErrCode ValidateDisplayForActivation(const int id, const uint64_t displayId);

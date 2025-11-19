@@ -300,6 +300,42 @@ sptr<IBundleUserMgr> BundleManagerAdapterProxy::GetBundleUserMgr()
     return bundleUserMgr;
 }
 
+ErrCode BundleManagerAdapterProxy::IsBundleInstalled(const std::string &bundleName, int32_t userId,
+    int32_t appIndex, bool &isBundleInstalled)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Fail to IsBundleInstalled due to write InterfaceToken fail");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteString(bundleName)) {
+        ACCOUNT_LOGE("Fail to IsBundleInstalled due to write bundleName fail");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteInt32(userId)) {
+        ACCOUNT_LOGE("Fail to IsBundleInstalled due to write userId fail");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteInt32(appIndex)) {
+        ACCOUNT_LOGE("Fail to IsBundleInstalled due to write appIndex fail");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
+    MessageParcel reply;
+    if (!SendTransactCmd(BundleMgrInterfaceCode::IS_BUNDLE_INSTALLED, data, reply)) {
+        ACCOUNT_LOGE("Fail to IsBundleInstalled from server");
+        return ERR_BUNDLE_MANAGER_IPC_TRANSACTION;
+    }
+
+    auto ret = reply.ReadInt32();
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("IsBundleInstalled err: %{public}d", ret);
+        return ret;
+    }
+    isBundleInstalled = reply.ReadBool();
+    return ERR_OK;
+}
+
 bool BundleManagerAdapterProxy::QueryExtensionAbilityInfos(const Want &want, const int32_t &flag,
     const int32_t &userId, std::vector<ExtensionAbilityInfo> &extensionInfos)
 {
