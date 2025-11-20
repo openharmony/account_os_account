@@ -112,6 +112,7 @@ const uint64_t DEFAULT_DISPLAY_ID = 0;
 const uint64_t INVALID_DISPLAY_ID = -1ull;
 const uint64_t ANY_DISPLAY_ID = -1ull;  // Special value to indicate "any display" in foreground queries
 const uint64_t REENROLL_WAIT_TIME = 3;
+const std::int32_t MAINTENANCE_MODE_ID = 10736;
 
 // max size of subscribed states
 constexpr uint8_t MAX_SUBSCRIBED_STATES_SIZE = 32;
