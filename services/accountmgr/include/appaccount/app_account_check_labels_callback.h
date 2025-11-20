@@ -23,6 +23,21 @@
 
 namespace OHOS {
 namespace AccountSA {
+/**
+ * @brief AuthResult in native side
+ */
+class NativeAppAuthResult {
+public:
+    NativeAppAuthResult(const AAFwk::Want &result);
+    ~NativeAppAuthResult() = default;
+
+    bool hasAuthResult = false;
+    std::optional<AppAccountInfo> account = std::nullopt;
+};
+
+/**
+ * @brief Callback that is used for selectAccountsByOptions
+ */
 class AppAccountCheckLabelsCallback : public AppAccountAuthenticatorCallbackStub {
 public:
     explicit AppAccountCheckLabelsCallback(std::vector<AppAccountInfo> accounts,
@@ -38,8 +53,8 @@ public:
 
 private:
     void SendResult(int32_t resultCode);
-
-private:
+    void OnResultAPI8(const AAFwk::Want &result);
+    bool OnResultAPI9(int32_t resultCode, const AAFwk::Want &result);
     std::recursive_mutex mutex_;
     bool isRequesting_ = false;
     std::vector<AppAccountInfo> accounts_;
@@ -48,6 +63,29 @@ private:
     std::vector<AppAccountInfo> accountsWithLabels_;
     std::uint32_t index_ = 0;
     std::string sessionId_;
+};
+
+/**
+ * @brief Callback that is used for checkAccountLabels
+ */
+class CheckLabelsCallbackHelper : public AppAccountAuthenticatorCallbackStub {
+public:
+    CheckLabelsCallbackHelper(
+        const std::string &name, const std::string &owner, const sptr<IAppAccountAuthenticatorCallback> &callback);
+    ~CheckLabelsCallbackHelper() override = default;
+
+    ErrCode OnResult(int32_t resultCode, const AAFwk::Want &result) override;
+    ErrCode OnRequestRedirected(const AAFwk::Want &request) override;
+    ErrCode OnRequestContinued() override;
+    ErrCode CallbackEnter([[maybe_unused]] uint32_t code) override;
+    ErrCode CallbackExit([[maybe_unused]] uint32_t code, [[maybe_unused]] int32_t result) override;
+
+private:
+    ErrCode OnResultAPI9(int32_t resultCode, const AAFwk::Want &result);
+    std::recursive_mutex mutex_;
+    std::string name_;
+    std::string owner_;
+    sptr<IAppAccountAuthenticatorCallback> callback_;
 };
 }
 }
