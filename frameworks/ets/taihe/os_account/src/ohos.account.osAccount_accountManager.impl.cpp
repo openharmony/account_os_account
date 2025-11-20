@@ -347,7 +347,10 @@ public:
             (*item)->subscriber->GetSubscribeInfo(subscribeInfo);
             subscribeInfo.GetOsAccountSubscribeType(osSubscribeType);
             subscribeInfo.GetName(name);
-            if (((type != osSubscribeType) || (unsubscribeName != name))) {
+            std::set<AccountSA::OsAccountState> states;
+            subscribeInfo.GetStates(states);
+            AccountSA::OsAccountState targetState = static_cast<AccountSA::OsAccountState>(type);
+            if (states.find(targetState) == states.end()) {
                 item++;
                 continue;
             }
