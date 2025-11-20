@@ -256,6 +256,7 @@ ohos_shared_library("accountmgr") {
 
   external_deps = [
     "ability_base:base",
+    "ability_base:configuration",
     "ability_base:want",
     "ability_runtime:ability_connect_callback_stub",
     "ability_runtime:wantagent_innerkits",
