@@ -111,6 +111,18 @@ bool BundleManagerAdapter::GetBundleInfo(const std::string &bundleName, const Ap
     return true;
 }
 
+ErrCode BundleManagerAdapter::IsBundleInstalled(const std::string &bundleName, int32_t userId,
+    int32_t &appIndex, bool &isBundleInstalled)
+{
+    ACCOUNT_LOGI("mock enter, bundleName = %{public}s, userId = %{public}d.", bundleName.c_str(), userId);
+    if (bundleName == STRING_BUNDLE_NAME_NOT_INSTALLED) {
+        isBundleInstalled = false;
+    } else {
+        isBundleInstalled = true;
+    }
+    return ERR_OK;
+}
+
 bool BundleManagerAdapter::QueryAbilityInfos(const AAFwk::Want &want, int32_t flags, int32_t userId,
     std::vector<AppExecFwk::AbilityInfo> &abilityInfos)
 {
