@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "os_account_constants.h"
 #include "bundle_manager_adapter.h"
 #include "account_log_wrapper.h"
 
@@ -115,7 +116,8 @@ ErrCode BundleManagerAdapter::IsBundleInstalled(const std::string &bundleName, i
     int32_t &appIndex, bool &isBundleInstalled)
 {
     ACCOUNT_LOGI("mock enter, bundleName = %{public}s, userId = %{public}d.", bundleName.c_str(), userId);
-    if (bundleName == STRING_BUNDLE_NAME_NOT_INSTALLED) {
+    // test not installed
+    if (userId == Constants::MAINTENANCE_MODE_ID) {
         isBundleInstalled = false;
     } else {
         isBundleInstalled = true;
