@@ -92,6 +92,7 @@ constexpr std::size_t SIZE_TWO = 2;
 constexpr uint32_t TEST_CODE = 1;
 constexpr std::int32_t TEST_ID = 1;
 const uid_t ACCOUNT_UID = 3058;
+constexpr std::size_t SIZE_BOOL = 2;
 std::shared_ptr<AppAccountManagerService> g_accountManagerService =
     std::make_shared<AppAccountManagerService>();
 }  // namespace
@@ -3128,4 +3129,119 @@ HWTEST_F(AppAccountManagerServiceModuleTest, MoveData_0100, TestSize.Level0)
         EL2_DATA_STORE_PREFIX + std::to_string(TEST_MOVE_ID), options);
     std::string searchValue = "";
     EXPECT_EQ(ERR_OK, newDatamanager->GetValueFromKvStore(testKey, searchValue));
+}
+
+void TestAppAccess()
+{
+    int32_t num = 10;
+    while (num-- > 0) {
+        int32_t funcResult = -1;
+        bool setBool = num % SIZE_BOOL;
+        g_accountManagerService->SetAppAccess(STRING_NAME, STRING_BUNDLE_NAME, setBool, funcResult);
+        EXPECT_EQ(funcResult, ERR_OK);
+
+        funcResult = -1;
+        bool isAccessible = SYNC_ENABLE_FALSE;
+        g_accountManagerService->CheckAppAccess(STRING_NAME, STRING_BUNDLE_NAME, isAccessible, funcResult);
+        EXPECT_EQ(funcResult, ERR_OK);
+        EXPECT_EQ(isAccessible, setBool);
+    }
+}
+
+void TestAccountCredential()
+{
+    int32_t num = 10;
+    while (num-- > 0) {
+        int32_t funcResult = -1;
+        std::string credCpy = STRING_CREDENTIAL + std::to_string(num);
+        g_accountManagerService->SetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, credCpy, funcResult);
+        EXPECT_EQ(funcResult, ERR_OK);
+
+        funcResult = -1;
+        std::string credential;
+        g_accountManagerService->GetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, credential, funcResult);
+        EXPECT_EQ(funcResult, ERR_OK);
+        EXPECT_EQ(credential, credCpy);
+    }
+}
+
+void TestAppAccountSyncEnable()
+{
+    int32_t num = 10;
+    while (num-- > 0) {
+        int32_t funcResult = -1;
+        bool setBool = num % SIZE_BOOL;
+        g_accountManagerService->SetAppAccountSyncEnable(STRING_NAME, setBool, funcResult);
+        EXPECT_EQ(funcResult, ERR_OK);
+
+        funcResult = -1;
+        bool syncEnable = SYNC_ENABLE_FALSE;
+        g_accountManagerService->CheckAppAccountSyncEnable(STRING_NAME, syncEnable, funcResult);
+        EXPECT_EQ(funcResult, ERR_OK);
+        EXPECT_EQ(syncEnable, setBool);
+    }
+}
+
+void TestOAuthTokenVisibility()
+{
+    int32_t num = 10;
+    while (num-- > 0) {
+        int32_t funcResult = -1;
+        bool setBool = num % SIZE_BOOL;
+        g_accountManagerService->SetOAuthTokenVisibility(STRING_NAME,
+            STRING_AUTH_TYPE, STRING_BUNDLE_NAME, setBool, funcResult);
+        EXPECT_EQ(funcResult, ERR_OK);
+
+        funcResult = -1;
+        bool isVisible = SYNC_ENABLE_FALSE;
+        g_accountManagerService->CheckOAuthTokenVisibility(STRING_NAME,
+            STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible, funcResult);
+        EXPECT_EQ(funcResult, ERR_OK);
+        EXPECT_EQ(isVisible, setBool);
+    }
+}
+
+void TestAccountExtraInfo()
+{
+    int32_t num = 10;
+    while (num-- > 0) {
+        int32_t funcResult = -1;
+        std::string extraInfoCpy = STRING_EXTRA_INFO + std::to_string(num);
+        g_accountManagerService->SetAccountExtraInfo(
+            STRING_NAME, extraInfoCpy, funcResult);
+        EXPECT_EQ(funcResult, ERR_OK);
+
+        funcResult = -1;
+        std::string extraInfo;
+        g_accountManagerService->GetAccountExtraInfo(STRING_NAME, extraInfo, funcResult);
+        EXPECT_EQ(funcResult, ERR_OK);
+        EXPECT_EQ(extraInfo, extraInfoCpy);
+    }
+}
+
+/**
+ * @tc.name: AppAccountManagerService_SetKvdbByThread_0100
+ * @tc.desc: set kvdb by thread.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetKvdbByThread_0100, TestSize.Level3)
+{
+    int32_t funcResult = -1;
+    g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
+
+    std::thread threadTestAppAccess(TestAppAccess);
+    std::thread threadTestAccountExtraInfo(TestAccountExtraInfo);
+    std::thread threadTestAccountCredential(TestAccountCredential);
+    std::thread threadTestAppAccountSyncEnable(TestAppAccountSyncEnable);
+    std::thread threadTestOAuthTokenVisibility(TestOAuthTokenVisibility);
+    threadTestAppAccess.join();
+    threadTestAccountExtraInfo.join();
+    threadTestAccountCredential.join();
+    threadTestAppAccountSyncEnable.join();
+    threadTestOAuthTokenVisibility.join();
+
+    g_accountManagerService->DeleteAccount(STRING_NAME, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 }
