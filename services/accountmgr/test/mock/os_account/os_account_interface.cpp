@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "os_account_constants.h"
 #include "os_account_interface.h"
 #include "account_log_wrapper.h"
 
@@ -48,11 +49,11 @@ ErrCode OsAccountInterface::IsBundleInstalled(const std::string &bundleName, int
     int32_t &appIndex, bool &isBundleInstalled)
 {
     ACCOUNT_LOGI("mock OsAccountInterface IsBundleInstalled start");
-    if (bundleName == "com.example.not_installed") {
+    // test not installed
+    if (userId == Constants::MAINTENANCE_MODE_ID) {
         isBundleInstalled = false;
     } else {
         isBundleInstalled = true;
-        appIndex = 0;
     }
     return ERR_OK;
 }
