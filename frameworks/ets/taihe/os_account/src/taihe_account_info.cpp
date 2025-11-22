@@ -24,6 +24,27 @@ TaiheSubscriberPtr::TaiheSubscriberPtr(const AccountSA::OsAccountSubscribeInfo &
 TaiheSubscriberPtr::~TaiheSubscriberPtr()
 {}
 
+void TaiheSubscriberPtr::OnStateChanged(const OsAccountStateData &data)
+{
+    switch (data.state) {
+        case OsAccountState::SWITCHING:
+        case OsAccountState::SWITCHED: {
+            OnAccountsSwitch(data.toId, data.fromId, data.displayId);
+            return;
+        }
+        case OsAccountState::CREATED: {
+            return;
+        }
+        case OsAccountState::REMOVED: {
+            return;
+        }
+        default: {
+            OnAccountsChanged(data.toId);
+            return;
+        }
+    }
+}
+
 void TaiheSubscriberPtr::OnAccountsChanged(const int &id)
 {
     if (activeRef_) {
@@ -34,15 +55,18 @@ void TaiheSubscriberPtr::OnAccountsChanged(const int &id)
     }
 }
 
-void TaiheSubscriberPtr::OnAccountsSwitch(const int &newId, const int &oldId)
+void TaiheSubscriberPtr::OnAccountsSwitch(const int &newId, const int &oldId, std::optional<uint64_t> displayId)
 {
-    if (switchRef_) {
-        TaiheOsAccountSwitchEventData data = {oldId, newId};
-        switch_callback call = *switchRef_;
-        call(data);
-    } else {
+    if (switchRef_ == nullptr) {
         ACCOUNT_LOGE("switchRef_ is nullptr!");
+        return;
     }
+    TaiheOsAccountSwitchEventData data = {oldId, newId};
+    if (displayId.has_value()) {
+        data.displayId = optional<int64_t>(std::in_place_t{}, static_cast<int64_t>(displayId.value()));
+    }
+    switch_callback call = *switchRef_;
+    call(data);
 }
 
 bool SubscribeCBInfo::IsSameCallBack(AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE type,

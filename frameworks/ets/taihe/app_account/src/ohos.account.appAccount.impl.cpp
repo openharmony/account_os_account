@@ -13,29 +13,33 @@
  * limitations under the License.
  */
 
+#include <memory>
+#include "account_error_no.h"
+#include "account_log_wrapper.h"
 #include "ani_common_want.h"
 #include "app_account_authenticator_callback_stub.h"
 #include "app_account_common.h"
 #include "app_account_manager.h"
-#include "account_error_no.h"
-#include "account_log_wrapper.h"
-#include "ohos.account.appAccount.proj.hpp"
+#include "event_handler.h"
+#include "event_runner.h"
 #include "ohos.account.appAccount.impl.hpp"
-#include "taihe_appAccount_info.h"
+#include "ohos.account.appAccount.proj.hpp"
 #include "ohos_account_kits.h"
+#include "remote_object_taihe_ani.h"
 #include "stdexcept"
+#include "string_wrapper.h"
 #include "taihe/runtime.hpp"
-#include "ani_remote_object.h"
+#include "taihe_appAccount_info.h"
+#include "want_params_wrapper.h"
 
 using namespace taihe;
 using namespace OHOS;
 using namespace ohos::account::appAccount;
 
-static std::map<uint64_t, std::vector<AccountSA::AsyncContextForSubscribe *>> g_thAppAccountSubscribers;
-static std::mutex g_thLockForAppAccountSubscribers;
-
 namespace OHOS {
 namespace AccountSA {
+using namespace OHOS::AccountJsKit;
+
 SubscriberPtr::SubscriberPtr(const AccountSA::AppAccountSubscribeInfo &subscribeInfo,
     SubscribeCallback callback):AccountSA::AppAccountSubscriber(subscribeInfo), callback_(callback)
 {}
@@ -45,13 +49,20 @@ SubscriberPtr::~SubscriberPtr()
 
 void SubscriberPtr::OnAccountsChanged(const std::vector<AccountSA::AppAccountInfo> &accounts)
 {
-    std::lock_guard<std::mutex> lock(g_thLockForAppAccountSubscribers);
+    std::lock_guard<std::mutex> lock(AppAccountSubscriberInfo::GetInstance().lockForAppAccountSubscribers);
     SubscriberPtr *subscriber = this;
     bool isFound = false;
-    for (const auto& objectInfoTmp : g_thAppAccountSubscribers) {
-        isFound = std::any_of(objectInfoTmp.second.begin(), objectInfoTmp.second.end(),
-            [subscriber](const AsyncContextForSubscribe* item) {
-                return item->subscriber.get() == subscriber;
+    auto begin = GetBeginAppAccountSubscribersMapIterator();
+    auto end = GetEndAppAccountSubscribersMapIterator();
+    for (auto it = begin; it != end; it++) {
+        isFound = std::any_of(it->second.begin(), it->second.end(),
+            [subscriber](const AsyncContextForSubscribeBase* item) {
+                const AsyncContextForSubscribe *subptr = static_cast<const AsyncContextForSubscribe *>(item);
+                if (subptr == nullptr) {
+                    ACCOUNT_LOGE("AsyncContextForSubscribe cast error");
+                    return false;
+                }
+                return subptr->subscriber.get() == subscriber;
             });
         if (isFound) {
             break;
@@ -79,6 +90,55 @@ void SubscriberPtr::OnAccountsChanged(const std::vector<AccountSA::AppAccountInf
 
 namespace {
 using OHOS::AccountSA::ACCOUNT_LABEL;
+using OHOS::AccountSA::AsyncContextForSubscribe;
+using namespace OHOS::AccountJsKit;
+namespace {
+const char OS_ACCOUNT[] = "account";
+const char OS_ACCOUNT_OWNER[] = "owner";
+const char OS_ACCOUNT_NAME[] = "name";
+const char TOKEN_INFO[] = "tokenInfo";
+const char TOKEN_INFO_AUTH_TYPE[] = "authType";
+const char TOKEN_INFO_TOKEN[] = "token";
+
+AAFwk::Want BuildWantFromAuthResult(const ::taihe::optional_view<::ohos::account::appAccount::AuthResult> &authResult)
+{
+    AAFwk::Want wantResult;
+    if (!authResult.has_value()) {
+        return wantResult;
+    }
+    const auto &res = authResult.value();
+    AAFwk::WantParams wantParams;
+    if (res.account.has_value()) {
+        const auto &acc = res.account.value();
+        std::string name(acc.name.data(), acc.name.size());
+        std::string owner(acc.owner.data(), acc.owner.size());
+        AAFwk::WantParams account;
+        account.SetParam(OS_ACCOUNT_NAME, OHOS::AAFwk::String::Box(name));
+        account.SetParam(OS_ACCOUNT_OWNER, OHOS::AAFwk::String::Box(owner));
+        wantParams.SetParam(OS_ACCOUNT, OHOS::AAFwk::WantParamWrapper::Box(account));
+    }
+    if (res.tokenInfo.has_value()) {
+        const auto &ti = res.tokenInfo.value();
+        std::string authType(ti.authType.data(), ti.authType.size());
+        std::string token(ti.token.data(), ti.token.size());
+        AAFwk::WantParams tokenInfo;
+        tokenInfo.SetParam(TOKEN_INFO_AUTH_TYPE, OHOS::AAFwk::String::Box(authType));
+        tokenInfo.SetParam(TOKEN_INFO_TOKEN, OHOS::AAFwk::String::Box(token));
+        if (ti.account.has_value()) {
+            const auto &acc2 = ti.account.value();
+            std::string name(acc2.name.data(), acc2.name.size());
+            std::string owner(acc2.owner.data(), acc2.owner.size());
+            AAFwk::WantParams account;
+            account.SetParam(OS_ACCOUNT_NAME, OHOS::AAFwk::String::Box(name));
+            account.SetParam(OS_ACCOUNT_OWNER, OHOS::AAFwk::String::Box(owner));
+            tokenInfo.SetParam(OS_ACCOUNT, OHOS::AAFwk::WantParamWrapper::Box(account));
+        }
+        wantParams.SetParam(TOKEN_INFO, OHOS::AAFwk::WantParamWrapper::Box(tokenInfo));
+    }
+    wantResult.SetParams(wantParams);
+    return wantResult;
+}
+} // namespace
 
 AppAccountInfo ConvertAppAccountInfo(AccountSA::AppAccountInfo& innerInfo)
 {
@@ -99,18 +159,21 @@ AccountSA::SelectAccountsOptions ConvertAccountsOptionsInfo(
             tempPair.second = accountsOptionsInfo.name.c_str();
             tempOptions.allowedAccounts.push_back(tempPair);
         }
+        tempOptions.hasAccounts = true;
     }
     
     if (options.allowedOwners) {
         std::vector<std::string> tempAllowedOwners(options.allowedOwners.value().data(),
             options.allowedOwners.value().data() + options.allowedOwners.value().size());
         tempOptions.allowedOwners = tempAllowedOwners;
+        tempOptions.hasOwners = true;
     }
 
     if (options.requiredLabels) {
         std::vector<std::string> tempRequiredLabels(options.requiredLabels.value().data(),
             options.requiredLabels.value().data() + options.requiredLabels.value().size());
         tempOptions.requiredLabels = tempRequiredLabels;
+        tempOptions.hasLabels = true;
     }
     return tempOptions;
 }
@@ -123,25 +186,32 @@ public:
     ~THAppAccountManagerCallback() override = default;
     ErrCode OnResult(int32_t resultCode, const AAFwk::Want &result) override
     {
-        AppAccountInfo appAccountInfo = AppAccountInfo {
-            .owner = taihe::string(result.GetStringParam(AccountSA::Constants::KEY_ACCOUNT_OWNERS)),
-            .name = taihe::string(result.GetStringParam(AccountSA::Constants::KEY_ACCOUNT_NAMES))
-        };
-        AuthTokenInfo authTokenInfo = AuthTokenInfo {
-            .authType = taihe::string(result.GetStringParam(AccountSA::Constants::KEY_AUTH_TYPE)),
-            .token = taihe::string(result.GetStringParam(AccountSA::Constants::KEY_TOKEN))
-        };
-        AuthResult authResult = AuthResult {
-            .account = optional<AppAccountInfo>(std::in_place_t{}, appAccountInfo),
-            .tokenInfo = optional<AuthTokenInfo>(std::in_place_t{}, authTokenInfo),
-        };
-        taiheCallback_.onResult(resultCode, optional<AuthResult>(std::in_place_t{}, authResult));
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            if (isCalled_) {
+                ACCOUNT_LOGW("OnResult has been called, ignore this call");
+                return ERR_OK;
+            }
+            isCalled_ = true;
+        }
+        AuthResult authResult;
+        const auto &params = result.GetParams();
+        if (params.HasParam(OS_ACCOUNT)) {
+            auto account = params.GetWantParams(OS_ACCOUNT);
+            authResult.account = optional<AppAccountInfo>(std::in_place_t {}, ParseAccountInfo(account));
+        }
+        if (params.HasParam(TOKEN_INFO)) {
+            auto tokenInfo = params.GetWantParams(TOKEN_INFO);
+            authResult.tokenInfo = optional<AuthTokenInfo>(std::in_place_t {}, ParseAuthTokenInfo(tokenInfo));
+        }
+        taiheCallback_.onResult(resultCode, optional<AuthResult>(std::in_place_t {}, authResult));
         return ERR_OK;
     }
 
     ErrCode OnRequestRedirected(const AAFwk::Want &request) override
     {
-        ani_env *env = get_env();
+        taihe::env_guard guard;
+        ani_env *env = guard.get_env();
         auto requestObj = AppExecFwk::WrapWant(env, request);
         auto requestPtr = reinterpret_cast<uintptr_t>(requestObj);
         taiheCallback_.onRequestRedirected(requestPtr);
@@ -155,8 +225,59 @@ public:
         }
         return ERR_OK;
     }
+
+    ErrCode CallbackEnter([[maybe_unused]] uint32_t code) override
+    {
+        return ERR_OK;
+    }
+
+    ErrCode CallbackExit([[maybe_unused]] uint32_t code, [[maybe_unused]] int32_t result) override
+    {
+        switch (code) {
+            case static_cast<uint32_t>(AccountSA::IAppAccountAuthenticatorCallbackIpcCode::COMMAND_ON_RESULT): {
+                if (result == ERR_INVALID_DATA) {
+                    AAFwk::Want resultWant;
+                    OnResult(ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION, resultWant);
+                    return ERR_APPACCOUNT_SERVICE_OAUTH_INVALID_RESPONSE;
+                }
+                break;
+            }
+            case static_cast<uint32_t>(
+                AccountSA::IAppAccountAuthenticatorCallbackIpcCode::COMMAND_ON_REQUEST_REDIRECTED): {
+                if (result == ERR_INVALID_DATA) {
+                    AAFwk::Want request;
+                    OnRequestRedirected(request);
+                    return ERR_APPACCOUNT_SERVICE_OAUTH_INVALID_RESPONSE;
+                }
+                break;
+            }
+            default:
+                return ERR_NONE;
+        }
+        return ERR_NONE;
+    }
+
 private:
+    AppAccountInfo ParseAccountInfo(const AAFwk::WantParams &params) const
+    {
+        return AppAccountInfo { .owner = taihe::string(params.GetStringParam(OS_ACCOUNT_OWNER)),
+            .name = taihe::string(params.GetStringParam(OS_ACCOUNT_NAME)) };
+    }
+
+    AuthTokenInfo ParseAuthTokenInfo(const AAFwk::WantParams &tokenInfo) const
+    {
+        AuthTokenInfo authTokenInfo { .authType = taihe::string(tokenInfo.GetStringParam(TOKEN_INFO_AUTH_TYPE)),
+            .token = taihe::string(tokenInfo.GetStringParam(TOKEN_INFO_TOKEN)) };
+        if (tokenInfo.HasParam(OS_ACCOUNT)) {
+            auto account = tokenInfo.GetWantParams(OS_ACCOUNT);
+            authTokenInfo.account = optional<AppAccountInfo>(std::in_place_t {}, ParseAccountInfo(account));
+        }
+        return authTokenInfo;
+    }
+
     ohos::account::appAccount::AuthCallback taiheCallback_;
+    std::mutex mutex_;
+    bool isCalled_ = false;
 };
 
 class OnResultCallbackImpl {
@@ -170,25 +291,7 @@ public:
             ACCOUNT_LOGE("Native callback is nullptr");
             return;
         }
-        AAFwk::Want wantResult;
-        if (authResult.has_value()) {
-            if (authResult.value().account.has_value()) {
-                std::string name(authResult.value().account.value().name.data(),
-                    authResult.value().account.value().name.size());
-                std::string owner(authResult.value().account.value().owner.data(),
-                    authResult.value().account.value().owner.size());
-                wantResult.SetParam(AccountSA::Constants::KEY_ACCOUNT_NAMES, name);
-                wantResult.SetParam(AccountSA::Constants::KEY_ACCOUNT_OWNERS, owner);
-            }
-            if (authResult.value().tokenInfo.has_value()) {
-                std::string authType(authResult.value().tokenInfo.value().authType.data(),
-                    authResult.value().tokenInfo.value().authType.size());
-                std::string token(authResult.value().tokenInfo.value().token.data(),
-                    authResult.value().tokenInfo.value().token.size());
-                wantResult.SetParam(AccountSA::Constants::KEY_AUTH_TYPE, authType);
-                wantResult.SetParam(AccountSA::Constants::KEY_TOKEN, token);
-            }
-        }
+        AAFwk::Want wantResult = BuildWantFromAuthResult(authResult);
         callback_->OnResult(result, wantResult);
     }
 
@@ -208,15 +311,14 @@ public:
             return;
         }
         AAFwk::Want wantResult;
-        AAFwk::WantParams wantParamsResult;
-        ani_env *env = get_env();
-        ani_ref requestRef = reinterpret_cast<ani_ref>(request);
-        bool status = AppExecFwk::UnwrapWantParams(env, requestRef, wantParamsResult);
+        taihe::env_guard guard;
+        ani_env *env = guard.get_env();
+        ani_object requestRef = reinterpret_cast<ani_object>(request);
+        bool status = AppExecFwk::UnwrapWant(env, requestRef, wantResult);
         if (!status) {
-            ACCOUNT_LOGE("Failed to UnwrapWantParams status = %{public}d", status);
+            ACCOUNT_LOGE("Failed to UnwrapWant status = %{public}d", status);
             return;
         }
-        wantResult = wantResult.SetParams(wantParamsResult);
         callback_->OnRequestRedirected(wantResult);
     }
 
@@ -243,8 +345,24 @@ private:
 };
 
 class AppAccountManagerImpl {
+private:
+   uint64_t ptr_ = 0;
 public:
-    AppAccountManagerImpl() {}
+    AppAccountManagerImpl()
+    {
+        AccountSA::AppAccountManager *objectInfo = new (std::nothrow) AccountSA::AppAccountManager();
+        if (objectInfo == nullptr) {
+            ACCOUNT_LOGE("failed to create AppAccountManager for insufficient memory");
+            ptr_ = 0;
+        } else {
+            ptr_ = reinterpret_cast<uint64_t>(objectInfo);
+        }
+    }
+
+    explicit AppAccountManagerImpl(uint64_t ptr)
+    {
+        ptr_ = ptr;
+    }
 
     void CreateAccountPromise(string_view name, optional_view<CreateAccountOptions> options)
     {
@@ -458,13 +576,12 @@ public:
 
     array<AppAccountInfo> GetAccountsByOwnerSync(string_view owner)
     {
-        std::vector<AppAccountInfo> appAccountsInfos;
         std::string innerOwner(owner.data(), owner.size());
+        std::vector<AppAccountInfo> appAccountsInfos;
         if (innerOwner.empty()) {
             int32_t jsErrCode = GenerateBusinessErrorCode(ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
-            return taihe::array<AppAccountInfo>(taihe::copy_data_t{}, appAccountsInfos.data(),
-                appAccountsInfos.size());
+            return taihe::array<AppAccountInfo>(taihe::copy_data_t{}, appAccountsInfos.data(), appAccountsInfos.size());
         }
         std::vector<AccountSA::AppAccountInfo> appAccounts;
         int32_t errorCode = AccountSA::AppAccountManager::QueryAllAccessibleAccounts(innerOwner, appAccounts);
@@ -545,7 +662,7 @@ public:
         }
     }
 
-    bool CheckAccountLabelsSync(string_view name, string_view owner, array_view<string> labels)
+    bool CheckAccountLabelsSync(string_view name, string_view owner, array_view<string_view> labels)
     {
         std::string innerName(name.data(), name.size());
         std::string innerOwner(owner.data(), owner.size());
@@ -834,7 +951,7 @@ public:
         ani_ref parametersRef;
         bool hasParameters = false;
         if (env->Object_GetPropertyByName_Ref(optionsObj, "parameters", &parametersRef) == ANI_OK) {
-            if (env->Reference_IsUndefined(parametersRef, &isUndefined) == ANI_OK) {
+            if (env->Reference_IsUndefined(parametersRef, &isUndefined) == ANI_OK && !isUndefined) {
                 hasParameters = true;
             }
         }
@@ -999,6 +1116,7 @@ public:
         std::string innerOwner(owner.data(), owner.size());
         std::string innerAuthType(authType.data(), authType.size());
         AAFwk::Want options;
+        options.SetParam(AccountSA::Constants::API_V9, true);
         sptr<THAppAccountManagerCallback> appAccountMgrCb = new (std::nothrow) THAppAccountManagerCallback(callback);
         if (appAccountMgrCb == nullptr) {
             ACCOUNT_LOGE("failed to create AppAccountManagerCallback for insufficient memory");
@@ -1034,6 +1152,7 @@ public:
         }
         AAFwk::Want innerOptions;
         innerOptions.SetParams(params);
+        innerOptions.SetParam(AccountSA::Constants::API_V9, true);
         sptr<THAppAccountManagerCallback> appAccountMgrCb = new (std::nothrow) THAppAccountManagerCallback(callback);
         if (appAccountMgrCb == nullptr) {
             ACCOUNT_LOGE("failed to create AppAccountManagerCallback for insufficient memory");
@@ -1053,12 +1172,17 @@ public:
 
     static bool IsExitSubscribe(AccountSA::AsyncContextForSubscribe* context)
     {
-        auto subscribe = g_thAppAccountSubscribers.find(context->appAccountManagerHandle);
-        if (subscribe == g_thAppAccountSubscribers.end()) {
+        auto subscribe = GetAppAccountSubscribersMapIterator(context->appAccountManagerHandle);
+        if (subscribe == GetEndAppAccountSubscribersMapIterator()) {
             return false;
         }
         for (size_t index = 0; index < subscribe->second.size(); index++) {
-            if (subscribe->second[index]->callbackRef == context->callbackRef) {
+            AsyncContextForSubscribe *item = static_cast<AsyncContextForSubscribe *>(subscribe->second[index]);
+            if (item == nullptr) {
+                ACCOUNT_LOGE("AsyncContextForSubscribe cast error");
+                return false;
+            }
+            if (item->callbackRef == context->callbackRef) {
                 return true;
             }
         }
@@ -1077,11 +1201,8 @@ public:
         return true;
     }
 
-    void OnSync(string_view type, array_view<string> owners, callback_view<void(array_view<AppAccountInfo>)> callback)
+    void OnAccountChange(array_view<string> owners, callback_view<void(array_view<AppAccountInfo>)> callback)
     {
-        if (!CheckType(type)) {
-            return;
-        }
         std::vector<std::string> innerOwners(owners.data(), owners.data() + owners.size());
 
         auto context = std::make_unique<AccountSA::AsyncContextForSubscribe>(callback);
@@ -1093,7 +1214,7 @@ public:
             return;
         }
         {
-            std::lock_guard<std::mutex> lock(g_thLockForAppAccountSubscribers);
+            std::lock_guard<std::mutex> lock(AppAccountSubscriberInfo::GetInstance().lockForAppAccountSubscribers);
             if (IsExitSubscribe(context.get())) {
                 return;
             }
@@ -1105,8 +1226,8 @@ public:
             return;
         }
         {
-            std::lock_guard<std::mutex> lock(g_thLockForAppAccountSubscribers);
-            g_thAppAccountSubscribers[context->appAccountManagerHandle].emplace_back(context.get());
+            std::lock_guard<std::mutex> lock(AppAccountSubscriberInfo::GetInstance().lockForAppAccountSubscribers);
+            InsertAppAccountSubscriberInfoToMap(context->appAccountManagerHandle, context.get());
         }
         context.release();
     }
@@ -1114,16 +1235,21 @@ public:
     void Unsubscribe(std::shared_ptr<AccountSA::AsyncContextForUnsubscribe> context,
         optional_view<callback<void(array_view<AppAccountInfo> data)>> callback)
     {
-        std::lock_guard<std::mutex> lock(g_thLockForAppAccountSubscribers);
-        auto subscribe = g_thAppAccountSubscribers.find(context->appAccountManagerHandle);
-        if (subscribe == g_thAppAccountSubscribers.end()) {
+        std::lock_guard<std::mutex> lock(AppAccountSubscriberInfo::GetInstance().lockForAppAccountSubscribers);
+        auto subscribe = GetAppAccountSubscribersMapIterator(ptr_);
+        if (subscribe == GetEndAppAccountSubscribersMapIterator()) {
             return;
         }
         for (size_t index = 0; index < subscribe->second.size(); ++index) {
-            if (callback.has_value() && !(callback.value() == subscribe->second[index]->subscriber->callback_)) {
+            AsyncContextForSubscribe *item = static_cast<AsyncContextForSubscribe *>(subscribe->second[index]);
+            if (item == nullptr) {
+                ACCOUNT_LOGE("AsyncContextForSubscribe cast error");
                 continue;
             }
-            int errCode = AccountSA::AppAccountManager::UnsubscribeAppAccount(subscribe->second[index]->subscriber);
+            if (callback.has_value() && !(callback.value() == item->subscriber->callback_)) {
+                continue;
+            }
+            int errCode = AccountSA::AppAccountManager::UnsubscribeAppAccount(item->subscriber);
             if (errCode != ERR_OK) {
                 int32_t jsErrCode = GenerateBusinessErrorCode(errCode);
                 taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
@@ -1136,15 +1262,12 @@ public:
             }
         }
         if ((!callback.has_value()) || (subscribe->second.empty())) {
-            g_thAppAccountSubscribers.erase(subscribe);
+            EraseAccountSubscribersMap(ptr_);
         }
     }
 
-    void OffSync(string_view type, optional_view<callback<void(array_view<AppAccountInfo> data)>> callback)
+    void OffAccountChange(optional_view<callback<void(array_view<AppAccountInfo> data)>> callback)
     {
-        if (!CheckType(type)) {
-            return;
-        }
         std::shared_ptr<AccountSA::AsyncContextForUnsubscribe> context(
             new (std::nothrow) AccountSA::AsyncContextForUnsubscribe());
         if (context == nullptr) {
@@ -1158,11 +1281,10 @@ public:
             Unsubscribe(context, nullptr);
         }
     }
-
-private:
+    
     uint64_t GetInner()
     {
-        return reinterpret_cast<uint64_t>(this);
+        return ptr_;
     }
 };
 
@@ -1175,45 +1297,32 @@ public:
         object_ = nullptr;
     }
 
+    sptr<IRemoteObject> GetRemote()
+    {
+        return object_;
+    }
+
     void operator()(int32_t resultCode, const ::taihe::optional_view<::ohos::account::appAccount::AuthResult>& result)
     {
         auto callbackProxy = iface_cast<AccountSA::IAppAccountAuthenticatorCallback>(object_);
-        if ((callbackProxy != nullptr) && (callbackProxy->AsObject() != nullptr)) {
-            AAFwk::Want wantResult;
-            if (result.has_value()) {
-                if (result.value().account.has_value()) {
-                    std::string name(result.value().account.value().name.data(),
-                        result.value().account.value().name.size());
-                    std::string owner(result.value().account.value().owner.data(),
-                        result.value().account.value().owner.size());
-                    wantResult.SetParam(AccountSA::Constants::KEY_ACCOUNT_NAMES, name);
-                    wantResult.SetParam(AccountSA::Constants::KEY_ACCOUNT_OWNERS, owner);
-                }
-                if (result.value().tokenInfo.has_value()) {
-                    std::string authType(result.value().tokenInfo.value().authType.data(),
-                        result.value().tokenInfo.value().authType.size());
-                    std::string token(result.value().tokenInfo.value().token.data(),
-                        result.value().tokenInfo.value().token.size());
-                    wantResult.SetParam(AccountSA::Constants::KEY_AUTH_TYPE, authType);
-                    wantResult.SetParam(AccountSA::Constants::KEY_TOKEN, token);
-                }
-            }
-            callbackProxy->OnResult(resultCode, wantResult);
+        if (callbackProxy == nullptr || callbackProxy->AsObject() == nullptr) {
+            ACCOUNT_LOGE("callbackProxy or callbackProxy->AsObject() is nullptr");
+            return;
         }
+        AAFwk::Want wantResult = BuildWantFromAuthResult(result);
+        callbackProxy->OnResult(resultCode, wantResult);
     }
 
     void operator()(uintptr_t request)
     {
         AAFwk::Want wantResult;
-        AAFwk::WantParams wantParamsResult;
         ani_env *env = get_env();
-        ani_ref requestRef = reinterpret_cast<ani_ref>(request);
-        auto status = AppExecFwk::UnwrapWantParams(env, requestRef, wantParamsResult);
+        ani_object requestRef = reinterpret_cast<ani_object>(request);
+        auto status = AppExecFwk::UnwrapWant(env, requestRef, wantResult);
         if (!status) {
-            ACCOUNT_LOGE("Failed to UnwrapWantParams status = %{public}d", status);
+            ACCOUNT_LOGE("Failed to UnwrapWant status = %{public}d", status);
             return;
         }
-        wantResult = wantResult.SetParams(wantParamsResult);
         auto callbackProxy = iface_cast<AccountSA::IAppAccountAuthenticatorCallback>(object_);
         if ((callbackProxy != nullptr) && (callbackProxy->AsObject() != nullptr)) {
             callbackProxy->OnRequestRedirected(wantResult);
@@ -1231,9 +1340,36 @@ private:
     sptr<IRemoteObject> object_;
 };
 
-class TaiheAppAccountAuthenticator : public AccountSA::AppAccountAuthenticatorStub {
+ohos::account::appAccount::AuthCallback ConvertToAppAccountAuthenticatorCallback(
+    const sptr<IRemoteObject> &callback)
+{
+    ::taihe::callback<void(int32_t, ::taihe::optional_view<::ohos::account::appAccount::AuthResult>)>
+        onResultCallback = ::taihe::make_holder<THappAccountAuthenticatorCallback, ::taihe::callback<void(int32_t,
+            ::taihe::optional_view<::ohos::account::appAccount::AuthResult>)>>(callback);
+    ::taihe::callback<void(uintptr_t request)>
+        onRequestRedirectedCallback = ::taihe::make_holder<THappAccountAuthenticatorCallback,
+            ::taihe::callback<void(uintptr_t request)>>(callback);
+    taihe::callback<void()> tempCallback = ::taihe::make_holder<THappAccountAuthenticatorCallback,
+        ::taihe::callback<void()>>(callback);
+    taihe::optional<taihe::callback<void ()>> onRequestContinuedCallback =
+        taihe::optional<taihe::callback<void ()>>(std::in_place_t{}, tempCallback);
+
+    ::ohos::account::appAccount::AuthCallback taiheCallback{
+        .onResult = onResultCallback,
+        .onRequestRedirected = onRequestRedirectedCallback,
+        .onRequestContinued = onRequestContinuedCallback,
+    };
+    taiheCallback.transferPtr = reinterpret_cast<uint64_t>(callback.GetRefPtr());
+    return taiheCallback;
+}
+
+class TaiheAppAccountAuthenticator : public AccountSA::AppAccountAuthenticatorStub,
+                                     public std::enable_shared_from_this<TaiheAppAccountAuthenticator> {
 public:
-    explicit TaiheAppAccountAuthenticator(const Authenticator &self): self_(self) {}
+    explicit TaiheAppAccountAuthenticator(
+        const Authenticator &self, const std::shared_ptr<AppExecFwk::EventHandler> &handler)
+        : self_(self), handler_(handler)
+    {}
     ~TaiheAppAccountAuthenticator() override = default;
 
     // Abandoned interface
@@ -1261,18 +1397,34 @@ public:
         const sptr<IRemoteObject>& remoteObjCallback,
         int32_t& funcResult) override
     {
-        ani_env *env = get_env();
-        auto parameters = AppExecFwk::WrapWant(env, options.parameters);
-        auto tempParameters = reinterpret_cast<uintptr_t>(parameters);
-        ohos::account::appAccount::CreateAccountImplicitlyOptions taiheOptions =
-            ohos::account::appAccount::CreateAccountImplicitlyOptions {
-                .requiredLabels = optional <taihe::array<::taihe::string>>(std::in_place_t{},
-                    taihe::copy_data_t{}, options.requiredLabels.data(), options.requiredLabels.size()),
-                .authType = optional<string>(std::in_place_t{}, options.authType.c_str()),
-                .parameters = optional<uintptr_t>(std::in_place_t{}, tempParameters),
+        if (handler_ == nullptr) {
+            ACCOUNT_LOGE("EventHandler is null");
+            funcResult = ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION;
+            return ERR_OK;
+        }
+        auto shareThis = shared_from_this();
+        auto task = [shareThis, options, remoteObjCallback]() {
+            taihe::env_guard guard;
+            ani_env *env = guard.get_env();
+            ohos::account::appAccount::AuthCallback callback =
+                ConvertToAppAccountAuthenticatorCallback(remoteObjCallback);
+            auto parameters = AppExecFwk::WrapWant(env, options.parameters);
+            auto tempParameters = reinterpret_cast<uintptr_t>(parameters);
+            ohos::account::appAccount::CreateAccountImplicitlyOptions taiheOptions =
+                ohos::account::appAccount::CreateAccountImplicitlyOptions {
+                    .requiredLabels = optional<taihe::array<::taihe::string>>(std::in_place_t {}, taihe::copy_data_t {},
+                        options.requiredLabels.data(), options.requiredLabels.size()),
+                    .authType = optional<string>(std::in_place_t {}, options.authType.c_str()),
+                    .parameters = optional<uintptr_t>(std::in_place_t {}, tempParameters),
+                };
+            shareThis->self_->CreateAccountImplicitly(taiheOptions, callback);
         };
-        ohos::account::appAccount::AuthCallback callback = ConvertToAppAccountAuthenticatorCallback(remoteObjCallback);
-        self_->CreateAccountImplicitly(taiheOptions, callback);
+        if (!handler_->PostTask(task, __func__, 0, OHOS::AppExecFwk::EventQueue::Priority::VIP, {})) {
+            ACCOUNT_LOGE("Failed to post %{public}s task to handler", __func__);
+            funcResult = ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION;
+            return ERR_OK;
+        }
+        funcResult = ERR_OK;
         return ERR_OK;
     }
 
@@ -1283,13 +1435,29 @@ public:
         const sptr<IRemoteObject>& remoteObjCallback,
         int32_t& funcResult) override
     {
-        taihe::string_view taiheName = taihe::string(name.c_str());
-        taihe::string_view taiheAuthType = taihe::string(authType.c_str());
-        ani_env *env = get_env();
-        auto parameters = AppExecFwk::WrapWantParams(env, options);
-        auto tempParameters = reinterpret_cast<uintptr_t>(parameters);
-        ohos::account::appAccount::AuthCallback callback = ConvertToAppAccountAuthenticatorCallback(remoteObjCallback);
-        self_->Auth(taiheName, taiheAuthType, tempParameters, callback);
+        if (handler_ == nullptr) {
+            ACCOUNT_LOGE("EventHandler is null");
+            funcResult = ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION;
+            return ERR_OK;
+        }
+        auto shareThis = shared_from_this();
+        auto task = [shareThis, name, authType, options, remoteObjCallback]() {
+            taihe::env_guard guard;
+            taihe::string taiheName = taihe::string(name.c_str());
+            taihe::string taiheAuthType = taihe::string(authType.c_str());
+            ani_env *env = guard.get_env();
+            auto parameters = AppExecFwk::WrapWantParams(env, options);
+            auto tempParameters = reinterpret_cast<uintptr_t>(parameters);
+            ohos::account::appAccount::AuthCallback callback =
+                ConvertToAppAccountAuthenticatorCallback(remoteObjCallback);
+            shareThis->self_->Auth(taiheName, taiheAuthType, tempParameters, callback);
+        };
+        if (!handler_->PostTask(task, __func__, 0, OHOS::AppExecFwk::EventQueue::Priority::VIP, {})) {
+            ACCOUNT_LOGE("Failed to post %{public}s task to handler", __func__);
+            funcResult = ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION;
+            return ERR_OK;
+        }
+        funcResult = ERR_OK;
         return ERR_OK;
     }
 
@@ -1299,19 +1467,34 @@ public:
         const sptr<IRemoteObject>& remoteObjCallback,
         int32_t& funcResult) override
     {
-        taihe::string_view taiheName = taihe::string(name.c_str());
-        ani_env *env = get_env();
-        auto parameters = AppExecFwk::WrapWantParams(env, options.parameters);
-        auto tempParameters = reinterpret_cast<uintptr_t>(parameters);
-
-        ohos::account::appAccount::VerifyCredentialOptions taiheOptions =
-            ohos::account::appAccount::VerifyCredentialOptions {
-                .credentialType = optional<string>(std::in_place_t{}, options.credentialType.c_str()),
-                .credential = optional<string>(std::in_place_t{}, options.credential.c_str()),
-                .parameters = optional<uintptr_t>(std::in_place_t{}, tempParameters),
+        if (handler_ == nullptr) {
+            ACCOUNT_LOGE("EventHandler is null");
+            funcResult = ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION;
+            return ERR_OK;
+        }
+        auto shareThis = shared_from_this();
+        auto task = [shareThis, name, options, remoteObjCallback]() {
+            taihe::env_guard guard;
+            taihe::string taiheName = taihe::string(name.c_str());
+            ani_env *env = guard.get_env();
+            auto parameters = AppExecFwk::WrapWantParams(env, options.parameters);
+            auto tempParameters = reinterpret_cast<uintptr_t>(parameters);
+            ohos::account::appAccount::VerifyCredentialOptions taiheOptions =
+                ohos::account::appAccount::VerifyCredentialOptions {
+                    .credentialType = optional<string>(std::in_place_t {}, options.credentialType.c_str()),
+                    .credential = optional<string>(std::in_place_t {}, options.credential.c_str()),
+                    .parameters = optional<uintptr_t>(std::in_place_t {}, tempParameters),
+                };
+            ohos::account::appAccount::AuthCallback callback =
+                ConvertToAppAccountAuthenticatorCallback(remoteObjCallback);
+            shareThis->self_->VerifyCredential(taiheName, taiheOptions, callback);
         };
-        ohos::account::appAccount::AuthCallback callback = ConvertToAppAccountAuthenticatorCallback(remoteObjCallback);
-        self_->VerifyCredential(taiheName, taiheOptions, callback);
+        if (!handler_->PostTask(task, __func__, 0, OHOS::AppExecFwk::EventQueue::Priority::VIP, {})) {
+            ACCOUNT_LOGE("Failed to post %{public}s task to handler", __func__);
+            funcResult = ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION;
+            return ERR_OK;
+        }
+        funcResult = ERR_OK;
         return ERR_OK;
     }
 
@@ -1321,16 +1504,32 @@ public:
         const sptr<IRemoteObject>& remoteObjCallback,
         int32_t& funcResult) override
     {
-        taihe::string_view taiheName = taihe::string(name.c_str());
-        std::vector<taihe::string> tempLabels;
-        tempLabels.reserve(labels.size());
-        for (const auto &label : labels) {
-            tempLabels.emplace_back(taihe::string(label.c_str()));
+        if (handler_ == nullptr) {
+            ACCOUNT_LOGE("EventHandler is null");
+            funcResult = ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION;
+            return ERR_OK;
         }
-        taihe::array_view<taihe::string> taiheLabels = taihe::array<taihe::string>(taihe::copy_data_t{},
-            tempLabels.data(), tempLabels.size());
-        ohos::account::appAccount::AuthCallback callback = ConvertToAppAccountAuthenticatorCallback(remoteObjCallback);
-        self_->CheckAccountLabelsSync(taiheName, taiheLabels, callback);
+        auto shareThis = shared_from_this();
+        auto task = [shareThis, name, labels, remoteObjCallback]() {
+            taihe::env_guard guard;
+            taihe::string taiheName = taihe::string(name.c_str());
+            std::vector<taihe::string> tempLabels;
+            tempLabels.reserve(labels.size());
+            for (const auto &label : labels) {
+                tempLabels.emplace_back(taihe::string(label.c_str()));
+            }
+            taihe::array<taihe::string> taiheLabels =
+                taihe::array<taihe::string>(taihe::copy_data_t {}, tempLabels.data(), tempLabels.size());
+            ohos::account::appAccount::AuthCallback callback =
+                ConvertToAppAccountAuthenticatorCallback(remoteObjCallback);
+            shareThis->self_->CheckAccountLabels(taiheName, taiheLabels, callback);
+        };
+        if (!handler_->PostTask(task, __func__, 0, OHOS::AppExecFwk::EventQueue::Priority::VIP, {})) {
+            ACCOUNT_LOGE("Failed to post %{public}s task to handler", __func__);
+            funcResult = ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION;
+            return ERR_OK;
+        }
+        funcResult = ERR_OK;
         return ERR_OK;
     }
 
@@ -1339,18 +1538,34 @@ public:
         const sptr<IRemoteObject>& remoteObjCallback,
         int32_t& funcResult) override
     {
-        ani_env *env = get_env();
-        auto properties = AppExecFwk::WrapWantParams(env, options.properties);
-        auto tempProperties = reinterpret_cast<uintptr_t>(properties);
-        auto parameters = AppExecFwk::WrapWantParams(env, options.parameters);
-        auto tempParameters = reinterpret_cast<uintptr_t>(parameters);
-        ohos::account::appAccount::SetPropertiesOptions taiheOptions =
-            ohos::account::appAccount::SetPropertiesOptions {
-                .properties = optional<uintptr_t>(std::in_place_t{}, tempProperties),
-                .parameters = optional<uintptr_t>(std::in_place_t{}, tempParameters),
+        if (handler_ == nullptr) {
+            ACCOUNT_LOGE("EventHandler is null");
+            funcResult = ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION;
+            return ERR_OK;
+        }
+        auto shareThis = shared_from_this();
+        auto task = [shareThis, options, remoteObjCallback]() {
+            taihe::env_guard guard;
+            ani_env *env = guard.get_env();
+            auto properties = AppExecFwk::WrapWantParams(env, options.properties);
+            auto tempProperties = reinterpret_cast<uintptr_t>(properties);
+            auto parameters = AppExecFwk::WrapWantParams(env, options.parameters);
+            auto tempParameters = reinterpret_cast<uintptr_t>(parameters);
+            ohos::account::appAccount::SetPropertiesOptions taiheOptions =
+                ohos::account::appAccount::SetPropertiesOptions {
+                    .properties = optional<uintptr_t>(std::in_place_t {}, tempProperties),
+                    .parameters = optional<uintptr_t>(std::in_place_t {}, tempParameters),
+                };
+            ohos::account::appAccount::AuthCallback callback =
+                ConvertToAppAccountAuthenticatorCallback(remoteObjCallback);
+            shareThis->self_->SetProperties(taiheOptions, callback);
         };
-        ohos::account::appAccount::AuthCallback callback = ConvertToAppAccountAuthenticatorCallback(remoteObjCallback);
-        self_->SetProperties(taiheOptions, callback);
+        if (!handler_->PostTask(task, __func__, 0, OHOS::AppExecFwk::EventQueue::Priority::VIP, {})) {
+            ACCOUNT_LOGE("Failed to post %{public}s task to handler", __func__);
+            funcResult = ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION;
+            return ERR_OK;
+        }
+        funcResult = ERR_OK;
         return ERR_OK;
     }
 
@@ -1359,41 +1574,57 @@ public:
         const sptr<IRemoteObject>& remoteObjCallback,
         int32_t& funcResult) override
     {
-        taihe::string_view taiheName = taihe::string(name.c_str());
-        ohos::account::appAccount::AuthCallback callback = ConvertToAppAccountAuthenticatorCallback(remoteObjCallback);
-        self_->CheckAccountRemovable(taiheName, callback);
-        return ERR_OK;
-    }
-private:
-    ohos::account::appAccount::AuthCallback ConvertToAppAccountAuthenticatorCallback(
-        const sptr<IRemoteObject> &callback)
-    {
-        ::taihe::callback<void(int32_t, ::taihe::optional_view<::ohos::account::appAccount::AuthResult>)>
-            onResultCallback = ::taihe::make_holder<THappAccountAuthenticatorCallback, ::taihe::callback<void(int32_t,
-                ::taihe::optional_view<::ohos::account::appAccount::AuthResult>)>>(callback);
-        ::taihe::callback<void(uintptr_t request)>
-            onRequestRedirectedCallback = ::taihe::make_holder<THappAccountAuthenticatorCallback,
-                ::taihe::callback<void(uintptr_t request)>>(callback);
-        taihe::callback<void()> tempCallback = ::taihe::make_holder<THappAccountAuthenticatorCallback,
-            ::taihe::callback<void()>>(callback);
-        taihe::optional<taihe::callback<void ()>> onRequestContinuedCallback =
-            taihe::optional<taihe::callback<void ()>>(std::in_place_t{}, tempCallback);
-
-        ::ohos::account::appAccount::AuthCallback taiheCallback{
-            .onResult = onResultCallback,
-            .onRequestRedirected = onRequestRedirectedCallback,
-            .onRequestContinued = onRequestContinuedCallback,
+        if (handler_ == nullptr) {
+            ACCOUNT_LOGE("EventHandler is null");
+            funcResult = ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION;
+            return ERR_OK;
+        }
+        auto shareThis = shared_from_this();
+        auto task = [shareThis, name, remoteObjCallback]() {
+            taihe::env_guard guard;
+            taihe::string taiheName = taihe::string(name.c_str());
+            ohos::account::appAccount::AuthCallback callback =
+                ConvertToAppAccountAuthenticatorCallback(remoteObjCallback);
+            shareThis->self_->CheckAccountRemovable(taiheName, callback);
         };
-        return taiheCallback;
+        if (!handler_->PostTask(task, __func__, 0, OHOS::AppExecFwk::EventQueue::Priority::VIP, {})) {
+            ACCOUNT_LOGE("Failed to post %{public}s task to handler", __func__);
+            funcResult = ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION;
+            return ERR_OK;
+        }
+        funcResult = ERR_OK;
+        return ERR_OK;
     }
 
 private:
     Authenticator self_;
+    std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
 };
 
 class AuthenticatorImpl {
 public:
-    explicit AuthenticatorImpl(const Authenticator &self): self_(self) {}
+    explicit AuthenticatorImpl(const Authenticator &self): self_(self)
+    {
+        auto runner = AppExecFwk::EventRunner::GetMainEventRunner();
+        if (runner == nullptr) {
+            return;
+        }
+        auto handler = std::make_shared<AppExecFwk::EventHandler>(runner);
+        authenticator_ = std::make_shared<TaiheAppAccountAuthenticator>(self, handler);
+        ani_env* env = get_env();
+        if (env == nullptr) {
+            authenticator_.reset();
+            ACCOUNT_LOGE("null env");
+            return;
+        }
+        ani_ref aniRemoteObj = ANI_ohos_rpc_CreateJsRemoteObject(env, authenticator_->AsObject());
+        if (aniRemoteObj == nullptr) {
+            ACCOUNT_LOGE("null aniRemoteObj");
+            authenticator_.reset();
+            return;
+        }
+        remoteObject_ = reinterpret_cast<uintptr_t>(aniRemoteObj);
+    }
     ~AuthenticatorImpl()
     {
         if (remoteObject_ != 0) {
@@ -1423,9 +1654,9 @@ public:
         ACCOUNT_LOGE("VerifyCredential is not implemented");
     }
 
-    void CheckAccountLabelsSync(string_view name, array_view<string> labels, AuthCallback const& callback)
+    void CheckAccountLabels(string_view name, array_view<string> labels, AuthCallback const& callback)
     {
-        ACCOUNT_LOGE("CheckAccountLabelsSyncTaihe is not implemented");
+        ACCOUNT_LOGE("CheckAccountLabels is not implemented");
     }
 
     void CheckAccountRemovable(string_view name, AuthCallback const& callback)
@@ -1434,27 +1665,6 @@ public:
     }
     uintptr_t GetRemoteObject()
     {
-        auto authenticator = new (std::nothrow) TaiheAppAccountAuthenticator(self_);
-        if (authenticator == nullptr) {
-            remoteObject_ = 0;
-            return 0;
-        }
-
-        ani_env* env = get_env();
-        if (env == nullptr) {
-            remoteObject_ = 0;
-            delete authenticator;
-            return 0;
-        }
-
-        ani_ref aniRemoteObj = ANI_ohos_rpc_CreateJsRemoteObject(env, authenticator->AsObject());
-        if (aniRemoteObj == nullptr) {
-            remoteObject_ = 0;
-            delete authenticator;
-            return 0;
-        }
-        remoteObject_ = reinterpret_cast<uintptr_t>(aniRemoteObj);
-
         if (remoteObject_ == 0) {
             ACCOUNT_LOGE("Remote object not initialized");
         }
@@ -1464,6 +1674,7 @@ public:
 private:
     uintptr_t remoteObject_;
     Authenticator self_;
+    std::shared_ptr<TaiheAppAccountAuthenticator> authenticator_ = nullptr;
 };
 
 Authenticator MakeAuthenticator(weak::Authenticator self)
@@ -1475,7 +1686,33 @@ AppAccountManager createAppAccountManager()
 {
     return make_holder<AppAccountManagerImpl, AppAccountManager>();
 }
+
+AppAccountManager createAppAccountManagerByPtr(uint64_t ptr)
+{
+    return make_holder<AppAccountManagerImpl, AppAccountManager>(ptr);
+}
+
+uint64_t getPtrByAppAccountManager(AppAccountManager manager)
+{
+    return manager->GetInner();
+}
+
+ohos::account::appAccount::AuthCallback getAuthCallbackByPtr(uint64_t ptr)
+{
+    IRemoteObject* rawPtr = reinterpret_cast<IRemoteObject*>(ptr);
+    sptr<IRemoteObject> callback = sptr<IRemoteObject>(rawPtr);
+    return ConvertToAppAccountAuthenticatorCallback(callback);
+}
+
+uint64_t getAuthCallbackPtr(ohos::account::appAccount::AuthCallback const& callback)
+{
+    return callback.transferPtr;
+}
 }  // namespace
 
 TH_EXPORT_CPP_API_createAppAccountManager(createAppAccountManager);
+TH_EXPORT_CPP_API_createAppAccountManagerByPtr(createAppAccountManagerByPtr);
+TH_EXPORT_CPP_API_getPtrByAppAccountManager(getPtrByAppAccountManager);
+TH_EXPORT_CPP_API_getAuthCallbackByPtr(getAuthCallbackByPtr);
+TH_EXPORT_CPP_API_getAuthCallbackPtr(getAuthCallbackPtr);
 TH_EXPORT_CPP_API_MakeAuthenticator(MakeAuthenticator);

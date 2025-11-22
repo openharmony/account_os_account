@@ -165,9 +165,10 @@ AccountSA::CreateOsAccountOptions ConvertToInnerOptions(optional_view<CreateOsAc
     }
 
     const auto &opts = options.value();
-
-    innerOptions.shortName = std::string(opts.shortName.data(), opts.shortName.size());
-    innerOptions.hasShortName = true;
+    if (opts.shortName.has_value()) {
+        innerOptions.shortName = std::string(opts.shortName.value().data(), opts.shortName.value().size());
+        innerOptions.hasShortName = true;
+    }
 
     return innerOptions;
 }
@@ -256,10 +257,12 @@ AuthType ConvertToAuthTypeTH(const AccountSA::AuthType &type)
             return AuthType(AuthType::key_t::FINGERPRINT);
         case AccountSA::AuthType::RECOVERY_KEY:
             return AuthType(AuthType::key_t::RECOVERY_KEY);
+        case AccountSA::AuthType::PRIVATE_PIN:
+            return AuthType(AuthType::key_t::PRIVATE_PIN);
         case AccountSA::IAMAuthType::DOMAIN:
             return AuthType(AuthType::key_t::DOMAIN);
         default:
-            SetTaiheBusinessErrorFromNativeCode(ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+            ACCOUNT_LOGE("ConvertToAuthTypeTH: unknown auth type %{public}d", static_cast<int>(type));
             return AuthType(AuthType::key_t::INVALID);
     }
 }
@@ -306,6 +309,8 @@ std::vector<EnrolledCredInfo> ConvertCredentialInfoArray(const std::vector<Accou
                                                 sizeof(uint64_t)),
             .authType = ConvertToAuthTypeTH(each.authType),
             .authSubType = ConvertToAuthSubTypeTH(each.pinType.value_or(AccountJsKit::PinSubType::PIN_MAX)),
+            .isAbandoned = optional<bool>(std::in_place_t{}, reinterpret_cast<bool>(each.isAbandoned)),
+            .validityPeriod = optional<int64_t>(std::in_place_t{}, reinterpret_cast<int64_t>(each.validityPeriod)),
         };
         result.emplace_back(info);
     }
@@ -552,6 +557,12 @@ public:
 
     void CancelWithChallenge(array_view<uint8_t> challenge)
     {
+        if (challenge.size() < sizeof(uint64_t)) {
+            ACCOUNT_LOGE("credentialId size is invalid.");
+            std::string errMsg = "Parameter error. The type of \"challenge\" must be Uint8Array";
+            taihe::set_business_error(ERR_JS_PARAMETER_ERROR, errMsg);
+            return;
+        }
         int32_t ret = AccountSA::AccountIAMClient::GetInstance().Cancel(-1); // -1 indicates the current user
         if (ret != ERR_OK) {
             ACCOUNT_LOGE("Failed to cancel account, ret = %{public}d", ret);
@@ -563,7 +574,6 @@ public:
     void DelCred(array_view<uint8_t> credentialId, array_view<uint8_t> token, IIdmCallback const &callback)
     {
         int32_t accountId = -1;
-        uint64_t credentialIdUint64 = 0;
         std::vector<uint8_t> innerToken(token.data(), token.data() + token.size());
         if (credentialId.size() != sizeof(uint64_t)) {
             ACCOUNT_LOGE("credentialId size is invalid.");
@@ -571,10 +581,7 @@ public:
             taihe::set_business_error(ERR_JS_PARAMETER_ERROR, errMsg);
             return;
         }
-        for (auto each : credentialId) {
-            credentialIdUint64 = (credentialIdUint64 << CONTEXTID_OFFSET);
-            credentialIdUint64 += each;
-        }
+        uint64_t credentialIdUint64 = *(reinterpret_cast<const uint64_t *>(credentialId.data()));
         auto runner = AppExecFwk::EventRunner::GetMainEventRunner();
         if (!runner) {
             return;
@@ -887,7 +894,8 @@ bool ConvertGetPropertyTypeToAttributeKeyTh(AccountJsKit::GetPropertyType in, Ac
         {AccountJsKit::GetPropertyType::ENROLLMENT_PROGRESS, AccountSA::Attributes::AttributeKey::ATTR_ENROLL_PROGRESS},
         {AccountJsKit::GetPropertyType::SENSOR_INFO, AccountSA::Attributes::AttributeKey::ATTR_SENSOR_INFO},
         {AccountJsKit::GetPropertyType::NEXT_PHASE_FREEZING_TIME,
-         AccountSA::Attributes::AttributeKey::ATTR_NEXT_FAIL_LOCKOUT_DURATION},
+            AccountSA::Attributes::AttributeKey::ATTR_NEXT_FAIL_LOCKOUT_DURATION},
+        {AccountJsKit::GetPropertyType::CREDENTIAL_LENGTH, AccountSA::Attributes::AttributeKey::ATTR_CREDENTIAL_LENGTH},
     };
 
     auto iter = type2Key.find(in);
@@ -938,6 +946,7 @@ ExecutorProperty CreateEmptyExecutorPropertyTH()
         .enrollmentProgress = optional<string>(std::nullopt),
         .sensorInfo = optional<string>(std::nullopt),
         .nextPhaseFreezingTime = optional<int32_t>(std::nullopt),
+        .credentialLength = optional<int32_t>(std::nullopt),
     };
 }
 
@@ -978,8 +987,14 @@ ExecutorProperty ConvertToExecutorPropertyTH(
                 break;
             case AccountSA::Attributes::AttributeKey::ATTR_NEXT_FAIL_LOCKOUT_DURATION:
                 if (propertyInfoInner.nextPhaseFreezingTime.has_value()) {
-                propertyTH.nextPhaseFreezingTime =
+                    propertyTH.nextPhaseFreezingTime =
                         optional<int32_t>(std::in_place_t{}, propertyInfoInner.nextPhaseFreezingTime.value());
+                }
+                break;
+            case AccountSA::Attributes::AttributeKey::ATTR_CREDENTIAL_LENGTH:
+                if (propertyInfoInner.credentialLength.has_value()) {
+                    propertyTH.credentialLength =
+                        optional<int32_t>(std::in_place_t{}, propertyInfoInner.credentialLength.value());
                 }
                 break;
             default:
@@ -1158,6 +1173,16 @@ private:
         }
     }
 
+    void ProcessCredentialLength(const UserIam::UserAuth::Attributes &extraInfo,
+                                     AccountJsKit::ExecutorProperty &propertyInfo)
+    {
+        int32_t tempValue;
+        if (extraInfo.GetInt32Value(
+            AccountSA::Attributes::AttributeKey::ATTR_CREDENTIAL_LENGTH, tempValue)) {
+            propertyInfo.credentialLength = tempValue;
+        }
+    }
+
 public:
     void GetExecutorPropertys(const UserIam::UserAuth::Attributes &extraInfo,
         AccountJsKit::ExecutorProperty &propertyInfo)
@@ -1183,6 +1208,9 @@ public:
                 case AccountSA::Attributes::AttributeKey::ATTR_NEXT_FAIL_LOCKOUT_DURATION:
                     ProcessNextPhaseFreezingTime(extraInfo, propertyInfo);
                     break;
+                case AccountSA::Attributes::AttributeKey::ATTR_CREDENTIAL_LENGTH:
+                    ProcessCredentialLength(extraInfo, propertyInfo);
+                    break;
                 default:
                     break;
             }
@@ -1201,12 +1229,7 @@ public:
         if (!isGetById && (result == IAMResultCode::ERR_IAM_NOT_ENROLLED)) {
             result = ERR_OK;
         }
-        if (result != ERR_OK) {
-            int32_t jsErrCode = AccountIAMConvertToJSErrCode(propertyInfoInner.result);
-            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
-            return;
-        }
-        errCode = ERR_OK;
+        errCode = result;
         cv.notify_one();
     }
 
@@ -1300,12 +1323,15 @@ public:
 
     void CancelAuth(array_view<uint8_t> contextID)
     {
-        std::vector<uint8_t> contextId(contextID.data(), contextID.data() + contextID.size());
-        if (contextId.empty()) {
-            ACCOUNT_LOGE("contextID is empty.");
+        std::vector<uint8_t> contextId;
+        if (contextID.size() != sizeof(uint64_t)) {
+            ACCOUNT_LOGE("contextID size is invalid.");
             std::string errMsg = "Parameter error. The type of \"contextID\" must be Uint8Array";
             taihe::set_business_error(ERR_JS_PARAMETER_ERROR, errMsg);
             return;
+        }
+        for (auto each : contextID) {
+            contextId.emplace_back(each);
         }
         ErrCode errCode = AccountSA::AccountIAMClient::GetInstance().CancelAuth(contextId);
         if (errCode != ERR_OK) {
@@ -1325,16 +1351,24 @@ public:
             return CreateEmptyExecutorPropertyTH();
         }
 
+        if (request.accountId.has_value() && !AccountSA::IsAccountIdValid(request.accountId.value())) {
+            int32_t jsErrCode = AccountIAMConvertToJSErrCode(ERR_JS_ACCOUNT_NOT_FOUND);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            return CreateEmptyExecutorPropertyTH();
+        }
+
         std::shared_ptr<THGetPropCallback> idmCallback =
             std::make_shared<THGetPropCallback>(getPropertyRequestInner.keys);
-        if (request.accountId.has_value() && !AccountSA::IsAccountIdValid(request.accountId.value())) {
-            idmCallback->OnResult(ERR_JS_ACCOUNT_NOT_FOUND, AccountSA::Attributes());
-            return ConvertToExecutorPropertyTH(idmCallback->propertyInfoInner, idmCallback->keys);
-        }
-        AccountSA::AccountIAMClient::GetInstance().GetProperty(request.accountId.value_or(-1), getPropertyRequestInner,
-                                                               idmCallback);
+        AccountSA::AccountIAMClient::GetInstance().GetProperty(
+            request.accountId.value_or(-1), getPropertyRequestInner, idmCallback);
+
         std::unique_lock<std::mutex> lock(idmCallback->mutex);
         idmCallback->cv.wait(lock, [idmCallback] { return idmCallback->onResultCalled; });
+        if (idmCallback->errCode != ERR_OK) {
+            int32_t jsErrCode = AccountIAMConvertToJSErrCode(idmCallback->errCode);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            return CreateEmptyExecutorPropertyTH();
+        }
         return ConvertToExecutorPropertyTH(idmCallback->propertyInfoInner, idmCallback->keys);
     }
 
@@ -1385,11 +1419,11 @@ public:
 
     ExecutorProperty GetPropertyByCredentialIdSync(array_view<uint8_t> credentialId, array_view<GetPropertyType> keys)
     {
-        uint64_t id = 0;
-        for (auto each : credentialId) {
-            id = (id << CONTEXTID_OFFSET);
-            id += each;
+        if (credentialId.size() != sizeof(uint64_t)) {
+            taihe::set_business_error(ERR_JS_CREDENTIAL_NOT_EXIST, ConvertToJsErrMsg(ERR_JS_CREDENTIAL_NOT_EXIST));
+            return CreateEmptyExecutorPropertyTH();
         }
+        uint64_t id = *(reinterpret_cast<const uint64_t *>(credentialId.data()));
 
         std::vector<OHOS::UserIam::UserAuth::Attributes::AttributeKey> getPropertyRequestInner;
         for (GetPropertyType each : keys) {
@@ -1403,25 +1437,38 @@ public:
 
         std::shared_ptr<THGetPropCallback> getPropCallback =
             std::make_shared<THGetPropCallback>(getPropertyRequestInner);
+        getPropCallback->isGetById = true;
         AccountSA::AccountIAMClient::GetInstance().GetPropertyByCredentialId(id,
             getPropertyRequestInner, getPropCallback);
         std::unique_lock<std::mutex> lock(getPropCallback->mutex);
         getPropCallback->cv.wait(lock, [getPropCallback] { return getPropCallback->onResultCalled; });
-
+        if (getPropCallback->errCode != ERR_OK) {
+            int32_t jsErrCode = AccountIAMConvertToJSErrCode(getPropCallback->errCode);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            return CreateEmptyExecutorPropertyTH();
+        }
         return ConvertToExecutorPropertyTH(getPropCallback->propertyInfoInner, getPropCallback->keys);
     }
 
     class THPrepareRemoteAuthCallback : public AccountSA::PreRemoteAuthCallback {
     public:
+        std::mutex mutex;
+        std::condition_variable cv;
+        bool onResultCalled = false;
+        int32_t errCode = 0;
 
         void OnResult(int32_t result) override
         {
-            std::lock_guard<std::mutex> lock(mutex_);
+            std::lock_guard<std::mutex> lock(mutex);
             ACCOUNT_LOGI("Post OnResult task finish");
+            if (onResultCalled) {
+                ACCOUNT_LOGE("OnResult called more than once");
+                return;
+            }
+            onResultCalled = true;
+            errCode = result;
+            cv.notify_one();
         }
-
-    private:
-        std::mutex mutex_;
     };
 
     void PrepareRemoteAuthSync(string_view remoteNetworkId)
@@ -1432,7 +1479,16 @@ public:
         ErrCode errorCode = AccountSA::AccountIAMClient::GetInstance().PrepareRemoteAuth(innerRemoteNetworkId,
             prepareRemoteAuthCallback);
         if (errorCode != ERR_OK) {
-            int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
+            ACCOUNT_LOGE("PrepareRemoteAuth failed");
+            int32_t jsErrCode = AccountIAMConvertToJSErrCode(errorCode);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            return;
+        }
+        std::unique_lock<std::mutex> lock(prepareRemoteAuthCallback->mutex);
+        prepareRemoteAuthCallback->cv.wait(
+            lock, [prepareRemoteAuthCallback] { return prepareRemoteAuthCallback->onResultCalled; });
+        if (prepareRemoteAuthCallback->errCode != ERR_OK) {
+            int32_t jsErrCode = AccountIAMConvertToJSErrCode(prepareRemoteAuthCallback->errCode);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
         }
     }
@@ -1546,6 +1602,7 @@ public:
         if (errCode == ERR_OK) {
             parcel.ReadBool(isHasDomainAccount_);
         }
+        SetTaiheBusinessErrorFromNativeCode(errCode);
         cv_.notify_one();
     }
 private:

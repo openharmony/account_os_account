@@ -24,6 +24,7 @@
 #include "app_account_authenticator_stub.h"
 #include "app_account_common.h"
 #include "app_account_manager.h"
+#include "napi_app_account_transfer.h"
 
 using SubscribeCallback = taihe::callback<void(taihe::array_view<ohos::account::appAccount::AppAccountInfo>)>;
 
@@ -42,10 +43,8 @@ public:
     SubscribeCallback callback_;
 };
 
-struct AsyncContextForSubscribe {
+struct AsyncContextForSubscribe : public AccountJsKit::AsyncContextForSubscribeBase {
     explicit AsyncContextForSubscribe(SubscribeCallback callback): callbackRef(callback) {};
-    std::string type;
-    std::vector<std::string> owners;
     uint64_t appAccountManagerHandle = 0;
     std::shared_ptr<SubscriberPtr> subscriber = nullptr;
     SubscribeCallback callbackRef;
@@ -70,6 +69,8 @@ public:
     ErrCode OnResult(int32_t resultCode, const AAFwk::Want &result) override;
     ErrCode OnRequestRedirected(const AAFwk::Want &request) override;
     ErrCode OnRequestContinued() override;
+    ErrCode CallbackEnter([[maybe_unused]] uint32_t code) override;
+    ErrCode CallbackExit([[maybe_unused]] uint32_t code, [[maybe_unused]] int32_t result) override;
 
 public:
     std::shared_ptr<AuthenticatorCallbackParam> param_;
