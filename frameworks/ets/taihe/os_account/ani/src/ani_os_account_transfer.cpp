@@ -23,6 +23,7 @@
 #include "account_log_wrapper.h"
 #include "interop_js/arkts_interop_js_api.h"
 #include "interop_js/arkts_esvalue.h"
+#include "interop_js/arkts_interop_js_api.h"
 #include "interop_js/hybridgref_ani.h"
 #include "interop_js/hybridgref_napi.h"
 #include "ohos.account.osAccount.impl.hpp"

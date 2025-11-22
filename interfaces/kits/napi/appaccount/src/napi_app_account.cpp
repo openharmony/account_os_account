@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -106,6 +106,11 @@ static bool CheckSpecialCharacters(const std::string &name)
         }
     }
     return true;
+}
+
+uint32_t NapiAppAccount::GetPropertySize()
+{
+    return sizeof(appAccountProperties) / sizeof(napi_property_descriptor);
 }
 
 napi_value NapiAppAccount::Init(napi_env env, napi_value exports)
@@ -1703,12 +1708,17 @@ napi_value NapiAppAccount::SetAuthenticatorProperties(napi_env env, napi_callbac
 
 static bool IsExitSubscribe(napi_env env, AsyncContextForSubscribe *context)
 {
-    auto subscribe = g_AppAccountSubscribers.find(context->appAccountManager);
-    if (subscribe == g_AppAccountSubscribers.end()) {
+    auto subscribe = GetAppAccountSubscribersMapIterator(reinterpret_cast<uint64_t>(context->appAccountManager));
+    if (subscribe == GetEndAppAccountSubscribersMapIterator()) {
         return false;
     }
     for (size_t index = 0; index < subscribe->second.size(); index++) {
-        if (CompareOnAndOffRef(env, subscribe->second[index]->callbackRef, context->callbackRef)) {
+        AsyncContextForSubscribe *item = static_cast<AsyncContextForSubscribe *>(subscribe->second[index]);
+        if (item == nullptr) {
+            ACCOUNT_LOGE("AsyncContextForSubscribe cast error");
+            return false;
+        }
+        if (CompareOnAndOffRef(env, item->callbackRef, context->callbackRef)) {
             return true;
         }
     }
@@ -1739,7 +1749,7 @@ napi_value NapiAppAccount::Subscribe(napi_env env, napi_callback_info cbInfo)
     }
     context->subscriber->SetEnv(env);
     context->subscriber->SetCallbackRef(context->callbackRef);
-    std::lock_guard<std::mutex> lock(g_lockForAppAccountSubscribers);
+    std::lock_guard<std::mutex> lock(AppAccountSubscriberInfo::GetInstance().lockForAppAccountSubscribers);
     if (IsExitSubscribe(env, context.get())) {
         return NapiGetNull(env);
     }
@@ -1752,24 +1762,29 @@ napi_value NapiAppAccount::Subscribe(napi_env env, napi_callback_info cbInfo)
         napi_throw(env, GenerateBusinessError(env, errCode));
         return NapiGetNull(env);
     }
-    g_AppAccountSubscribers[context->appAccountManager].emplace_back(context.get());
+    InsertAppAccountSubscriberInfoToMap(reinterpret_cast<uint64_t>(context->appAccountManager), context.get());
     context.release();
     return NapiGetNull(env);
 }
 
-static void UnsubscribeSync(napi_env env, const AsyncContextForUnsubscribe *context)
+static void UnsubscribeSync(napi_env env, const AsyncContextForUnsubscribe *context) __attribute__((no_sanitize("cfi")))
 {
-    std::lock_guard<std::mutex> lock(g_lockForAppAccountSubscribers);
-    auto subscribe = g_AppAccountSubscribers.find(context->appAccountManager);
-    if (subscribe == g_AppAccountSubscribers.end()) {
+    std::lock_guard<std::mutex> lock(AppAccountSubscriberInfo::GetInstance().lockForAppAccountSubscribers);
+    auto subscribe = GetAppAccountSubscribersMapIterator(reinterpret_cast<uint64_t>(context->appAccountManager));
+    if (subscribe == GetEndAppAccountSubscribersMapIterator()) {
         return;
     }
     for (size_t index = 0; index < subscribe->second.size(); ++index) {
-        if ((context->callbackRef != nullptr) &&
-            (!CompareOnAndOffRef(env, subscribe->second[index]->callbackRef, context->callbackRef))) {
+        AsyncContextForSubscribe *item = static_cast<AsyncContextForSubscribe *>(subscribe->second[index]);
+        if (item == nullptr) {
+            ACCOUNT_LOGE("AsyncContextForSubscribe cast error");
             continue;
         }
-        int errCode = AppAccountManager::UnsubscribeAppAccount(subscribe->second[index]->subscriber);
+        if ((context->callbackRef != nullptr) &&
+            (!CompareOnAndOffRef(env, item->callbackRef, context->callbackRef))) {
+            continue;
+        }
+        int errCode = AppAccountManager::UnsubscribeAppAccount(item->subscriber);
         if (errCode != ERR_OK) {
             napi_throw(env, GenerateBusinessError(env, errCode));
             return;
@@ -1781,7 +1796,7 @@ static void UnsubscribeSync(napi_env env, const AsyncContextForUnsubscribe *cont
         }
     }
     if ((context->callbackRef == nullptr) || (subscribe->second.empty())) {
-        g_AppAccountSubscribers.erase(subscribe);
+        EraseAccountSubscribersMap(reinterpret_cast<uint64_t>(context->appAccountManager));
     }
 }
 

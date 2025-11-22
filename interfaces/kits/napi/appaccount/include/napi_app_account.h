@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,9 +23,9 @@ namespace AccountJsKit {
 class NapiAppAccount {
 public:
     static napi_value Init(napi_env env, napi_value exports);
-
-private:
     static napi_property_descriptor appAccountProperties[];
+    static uint32_t GetPropertySize();
+private:
     static napi_value CreateAppAccountManager(napi_env env, napi_callback_info cbInfo);
     static napi_value AddAccount(napi_env env, napi_callback_info cbInfo);
     static napi_value AddAccountImplicitly(napi_env env, napi_callback_info cbInfo);

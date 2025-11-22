@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -45,9 +45,6 @@ static const std::string ErrMsgList[] = {
     "Parameter error. The type of \"isEnable\" must be bool",         // index equals to PropertyType::IS_ENABLE value
 };
 
-std::mutex g_lockForAppAccountSubscribers;
-std::map<AppAccountManager *, std::vector<AsyncContextForSubscribe *>> g_AppAccountSubscribers;
-
 SubscriberPtr::SubscriberPtr(const AppAccountSubscribeInfo &subscribeInfo) : AppAccountSubscriber(subscribeInfo)
 {}
 
@@ -63,12 +60,19 @@ static std::function<void()> OnAppAccountsChangedWork(const std::shared_ptr<Subs
         }
         bool isFound = false;
         {
-            std::lock_guard<std::mutex> lock(g_lockForAppAccountSubscribers);
+            std::lock_guard<std::mutex> lock(AppAccountSubscriberInfo::GetInstance().lockForAppAccountSubscribers);
             SubscriberPtr *subscriber = data->subscriber;
-            for (auto objectInfoTmp : g_AppAccountSubscribers) {
-                isFound = std::any_of(objectInfoTmp.second.begin(), objectInfoTmp.second.end(),
-                    [subscriber](const AsyncContextForSubscribe *item) {
-                        return item->subscriber.get() == subscriber;
+            auto begin = GetBeginAppAccountSubscribersMapIterator();
+            auto end = GetEndAppAccountSubscribersMapIterator();
+            for (auto it = begin; it != end; it++) {
+                isFound = std::any_of(it->second.begin(), it->second.end(),
+                    [subscriber](const AsyncContextForSubscribeBase *item) {
+                        const AsyncContextForSubscribe *subptr = static_cast<const AsyncContextForSubscribe *>(item);
+                        if (subptr == nullptr) {
+                            ACCOUNT_LOGE("AsyncContextForSubscribe cast error");
+                            return false;
+                        }
+                        return subptr->subscriber.get() == subscriber;
                     });
                 if (isFound) {
                     ACCOUNT_LOGD("AppAccount subscriber has been found.");
@@ -868,16 +872,23 @@ napi_value GetSubscriberByUnsubscribe(const napi_env &env, std::vector<std::shar
     napi_value result;
 
     {
-        std::lock_guard<std::mutex> lock(g_lockForAppAccountSubscribers);
-
-        for (auto subscriberInstance : g_AppAccountSubscribers) {
-            if (subscriberInstance.first == asyncContextForOff->appAccountManager) {
-                for (auto item : subscriberInstance.second) {
-                    subscribers.emplace_back(item->subscriber);
-                }
-                isFind = true;
-                break;
+        std::lock_guard<std::mutex> lock(AppAccountSubscriberInfo::GetInstance().lockForAppAccountSubscribers);
+        auto begin = GetBeginAppAccountSubscribersMapIterator();
+        auto end = GetEndAppAccountSubscribersMapIterator();
+        for (auto it = begin; it != end; it++) {
+            if (it->first != reinterpret_cast<uint64_t>(asyncContextForOff->appAccountManager)) {
+                continue;
             }
+            for (auto item : it->second) {
+                AsyncContextForSubscribe *subPtr = static_cast<AsyncContextForSubscribe *>(item);
+                if (subPtr == nullptr) {
+                    ACCOUNT_LOGE("AsyncContextForSubscribe cast error");
+                    break;
+                }
+                subscribers.emplace_back(subPtr->subscriber);
+            }
+            isFind = true;
+            break;
         }
     }
 
@@ -945,17 +956,16 @@ void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data
     }
 
     {
-        std::lock_guard<std::mutex> lock(g_lockForAppAccountSubscribers);
-        ACCOUNT_LOGD("Erase before g_AppAccountSubscribers.size = %{public}zu", g_AppAccountSubscribers.size());
+        std::lock_guard<std::mutex> lock(AppAccountSubscriberInfo::GetInstance().lockForAppAccountSubscribers);
         // erase the info from map
-        auto subscribe = g_AppAccountSubscribers.find(asyncContextForOff->appAccountManager);
-        if (subscribe != g_AppAccountSubscribers.end()) {
+        uint64_t key = reinterpret_cast<uint64_t>(asyncContextForOff->appAccountManager);
+        auto subscribe = GetAppAccountSubscribersMapIterator(key);
+        if (subscribe != GetEndAppAccountSubscribersMapIterator()) {
             for (auto offCBInfo : subscribe->second) {
                 delete offCBInfo;
             }
-            g_AppAccountSubscribers.erase(subscribe);
+            EraseAccountSubscribersMap(key);
         }
-        ACCOUNT_LOGD("Erase end g_AppAccountSubscribers.size = %{public}zu", g_AppAccountSubscribers.size());
     }
     delete asyncContextForOff;
 }

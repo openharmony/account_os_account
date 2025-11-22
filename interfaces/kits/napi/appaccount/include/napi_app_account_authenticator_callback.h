@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,7 +29,7 @@ public:
     ~NapiAppAccountAuthenticatorCallback();
     sptr<IRemoteObject> GetRemoteObject();
     static napi_value Init(napi_env env, napi_value exports);
-
+    static napi_value GetConstructor(napi_env env, napi_value constructor);
 private:
     static napi_value JsOnResult(napi_env env, napi_callback_info cbInfo);
     static napi_value JsOnRequestRedirected(napi_env env, napi_callback_info cbInfo);

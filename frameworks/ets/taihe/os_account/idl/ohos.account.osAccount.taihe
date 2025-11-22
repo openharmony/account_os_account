@@ -41,24 +41,33 @@ interface AccountManager {
     GetOsAccountTypeSync(): OsAccountType;
     @gen_promise("getOsAccountType")
     GetOsAccountTypeWithIdSync(localId: i32): OsAccountType;
+    
+    @rename("onActivate")
+    OnActivate(name: String, callback: (id:i32) => void): void;
+    @rename("offActivate")
+    OffActivate(name: String, callback: Optional<(id:i32) => void>): void;
+    
+    @rename("onActivating")
+    OnActivating(name: String, callback: (id:i32) => void): void;
+    @rename("offActivating")
+    OffActivating(name: String, callback: Optional<(id:i32) => void>): void;
 
-    on(type: String,name: String, callback: (id:i32) => void): void;
-
-    off(type: String,name: String, callback: Optional<(id:i32) => void>): void;
-
-    @on_off("switching")
+    @rename("onSwitching")
     OnSwitching(callback: (data:OsAccountSwitchEventData) => void): void;
-    @on_off("switched")
+    @rename("onSwitched")
     OnSwitched(callback: (data:OsAccountSwitchEventData) => void): void;
 
-    @on_off("switching")
+    @rename("offSwitching")
     OffSwitching(callback: Optional<(data:OsAccountSwitchEventData) => void>): void;
-    @on_off("switched")
+    @rename("offSwitched")
     OffSwitched(callback: Optional<(data:OsAccountSwitchEventData) => void>): void;
 
     @gen_async("activateOsAccount")
     @gen_promise("activateOsAccount")
     ActivateOsAccountSync(localId: i32): void;
+
+    @gen_promise("activateOsAccount")
+    ActivateOsAccountWithDisplayId(localId: i32, displayId: i64): void;
 
     @gen_async("createOsAccount")
     CreateOsAccountSync(localName: String, type: OsAccountType): OsAccountInfo;
@@ -78,6 +87,12 @@ interface AccountManager {
 
     @gen_promise("getForegroundOsAccountLocalId")
     GetForegroundOsAccountLocalIdSync(): i32;
+
+    @gen_promise("getForegroundOsAccountLocalId")
+    GetForegroundOsAccountLocalIdWithDisplayId(displayId: i64): i32;
+
+    @gen_promise("getForegroundOsAccountDisplayId")
+    GetForegroundOsAccountDisplayIdSync(localId: i32): i64;
 
     @gen_async("getOsAccountLocalId")
     @gen_promise("getOsAccountLocalId")
@@ -114,7 +129,7 @@ interface AccountManager {
 
     @gen_promise("getSerialNumberForOsAccountLocalId")
     @gen_async("getSerialNumberForOsAccountLocalId")
-    GetSerialNumberForOsAccountLocalIdSync(localId: i32): i32;
+    GetSerialNumberForOsAccountLocalIdSync(localId: i32): i64;
 
     @gen_promise("getBundleIdForUid")
     @gen_async("getBundleIdForUid")
@@ -126,6 +141,9 @@ interface AccountManager {
     @gen_promise("getOsAccountConstraintSourceTypes")
     @gen_async("getOsAccountConstraintSourceTypes")
     GetOsAccountConstraintSourceTypesSync(localId: i32, constraint: String): Array<ConstraintSourceTypeInfo>;
+
+    @gen_promise("bindDomainAccount")
+    bindDomainAccountSync(localId: i32, domainAccountInfo: DomainAccountInfo): void;
 
     @gen_async("checkMultiOsAccountEnabled")
     @gen_promise("checkMultiOsAccountEnabled")
@@ -184,7 +202,7 @@ interface AccountManager {
         options: Optional<CreateOsAccountForDomainOptions>): OsAccountInfo;
 
     @gen_promise("getOsAccountDomainInfo")
-    GetOsAccountDomainInfoSync(localId: i32): DomainAccountInfo;
+    GetOsAccountDomainInfoSync(localId: i32): DomainAccountInfoOrNull;
 
     @gen_async("queryDistributedVirtualDeviceId")
     @gen_promise("queryDistributedVirtualDeviceId")
@@ -290,6 +308,11 @@ struct DomainAccountInfo {
     serverConfigId: Optional<String>;
 }
 
+union DomainAccountInfoOrNull {
+    infoData: DomainAccountInfo;
+    nullData: @null unit;
+}
+
 struct OsAccountInfo {
     localId: i32;
     localName: String;
@@ -339,7 +362,8 @@ enum GetPropertyType : u32 {
     FREEZING_TIME = 3,
     ENROLLMENT_PROGRESS = 4,
     SENSOR_INFO = 5,
-    NEXT_PHASE_FREEZING_TIME = 6
+    NEXT_PHASE_FREEZING_TIME = 6,
+    CREDENTIAL_LENGTH = 7,
 }
 
 struct GetPropertyRequest {
@@ -351,6 +375,7 @@ struct GetPropertyRequest {
 struct OsAccountSwitchEventData {
     fromAccountId: i32;
     toAccountId: i32;
+    displayId: Optional<i64>;
 }
 
 struct GetInputDataOptions {
@@ -358,7 +383,9 @@ struct GetInputDataOptions {
 }
 
 struct CreateOsAccountOptions {
-    shortName: String;
+    shortName: Optional<String>;
+    disallowedPreinstalledBundles: Optional<Array<String>>;
+    allowedPreinstalledBundles: Optional<Array<String>>;
 }
 
 struct GetAuthInfoOptions {
@@ -371,6 +398,8 @@ struct EnrolledCredInfo {
     authType: AuthType;
     authSubType: AuthSubType;
     templateId: @typedarray Array<u8>;
+    isAbandoned: Optional<bool>;
+    validityPeriod: Optional<i64>;
 }
 
 union OptionalError {
@@ -453,7 +482,7 @@ function UpdateAccountTokenSync(domainAccountInfo: DomainAccountInfo, token: @ty
 @static("DomainAccountManager")
 @gen_async("getAccessToken")
 @gen_promise("getAccessToken")
-function GetAccessTokenSync(businessParams: @sts_type("RecordData")Opaque): @typedarray Array<u8>;
+function GetAccessTokenSync(businessParams: @sts_type("Record<string, RecordData>")Opaque): @typedarray Array<u8>;
 
 @static("DomainAccountManager")
 @gen_async("getAccountInfo")
@@ -466,7 +495,7 @@ function UpdateAccountInfoSync(oldAccountInfo: DomainAccountInfo, newAccountInfo
 
 @static("DomainServerConfigManager")
 @gen_promise("addServerConfig")
-function AddServerConfigSync(parameters: @sts_type("RecordData")Opaque): DomainServerConfig;
+function AddServerConfigSync(parameters: @sts_type("Record<string, RecordData>")Opaque): DomainServerConfig;
 
 @static("DomainServerConfigManager")
 @gen_promise("removeServerConfig")
@@ -474,7 +503,7 @@ function RemoveServerConfigSync(configId: String);
 
 @static("DomainServerConfigManager")
 @gen_promise("updateServerConfig")
-function UpdateServerConfigSync(configId: String, parameters: @sts_type("RecordData")Opaque):DomainServerConfig;
+function UpdateServerConfigSync(configId: String, parameters: @sts_type("Record<string, RecordData>")Opaque):DomainServerConfig;
 
 @static("DomainServerConfigManager")
 @gen_promise("getServerConfig")
@@ -510,6 +539,7 @@ enum AuthIntent: i32 {
     UNLOCK = 1,
     SILENT_AUTH = 2,
     QUESTION_AUTH = 3,
+    ABANDONED_PIN_AUTH = 4,
 }
 
 enum SetPropertyType: i32 {
@@ -542,6 +572,7 @@ struct ExecutorProperty {
     nextPhaseFreezingTime: Optional<i32>;
     enrollmentProgress: Optional<String>;
     sensorInfo: Optional<String>;
+    credentialLength: Optional<i32>;
 }
 
 struct IUserAuthCallback {
@@ -635,7 +666,7 @@ struct AuthStatusInfo {
 struct GetDomainAccessTokenOptions {
     domainAccountInfo: DomainAccountInfo;
     domainAccountToken: @typedarray Array<u8>;
-    businessParams: @sts_type("RecordData")Opaque;
+    businessParams: @sts_type("Record<string, RecordData>")Opaque;
     callerUid: i32;
 }
 
@@ -645,14 +676,13 @@ struct GetDomainAccountInfoOptions {
     serverConfigId: Optional<String>;
 }
 
-@class
 struct GetDomainAccountInfoPluginOptions {
     @extends options: GetDomainAccountInfoOptions;
     callerUid: i32;
 }
 
 struct DomainServerConfig {
-    parameters: @sts_type("RecordData")Opaque;
+    parameters: @sts_type("Record<string, RecordData>")Opaque;
     id: String;
     domain: String;
 }
@@ -687,7 +717,6 @@ struct ConstraintSourceTypeInfo {
     type: ConstraintSourceType;
 }
 
-@class
 struct CreateOsAccountForDomainOptions {
     @extends options: CreateOsAccountOptions;
 }
