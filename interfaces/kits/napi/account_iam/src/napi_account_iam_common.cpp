@@ -149,6 +149,10 @@ napi_status ParseAddCredInfo(napi_env env, napi_value value, IDMContext &context
     NAPI_CALL_BASE(env, napi_get_value_int32(env, result, &credSubType), napi_invalid_arg);
     context.addCredInfo.pinType = static_cast<PinSubType>(credSubType);
     NAPI_CALL_BASE(env, napi_get_named_property(env, value, "token", &result), napi_invalid_arg);
+    if (!GetOptionalStringPropertyByKey(env, value, "additionalInfo", context.addCredInfo.additionalInfo)) {
+        ACCOUNT_LOGE("Get additionalInfo failed");
+        return napi_invalid_arg;
+    }
     if (ParseUint8TypedArrayToVector(env, result, context.addCredInfo.token) != napi_ok) {
         ACCOUNT_LOGE("Get Uint8Array data failed");
         return napi_invalid_arg;

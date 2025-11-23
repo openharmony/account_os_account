@@ -300,6 +300,10 @@ bool CredentialParametersIam::Marshalling(Parcel& parcel) const
         ACCOUNT_LOGE("Failed to write token");
         return false;
     }
+    if (!parcel.WriteString(credentialParameters.additionalInfo)) {
+        ACCOUNT_LOGE("Failed to write additionalInfo");
+        return false;
+    }
     return true;
 }
 
@@ -328,6 +332,10 @@ bool CredentialParametersIam::ReadFromParcel(Parcel& parcel)
     }
     if (!parcel.ReadUInt8Vector(&credentialParameters.token)) {
         ACCOUNT_LOGE("Failed to read token");
+        return false;
+    }
+    if (!parcel.ReadString(credentialParameters.additionalInfo)) {
+        ACCOUNT_LOGE("Failed to read additionalInfo");
         return false;
     }
     credentialParameters.authType = static_cast<AuthType>(authType);
