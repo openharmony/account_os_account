@@ -180,6 +180,9 @@ inline UserIam::UserAuth::CredentialParameters ConvertToCredentialParameters(
     params.authType = static_cast<UserIam::UserAuth::AuthType>(info.credType.get_value());
     params.pinType = static_cast<UserIam::UserAuth::PinSubType>(info.credSubType.get_value());
     params.token.assign(info.token.data(), info.token.data() + info.token.size());
+    if (info.additionalInfo.has_value()) {
+        params.additionalInfo = info.additionalInfo.value();
+    }
     return params;
 }
 

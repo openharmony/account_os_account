@@ -282,6 +282,7 @@ struct CredentialInfo {
     credSubType: AuthSubType;
     token: @typedarray Array<u8>;
     accountId: Optional<i32>;
+    additionalInfo: Optional<String>;
 }
 
 struct RequestResult {
