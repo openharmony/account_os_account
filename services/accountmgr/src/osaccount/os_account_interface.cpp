@@ -248,6 +248,24 @@ ErrCode OsAccountInterface::SendToBMSAccountCreate(
     return errCode;
 }
 
+ErrCode OsAccountInterface::IsBundleInstalled(
+    const std::string &bundleName, int32_t userId, int32_t &appIndex, bool &isBundleInstalled)
+{
+    ErrCode errCode = ERR_OK;
+    int32_t retryTimes = 0;
+    while (retryTimes < MAX_RETRY_TIMES) {
+        errCode = BundleManagerAdapter::GetInstance()->IsBundleInstalled(bundleName,
+            userId, appIndex, isBundleInstalled);
+        if ((errCode != Constants::E_IPC_ERROR) && (errCode != Constants::E_IPC_SA_DIED)) {
+            break;
+        }
+        ACCOUNT_LOGE("Fail to IsBundleInstalled, errCode %{public}d.", errCode);
+        retryTimes++;
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_EXCEPTION));
+    }
+    return errCode;
+}
+
 ErrCode OsAccountInterface::SendToBMSAccountDelete(OsAccountInfo &osAccountInfo)
 {
     return BundleManagerAdapter::GetInstance()->RemoveUser(osAccountInfo.GetLocalId());
