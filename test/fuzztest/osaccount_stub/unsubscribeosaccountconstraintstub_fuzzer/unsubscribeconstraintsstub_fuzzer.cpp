@@ -20,7 +20,7 @@
 #include "accesstoken_kit.h"
 #include "fuzz_data.h"
 #include "ios_account.h"
-#include "os_account_constraint_subscriber_manager.h"
+#include "os_account_constraint_event_stub.h"
 #include "os_account_manager_service.h"
 #include "nativetoken_kit.h"
 #include "token_setproc.h"
@@ -32,6 +32,14 @@ namespace OHOS {
 const std::u16string IOS_ACCOUNT_DESCRIPTOR = u"ohos.accountfwk.IOsAccount";
 const std::string TEST_CONSTRIANT = "constraint.wifi";
 
+class MockOsAccountConstraintEventListener : public OsAccountConstraintEventStub {
+public:
+    ErrCode OnConstraintChanged(int localId, const std::set<std::string> &constraints, bool enable) override
+    {
+        return OHOS::ERR_OK;
+    }
+};
+
 bool SubscribeOsAccountConstraint(const std::string &constraint)
 {
     MessageParcel datas;
@@ -41,8 +49,12 @@ bool SubscribeOsAccountConstraint(const std::string &constraint)
     if (!datas.WriteParcelable(&subscriber)) {
         return false;
     }
-
-    if (!datas.WriteRemoteObject(OsAccountConstraintSubscriberManager::GetInstance()->AsObject())) {
+    sptr<MockOsAccountConstraintEventListener> listener = new (std::nothrow) MockOsAccountConstraintEventListener();
+    if (listener == nullptr) {
+        return false;
+    }
+    sptr<IRemoteObject> osAccountEventListener = listener->AsObject();
+    if (!datas.WriteRemoteObject(osAccountEventListener)) {
         return false;
     }
 
@@ -52,6 +64,34 @@ bool SubscribeOsAccountConstraint(const std::string &constraint)
 
     osAccountManagerService_ ->OnRemoteRequest(
         static_cast<int32_t>(IOsAccountIpcCode::COMMAND_SUBSCRIBE_OS_ACCOUNT_CONSTRAINTS), datas, reply, option);
+
+    return true;
+}
+
+bool SetOsAccountConstraintsStubFuzzTest(int32_t id, const std::string &constraint, bool enable)
+{
+    MessageParcel datas;
+    if (!datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR)) {
+        return false;
+    }
+    if (!datas.WriteInt32(id)) {
+        return false;
+    }
+    std::vector<string> constraints = {constraint};
+    if (!datas.WriteStringVector(constraints)) {
+        return false;
+    }
+    if (!datas.WriteBool(enable)) {
+        return false;
+    }
+
+    MessageParcel reply;
+    MessageOption option;
+
+    auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
+
+    osAccountManagerService_ ->OnRemoteRequest(
+        static_cast<int32_t>(IOsAccountIpcCode::COMMAND_SET_OS_ACCOUNT_CONSTRAINTS), datas, reply, option);
 
     return true;
 }
@@ -67,7 +107,7 @@ bool UnsubscribeOsAccountConstraintStubFuzzTest(const uint8_t *data, size_t size
     SubscribeOsAccountConstraint(testStr);
 
     int32_t id = fuzzData.GetData<int32_t>();
-    OsAccountConstraintSubscribeManager::GetInstance().Publish(id, {testStr}, fuzzData.GetData<bool>());
+    SetOsAccountConstraintsStubFuzzTest(id, testStr, fuzzData.GetData<bool>());
     MessageParcel datas;
     datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
 
@@ -82,7 +122,12 @@ bool UnsubscribeOsAccountConstraintStubFuzzTest(const uint8_t *data, size_t size
 
     auto useOsAccountConstraintSubscriberManager = fuzzData.GenerateBool();
     if (useOsAccountConstraintSubscriberManager) {
-        if (!datas.WriteRemoteObject(OsAccountConstraintSubscriberManager::GetInstance()->AsObject())) {
+        sptr<MockOsAccountConstraintEventListener> listener = new (std::nothrow) MockOsAccountConstraintEventListener();
+        if (listener == nullptr) {
+            return false;
+        }
+        sptr<IRemoteObject> osAccountEventListener = listener->AsObject();
+        if (!datas.WriteRemoteObject(osAccountEventListener)) {
             return false;
         }
     }
@@ -126,7 +171,6 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
     NativeTokenGet();
     return 0;
 }
-
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
