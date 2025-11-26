@@ -70,6 +70,7 @@
         "constraint.distributed.transmission.outgoing",
         "constraint.recoveryKey",
         "constraint.sudo",
-        "constraint.font.set"
+        "constraint.font.set",
+        "constraint.enterprise.local.install.disallow"
     ]
 }
