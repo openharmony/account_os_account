@@ -71,6 +71,7 @@
         "constraint.recoveryKey",
         "constraint.preview.openFileBoost",
         "constraint.sudo",
-        "constraint.font.set"
+        "constraint.font.set",
+        "constraint.enterprise.bundles.local.install.disallow"
     ]
 }
