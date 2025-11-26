@@ -71,6 +71,6 @@
         "constraint.recoveryKey",
         "constraint.sudo",
         "constraint.font.set",
-        "constraint.enterprise.local.install.disallow"
+        "constraint.enterprise.bundles.local.install.disallow"
     ]
 }
