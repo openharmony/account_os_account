@@ -41,8 +41,26 @@ public:
     ~TestCallback() = default;
     void OnResult(const int32_t errCode, Parcel &parcel) override
     {
-        return;
+        std::unique_lock<std::mutex> lock(mutex_);
+        if (isCalled_) {
+            ACCOUNT_LOGE("Callback is called.");
+            return;
+        }
+        isCalled_ = true;
+        cv_.notify_one();
     }
+
+    void WaitForCallbackResult()
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        ACCOUNT_LOGI("WaitForCallbackResult.");
+        cv_.wait(lock, [this] { return isCalled_; });
+    }
+
+private:
+    std::mutex mutex_;
+    bool isCalled_ = false;
+    std::condition_variable cv_;
 };
 
 bool BindDomainAccountStubFuzzTest(const uint8_t *data, size_t size)
@@ -66,8 +84,9 @@ bool BindDomainAccountStubFuzzTest(const uint8_t *data, size_t size)
         }
     }
     auto useDomainAccountCallbackService = fuzzData.GenerateBool();
+    std::shared_ptr<TestCallback> callbackPtr = nullptr;
     if (useDomainAccountCallbackService) {
-        std::shared_ptr<DomainAccountCallback> callbackPtr = std::make_shared<TestCallback>();
+        callbackPtr = std::make_shared<TestCallback>();
         sptr<DomainAccountCallbackService> callbackService =
             new (std::nothrow) DomainAccountCallbackService(callbackPtr);
         if ((callbackService == nullptr) || (!datas.WriteRemoteObject(callbackService->AsObject()))) {
@@ -80,9 +99,18 @@ bool BindDomainAccountStubFuzzTest(const uint8_t *data, size_t size)
 
     auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
 
-    osAccountManagerService_->OnRemoteRequest(
+    auto ret = osAccountManagerService_->OnRemoteRequest(
         static_cast<int32_t>(IOsAccountIpcCode::COMMAND_BIND_DOMAIN_ACCOUNT), datas, reply, option);
-
+    if (ret != ERR_OK) {
+        return true;
+    }
+    ErrCode errCode = reply.ReadInt32();
+    if (errCode != ERR_OK) {
+        return true;
+    }
+    if (callbackPtr != nullptr) {
+        callbackPtr->WaitForCallbackResult();
+    }
     return true;
 }
 } // namespace OHOS
