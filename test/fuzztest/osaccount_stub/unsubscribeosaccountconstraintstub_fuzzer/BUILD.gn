@@ -39,7 +39,6 @@ ohos_fuzztest("UnsubscribeOsAccountConstraintStubFuzzTest") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
   sources = [
-    "${os_account_core_path}/src/os_account_constraint_subscriber_manager.cpp",
     "${os_account_path}/services/accountmgr/src/osaccount/os_account_manager_service.cpp",
     "unsubscribeconstraintsstub_fuzzer.cpp",
   ]
