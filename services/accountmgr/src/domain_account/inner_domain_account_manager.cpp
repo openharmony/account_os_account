@@ -1333,9 +1333,14 @@ ErrCode InnerDomainAccountManager::InnerAuth(int32_t userId, const std::vector<u
     auto task = [this, userId, domainInfo, authData, innerCallback, authMode] {
         this->StartPluginAuth(userId, authData, domainInfo, innerCallback, authMode);
     };
-    std::thread taskThread(task);
-    pthread_setname_np(taskThread.native_handle(), THREAD_INNER_AUTH);
-    taskThread.detach();
+    if (authMode != AUTH_WITH_CREDENTIAL_MODE) {
+        std::thread taskThread(task);
+        pthread_setname_np(taskThread.native_handle(), THREAD_INNER_AUTH);
+        taskThread.detach();
+    } else {
+        StartPluginAuth(userId, authData, domainInfo, innerCallback, authMode);
+    }
+    
     return ERR_OK;
 }
 

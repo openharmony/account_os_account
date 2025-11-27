@@ -32,8 +32,11 @@ static const std::string DOMAIN = "testDomain";
 static const int32_t ERROR_CODE = 12300001;
 namespace {
 static int32_t g_callingLocalId = -1;
-
+static bool g_needWaitCancel = false;
+static std::mutex g_needWaitCancelMutex;
 static std::mutex g_mutex;
+const int32_t WAIT_TIME = 5;
+std::condition_variable g_Cv;
 static int32_t g_contextId = 1;
 static PluginAuthResultInfoCallback g_authResultInfoCallback = nullptr;
 };
@@ -78,9 +81,6 @@ PluginBussnessError *Auth(const PluginDomainAccountInfo *domainAccountInfo, cons
         return nullptr;
     }
 
-    time_t authTime;
-    (void)time(&authTime);
-    g_authTime = authTime;
     ACCOUNT_LOGI("Mock Auth time: %{public}d.", g_authTime);
 
     error->code = 0;
@@ -104,6 +104,9 @@ PluginBussnessError *Auth(const PluginDomainAccountInfo *domainAccountInfo, cons
             error->code = 0;
             error->msg.data = nullptr;
         }
+        time_t authTime;
+        (void)time(&authTime);
+        g_authTime = authTime;
         callback(contextId, authResultInfo, error);
     };
     std::thread thread(delayCallback);
@@ -339,7 +342,7 @@ PluginBussnessError *AuthBlocking(const PluginDomainAccountInfo *domainAccountIn
     (void)time(&authTime);
     g_authTime = authTime;
     ACCOUNT_LOGI("Mock Auth time: %{public}d.", g_authTime);
-
+    g_needWaitCancel = true;
     error->code = 0;
     error->msg.data = nullptr;
     {
@@ -348,12 +351,42 @@ PluginBussnessError *AuthBlocking(const PluginDomainAccountInfo *domainAccountIn
         g_contextId++;
         g_authResultInfoCallback = callback;
     }
+    auto delayCallback = [callback, contextId = *contextId]() {
+        ACCOUNT_LOGI("Mock AuthBlocking begin");
+        {
+                std::unique_lock<std::mutex> lock(g_needWaitCancelMutex);
+                g_Cv.wait_for(lock, std::chrono::seconds(WAIT_TIME), [] {
+                    return !g_needWaitCancel;
+                });
+        }
+        PluginAuthResultInfo *authResultInfo = (PluginAuthResultInfo *)malloc(sizeof(PluginAuthResultInfo));
+        SetPluginUint8Vector({1, 2}, authResultInfo->accountToken);
+        authResultInfo->remainTimes = 1;
+        authResultInfo->freezingTime = 1;
 
+        PluginBussnessError *error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+        if (error != nullptr) {
+            error->code = 0;
+            error->msg.data = nullptr;
+        }
+        time_t authTime;
+        (void)time(&authTime);
+        g_authTime = authTime;
+        callback(contextId, authResultInfo, error);
+    };
+    std::thread thread(delayCallback);
+    pthread_setname_np(thread.native_handle(), "AuthBlocking");
+    thread.detach();
+    
     return error;
 }
 
 PluginBussnessError *CancelAuth(const uint64_t contextId)
 {
+    if (g_needWaitCancel) {
+        g_needWaitCancel = false;
+        g_Cv.notify_all();
+    }
     PluginBussnessError *error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
     if (error == nullptr) {
         return nullptr;
