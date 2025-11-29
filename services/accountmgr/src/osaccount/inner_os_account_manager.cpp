@@ -879,8 +879,8 @@ ErrCode IInnerOsAccountManager::CreateOsAccountWithFullInfo(OsAccountInfo &osAcc
     }
     if (errCode == ERR_OK && oldInfo.GetIsCreateCompleted()) {
         if (oldInfo.GetToBeRemoved()) {
-            ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE, errCode,
-                "Remove garbage account before create osaccount with full info");
+            ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE_WITH_FULL_INFO,
+                errCode, "Remove garbage account before create osaccount with full info");
             ACCOUNT_LOGW("Account %{public}d is to be removed, remove it first.", osAccountInfo.GetLocalId());
             errCode = RemoveOsAccountOperate(osAccountInfo.GetLocalId(), osAccountInfo);
             if (errCode != ERR_OK) {
@@ -888,8 +888,8 @@ ErrCode IInnerOsAccountManager::CreateOsAccountWithFullInfo(OsAccountInfo &osAcc
                 return errCode;
             }
         } else {
-            ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE, errCode,
-                "Account already exists when create osaccount with full info");
+            ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE_WITH_FULL_INFO,
+                errCode, "Account already exists when create osaccount with full info");
             ACCOUNT_LOGW("Account %{public}d already exists.", osAccountInfo.GetLocalId());
             RemoveLocalIdToOperating(osAccountInfo.GetLocalId());
             return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_ALREADY_EXIST_ERROR;
@@ -2488,7 +2488,7 @@ void IInnerOsAccountManager::ExecuteDeactivationAnimation(int32_t pipeFd, const 
     if (execv(DEACTIVATION_ANIMATION_PATH, args) == -1) {
         int32_t err = errno;
         ACCOUNT_LOGE("Failed to execv animation: %{public}s", strerror(err));
-        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), "deactivate", err,
+        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_DEACTIVATE, err,
             "Failed to launch deactivation animation, execv error");
         close(pipeFd);
         exit(EXIT_FAILURE);
@@ -2552,7 +2552,7 @@ void IInnerOsAccountManager::LaunchDeactivationAnimation(const OsAccountInfo &os
     if (pipe(pipeFd) == -1) {
         int32_t err = errno;
         ACCOUNT_LOGE("Failed to create pipe: %{public}s", strerror(err));
-        ReportOsAccountOperationFail(localId, "deactivate", err,
+        ReportOsAccountOperationFail(localId, Constants::OPERATION_DEACTIVATE, err,
             "Failed to launch deactivation animation, create pipe error");
         return;
     }
@@ -2565,14 +2565,14 @@ void IInnerOsAccountManager::LaunchDeactivationAnimation(const OsAccountInfo &os
         close(pipeFd[PIPE_WRITE_END]);
         ErrCode ret = WaitForAnimationReady(pipeFd[PIPE_READ_END]);
         if (ret != ERR_OK) {
-            ReportOsAccountOperationFail(localId, "deactivate", ret,
+            ReportOsAccountOperationFail(localId, Constants::OPERATION_DEACTIVATE, ret,
                 "Failed to launch deactivation animation, wait msg error");
         }
         close(pipeFd[PIPE_READ_END]);
     } else {
         int32_t err = errno;
         ACCOUNT_LOGE("Failed to fork deactivation animation process: %{public}s", strerror(err));
-        ReportOsAccountOperationFail(localId, "deactivate", err,
+        ReportOsAccountOperationFail(localId, Constants::OPERATION_DEACTIVATE, err,
             "Failed to launch deactivation animation, fork error");
         close(pipeFd[PIPE_READ_END]);
         close(pipeFd[PIPE_WRITE_END]);
@@ -2621,7 +2621,7 @@ ErrCode IInnerOsAccountManager::DeactivateOsAccount(const int id, bool isStopSto
     deactivatingAccounts_.Erase(id);
     if (errCode != ERR_OK) {
         RemoveLocalIdToOperating(id);
-        ReportOsAccountOperationFail(id, "deactivate", errCode, "deactivate os account failed");
+        ReportOsAccountOperationFail(id, Constants::OPERATION_DEACTIVATE, errCode, "deactivate os account failed");
         return errCode;
     }
 

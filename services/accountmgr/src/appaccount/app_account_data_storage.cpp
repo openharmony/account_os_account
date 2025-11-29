@@ -19,6 +19,7 @@
 #include "account_file_operator.h"
 #include "account_log_wrapper.h"
 #include "app_account_info_json_parser.h"
+#include "account_hisysevent_adapter.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -63,6 +64,8 @@ ErrCode AppAccountDataStorage::GetAccessibleAccountsFromDataStorage(
     ErrCode result = GetValueFromKvStore(AUTHORIZED_ACCOUNTS, authorizedAccounts);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get config by id from data storage");
+        REPORT_APP_ACCOUNT_FAIL("", authorizedApp, Constants::APP_DFX_DB_ERR_LOG,
+            result, "Get config by id from data storage failed");
     }
 
     GetAccessibleAccountsFromAuthorizedAccounts(authorizedAccounts, authorizedApp, accessibleAccounts);
@@ -97,6 +100,8 @@ ErrCode AppAccountDataStorage::SaveAccountInfoIntoDataStorage(AppAccountInfo &ap
     ErrCode result = SaveAccountInfo(appAccountInfo);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to save account info, result = %{public}d", result);
+        REPORT_APP_ACCOUNT_FAIL(appAccountInfo.name_, appAccountInfo.owner_,
+            Constants::APP_DFX_DB_ERR_LOG, result, "Save account info failed");
         return result;
     }
 

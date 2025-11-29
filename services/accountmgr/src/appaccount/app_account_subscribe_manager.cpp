@@ -24,6 +24,7 @@
 #include "iapp_account_event.h"
 #include "ipc_skeleton.h"
 #include "ohos_account_kits.h"
+#include "account_hisysevent_adapter.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -95,6 +96,8 @@ ErrCode AppAccountSubscribeManager::UnsubscribeAppAccount(const sptr<IRemoteObje
 {
     if (eventListener == nullptr) {
         ACCOUNT_LOGE("eventListener is nullptr");
+        REPORT_APP_ACCOUNT_FAIL("", "", Constants::APP_DFX_UNSUBSCRIBE,
+            ERR_ACCOUNT_COMMON_NULL_PTR_ERROR, "EventListener is nullptr");
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
 
@@ -209,6 +212,8 @@ ErrCode AppAccountSubscribeManager::CheckAppAccess(const std::shared_ptr<AppAcco
             });
         if (it == accessibleAccounts.end()) {
             ACCOUNT_LOGE("failed to find accessible account");
+            REPORT_APP_ACCOUNT_FAIL("", owner, Constants::APP_DFX_SUBSCRIBE,
+                ERR_ACCOUNT_COMMON_PERMISSION_DENIED, "Find accessible account failed");
             return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
         }
     }
@@ -235,11 +240,15 @@ ErrCode AppAccountSubscribeManager::InsertSubscribeRecord(
 {
     if (owners.size() == 0) {
         ACCOUNT_LOGE("owners size is 0");
+        REPORT_APP_ACCOUNT_FAIL("", "", Constants::APP_DFX_SUBSCRIBE,
+            ERR_APPACCOUNT_SERVICE_OWNERS_SIZE_IS_ZERO, "Owners size is 0");
         return ERR_APPACCOUNT_SERVICE_OWNERS_SIZE_IS_ZERO;
     }
 
     if (subscribeRecordPtr == nullptr) {
         ACCOUNT_LOGE("subscribeRecordPtr is nullptr");
+        REPORT_APP_ACCOUNT_FAIL("", "", Constants::APP_DFX_SUBSCRIBE,
+            ERR_ACCOUNT_COMMON_NULL_PTR_ERROR, "SubscribeRecordPtr is nullptr");
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
 
@@ -294,6 +303,8 @@ ErrCode AppAccountSubscribeManager::RemoveSubscribeRecord(const sptr<IRemoteObje
 {
     if (eventListener == nullptr) {
         ACCOUNT_LOGE("eventListener is nullptr");
+        REPORT_APP_ACCOUNT_FAIL("", "", Constants::APP_DFX_UNSUBSCRIBE,
+            ERR_ACCOUNT_COMMON_NULL_PTR_ERROR, "EventListener is nullptr");
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
 

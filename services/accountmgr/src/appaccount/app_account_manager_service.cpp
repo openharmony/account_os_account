@@ -119,6 +119,8 @@ ErrCode AppAccountManagerService::AddAccount(const std::string &name, const std:
     ErrCode ret = GetCallingInfo(callingUid, bundleName, appIndex);
     if (ret != ERR_OK) {
         funcResult = ret;
+        REPORT_APP_ACCOUNT_FAIL(name, bundleName, Constants::APP_DFX_ADD_ACCOUNT,
+            ret, "Get calling info failed");
         return ERR_OK;
     }
     std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(callingUid);
@@ -136,6 +138,8 @@ ErrCode AppAccountManagerService::AddAccountImplicitly(const std::string &owner,
     ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
     if (result != ERR_OK) {
         funcResult = result;
+        REPORT_APP_ACCOUNT_FAIL("", owner, Constants::APP_DFX_ADD_ACCOUNT_IMPLICITLY,
+            result, "Get calling info failed");
         return ERR_OK;
     }
     request.owner = owner;
@@ -208,6 +212,8 @@ ErrCode AppAccountManagerService::DeleteAccount(const std::string &name, int32_t
     ErrCode ret = GetCallingInfo(callingUid, bundleName, appIndex);
     if (ret != ERR_OK) {
         funcResult = ret;
+        REPORT_APP_ACCOUNT_FAIL(name, bundleName, Constants::APP_DFX_REMOVE_ACCOUNT,
+            ret, "Get calling info failed");
         return ERR_OK;
     }
     std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(callingUid);
@@ -226,6 +232,8 @@ ErrCode AppAccountManagerService::GetAccountExtraInfo(
     ErrCode ret = GetCallingInfo(callingUid, bundleName, appIndex);
     if (ret != ERR_OK) {
         funcResult = ret;
+        REPORT_APP_ACCOUNT_FAIL(name, bundleName, Constants::APP_DFX_SET_EXTRAINFO,
+            ret, "Get calling info failed");
         return ERR_OK;
     }
     std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(callingUid);
@@ -245,6 +253,8 @@ ErrCode AppAccountManagerService::SetAccountExtraInfo(
     ErrCode ret = GetCallingInfo(callingUid, bundleName, appIndex);
     if (ret != ERR_OK) {
         funcResult = ret;
+        REPORT_APP_ACCOUNT_FAIL(name, bundleName, Constants::APP_DFX_SET_EXTRAINFO,
+            ret, "Get calling info failed");
         return ERR_OK;
     }
     std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(callingUid);
@@ -264,12 +274,16 @@ ErrCode AppAccountManagerService::EnableAppAccess(
         appAccountCallingInfo.callingUid, appAccountCallingInfo.bundleName, appAccountCallingInfo.appIndex);
     if (result != ERR_OK) {
         funcResult = result;
+        REPORT_APP_ACCOUNT_FAIL(name, appAccountCallingInfo.bundleName, Constants::APP_DFX_SET_ACCESS,
+            result, "Get calling info failed");
         return ERR_OK;
     }
 
     if (authorizedApp == appAccountCallingInfo.bundleName) {
         ACCOUNT_LOGE("AuthorizedApp is the same to owner.");
         funcResult = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+        REPORT_APP_ACCOUNT_FAIL(name, appAccountCallingInfo.bundleName, Constants::APP_DFX_SET_ACCESS,
+            funcResult, "AuthorizedApp is the same to owner");
         return ERR_OK;
     }
 
@@ -290,10 +304,14 @@ ErrCode AppAccountManagerService::DisableAppAccess(
         appAccountCallingInfo.callingUid, appAccountCallingInfo.bundleName, appAccountCallingInfo.appIndex);
     if (ret != ERR_OK) {
         funcResult = ret;
+        REPORT_APP_ACCOUNT_FAIL(name, appAccountCallingInfo.bundleName,
+            Constants::APP_DFX_SET_ACCESS, ret, "Get calling info failed");
         return ERR_OK;
     }
     if (authorizedApp == appAccountCallingInfo.bundleName) {
         ACCOUNT_LOGE("AuthorizedApp is the same to owner.");
+        REPORT_APP_ACCOUNT_FAIL(name, appAccountCallingInfo.bundleName,
+            Constants::APP_DFX_SET_ACCESS, ERR_ACCOUNT_COMMON_INVALID_PARAMETER, "AuthorizedApp is the same to owner");
         funcResult = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
         return ERR_OK;
     }
@@ -313,6 +331,8 @@ ErrCode AppAccountManagerService::SetAppAccess(
         appAccountCallingInfo.callingUid, appAccountCallingInfo.bundleName, appAccountCallingInfo.appIndex);
     if (ret != ERR_OK) {
         funcResult = ret;
+        REPORT_APP_ACCOUNT_FAIL(name, appAccountCallingInfo.bundleName,
+            Constants::APP_DFX_SET_ACCESS, ret, "Get calling info failed");
         return ERR_OK;
     }
 
@@ -407,6 +427,8 @@ ErrCode AppAccountManagerService::SetAssociatedData(
         appAccountCallingInfo.appIndex);
     if (ret != ERR_OK) {
         funcResult = ret;
+        REPORT_APP_ACCOUNT_FAIL(name, appAccountCallingInfo.bundleName, Constants::APP_DFX_SET_CUSTOM_DATA,
+            ret, "Get calling info failed");
         return ERR_OK;
     }
     std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(appAccountCallingInfo.callingUid);
@@ -425,6 +447,8 @@ ErrCode AppAccountManagerService::GetAccountCredential(
         appAccountCallingInfo.appIndex);
     if (ret != ERR_OK) {
         funcResult = ret;
+        REPORT_APP_ACCOUNT_FAIL(name, appAccountCallingInfo.bundleName,
+            Constants::APP_DFX_SET_CREDENTIAL, ret, "Get calling info failed");
         return ERR_OK;
     }
     std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(appAccountCallingInfo.callingUid);
@@ -446,6 +470,8 @@ ErrCode AppAccountManagerService::SetAccountCredential(
         funcResult = ret;
         auto credStr = const_cast<std::string *>(&credential);
         (void)memset_s(credStr->data(), credStr->size(), 0, credStr->size());
+        REPORT_APP_ACCOUNT_FAIL(name, appAccountCallingInfo.bundleName,
+            Constants::APP_DFX_SET_CREDENTIAL, ret, "Get calling info failed");
         return ERR_OK;
     }
     std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(appAccountCallingInfo.callingUid);
@@ -469,6 +495,8 @@ ErrCode AppAccountManagerService::Authenticate(const AppAccountStringInfo &appAc
     ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
     if (result != ERR_OK) {
         funcResult = result;
+        REPORT_APP_ACCOUNT_FAIL(appAccountStringInfo.name, appAccountStringInfo.owner,
+            Constants::APP_DFX_AUTH, result, "Get calling info failed");
         return ERR_OK;
     }
     request.name = appAccountStringInfo.name;
@@ -495,6 +523,8 @@ ErrCode AppAccountManagerService::GetOAuthToken(
     ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
     if (result != ERR_OK) {
         funcResult = result;
+        REPORT_APP_ACCOUNT_FAIL(name, owner, Constants::APP_DFX_SET_AUTH_TOKEN,
+            result, "Get calling info failed");
         return ERR_OK;
     }
     request.name = name;
@@ -516,6 +546,8 @@ ErrCode AppAccountManagerService::GetAuthToken(
     ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
     if (result != ERR_OK) {
         funcResult = result;
+        REPORT_APP_ACCOUNT_FAIL(name, owner, Constants::APP_DFX_SET_AUTH_TOKEN,
+            result, "Get calling info failed");
         return ERR_OK;
     }
     request.name = name;
@@ -720,6 +752,8 @@ ErrCode AppAccountManagerService::GetAuthenticatorInfo(
     ErrCode result = GetCallingTokenInfoAndAppIndex(request.appIndex);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get app index");
+        REPORT_APP_ACCOUNT_FAIL("", owner, Constants::APP_DFX_GET_AUTHENTICATOR_INFO,
+            result, "Get app index failed");
         funcResult = result;
         return ERR_OK;
     }
@@ -793,6 +827,8 @@ ErrCode AppAccountManagerService::GetAuthenticatorCallback(
     ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
     if (result != ERR_OK) {
         funcResult = result;
+        REPORT_APP_ACCOUNT_FAIL("", request.callerBundleName,
+            Constants::APP_DFX_GET_AUTHENTICATOR_CALLBACK, result, "Get calling info failed");
         return ERR_OK;
     }
     request.sessionId = sessionId;
@@ -826,6 +862,8 @@ ErrCode AppAccountManagerService::GetAllAccounts(
     bool result = BundleManagerAdapter::GetInstance()->GetBundleInfo(
         owner, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId);
     if (!result) {
+        REPORT_APP_ACCOUNT_FAIL("", owner, Constants::APP_DFX_GET_ALL_ACCOUNTS,
+            ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO, "Get bundle info failed");
         funcResult = ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO;
         return ERR_OK;
     }
@@ -849,6 +887,8 @@ ErrCode AppAccountManagerService::GetAllAccessibleAccounts(
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("failed to get app index");
         funcResult = ret;
+        REPORT_APP_ACCOUNT_FAIL("", bundleName, Constants::APP_DFX_GET_ALL_ACCOUNTS,
+            ret, "Get app index failed");
         return ERR_OK;
     }
     std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(callingUid);
@@ -866,6 +906,8 @@ ErrCode AppAccountManagerService::QueryAllAccessibleAccounts(
     ErrCode result = GetCallingInfo(callingUid, bundleName, appIndex);
     if (result != ERR_OK) {
         funcResult = result;
+        REPORT_APP_ACCOUNT_FAIL("", owner, Constants::APP_DFX_GET_ALL_ACCOUNTS,
+            result, "Get calling info failed");
         return ERR_OK;
     }
     if (owner.empty()) {
@@ -877,6 +919,8 @@ ErrCode AppAccountManagerService::QueryAllAccessibleAccounts(
     bool ret = BundleManagerAdapter::GetInstance()->GetBundleInfo(
         owner, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId);
     if (!ret) {
+        REPORT_APP_ACCOUNT_FAIL("", owner, Constants::APP_DFX_SET_ACCESS,
+            ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO, "Get bundle info failed");
         funcResult = ERR_OK;
         return ERR_OK;
     }
@@ -896,6 +940,8 @@ ErrCode AppAccountManagerService::CheckAppAccess(
         appAccountCallingInfo.appIndex);
     if (result != ERR_OK) {
         funcResult = result;
+        REPORT_APP_ACCOUNT_FAIL(name, authorizedApp, Constants::APP_DFX_SET_ACCESS, result,
+            "Get calling info failed");
         return ERR_OK;
     }
     if (authorizedApp == appAccountCallingInfo.bundleName) {
@@ -920,6 +966,7 @@ ErrCode AppAccountManagerService::DeleteAccountCredential(
     ErrCode ret = GetCallingInfo(callingUid, bundleName, appIndex);
     if (ret != ERR_OK) {
         funcResult = ret;
+        REPORT_APP_ACCOUNT_FAIL(name, bundleName, Constants::APP_DFX_SET_CREDENTIAL, ret, "Get calling info failed");
         return ERR_OK;
     }
     std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(callingUid);
@@ -962,6 +1009,8 @@ ErrCode AppAccountManagerService::VerifyCredential(const std::string &name, cons
     ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
     if (result != ERR_OK) {
         funcResult = result;
+        REPORT_APP_ACCOUNT_FAIL(name, owner, Constants::APP_DFX_VERIFY_CREDENTIAL,
+            result, "Get calling info failed");
         return ERR_OK;
     }
     request.name = name;
@@ -984,6 +1033,8 @@ ErrCode AppAccountManagerService::CheckAccountLabels(const std::string &name, co
     ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
     if (result != ERR_OK) {
         funcResult = result;
+        REPORT_APP_ACCOUNT_FAIL(name, owner, Constants::APP_DFX_CHECK_LABELS,
+            result, "Get calling info failed");
         return ERR_OK;
     }
     request.labels = labels;
@@ -1003,6 +1054,8 @@ ErrCode AppAccountManagerService::SetAuthenticatorProperties(const std::string &
     ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
     if (result != ERR_OK) {
         funcResult = result;
+        REPORT_APP_ACCOUNT_FAIL("", owner, Constants::APP_DFX_SET_AUTHENTICATOR_PROPERTIES,
+            result, "Get calling info failed");
         return ERR_OK;
     }
     request.owner = owner;
@@ -1042,6 +1095,8 @@ ErrCode AppAccountManagerService::SubscribeAppAccount(
             AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId);
         if (!bundleRet) {
             ACCOUNT_LOGE("Failed to get bundle info, name=%{public}s", owner.c_str());
+            REPORT_APP_ACCOUNT_FAIL("", owner, Constants::APP_DFX_SUBSCRIBE,
+                ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO, "Get bundle info failed");
             continue;
         }
         existOwners.push_back(owner);
@@ -1103,6 +1158,8 @@ ErrCode AppAccountManagerService::GetBundleNameAndCallingUid(int32_t &callingUid
     ErrCode bundleRet = BundleManagerAdapter::GetInstance()->GetNameForUid(callingUid, bundleName);
     if (bundleRet != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
+        REPORT_APP_ACCOUNT_FAIL("", bundleName, Constants::APP_DFX_BMS_ERR_LOG,
+            ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME, "Get bundle name failed");
         return ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME;
     }
     return ERR_OK;
