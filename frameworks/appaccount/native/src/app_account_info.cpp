@@ -16,6 +16,7 @@
 #include "app_account_info.h"
 #include "app_account_info_json_parser.h"
 #include "account_log_wrapper.h"
+#include "account_hisysevent_adapter.h"
 #ifdef HAS_ASSET_PART
 #include <iomanip>
 #include <sstream>
@@ -291,11 +292,15 @@ ErrCode AppAccountInfo::EnableAppAccess(const std::string &authorizedApp, const 
 {
     auto it = authorizedApps_.emplace(authorizedApp);
     if (!it.second && apiVersion < Constants::API_VERSION9) {
+        REPORT_APP_ACCOUNT_FAIL(name_, owner_, Constants::APP_DFX_SET_ACCESS,
+            ERR_APPACCOUNT_SERVICE_ENABLE_APP_ACCESS_ALREADY_EXISTS, "App access already exists");
         return ERR_APPACCOUNT_SERVICE_ENABLE_APP_ACCESS_ALREADY_EXISTS;
     }
     if (authorizedApps_.size() > MAX_APP_AUTH_LIST_SIZE) {
         ACCOUNT_LOGE("the authorization list is too large, whose capacity for each authType is %{public}d",
             MAX_OAUTH_LIST_SIZE);
+        REPORT_APP_ACCOUNT_FAIL(name_, owner_, Constants::APP_DFX_SET_ACCESS,
+            ERR_APPACCOUNT_SERVICE_OAUTH_LIST_MAX_SIZE, "Authorization list is too large");
         authorizedApps_.erase(authorizedApp);
         return ERR_APPACCOUNT_SERVICE_OAUTH_LIST_MAX_SIZE;
     }
@@ -361,6 +366,9 @@ ErrCode AppAccountInfo::GetAllAssociatedData(std::map<std::string, std::string> 
     auto jsonObject = CreateJsonFromString(associatedData_);
     if (jsonObject == nullptr || !IsObject(jsonObject)) {
         ACCOUNT_LOGE("jsonObject is_discarded");
+        REPORT_APP_ACCOUNT_FAIL(name_, owner_,
+            Constants::APP_DFX_SET_CUSTOM_DATA, ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR,
+            "JsonObject is discarded");
         return ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR;
     }
 
@@ -390,12 +398,18 @@ ErrCode AppAccountInfo::SetAssociatedData(const std::string &key, const std::str
     auto jsonObject = CreateJsonFromString(associatedData_);
     if (jsonObject == nullptr) {
         ACCOUNT_LOGE("jsonObject is_discarded");
+        REPORT_APP_ACCOUNT_FAIL(name_, owner_,
+            Constants::APP_DFX_SET_CUSTOM_DATA, ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR,
+            "JsonObject is discarded");
         jsonObject = CreateJson();
     }
 
     if (!IsKeyExist(jsonObject, key)) {
         if (static_cast<uint32_t>(GetItemNum(jsonObject)) >= MAX_ASSOCIATED_DATA_NUMBER) {
             ACCOUNT_LOGW("associated data is over size, the max number is: %{public}d", MAX_ASSOCIATED_DATA_NUMBER);
+            REPORT_APP_ACCOUNT_FAIL(name_, owner_,
+                Constants::APP_DFX_SET_CUSTOM_DATA, ERR_APPACCOUNT_SERVICE_ASSOCIATED_DATA_OVER_SIZE,
+                "Associated data is over size");
             return ERR_APPACCOUNT_SERVICE_ASSOCIATED_DATA_OVER_SIZE;
         }
     }
@@ -404,6 +418,9 @@ ErrCode AppAccountInfo::SetAssociatedData(const std::string &key, const std::str
     associatedData_ = PackJsonToString(jsonObject);
     if (associatedData_.empty()) {
         ACCOUNT_LOGE("failed to dump json object");
+        REPORT_APP_ACCOUNT_FAIL(name_, owner_,
+            Constants::APP_DFX_SET_CUSTOM_DATA, ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR,
+            "Failed to dump json object");
         return ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR;
     }
     return ERR_OK;
@@ -419,6 +436,9 @@ ErrCode AppAccountInfo::GetAccountCredential(const std::string &credentialType, 
 
     if (!IsKeyExist(jsonObject, credentialType)) {
         ACCOUNT_LOGE("failed to find value, credentialType = %{public}s", credentialType.c_str());
+        REPORT_APP_ACCOUNT_FAIL(name_, owner_,
+            Constants::APP_DFX_SET_CREDENTIAL, ERR_APPACCOUNT_SERVICE_ACCOUNT_CREDENTIAL_NOT_EXIST,
+            "Find value failed");
         return ERR_APPACCOUNT_SERVICE_ACCOUNT_CREDENTIAL_NOT_EXIST;
     }
 
@@ -437,6 +457,9 @@ ErrCode AppAccountInfo::SetAccountCredential(
         jsonObject = CreateJsonFromString(accountCredential_);
         if (jsonObject == nullptr || !IsObject(jsonObject)) {
             ACCOUNT_LOGE("jsonObject is not an object");
+            REPORT_APP_ACCOUNT_FAIL(name_, owner_,
+                Constants::APP_DFX_SET_CREDENTIAL, ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR,
+                "JsonObject is not an object");
             return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
         }
     }
@@ -455,6 +478,9 @@ ErrCode AppAccountInfo::SetAccountCredential(
     accountCredential_ = PackJsonToString(jsonObject);
     if (accountCredential_.empty()) {
         ACCOUNT_LOGE("failed to dump json object");
+        REPORT_APP_ACCOUNT_FAIL(name_, owner_,
+            Constants::APP_DFX_SET_CREDENTIAL, ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR,
+            "Dump json object failed");
         return ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR;
     }
     return ERR_OK;
@@ -465,6 +491,9 @@ ErrCode AppAccountInfo::DeleteAccountCredential(const std::string &credentialTyp
     auto jsonObject = CreateJsonFromString(accountCredential_);
     if (jsonObject == nullptr || !IsObject(jsonObject) || (DeleteItemFromJson(jsonObject, credentialType) == 0)) {
         ACCOUNT_LOGE("credential not found");
+        REPORT_APP_ACCOUNT_FAIL(name_, owner_,
+            Constants::APP_DFX_SET_CREDENTIAL, ERR_APPACCOUNT_SERVICE_ACCOUNT_CREDENTIAL_NOT_EXIST,
+            "Credential not found");
         return ERR_APPACCOUNT_SERVICE_ACCOUNT_CREDENTIAL_NOT_EXIST;
     }
     accountCredential_ = PackJsonToString(jsonObject);
@@ -479,11 +508,17 @@ ErrCode AppAccountInfo::GetOAuthToken(const std::string &authType, std::string &
     if (apiVersion >= Constants::API_VERSION9) {
         if ((it == oauthTokens_.end()) || (!it->second.status)) {
             ACCOUNT_LOGE("oauth token not exist");
+            REPORT_APP_ACCOUNT_FAIL(name_, owner_,
+                Constants::APP_DFX_SET_AUTH_TOKEN, ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST,
+                "Oauth token not exist");
             return ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST;
         }
     } else {
         if ((it == oauthTokens_.end()) || (it->second.token.empty())) {
             ACCOUNT_LOGE("oauth token not exist");
+            REPORT_APP_ACCOUNT_FAIL(name_, owner_,
+                Constants::APP_DFX_SET_AUTH_TOKEN, ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST,
+                "Oauth token not exist");
             return ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST;
         }
     }
@@ -556,6 +591,8 @@ ErrCode AppAccountInfo::SetOAuthTokenVisibility(
     auto it = oauthTokens_.find(authType);
     if (it == oauthTokens_.end()) {
         if (apiVersion >= Constants::API_VERSION9) {
+            REPORT_APP_ACCOUNT_FAIL(name_, owner_, Constants::APP_DFX_SET_TOKEN_VISIBILITY,
+                ERR_APPACCOUNT_SERVICE_OAUTH_TYPE_NOT_EXIST, "Oauth type not exist");
             return ERR_APPACCOUNT_SERVICE_OAUTH_TYPE_NOT_EXIST;
         }
         if (!isVisible) {
@@ -563,6 +600,8 @@ ErrCode AppAccountInfo::SetOAuthTokenVisibility(
         }
         if (oauthTokens_.size() >= MAX_TOKEN_NUMBER) {
             ACCOUNT_LOGE("too many types of oauth token, capacity for each account is %{public}d", MAX_TOKEN_NUMBER);
+            REPORT_APP_ACCOUNT_FAIL(name_, owner_, Constants::APP_DFX_SET_TOKEN_VISIBILITY,
+                ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_MAX_SIZE, "Too many types of oauth token");
             return ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_MAX_SIZE;
         }
         OAuthTokenInfo tokenInfo;
@@ -578,6 +617,8 @@ ErrCode AppAccountInfo::SetOAuthTokenVisibility(
     if (it->second.authList.size() > MAX_OAUTH_LIST_SIZE) {
         ACCOUNT_LOGE("the authorization list is too large, whose capacity for each authType is %{public}d",
             MAX_OAUTH_LIST_SIZE);
+        REPORT_APP_ACCOUNT_FAIL(name_, owner_, Constants::APP_DFX_SET_TOKEN_VISIBILITY,
+            ERR_APPACCOUNT_SERVICE_OAUTH_LIST_MAX_SIZE, "Authorization list is too large");
         it->second.authList.erase(bundleName);
         return ERR_APPACCOUNT_SERVICE_OAUTH_LIST_MAX_SIZE;
     }
@@ -595,6 +636,8 @@ ErrCode AppAccountInfo::CheckOAuthTokenVisibility(
     auto tokenInfoIt = oauthTokens_.find(authType);
     if (tokenInfoIt == oauthTokens_.end()) {
         if (apiVersion >= Constants::API_VERSION9) {
+            REPORT_APP_ACCOUNT_FAIL(name_, owner_, Constants::APP_DFX_SET_TOKEN_VISIBILITY,
+                ERR_APPACCOUNT_SERVICE_OAUTH_TYPE_NOT_EXIST, "Oauth type not exist");
             return ERR_APPACCOUNT_SERVICE_OAUTH_TYPE_NOT_EXIST;
         } else {
             return ERR_OK;

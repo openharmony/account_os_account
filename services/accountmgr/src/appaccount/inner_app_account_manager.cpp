@@ -22,6 +22,7 @@
 #include "app_account_control_manager.h"
 #include "app_account_subscribe_manager.h"
 #include "bundle_manager_adapter.h"
+#include "account_hisysevent_adapter.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -76,6 +77,8 @@ ErrCode InnerAppAccountManager::DeleteAccount(
     auto ret = controlManager_.GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("Failed to get account info from data storage, result %{public}d.", ret);
+        REPORT_APP_ACCOUNT_FAIL(name, bundleName, Constants::APP_DFX_REMOVE_ACCOUNT,
+            ret, "Get info from data storage failed");
         return ret;
     }
     std::set<std::string> authorizedApps;
@@ -87,7 +90,7 @@ ErrCode InnerAppAccountManager::DeleteAccount(
         appAccountInfoTemp.SetAuthorizedApps(authorizedApps);
     }
     if ((result == ERR_OK) && (!subscribeManager_.PublishAccount(appAccountInfoTemp, uid, bundleName))) {
-        ACCOUNT_LOGE("failed to publish account");
+        ACCOUNT_LOGE("Publish account failed");
     }
     return result;
 }
@@ -213,6 +216,8 @@ ErrCode InnerAppAccountManager::SetAccountCredential(const std::string &name, co
     auto ret = controlManager_.GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("Failed to get account info from data storage, result %{public}d.", ret);
+        REPORT_APP_ACCOUNT_FAIL(name, appAccountInfo.owner_, Constants::APP_DFX_SET_CREDENTIAL,
+            ret, "Get info from data storage failed");
         return ret;
     }
     if (!subscribeManager_.PublishAccount(appAccountInfo,
@@ -241,6 +246,8 @@ ErrCode InnerAppAccountManager::DeleteAccountCredential(const std::string &name,
     auto ret = controlManager_.GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("Failed to get account info from data storage, result %{public}d.", ret);
+        REPORT_APP_ACCOUNT_FAIL(name, appAccountInfo.owner_, Constants::APP_DFX_SET_CREDENTIAL,
+            ret, "Get info from data storage failed");
         return ret;
     }
     if (!subscribeManager_.PublishAccount(appAccountInfo, uid, bundleName)) {
@@ -295,10 +302,12 @@ ErrCode InnerAppAccountManager::SetOAuthToken(const AuthenticatorSessionRequest 
     auto ret = controlManager_.GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("Failed to get account info from data storage, result %{public}d.", ret);
+        REPORT_APP_ACCOUNT_FAIL(request.name, appAccountInfo.owner_, Constants::APP_DFX_SET_AUTH_TOKEN,
+            ret, "Get info from data storage failed");
         return ret;
     }
     if (!subscribeManager_.PublishAccount(appAccountInfo, request.callerUid, request.callerBundleName)) {
-        ACCOUNT_LOGE("failed to publish account");
+        ACCOUNT_LOGE("Publish account failed");
     }
     return ERR_OK;
 }

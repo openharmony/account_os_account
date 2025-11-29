@@ -21,6 +21,7 @@
 #include "app_mgr_constants.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
+#include "account_hisysevent_adapter.h"
 #include <random>
 
 namespace OHOS {
@@ -129,6 +130,8 @@ ErrCode AppAccountAuthenticatorSessionManager::OpenSession(
 {
     if (session == nullptr) {
         ACCOUNT_LOGE("failed to create AppAccountAuthenticatorSession");
+        REPORT_APP_ACCOUNT_FAIL("", "", Constants::APP_DFX_AUTHENTICATOR_SESSION,
+            ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION, "Create AppAccountAuthenticatorSession failed");
         return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
     }
     std::string sessionId = session->GetSessionId();
@@ -137,6 +140,8 @@ ErrCode AppAccountAuthenticatorSessionManager::OpenSession(
         std::lock_guard<std::recursive_mutex> lock(mutex_);
         if (sessionMap_.size() == SESSION_MAX_NUM) {
             ACCOUNT_LOGD("app account mgr service is busy");
+            REPORT_APP_ACCOUNT_FAIL("", "", Constants::APP_DFX_AUTHENTICATOR_SESSION,
+                ERR_APPACCOUNT_SERVICE_OAUTH_BUSY, "App account mgr service is busy");
             return ERR_APPACCOUNT_SERVICE_OAUTH_BUSY;
         }
         result = session->Open();
@@ -171,6 +176,8 @@ ErrCode AppAccountAuthenticatorSessionManager::GetAuthenticatorCallback(
     auto it = sessionMap_.find(request.sessionId);
     if ((it == sessionMap_.end()) || (it->second == nullptr)) {
         ACCOUNT_LOGE("failed to find a session by id=%{private}s.", request.sessionId.c_str());
+        REPORT_APP_ACCOUNT_FAIL("", request.callerBundleName, Constants::APP_DFX_GET_AUTHENTICATOR_CALLBACK,
+            ERR_APPACCOUNT_SERVICE_OAUTH_SESSION_NOT_EXIST, "Find a session by id failed");
         return ERR_APPACCOUNT_SERVICE_OAUTH_SESSION_NOT_EXIST;
     }
     return it->second->GetAuthenticatorCallback(request, callback);

@@ -17,6 +17,7 @@
 #ifdef HAS_HISYSEVENT_PART
 #include "hisysevent.h"
 #endif // HAS_HISYSEVENT_PART
+#include "account_info.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -24,6 +25,15 @@ namespace {
 #ifdef HAS_HISYSEVENT_PART
 using namespace OHOS::HiviewDFX;
 #endif // HAS_HISYSEVENT_PART
+}
+
+std::string AnonymizeName(const std::string& nameStr)
+{
+    if (nameStr == DEFAULT_OHOS_ACCOUNT_NAME || nameStr.empty()) {
+        return nameStr;
+    }
+    std::string retStr = nameStr.substr(0, Constants::INTERCEPT_HEAD_PART_LEN_FOR_NAME) + Constants::DEFAULT_ANON_STR;
+    return retStr;
 }
 
 void ReportServiceStartFail(int32_t errCode, const std::string& errMsg)
@@ -129,10 +139,11 @@ void ReportOhosAccountOperationFail(
 void ReportAppAccountOperationFail(const std::string &name, const std::string &owner, const std::string& operationStr,
     int32_t errCode, const std::string& errMsg)
 {
+    std::string anonymousName = AnonymizeName(name);
 #ifdef HAS_HISYSEVENT_PART
     int ret = HiSysEventWrite(HiSysEvent::Domain::ACCOUNT, "APP_ACCOUNT_FAILED",
         HiSysEvent::EventType::FAULT,
-        "NAME", name,
+        "NAME", anonymousName,
         "OWNER", owner,
         "OPERATE_TYPE", operationStr,
         "ERROR_TYPE", errCode,
@@ -144,7 +155,7 @@ void ReportAppAccountOperationFail(const std::string &name, const std::string &o
             ret, name.c_str(), owner.c_str(), operationStr.c_str(), errCode, errMsg.c_str());
     }
 #else // HAS_HISYSEVENT_PART
-    (void)name;
+    (void)anonymousName;
     (void)owner;
     (void)errCode;
     (void)operationStr;

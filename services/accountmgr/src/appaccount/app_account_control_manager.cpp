@@ -34,6 +34,7 @@
 #include "ohos_account_kits.h"
 #include "singleton.h"
 #include "system_ability_definition.h"
+#include "account_hisysevent_adapter.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -117,10 +118,14 @@ static ErrCode GetDataFromAsset(int32_t localId, const std::string &alias, std::
     ErrCode ret = AssetQuery(attrs.data(), attrs.size(), &resultSet);
     if (ret != SEC_ASSET_SUCCESS) {
         ACCOUNT_LOGE("fail to get data from asset, error code: %{public}d", ret);
+        REPORT_APP_ACCOUNT_FAIL("", "", Constants::APP_DFX_ASSET_ERR_LOG,
+            ret, "Get data from asset failed");
     } else {
         AssetAttr *secret = AssetParseAttr(resultSet.results, SEC_ASSET_TAG_SECRET);
         if (secret == nullptr) {
             ACCOUNT_LOGE("secret is nullptr");
+            REPORT_APP_ACCOUNT_FAIL("", "", Constants::APP_DFX_ASSET_ERR_LOG,
+                ERR_ACCOUNT_COMMON_NULL_PTR_ERROR, "Secret is nullptr");
             ret = ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
         } else {
             AssetBlob valueBlob = secret->value.blob;
@@ -239,12 +244,13 @@ ErrCode AppAccountControlManager::AddAccount(const std::string &name, const std:
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", result);
-
         appAccountInfo.SetExtraInfo(extraInfo);
 
         result = AddAccountInfoIntoDataStorage(appAccountInfo, dataStoragePtr, uid);
         if (result != ERR_OK) {
             ACCOUNT_LOGE("failed to add account info into data storage, result %{public}d.", result);
+            REPORT_APP_ACCOUNT_FAIL(name, bundleName, Constants::APP_DFX_ADD_ACCOUNT,
+                result, "Add account info into data storage failed");
             return result;
         }
     } else {
@@ -287,6 +293,8 @@ ErrCode AppAccountControlManager::DeleteAccount(
     ErrCode result = StartDbTransaction(dataStoragePtr, dbTransaction);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("StartDbTransaction failed, result = %{public}d", result);
+        REPORT_APP_ACCOUNT_FAIL(name, bundleName, Constants::APP_DFX_REMOVE_ACCOUNT,
+            result, "StartDbTransaction failed");
         return result;
     }
     result = DeleteAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr, uid);
@@ -307,12 +315,16 @@ ErrCode AppAccountControlManager::DeleteAccount(
         result = RemoveAuthorizedAccount(authorizedApp, appAccountInfo, dataStoragePtr, uid);
         if (result != ERR_OK) {
             ACCOUNT_LOGE("failed to save authorized account into data storage, result %{public}d.", result);
+            REPORT_APP_ACCOUNT_FAIL(name, bundleName, Constants::APP_DFX_REMOVE_ACCOUNT,
+                result, "Save authorized account into data storage failed");
             return result;
         }
     }
     result = CommitDbTransaction(dataStoragePtr, dbTransaction);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Failed to commit db transaction, result %{public}d.", result);
+        REPORT_APP_ACCOUNT_FAIL(name, bundleName, Constants::APP_DFX_REMOVE_ACCOUNT,
+            result, "Commit db transaction failed");
         return result;
     }
     return ERR_OK;
@@ -326,6 +338,8 @@ ErrCode AppAccountControlManager::GetAccountExtraInfo(const std::string &name, s
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr = GetDataStorage(uid);
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
     if (result != ERR_OK) {
+        REPORT_APP_ACCOUNT_FAIL(name, bundleName, Constants::APP_DFX_SET_EXTRAINFO,
+            result, "Get info from data storage failed");
         ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", result);
         return result;
     }
@@ -342,6 +356,8 @@ ErrCode AppAccountControlManager::SetAccountExtraInfo(const std::string &name, c
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", result);
+        REPORT_APP_ACCOUNT_FAIL(name, bundleName, Constants::APP_DFX_SET_EXTRAINFO,
+            result, "Get info from data storage failed");
         return result;
     }
 
@@ -350,6 +366,8 @@ ErrCode AppAccountControlManager::SetAccountExtraInfo(const std::string &name, c
     result = SaveAccountInfoIntoDataStorage(appAccountInfo, dataStoragePtr, uid);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to save account info into data storage, result %{public}d.", result);
+        REPORT_APP_ACCOUNT_FAIL(name, appAccountInfo.owner_, Constants::APP_DFX_SET_EXTRAINFO,
+            result, "Save info into data storage failed");
         return result;
     }
 
@@ -365,6 +383,8 @@ ErrCode AppAccountControlManager::EnableAppAccess(const std::string &name, const
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", result);
+        REPORT_APP_ACCOUNT_FAIL(name, authorizedApp, Constants::APP_DFX_SET_ACCESS,
+            result, "Get info from data storage failed");
         return result;
     }
 
@@ -377,11 +397,15 @@ ErrCode AppAccountControlManager::EnableAppAccess(const std::string &name, const
     result = StartDbTransaction(dataStoragePtr, dbTransaction);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("StartDbTransaction failed, result = %{public}d", result);
+        REPORT_APP_ACCOUNT_FAIL(name, authorizedApp, Constants::APP_DFX_SET_ACCESS,
+            result, "StartDbTransaction failed");
         return result;
     }
     result = SaveAccountInfoIntoDataStorage(appAccountInfo, dataStoragePtr, appAccountCallingInfo.callingUid);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to save account info into data storage, result %{public}d.", result);
+        REPORT_APP_ACCOUNT_FAIL(name, authorizedApp, Constants::APP_DFX_SET_ACCESS,
+            result, "Save info into data storage failed");
         return result;
     }
 
@@ -394,6 +418,8 @@ ErrCode AppAccountControlManager::EnableAppAccess(const std::string &name, const
     result = CommitDbTransaction(dataStoragePtr, dbTransaction);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Failed to commit db transaction, result %{public}d.", result);
+        REPORT_APP_ACCOUNT_FAIL(name, authorizedApp, Constants::APP_DFX_SET_ACCESS,
+            result, "Commit db transaction failed");
         return result;
     }
     return ERR_OK;
@@ -450,6 +476,8 @@ ErrCode AppAccountControlManager::CheckAppAccess(const std::string &name, const 
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", result);
+        REPORT_APP_ACCOUNT_FAIL(name, authorizedApp,
+            Constants::APP_DFX_SET_ACCESS, result, "Get info from data storage failed");
         return ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST;
     }
     return appAccountInfo.CheckAppAccess(authorizedApp, isAccessible);
@@ -512,6 +540,8 @@ ErrCode AppAccountControlManager::GetAssociatedDataFromStorage(const std::string
     std::string bundleName;
     if (BundleManagerAdapter::GetInstance()->GetNameForUid(uid, bundleName) != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
+        REPORT_APP_ACCOUNT_FAIL(name, bundleName, Constants::APP_DFX_SET_CUSTOM_DATA,
+            ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME, "Get bundle name failed");
         return ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME;
     }
     AppAccountInfo appAccountInfo(name, bundleName);
@@ -519,11 +549,15 @@ ErrCode AppAccountControlManager::GetAssociatedDataFromStorage(const std::string
     std::shared_ptr<AppAccountDataStorage> storePtr = GetDataStorage(uid);
     if (storePtr == nullptr) {
         ACCOUNT_LOGE("failed to get data storage");
+        REPORT_APP_ACCOUNT_FAIL(name, bundleName, Constants::APP_DFX_SET_CUSTOM_DATA,
+            ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR, "Get data storage failed");
         return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
     }
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, storePtr);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get account info from data storage");
+        REPORT_APP_ACCOUNT_FAIL(name, bundleName, Constants::APP_DFX_SET_CUSTOM_DATA,
+            result, "Get info from data storage failed");
         return result;
     }
     AssociatedDataCacheItem item;
@@ -534,6 +568,8 @@ ErrCode AppAccountControlManager::GetAssociatedDataFromStorage(const std::string
     if (it != item.data.end()) {
         value = it->second;
     } else {
+        REPORT_APP_ACCOUNT_FAIL(name, bundleName, Constants::APP_DFX_SET_CUSTOM_DATA,
+            ERR_APPACCOUNT_SERVICE_ASSOCIATED_DATA_KEY_NOT_EXIST, "Associated data key not exist");
         result = ERR_APPACCOUNT_SERVICE_ASSOCIATED_DATA_KEY_NOT_EXIST;
     }
     if (associatedDataCache_.size() >= ASSOCIATED_DATA_CACHE_MAX_SIZE) {
@@ -554,6 +590,8 @@ ErrCode AppAccountControlManager::GetAssociatedData(const std::string &name, con
         int result = Security::AccessToken::AccessTokenKit::GetHapTokenInfo(callingTokenId, hapTokenInfo);
         if ((result != 0) || (hapTokenInfo.instIndex < 0)) {
             ACCOUNT_LOGE("failed to get app index");
+            REPORT_APP_ACCOUNT_FAIL(name, "", Constants::APP_DFX_SET_CUSTOM_DATA,
+                ERR_APPACCOUNT_SERVICE_GET_APP_INDEX, "Get app index failed");
             return ERR_APPACCOUNT_SERVICE_GET_APP_INDEX;
         }
         associatedDataCache_.erase(uid);
@@ -578,6 +616,8 @@ ErrCode AppAccountControlManager::SetAssociatedData(const std::string &name, con
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, storePtr);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", result);
+        REPORT_APP_ACCOUNT_FAIL(name, appAccountInfo.owner_, Constants::APP_DFX_SET_CUSTOM_DATA,
+            result, "Get info from data storage failed");
         return result;
     }
     result = appAccountInfo.SetAssociatedData(key, value);
@@ -588,6 +628,8 @@ ErrCode AppAccountControlManager::SetAssociatedData(const std::string &name, con
     result = SaveAccountInfoIntoDataStorage(appAccountInfo, storePtr, appAccountCallingInfo.callingUid);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to save account info into data storage, result %{public}d.", result);
+        REPORT_APP_ACCOUNT_FAIL(name, appAccountInfo.owner_, Constants::APP_DFX_SET_CUSTOM_DATA,
+            result, "Save info into data storage failed");
         return result;
     }
     auto it = associatedDataCache_.find(appAccountCallingInfo.callingUid);
@@ -606,6 +648,8 @@ ErrCode AppAccountControlManager::GetAccountCredential(const std::string &name, 
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", result);
+        REPORT_APP_ACCOUNT_FAIL(name, appAccountInfo.owner_, Constants::APP_DFX_SET_CREDENTIAL,
+            result, "Get info from data storage failed");
         return result;
     }
 
@@ -630,6 +674,8 @@ ErrCode AppAccountControlManager::SetAccountCredential(const std::string &name, 
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", result);
+        REPORT_APP_ACCOUNT_FAIL(name, appAccountInfo.owner_, Constants::APP_DFX_SET_CREDENTIAL,
+            result, "Get info from data storage failed");
         return ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST;
     }
     result = appAccountInfo.SetAccountCredential(credentialType, credential);
@@ -641,6 +687,8 @@ ErrCode AppAccountControlManager::SetAccountCredential(const std::string &name, 
     result = SaveAccountInfoIntoDataStorage(appAccountInfo, dataStoragePtr, appAccountCallingInfo.callingUid);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to save account info into data storage, result %{public}d.", result);
+        REPORT_APP_ACCOUNT_FAIL(name, appAccountInfo.owner_, Constants::APP_DFX_SET_CREDENTIAL,
+            result, "Save info into data storage failed");
         return result;
     }
 #ifdef HAS_ASSET_PART
@@ -663,6 +711,8 @@ ErrCode AppAccountControlManager::DeleteAccountCredential(const std::string &nam
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", result);
+        REPORT_APP_ACCOUNT_FAIL(name, appAccountInfo.owner_, Constants::APP_DFX_SET_CREDENTIAL,
+            result, "Get info from data storage failed");
         return ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST;
     }
 #ifdef HAS_ASSET_PART
@@ -679,6 +729,8 @@ ErrCode AppAccountControlManager::DeleteAccountCredential(const std::string &nam
     result = SaveAccountInfoIntoDataStorage(appAccountInfo, dataStoragePtr, callingInfo.callingUid);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to save account info into data storage, result %{public}d.", result);
+        REPORT_APP_ACCOUNT_FAIL(name, appAccountInfo.owner_, Constants::APP_DFX_SET_CREDENTIAL,
+            result, "Save info into data storage failed");
     }
     return result;
 }
@@ -692,6 +744,8 @@ ErrCode AppAccountControlManager::GetOAuthToken(
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", result);
+        REPORT_APP_ACCOUNT_FAIL(appAccountInfo.name_, appAccountInfo.owner_, Constants::APP_DFX_SET_AUTH_TOKEN,
+            result, "Get info from data storage failed");
         return ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST;
     }
     bool isVisible = false;
@@ -699,6 +753,8 @@ ErrCode AppAccountControlManager::GetOAuthToken(
         GetBundleKeySuffix(request.appIndex), isVisible, apiVersion);
     if ((result != ERR_OK) || (!isVisible)) {
         ACCOUNT_LOGE("failed to get oauth token for permission denied, result %{public}d.", result);
+        REPORT_APP_ACCOUNT_FAIL(appAccountInfo.name_, appAccountInfo.owner_, Constants::APP_DFX_SET_AUTH_TOKEN,
+            result, "Get oauth token for permission denied failed");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     result = appAccountInfo.GetOAuthToken(request.authType, token, apiVersion);
@@ -710,6 +766,8 @@ ErrCode AppAccountControlManager::GetOAuthToken(
     token = "";
     GetDataFromAsset(request.callerUid / UID_TRANSFORM_DIVISOR, alias, token);
     if (token.empty() && (apiVersion < Constants::API_VERSION9)) {
+        REPORT_APP_ACCOUNT_FAIL(appAccountInfo.name_, appAccountInfo.owner_, Constants::APP_DFX_SET_AUTH_TOKEN,
+            ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST, "Oauth token not exist");
         return ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST;
     }
 #endif
@@ -735,6 +793,8 @@ ErrCode AppAccountControlManager::SetOAuthToken(const AuthenticatorSessionReques
     result = SaveAccountInfoIntoDataStorage(appAccountInfo, dataStoragePtr, request.callerUid);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to save account info into data storage, result %{public}d.", result);
+        REPORT_APP_ACCOUNT_FAIL(appAccountInfo.name_, appAccountInfo.owner_, Constants::APP_DFX_SET_AUTH_TOKEN,
+            result, "Save info into data storage failed");
         return result;
     }
 #ifdef HAS_ASSET_PART
@@ -757,6 +817,8 @@ ErrCode AppAccountControlManager::DeleteOAuthToken(
     ErrCode ret = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", ret);
+        REPORT_APP_ACCOUNT_FAIL(appAccountInfo.name_, appAccountInfo.owner_, Constants::APP_DFX_SET_AUTH_TOKEN,
+            ret, "Get info from data storage failed");
         return ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST;
     }
     bool isVisible = false;
@@ -764,6 +826,8 @@ ErrCode AppAccountControlManager::DeleteOAuthToken(
         GetBundleKeySuffix(request.appIndex), isVisible, apiVersion);
     if ((!isVisible) || (ret != ERR_OK)) {
         ACCOUNT_LOGE("failed to delete oauth token for permission denied, result %{public}d.", ret);
+        REPORT_APP_ACCOUNT_FAIL(appAccountInfo.name_, appAccountInfo.owner_, Constants::APP_DFX_SET_AUTH_TOKEN,
+            ret, "Delete oauth token for permission denied failed");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     std::string token = request.token;
@@ -784,6 +848,8 @@ ErrCode AppAccountControlManager::DeleteOAuthToken(
         bool isOwnerSelf = request.owner == request.callerBundleName;
         ret = appAccountInfo.DeleteAuthToken(request.authType, token, isOwnerSelf);
         if (ret != ERR_OK) {
+            REPORT_APP_ACCOUNT_FAIL(appAccountInfo.name_, appAccountInfo.owner_, Constants::APP_DFX_SET_AUTH_TOKEN,
+                ret, "Delete oauth token failed");
             return ret;
         }
     } else {
@@ -795,6 +861,8 @@ ErrCode AppAccountControlManager::DeleteOAuthToken(
     ret = SaveAccountInfoIntoDataStorage(appAccountInfo, dataStoragePtr, request.callerUid);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("failed to save account info into data storage, result %{public}d.", ret);
+        REPORT_APP_ACCOUNT_FAIL(appAccountInfo.name_, appAccountInfo.owner_, Constants::APP_DFX_SET_AUTH_TOKEN,
+            ret, "Save info into data storage failed");
         return ret;
     }
     return ret;
@@ -810,6 +878,8 @@ ErrCode AppAccountControlManager::SetOAuthTokenVisibility(
     ErrCode ret = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", ret);
+        REPORT_APP_ACCOUNT_FAIL(appAccountInfo.name_, appAccountInfo.owner_, Constants::APP_DFX_SET_TOKEN_VISIBILITY,
+            ret, "Get info from data storage failed");
         return ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST;
     }
     ret = appAccountInfo.SetOAuthTokenVisibility(
@@ -821,6 +891,8 @@ ErrCode AppAccountControlManager::SetOAuthTokenVisibility(
     ret = SaveAccountInfoIntoDataStorage(appAccountInfo, dataStoragePtr, request.callerUid);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("failed to save account info into data storage, result %{public}d.", ret);
+        REPORT_APP_ACCOUNT_FAIL(appAccountInfo.name_, appAccountInfo.owner_, Constants::APP_DFX_SET_TOKEN_VISIBILITY,
+            ret, "Save info into data storage failed");
         return ret;
     }
     return ERR_OK;
@@ -836,6 +908,8 @@ ErrCode AppAccountControlManager::CheckOAuthTokenVisibility(
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", result);
+        REPORT_APP_ACCOUNT_FAIL(appAccountInfo.name_, appAccountInfo.owner_, Constants::APP_DFX_SET_TOKEN_VISIBILITY,
+            result, "Get info from data storage failed");
         return ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST;
     }
     return appAccountInfo.CheckOAuthTokenVisibility(request.authType, request.bundleName, isVisible, apiVersion);
@@ -906,6 +980,8 @@ ErrCode AppAccountControlManager::GetAllAccounts(const std::string &owner, std::
     auto dataStoragePtr = GetDataStorage(uid);
     if (dataStoragePtr == nullptr) {
         ACCOUNT_LOGE("dataStoragePtr is nullptr");
+        REPORT_APP_ACCOUNT_FAIL("", bundleName, Constants::APP_DFX_GET_ALL_ACCOUNTS,
+            ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR, "DataStoragePtr is nullptr");
         return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
     }
     ErrCode result = AccountPermissionManager::VerifyPermission(GET_ALL_APP_ACCOUNTS);
@@ -924,6 +1000,8 @@ ErrCode AppAccountControlManager::GetAllAccounts(const std::string &owner, std::
     result = dataStoragePtr->GetAccessibleAccountsFromDataStorage(bundleKey, accessibleAccounts);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get accessible account from data storage, result %{public}d.", result);
+        REPORT_APP_ACCOUNT_FAIL("", bundleName, Constants::APP_DFX_GET_ALL_ACCOUNTS,
+            result, "Get accessible account from data storage failed");
         return result;
     }
     for (auto account : accessibleAccounts) {
@@ -947,6 +1025,8 @@ static ErrCode LoadAllAppAccounts(const std::shared_ptr<OHOS::AccountSA::AppAcco
     ErrCode result = dataStoragePtr->LoadAllData(infos);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("LoadAllData failed!");
+        REPORT_APP_ACCOUNT_FAIL("", "", Constants::APP_DFX_GET_ALL_ACCOUNTS,
+            result, "Load all data failed");
         return result;
     }
     for (auto it = infos.begin(); it != infos.end(); ++it) {
@@ -967,6 +1047,8 @@ ErrCode AppAccountControlManager::GetAllAccessibleAccounts(std::vector<AppAccoun
     auto dataStoragePtr = GetDataStorage(uid);
     if (dataStoragePtr == nullptr) {
         ACCOUNT_LOGE("dataStoragePtr is nullptr");
+        REPORT_APP_ACCOUNT_FAIL("", bundleName, Constants::APP_DFX_GET_ALL_ACCOUNTS,
+            ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR, "DataStoragePtr is nullptr");
         return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
     }
     ErrCode result = AccountPermissionManager::VerifyPermission(GET_ALL_APP_ACCOUNTS);
@@ -977,6 +1059,8 @@ ErrCode AppAccountControlManager::GetAllAccessibleAccounts(std::vector<AppAccoun
     result = dataStoragePtr->GetAccessibleAccountsFromDataStorage(bundleName, accessibleAccounts);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get accessible account from data storage, result %{public}d.", result);
+        REPORT_APP_ACCOUNT_FAIL("", bundleName, Constants::APP_DFX_GET_ALL_ACCOUNTS,
+            result, "Get accessible account from data storage failed");
         return result;
     }
 
@@ -986,6 +1070,8 @@ ErrCode AppAccountControlManager::GetAllAccessibleAccounts(std::vector<AppAccoun
         result = dataStoragePtr->GetAccountInfoById(account, appAccountInfo);
         if (result != ERR_OK) {
             ACCOUNT_LOGE("failed to get account info by id, result %{public}d.", result);
+            REPORT_APP_ACCOUNT_FAIL("", bundleName, Constants::APP_DFX_GET_ALL_ACCOUNTS,
+                result, "Get info by id failed");
             return ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID;
         }
 
@@ -1201,6 +1287,8 @@ ErrCode AppAccountControlManager::GetAllAccountsFromDataStorage(const std::strin
 
     if (dataStoragePtr == nullptr) {
         ACCOUNT_LOGE("dataStoragePtr is nullptr");
+        REPORT_APP_ACCOUNT_FAIL("", bundleName, Constants::APP_DFX_GET_ALL_ACCOUNTS,
+            ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR, "dataStoragePtr is nullptr");
         return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
     }
 
@@ -1209,6 +1297,8 @@ ErrCode AppAccountControlManager::GetAllAccountsFromDataStorage(const std::strin
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get accounts by owner, result = %{public}d, owner = %{public}s",
             result, owner.c_str());
+        REPORT_APP_ACCOUNT_FAIL("", bundleName, Constants::APP_DFX_GET_ALL_ACCOUNTS,
+            result, "Get accounts by owner failed");
         return result;
     }
 
@@ -1337,6 +1427,9 @@ ErrCode AppAccountControlManager::GetAccountInfoFromDataStorage(
 {
     if (dataStoragePtr == nullptr) {
         ACCOUNT_LOGE("dataStoragePtr is nullptr");
+        REPORT_APP_ACCOUNT_FAIL(appAccountInfo.name_, appAccountInfo.owner_,
+            Constants::APP_DFX_DB_ERR_LOG, ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR,
+            "DataStoragePtr is nullptr");
         return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
     }
 
@@ -1401,6 +1494,8 @@ ErrCode AppAccountControlManager::SaveAccountInfoIntoDataStorage(
 {
     if (dataStoragePtr == nullptr) {
         ACCOUNT_LOGE("dataStoragePtr is nullptr");
+        REPORT_APP_ACCOUNT_FAIL(appAccountInfo.name_, appAccountInfo.owner_, Constants::APP_DFX_DB_ERR_LOG,
+            ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR, "DataStoragePtr is nullptr");
         return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
     }
 
@@ -1416,6 +1511,8 @@ ErrCode AppAccountControlManager::SaveAccountInfoIntoDataStorage(
         auto dataStorageSyncPtr = GetDataStorage(uid, true);
         if (dataStorageSyncPtr == nullptr) {
             ACCOUNT_LOGE("dataStorageSyncPtr is nullptr");
+            REPORT_APP_ACCOUNT_FAIL(appAccountInfo.name_, appAccountInfo.owner_, Constants::APP_DFX_DB_ERR_LOG,
+                ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR, "DataStorageSyncPtr is nullptr");
             return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
         }
         // Here do not open transaction, as it should be opened before this func is called
@@ -1423,16 +1520,22 @@ ErrCode AppAccountControlManager::SaveAccountInfoIntoDataStorage(
         result = dataStorageSyncPtr->GetValueFromKvStore(appAccountInfo.GetPrimeKey(), appAccountInfoFromDataStorage);
         if (result != ERR_OK) {
             ACCOUNT_LOGE("failed to get config by id from data storage, result %{public}d.", result);
+            REPORT_APP_ACCOUNT_FAIL(appAccountInfo.name_, appAccountInfo.owner_, Constants::APP_DFX_DB_ERR_LOG,
+                result, "Get config by id from data storage failed");
 
             result = dataStorageSyncPtr->AddAccountInfo(appAccountInfo);
             if (result != ERR_OK) {
                 ACCOUNT_LOGE("failed to add account info, result = %{public}d", result);
+                REPORT_APP_ACCOUNT_FAIL(appAccountInfo.name_, appAccountInfo.owner_, Constants::APP_DFX_DB_ERR_LOG,
+                    result, "Add info into data storage failed");
                 return result;
             }
         } else {
             result = dataStorageSyncPtr->SaveAccountInfo(appAccountInfo);
             if (result != ERR_OK) {
                 ACCOUNT_LOGE("failed to save account info, result = %{public}d", result);
+                REPORT_APP_ACCOUNT_FAIL(appAccountInfo.name_, appAccountInfo.owner_, Constants::APP_DFX_DB_ERR_LOG,
+                    result, "Save info into data storage failed");
                 return result;
             }
         }
@@ -1455,12 +1558,16 @@ ErrCode AppAccountControlManager::DeleteAccountInfoFromDataStorage(
     ErrCode result = dataStoragePtr->GetAccountInfoFromDataStorage(appAccountInfo);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", result);
+        REPORT_APP_ACCOUNT_FAIL(appAccountInfo.name_, appAccountInfo.owner_, Constants::APP_DFX_REMOVE_ACCOUNT,
+            result, "Get info from data storage failed");
         return result;
     }
 
     result = dataStoragePtr->DeleteAccountInfoFromDataStorage(appAccountInfo);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to delete account info from data storage, result %{public}d.", result);
+        REPORT_APP_ACCOUNT_FAIL(appAccountInfo.name_, appAccountInfo.owner_, Constants::APP_DFX_REMOVE_ACCOUNT,
+            result, "Delete info from data storage failed");
         return result;
     }
 
@@ -1504,6 +1611,8 @@ ErrCode AppAccountControlManager::SaveAuthorizedAccount(const std::string &bundl
         auto dataStorageSyncPtr = GetDataStorage(uid, true);
         if (dataStorageSyncPtr == nullptr) {
             ACCOUNT_LOGE("dataStorageSyncPtr is nullptr");
+            REPORT_APP_ACCOUNT_FAIL(appAccountInfo.name_, bundleName, Constants::APP_DFX_SET_ACCESS,
+                ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR, "DataStorageSyncPtr is nullptr");
             return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
         }
         // Here do not open transaction, as it should be opened before this func is called
@@ -1561,6 +1670,9 @@ ErrCode AppAccountControlManager::SaveAuthorizedAccountIntoDataStorage(const std
 {
     if (dataStoragePtr == nullptr) {
         ACCOUNT_LOGE("dataStoragePtr is nullptr");
+        REPORT_APP_ACCOUNT_FAIL(appAccountInfo.name_, appAccountInfo.owner_,
+            Constants::APP_DFX_SET_ACCESS, ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR,
+            "DataStoragePtr is nullptr");
         return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
     }
 
@@ -1568,6 +1680,8 @@ ErrCode AppAccountControlManager::SaveAuthorizedAccountIntoDataStorage(const std
     ErrCode result = dataStoragePtr->GetValueFromKvStore(AUTHORIZED_ACCOUNTS,
         authorizedAccounts);
     if (result != ERR_OK) {
+        REPORT_APP_ACCOUNT_FAIL(appAccountInfo.name_, appAccountInfo.owner_,
+            Constants::APP_DFX_SET_ACCESS, result, "Get config by id from data storage failed");
         ACCOUNT_LOGE("failed to get config by id from data storage, result %{public}d.", result);
     }
 
@@ -1591,6 +1705,8 @@ ErrCode AppAccountControlManager::SaveAuthorizedAccountIntoDataStorage(const std
 
     result = dataStoragePtr->PutValueToKvStore(AUTHORIZED_ACCOUNTS, authorizedAccounts);
     if (result != ERR_OK) {
+        REPORT_APP_ACCOUNT_FAIL(appAccountInfo.name_, appAccountInfo.owner_,
+            Constants::APP_DFX_SET_ACCESS, result, "Put value to kvStore failed");
         ACCOUNT_LOGE("PutValueToKvStore failed! result %{public}d.", result);
     }
     return result;

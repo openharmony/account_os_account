@@ -49,6 +49,33 @@ const char DOMAIN_OPT_RECOVERY[] = "recoveryBind";
 const char DOMAIN_OPT_REBOOT_RECOVERY[] = "rebootRecoveryBind";
 const size_t INTERCEPT_HEAD_PART_LEN_FOR_NAME = 1;
 const char DEFAULT_ANON_STR[] = "**********";
+
+//APP_DFX
+const char APP_DFX_ADD_ACCOUNT[] = "addAccount";
+const char APP_DFX_REMOVE_ACCOUNT[] = "removeAccount";
+const char APP_DFX_SET_ACCESS[] = "setAccess";
+const char APP_DFX_SET_CREDENTIAL[] = "setCredential";
+const char APP_DFX_SET_EXTRAINFO[] = "setExtraInfo";
+const char APP_DFX_SET_DATA_SYNC[] = "setDataSync";
+const char APP_DFX_SET_CUSTOM_DATA[] = "setCustomData";
+const char APP_DFX_SET_AUTH_TOKEN[] = "setAuthToken";
+const char APP_DFX_GET_AUTHENTICATOR_INFO[] = "getAuthenticatorInfo";
+const char APP_DFX_SET_TOKEN_VISIBILITY[] = "setTokenVisibility";
+const char APP_DFX_SUBSCRIBE[] = "subscribe";
+const char APP_DFX_UNSUBSCRIBE[] = "unsubscribe";
+const char APP_DFX_PUBLISH_EVENT[] = "publishEvent";
+const char APP_DFX_ADD_ACCOUNT_IMPLICITLY[] = "addAccountImplicitly";
+const char APP_DFX_GET_AUTHENTICATOR_CALLBACK[] = "getAuthenticatorCallback";
+const char APP_DFX_AUTH[] = "auth";
+const char APP_DFX_CHECK_LABELS[] = "checkLabels";
+const char APP_DFX_SET_AUTHENTICATOR_PROPERTIES[] = "setAuthenticatorProperties";
+const char APP_DFX_VERIFY_CREDENTIAL[] = "verifyCredential";
+const char APP_DFX_DB_ERR_LOG[] = "dataStorage";
+const char APP_DFX_BMS_ERR_LOG[] = "bmsErrorLog";
+const char APP_DFX_ASSET_ERR_LOG[] = "assetErrorLog";
+const char APP_DFX_AUTHENTICATOR_SESSION[] = "authenticatorSessionError";
+const char APP_DFX_GET_ALL_ACCOUNTS[] = "getAllAccounts";
+const char APP_DFX_CONNECT_ABILITY[] = "connectAbility";
 }
 
 struct DomainHisysEventInfo {
@@ -76,6 +103,8 @@ struct DomainHisysEventInfo {
         return "uid=" + std::to_string(callingUid);
     }
 };
+
+std::string AnonymizeName(const std::string& nameStr);
 
 void ReportServiceStartFail(int32_t errCode, const std::string& errMsg);
 void ReportPermissionFail(int32_t callerUid, int32_t callerPid, const std::string& permName);
