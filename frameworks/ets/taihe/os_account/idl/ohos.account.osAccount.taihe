@@ -231,6 +231,27 @@ interface UserIdentityManager {
 
     @gen_promise("getEnrolledId")
     GetEnrolledIdSync(authType: AuthType, accountId: Optional<i32>): @typedarray Array<u8>;
+
+    @rename("onCredentialChanged")
+    OnCredentialChanged(credentialTypes: Array<AuthType>, callback: (data: CredentialChangeInfo) => void): void;
+
+    @rename("offCredentialChanged")
+    OffCredentialChanged(callback: Optional<(data: CredentialChangeInfo) => void>): void;
+}
+
+struct CredentialChangeInfo{
+    changeType: CredentialChangeType;
+    isSilent: bool;
+    credentialType: AuthType;
+    accountId: i32;
+    addedCredentialId: Optional<@typedarray Array<u8>>;
+    deletedCredentialId: Optional<@typedarray Array<u8>>;
+}
+
+enum CredentialChangeType : i32 {
+    ADD_CREDENTIAL = 1,
+    UPDATE_CREDENTIAL = 2,
+    DEL_CREDENTIAL = 3
 }
 
 enum AuthType : i32 {
