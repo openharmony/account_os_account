@@ -791,12 +791,18 @@ static napi_value CreateSubEventData(const std::shared_ptr<CredentialChangeWorke
     napi_value isSilentJS;
     NAPI_CALL(env, napi_get_boolean(env, credChangeWorker->isSilent, &isSilentJS));
     NAPI_CALL(env, napi_set_named_property(env, objInfo, "isSilent", isSilentJS));
-    napi_value addedCredentialJS = CreateUint8Array(env, credChangeWorker->addedCredentialId.data(),
-        credChangeWorker->addedCredentialId.size());
-    NAPI_CALL(env, napi_set_named_property(env, objInfo, "addedCredentialId", addedCredentialJS));
-    napi_value deletedCredentialJS = CreateUint8Array(env, credChangeWorker->deletedCredentialId.data(),
-        credChangeWorker->deletedCredentialId.size());
-    NAPI_CALL(env, napi_set_named_property(env, objInfo, "deletedCredentialId", deletedCredentialJS));
+    if (credChangeWorker->addedCredentialId != 0) {
+        std::vector<uint8_t> addedCredentialId = GenerateUint8ArrayFromUint64(credChangeWorker->addedCredentialId);
+        napi_value addedCredentialJS = CreateUint8Array(env, addedCredentialId.data(),
+            addedCredentialId.size());
+        NAPI_CALL(env, napi_set_named_property(env, objInfo, "addedCredentialId", addedCredentialJS));
+    }
+    if (credChangeWorker->deletedCredentialId != 0) {
+        std::vector<uint8_t> deletedCredentialId = GenerateUint8ArrayFromUint64(credChangeWorker->deletedCredentialId);
+        napi_value deletedCredentialJS = CreateUint8Array(env, deletedCredentialId.data(),
+            deletedCredentialId.size());
+        NAPI_CALL(env, napi_set_named_property(env, objInfo, "deletedCredentialId", deletedCredentialJS));
+    }
     return objInfo;
 }
 std::function<void()> CredChangeNotifyTask(const std::shared_ptr<CredentialChangeWorker> &credChangeWorker)
@@ -848,8 +854,8 @@ void CredSubscriberPtr::OnNotifyCredChangeEvent(int32_t userId, AuthType authTyp
     credChangeWorker->userId = userId;
     credChangeWorker->authType = authType;
     credChangeWorker->isSilent = changeInfo.isSilentCredChange;
-    credChangeWorker->addedCredentialId = GenerateUint8ArrayFromUint64(changeInfo.credentialId);
-    credChangeWorker->deletedCredentialId = GenerateUint8ArrayFromUint64(changeInfo.lastCredentialId);
+    credChangeWorker->addedCredentialId = changeInfo.credentialId;
+    credChangeWorker->deletedCredentialId = changeInfo.lastCredentialId;
     credChangeWorker->env = env_;
     credChangeWorker->ref = ref_;
     credChangeWorker->subscriber = this;

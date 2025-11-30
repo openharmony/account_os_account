@@ -219,10 +219,10 @@ struct CredentialChangeCBInfo : public CommonAsyncContext {
     std::shared_ptr<CredSubscriberPtr> subscriber = nullptr;
 };
 
-struct CredentialChangeWorker    : public CommonAsyncContext {
+struct CredentialChangeWorker : public CommonAsyncContext {
     int32_t userId;
-    std::vector<uint8_t> addedCredentialId;
-    std::vector<uint8_t> deletedCredentialId;
+    uint64_t addedCredentialId = 0;
+    uint64_t deletedCredentialId = 0;
     bool isSilent;
     AuthType authType;
     UserIam::UserAuth::CredChangeEventType eventType;
