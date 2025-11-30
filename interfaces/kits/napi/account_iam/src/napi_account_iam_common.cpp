@@ -976,6 +976,30 @@ napi_status ParseUInt32Array(napi_env env, napi_value value, std::vector<uint32_
     return napi_ok;
 }
 
+napi_status ParseInt32Array(napi_env env, napi_value value, std::vector<int32_t> &data)
+{
+    data.clear();
+    bool isArray = false;
+    NAPI_CALL_BASE(env, napi_is_array(env, value, &isArray), napi_invalid_arg);
+    if (!isArray) {
+        ACCOUNT_LOGE("value is not an array");
+        return napi_invalid_arg;
+    }
+    uint32_t arrLen = 0;
+    NAPI_CALL_BASE(env, napi_get_array_length(env, value, &arrLen), napi_invalid_arg);
+    for (uint32_t i = 0; i < arrLen; ++i) {
+        napi_value item = nullptr;
+        NAPI_CALL_BASE(env, napi_get_element(env, value, i, &item), napi_invalid_arg);
+        int32_t num = 0;
+        if (napi_get_value_int32(env, item, &num) != napi_ok) {
+            data.clear();
+            return napi_number_expected;
+        }
+        data.push_back(num);
+    }
+    return napi_ok;
+}
+
 napi_value CreateErrorObject(napi_env env, int32_t code)
 {
     napi_value errObj = nullptr;
@@ -990,6 +1014,54 @@ bool IsAccountIdValid(int32_t accountId)
 {
     if (accountId < 0) {
         ACCOUNT_LOGI("The account id is invalid");
+        return false;
+    }
+    return true;
+}
+
+bool ParseParaOnCredChange(const napi_env &env, napi_callback_info cbInfo,
+    std::shared_ptr<CredentialChangeCBInfo> asyncContext, std::vector<std::int32_t> &inputTypes)
+{
+    size_t argc = ARG_SIZE_TWO;
+    napi_value argv[ARG_SIZE_TWO] = {nullptr};
+    napi_value thisVar = nullptr;
+    NAPI_CALL_BASE(env, napi_get_cb_info(env, cbInfo, &argc, argv, &thisVar, NULL), false);
+    if (argc < ARG_SIZE_TWO) {
+        ACCOUNT_LOGE("The number of parameters should be at least 2");
+        std::string errMsg = "Parameter error. The number of parameters should be at least 2";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        return false;
+    }
+    if (ParseInt32Array(env, argv[PARAM_ZERO], inputTypes) != napi_ok) {
+        ACCOUNT_LOGE("Parameter error. The type of \"keys\" must be AuthType's array");
+        std::string errMsg = "Parameter error. The type of \"keys\" must be AuthType's array";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+        return false;
+    }
+    if (!GetCallbackProperty(env, argv[PARAM_ONE], asyncContext->callbackRef, 1)) {
+        ACCOUNT_LOGE("Get callbackRef failed");
+        std::string errMsg = "Parameter error. The type of \"callback\" must be function";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        return false;
+    }
+    return true;
+}
+
+bool ParseParaOffCredChange(const napi_env &env, napi_callback_info cbInfo,
+    std::shared_ptr<CredentialChangeCBInfo> asyncContext)
+{
+    size_t argc = ARG_SIZE_ONE;
+    napi_value argv[ARG_SIZE_ONE] = {nullptr};
+    napi_value thisVar = nullptr;
+    NAPI_CALL_BASE(env, napi_get_cb_info(env, cbInfo, &argc, argv, &thisVar, NULL), false);
+    if (argc < ARG_SIZE_ONE) {
+        ACCOUNT_LOGE("The arg list is empty, prepare to clear all subscribe.");
+        return true;
+    }
+    if (!GetCallbackProperty(env, argv[PARAM_ZERO], asyncContext->callbackRef, 1)) {
+        ACCOUNT_LOGE("Get callbackRef failed.");
+        std::string errMsg = "Parameter error. The type of 'callback' must be function";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
         return false;
     }
     return true;

@@ -36,6 +36,8 @@ using TaiheAuthType = ohos::account::osAccount::AuthType;
 using TaiheIInputer = ohos::account::osAccount::IInputer;
 using TaiheOsAccountSwitchEventData = ohos::account::osAccount::OsAccountSwitchEventData;
 using TaiheIInputData = ohos::account::osAccount::IInputData;
+using TaiheCredentialChangeType = ohos::account::osAccount::CredentialChangeType;
+using TaiheCredentialChangeInfo = ohos::account::osAccount::CredentialChangeInfo;
 
 namespace OHOS {
 namespace AccountSA {

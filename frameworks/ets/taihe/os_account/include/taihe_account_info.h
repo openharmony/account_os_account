@@ -18,13 +18,17 @@
 
 #include "account_iam_client.h"
 #include "account_iam_info.h"
+#include "event_handler.h"
+#include "event_runner.h"
 #include "os_account_manager.h"
 #include "os_account_subscriber.h"
 #include "os_account_subscribe_info.h"
 #include "taihe_common.h"
+#include "user_idm_client_callback.h"
 
 using active_callback = taihe::callback<void(int32_t)>;
 using switch_callback = taihe::callback<void(ohos::account::osAccount::OsAccountSwitchEventData const&)>;
+using credSubscribeCallback = taihe::callback<void(ohos::account::osAccount::CredentialChangeInfo const&)>;
 
 namespace OHOS {
 namespace AccountSA {
@@ -59,6 +63,18 @@ struct SubscribeCBInfo  {
     std::shared_ptr<TaiheSubscriberPtr> subscriber = nullptr;
 };
 
+class TaiheCredentialSubscriberPtr : public UserIam::UserAuth::CredChangeEventListener,
+                                     public std::enable_shared_from_this<TaiheCredentialSubscriberPtr> {
+public:
+    TaiheCredentialSubscriberPtr(credSubscribeCallback callback);
+    virtual ~TaiheCredentialSubscriberPtr();
+
+    void OnNotifyCredChangeEvent(int32_t userId, AuthType authType, UserIam::UserAuth::CredChangeEventType eventType,
+        const UserIam::UserAuth::CredChangeEventInfo &changeInfo) override;
+
+    credSubscribeCallback callback;
+    std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
+};
 }
 }
 #endif // ACCOUNT_TAIHE_ACCOUNT_INFO_H

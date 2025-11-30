@@ -18,6 +18,8 @@
 
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
+#include "napi_account_common.h"
+#include "napi_account_iam_common.h"
 
 namespace OHOS {
 namespace AccountJsKit {
@@ -36,6 +38,9 @@ private:
     static napi_value DelCred(napi_env env, napi_callback_info info);
     static napi_value GetAuthInfo(napi_env env, napi_callback_info info);
     static napi_value GetEnrolledId(napi_env env, napi_callback_info info);
+    static napi_value OnCredentialChanged(napi_env env, napi_callback_info cbInfo);
+    static napi_value OffCredentialChanged(napi_env env, napi_callback_info cbInfo);
+    static void OffCredChangedSync(napi_env env, std::shared_ptr<CredentialChangeCBInfo> credChangeCBInfo);
 };
 }  // namespace AccountJsKit
 }  // OHOS
