@@ -27,10 +27,12 @@
 #include "napi_account_common.h"
 #include "napi_account_iam_constant.h"
 #include "napi_account_iam_onsetdata.h"
+#include "user_idm_client_callback.h"
 
 namespace OHOS {
 namespace AccountJsKit {
 using namespace OHOS::AccountSA;
+//using namespace UserIam::UserAuth;
 
 constexpr size_t ARG_SIZE_THREE = 3;
 constexpr size_t ARG_SIZE_FOUR = 4;
@@ -198,6 +200,36 @@ struct SetPropertyContext : public CommonAsyncContext {
     std::shared_ptr<NapiCallbackRef> callback;
 };
 
+class CredSubscriberPtr : public UserIam::UserAuth::CredChangeEventListener {
+public:
+    CredSubscriberPtr();
+    virtual ~CredSubscriberPtr();
+    void OnNotifyCredChangeEvent(int32_t userId, AuthType authType, UserIam::UserAuth::CredChangeEventType eventType,
+        const UserIam::UserAuth::CredChangeEventInfo &changeInfo);
+    void SetEnv(const napi_env &env);
+    void SetCallbackRef(const napi_ref &ref);
+
+private:
+    napi_env env_ = nullptr;
+    napi_ref ref_ = nullptr;
+};
+
+struct CredentialChangeCBInfo : public CommonAsyncContext {
+    CredentialChangeCBInfo(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
+    std::shared_ptr<CredSubscriberPtr> subscriber = nullptr;
+};
+
+struct CredentialChangeWorker    : public CommonAsyncContext {
+    int32_t userId;
+    std::vector<uint8_t> addedCredentialId;
+    std::vector<uint8_t> deletedCredentialId;
+    bool isSilent;
+    AuthType authType;
+    UserIam::UserAuth::CredChangeEventType eventType;
+    napi_ref ref = nullptr;
+    CredSubscriberPtr *subscriber = nullptr;
+};
+
 class NapiIDMCallback : public AccountSA::IDMCallback {
 public:
     NapiIDMCallback(napi_env env, const std::shared_ptr<JsIAMCallback> &callback);
@@ -311,6 +343,7 @@ void CallbackAsyncOrPromise(const CommonCallbackInfo &callbackInfo);
 void CallbackAsyncOrPromise(napi_env env, CommonAsyncContext *context, napi_value errJs, napi_value dataJs);
 napi_value CreateErrorObject(napi_env env, int32_t code);
 napi_status ParseUInt32Array(napi_env env, napi_value value, std::vector<uint32_t> &data);
+napi_status ParseInt32Array(napi_env env, napi_value value, std::vector<int32_t> &data);
 napi_status ParseIAMCallback(napi_env env, napi_value object, std::shared_ptr<JsIAMCallback> &callback);
 #ifdef HAS_USER_AUTH_PART
 napi_status ParseAddCredInfo(napi_env env, napi_value value, IDMContext &context);
@@ -321,6 +354,10 @@ napi_value CreateCredInfoArray(napi_env env, const std::vector<AccountSA::Creden
 napi_value CreateAuthResult(napi_env env, const std::vector<uint8_t> &token, int32_t remainTimes, int32_t freezingTime);
 bool IsAccountIdValid(int32_t accountId);
 napi_status ConvertGetPropertyTypeToAttributeKey(GetPropertyType in, Attributes::AttributeKey &out);
+bool ParseParaOnCredChange(const napi_env &env, napi_callback_info cbInfo,
+    std::shared_ptr<CredentialChangeCBInfo> asyncContext, std::vector<int32_t> &credentialTypes);
+bool ParseParaOffCredChange(const napi_env &env, napi_callback_info cbInfo,
+    std::shared_ptr<CredentialChangeCBInfo> asyncContext);
 #endif
 }  // namespace AccountJsKit
 }  // namespace OHOS

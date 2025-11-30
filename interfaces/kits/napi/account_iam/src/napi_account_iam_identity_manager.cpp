@@ -16,6 +16,10 @@
 #include "napi_account_iam_identity_manager.h"
 
 #include <memory>
+#include <mutex>
+#include <unordered_set>
+#include "user_idm_client.h"
+#include "user_idm_client_callback.h"
 #include "account_log_wrapper.h"
 #include "account_iam_client.h"
 #include "napi_account_iam_common.h"
@@ -25,6 +29,15 @@
 namespace OHOS {
 namespace AccountJsKit {
 using namespace OHOS::AccountSA;
+
+const int32_t UINT8_SHIFT_LENGTH = 8;
+const std::set<int32_t> TARGET_TYPES = {1, 2, 4, 16};
+const std::set<int32_t> UNSUPPORTED_TYPES = {8, 1024};
+static std::unordered_set<napi_env> g_registeredEnvs;
+static std::mutex g_envRegistrationLock;
+std::mutex g_lockForCredChangeSubscribers;
+std::vector<std::shared_ptr<CredentialChangeCBInfo>> g_credChangeSubscribers;
+
 
 napi_value NapiAccountIAMIdentityManager::Init(napi_env env, napi_value exports)
 {
@@ -39,6 +52,8 @@ napi_value NapiAccountIAMIdentityManager::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("delCred", DelCred),
         DECLARE_NAPI_FUNCTION("getAuthInfo", GetAuthInfo),
         DECLARE_NAPI_FUNCTION("getEnrolledId", GetEnrolledId),
+        DECLARE_NAPI_FUNCTION("onCredentialChanged", OnCredentialChanged),
+        DECLARE_NAPI_FUNCTION("offCredentialChanged", OffCredentialChanged),
     };
     NAPI_CALL(env, napi_define_class(env, "UserIdentityManager", NAPI_AUTO_LENGTH, JsConstructor,
         nullptr, sizeof(clzDes) / sizeof(napi_property_descriptor), clzDes, &cons));
@@ -554,5 +569,307 @@ napi_value NapiAccountIAMIdentityManager::GetEnrolledId(napi_env env, napi_callb
     context.release();
     return result;
 }
+
+static void OnEnvCleanup(void* data)
+{
+    ACCOUNT_LOGI("Start.");
+    napi_env cleanupEnv = static_cast<napi_env>(data);
+    {
+        std::lock_guard<std::mutex> lock(g_lockForCredChangeSubscribers);
+        auto it = g_credChangeSubscribers.begin();
+        while (it != g_credChangeSubscribers.end()) {
+            if ((*it)->env == cleanupEnv) {
+                ACCOUNT_LOGW("Removing subscriber for destroyed environment");
+                if ((*it)->subscriber) {
+                    UserIam::UserAuth::UserIdmClient::GetInstance().UnRegistCredChangeEventListener((*it)->subscriber);
+                }
+                it = g_credChangeSubscribers.erase(it);
+            } else {
+                ++it;
+            }
+        }
+    }
+    std::lock_guard<std::mutex> lock(g_envRegistrationLock);
+    g_registeredEnvs.erase(cleanupEnv);
+}
+
+static bool RegisterEnvCleanupHook(napi_env env)
+{
+    std::lock_guard<std::mutex> lock(g_envRegistrationLock);
+    if (g_registeredEnvs.find(env) != g_registeredEnvs.end()) {
+        return true;
+    }
+    napi_status status = napi_add_env_cleanup_hook(env, OnEnvCleanup, env);
+    if (status == napi_ok) {
+        g_registeredEnvs.insert(env);
+        return true;
+    }
+    return false;
+}
+
+static bool IsCredChangeSubscribeInVec(napi_env env, std::shared_ptr<CredentialChangeCBInfo> credChangeCBInfo,
+    size_t &itemIndex)
+{
+    std::lock_guard<std::mutex> lock(g_lockForCredChangeSubscribers);
+    itemIndex = 0;
+    for (const auto& existingSubInfo : g_credChangeSubscribers) {
+        if (existingSubInfo->env == env &&
+            CompareOnAndOffRef(env, existingSubInfo->callbackRef, credChangeCBInfo->callbackRef)) {
+                return true;
+        }
+        itemIndex++;
+    }
+    return false;
+}
+
+static bool CheckAndGetAuthTypes(napi_env env, std::vector<int32_t> inputTypes,
+    std::vector<UserIam::UserAuth::AuthType> &credentialTypes)
+{
+    bool invalidFlag = false;
+    bool unsupportFlag = false;
+    std::string invalids;
+    std::string unsupports;
+    for (int32_t inputType : inputTypes) {
+        if (TARGET_TYPES.find(inputType) == TARGET_TYPES.end()) {
+            if (UNSUPPORTED_TYPES.find(inputType) == UNSUPPORTED_TYPES.end()) {
+                invalidFlag = true;
+                invalids += std::to_string(inputType) + ",";
+            } else {
+                unsupportFlag = true;
+                unsupports += std::to_string(inputType) + ",";
+            }
+        } else {
+            credentialTypes.push_back(static_cast<UserIam::UserAuth::AuthType>(inputType));
+            }
+        }
+    if ((!invalidFlag) && (!unsupportFlag)) {
+        return true;
+    }
+    if (invalidFlag) {
+        ACCOUNT_LOGE("One or more auth types are invalid");
+        std::string errMsg = "One or more auth types are invalid: " + invalids;
+        AccountNapiThrow(env, ERR_JS_INVALID_PARAMETER, errMsg, true);
+        return false;
+    }
+    if (unsupportFlag) {
+        ACCOUNT_LOGE("One or more auth types are not supported");
+        std::string errMsg = "One or more auth types are not supported: " + unsupports;
+        AccountNapiThrow(env, ERR_JS_AUTH_TYPE_NOT_SUPPORTED, errMsg, true);
+    }
+    return false;
+}
+
+napi_value NapiAccountIAMIdentityManager::OnCredentialChanged(napi_env env, napi_callback_info cbInfo)
+{
+    if (!RegisterEnvCleanupHook(env)) {
+        ACCOUNT_LOGE("Failed to register env cleanup hook");
+        AccountNapiThrow(env, ERR_JS_SYSTEM_SERVICE_EXCEPTION, true);
+        return nullptr;
+    }
+    auto credChangeCBInfo = std::make_shared<CredentialChangeCBInfo>(env);
+    if (credChangeCBInfo == nullptr) {
+        ACCOUNT_LOGE("insufficient memory for credChangeCBInfo!");
+        AccountNapiThrow(env, ERR_JS_SYSTEM_SERVICE_EXCEPTION, true);
+        return nullptr;
+    }
+    credChangeCBInfo->throwErr = true;
+    std::vector<int32_t> inputTypes;
+    std::vector<UserIam::UserAuth::AuthType> credentialTypes;
+    
+    if (!ParseParaOnCredChange(env, cbInfo, credChangeCBInfo, inputTypes)) {
+        ACCOUNT_LOGE("Parse credential Change subscription failed");
+        return nullptr;
+    }
+    if (!CheckAndGetAuthTypes(env, inputTypes, credentialTypes)) {
+        return nullptr;
+    }
+    credChangeCBInfo->subscriber = std::make_shared<CredSubscriberPtr>();
+    credChangeCBInfo->subscriber->SetEnv(env);
+    credChangeCBInfo->subscriber->SetCallbackRef(credChangeCBInfo->callbackRef);
+    size_t itemIndex = 0;
+    bool isContextInVec = IsCredChangeSubscribeInVec(env, credChangeCBInfo, itemIndex);
+    if (isContextInVec) {
+        ErrCode errCode = UserIam::UserAuth::UserIdmClient::GetInstance()
+            .RegistCredChangeEventListener(credentialTypes, g_credChangeSubscribers[itemIndex]->subscriber);
+        if (errCode != ERR_OK) {
+            AccountNapiThrow(env, errCode, true);
+        }
+        return nullptr;
+    }
+    ErrCode errCode = UserIam::UserAuth::UserIdmClient::GetInstance().RegistCredChangeEventListener(credentialTypes,
+        credChangeCBInfo->subscriber);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("SubscribeCredentialChange failed with errCode=%{public}d", errCode);
+        AccountNapiThrow(env, errCode, true);
+        return nullptr;
+    } else {
+        std::lock_guard<std::mutex> lock(g_lockForCredChangeSubscribers);
+        g_credChangeSubscribers.emplace_back(credChangeCBInfo);
+    }
+    return nullptr;
+}
+
+void NapiAccountIAMIdentityManager::OffCredChangedSync(napi_env env,
+    std::shared_ptr<CredentialChangeCBInfo> credChangeCBInfo)
+{
+    std::lock_guard<std::mutex> lock(g_lockForCredChangeSubscribers);
+    auto it = g_credChangeSubscribers.begin();
+    while (it != g_credChangeSubscribers.end()) {
+        auto currentSubInfo = *it;
+        if (currentSubInfo->env != env) {
+            ACCOUNT_LOGW("Current subscriber env is not equal to the input env, continue.");
+            it++;
+            continue;
+        }
+        bool isCallbackMatched = (credChangeCBInfo->callbackRef == nullptr) ||  // unsubscribe all
+            CompareOnAndOffRef(env, currentSubInfo->callbackRef, credChangeCBInfo->callbackRef);
+        if (isCallbackMatched) {
+            ErrCode errCode = UserIam::UserAuth::UserIdmClient::GetInstance()
+                .UnRegistCredChangeEventListener(currentSubInfo->subscriber);
+            if (errCode != ERR_OK) {
+                ACCOUNT_LOGE("Unsubscribe CredChangeEventListener failed with errCode=%{public}d", errCode);
+                AccountNapiThrow(env, errCode, true);
+                return;
+            }
+            it = g_credChangeSubscribers.erase(it);
+            if (credChangeCBInfo->callbackRef != nullptr) {
+                break;
+            }
+        } else {
+            it++;
+        }
+    }
+}
+
+napi_value NapiAccountIAMIdentityManager::OffCredentialChanged(napi_env env, napi_callback_info cbInfo)
+{
+    auto credChangeCBInfo = std::make_shared<CredentialChangeCBInfo>(env);
+    if (credChangeCBInfo == nullptr) {
+        ACCOUNT_LOGE("insufficient memory for credChangeCBInfo!");
+        return nullptr;
+    }
+    credChangeCBInfo->callbackRef = nullptr;
+    credChangeCBInfo->throwErr = true;
+    if (!ParseParaOffCredChange(env, cbInfo, credChangeCBInfo)) {
+        ACCOUNT_LOGE("Parse unsubscribe failed");
+        return nullptr;
+    }
+    credChangeCBInfo->subscriber = std::make_shared<CredSubscriberPtr>();
+    credChangeCBInfo->subscriber->SetEnv(env);
+    credChangeCBInfo->subscriber->SetCallbackRef(credChangeCBInfo->callbackRef);
+    OffCredChangedSync(env, credChangeCBInfo);
+    return nullptr;
+}
+
+static std::vector<uint8_t> GenerateUint8ArrayFromUint64(const uint64_t data)
+{
+    std::vector<uint8_t> targetArray(sizeof(uint64_t), 0);
+    uint64_t dataCopy =  data;
+    size_t vecSize = targetArray.size();
+    for (size_t i = vecSize; i >= 1; i--) {
+        targetArray[i - 1] = dataCopy & 0xFF;
+        dataCopy >>= UINT8_SHIFT_LENGTH;
+    }
+    std::reverse(targetArray.begin(), targetArray.end());
+    return targetArray;
+}
+
+static napi_value CreateSubEventData(const std::shared_ptr<CredentialChangeWorker> &credChangeWorker)
+{
+    napi_env env = credChangeWorker->env;
+    napi_value objInfo = nullptr;
+    NAPI_CALL(env, napi_create_object(env, &objInfo));
+    napi_value userIdJS;
+    NAPI_CALL(env, napi_create_int32(env, credChangeWorker->userId, &userIdJS));
+    NAPI_CALL(env, napi_set_named_property(env, objInfo, "accountId", userIdJS));
+    napi_value authTypeJS;
+    NAPI_CALL(env, napi_create_int32(env, credChangeWorker->authType, &authTypeJS));
+    NAPI_CALL(env, napi_set_named_property(env, objInfo, "credentialType", authTypeJS));
+    napi_value eventTypeJS;
+    NAPI_CALL(env, napi_create_int32(env, credChangeWorker->eventType, &eventTypeJS));
+    NAPI_CALL(env, napi_set_named_property(env, objInfo, "changeType", eventTypeJS));
+    napi_value isSilentJS;
+    NAPI_CALL(env, napi_get_boolean(env, credChangeWorker->isSilent, &isSilentJS));
+    NAPI_CALL(env, napi_set_named_property(env, objInfo, "isSilent", isSilentJS));
+    napi_value addedCredentialJS = CreateUint8Array(env, credChangeWorker->addedCredentialId.data(),
+        credChangeWorker->addedCredentialId.size());
+    NAPI_CALL(env, napi_set_named_property(env, objInfo, "addedCredentialId", addedCredentialJS));
+    napi_value deletedCredentialJS = CreateUint8Array(env, credChangeWorker->deletedCredentialId.data(),
+        credChangeWorker->deletedCredentialId.size());
+    NAPI_CALL(env, napi_set_named_property(env, objInfo, "deletedCredentialId", deletedCredentialJS));
+    return objInfo;
+}
+std::function<void()> CredChangeNotifyTask(const std::shared_ptr<CredentialChangeWorker> &credChangeWorker)
+{
+    return [credChangeWorker] {
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(credChangeWorker->env, &scope);
+        if (scope == nullptr) {
+            ACCOUNT_LOGE("Fail to open scope");
+            return;
+        }
+        bool isFound = false;
+        {
+            std::lock_guard<std::mutex> lock(g_lockForCredChangeSubscribers);
+            CredSubscriberPtr *subscriber = credChangeWorker->subscriber;
+            for (const auto& item : g_credChangeSubscribers) {
+                if (item->subscriber.get() == subscriber) {
+                    isFound = true;
+                    break;
+                }
+            }
+        }
+        if (isFound) {
+            napi_value eventObj = CreateSubEventData(credChangeWorker);
+            NapiCallVoidFunction(credChangeWorker->env, &eventObj, ARG_SIZE_ONE, credChangeWorker->ref);
+        }
+        napi_close_handle_scope(credChangeWorker->env, scope);
+    };
+}
+
+CredSubscriberPtr::CredSubscriberPtr() {};
+
+CredSubscriberPtr::~CredSubscriberPtr() {};
+
+void CredSubscriberPtr::OnNotifyCredChangeEvent(int32_t userId, AuthType authType,
+    UserIam::UserAuth::CredChangeEventType eventType, const UserIam::UserAuth::CredChangeEventInfo &changeInfo)
+{
+    std::shared_ptr<CredentialChangeWorker> credChangeWorker = std::make_shared<CredentialChangeWorker>();
+    if (credChangeWorker == nullptr) {
+        ACCOUNT_LOGE("insufficient memory for SubscriberAccountsWorker!");
+        return;
+    }
+    if ((eventType == UserIam::UserAuth::CredChangeEventType::DEL_USER) ||
+        (eventType == UserIam::UserAuth::CredChangeEventType::ENFORCE_DEL_USER)) {
+        credChangeWorker->eventType = UserIam::UserAuth::CredChangeEventType::DEL_CRED;
+    } else {
+        credChangeWorker->eventType = eventType;
+    }
+    credChangeWorker->userId = userId;
+    credChangeWorker->authType = authType;
+    credChangeWorker->isSilent = changeInfo.isSilentCredChange;
+    credChangeWorker->addedCredentialId = GenerateUint8ArrayFromUint64(changeInfo.credentialId);
+    credChangeWorker->deletedCredentialId = GenerateUint8ArrayFromUint64(changeInfo.lastCredentialId);
+    credChangeWorker->env = env_;
+    credChangeWorker->ref = ref_;
+    credChangeWorker->subscriber = this;
+    auto task = CredChangeNotifyTask(credChangeWorker);
+    if (napi_ok != napi_send_event(env_, task, napi_eprio_vip, "OnNotifyCredChangeEvent")) {
+        ACCOUNT_LOGE("Post task failed");
+        return;
+    }
+    ACCOUNT_LOGI("Post task finish");
+}
+
+void CredSubscriberPtr::SetEnv(const napi_env &env)
+{
+    env_ = env;
+}
+
+void CredSubscriberPtr::SetCallbackRef(const napi_ref &ref)
+{
+    ref_ = ref;
+}
+
 }  // namespace AccountJsKit
 }  // namespace OHOS

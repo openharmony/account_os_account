@@ -59,6 +59,10 @@ namespace {
 using OHOS::AccountSA::ACCOUNT_LABEL;
 const array<uint8_t> DEFAULT_ARRAY = array<uint8_t>::make(0);
 constexpr int CONTEXTID_OFFSET = 8;
+const std::set<int32_t> TARGET_TYPES = {1, 2, 4, 16};
+const std::set<int32_t> UNSUPPORTED_TYPES = {8, 1024};
+std::mutex g_lockForCredChangeSubscribers;
+std::vector<std::shared_ptr<AccountSA::TaiheCredentialSubscriberPtr>> g_credChangeSubscribers;
 
 template <typename T> T TaiheIAMReturn(ErrCode errCode, T result, const T defult)
 {
@@ -318,6 +322,63 @@ std::vector<EnrolledCredInfo> ConvertCredentialInfoArray(const std::vector<Accou
         result.emplace_back(info);
     }
     return result;
+}
+
+bool ConvertToCredChangeTypeTH(const UserIam::UserAuth::CredChangeEventType &changetype, CredentialChangeType &type)
+{
+    switch (changetype) {
+        case UserIam::UserAuth::CredChangeEventType::ADD_CRED:
+            type = CredentialChangeType(CredentialChangeType::key_t::ADD_CREDENTIAL);
+            break;
+        case UserIam::UserAuth::CredChangeEventType::UPDATE_CRED:
+            type = CredentialChangeType(CredentialChangeType::key_t::UPDATE_CREDENTIAL);
+            break;
+        case UserIam::UserAuth::CredChangeEventType::DEL_CRED:
+        case UserIam::UserAuth::CredChangeEventType::DEL_USER:
+        case UserIam::UserAuth::CredChangeEventType::ENFORCE_DEL_USER:
+            type = CredentialChangeType(CredentialChangeType::key_t::DEL_CREDENTIAL);
+            break;
+        default:
+            ACCOUNT_LOGE("Invalid credential change type");
+            return false;
+    }
+    return true;
+}
+
+static bool CheckAuthTypes(array_view<AuthType> intCredTypes, std::vector<UserIam::UserAuth::AuthType> &credentialTypes)
+{
+    bool invalidFlag = false;
+    bool unsupportFlag = false;
+    std::string invalids;
+    std::string unsupports;
+    for (AuthType inputType : intCredTypes) {
+        if (TARGET_TYPES.find(static_cast<int32_t>(inputType)) == TARGET_TYPES.end()) {
+            if (UNSUPPORTED_TYPES.find(static_cast<int32_t>(inputType)) == UNSUPPORTED_TYPES.end()) {
+                invalidFlag = true;
+                invalids += std::to_string(static_cast<int32_t>(inputType)) + ",";
+            } else {
+                unsupportFlag = true;
+                unsupports += std::to_string(static_cast<int32_t>(inputType)) + ",";
+            }
+        } else {
+            credentialTypes.push_back(static_cast<UserIam::UserAuth::AuthType>(static_cast<int32_t>(inputType)));
+        }
+    }
+    if ((!invalidFlag) && (!unsupportFlag)) {
+        return true;
+    }
+    if (invalidFlag) {
+        ACCOUNT_LOGE("One or more auth types are invalid");
+        std::string errMsg = "One or more auth types are invalid: " + invalids;
+        taihe::set_business_error(ERR_JS_INVALID_PARAMETER, errMsg);
+        return false;
+    }
+    if (unsupportFlag) {
+        ACCOUNT_LOGE("One or more auth types are not supported");
+        std::string errMsg = "One or more auth types are not supported: " + unsupports;
+        taihe::set_business_error(ERR_JS_AUTH_TYPE_NOT_SUPPORTED, errMsg);
+        return false;
+    }
 }
 
 class THGetInfoCallback : public AccountSA::GetCredInfoCallback {
@@ -607,7 +668,73 @@ public:
             [getEnrolledIdCallback] { return getEnrolledIdCallback->onEnrolledIdCalled_;});
         return getEnrolledIdCallback->enrolledID_;
     }
+
+    std::pair<bool, std::shared_ptr<AccountSA::TaiheCredentialSubscriberPtr>> FindAndGetSubscriber(
+        std::shared_ptr<AccountSA::TaiheCredentialSubscriberPtr> targetSubscriber)
+    {
+        for (const auto& each : g_credChangeSubscribers) {
+            if (each->callback == targetSubscriber->callback) {
+                std::shared_ptr<AccountSA::TaiheCredentialSubscriberPtr> findTarget = each;
+                return std::make_pair(true, findTarget);
+            }
+        }
+        return std::make_pair(false, targetSubscriber);
+    }
+
+    void OnCredentialChanged(array_view<AuthType> inputTypes,
+        callback_view<void(CredentialChangeInfo const &)> callabck)
+    {
+        credSubscribeCallback call = callabck;
+        std::vector<UserIam::UserAuth::AuthType> credentialTypes;
+        auto subscriber = std::make_shared<AccountSA::TaiheCredentialSubscriberPtr>(call);
+        if (!CheckAuthTypes(inputTypes, credentialTypes)) {
+            return;
+        }
+        std::lock_guard<std::mutex> lock(g_lockForCredChangeSubscribers);
+        size_t itemIndex = 0;
+        auto subscriberWithFindRet = FindAndGetSubscriber(subscriber);
+        ErrCode errCode = UserIam::UserAuth::UserIdmClient::GetInstance().RegistCredChangeEventListener(
+            credentialTypes, subscriberWithFindRet.second);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("Subscribe failed with errCode: %{public}d", errCode);
+            int32_t jsErrCode = AccountIAMConvertToJSErrCode(errCode);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            return;
+        }
+        if (!subscriberWithFindRet.first) {
+            g_credChangeSubscribers.emplace_back(subscriberWithFindRet.second);
+        }
+        return;
+    }
+
+    void OffCredentialChanged(optional_view<callback<void(CredentialChangeInfo const &)>> callback)
+    {
+        std::lock_guard<std::mutex> lock(g_lockForCredChangeSubscribers);
+        std::shared_ptr<AccountSA::TaiheCredentialSubscriberPtr> targetSubscriber = nullptr;
+        if (callback.has_value()) {
+            targetSubscriber = std::make_shared<AccountSA::TaiheCredentialSubscriberPtr>(callback.value());
+        }
+        auto it = g_credChangeSubscribers.begin();
+        while (it != g_credChangeSubscribers.end()) {
+            if ((targetSubscriber != nullptr) && !(targetSubscriber->callback == (*it)->callback)) {
+                it++;
+                continue;
+            }
+            ErrCode errCode = UserIam::UserAuth::UserIdmClient::GetInstance().UnRegistCredChangeEventListener(*it);
+            if (errCode != ERR_OK) {
+                ACCOUNT_LOGE("Unsubscribe failed with errCode: %{public}d", errCode);
+                int32_t jsErrCode = AccountIAMConvertToJSErrCode(errCode);
+                taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+                return;
+            }
+            it = g_credChangeSubscribers.erase(it);
+            if (targetSubscriber != nullptr) {
+                return;
+            }
+        }
+    }
 };
+
 class THDomainAccountCallback : public AccountSA::DomainAccountCallback {
 public:
     std::mutex mutex;
@@ -2011,6 +2138,68 @@ PINAuth CreatePINAuth()
     return make_holder<PINAuthImpl, PINAuth>();
 }
 } // namespace
+
+namespace OHOS {
+namespace AccountSA {
+TaiheCredentialSubscriberPtr::TaiheCredentialSubscriberPtr(credSubscribeCallback callback):callback(callback)
+{
+    auto runner = AppExecFwk::EventRunner::GetMainEventRunner();
+    if (runner == nullptr) {
+        return;
+    }
+    handler = std::make_shared<AppExecFwk::EventHandler>(runner);
+}
+
+TaiheCredentialSubscriberPtr::~TaiheCredentialSubscriberPtr()
+{}
+
+void TaiheCredentialSubscriberPtr::OnNotifyCredChangeEvent(int32_t userId, AuthType authType,
+                                                           UserIam::UserAuth::CredChangeEventType eventType,
+                                                           const UserIam::UserAuth::CredChangeEventInfo &changeInfo)
+{
+    if (handler == nullptr) {
+        ACCOUNT_LOGE("EventHandler is null");
+        return;
+    }
+    CredentialChangeType changeType(CredentialChangeType::key_t::DEL_CREDENTIAL);
+    if (!ConvertToCredChangeTypeTH(eventType, changeType)) {
+        return;
+    }
+    uint64_t credentialId = changeInfo.credentialId;
+    uint64_t lastCredentialId = changeInfo.lastCredentialId;
+    ohos::account::osAccount::CredentialChangeInfo credChangeInfo {
+        .accountId = userId,
+        .isSilent = changeInfo.isSilentCredChange,
+        .changeType = changeType,
+        .credentialType = ConvertToAuthTypeTH(authType),
+        .addedCredentialId = optional<array<uint8_t>>(std::in_place_t{}, taihe::copy_data_t{},
+            reinterpret_cast<uint8_t *>(&credentialId), sizeof(uint64_t)),
+        .deletedCredentialId = optional<array<uint8_t>>(std::in_place_t{}, taihe::copy_data_t{},
+            reinterpret_cast<uint8_t *>(&lastCredentialId), sizeof(uint64_t)),
+    };
+    auto shareThis = shared_from_this();
+    auto task = [shareThis, credChangeInfo]() {
+        taihe::env_guard guard;
+        std::lock_guard<std::mutex> lock(g_lockForCredChangeSubscribers);
+        bool isFound = false;
+        for (const auto& item : g_credChangeSubscribers) {
+            if (item == shareThis) {
+                isFound = true;
+                break;
+            }
+        }
+        if (isFound) {
+            shareThis->callback(credChangeInfo);
+        }
+    };
+    if (!handler->PostTask(task, __func__, 0, OHOS::AppExecFwk::EventQueue::Priority::VIP, {})) {
+        ACCOUNT_LOGE("Failed to post %{public}s task to handler", __func__);
+        return;
+    }
+    ACCOUNT_LOGI("Post task finish");
+}
+}
+}
 
 TH_EXPORT_CPP_API_IsAuthenticationExpiredSync(IsAuthenticationExpiredSync);
 TH_EXPORT_CPP_API_UnregisterPlugin(UnregisterPlugin);
