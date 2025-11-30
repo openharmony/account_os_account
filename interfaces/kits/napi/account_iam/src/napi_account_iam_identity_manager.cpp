@@ -625,6 +625,12 @@ static bool IsCredChangeSubscribeInVec(napi_env env, std::shared_ptr<CredentialC
 static bool CheckAndGetAuthTypes(napi_env env, std::vector<int32_t> inputTypes,
     std::vector<UserIam::UserAuth::AuthType> &credentialTypes)
 {
+    if (inputTypes.empty()) {
+        ACCOUNT_LOGE("The authtype list should not be empty.");
+        std::string errMsg = "The authtype list should not be empty.";
+        AccountNapiThrow(env, ERR_JS_INVALID_PARAMETER, errMsg, true);
+        return false;
+    }
     bool invalidFlag = false;
     bool unsupportFlag = false;
     std::string invalids;
@@ -692,7 +698,7 @@ napi_value NapiAccountIAMIdentityManager::OnCredentialChanged(napi_env env, napi
         ErrCode errCode = UserIam::UserAuth::UserIdmClient::GetInstance()
             .RegistCredChangeEventListener(credentialTypes, g_credChangeSubscribers[itemIndex]->subscriber);
         if (errCode != ERR_OK) {
-            AccountNapiThrow(env, errCode, true);
+            AccountNapiThrow(env, AccountIAMConvertToJSErrCode(errCode), true);
         }
         return nullptr;
     }
@@ -700,7 +706,7 @@ napi_value NapiAccountIAMIdentityManager::OnCredentialChanged(napi_env env, napi
         credChangeCBInfo->subscriber);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("SubscribeCredentialChange failed with errCode=%{public}d", errCode);
-        AccountNapiThrow(env, errCode, true);
+        AccountNapiThrow(env, AccountIAMConvertToJSErrCode(errCode), true);
         return nullptr;
     } else {
         std::lock_guard<std::mutex> lock(g_lockForCredChangeSubscribers);
@@ -728,16 +734,23 @@ void NapiAccountIAMIdentityManager::OffCredChangedSync(napi_env env,
                 .UnRegistCredChangeEventListener(currentSubInfo->subscriber);
             if (errCode != ERR_OK) {
                 ACCOUNT_LOGE("Unsubscribe CredChangeEventListener failed with errCode=%{public}d", errCode);
-                AccountNapiThrow(env, errCode, true);
+                AccountNapiThrow(env, AccountIAMConvertToJSErrCode(errCode), true);
                 return;
             }
             it = g_credChangeSubscribers.erase(it);
             if (credChangeCBInfo->callbackRef != nullptr) {
-                break;
+                return;
             }
         } else {
             it++;
         }
+    }
+    ErrCode errCode = UserIam::UserAuth::UserIdmClient::GetInstance()
+        .UnRegistCredChangeEventListener(credChangeCBInfo->subscriber);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Unsubscribe CredChangeEventListener failed with errCode=%{public}d", errCode);
+        AccountNapiThrow(env, AccountIAMConvertToJSErrCode(errCode), true);
+        return;
     }
 }
 
