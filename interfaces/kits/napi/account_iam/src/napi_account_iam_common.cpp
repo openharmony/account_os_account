@@ -1031,7 +1031,7 @@ bool ParseParaOnCredChange(const napi_env &env, napi_callback_info cbInfo,
     if (ParseInt32Array(env, argv[PARAM_ZERO], inputTypes) != napi_ok) {
         ACCOUNT_LOGE("Parameter error. The type of \"keys\" must be AuthType's array");
         std::string errMsg = "Parameter error. The type of \"keys\" must be AuthType's array";
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
         return false;
     }
     if (!GetCallbackProperty(env, argv[PARAM_ONE], asyncContext->callbackRef, 1)) {
