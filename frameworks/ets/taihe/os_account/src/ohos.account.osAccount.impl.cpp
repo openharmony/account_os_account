@@ -2165,18 +2165,22 @@ void TaiheCredentialSubscriberPtr::OnNotifyCredChangeEvent(int32_t userId, AuthT
     if (!ConvertToCredChangeTypeTH(eventType, changeType)) {
         return;
     }
-    uint64_t credentialId = changeInfo.credentialId;
-    uint64_t lastCredentialId = changeInfo.lastCredentialId;
     ohos::account::osAccount::CredentialChangeInfo credChangeInfo {
         .accountId = userId,
         .isSilent = changeInfo.isSilentCredChange,
         .changeType = changeType,
         .credentialType = ConvertToAuthTypeTH(authType),
-        .addedCredentialId = optional<array<uint8_t>>(std::in_place_t{}, taihe::copy_data_t{},
-            reinterpret_cast<uint8_t *>(&credentialId), sizeof(uint64_t)),
-        .deletedCredentialId = optional<array<uint8_t>>(std::in_place_t{}, taihe::copy_data_t{},
-            reinterpret_cast<uint8_t *>(&lastCredentialId), sizeof(uint64_t)),
     };
+    uint64_t credentialId = changeInfo.credentialId;
+    uint64_t lastCredentialId = changeInfo.lastCredentialId;
+    if (credentialId != 0) {
+        credChangeInfo.addedCredentialId = optional<array<uint8_t>>(std::in_place_t{}, taihe::copy_data_t{},
+            reinterpret_cast<uint8_t *>(&credentialId), sizeof(uint64_t));
+    }
+    if (lastCredentialId != 0) {
+        credChangeInfo.deletedCredentialId = optional<array<uint8_t>>(std::in_place_t{}, taihe::copy_data_t{},
+            reinterpret_cast<uint8_t *>(&lastCredentialId), sizeof(uint64_t));
+    }
     auto shareThis = shared_from_this();
     auto task = [shareThis, credChangeInfo]() {
         taihe::env_guard guard;
