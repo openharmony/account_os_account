@@ -347,6 +347,12 @@ bool ConvertToCredChangeTypeTH(const UserIam::UserAuth::CredChangeEventType &cha
 
 static bool CheckAuthTypes(array_view<AuthType> intCredTypes, std::vector<UserIam::UserAuth::AuthType> &credentialTypes)
 {
+    if (intCredTypes.empty()) {
+        ACCOUNT_LOGE("The authtype list should not be empty.");
+        std::string errMsg = "The authtype list should not be empty.";
+        taihe::set_business_error(ERR_JS_INVALID_PARAMETER, errMsg);
+        return false;
+    }
     bool invalidFlag = false;
     bool unsupportFlag = false;
     std::string invalids;
@@ -709,6 +715,11 @@ public:
 
     void OffCredentialChanged(optional_view<callback<void(CredentialChangeInfo const &)>> callback)
     {
+        if (!OHOS::AccountSA::AccountIAMClient::GetInstance().CheckSelfPermission("ohos.permission.USE_USER_IDM")) {
+            int32_t jsErrCode = AccountIAMConvertToJSErrCode(ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            return;
+        }
         std::lock_guard<std::mutex> lock(g_lockForCredChangeSubscribers);
         std::shared_ptr<AccountSA::TaiheCredentialSubscriberPtr> targetSubscriber = nullptr;
         if (callback.has_value()) {

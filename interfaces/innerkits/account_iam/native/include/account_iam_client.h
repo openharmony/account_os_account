@@ -262,6 +262,7 @@ public:
      * @return error code, see account_error_no.h
      */
     ErrCode UnregisterInputer(int32_t authType);
+    bool CheckSelfPermission(const std::string &permissionName);
 #endif
 
     /**
@@ -307,7 +308,6 @@ private:
     ErrCode RegisterDomainInputer(const std::shared_ptr<IInputer> &inputer);
     ErrCode UnregisterDomainInputer();
 #endif
-    bool CheckSelfPermission(const std::string &permissionName);
 
 private:
     std::mutex mutex_;
