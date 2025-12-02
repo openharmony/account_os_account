@@ -3133,7 +3133,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, MoveData_0100, TestSize.Level0)
 
 void TestAppAccess()
 {
-    int32_t num = 10;
+    int32_t num = 100;
     while (num-- > 0) {
         int32_t funcResult = -1;
         bool setBool = num % SIZE_BOOL;
@@ -3144,13 +3144,14 @@ void TestAppAccess()
         bool isAccessible = SYNC_ENABLE_FALSE;
         g_accountManagerService->CheckAppAccess(STRING_NAME, STRING_BUNDLE_NAME, isAccessible, funcResult);
         EXPECT_EQ(funcResult, ERR_OK);
+        setBool = num % SIZE_BOOL;
         EXPECT_EQ(isAccessible, setBool);
     }
 }
 
 void TestAccountCredential()
 {
-    int32_t num = 10;
+    int32_t num = 100;
     while (num-- > 0) {
         int32_t funcResult = -1;
         std::string credCpy = STRING_CREDENTIAL + std::to_string(num);
@@ -3161,13 +3162,14 @@ void TestAccountCredential()
         std::string credential;
         g_accountManagerService->GetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, credential, funcResult);
         EXPECT_EQ(funcResult, ERR_OK);
+        credCpy = STRING_CREDENTIAL + std::to_string(num);
         EXPECT_EQ(credential, credCpy);
     }
 }
 
 void TestAppAccountSyncEnable()
 {
-    int32_t num = 10;
+    int32_t num = 100;
     while (num-- > 0) {
         int32_t funcResult = -1;
         bool setBool = num % SIZE_BOOL;
@@ -3178,13 +3180,14 @@ void TestAppAccountSyncEnable()
         bool syncEnable = SYNC_ENABLE_FALSE;
         g_accountManagerService->CheckAppAccountSyncEnable(STRING_NAME, syncEnable, funcResult);
         EXPECT_EQ(funcResult, ERR_OK);
+        setBool = num % SIZE_BOOL;
         EXPECT_EQ(syncEnable, setBool);
     }
 }
 
 void TestOAuthTokenVisibility()
 {
-    int32_t num = 10;
+    int32_t num = 100;
     while (num-- > 0) {
         int32_t funcResult = -1;
         bool setBool = num % SIZE_BOOL;
@@ -3197,13 +3200,14 @@ void TestOAuthTokenVisibility()
         g_accountManagerService->CheckOAuthTokenVisibility(STRING_NAME,
             STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible, funcResult);
         EXPECT_EQ(funcResult, ERR_OK);
+        setBool = num % SIZE_BOOL;
         EXPECT_EQ(isVisible, setBool);
     }
 }
 
 void TestAccountExtraInfo()
 {
-    int32_t num = 10;
+    int32_t num = 100;
     while (num-- > 0) {
         int32_t funcResult = -1;
         std::string extraInfoCpy = STRING_EXTRA_INFO + std::to_string(num);
@@ -3215,6 +3219,7 @@ void TestAccountExtraInfo()
         std::string extraInfo;
         g_accountManagerService->GetAccountExtraInfo(STRING_NAME, extraInfo, funcResult);
         EXPECT_EQ(funcResult, ERR_OK);
+        extraInfoCpy = STRING_EXTRA_INFO + std::to_string(num);
         EXPECT_EQ(extraInfo, extraInfoCpy);
     }
 }
