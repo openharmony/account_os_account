@@ -19,6 +19,7 @@
 #include <iostream>
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
+#include "account_test_common.h"
 #include "os_account_constants.h"
 #include "os_account_manager_service.h"
 #define private public
@@ -49,7 +50,9 @@ public:
 };
 
 void OsAccountServiceTest::SetUpTestCase(void)
-{}
+{
+    ASSERT_TRUE(MockTokenId("accountmgr"));
+}
 
 void OsAccountServiceTest::TearDownTestCase(void)
 {}
