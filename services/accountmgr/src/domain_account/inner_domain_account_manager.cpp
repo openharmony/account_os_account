@@ -2742,6 +2742,13 @@ ErrCode InnerDomainAccountManager::BindDomainAccount(
     errCode = BindDomainAccountWork(localId, domainInfo, selectInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGW("Bind domain account failed, ret = %{public}d.", errCode);
+    } else {
+#ifdef HAS_CES_PART
+    AccountEventProvider::EventPublish(
+        EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, localId, nullptr);
+#else  // HAS_CES_PART
+    ACCOUNT_LOGI("No common event part! Publish nothing!");
+#endif // HAS_CES_PART
     }
     IInnerOsAccountManager::GetInstance().RemoveLocalIdToOperating(localId);
     return ErrorOnResultWithRet(errCode, callback);
