@@ -95,6 +95,8 @@ ErrCode AppAccountManagerService::AddAccount(const std::string &name, const std:
         return ERR_OK;
     }
     funcResult = innerManager_->AddAccount(name, extraInfo, callingUid, bundleName, appIndex);
+    REPORT_APP_ACCOUNT_FAIL(name, bundleName, Constants::APP_DFX_ADD_ACCOUNT,
+        0, "Add account success.");
     return ERR_OK;
 }
 
@@ -184,6 +186,8 @@ ErrCode AppAccountManagerService::DeleteAccount(const std::string &name, int32_t
         return ERR_OK;
     }
     funcResult = innerManager_->DeleteAccount(name, callingUid, bundleName, appIndex);
+    REPORT_APP_ACCOUNT_FAIL(name, bundleName, Constants::APP_DFX_REMOVE_ACCOUNT,
+        0, "Remove account success.");
     return ERR_OK;
 }
 
