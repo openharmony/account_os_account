@@ -2713,11 +2713,11 @@ ErrCode InnerDomainAccountManager::BindDomainAccountWork(
         RecoverBindDomainForUncomplete(info, fullInfo);
         return err;
     }
-    err = fileController.SetDomainBoundFlag(localId, true);
-    if (err != ERR_OK) {
-        ACCOUNT_LOGW("Set Domain bound flag failed, ret = %{public}d", err);
-        REPORT_DOMAIN_ACCOUNT_FAIL(err, "Delete bound flag failed", Constants::DOMAIN_OPT_RECOVERY, localId,
-            domainInfo);
+    ErrCode errCode = fileController.SetDomainBoundFlag(localId, true);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGW("Set Domain bound flag failed, ret = %{public}d", errCode);
+        REPORT_DOMAIN_ACCOUNT_FAIL(errCode, "Delete bound flag failed",
+            Constants::DOMAIN_OPT_BIND, localId, domainInfo);
     }
     DomainHisyseventUtils::ReportStatistic(Constants::DOMAIN_OPT_BIND, localId, domainInfo);
     return err;

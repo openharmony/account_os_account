@@ -284,7 +284,7 @@ bool OsAccountSubscribeManager::OnStateChanged(
             REPORT_OS_ACCOUNT_FAIL(stateParcel.toId, Constants::OPERATION_EVENT_PUBLISH, errCode,
                 "Send OnStateChanged " + errorMsg);
         }
-        auto callback = iface_cast<OsAccountStateReplyCallbackService>(stateParcel.callback);
+        auto callback = static_cast<OsAccountStateReplyCallbackService *>(stateParcel.callback.GetRefPtr());
         if (callback == nullptr) {
             return;
         }
