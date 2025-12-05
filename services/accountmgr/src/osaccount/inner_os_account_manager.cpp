@@ -349,24 +349,6 @@ void IInnerOsAccountManager::RetryToGetAccount(OsAccountInfo &osAccountInfo)
     ACCOUNT_LOGE("Query all created osAccounts failed, error: %{public}d", errCode);
     REPORT_OS_ACCOUNT_FAIL(osAccountInfo.GetLocalId(), Constants::OPERATION_BOOT_ACTIVATING, errCode,
         "Query all created osAccounts failed");
-    retryTimes = 0;
-    while (retryTimes < MAX_RETRY_TIMES) {
-#ifdef ENABLE_DEFAULT_ADMIN_NAME
-        errCode = CreateOsAccount(STANDARD_LOCAL_NAME, ADMIN, osAccountInfo);
-#else
-        errCode = CreateOsAccount("", ADMIN, osAccountInfo);
-#endif
-        if (errCode == ERR_OK) {
-            return;
-        }
-        ACCOUNT_LOGE("Fail to create account");
-        retryTimes++;
-        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_EXCEPTION));
-    }
-    ACCOUNT_LOGE("Create osAccount failed, localId: %{public}d, error: %{public}d",
-        osAccountInfo.GetLocalId(), errCode);
-    REPORT_OS_ACCOUNT_FAIL(osAccountInfo.GetLocalId(), Constants::OPERATION_BOOT_ACTIVATING, errCode,
-        "Create osAccount failed");
 }
 
 ErrCode IInnerOsAccountManager::GetRealOsAccountInfoById(const int id, OsAccountInfo &osAccountInfo)
@@ -459,8 +441,8 @@ ErrCode IInnerOsAccountManager::ActivateDefaultOsAccount()
         REPORT_OS_ACCOUNT_FAIL(activatedId, Constants::OPERATION_BOOT_ACTIVATING,
             ERR_ACCOUNT_COMMON_OPERATION_TIMEOUT, "Activate default os account over time.");
     };
-    int timerId = HiviewDFX::XCollie::GetInstance().SetTimer(TIMER_NAME, TIMEOUT, callbackFunc, nullptr,
-        HiviewDFX::XCOLLIE_FLAG_LOG);
+    int timerId = HiviewDFX::XCollie::GetInstance().SetTimer(TIMER_NAME, BOOT_ACTIVATE_TIMEOUT,
+        callbackFunc, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
 #endif // HICOLLIE_ENABLE
     ACCOUNT_LOGI("Start to activate default account");
     // Activate U1 account if enabled
@@ -1511,8 +1493,22 @@ bool IInnerOsAccountManager::Init(const std::set<int32_t> &initAccounts)
 #else
         OsAccountInfo osAccountInfo(Constants::START_USER_ID, "", OsAccountType::ADMIN);
 #endif //ENABLE_DEFAULT_ADMIN_NAME
-        CreateBaseStandardAccount(osAccountInfo);
         SetDefaultActivatedOsAccount(osAccountInfo.GetLocalId());
+        int32_t retryTimes = 0;
+        do {
+            if (CreateBaseStandardAccount(osAccountInfo)) {
+                ACCOUNT_LOGI("Successed to create the first OS account");
+                return true;
+            }
+            retryTimes++;
+            ACCOUNT_LOGE("Failed to create the first OS account, retryTimes: %{public}d", retryTimes);
+            std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_EXCEPTION));
+        } while (retryTimes < MAX_RETRY_TIMES);
+        ACCOUNT_LOGE("Failed to retry to create the first OS account, id: %{public}d, retryTimes: %{public}d",
+            Constants::START_USER_ID, retryTimes);
+        REPORT_OS_ACCOUNT_FAIL(0, Constants::OPERATION_BOOT_CREATE, false,
+            "Failed to retry to create the first OS account, id: "
+            + std::to_string(Constants::START_USER_ID) + ", retryTimes: "+ std::to_string(retryTimes));
     }
     ACCOUNT_LOGI("End to create base os accounts");
     return true;

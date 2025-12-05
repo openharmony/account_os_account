@@ -23,6 +23,7 @@ constexpr int32_t WAIT_TIME = 60;
 // for watchdog func
 #ifdef HICOLLIE_ENABLE
 const uint32_t TIMEOUT = 30; // 30s
+const uint32_t BOOT_ACTIVATE_TIMEOUT = 150; // 150s
 constexpr const char TIMER_NAME[] = "AccountMgrTimer";
 #endif // HICOLLIE_ENABLE
 namespace Constants {
