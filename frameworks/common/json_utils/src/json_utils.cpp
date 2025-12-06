@@ -398,7 +398,11 @@ bool AddSetStringToJson(CJson *jsonObj, const std::string &key, const std::set<s
             success = false;
             break;
         }
-        cJSON_AddItemToArray(array, itemJson);
+        if (!cJSON_AddItemToArray(array, itemJson)) {
+            cJSON_Delete(itemJson);
+            success = false;
+            break;
+        }
     }
     if (!success) {
         cJSON_Delete(array);
