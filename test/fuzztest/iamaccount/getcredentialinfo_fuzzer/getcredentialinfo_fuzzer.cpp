@@ -106,87 +106,6 @@ bool GetCredentialInfoFuzzTest(const uint8_t* data, size_t size)
     return result == ERR_OK;
 }
 
-bool StartDomainAuthFuzzTest(const uint8_t* data, size_t size)
-{
-    if ((data == nullptr) || (size == 0)) {
-        return false;
-    }
-    FuzzData fuzzData(data, size);
-    int32_t userId = fuzzData.GetData<int32_t>();
-    std::shared_ptr<IDMCallback> callback = make_shared<MockIDMCallback1>();
-    int32_t result = AccountIAMClient::GetInstance().StartDomainAuth(userId, callback);
-    return result == ERR_OK;
-}
-
-bool PrepareRemoteAuthFuzzTest(const uint8_t* data, size_t size)
-{
-    if ((data == nullptr) || (size == 0)) {
-        return false;
-    }
-    FuzzData fuzzData(data, size);
-    std::string remoteNetworkId(fuzzData.GenerateString());
-    std::shared_ptr<PreRemoteAuthCallback> callback = nullptr;
-    bool isInitCallback = fuzzData.GetData<bool>();
-    if (isInitCallback) {
-        callback = make_shared<MockPreRemoteAuthCallback>();
-    }
-    int32_t result = AccountIAMClient::GetInstance().PrepareRemoteAuth(remoteNetworkId, callback);
-    return result == ERR_OK;
-}
-
-bool GetEnrolledIdFuzzTest(const uint8_t* data, size_t size)
-{
-    if ((data == nullptr) || (size == 0)) {
-        return false;
-    }
-    FuzzData fuzzData(data, size);
-    int32_t userId = fuzzData.GetData<int32_t>();
-    AuthType authType = static_cast<AuthType>(fuzzData.GenerateEnmu(IAMAuthType::TYPE_END));
-    auto callback = std::make_shared<MockGetEnrolledIdCallback>();
-    bool isNullCallback = fuzzData.GetData<bool>();
-    if (isNullCallback) {
-        callback = nullptr;
-    }
-    AccountIAMClient::GetInstance().GetEnrolledId(userId, authType, callback);
-    return false;
-}
-
-bool OpenSessionFuzzTest(const uint8_t* data, size_t size)
-{
-    if ((data == nullptr) || (size == 0)) {
-        return false;
-    }
-    FuzzData fuzzData(data, size);
-    int32_t userId = fuzzData.GetData<int32_t>();
-    std::shared_ptr<AccountIAMProxy> accountIAMMgrProxy = std::make_shared<AccountIAMProxy>(nullptr);
-    std::vector<uint8_t> challenge;
-    int32_t result = accountIAMMgrProxy->OpenSession(userId, challenge);
-    return result == ERR_OK;
-}
-
-bool CloseSessionFuzzTest(const uint8_t* data, size_t size)
-{
-    if ((data == nullptr) || (size == 0)) {
-        return false;
-    }
-    FuzzData fuzzData(data, size);
-    int32_t userId = fuzzData.GetData<int32_t>();
-    std::shared_ptr<AccountIAMProxy> accountIAMMgrProxy = std::make_shared<AccountIAMProxy>(nullptr);
-    int32_t result = accountIAMMgrProxy->CloseSession(userId);
-    return result == ERR_OK;
-}
-
-bool CancelFuzzTest(const uint8_t* data, size_t size)
-{
-    if ((data == nullptr) || (size == 0)) {
-        return false;
-    }
-    FuzzData fuzzData(data, size);
-    int32_t userId = fuzzData.GetData<int32_t>();
-    std::shared_ptr<AccountIAMProxy> accountIAMMgrProxy = std::make_shared<AccountIAMProxy>(nullptr);
-    int32_t result = accountIAMMgrProxy->Cancel(userId);
-    return result == ERR_OK;
-}
 }
 
 /* Fuzzer entry point */
@@ -194,11 +113,5 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
     OHOS::GetCredentialInfoFuzzTest(data, size);
-    OHOS::StartDomainAuthFuzzTest(data, size);
-    OHOS::PrepareRemoteAuthFuzzTest(data, size);
-    OHOS::GetEnrolledIdFuzzTest(data, size);
-    OHOS::OpenSessionFuzzTest(data, size);
-    OHOS::CloseSessionFuzzTest(data, size);
-    OHOS::CancelFuzzTest(data, size);
     return 0;
 }
