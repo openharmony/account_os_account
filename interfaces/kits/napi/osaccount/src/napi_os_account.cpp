@@ -35,6 +35,9 @@ const int OS_ACCOUNT_TYPE_GUEST = 2;
 const int OS_ACCOUNT_TYPE_PRIVATE = 1024;
 const int DOMAIN_ACCOUNT_STATUS_NOT_LOGGED_IN = 0;
 const int DOMAIN_ACCOUNT_STATUS_LOGGED_IN = 1;
+const int CREDENTIAL_CHANGE_TYPE_ADD = 1;
+const int CREDENTIAL_CHANGE_TYPE_UPDATE = 2;
+const int CREDENTIAL_CHANGE_TYPE_DELETE = 3;
 static std::unordered_set<napi_env> g_registeredEnvs;
 static std::mutex g_envRegistrationLock;
 std::mutex g_lockForOsAccountSubscribers;
@@ -141,9 +144,17 @@ napi_value OsAccountInit(napi_env env, napi_value exports)
     SetEnumProperty(env, domainAccountStatus, DOMAIN_ACCOUNT_STATUS_NOT_LOGGED_IN, "NOT_LOGGED_IN");
     SetEnumProperty(env, domainAccountStatus, DOMAIN_ACCOUNT_STATUS_LOGGED_IN, "LOGGED_IN");
 
+    napi_value credentialChangeType = nullptr;
+    napi_create_object(env, &credentialChangeType);
+    
+    SetEnumProperty(env, credentialChangeType, CREDENTIAL_CHANGE_TYPE_ADD, "ADD_CREDENTIAL");
+    SetEnumProperty(env, credentialChangeType, CREDENTIAL_CHANGE_TYPE_UPDATE, "UPDATE_CREDENTIAL");
+    SetEnumProperty(env, credentialChangeType, CREDENTIAL_CHANGE_TYPE_DELETE, "DELETE_CREDENTIAL");
+    
     napi_property_descriptor exportEnum[] = {
         DECLARE_NAPI_PROPERTY("OsAccountType", osAccountType),
         DECLARE_NAPI_PROPERTY("ConstraintSourceType", constraintSourceType),
+        DECLARE_NAPI_PROPERTY("CredentialChangeType", credentialChangeType),
     };
     NAPI_CALL(env, napi_define_properties(env, exports, sizeof(exportEnum) / sizeof(*exportEnum), exportEnum));
     napi_value cons = nullptr;
