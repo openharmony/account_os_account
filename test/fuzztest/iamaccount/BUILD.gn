@@ -31,11 +31,14 @@ group("fuzztest") {
     "getauthsubtype_fuzzer:GetAuthSubTypeFuzzTest",
     "getavailablestatus_fuzzer:GetAvailableStatusFuzzTest",
     "getcredentialinfo_fuzzer:GetCredentialInfoFuzzTest",
+    "getenrolledid_fuzzer:GetEnrolledIdFuzzTest",
     "getproperty_fuzzer:GetPropertyFuzzTest",
     "getpropertybycredentialid_fuzzer:GetPropertyByCredentialIdFuzzTest",
     "opensession_fuzzer:OpenSessionFuzzTest",
+    "prepareremoteauth_fuzzer:PrepareRemoteAuthFuzzTest",
     "setauthsubtype_fuzzer:SetAuthSubTypeFuzzTest",
     "setproperty_fuzzer:SetPropertyFuzzTest",
+    "startdomainauth_fuzzer:StartDomainAuthFuzzTest",
     "updatecredential_fuzzer:UpdateCredentialFuzzTest",
   ]
 
