@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "subscribeosaccountstub_fuzzer.h"
+#include "unsubscribeosaccountstub_fuzzer.h"
 #include <string>
 #include <thread>
 #include <vector>
@@ -55,55 +55,14 @@ public:
 };
 
 namespace OHOS {
+const int CONSTANTS_STATE_MAX = 13;
 const int CONSTANTS_SUBSCRIBE_TYPE_MAX = 13;
+constexpr uint32_t MAX_STATE_PUBLISH_COUNT = 100;
+constexpr uint32_t MIN_STATE_PUBLISH_COUNT = 1;
 constexpr int32_t PERMISSION_COUNT_NUM = 2;
 constexpr int32_t FIRST_PARAM_INDEX = 0;
 constexpr int32_t SECOND_PARAM_INDEX = 1;
 const std::u16string IOS_ACCOUNT_DESCRIPTOR = u"ohos.accountfwk.IOsAccount";
-bool SubscribeOsAccountStubFuzzTest(const uint8_t *data, size_t size)
-{
-    if ((data == nullptr) || (size == 0)) {
-        return false;
-    }
-
-    MessageParcel datas;
-    datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
-    FuzzData fuzzData(data, size);
-
-    auto useOsAccountSubscribeInfo = fuzzData.GenerateBool();
-    if (useOsAccountSubscribeInfo) {
-        OsAccountSubscribeInfo subscribeInfo;
-        subscribeInfo.SetName(fuzzData.GenerateString());
-        int32_t subscribeTypeValue = (fuzzData.GetData<int32_t>() % CONSTANTS_SUBSCRIBE_TYPE_MAX) - 1;
-        OS_ACCOUNT_SUBSCRIBE_TYPE testType = static_cast<OS_ACCOUNT_SUBSCRIBE_TYPE>(subscribeTypeValue);
-        subscribeInfo.SetOsAccountSubscribeType(testType);
-        if (!datas.WriteParcelable(&subscribeInfo)) {
-            return false;
-        }
-    }
-    auto useOsAccountEventListener = fuzzData.GenerateBool();
-    if (useOsAccountEventListener) {
-        sptr<OsAccountEventListener> listener = new (std::nothrow) OsAccountEventListener();
-        if (listener == nullptr) {
-            return false;
-        }
-        sptr<IRemoteObject> osAccountEventListener = listener->AsObject();
-        if (!datas.WriteRemoteObject(osAccountEventListener)) {
-            return false;
-        }
-    }
-
-    MessageParcel reply;
-    MessageOption option;
-
-    auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
-
-    osAccountManagerService_ ->OnRemoteRequest(
-        static_cast<int32_t>(IOsAccountIpcCode::COMMAND_SUBSCRIBE_OS_ACCOUNT), datas, reply, option);
-
-    return true;
-}
-
 bool UnsubscribeOsAccountStubFuzzTest(const uint8_t *data, size_t size)
 {
     if ((data == nullptr) || (size == 0)) {
@@ -167,10 +126,9 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 }
 
 /* Fuzzer entry point */
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    /* Run your code on data */
-    OHOS::SubscribeOsAccountStubFuzzTest(data, size);
     OHOS::UnsubscribeOsAccountStubFuzzTest(data, size);
     return 0;
 }
+
