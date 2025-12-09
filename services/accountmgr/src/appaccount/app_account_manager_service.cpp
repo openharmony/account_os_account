@@ -125,6 +125,8 @@ ErrCode AppAccountManagerService::AddAccount(const std::string &name, const std:
     }
     std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(callingUid);
     funcResult = innerManager_->AddAccount(name, extraInfo, callingUid, bundleName, appIndex);
+    REPORT_APP_ACCOUNT_FAIL(name, bundleName, Constants::APP_DFX_ADD_ACCOUNT,
+        0, "Add account success.");
     return ERR_OK;
 }
 
@@ -218,6 +220,8 @@ ErrCode AppAccountManagerService::DeleteAccount(const std::string &name, int32_t
     }
     std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(callingUid);
     funcResult = innerManager_->DeleteAccount(name, callingUid, bundleName, appIndex);
+    REPORT_APP_ACCOUNT_FAIL(name, bundleName, Constants::APP_DFX_REMOVE_ACCOUNT,
+        0, "Remove account success.");
     return ERR_OK;
 }
 
