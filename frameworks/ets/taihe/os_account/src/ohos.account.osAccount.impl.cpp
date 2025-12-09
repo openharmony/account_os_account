@@ -336,7 +336,7 @@ bool ConvertToCredChangeTypeTH(const UserIam::UserAuth::CredChangeEventType &cha
         case UserIam::UserAuth::CredChangeEventType::DEL_CRED:
         case UserIam::UserAuth::CredChangeEventType::DEL_USER:
         case UserIam::UserAuth::CredChangeEventType::ENFORCE_DEL_USER:
-            type = CredentialChangeType(CredentialChangeType::key_t::DEL_CREDENTIAL);
+            type = CredentialChangeType(CredentialChangeType::key_t::DELETE_CREDENTIAL);
             break;
         default:
             ACCOUNT_LOGE("Invalid credential change type");
@@ -2172,7 +2172,7 @@ void TaiheCredentialSubscriberPtr::OnNotifyCredChangeEvent(int32_t userId, AuthT
         ACCOUNT_LOGE("EventHandler is null");
         return;
     }
-    CredentialChangeType changeType(CredentialChangeType::key_t::DEL_CREDENTIAL);
+    CredentialChangeType changeType(CredentialChangeType::key_t::DELETE_CREDENTIAL);
     if (!ConvertToCredChangeTypeTH(eventType, changeType)) {
         return;
     }
