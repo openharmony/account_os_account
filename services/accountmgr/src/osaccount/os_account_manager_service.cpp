@@ -373,7 +373,14 @@ ErrCode OsAccountManagerService::CreateOsAccountWithFullInfo(const OsAccountInfo
     }
 
     auto convertOsAccountInfo = osAccountInfo;
-    return innerManager_.CreateOsAccountWithFullInfo(convertOsAccountInfo, options);
+    errCode = innerManager_.CreateOsAccountWithFullInfo(convertOsAccountInfo, options);
+    if (errCode == ERR_OK) {
+        ReportOsAccountLifeCycle(convertOsAccountInfo.GetLocalId(), Constants::OPERATION_CREATE_WITH_FULL_INFO);
+    } else {
+        ReportOsAccountOperationFail(convertOsAccountInfo.GetLocalId(), Constants::OPERATION_CREATE_WITH_FULL_INFO,
+            errCode, "Create osaccount with full info failed");
+    }
+    return errCode;
 }
 
 ErrCode OsAccountManagerService::UpdateOsAccountWithFullInfo(const OsAccountInfo& osAccountInfo)
@@ -1233,6 +1240,8 @@ ErrCode OsAccountManagerService::DeactivateAllOsAccounts()
     if (result != ERR_OK) {
         ReportOsAccountOperationFail(0,
             Constants::OPERATION_DEACTIVATE_ALL, result, "deactivate all os account failed");
+    } else {
+        ReportOsAccountLifeCycle(0, Constants::OPERATION_DEACTIVATE_ALL);
     }
     return result;
 }
