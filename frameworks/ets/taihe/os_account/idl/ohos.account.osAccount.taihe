@@ -269,7 +269,7 @@ struct CredentialChangeInfo{
 enum CredentialChangeType : i32 {
     ADD_CREDENTIAL = 1,
     UPDATE_CREDENTIAL = 2,
-    DEL_CREDENTIAL = 3
+    DELETE_CREDENTIAL = 3
 }
 
 enum AuthType : i32 {
