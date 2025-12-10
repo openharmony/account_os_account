@@ -531,6 +531,7 @@ void InnerAccountIAMManager::HandleFileKeyException(int32_t userId, const std::v
         return;
     }
     ACCOUNT_LOGI("Restore key context successfully, userId:%{public}d", userId);
+    ReportOsAccountLifeCycle(userId, Constants::OPERATION_READD_CRED);
     code = accountFileOperator->DeleteDirOrFile(path);
     if (code != ERR_OK) {
         ReportOsAccountOperationFail(userId, "readdCredential", code,

@@ -62,10 +62,12 @@ const char OPERATION_LOCKING[] = "locking";
 const char OPERATION_LOCKED[] = "locked";
 const char OPERATION_UPDATE_CRED[] = "updateCredential";
 const char OPERATION_ADD_CRED[] = "addCredential";
+const char OPERATION_READD_CRED[] = "readdCredential";
 const char OPERATION_DELETE_CRED[] = "deleteCredential";
 const char OPERATION_LOG_ERROR[] = "errLog";
 const char OPERATION_UPDATE_SERVER_CONFIG[] = "updateServerConfig";
 const char OPERATION_CONSTRAINT[] = "constraintManagement";
+const char OPERATION_SECOND_MOUNT[] = "secondMount";
 
 // Domain account DFX flag
 const char OPERATION_BIND_DOMAIN_ACCOUNT[] = "bindDomainAccount";
