@@ -324,8 +324,6 @@ ErrCode AccountMgrService::GetOsAccountDistributedInfo(int32_t localId, OhosAcco
             REPORT_PERMISSION_FAIL();
             return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
         }
-        REPORT_OHOS_ACCOUNT_FAIL(IPCSkeleton::GetCallingUid(), "saCalledPermBypass",
-            ERR_OK, "Check for sa called permission passed.");
     } else {
         if (!HasAccountRequestPermission(PERMISSION_MANAGE_DISTRIBUTED_ACCOUNTS) &&
             !(HasAccountRequestPermission(INTERACT_ACROSS_LOCAL_ACCOUNTS) &&
