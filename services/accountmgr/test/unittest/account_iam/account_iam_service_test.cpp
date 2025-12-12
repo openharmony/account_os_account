@@ -353,6 +353,20 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_GetEnrolledId_0200, TestSize.L
 }
 
 /**
+ * @tc.name: AccountIAMService_GetEnrolledId_0300
+ * @tc.desc: GetCredentialInfo test authType is invalid.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIamServiceTest, AccountIAMService_GetEnrolledId_0300, TestSize.Level3)
+{
+    sptr<MockGetEnrolledIdCallback> callback = new (std::nothrow) MockGetEnrolledIdCallback();
+    ASSERT_NE(callback, nullptr);
+    auto ret = accountIAMService_->GetEnrolledId(TEST_EXIST_ID, static_cast<AuthType>(IAMAuthType::TYPE_END), callback);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+/**
 
  * @tc.name: AccountIAMService_GetEnrolledId_0400
  * @tc.desc: GetCredentialInfo test authType is not support.
