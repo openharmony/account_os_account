@@ -16,6 +16,7 @@
 #ifndef ACCOUNT_TAIHE_COMMON_H
 #define ACCOUNT_TAIHE_COMMON_H
 
+#include "accesstoken_kit.h"
 #include "ohos.account.osAccount.proj.hpp"
 #include "ohos.account.osAccount.impl.hpp"
 #include "taihe/runtime.hpp"
@@ -43,6 +44,7 @@ namespace OHOS {
 namespace AccountSA {
 bool IsAccountIdValid(int32_t accountId);
 bool IsSystemApp();
+bool CheckPermission(const std::string &permissionName);
 }
 }
 #endif // ACCOUNT_TAIHE_COMMON_H

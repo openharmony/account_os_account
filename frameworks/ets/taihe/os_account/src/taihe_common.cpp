@@ -32,5 +32,12 @@ bool IsSystemApp()
     uint64_t tokenId = OHOS::IPCSkeleton::GetSelfTokenID();
     return OHOS::Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(tokenId);
 }
+
+bool CheckPermission(const std::string &permissionName)
+{
+    OHOS::Security::AccessToken::AccessTokenID tokenId = IPCSkeleton::GetSelfTokenID();
+    ErrCode result = OHOS::Security::AccessToken::AccessTokenKit::VerifyAccessToken(tokenId, permissionName);
+    return result == OHOS::Security::AccessToken::TypePermissionState::PERMISSION_GRANTED;
+}
 }
 }

@@ -40,8 +40,30 @@ private:
     static napi_value GetEnrolledId(napi_env env, napi_callback_info info);
     static napi_value OnCredentialChanged(napi_env env, napi_callback_info cbInfo);
     static napi_value OffCredentialChanged(napi_env env, napi_callback_info cbInfo);
-    static void OffCredChangedSync(napi_env env, std::shared_ptr<CredentialChangeCBInfo> credChangeCBInfo);
 };
+
+class CredSubscriberPtr : public UserIam::UserAuth::CredChangeEventListener,
+                          public std::enable_shared_from_this<CredSubscriberPtr> {
+public:
+    CredSubscriberPtr(napi_env env, napi_ref ref);
+    virtual ~CredSubscriberPtr();
+    void OnNotifyCredChangeEvent(int32_t userId, AuthType authType, UserIam::UserAuth::CredChangeEventType eventType,
+        const UserIam::UserAuth::CredChangeEventInfo &changeInfo);
+    napi_env env = nullptr;
+    std::shared_ptr<NapiCallbackRef> callback = nullptr;
+};
+
+struct CredentialChangeWorker : public CommonAsyncContext {
+    int32_t userId;
+    uint64_t addedCredentialId = 0;
+    uint64_t deletedCredentialId = 0;
+    bool isSilent;
+    AuthType authType;
+    UserIam::UserAuth::CredChangeEventType eventType;
+    std::shared_ptr<NapiCallbackRef> callback = nullptr;
+    std::shared_ptr<CredSubscriberPtr> subscriber = nullptr;
+};
+
 }  // namespace AccountJsKit
 }  // OHOS
 #endif  // OS_ACCOUNT_INTERFACES_KITS_NAPI_IAM_INCLUDE_NAPI_IAM_IDENTITY_MANAGER_H

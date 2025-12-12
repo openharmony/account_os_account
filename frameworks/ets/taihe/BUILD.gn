@@ -241,6 +241,7 @@ taihe_shared_library("os_account_taihe_native") {
     "ability_runtime:app_context",
     "ability_runtime:runtime",
     "access_token:libtokenid_sdk",
+    "access_token:libaccesstoken_sdk",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
