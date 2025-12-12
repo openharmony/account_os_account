@@ -22,6 +22,7 @@
 #include "account_iam_info.h"
 #include "account_iam_info_parse.h"
 #include "account_log_wrapper.h"
+#include "ipc_skeleton.h"
 #include "napi_account_error.h"
 #include "napi_account_common.h"
 #include "napi_account_iam_constant.h"
@@ -1020,7 +1021,7 @@ bool IsAccountIdValid(int32_t accountId)
 }
 
 bool ParseParaOnCredChange(const napi_env &env, napi_callback_info cbInfo,
-    std::shared_ptr<CredentialChangeCBInfo> asyncContext, std::vector<std::int32_t> &inputTypes)
+    napi_ref &ref, std::vector<std::int32_t> &inputTypes)
 {
     size_t argc = ARG_SIZE_TWO;
     napi_value argv[ARG_SIZE_TWO] = {nullptr};
@@ -1029,26 +1030,25 @@ bool ParseParaOnCredChange(const napi_env &env, napi_callback_info cbInfo,
     if (argc < ARG_SIZE_TWO) {
         ACCOUNT_LOGE("The number of parameters should be at least 2");
         std::string errMsg = "Parameter error. The number of parameters should be at least 2";
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return false;
     }
     if (ParseInt32Array(env, argv[PARAM_ZERO], inputTypes) != napi_ok) {
         ACCOUNT_LOGE("Parameter error. The type of \"keys\" must be AuthType's array");
         std::string errMsg = "Parameter error. The type of \"keys\" must be AuthType's array";
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return false;
     }
-    if (!GetCallbackProperty(env, argv[PARAM_ONE], asyncContext->callbackRef, 1)) {
+    if (!GetCallbackProperty(env, argv[PARAM_ONE], ref, 1)) {
         ACCOUNT_LOGE("Get callbackRef failed");
         std::string errMsg = "Parameter error. The type of \"callback\" must be function";
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return false;
     }
     return true;
 }
 
-bool ParseParaOffCredChange(const napi_env &env, napi_callback_info cbInfo,
-    std::shared_ptr<CredentialChangeCBInfo> asyncContext)
+bool ParseParaOffCredChange(const napi_env &env, napi_callback_info cbInfo, napi_ref &ref)
 {
     size_t argc = ARG_SIZE_ONE;
     napi_value argv[ARG_SIZE_ONE] = {nullptr};
@@ -1058,13 +1058,20 @@ bool ParseParaOffCredChange(const napi_env &env, napi_callback_info cbInfo,
         ACCOUNT_LOGE("The arg list is empty, prepare to clear all subscribe.");
         return true;
     }
-    if (!GetCallbackProperty(env, argv[PARAM_ZERO], asyncContext->callbackRef, 1)) {
+    if (!GetCallbackProperty(env, argv[PARAM_ZERO], ref, 1)) {
         ACCOUNT_LOGE("Get callbackRef failed.");
         std::string errMsg = "Parameter error. The type of 'callback' must be function";
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return false;
     }
     return true;
+}
+
+bool CheckSelfPermission(const std::string &permissionName)
+{
+    Security::AccessToken::AccessTokenID tokenId = IPCSkeleton::GetSelfTokenID();
+    ErrCode result = Security::AccessToken::AccessTokenKit::VerifyAccessToken(tokenId, permissionName);
+    return result == Security::AccessToken::TypePermissionState::PERMISSION_GRANTED;
 }
 }  // namespace AccountJsKit
 }  // namespace OHOS
