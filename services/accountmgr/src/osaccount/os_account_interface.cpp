@@ -71,6 +71,7 @@ constexpr int32_t MAX_RETRY_TIMES = 10;
 constexpr int32_t MAX_GETBUNDLE_WAIT_TIMES = 10 * 1000 * 1000;
 constexpr int32_t GET_MSG_FREQ = 100 * 1000;
 constexpr int32_t DEAL_TIMES = MAX_GETBUNDLE_WAIT_TIMES / GET_MSG_FREQ;
+constexpr int64_t MAX_BMS_UNLOCK_TIMES = 5 * 1000;
 }
 
 ErrCode InnerSendToAMSAccountStart(
@@ -279,12 +280,19 @@ void OsAccountInterface::SendToBMSAccountUnlocked(const OsAccountInfo &osAccount
 {
     auto localId = osAccountInfo.GetLocalId();
     ACCOUNT_LOGI("Begin, %{public}d", localId);
+    auto startTime = std::chrono::high_resolution_clock::now();
     ErrCode res = BundleManagerAdapter::GetInstance()->CreateNewBundleEl5Dir(localId);
+    auto endTime = std::chrono::high_resolution_clock::now();
     if (res != ERR_OK) {
         ACCOUNT_LOGE("Failed, %{public}d, errCode: %{public}d", localId, res);
         ReportOsAccountOperationFail(
-            localId, Constants::OPERATION_UNLOCK, res, "Failed to create new bundle el5 dir");
+            localId, Constants::OPERATION_SECOND_MOUNT, res, "Failed to create new bundle el5 dir");
         return;
+    }
+    int64_t durationTime = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
+    if (durationTime > MAX_BMS_UNLOCK_TIMES) {
+        ReportOsAccountOperationFail(localId, Constants::OPERATION_SECOND_MOUNT, -1,
+            "Notify bms unlock timeout, total ms: " + std::to_string(durationTime));
     }
     ReportOsAccountLifeCycle(localId, "notifyBmsUnlock");
     ACCOUNT_LOGI("End, %{public}d", localId);
@@ -301,7 +309,7 @@ void OsAccountInterface::SendToBMSAccountUnlockedWithTimeout(const OsAccountInfo
 
     if (future.wait_for(std::chrono::seconds(WAIT_BMS_TIMEOUT)) == std::future_status::timeout) {
         ACCOUNT_LOGE("SendToBMSAccountUnlocked timeout, %{public}d", osAccountInfo.GetLocalId());
-        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_UNLOCK, -1,
+        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_SECOND_MOUNT, -1,
             "Create new bundle el5 dir time out");
     }
 }
@@ -909,7 +917,7 @@ void OsAccountInterface::SendToStorageAccountUnlocked(const OsAccountInfo &osAcc
     sptr<StorageManager::IStorageManager> proxy = nullptr;
     if (GetStorageProxy(proxy) != ERR_OK) {
         ACCOUNT_LOGE("Failed to get STORAGE_MANAGER_MANAGER_ID proxy.");
-        ReportOsAccountOperationFail(localId, Constants::OPERATION_UNLOCK,
+        ReportOsAccountOperationFail(localId, Constants::OPERATION_SECOND_MOUNT,
             ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
             "GetSystemAbility for storage failed!");
         return;
