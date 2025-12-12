@@ -339,7 +339,7 @@ int32_t AccountIAMService::GetEnrolledId(
     if (ret != ERR_OK) {
         return ret;
     }
-    if ((authType < UserIam::UserAuth::ALL) ||	
+    if ((authType < UserIam::UserAuth::ALL) ||
         (static_cast<int32_t>(authType) >= static_cast<int32_t>(IAMAuthType::TYPE_END))) {
         ACCOUNT_LOGE("AuthType is not in correct range");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
