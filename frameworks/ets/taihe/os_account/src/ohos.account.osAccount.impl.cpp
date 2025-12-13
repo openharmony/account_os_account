@@ -59,8 +59,17 @@ namespace {
 using OHOS::AccountSA::ACCOUNT_LABEL;
 const array<uint8_t> DEFAULT_ARRAY = array<uint8_t>::make(0);
 constexpr int CONTEXTID_OFFSET = 8;
-const std::set<int32_t> TARGET_TYPES = {1, 2, 4, 16};
-const std::set<int32_t> UNSUPPORTED_TYPES = {8, 1024};
+const std::set<int32_t> TARGET_TYPES = {
+    static_cast<int32_t>(UserIam::UserAuth::AuthType::PIN),
+    static_cast<int32_t>(UserIam::UserAuth::AuthType::FINGERPRINT),
+    static_cast<int32_t>(UserIam::UserAuth::AuthType::FACE),
+    static_cast<int32_t>(UserIam::UserAuth::AuthType::PRIVATE_PIN)
+};
+const std::set<int32_t> UNSUPPORTED_TYPES = {
+    static_cast<int32_t>(UserIam::UserAuth::AuthType::RECOVERY_KEY),
+    static_cast<int32_t>(AccountJsKit::IAMAuthType::DOMAIN)
+};
+
 std::mutex g_lockForCredChangeSubscribers;
 std::vector<std::shared_ptr<AccountSA::TaiheCredentialSubscriberPtr>> g_credChangeSubscribers;
 
@@ -676,7 +685,7 @@ public:
     }
 
     std::pair<bool, std::shared_ptr<AccountSA::TaiheCredentialSubscriberPtr>> FindAndGetSubscriber(
-        std::shared_ptr<AccountSA::TaiheCredentialSubscriberPtr> targetSubscriber)
+        const std::shared_ptr<AccountSA::TaiheCredentialSubscriberPtr> &targetSubscriber)
     {
         for (const auto& each : g_credChangeSubscribers) {
             if (each->callback == targetSubscriber->callback) {
@@ -690,6 +699,12 @@ public:
     void OnCredentialChanged(array_view<AuthType> inputTypes,
         callback_view<void(CredentialChangeInfo const &)> callabck)
     {
+        if (!AccountSA::CheckPermission("ohos.permission.USE_USER_IDM")) {
+            ACCOUNT_LOGE("failed to check permission");
+            int32_t jsErrCode = AccountIAMConvertToJSErrCode(ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            return;
+        }
         credSubscribeCallback call = callabck;
         std::vector<UserIam::UserAuth::AuthType> credentialTypes;
         auto subscriber = std::make_shared<AccountSA::TaiheCredentialSubscriberPtr>(call);
@@ -715,7 +730,8 @@ public:
 
     void OffCredentialChanged(optional_view<callback<void(CredentialChangeInfo const &)>> callback)
     {
-        if (!OHOS::AccountSA::AccountIAMClient::GetInstance().CheckSelfPermission("ohos.permission.USE_USER_IDM")) {
+        if (!AccountSA::CheckPermission("ohos.permission.USE_USER_IDM")) {
+            ACCOUNT_LOGE("failed to check permission");
             int32_t jsErrCode = AccountIAMConvertToJSErrCode(ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
             return;
