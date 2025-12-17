@@ -577,8 +577,9 @@ ErrCode AppAccountInfo::DeleteAuthToken(const std::string &authType, const std::
     }
     if (isOwnerSelf) {
         oauthTokens_.erase(it);
+    } else {
+        it->second.status = false;
     }
-    it->second.status = false;
     return ERR_OK;
 }
 
