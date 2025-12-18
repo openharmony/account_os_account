@@ -60,6 +60,7 @@ ohos_shared_library("cj_appAccount_ffi") {
 
   external_deps = [
     "ability_base:base",
+    "ability_base:want",
     "ability_runtime:ability_context_native",
     "ability_runtime:ability_manager",
     "ability_runtime:abilitykit_native",
@@ -77,8 +78,6 @@ ohos_shared_library("cj_appAccount_ffi") {
     "napi:cj_bind_native",
     "samgr:samgr_proxy",
   ]
-
-  public_external_deps = [ "ability_base:want" ]
 
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "account"

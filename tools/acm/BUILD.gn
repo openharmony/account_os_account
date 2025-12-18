@@ -73,6 +73,7 @@ ohos_source_set("tools_acm_source_set") {
     "cJSON:cjson",
     "c_utils:utils",
     "hilog:libhilog",
+    "samgr:samgr_proxy",
   ]
   subsystem_name = "account"
   part_name = "os_account"

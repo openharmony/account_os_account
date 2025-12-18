@@ -47,6 +47,7 @@ ohos_shared_library("osaccount") {
   deps = [
     "${account_iam_kits_path}:account_iam_napi",
     "${account_napi_common_path}:account_napi_common",
+    "${common_path}:libaccount_common",
     "${domain_account_napi_path}:domain_account_napi",
     "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_innerkits",
@@ -60,6 +61,7 @@ ohos_shared_library("osaccount") {
     "c_utils:utils",
     "hilog:libhilog",
     "napi:ace_napi",
+    "samgr:samgr_proxy",
   ]
 
   subsystem_name = "account"

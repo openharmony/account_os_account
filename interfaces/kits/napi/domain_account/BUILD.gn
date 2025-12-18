@@ -55,6 +55,7 @@ ohos_shared_library("domain_account_napi") {
 
   deps = [
     "${account_napi_common_path}:account_napi_common",
+    "${common_path}:libaccount_common",
     "${domain_account_framework_path}:domain_account_innerkits",
   ]
 
