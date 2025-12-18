@@ -77,6 +77,7 @@ ohos_moduletest("AccountInnerSdkModuleMockTest") {
     "${account_iam_framework_path}:account_iam_stub",
     "${account_iam_framework_path}:account_iam_innerkits",
     "${account_test_common}:account_test_common_source_set",
+    "${app_account_innerkits_native_path}:app_account_interface",
     "${common_path}:libaccount_common",
     "${domain_account_framework_path}:domain_account_innerkits",
     "${os_account_innerkits_native_path}:os_account_proxy",
@@ -184,7 +185,6 @@ ohos_moduletest("DeviceAccountInfoModuleTest") {
     "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_single",
-    "os_account:libaccountkits",
     "samgr:samgr_proxy",
   ]
   part_name = "os_account"
@@ -223,6 +223,7 @@ ohos_moduletest("SubscribeDistributedAccountModuleTest") {
   deps = [
     "${account_test_common}:account_test_common_source_set",
     "${common_path}:libaccount_common",
+    "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_innerkits",
   ]
 
@@ -235,7 +236,6 @@ ohos_moduletest("SubscribeDistributedAccountModuleTest") {
     "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_single",
-    "os_account:libaccountkits",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
