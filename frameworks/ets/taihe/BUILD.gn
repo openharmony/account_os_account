@@ -156,6 +156,7 @@ taihe_shared_library("distributed_account_taihe_native") {
   deps = [
     ":distributed_account_taihe",
     "${account_napi_common_path}:account_napi_common",
+    "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
   ]
 
@@ -242,6 +243,7 @@ taihe_shared_library("os_account_taihe_native") {
     "ability_runtime:runtime",
     "access_token:libtokenid_sdk",
     "access_token:libaccesstoken_sdk",
+    "cJSON:cjson",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
@@ -250,6 +252,7 @@ taihe_shared_library("os_account_taihe_native") {
     "napi:ace_napi",
     "runtime_core:ani",
     "runtime_core:ani_helpers",
+    "samgr:samgr_proxy",
   ]
 
   cflags_cc = [ "-w" ]

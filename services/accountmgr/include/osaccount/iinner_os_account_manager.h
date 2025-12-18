@@ -225,6 +225,7 @@ private:
     std::vector<int32_t> operatingId_;
     IOsAccountSubscribe &subscribeManager_;
     std::int32_t deviceOwnerId_ = -1;
+    mutable std::mutex deviceOwnerLock_;
     SafeMap<uint64_t, int32_t> defaultActivatedIds_;
     OsAccountConfig config_;
     mutable std::mutex ativeMutex_;
