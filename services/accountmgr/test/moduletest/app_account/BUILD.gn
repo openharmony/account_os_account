@@ -106,6 +106,7 @@ ohos_moduletest("app_account_manager_service_associated_data_test") {
     "${app_account_services_path}/src/bundle_manager_adapter/bundle_user_manager_adapter_proxy.cpp",
     "${app_account_services_path}/test/mock/app_account/accesstoken_kit.cpp",
     "${app_account_services_path}/test/mock/common/bundle_manager_adapter.cpp",
+    "${common_path}/utils/src/account_permission_manager.cpp",
     "${os_account_core_path}/src/os_account_state_parcel.cpp",
     "${services_path}/accountmgr/src/appaccount/os_account_state_subscriber.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_state_reply_callback_service.cpp",

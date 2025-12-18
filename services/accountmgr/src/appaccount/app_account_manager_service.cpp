@@ -88,8 +88,8 @@ AppAccountLock::AppAccountLock(int32_t uid) : uid_(uid)
 AppAccountLock::~AppAccountLock()
 {
     lock_.unlock();
+    std::lock_guard<std::mutex> lock(g_mapMutex);
     if (mutexPtr_.use_count() == 1) {
-        std::lock_guard<std::mutex> lock(g_mapMutex);
         g_uidMutexMap.erase(uid_);
     }
 }
