@@ -40,7 +40,7 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
-const char OPERATION_REENROLL[] = "re-enroll";
+const char OPERATION_REENROLL[] = "reenroll";
 }
 
 using UserIDMClient = UserIam::UserAuth::UserIdmClient;
@@ -188,7 +188,7 @@ ErrCode AuthCallback::UnlockAccount(int32_t accountId, const std::vector<uint8_t
         if (isVerified) {
             ret = InnerAccountIAMManager::GetInstance().CheckNeedReactivateUserKey(accountId, needActivateKey);
             if (ret != ERR_OK) {
-                ReportOsAccountOperationFail(accountId, "auth", ret, "Failed to check need reactivate user key");
+                ReportOsAccountOperationFail(accountId, "unlock", ret, "Failed to check need reactivate user key");
                 ACCOUNT_LOGE("Failed to check need reactivate key, ret = %{public}d.", ret);
             }
         }
@@ -198,7 +198,7 @@ ErrCode AuthCallback::UnlockAccount(int32_t accountId, const std::vector<uint8_t
             ret = InnerAccountIAMManager::GetInstance().ActivateUserKey(accountId, token, secret);
             if ((ret != ERR_OK) && (ret != ErrNo::E_PARAMS_NULLPTR_ERR)) {
                 ACCOUNT_LOGE("Failed to activate user key");
-                ReportOsAccountOperationFail(accountId, "auth", ret, "Failed to activate user key");
+                ReportOsAccountOperationFail(accountId, "unlock", ret, "Failed to activate user key");
             }
             // only catch el2 activation error
             if (ret == ErrNo::E_ACTIVE_EL2_FAILED) {
@@ -208,7 +208,7 @@ ErrCode AuthCallback::UnlockAccount(int32_t accountId, const std::vector<uint8_t
             ret = InnerAccountIAMManager::GetInstance().PrepareStartUser(accountId);
             if (ret != ERR_OK) {
                 ACCOUNT_LOGE("Failed to prepare start user");
-                ReportOsAccountOperationFail(accountId, "auth", ret, "Failed to prepare start user");
+                ReportOsAccountOperationFail(accountId, "unlock", ret, "Failed to prepare start user");
             }
             isUpdateVerifiedStatus = true;
         }
@@ -229,14 +229,14 @@ ErrCode AuthCallback::UnlockUserScreen(int32_t accountId, const std::vector<uint
         bool lockScreenStatus = false;
         ret = InnerAccountIAMManager::GetInstance().GetLockScreenStatus(accountId, lockScreenStatus);
         if (ret != 0) {
-            ReportOsAccountOperationFail(accountId, "auth", ret, "Failed to get lock status");
+            ReportOsAccountOperationFail(accountId, "unlockEnhancedKeys", ret, "Failed to get lock status");
         }
         if (!lockScreenStatus) {
             ACCOUNT_LOGI("start unlock user screen");
             // el3\4 file decryption
             ret = InnerAccountIAMManager::GetInstance().UnlockUserScreen(accountId, token, secret);
             if (ret != 0) {
-                ReportOsAccountOperationFail(accountId, "auth", ret, "Failed to unlock user");
+                ReportOsAccountOperationFail(accountId, "unlockEnhancedKeys", ret, "Failed to unlock user");
                 return ret;
             }
         }
