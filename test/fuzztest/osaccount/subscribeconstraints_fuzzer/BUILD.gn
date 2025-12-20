@@ -30,8 +30,8 @@ ohos_fuzztest("SubscribeConstraintsFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
   sources = [
-    "subscribeconstraints_fuzzer.cpp",
     "${os_account_innerkits_native_path}/src/os_account_constraint_subscriber.cpp",
+    "subscribeconstraints_fuzzer.cpp",
   ]
 
   deps = [
