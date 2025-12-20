@@ -19,12 +19,13 @@ group("fuzztest") {
     # deps file
     "activateosaccountstub_fuzzer:ActivateOsAccountStubFuzzTest",
     "checkosaccountconstraintenabledstub_fuzzer:CheckOsAccountConstraintEnabledStubFuzzTest",
+    "createosaccountwithfullinfoinosaccountinfo_fuzzer:CreateOsAccountWithFullInfoInOsAccountInfoFuzzTest",
     "createosaccountwithfullinfostub_fuzzer:CreateOsAccountWithFullInfoStubFuzzTest",
     "createosaccountwithshortnamestub_fuzzer:CreateOsAccountWithShortNameStubFuzzTest",
     "deactivateosaccountstub_fuzzer:DeactivateOsAccountStubFuzzTest",
     "dumpstatestub_fuzzer:DumpStateStubFuzzTest",
-    "getforegroundosaccountlocalidstub_fuzzer:GetForegroundOsAccountLocalIdStubFuzzTest",
     "getforegroundosaccountdisplayidstub_fuzzer:GetForegroundOsAccountDisplayIdStubFuzzTest",
+    "getforegroundosaccountlocalidstub_fuzzer:GetForegroundOsAccountLocalIdStubFuzzTest",
     "getosaccountallconstraintsstub_fuzzer:GetOsAccountAllConstraintsStubFuzzTest",
     "getosaccountlocalidbyserialnumberstub_fuzzer:GetOsAccountLocalIdBySerialNumberStubFuzzTest",
     "getosaccountnamebyidstub_fuzzer:GetOsAccountNameByIdStubFuzzTest",
@@ -41,6 +42,8 @@ group("fuzztest") {
     "isosaccountverifiedstub_fuzzer:IsOsAccountVerifiedStubFuzzTest",
     "osaccountstatereplycallbackstub_fuzzer:OsAccountStateReplyCallbackStubFuzzTest",
     "proccreateosaccountstub_fuzzer:ProcCreateOsAccountStubFuzzTest",
+    "proccreateosaccountwithfullinfostub_fuzzer:ProcCreateOsAccountWithFullInfoStubFuzzTest",
+    "proccreateosaccountwithoutoptionsstub_fuzzer:ProcCreateOsAccountWithoutOptionsStubFuzzTest",
     "proccreateosaccountwithshortnamestub_fuzzer:ProcCreateOsAccountWithShortNameStubFuzzTest",
     "procsetosaccountnamestub_fuzzer:ProcSetOsAccountNameStubFuzzTest",
     "procstartosaccountstub_fuzzer:ProcStartOsAccountStubFuzzTest",
@@ -55,16 +58,17 @@ group("fuzztest") {
     "setosaccountprofilephotostub_fuzzer:SetOsAccountProfilePhotoStubFuzzTest",
     "setosaccounttoberemovedstub_fuzzer:SetOsAccountToBeRemovedStubFuzzTest",
     "setspecificosaccountconstraintsstub_fuzzer:SetSpecificOsAccountConstraintsStubFuzzTest",
-    "subscribeosaccountstub_fuzzer:SubscribeOsAccountStubFuzzTest",
-    "updateosaccountwithfullinfostub_fuzzer:UpdateOsAccountWithFullInfoStubFuzzTest",
     "subscribeosaccountconstraintstub_fuzzer:SubscribeOsAccountConstraintStubFuzzTest",
+    "subscribeosaccountstub_fuzzer:SubscribeOsAccountStubFuzzTest",
     "unsubscribeosaccountconstraintstub_fuzzer:UnsubscribeOsAccountConstraintStubFuzzTest",
+    "updateosaccountwithfullinfostub_fuzzer:UpdateOsAccountWithFullInfoStubFuzzTest",
   ]
 
   if (os_account_support_domain_accounts) {
     deps += [
       "binddomainaccountstub_fuzzer:BindDomainAccountStubFuzzTest",
       "createosaccountfordomainstub_fuzzer:CreateOsAccountForDomainStubFuzzTest",
+      "createosaccountfordomainwithoutoptionsstub_fuzzer:CreateOsAccountForDomainWithoutOptionsStubFuzzTest",
       "getosaccountdomaininfostub_fuzzer:GetOsAccountDomainInfoStubFuzzTest",
       "getosaccountlocalidfromdomainstub_fuzzer:GetOsAccountLocalIdFromDomainStubFuzzTest",
     ]

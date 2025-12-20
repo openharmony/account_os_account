@@ -33,7 +33,7 @@ config("os_account_manager_service_test_config") {
   ]
 }
 
-ohos_fuzztest("CreateOsAccountForDomainStubFuzzTest") {
+ohos_fuzztest("CreateOsAccountWithFullInfoInOsAccountInfoFuzzTest") {
   module_out_path = fuzz_output_path
 
   fuzz_config_file = "."
@@ -59,19 +59,20 @@ ohos_fuzztest("CreateOsAccountForDomainStubFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
   cflags_cc = [ "-DACCOUNT_TEST" ]
-  if (use_libfuzzer) {
-    cflags_cc += [ "-DFUZZ_TEST" ]
-  }
   if (has_user_idm_part) {
     cflags_cc += [ "-DHAS_USER_IDM_PART" ]
   }
   if (target_cpu == "arm64") {
     defines += [ "_ARM64_" ]
   }
+
+  if (use_libfuzzer) {
+    cflags_cc += [ "-DFUZZ_TEST" ]
+  }
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
-  sources = [ "createosaccountfordomainstub_fuzzer.cpp" ]
+  sources = [ "createosaccountwithfullinfoinosaccountinfo_fuzzer.cpp" ]
   sources += [
     "${app_account_services_path}/src/ability_manager_adapter/ability_manager_adapter.cpp",
     "${app_account_services_path}/src/appaccount/app_account_control_manager.cpp",

@@ -81,48 +81,6 @@ bool CreateOsAccountForDomainStubFuzzTest(const uint8_t *data, size_t size)
     return true;
 }
 
-bool CreateOsAccountForDomainWithoutOptionsStubFuzzTest(const uint8_t *data, size_t size)
-{
-    if ((data == nullptr) || (size == 0)) {
-        return false;
-    }
-
-    FuzzData fuzzData(data, size);
-    MessageParcel datas;
-    datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
-    OsAccountType testType = static_cast<OsAccountType>(fuzzData.GetData<size_t>() % CONSTANTS_NUMBER_FIVE);
-    if (!datas.WriteInt32(testType)) {
-        return false;
-    }
-    auto useDomainAccountInfo = fuzzData.GenerateBool();
-    if (useDomainAccountInfo) {
-        DomainAccountInfo domainInfo(fuzzData.GenerateString(), fuzzData.GenerateString());
-        if (!datas.WriteParcelable(&domainInfo)) {
-            return false;
-        }
-    }
-    auto useDomainAccountCallback = fuzzData.GenerateBool();
-    if (useDomainAccountCallback) {
-        std::shared_ptr<DomainAccountCallback> callbackPtr = nullptr;
-        sptr<DomainAccountCallbackService> callbackService =
-            new (std::nothrow) DomainAccountCallbackService(callbackPtr);
-        if ((callbackService == nullptr) || (!datas.WriteRemoteObject(callbackService->AsObject()))) {
-            return false;
-        }
-    }
-
-    MessageParcel reply;
-    MessageOption option;
-
-    auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
-
-    osAccountManagerService_ ->OnRemoteRequest(static_cast<int32_t>(
-        IOsAccountIpcCode::COMMAND_CREATE_OS_ACCOUNT_FOR_DOMAIN_IN_INT_IN_DOMAINACCOUNTINFO_IN_IDOMAINACCOUNTCALLBACK),
-        datas, reply, option);
-
-    return true;
-}
-
 void SendRequestWithAccountId(int32_t code, int id)
 {
     MessageParcel datas;
@@ -208,6 +166,5 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     /* Run your code on data */
     OHOS::CreateOsAccountForDomainStubFuzzTest(data, size);
-    OHOS::CreateOsAccountForDomainWithoutOptionsStubFuzzTest(data, size);
     return 0;
 }

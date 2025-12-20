@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "proccreateosaccountwithshortnamestub_fuzzer.h"
+#include "proccreateosaccountwithoutoptionsstub_fuzzer.h"
 #include <string>
 #include <thread>
 #include <vector>
@@ -28,7 +28,7 @@ using namespace OHOS::AccountSA;
 namespace OHOS {
 const int CONSTANTS_NUMBER_FIVE = 5;
 const std::u16string IOS_ACCOUNT_DESCRIPTOR = u"ohos.accountfwk.IOsAccount";
-bool ProcCreateOsAccountWithShortNameStubFuzzTest(const uint8_t *data, size_t size)
+bool ProcCreateOsAccountWithoutOptionsStubFuzzTest(const uint8_t *data, size_t size)
 {
     if ((data == nullptr) || (size == 0)) {
         return false;
@@ -48,11 +48,6 @@ bool ProcCreateOsAccountWithShortNameStubFuzzTest(const uint8_t *data, size_t si
         return false;
     }
 
-    CreateOsAccountOptions options;
-    if (!datas.WriteParcelable(&options)) {
-        return false;
-    }
-
     MessageParcel reply;
     MessageOption option;
 
@@ -60,7 +55,7 @@ bool ProcCreateOsAccountWithShortNameStubFuzzTest(const uint8_t *data, size_t si
 
     osAccountManagerService_ ->OnRemoteRequest(
         static_cast<int32_t>(IOsAccountIpcCode::
-            COMMAND_CREATE_OS_ACCOUNT_IN_STRING_IN_STRING_IN_INT_OUT_STRINGRAWDATA_IN_CREATEOSACCOUNTOPTIONS),
+            COMMAND_CREATE_OS_ACCOUNT_IN_STRING_IN_STRING_IN_INT_OUT_STRINGRAWDATA),
             datas, reply, option);
 
     return true;
@@ -71,6 +66,6 @@ bool ProcCreateOsAccountWithShortNameStubFuzzTest(const uint8_t *data, size_t si
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     /* Run your code on data */
-    OHOS::ProcCreateOsAccountWithShortNameStubFuzzTest(data, size);
+    OHOS::ProcCreateOsAccountWithoutOptionsStubFuzzTest(data, size);
     return 0;
 }
