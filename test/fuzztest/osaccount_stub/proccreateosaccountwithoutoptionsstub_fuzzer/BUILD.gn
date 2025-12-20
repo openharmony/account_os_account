@@ -1,4 +1,4 @@
-# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Copyright (c) 2024 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -11,13 +11,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("../../../../os_account.gni")
+
+#####################hydra-fuzz###################
 import("//build/config/features.gni")
 import("//build/ohos.gni")
 import("//build/test.gni")
-import("../../../../os_account.gni")
 
-ohos_fuzztest("IsOsAccountDeactivatingStubFuzzTest") {
+##############################fuzztest##########################################
+ohos_fuzztest("ProcCreateOsAccountWithoutOptionsStubFuzzTest") {
   module_out_path = fuzz_output_path
+
   fuzz_config_file = "."
   include_dirs = [
     "${services_path}/accountmgr/include/bundle_manager_adapter",
@@ -25,8 +29,6 @@ ohos_fuzztest("IsOsAccountDeactivatingStubFuzzTest") {
     "${services_path}/accountmgr/include/osaccount",
     "${os_account_innerkits_native_path}/include",
     "${os_account_path}/test/fuzztest/osaccount_stub/common",
-    "${services_path}/accountmgr/include/common/database/kvstore",
-    "${services_path}/accountmgr/include/common/database",
   ]
   cflags = [
     "-g",
@@ -41,15 +43,16 @@ ohos_fuzztest("IsOsAccountDeactivatingStubFuzzTest") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
   sources = [
-    "${os_account_path}/services/accountmgr/src/common/database/kvstore/kvstore_adapter_impl.cpp",
     "${os_account_path}/services/accountmgr/src/osaccount/os_account_manager_service.cpp",
-    "isosaccountdeactivatingstub_fuzzer.cpp",
+    "proccreateosaccountwithoutoptionsstub_fuzzer.cpp",
   ]
+
   deps = [
     "${os_account_path}/frameworks/common:libaccount_common",
     "${os_account_path}/frameworks/osaccount/native:os_account_innerkits",
     "${os_account_path}/services/accountmgr:accountmgr",
   ]
+
   external_deps = [
     "ability_base:want",
     "ability_runtime:app_manager",
@@ -65,6 +68,7 @@ ohos_fuzztest("IsOsAccountDeactivatingStubFuzzTest") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+
   defines = [
     "ACCOUNT_LOG_TAG = \"OsAccountFuzzTest\"",
     "LOG_DOMAIN = 0xD001B00",

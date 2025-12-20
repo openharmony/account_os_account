@@ -26,9 +26,6 @@ using namespace std;
 using namespace OHOS::AccountSA;
 
 namespace OHOS {
-const int ENUM_MAX = 5;
-const int PRIVATE_NUMBER = 3;
-const int END_NUMBER = 4;
 const std::u16string IOS_ACCOUNT_DESCRIPTOR = u"ohos.accountfwk.IOsAccount";
 bool CheckOsAccountConstraintEnabledStubFuzzTest(const uint8_t *data, size_t size)
 {
@@ -53,60 +50,11 @@ bool CheckOsAccountConstraintEnabledStubFuzzTest(const uint8_t *data, size_t siz
     return true;
 }
 
-bool ProcUpdateOsAccountWithFullInfoStubFuzzTest(const uint8_t *data, size_t size)
-{
-    if ((data == nullptr) || (size == 0)) {
-        return false;
-    }
-    MessageParcel datas;
-    if (!datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR)) {
-        return false;
-    }
-    FuzzData fuzzData(data, size);
-    bool isInitWithSerialNumber = fuzzData.GetData<bool>();
-    auto localId = fuzzData.GetData<int>();
-    auto localName = fuzzData.GenerateString();
-    auto serialNumber = fuzzData.GetData<int64_t>();
-    OsAccountInfo osAccountInfo;
-    if (isInitWithSerialNumber) {
-        osAccountInfo = OsAccountInfo(localId, localName, PRIVATE, serialNumber);
-    } else {
-        osAccountInfo = OsAccountInfo(localId, localName, PRIVATE);
-    }
-    osAccountInfo.SetLocalId(fuzzData.GetData<int>());
-    osAccountInfo.SetLocalName(fuzzData.GenerateString());
-    osAccountInfo.SetShortName(fuzzData.GenerateString());
-    int typeNumber = fuzzData.GetData<int>() % ENUM_MAX;
-    if (typeNumber == PRIVATE_NUMBER) {
-        osAccountInfo.SetType(PRIVATE);
-    } else if (typeNumber == END_NUMBER) {
-        osAccountInfo.SetType(END);
-    } else {
-        OsAccountType testType = static_cast<OsAccountType>(typeNumber);
-        osAccountInfo.SetType(testType);
-    }
-    osAccountInfo.SetSerialNumber(fuzzData.GetData<int64_t>());
-    osAccountInfo.SetCredentialId(fuzzData.GetData<uint64_t>());
-    osAccountInfo.SetIsDataRemovable(fuzzData.GetData<bool>());
-    osAccountInfo.SetCreatorType(fuzzData.GetData<int32_t>());
-    osAccountInfo.SetToBeRemoved(fuzzData.GetData<bool>());
-    if (!datas.WriteParcelable(&osAccountInfo)) {
-        return false;
-    }
-    MessageParcel reply;
-    MessageOption option;
-    auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
-    osAccountManagerService_->OnRemoteRequest(
-        static_cast<int32_t>(IOsAccountIpcCode::COMMAND_UPDATE_OS_ACCOUNT_WITH_FULL_INFO), datas, reply, option);
-    return true;
-}
 } // namespace OHOS
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
-    /* Run your code on data */
     OHOS::CheckOsAccountConstraintEnabledStubFuzzTest(data, size);
-    OHOS::ProcUpdateOsAccountWithFullInfoStubFuzzTest(data, size);
     return 0;
 }

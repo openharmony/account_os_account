@@ -86,8 +86,8 @@ ohos_fuzztest("UpdateOsAccountWithFullInfoStubFuzzTest") {
     "${common_path}/utils/src/account_permission_manager.cpp",
     "${domain_account_framework_path}/src/domain_account_callback_service.cpp",
     "${domain_account_framework_path}/src/domain_account_common.cpp",
-    "${os_account_dfx_path}/data_dfx/data_size_report_adapter.cpp",
     "${domain_account_framework_path}/src/domain_account_parcel.cpp",
+    "${os_account_dfx_path}/data_dfx/data_size_report_adapter.cpp",
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hisysevent_adapter/account_hisysevent_adapter.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
@@ -108,8 +108,8 @@ ohos_fuzztest("UpdateOsAccountWithFullInfoStubFuzzTest") {
   version_script = "${services_path}/accountmgr/libaccountmgr.map"
 
   deps = [
-    "${account_iam_framework_path}:account_iam_stub",
     "${account_iam_framework_path}:account_iam_innerkits",
+    "${account_iam_framework_path}:account_iam_stub",
     "${account_iam_framework_path}/test/unittest:account_iam_client_test",
     "${account_test_common}:account_test_common_source_set",
     "${common_path}:libaccount_common",
