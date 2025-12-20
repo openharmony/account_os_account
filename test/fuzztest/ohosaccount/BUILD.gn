@@ -18,10 +18,15 @@ group("fuzztest") {
   deps += [
     # deps file
     "getdeviceaccountidbyuid_fuzzer:GetDeviceAccountIdByUIDFuzzTest",
-    "getohosaccountinfo_fuzzer:GetOhosAccountInfoFuzzTest",
+    "getosaccountdistributedinfowithuserid_fuzzer:GetOsAccountDistributedInfoWithUserIdFuzzTest",
+    "getosaccountdistributedinfowithuseridproxy_fuzzer:GetOsAccountDistributedInfoWithUserIdProxyFuzzTest",
     "queryohosaccountinfobyuserid_fuzzer:QueryOhosAccountInfoByUserIdFuzzTest",
+    "queryosaccountdistributedinfowithuseridproxy_fuzzer:QueryOsAccountDistributedInfoWithUserIdProxyFuzzTest",
     "setohosaccountinfo_fuzzer:SetOhosAccountInfoFuzzTest",
     "setohosaccountinfobyuserid_fuzzer:SetOhosAccountInfoByUserIdFuzzTest",
+    "setosaccountdistributedinfowithuseridproxy_fuzzer:SetOsAccountDistributedInfoWithUserIdProxyFuzzTest",
+    "subscribedistributedaccountevent_fuzzer:SubscribeDistributedAccountEventFuzzTest",
+    "unsubscribedistributedaccountevent_fuzzer:UnsubscribeDistributedAccountEventFuzzTest",
     "updateohosaccountinfo_fuzzer:UpdateOhosAccountInfoFuzzTest",
   ]
 }
