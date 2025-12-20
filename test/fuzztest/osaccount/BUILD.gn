@@ -49,9 +49,7 @@ group("fuzztest") {
     "isosaccountconstraintenable_fuzzer:IsOsAccountConstraintEnableFuzzTest",
     "isosaccountdeactivating_fuzzer:IsOsAccountDeactivatingFuzzTest",
     "isosaccountexists_fuzzer:IsOsAccountExistsFuzzTest",
-    "isosaccountforeground_fuzzer:IsOsAccountForegroundFuzzTest",
     "isosaccountverified_fuzzer:IsOsAccountVerifiedFuzzTest",
-    "queryaccountinfo_fuzzer:QueryAccountInfoFuzzTest",
     "querydistributedvirtualdeviceid_fuzzer:QueryDistributedVirtualDeviceIdFuzzTest",
     "removeosaccount_fuzzer:RemoveOsAccountFuzzTest",
     "removeserverconfig_fuzzer:RemoveServerConfigFuzzTest",
@@ -65,8 +63,8 @@ group("fuzztest") {
     "setosaccounttoberemoved_fuzzer:SetOsAccountToBeRemovedFuzzTest",
     "setspecificosaccountconstraints_fuzzer:SetSpecificOsAccountConstraintsFuzzTest",
     "startosaccount_fuzzer:StartOsAccountFuzzTest",
-    "updateosaccountwithfullinfo_fuzzer:UpdateOsAccountWithFullInfoFuzzTest",
     "subscribeconstraints_fuzzer:SubscribeConstraintsFuzzTest",
     "unsubscribeconstraints_fuzzer:UnsubscribeConstraintsFuzzTest",
+    "updateosaccountwithfullinfo_fuzzer:UpdateOsAccountWithFullInfoFuzzTest",
   ]
 }

@@ -16,10 +16,10 @@ group("fuzztest") {
   deps = [
     # deps file
     "cmdgetohosaccountinfobyuseridstub_fuzzer:CmdGetOhosAccountInfoByUserIdStubFuzzTest",
+    "cmdgetosaccountservicestub_fuzzer:CmdGetOsAccountServiceStubFuzzTest",
     "cmdqueryohosaccountinfobyuseridstub_fuzzer:CmdQueryOhosAccountInfoByUserIdStubFuzzTest",
     "cmdsetohosaccountinfobyuseridstub_fuzzer:CmdSetOhosAccountInfoByUserIdStubFuzzTest",
     "cmdsetohosaccountinfostub_fuzzer:CmdSetOhosAccountInfoStubFuzzTest",
     "cmdupdateohosaccountinfostub_fuzzer:CmdUpdateOhosAccountInfoStubFuzzTest",
-    "cmdgetosaccountservicestub_fuzzer:CmdGetOsAccountServiceStubFuzzTest",
   ]
 }
