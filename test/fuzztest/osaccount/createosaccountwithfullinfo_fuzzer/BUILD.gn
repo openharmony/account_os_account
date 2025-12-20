@@ -43,8 +43,8 @@ ohos_fuzztest("CreateOsAccountWithFullInfoFuzzTest") {
     "access_token:libnativetoken_shared",
     "access_token:libtokenid_sdk",
     "access_token:libtokensetproc_shared",
-    "c_utils:utils",
     "cJSON:cjson",
+    "c_utils:utils",
     "hilog:libhilog",
   ]
 

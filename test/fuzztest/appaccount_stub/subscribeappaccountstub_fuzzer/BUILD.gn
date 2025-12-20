@@ -30,7 +30,7 @@ ohos_fuzztest("SubscribeAppAccountStubFuzzTest") {
     "${app_account_innerkits_native_path}/include",
     "${os_account_path}/test/fuzztest/appaccount_stub/fuzz_data",
     "${services_path}/accountmgr/include/common/database/kvstore",
-    "${services_path}/accountmgr/include/common/database",    
+    "${services_path}/accountmgr/include/common/database",
   ]
   cflags = [
     "-g",
