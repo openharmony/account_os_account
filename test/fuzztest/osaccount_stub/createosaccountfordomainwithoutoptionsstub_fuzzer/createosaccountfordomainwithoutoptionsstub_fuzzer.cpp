@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,13 +13,15 @@
  * limitations under the License.
  */
 
-#include "proccreateosaccountwithshortnamestub_fuzzer.h"
+#include "createosaccountfordomainwithoutoptionsstub_fuzzer.h"
 #include <string>
 #include <thread>
 #include <vector>
 
+#include "domain_account_callback_service.h"
 #include "fuzz_data.h"
 #include "ios_account.h"
+#include "os_account_info_json_parser.h"
 #include "os_account_manager_service.h"
 
 using namespace std;
@@ -28,29 +30,36 @@ using namespace OHOS::AccountSA;
 namespace OHOS {
 const int CONSTANTS_NUMBER_FIVE = 5;
 const std::u16string IOS_ACCOUNT_DESCRIPTOR = u"ohos.accountfwk.IOsAccount";
-bool ProcCreateOsAccountWithShortNameStubFuzzTest(const uint8_t *data, size_t size)
+const std::string TEST_SHORT_NAME = "test_short_name";
+
+bool CreateOsAccountForDomainWithoutOptionsStubFuzzTest(const uint8_t *data, size_t size)
 {
     if ((data == nullptr) || (size == 0)) {
         return false;
     }
+
     FuzzData fuzzData(data, size);
     MessageParcel datas;
     datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
-
-    if (!datas.WriteString(fuzzData.GenerateString())) {
-        return false;
-    }
-    if (!datas.WriteString(fuzzData.GenerateString())) {
-        return false;
-    }
     OsAccountType testType = static_cast<OsAccountType>(fuzzData.GetData<size_t>() % CONSTANTS_NUMBER_FIVE);
     if (!datas.WriteInt32(testType)) {
         return false;
     }
-
-    CreateOsAccountOptions options;
-    if (!datas.WriteParcelable(&options)) {
-        return false;
+    auto useDomainAccountInfo = fuzzData.GenerateBool();
+    if (useDomainAccountInfo) {
+        DomainAccountInfo domainInfo(fuzzData.GenerateString(), fuzzData.GenerateString());
+        if (!datas.WriteParcelable(&domainInfo)) {
+            return false;
+        }
+    }
+    auto useDomainAccountCallback = fuzzData.GenerateBool();
+    if (useDomainAccountCallback) {
+        std::shared_ptr<DomainAccountCallback> callbackPtr = nullptr;
+        sptr<DomainAccountCallbackService> callbackService =
+            new (std::nothrow) DomainAccountCallbackService(callbackPtr);
+        if ((callbackService == nullptr) || (!datas.WriteRemoteObject(callbackService->AsObject()))) {
+            return false;
+        }
     }
 
     MessageParcel reply;
@@ -58,10 +67,9 @@ bool ProcCreateOsAccountWithShortNameStubFuzzTest(const uint8_t *data, size_t si
 
     auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
 
-    osAccountManagerService_ ->OnRemoteRequest(
-        static_cast<int32_t>(IOsAccountIpcCode::
-            COMMAND_CREATE_OS_ACCOUNT_IN_STRING_IN_STRING_IN_INT_OUT_STRINGRAWDATA_IN_CREATEOSACCOUNTOPTIONS),
-            datas, reply, option);
+    osAccountManagerService_ ->OnRemoteRequest(static_cast<int32_t>(
+        IOsAccountIpcCode::COMMAND_CREATE_OS_ACCOUNT_FOR_DOMAIN_IN_INT_IN_DOMAINACCOUNTINFO_IN_IDOMAINACCOUNTCALLBACK),
+        datas, reply, option);
 
     return true;
 }
@@ -71,6 +79,6 @@ bool ProcCreateOsAccountWithShortNameStubFuzzTest(const uint8_t *data, size_t si
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     /* Run your code on data */
-    OHOS::ProcCreateOsAccountWithShortNameStubFuzzTest(data, size);
+    OHOS::CreateOsAccountForDomainWithoutOptionsStubFuzzTest(data, size);
     return 0;
 }
