@@ -687,7 +687,6 @@ ErrCode InnerAccountIAMManager::InnerGetLockScreenStatus(uint32_t userId, bool &
 ErrCode InnerAccountIAMManager::UnlockUserScreen(
     int32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret)
 {
-    std::lock_guard<std::mutex> userLock(*GetOperatingUserLock(userId));
     int times = 0;
     ErrCode errCode = ERR_OK;
     while (times < MAX_RETRY_TIMES) {
