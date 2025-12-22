@@ -896,13 +896,13 @@ std::string ConvertMapViewToStringInner(uintptr_t parameters)
         return "";
     }
 
-    ani_status status = env->FindClass("Lescompat/JSON;", &cls);
+    ani_status status = env->FindClass("std.core.JSON", &cls);
     ani_static_method stringify;
     if (status != ANI_OK) {
         ACCOUNT_LOGE("JSON not found, ret: %{public}d.", status);
         return "";
     }
-    status = env->Class_FindStaticMethod(cls, "stringify", "Lstd/core/Object;:Lstd/core/String;", &stringify);
+    status = env->Class_FindStaticMethod(cls, "stringify", "Y:C{std.core.String}", &stringify);
     if (status != ANI_OK) {
         ACCOUNT_LOGE("Stringify not found, ret: %{public}d.", status);
         return "";
