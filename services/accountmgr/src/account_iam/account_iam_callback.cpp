@@ -20,6 +20,7 @@
 #include <string>
 #include "access_token.h"
 #include "accesstoken_kit.h"
+#include "account_constants.h"
 #include "account_iam_info.h"
 #include "account_info_report.h"
 #include "account_log_wrapper.h"
@@ -36,11 +37,17 @@
 #include "user_auth_client.h"
 #include "user_idm_client.h"
 #include "os_account_constants.h"
+#ifdef HICOLLIE_ENABLE
+#include "xcollie/xcollie.h"
+#endif // HICOLLIE_ENABLE
 
 namespace OHOS {
 namespace AccountSA {
 namespace {
 const char OPERATION_REENROLL[] = "reenroll";
+#ifdef HICOLLIE_ENABLE
+const int32_t REENROLL_TIME_OUT = 6;
+#endif // HICOLLIE_ENABLE
 }
 
 using UserIDMClient = UserIam::UserAuth::UserIdmClient;
@@ -98,8 +105,27 @@ UpdateCredInfo::~UpdateCredInfo()
     std::fill(oldSecret.begin(), oldSecret.end(), 0);
 }
 
-ReEnrollCallback::ReEnrollCallback(const sptr<IIDMCallback> &innerCallback) : innerCallback_(innerCallback)
-{}
+ReEnrollCallback::ReEnrollCallback(const sptr<IIDMCallback> &innerCallback,
+    int32_t localId) : innerCallback_(innerCallback), localId_(localId)
+{
+#ifdef HICOLLIE_ENABLE
+    XCollieCallback callbackFunc = [localId = localId_](void *) {
+        ACCOUNT_LOGE("ReEnroll timeout, localId = %{public}d.", localId);
+        REPORT_OS_ACCOUNT_FAIL(localId, "watchDog", -1, "ReEnroll time out");
+    };
+    timerId_ = HiviewDFX::XCollie::GetInstance().SetTimer(
+        TIMER_NAME, REENROLL_TIME_OUT, callbackFunc, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
+#else
+    ACCOUNT_LOGD("ReEnroll: ReEnrollCallback localId_: %{public}d", localId_);
+#endif // HICOLLIE_ENABLE
+}
+
+ReEnrollCallback::~ReEnrollCallback()
+{
+#ifdef HICOLLIE_ENABLE
+    HiviewDFX::XCollie::GetInstance().CancelTimer(timerId_);
+#endif // HICOLLIE_ENABLE
+}
 
 ErrCode ReEnrollCallback::OnResult(int32_t result, const std::vector<uint8_t>& extraInfoBuffer)
 {
@@ -124,7 +150,7 @@ ErrCode AuthCallback::InnerHandleReEnroll(const std::vector<uint8_t> &token)
 {
     //set first caller to sceneboard
     SetFirstCallerTokenID(callerTokenId_);
-    sptr<ReEnrollCallback> callback = new (std::nothrow) ReEnrollCallback(innerCallback_);
+    sptr<ReEnrollCallback> callback = new (std::nothrow) ReEnrollCallback(innerCallback_, userId_);
     if (callback == nullptr) {
         ACCOUNT_LOGE("ReEnroll: failed to allocate callback");
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
