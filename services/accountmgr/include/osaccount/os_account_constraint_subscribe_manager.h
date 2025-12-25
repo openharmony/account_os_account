@@ -25,9 +25,13 @@ namespace AccountSA {
 class OsAccountConstraintSubscribeManager {
 public:
     static OsAccountConstraintSubscribeManager &GetInstance();
+    ErrCode SubscribeOsAccountConstraints(int32_t localId, const std::set<std::string> &constraints,
+        const sptr<IRemoteObject> &eventListener);
     ErrCode SubscribeOsAccountConstraints(const std::set<std::string> &constraints,
         const sptr<IRemoteObject> &eventListener);
     ErrCode UnsubscribeOsAccountConstraints(const std::set<std::string> &constraints,
+        const sptr<IRemoteObject> &eventListener);
+    ErrCode UnsubscribeOsAccountConstraints(int32_t localId, const std::set<std::string> &constraints,
         const sptr<IRemoteObject> &eventListener);
     ErrCode UnsubscribeOsAccountConstraints(const sptr<IRemoteObject> &eventListener);
     void Publish(int32_t localId, const std::set<std::string> &constraints, const bool isEnabled);
@@ -46,6 +50,7 @@ private:
     std::mutex mutex_;
     sptr<IRemoteObject::DeathRecipient> subscribeDeathRecipient_;
     std::set<OsAccountConstraintSubscribeRecordPtr> constraintRecords_;
+    std::map<sptr<IRemoteObject>, int32_t> userListenerMap_;
     std::map<std::string, std::set<OsAccountConstraintSubscribeRecordPtr>> constraint2RecordMap_;
 };
 } // AccountSA

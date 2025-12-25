@@ -46,6 +46,9 @@ ErrCode OsAccountConstraintManager::SubscribeOsAccountConstraints(const OsAccoun
         ACCOUNT_LOGE("Invalid constraints");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
+    if (!subscribeInfo.enableAcross) {
+        return subscribeManager_.SubscribeOsAccountConstraints(subscribeInfo.localId, constraints, eventListener);
+    }
     return subscribeManager_.SubscribeOsAccountConstraints(constraints, eventListener);
 }
 
@@ -62,6 +65,9 @@ ErrCode OsAccountConstraintManager::UnsubscribeOsAccountConstraints(
     if (!osAccountControl_->CheckConstraints(constraintVec)) {
         ACCOUNT_LOGE("Invalid constraints");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    if (!subscribeInfo.enableAcross) {
+        return subscribeManager_.UnsubscribeOsAccountConstraints(subscribeInfo.localId, constraints, eventListener);
     }
     return subscribeManager_.UnsubscribeOsAccountConstraints(constraints, eventListener);
 }

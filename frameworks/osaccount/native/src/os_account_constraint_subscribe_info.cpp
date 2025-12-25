@@ -49,6 +49,14 @@ bool OsAccountConstraintSubscribeInfo::Marshalling(Parcel &parcel) const
             return false;
         }
     }
+    if (!parcel.WriteBool(enableAcross)) {
+        ACCOUNT_LOGE("Write enableAcross failed.");
+        return false;
+    }
+    if (!parcel.WriteInt32(localId)) {
+        ACCOUNT_LOGE("Write localId failed.");
+        return false;
+    }
     return true;
 }
 
@@ -81,6 +89,14 @@ bool OsAccountConstraintSubscribeInfo::ReadFromParcel(Parcel &parcel)
             return false;
         }
         constraintSet_.emplace(constraint);
+    }
+    if (!parcel.ReadBool(enableAcross)) {
+        ACCOUNT_LOGE("Read enableAcross failed.");
+        return false;
+    }
+    if (!parcel.ReadInt32(localId)) {
+        ACCOUNT_LOGE("Read localId failed.");
+        return false;
     }
     return true;
 }

@@ -92,6 +92,32 @@ ErrCode OsAccountConstraintSubscribeManager::SubscribeOsAccountConstraints(const
     return ERR_OK;
 }
 
+ErrCode OsAccountConstraintSubscribeManager::SubscribeOsAccountConstraints(int32_t localId,
+    const std::set<std::string> &constraints, const sptr<IRemoteObject> &eventListener)
+{
+    if (eventListener == nullptr) {
+        ACCOUNT_LOGE("EventListener is nullptr");
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+    }
+    std::lock_guard<std::mutex> lock(mutex_);
+    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    for (auto const &recordPtr : constraintRecords_) {
+        if (recordPtr->eventListener_ != eventListener) {
+            continue;
+        }
+        recordPtr->constraintSet_ = constraints;
+        InsertSubscribeRecord(recordPtr);
+        return ERR_OK;
+    }
+    if (subscribeDeathRecipient_ != nullptr) {
+        eventListener->AddDeathRecipient(subscribeDeathRecipient_);
+    }
+    userListenerMap_[eventListener]= localId;
+    auto recordPtr = std::make_shared<OsAccountConstraintSubscribeRecord>(constraints, eventListener, callingUid);
+    InsertSubscribeRecord(recordPtr);
+    return ERR_OK;
+}
+
 ErrCode OsAccountConstraintSubscribeManager::UnsubscribeOsAccountConstraints(const sptr<IRemoteObject> &eventListener)
 {
     if (eventListener == nullptr) {
@@ -99,6 +125,10 @@ ErrCode OsAccountConstraintSubscribeManager::UnsubscribeOsAccountConstraints(con
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
     std::lock_guard<std::mutex> lock(mutex_);
+    auto it = userListenerMap_.find(eventListener);
+    if (it != userListenerMap_.end()) {
+        userListenerMap_.erase(it);
+    }
     for (auto const &recordPtr : constraintRecords_) {
         if (recordPtr->eventListener_ != eventListener) {
             continue;
@@ -138,6 +168,35 @@ ErrCode OsAccountConstraintSubscribeManager::UnsubscribeOsAccountConstraints(con
     return ERR_ACCOUNT_COMMON_ACCOUNT_SUBSCRIBE_NOT_FOUND_ERROR;
 }
 
+ErrCode OsAccountConstraintSubscribeManager::UnsubscribeOsAccountConstraints(int32_t localId,
+    const std::set<std::string> &constraints, const sptr<IRemoteObject> &eventListener)
+{
+    if (eventListener == nullptr) {
+        ACCOUNT_LOGE("EventListener is nullptr");
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+    }
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = userListenerMap_.find(eventListener);
+    if (it != userListenerMap_.end()) {
+        userListenerMap_.erase(it);
+    }
+    for (auto const &recordPtr : constraintRecords_) {
+        if (recordPtr->eventListener_ != eventListener) {
+            continue;
+        }
+        bool isInclude = std::includes(recordPtr->constraintSet_.begin(), recordPtr->constraintSet_.end(),
+            constraints.begin(), constraints.end());
+        if (!isInclude) {
+            ACCOUNT_LOGE("Constraint set not include.");
+            return ERR_ACCOUNT_COMMON_ACCOUNT_SUBSCRIBE_NOT_FOUND_ERROR;
+        }
+        RemoveConstraintFromSubscribeRecord(recordPtr, constraints);
+        return ERR_OK;
+    }
+    ACCOUNT_LOGE("Constraint record not found.");
+    return ERR_ACCOUNT_COMMON_ACCOUNT_SUBSCRIBE_NOT_FOUND_ERROR;
+}
+
 void OsAccountConstraintSubscribeManager::PublishToSubscriber(const OsAccountConstraintSubscribeRecordPtr &recordPtr,
     int32_t localId, const std::set<std::string> &constraints, bool isEnabled)
 {
@@ -146,6 +205,13 @@ void OsAccountConstraintSubscribeManager::PublishToSubscriber(const OsAccountCon
             recordPtr->callingUid_);
         return;
     }
+    auto it = userListenerMap_.find(recordPtr->eventListener_);
+    if ((it != userListenerMap_.end()) && (userListenerMap_[recordPtr->eventListener_]) != localId) {
+            ACCOUNT_LOGE("LocalId does not match, subscriber localId=%{public}d, constraint change localId=%{public}d.",
+                userListenerMap_[recordPtr->eventListener_], localId);
+            return;
+    }
+    
     auto eventProxy = iface_cast<IOsAccountConstraintEvent>(recordPtr->eventListener_);
     if (eventProxy == nullptr) {
         ACCOUNT_LOGE("Event proxy is nullptr");
