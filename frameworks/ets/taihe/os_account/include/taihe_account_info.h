@@ -20,6 +20,7 @@
 #include "account_iam_info.h"
 #include "event_handler.h"
 #include "event_runner.h"
+#include "os_account_constraint_subscriber.h"
 #include "os_account_manager.h"
 #include "os_account_subscriber.h"
 #include "os_account_subscribe_info.h"
@@ -29,6 +30,7 @@
 using active_callback = taihe::callback<void(int32_t)>;
 using switch_callback = taihe::callback<void(ohos::account::osAccount::OsAccountSwitchEventData const&)>;
 using credSubscribeCallback = taihe::callback<void(ohos::account::osAccount::CredentialChangeInfo const&)>;
+using constraintSubscribeCallback = taihe::callback<void(ohos::account::osAccount::ConstraintChangeInfo const&)>;
 
 namespace OHOS {
 namespace AccountSA {
@@ -73,6 +75,19 @@ public:
         const UserIam::UserAuth::CredChangeEventInfo &changeInfo) override;
 
     credSubscribeCallback callback;
+    std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
+};
+
+class TaiheConstraintSubscriberPtr : public OsAccountConstraintSubscriber,
+                                     public std::enable_shared_from_this<TaiheConstraintSubscriberPtr> {
+public:
+    explicit TaiheConstraintSubscriberPtr(const std::set<std::string> &constraintSet,
+        constraintSubscribeCallback callback);
+    virtual ~TaiheConstraintSubscriberPtr();
+
+    void OnConstraintChanged(const OsAccountConstraintStateData &constraintData) override;
+
+    constraintSubscribeCallback callback;
     std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
 };
 }

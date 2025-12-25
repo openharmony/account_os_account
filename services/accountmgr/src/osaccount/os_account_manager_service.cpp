@@ -1782,10 +1782,12 @@ ErrCode OsAccountManagerService::SubscribeOsAccountConstraints(const OsAccountCo
     const sptr<IRemoteObject> &eventListener)
 {
     // permission check
-    if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")) {
-        ACCOUNT_LOGE("Account manager service, permission denied!");
-        REPORT_PERMISSION_FAIL();
-        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    if (subscribeInfo.enableAcross) {
+        if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")) {
+            ACCOUNT_LOGE("Account manager service, permission denied!");
+            REPORT_PERMISSION_FAIL();
+            return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+        }
     }
 #ifdef HICOLLIE_ENABLE
     unsigned int flag = HiviewDFX::XCOLLIE_FLAG_LOG;
@@ -1815,10 +1817,12 @@ ErrCode OsAccountManagerService::UnsubscribeOsAccountConstraints(const OsAccount
     const sptr<IRemoteObject> &eventListener)
 {
     // permission check
-    if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")) {
-        ACCOUNT_LOGE("Account manager service, permission denied!");
-        REPORT_PERMISSION_FAIL();
-        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    if (subscribeInfo.enableAcross) {
+        if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")) {
+            ACCOUNT_LOGE("Account manager service, permission denied!");
+            REPORT_PERMISSION_FAIL();
+            return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+        }
     }
     ErrCode result = constraintManger_.UnsubscribeOsAccountConstraints(subscribeInfo, eventListener);
     if (result != ERR_OK) {

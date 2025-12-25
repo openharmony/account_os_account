@@ -23,6 +23,7 @@
 #include <optional>
 #include "os_account_info.h"
 #include "os_account_manager.h"
+#include "os_account_constraint_subscriber.h"
 #include "account_log_wrapper.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
@@ -48,6 +49,16 @@ private:
     const OsAccountState &state = OsAccountState::INVALID_TYPE);
     napi_env env_ = nullptr;
     napi_ref ref_ = nullptr;
+};
+
+class ConstraintSubscriber : public OsAccountConstraintSubscriber,
+                            public std::enable_shared_from_this<ConstraintSubscriber> {
+public:
+    explicit ConstraintSubscriber(napi_env &env, napi_ref &ref, const std::set<std::string> &constraintSet);
+    ~ConstraintSubscriber() override;
+    void OnConstraintChanged(const OsAccountConstraintStateData &constraintData) override;
+    std::shared_ptr<NapiCallbackRef> callback = nullptr;
+    napi_env env = nullptr;
 };
 
 struct QueryOAByIdAsyncContext : public CommonAsyncContext {
@@ -241,6 +252,13 @@ struct UnsubscribeCBInfo : public CommonAsyncContext {
     std::vector<std::shared_ptr<SubscriberPtr>> subscribers;
 };
 
+struct ConstraintChangeWorker : public CommonAsyncContext {
+    std::string constraint = "";
+    bool isEnabled = false;
+    std::shared_ptr<NapiCallbackRef> callback = nullptr;
+    std::shared_ptr<ConstraintSubscriber> subscriber = nullptr;
+};
+
 struct GetOsAccountDomainInfoAsyncContext : public CommonAsyncContext {
     int32_t id = 0;
     DomainAccountInfo domainInfo;
@@ -414,6 +432,10 @@ napi_value QueryOsAccount(napi_env env, napi_callback_info cbInfo);
 napi_value GetOsAccountDomainInfo(napi_env env, napi_callback_info cbInfo);
 
 napi_value BindDomainAccount(napi_env env, napi_callback_info cbInfo);
+
+napi_value OnConstraintChanged(napi_env env, napi_callback_info cbInfo);
+
+napi_value OffConstraintChanged(napi_env env, napi_callback_info cbInfo);
 }  // namespace AccountJsKit
 }  // namespace OHOS
 

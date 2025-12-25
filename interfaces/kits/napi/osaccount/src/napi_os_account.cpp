@@ -20,6 +20,7 @@
 #include "napi/native_common.h"
 #include <mutex>
 #include <unordered_set>
+#include "os_account_manager.h"
 
 using namespace OHOS::AccountSA;
 
@@ -38,10 +39,13 @@ const int DOMAIN_ACCOUNT_STATUS_LOGGED_IN = 1;
 const int CREDENTIAL_CHANGE_TYPE_ADD = 1;
 const int CREDENTIAL_CHANGE_TYPE_UPDATE = 2;
 const int CREDENTIAL_CHANGE_TYPE_DELETE = 3;
+const int UID_TRANSFORM_DIVISOR = 200000;
 static std::unordered_set<napi_env> g_registeredEnvs;
 static std::mutex g_envRegistrationLock;
 std::mutex g_lockForOsAccountSubscribers;
+std::mutex g_lockForConstraintChangeSubscribers;
 std::vector<SubscribeCBInfo *> g_osAccountSubscribers;
+std::vector<std::shared_ptr<ConstraintSubscriber>> g_osAccountConstraintChangeSubscribers;
 static napi_property_descriptor g_osAccountProperties[] = {
     DECLARE_NAPI_FUNCTION("queryOsAccountById", QueryOsAccountById),
     DECLARE_NAPI_FUNCTION("removeOsAccount", RemoveOsAccount),
@@ -113,6 +117,8 @@ static napi_property_descriptor g_osAccountProperties[] = {
     DECLARE_NAPI_FUNCTION("queryOsAccount", QueryOsAccount),
     DECLARE_NAPI_FUNCTION("getOsAccountDomainInfo", GetOsAccountDomainInfo),
     DECLARE_NAPI_FUNCTION("bindDomainAccount", BindDomainAccount),
+    DECLARE_NAPI_FUNCTION("onConstraintChanged", OnConstraintChanged),
+    DECLARE_NAPI_FUNCTION("offConstraintChanged", OffConstraintChanged),
 };
 }  // namespace
 napi_value OsAccountInit(napi_env env, napi_value exports)
@@ -1913,6 +1919,213 @@ napi_value BindDomainAccount(napi_env env, napi_callback_info cbInfo)
     NAPI_CALL(env, napi_queue_async_work_with_qos(env, bindDomainAccountContext->work, napi_qos_default));
     bindDomainAccountContext.release();
     return result;
+}
+
+static napi_value CreateSubEventData(const std::shared_ptr<ConstraintChangeWorker> &constraintChangeWorker)
+{
+    napi_env env = constraintChangeWorker->env;
+    napi_value objInfo = nullptr;
+    NAPI_CALL(env, napi_create_object(env, &objInfo));
+    napi_value constraintJS;
+    NAPI_CALL(env, napi_create_string_utf8(env, constraintChangeWorker->constraint.c_str(),
+        NAPI_AUTO_LENGTH, &constraintJS));
+    NAPI_CALL(env, napi_set_named_property(env, objInfo, "constraint", constraintJS));
+    napi_value isEnabledJS;
+    NAPI_CALL(env, napi_get_boolean(env, constraintChangeWorker->isEnabled, &isEnabledJS));
+    NAPI_CALL(env, napi_set_named_property(env, objInfo, "isEnabled", isEnabledJS));
+
+    return objInfo;
+}
+std::function<void()> ConstraintChangeNotifyTask(const std::shared_ptr<ConstraintChangeWorker> &constraintChangeWorker)
+{
+    return [constraintChangeWorker] {
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(constraintChangeWorker->env, &scope);
+        if (scope == nullptr) {
+            ACCOUNT_LOGE("Fail to open scope");
+            return;
+        }
+        bool isFound = false;
+        {
+            std::lock_guard<std::mutex> lock(g_lockForConstraintChangeSubscribers);
+            for (const auto& item : g_osAccountConstraintChangeSubscribers) {
+                if ((item) == constraintChangeWorker->subscriber) {
+                    isFound = true;
+                    break;
+                }
+            }
+        }
+        if (isFound) {
+            napi_value eventObj = CreateSubEventData(constraintChangeWorker);
+            NapiCallVoidFunction(constraintChangeWorker->env, &eventObj, ARGS_SIZE_ONE,
+                constraintChangeWorker->callback->callbackRef);
+        }
+        napi_close_handle_scope(constraintChangeWorker->env, scope);
+    };
+}
+
+ConstraintSubscriber::ConstraintSubscriber(napi_env &env, napi_ref &ref,
+    const std::set<std::string> &constraintSet) : OsAccountConstraintSubscriber(constraintSet)
+{
+    this->env = env;
+    callback = std::make_shared<NapiCallbackRef>(env, ref);
+}
+
+ConstraintSubscriber::~ConstraintSubscriber() {}
+
+void ConstraintSubscriber::OnConstraintChanged(const OsAccountConstraintStateData &constraintData)
+{
+    std::shared_ptr<ConstraintChangeWorker> constraintChangeWorker = std::make_shared<ConstraintChangeWorker>();
+    constraintChangeWorker->constraint = constraintData.constraint;
+    constraintChangeWorker->isEnabled = constraintData.isEnabled;
+    constraintChangeWorker->env = env;
+    constraintChangeWorker->callback = callback;
+    constraintChangeWorker->subscriber = shared_from_this();
+    auto task = ConstraintChangeNotifyTask(constraintChangeWorker);
+    if (napi_ok != napi_send_event(env, task, napi_eprio_vip, "OnConstraintChangedEvent")) {
+        ACCOUNT_LOGE("Post ConstraintChangeNotifyTask failed");
+        return;
+    }
+    ACCOUNT_LOGI("Post ConstraintChangeNotifyTask finish");
+}
+
+std::pair<bool, std::shared_ptr<ConstraintSubscriber>> FindAndGetSubscriber(
+    const std::shared_ptr<ConstraintSubscriber> &inputSubscriber)
+{
+    for (const auto& each : g_osAccountConstraintChangeSubscribers) {
+        if ((each->env == inputSubscriber->env) &&
+            CompareOnAndOffRef(each->env, each->callback->callbackRef, inputSubscriber->callback->callbackRef)) {
+                std::set<std::string> currentSet;
+                std::set<std::string> inputSet;
+                each->GetConstraintSet(currentSet);
+                inputSubscriber->GetConstraintSet(inputSet);
+                currentSet.insert(inputSet.begin(), inputSet.end());
+                each->SetConstraintSet(currentSet);
+                std::shared_ptr<ConstraintSubscriber> findTarget = each;
+                return std::make_pair(true, findTarget);
+        }
+    }
+    return std::make_pair(false, inputSubscriber);
+}
+
+static void OnConstraintSubEnvCleanup(void* data)
+{
+    ACCOUNT_LOGI("Start.");
+    napi_env cleanupEnv = static_cast<napi_env>(data);
+    {
+        std::lock_guard<std::mutex> lock(g_lockForConstraintChangeSubscribers);
+        auto it = g_osAccountConstraintChangeSubscribers.begin();
+        while (it != g_osAccountConstraintChangeSubscribers.end()) {
+            if ((*it)->env == cleanupEnv) {
+                ACCOUNT_LOGW("Removing subscriber for destroyed environment");
+                if ((*it) != nullptr) {
+                    OsAccountManager::UnsubscribeOsAccountConstraints((*it));
+                }
+                it = g_osAccountConstraintChangeSubscribers.erase(it);
+            } else {
+                ++it;
+            }
+        }
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(g_envRegistrationLock);
+        g_registeredEnvs.erase(cleanupEnv);
+    }
+}
+
+static bool RegisterConstraintSubEnvCleanupHook(napi_env env)
+{
+    std::lock_guard<std::mutex> lock(g_envRegistrationLock);
+    if (g_registeredEnvs.find(env) != g_registeredEnvs.end()) {
+        return true;
+    }
+    napi_status status = napi_add_env_cleanup_hook(env, OnConstraintSubEnvCleanup, env);
+    if (status == napi_ok) {
+        g_registeredEnvs.insert(env);
+        return true;
+    }
+    return false;
+}
+
+napi_value OnConstraintChanged(napi_env env, napi_callback_info cbInfo)
+{
+    if (AccountPermissionManager::CheckSystemApp(false) != ERR_OK) {
+        AccountNapiThrow(env, ERR_JS_IS_NOT_SYSTEM_APP);
+        return nullptr;
+    }
+    if (!RegisterConstraintSubEnvCleanupHook(env)) {
+        ACCOUNT_LOGE("Failed to register env cleanup hook");
+        AccountNapiThrow(env, ERR_JS_SYSTEM_SERVICE_EXCEPTION, true);
+        return nullptr;
+    }
+    
+    napi_ref tempRef = nullptr;
+    std::set<std::string> inputConstraints;
+    std::set<std::string> historyConstraintSet;
+    if (!ParseParaOnConstraintChanged(env, cbInfo, tempRef, inputConstraints)) {
+        ACCOUNT_LOGE("Parse parameters for OnConstraintChanged failed");
+        return nullptr;
+    }
+    auto subscriber = std::make_shared<ConstraintSubscriber>(env, tempRef, inputConstraints);
+    tempRef = nullptr;
+    subscriber->localId = static_cast<int32_t>(getuid()) / UID_TRANSFORM_DIVISOR;
+    subscriber->enableAcross = false;
+    std::lock_guard<std::mutex> lock(g_lockForConstraintChangeSubscribers);
+    auto subscriberWithFindRet = FindAndGetSubscriber(subscriber);
+    ErrCode errCode = OsAccountManager::SubscribeOsAccountConstraints(subscriberWithFindRet.second);
+    if (errCode != ERR_OK) {
+        subscriberWithFindRet.second->SetConstraintSet(historyConstraintSet);
+        ACCOUNT_LOGE("SubscribeConstraintChange failed with errCode=%{public}d", errCode);
+        AccountNapiThrow(env, AccountIAMConvertToJSErrCode(errCode), true);
+        return nullptr;
+    }
+    subscriberWithFindRet.second->GetConstraintSet(historyConstraintSet);
+    if (!subscriberWithFindRet.first) {
+        g_osAccountConstraintChangeSubscribers.emplace_back(subscriberWithFindRet.second);
+    }
+    return nullptr;
+}
+
+napi_value OffConstraintChanged(napi_env env, napi_callback_info cbInfo)
+{
+    if (AccountPermissionManager::CheckSystemApp(false) != ERR_OK) {
+        AccountNapiThrow(env, ERR_JS_IS_NOT_SYSTEM_APP);
+        return nullptr;
+    }
+    napi_ref tempRef = nullptr;
+    if (!ParseParaOffConstraintChanged(env, cbInfo, tempRef)) {
+        ACCOUNT_LOGE("Parse parameters for OffConstraintInfoChanged failed");
+        return nullptr;
+    }
+    std::set<std::string> inputConstraints;
+    auto subscriber = std::make_shared<ConstraintSubscriber>(env, tempRef, inputConstraints);
+    tempRef = nullptr;
+    std::lock_guard<std::mutex> lock(g_lockForConstraintChangeSubscribers);
+    auto it = g_osAccountConstraintChangeSubscribers.begin();
+    while (it != g_osAccountConstraintChangeSubscribers.end()) {
+        if ((*it)->env != env) {
+            ACCOUNT_LOGW("Current constraint subscriber env is not equal to the input env, continue.");
+            it++;
+            continue;
+        }
+        if ((subscriber->callback->callbackRef != nullptr) &&
+            !CompareOnAndOffRef(env, (*it)->callback->callbackRef, subscriber->callback->callbackRef)) {
+                it++;
+                continue;
+        }
+        ErrCode errCode = OsAccountManager::UnsubscribeOsAccountConstraints((*it));
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("Unsubscribe constraint change event failed with errCode=%{public}d", errCode);
+            AccountNapiThrow(env, AccountIAMConvertToJSErrCode(errCode), true);
+            return nullptr;
+        }
+        it = g_osAccountConstraintChangeSubscribers.erase(it);
+        if (subscriber->callback->callbackRef != nullptr) {
+            return nullptr;
+        }
+    }
+    return nullptr;
 }
 }  // namespace AccountJsKit
 }  // namespace OHOS

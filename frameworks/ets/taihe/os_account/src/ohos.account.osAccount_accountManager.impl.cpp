@@ -47,9 +47,12 @@ namespace {
 using OHOS::AccountSA::ACCOUNT_LABEL;
 const std::string DEFAULT_STR = "";
 const bool DEFAULT_BOOL = false;
+const int UID_TRANSFORM_DIVISOR = 200000;
 const AccountSA::OsAccountType DEFAULT_ACCOUNT_TYPE = AccountSA::OsAccountType::END;
 constexpr std::int32_t MAX_SUBSCRIBER_NAME_LEN = 1024;
 std::mutex g_lockForOsAccountSubscribers;
+std::mutex g_lockForConstraintChangeSubscribers;
+std::vector<std::shared_ptr<AccountSA::TaiheConstraintSubscriberPtr>> g_osAccountConstraintChangeSubscribers;
 std::map<AccountSA::OsAccountManager *, std::vector<AccountSA::SubscribeCBInfo *>> g_osAccountSubscribers;
 
 template <typename T> T TaiheReturn(ErrCode errCode, T result, const T defult)
@@ -465,6 +468,77 @@ public:
             switchCallback = std::make_shared<switch_callback>(call);
         }
         Unsubscribe("", AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED, nullptr, switchCallback);
+    }
+
+    std::pair<bool, std::shared_ptr<AccountSA::TaiheConstraintSubscriberPtr>> FindAndGetConstraintSubscriber(
+        const std::shared_ptr<AccountSA::TaiheConstraintSubscriberPtr> &inputSubscriber)
+    {
+        for (const auto& each : g_osAccountConstraintChangeSubscribers) {
+            if (each->callback == inputSubscriber->callback) {
+                std::set<std::string> currentSet;
+                std::set<std::string> inputSet;
+                each->GetConstraintSet(currentSet);
+                inputSubscriber->GetConstraintSet(inputSet);
+                currentSet.insert(inputSet.begin(), inputSet.end());
+                each->SetConstraintSet(currentSet);
+                std::shared_ptr<AccountSA::TaiheConstraintSubscriberPtr> findTarget = each;
+                return std::make_pair(true, findTarget);
+            }
+        }
+        return std::make_pair(false, inputSubscriber);
+    }
+    void OnConstraintChanged(array_view<taihe::string> inputConstraints,
+        callback_view<void(ConstraintChangeInfo const &)> callabck)
+    {
+        constraintSubscribeCallback call = callabck;
+        std::set<std::string> constraintSet;
+        std::set<std::string> historyConstraintSet;
+        constraintSet = std::set<std::string>(inputConstraints.begin(), inputConstraints.end());
+        auto subscriber = std::make_shared<AccountSA::TaiheConstraintSubscriberPtr>(constraintSet, call);
+        subscriber->localId = static_cast<int32_t>(getuid()) / UID_TRANSFORM_DIVISOR;
+        subscriber->enableAcross = false;
+        std::lock_guard<std::mutex> lock(g_lockForConstraintChangeSubscribers);
+        auto subscriberWithFindRet = FindAndGetConstraintSubscriber(subscriber);
+        ErrCode errCode = AccountSA::OsAccountManager::SubscribeOsAccountConstraints(subscriberWithFindRet.second);
+        if (errCode != ERR_OK) {
+            subscriberWithFindRet.second->SetConstraintSet(historyConstraintSet);
+            ACCOUNT_LOGE("OnConstraintChanged subscribe failed with errCode: %{public}d", errCode);
+            SetTaiheBusinessErrorFromNativeCode(errCode);
+            return;
+        }
+        subscriberWithFindRet.second->GetConstraintSet(historyConstraintSet);
+        if (!subscriberWithFindRet.first) {
+            g_osAccountConstraintChangeSubscribers.emplace_back(subscriberWithFindRet.second);
+        }
+        return;
+    }
+
+    void offConstraintChanged(optional_view<callback<void(ConstraintChangeInfo const &)>> callback)
+    {
+        std::lock_guard<std::mutex> lock(g_lockForConstraintChangeSubscribers);
+        std::shared_ptr<AccountSA::TaiheConstraintSubscriberPtr> targetSubscriber = nullptr;
+        std::set<std::string> constraintSet;
+        if (callback.has_value()) {
+            targetSubscriber = std::make_shared<AccountSA::TaiheConstraintSubscriberPtr>(constraintSet,
+                callback.value());
+        }
+        auto it = g_osAccountConstraintChangeSubscribers.begin();
+        while (it != g_osAccountConstraintChangeSubscribers.end()) {
+            if ((targetSubscriber != nullptr) && !(targetSubscriber->callback == (*it)->callback)) {
+                it++;
+                continue;
+            }
+            ErrCode errCode = OHOS::AccountSA::OsAccountManager::UnsubscribeOsAccountConstraints(*it);
+            if (errCode != ERR_OK) {
+                ACCOUNT_LOGE("OffConstraintChanged unsubscribe failed with errCode: %{public}d", errCode);
+                SetTaiheBusinessErrorFromNativeCode(errCode);
+                return;
+            }
+            it = g_osAccountConstraintChangeSubscribers.erase(it);
+            if (targetSubscriber != nullptr) {
+                return;
+            }
+        }
     }
 
     void ActivateOsAccountSync(int32_t localId)
@@ -1113,3 +1187,58 @@ AccountManager GetAccountManager()
 } // namespace
 
 TH_EXPORT_CPP_API_GetAccountManager(GetAccountManager);
+
+namespace OHOS {
+namespace AccountSA {
+
+TaiheConstraintSubscriberPtr::TaiheConstraintSubscriberPtr(const std::set<std::string> &constraintSet,
+    constraintSubscribeCallback callback):OsAccountConstraintSubscriber(constraintSet), callback(callback)
+{
+    auto runner = AppExecFwk::EventRunner::GetMainEventRunner();
+    if (runner == nullptr) {
+        return;
+    }
+    handler = std::make_shared<AppExecFwk::EventHandler>(runner);
+}
+
+TaiheConstraintSubscriberPtr::~TaiheConstraintSubscriberPtr()
+{
+    return;
+}
+
+void TaiheConstraintSubscriberPtr::OnConstraintChanged(const OsAccountConstraintStateData &constraintData)
+{
+    if (handler == nullptr) {
+        ACCOUNT_LOGE("EventHandler is null");
+        return;
+    }
+    ohos::account::osAccount::ConstraintChangeInfo constraintChangeInfo {
+        .constraint = constraintData.constraint,
+        .isEnabled = constraintData.isEnabled,
+    };
+
+    auto shareThis = shared_from_this();
+    auto task = [shareThis, constraintChangeInfo]() {
+        taihe::env_guard guard;
+        bool isFound = false;
+        {
+            std::lock_guard<std::mutex> lock(g_lockForConstraintChangeSubscribers);
+            for (const auto& item : g_osAccountConstraintChangeSubscribers) {
+                if (item == shareThis) {
+                    isFound = true;
+                    break;
+                }
+            }
+        }
+        if (isFound) {
+            shareThis->callback(constraintChangeInfo);
+        }
+    };
+    if (!handler->PostTask(task, __func__, 0, OHOS::AppExecFwk::EventQueue::Priority::VIP, {})) {
+        ACCOUNT_LOGE("Failed to post %{public}s task to handler", __func__);
+        return;
+    }
+    ACCOUNT_LOGI("Post task finish");
+}
+}
+}

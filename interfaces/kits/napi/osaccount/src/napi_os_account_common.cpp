@@ -2291,5 +2291,54 @@ std::function<void()> BindDomainAccountCompleteWork(const std::shared_ptr<BindDo
         napi_close_handle_scope(asyncContext->env, scope);
     };
 }
+
+bool ParseParaOnConstraintChanged(napi_env env, napi_callback_info cbInfo,
+    napi_ref &ref, std::set<std::string> &constraintSet)
+{
+    size_t argc = ARGS_SIZE_TWO;
+    napi_value argv[ARGS_SIZE_TWO] = {nullptr};
+    napi_value thisVar = nullptr;
+    NAPI_CALL_BASE(env, napi_get_cb_info(env, cbInfo, &argc, argv, &thisVar, NULL), false);
+    if (argc < ARGS_SIZE_TWO) {
+        ACCOUNT_LOGE("The number of parameters should be at least 2");
+        std::string errMsg = "Parameter error. The number of parameters should be at least 2";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+        return false;
+    }
+    std::vector<std::string> constraints;
+    if (!GetStringArrayProperty(env, argv[PARAMZERO], constraints, false)) {
+        ACCOUNT_LOGE("Get constraints failed, expected array of strings");
+        std::string errMsg = "The type of arg 1 must be unempty array of strings";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+        return false;
+    }
+    constraintSet = std::set<std::string>(constraints.begin(), constraints.end());
+    if (!GetCallbackProperty(env, argv[PARAMONE], ref, 1)) {
+        ACCOUNT_LOGE("Get callbackRef failed");
+        std::string errMsg = "Parameter error. The type of \"callback\" must be function";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+        return false;
+    }
+    return true;
+}
+
+bool ParseParaOffConstraintChanged(napi_env env, napi_callback_info cbInfo, napi_ref &ref)
+{
+    size_t argc = ARGS_SIZE_ONE;
+    napi_value argv[ARGS_SIZE_ONE] = {nullptr};
+    napi_value thisVar = nullptr;
+    NAPI_CALL_BASE(env, napi_get_cb_info(env, cbInfo, &argc, argv, &thisVar, NULL), false);
+    if (argc < ARGS_SIZE_ONE) {
+        ACCOUNT_LOGI("The arg list is empty, prepare to clear all subscribe.");
+        return true;
+    }
+    if (!GetCallbackProperty(env, argv[PARAMZERO], ref, 1)) {
+        ACCOUNT_LOGE("Get callbackRef failed.");
+        std::string errMsg = "Parameter error. The type of 'callback' must be function";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+        return false;
+    }
+    return true;
+}
 }  // namespace AccountJsKit
 }  // namespace OHOS
