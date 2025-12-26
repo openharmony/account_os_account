@@ -51,6 +51,7 @@ ohos_fuzztest("CreateOsAccountWithShortNameStubFuzzTest") {
     "${os_account_dfx_path}/data_dfx",
     "${services_path}/accountmgr/include/common/database/kvstore",
     "${services_path}/accountmgr/include/common/database",
+    "${services_path}/accountmgr/test/mock/include",
   ]
   cflags = [
     "-g",
