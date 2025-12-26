@@ -48,7 +48,7 @@ ohos_shared_library("account_napi_common") {
     "LOG_DOMAIN = 0xD001B00",
   ]
 
-  public_deps = [ "${common_path}:libaccount_common" ]
+  deps = [ "${common_path}:libaccount_common" ]
 
   external_deps = [
     "access_token:libtokenid_sdk",

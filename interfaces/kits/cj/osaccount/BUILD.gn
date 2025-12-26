@@ -61,6 +61,7 @@ ohos_shared_library("cj_osaccount_ffi") {
     "hilog:libhilog",
     "napi:cj_bind_ffi",
     "napi:cj_bind_native",
+    "samgr:samgr_proxy",
   ]
 
   innerapi_tags = [ "platformsdk" ]

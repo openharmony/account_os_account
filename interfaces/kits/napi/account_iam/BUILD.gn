@@ -53,6 +53,7 @@ ohos_shared_library("account_iam_napi") {
   deps = [
     "${account_iam_framework_path}:account_iam_innerkits",
     "${account_napi_common_path}:account_napi_common",
+    "${common_path}:libaccount_common",
   ]
 
   external_deps = [

@@ -119,6 +119,7 @@ ohos_shared_library("app_account_innerkits") {
   ]
 
   external_deps = [
+    "ability_base:want",
     "ability_runtime:ability_context_native",
     "ability_runtime:ability_manager",
     "ability_runtime:abilitykit_native",
@@ -135,8 +136,6 @@ ohos_shared_library("app_account_innerkits") {
     "samgr:samgr_proxy",
   ]
 
-  public_external_deps = [ "ability_base:want" ]
-
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "account"
   part_name = "os_account"
@@ -151,7 +150,8 @@ ohos_source_set("app_account_authenticator_proxy") {
   configs = [ ":app_account_innnerkits_config" ]
   public_configs = [ ":app_account_innerkits_public_config" ]
   output_values = get_target_outputs(":app_account_interface")
-  sources = filter_include(output_values, [ "*app_account_authenticator_proxy.cpp" ])
+  sources =
+      filter_include(output_values, [ "*app_account_authenticator_proxy.cpp" ])
   deps = [ ":app_account_interface" ]
   external_deps = [
     "ability_base:want",
@@ -172,7 +172,8 @@ ohos_source_set("app_account_authenticator_stub") {
   configs = [ ":app_account_innnerkits_config" ]
   public_configs = [ ":app_account_innerkits_public_config" ]
   output_values = get_target_outputs(":app_account_interface")
-  sources = filter_include(output_values, [ "*app_account_authenticator_stub.cpp" ])
+  sources =
+      filter_include(output_values, [ "*app_account_authenticator_stub.cpp" ])
   deps = [ ":app_account_interface" ]
   external_deps = [
     "ability_base:want",
@@ -235,8 +236,8 @@ ohos_source_set("app_account_authenticator_callback_proxy") {
   configs = [ ":app_account_innnerkits_config" ]
   public_configs = [ ":app_account_innerkits_public_config" ]
   output_values = get_target_outputs(":app_account_interface")
-  sources =
-      filter_include(output_values, [ "*app_account_authenticator_callback_proxy.cpp" ])
+  sources = filter_include(output_values,
+                           [ "*app_account_authenticator_callback_proxy.cpp" ])
   deps = [ ":app_account_interface" ]
   external_deps = [
     "ability_base:want",
@@ -257,8 +258,8 @@ ohos_source_set("app_account_authenticator_callback_stub") {
   configs = [ ":app_account_innnerkits_config" ]
   public_configs = [ ":app_account_innerkits_public_config" ]
   output_values = get_target_outputs(":app_account_interface")
-  sources =
-      filter_include(output_values, [ "*app_account_authenticator_callback_stub.cpp" ])
+  sources = filter_include(output_values,
+                           [ "*app_account_authenticator_callback_stub.cpp" ])
   deps = [ ":app_account_interface" ]
   external_deps = [
     "ability_base:want",
