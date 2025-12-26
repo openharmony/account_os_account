@@ -1138,10 +1138,13 @@ void IInnerOsAccountManager::CheckAndRefreshLocalIdRecord(const int id)
         defaultActivatedIds_.EnsureInsert(displayId, newId);
     }
 
+    std::lock_guard<std::mutex> deviceLock(deviceOwnerLock_);
     if (id == deviceOwnerId_) {
         ErrCode errCode = osAccountControl_->UpdateDeviceOwnerId(-1);
         if (errCode != ERR_OK) {
             ACCOUNT_LOGE("Update device owner id failed, errCode = %{public}d", errCode);
+        } else {
+            deviceOwnerId_ = -1;
         }
     }
     return;
@@ -1739,15 +1742,21 @@ ErrCode IInnerOsAccountManager::QueryOsAccountConstraintSourceTypes(const int32_
             constraintSourceTypeInfos.push_back(constraintSourceTypeInfo);
         }
     }
+    int32_t currentDeviceOwnerId;
+    {
+        std::lock_guard<std::mutex> lock(deviceOwnerLock_);
+        currentDeviceOwnerId = deviceOwnerId_;
+    }
     std::vector<ConstraintSourceTypeInfo> globalSourceList;
-    errCode = osAccountControl_->IsFromGlobalOAConstraintsList(id, deviceOwnerId_, constraint, globalSourceList);
+    errCode = osAccountControl_->IsFromGlobalOAConstraintsList(id, currentDeviceOwnerId, constraint, globalSourceList);
     if (errCode == ERR_OK && globalSourceList.size() != 0) {
         ACCOUNT_LOGI("Constraint is exist in global os account constraints list");
         constraintSourceTypeInfos.insert(
             constraintSourceTypeInfos.end(), globalSourceList.begin(), globalSourceList.end());
     }
     std::vector<ConstraintSourceTypeInfo> specificSourceList;
-    errCode = osAccountControl_->IsFromSpecificOAConstraintsList(id, deviceOwnerId_, constraint, specificSourceList);
+    errCode = osAccountControl_->IsFromSpecificOAConstraintsList(id,
+        currentDeviceOwnerId, constraint, specificSourceList);
     if (errCode == ERR_OK && specificSourceList.size() != 0) {
         ACCOUNT_LOGI("Constraint is exist in specific os account constraints list");
         constraintSourceTypeInfos.insert(
@@ -1889,14 +1898,25 @@ ErrCode IInnerOsAccountManager::QueryAllCreatedOsAccounts(std::vector<OsAccountI
 ErrCode IInnerOsAccountManager::DealWithDeviceOwnerId(const bool isDeviceOwner, const int32_t localId)
 {
     ACCOUNT_LOGD("Enter.");
+    std::lock_guard<std::mutex> lock(deviceOwnerLock_);
+
     if (isDeviceOwner && localId != deviceOwnerId_) {
         ACCOUNT_LOGI("This device owner os account id is changed!");
+        ErrCode errCode = osAccountControl_->UpdateDeviceOwnerId(localId);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("UpdateDeviceOwnerId failed, memory not updated.");
+            return errCode;
+        }
         deviceOwnerId_ = localId;
-        return osAccountControl_->UpdateDeviceOwnerId(localId);
+        return ERR_OK;
     }
     if (isDeviceOwner == false && localId == deviceOwnerId_) {
+        ErrCode errCode = osAccountControl_->UpdateDeviceOwnerId(-1);
+        if (errCode != ERR_OK) {
+            return errCode;
+        }
         deviceOwnerId_ = -1;
-        return osAccountControl_->UpdateDeviceOwnerId(-1);
+        return ERR_OK;
     }
     return ERR_OK;
 }

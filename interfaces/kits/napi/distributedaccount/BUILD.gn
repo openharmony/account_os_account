@@ -42,6 +42,7 @@ ohos_shared_library("distributedaccount") {
 
   deps = [
     "${account_napi_common_path}:account_napi_common",
+    "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
   ]
 

@@ -37,6 +37,7 @@ ohos_fuzztest("SetAppAccountSyncEnableFuzzTest") {
   ]
 
   external_deps = [
+    "ability_base:want",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
