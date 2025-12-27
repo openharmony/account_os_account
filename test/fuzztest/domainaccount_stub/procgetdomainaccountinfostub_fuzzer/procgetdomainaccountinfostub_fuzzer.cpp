@@ -28,11 +28,17 @@
 using namespace std;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
+const int32_t WAIT_TIME = 3;
 class TestGetDomainAccountInfoCallback : public DomainAccountCallbackStub {
 public:
     TestGetDomainAccountInfoCallback() {};
     virtual ~TestGetDomainAccountInfoCallback();
     ErrCode OnResult(int32_t errCode, const DomainAccountParcel &parcel) override;
+    void WaitForCallbackResult();
+private:
+    std::mutex mutex_;
+    bool isCalled_ = false;
+    std::condition_variable cv_;
 };
 
 TestGetDomainAccountInfoCallback::~TestGetDomainAccountInfoCallback()
@@ -40,7 +46,21 @@ TestGetDomainAccountInfoCallback::~TestGetDomainAccountInfoCallback()
 
 ErrCode TestGetDomainAccountInfoCallback::OnResult(int32_t errCode, const DomainAccountParcel &parcel)
 {
-    return ERR_OK;
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (isCalled_) {
+        ACCOUNT_LOGE("Callback is called.");
+        return 0;
+    }
+    isCalled_ = true;
+    cv_.notify_one();
+    return 0;
+}
+
+void TestGetDomainAccountInfoCallback::WaitForCallbackResult()
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    ACCOUNT_LOGI("WaitForCallbackResult.");
+    cv_.wait_for(lock, std::chrono::seconds(WAIT_TIME), [this] { return isCalled_; });
 }
 
 namespace OHOS {
@@ -81,7 +101,7 @@ bool ProcGetDomainAccountInfoStubFuzzTest(const uint8_t* data, size_t size)
     uint32_t code = static_cast<uint32_t>(IDomainAccountIpcCode::COMMAND_GET_DOMAIN_ACCOUNT_INFO);
     auto domainAccountService = std::make_shared<DomainAccountManagerService>();
     domainAccountService->OnRemoteRequest(code, dataTemp, reply, option);
-
+    testCallback->WaitForCallbackResult();
     return true;
 }
 }
