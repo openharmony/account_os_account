@@ -28,5 +28,10 @@ void OsAccountConstraintSubscriber::GetConstraintSet(std::set<std::string> &cons
 {
     constraintSet = constraintSet_;
 }
+
+void OsAccountConstraintSubscriber::SetConstraintSet(const std::set<std::string> &constraintSet)
+{
+    constraintSet_ = constraintSet;
+}
 }  // namespace AccountSA
 }  // namespace OHOS

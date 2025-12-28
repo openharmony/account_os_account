@@ -119,10 +119,14 @@ ErrCode OsAccountConstraintSubscriberManager::SubscribeOsAccountConstraints(
         ACCOUNT_LOGE("Proxy is nullptr.");
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    if (HasSubscribed(subscriber)) {
-        ACCOUNT_LOGE("Already subscribed.");
-        return ERR_ACCOUNT_COMMON_ACCOUNT_AREADY_SUBSCRIBE_ERROR;
+    if (subscriber->enableAcross) {
+        if (HasSubscribed(subscriber)) {
+            ACCOUNT_LOGE("Already subscribed.");
+            return ERR_ACCOUNT_COMMON_ACCOUNT_AREADY_SUBSCRIBE_ERROR;
+        }
     }
+    enableAcross = subscriber->enableAcross;
+    localId = subscriber->localId;
     constraintSet.insert(constraintSet_.begin(), constraintSet_.end());
     if (constraintSet.size() == constraintSet_.size()) {
         ACCOUNT_LOGI("No need to sync data service.");
@@ -130,6 +134,8 @@ ErrCode OsAccountConstraintSubscriberManager::SubscribeOsAccountConstraints(
         return ERR_OK;
     }
     OsAccountConstraintSubscribeInfo subscribeInfo(constraintSet);
+    subscribeInfo.enableAcross = subscriber->enableAcross;
+    subscribeInfo.localId = subscriber->localId;
     ErrCode errCode = proxy->SubscribeOsAccountConstraints(subscribeInfo, GetInstance()->AsObject());
     errCode = ConvertToAccountErrCode(errCode);
     if (errCode != ERR_OK) {
@@ -170,6 +176,8 @@ ErrCode OsAccountConstraintSubscriberManager::UnsubscribeOsAccountConstraints(
         return ERR_OK;
     }
     OsAccountConstraintSubscribeInfo info(syncData);
+    info.enableAcross = subscriber->enableAcross;
+    info.localId = subscriber->localId;
     ErrCode errCode =  proxy->UnsubscribeOsAccountConstraints(info, GetInstance()->AsObject());
     errCode = ConvertToAccountErrCode(errCode);
     if (errCode != ERR_OK) {
@@ -192,6 +200,8 @@ void OsAccountConstraintSubscriberManager::RestoreConstraintSubscriberRecords(sp
         return;
     }
     OsAccountConstraintSubscribeInfo subscribeInfo(constraintSet_);
+    subscribeInfo.enableAcross = enableAcross;
+    subscribeInfo.localId = localId;
     ErrCode errCode = proxy->SubscribeOsAccountConstraints(subscribeInfo, GetInstance()->AsObject());
     errCode = ConvertToAccountErrCode(errCode);
     if (errCode != ERR_OK) {
