@@ -62,6 +62,12 @@ interface AccountManager {
     @rename("offSwitched")
     OffSwitched(callback: Optional<(data:OsAccountSwitchEventData) => void>): void;
 
+    @rename("onConstraintChanged")
+    OnConstraintChanged(constraints: Array<String>, callback: (data: ConstraintChangeInfo) => void): void;
+
+    @rename("offConstraintChanged")
+    offConstraintChanged(callback: Optional<(data: ConstraintChangeInfo) => void>): void;
+
     @gen_async("activateOsAccount")
     @gen_promise("activateOsAccount")
     ActivateOsAccountSync(localId: i32): void;
@@ -398,6 +404,11 @@ struct OsAccountSwitchEventData {
     fromAccountId: i32;
     toAccountId: i32;
     displayId: Optional<i64>;
+}
+
+struct ConstraintChangeInfo  {
+    constraint: String;
+    isEnabled: bool;
 }
 
 struct GetInputDataOptions {

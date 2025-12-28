@@ -298,6 +298,11 @@ void BindDomainAccountCompletedCB(napi_env env, napi_status status, void *data);
 
 std::function<void()> BindDomainAccountCompleteWork(const std::shared_ptr<BindDomainAccountAsyncContext> &param);
 
+bool ParseParaOnConstraintChanged(napi_env env, napi_callback_info cbInfo,
+    napi_ref &ref, std::set<std::string> &constraints);
+
+bool ParseParaOffConstraintChanged(napi_env env, napi_callback_info cbInfo, napi_ref &ref);
+
 }  // namespace AccountJsKit
 }  // namespace OHOS
 

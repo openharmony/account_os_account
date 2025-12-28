@@ -31,6 +31,8 @@ public:
     void GetConstraints(std::set<std::string> &constraints) const;
     bool Marshalling(Parcel &parcel) const override;
     static OsAccountConstraintSubscribeInfo *Unmarshalling(Parcel &parcel);
+    bool enableAcross = true;
+    int32_t localId = -1;
 
 private:
     bool ReadFromParcel(Parcel &parcel);
