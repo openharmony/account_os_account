@@ -490,6 +490,10 @@ public:
     void OnConstraintChanged(array_view<taihe::string> inputConstraints,
         callback_view<void(ConstraintChangeInfo const &)> callabck)
     {
+        if (AccountSA::AccountPermissionManager::CheckSystemApp(false) != ERR_OK) {
+            SetTaiheBusinessErrorFromNativeCode(ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+            return;
+        }
         constraintSubscribeCallback call = callabck;
         std::set<std::string> constraintSet;
         std::set<std::string> historyConstraintSet;
@@ -515,6 +519,10 @@ public:
 
     void offConstraintChanged(optional_view<callback<void(ConstraintChangeInfo const &)>> callback)
     {
+        if (AccountSA::AccountPermissionManager::CheckSystemApp(false) != ERR_OK) {
+            SetTaiheBusinessErrorFromNativeCode(ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+            return;
+        }
         std::lock_guard<std::mutex> lock(g_lockForConstraintChangeSubscribers);
         std::shared_ptr<AccountSA::TaiheConstraintSubscriberPtr> targetSubscriber = nullptr;
         std::set<std::string> constraintSet;
