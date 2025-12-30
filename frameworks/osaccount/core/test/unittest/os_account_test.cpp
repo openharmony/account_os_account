@@ -424,6 +424,8 @@ HWTEST_F(OsAccountTest, OsAccountTest020, TestSize.Level1)
     EXPECT_EQ(g_osAccount->SubscribeOsAccountConstraints(failSubsriber), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     constraints = {STRING_NAME};
     failSubsriber = std::make_shared<MockOsAccountConstraintSubscriber>(constraints);
+    failSubsriber->GetConstraintSet(constraints);
+    failSubsriber->SetConstraintSet(constraints);
     EXPECT_EQ(g_osAccount->UnsubscribeOsAccountConstraints(failSubsriber),
         ERR_ACCOUNT_COMMON_ACCOUNT_SUBSCRIBE_NOT_FOUND_ERROR);
     EXPECT_NE(g_osAccount->SubscribeOsAccountConstraints(failSubsriber), ERR_OK);
