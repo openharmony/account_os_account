@@ -1382,6 +1382,11 @@ ErrCode OsAccountManagerService::IsCurrentOsAccountVerified(bool &isVerified)
 
 ErrCode OsAccountManagerService::IsOsAccountCompleted(int32_t id, bool &isOsAccountCompleted)
 {
+#ifndef ENABLE_U1_ACCOUNT
+    if (id == Constants::U1_ID) {
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
+#endif
     ErrCode result = innerManager_.IsOsAccountCompleted(id, isOsAccountCompleted);
     if (result != ERR_OK) {
         REPORT_OS_ACCOUNT_FAIL(IPCSkeleton::GetCallingUid(), Constants::OPERATION_LOG_ERROR,

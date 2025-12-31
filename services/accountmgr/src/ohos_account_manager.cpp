@@ -374,9 +374,7 @@ ErrCode OhosAccountManager::GetOhosAccountDistributedInfo(const int32_t userId, 
     AccountInfo osAccountInfo;
     ErrCode ret = GetAccountInfoByUserId(userId, osAccountInfo);
     if (ret != ERR_OK) {
-        if (ret != ERR_ACCOUNT_DATADEAL_NOT_READY) {
-            REPORT_OHOS_ACCOUNT_FAIL(userId, Constants::OPERATION_GET_INFO, ret, "Get ohos account info failed");
-        }
+        REPORT_OHOS_ACCOUNT_FAIL(userId, Constants::OPERATION_GET_INFO, ret, "Get ohos account info failed");
         ACCOUNT_LOGE("get ohos account info failed, userId %{public}d.", userId);
         return ret;
     }
