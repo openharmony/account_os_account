@@ -55,6 +55,8 @@ static std::string GetOperationName(PluginMethodEnum methodEnum)
             return Constants::DOMAIN_OPT_SET_POLICY;
         case PluginMethodEnum::GET_ACCOUNT_POLICY:
             return Constants::DOMAIN_OPT_GET_POLICY;
+        case PluginMethodEnum::CANCEL_AUTH:
+            return Constants::DOMAIN_OPT_CANCEL_AUTH;
         default:
             ACCOUNT_LOGE("GetOperationName can not find name");
             return "";
@@ -81,8 +83,8 @@ void DomainHisyseventUtils::ReportStatistic(const std::string &optName, int32_t 
     }
     if (userId == -1 && domainInfo.accountName_.empty()) {
         DomainHisysEventInfo eventInfo(-1, optName);
-            return ReportDomainAccountOperationStatistic(eventInfo);
-        }
+        return ReportDomainAccountOperationStatistic(eventInfo);
+    }
     GetLocalIdFromDomain(userId, domainInfo);
     DomainHisysEventInfo eventInfo(userId, optName, domainInfo.accountName_);
     ReportDomainAccountOperationStatistic(eventInfo);
