@@ -588,11 +588,9 @@ static void OnEnvCleanup(void* data)
         std::lock_guard<std::mutex> lock(g_lockForCredChangeSubscribers);
         auto it = g_credChangeSubscribers.begin();
         while (it != g_credChangeSubscribers.end()) {
-            if ((*it)->env == cleanupEnv) {
+            if (((*it) != nullptr) && ((*it)->env == cleanupEnv)) {
                 ACCOUNT_LOGW("Removing subscriber for destroyed environment");
-                if ((*it) != nullptr) {
-                    UserIam::UserAuth::UserIdmClient::GetInstance().UnRegistCredChangeEventListener((*it));
-                }
+                UserIam::UserAuth::UserIdmClient::GetInstance().UnRegistCredChangeEventListener((*it));
                 it = g_credChangeSubscribers.erase(it);
             } else {
                 ++it;
