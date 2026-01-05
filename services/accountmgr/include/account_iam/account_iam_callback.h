@@ -343,11 +343,16 @@ public:
     std::mutex mutex_;
     std::condition_variable onResultCondition_;
 
-    ReEnrollCallback(const sptr<IIDMCallback> &innerCallback);
+    ReEnrollCallback(const sptr<IIDMCallback> &innerCallback, int32_t localId);
+    ~ReEnrollCallback();
     ErrCode OnResult(int32_t resultCode, const std::vector<uint8_t>& extraInfoBuffer) override;
     ErrCode OnAcquireInfo(int32_t module, uint32_t acquireInfo, const std::vector<uint8_t>& extraInfoBuffer) override;
 private:
     sptr<IIDMCallback> innerCallback_;
+#ifdef HICOLLIE_ENABLE
+    int32_t timerId_;
+#endif // HICOLLIE_ENABLE
+    int32_t localId_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
