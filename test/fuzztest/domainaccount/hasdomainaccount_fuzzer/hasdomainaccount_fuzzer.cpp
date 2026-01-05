@@ -27,11 +27,33 @@ namespace OHOS {
 namespace {
 const int ENUM_MAX = 4;
 const int TEST_ENUM = 5;
+const int32_t WAIT_TIME = 3;
 class TestDomainAccountCallback : public DomainAccountCallback {
 public:
     TestDomainAccountCallback() {};
     virtual ~TestDomainAccountCallback() {}
-    void OnResult(const int32_t errCode, Parcel &parcel) override {}
+    void OnResult(const int32_t errCode, Parcel &parcel) override
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        if (isCalled_) {
+            ACCOUNT_LOGE("Callback is called.");
+            return;
+        }
+        isCalled_ = true;
+        cv_.notify_one();
+    }
+
+    void WaitForCallbackResult()
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        ACCOUNT_LOGI("WaitForCallbackResult.");
+        cv_.wait_for(lock, std::chrono::seconds(WAIT_TIME), [this] { return isCalled_; });
+    }
+
+private:
+    std::mutex mutex_;
+    bool isCalled_ = false;
+    std::condition_variable cv_;
 };
 
 class TestDomainAccountPlugin : public DomainAccountPlugin {
@@ -73,10 +95,13 @@ bool HasDomainAccountFuzzTest(const uint8_t* data, size_t size)
     info.serverConfigId_ = fuzzData.GenerateString();
     int typeNumber = fuzzData.GenerateBool() ? TEST_ENUM : fuzzData.GetData<int>() % ENUM_MAX;
     info.status_ = static_cast<DomainAccountStatus>(typeNumber);
-    std::shared_ptr<DomainAccountCallback> callback = std::make_shared<TestDomainAccountCallback>();
+    std::shared_ptr<TestDomainAccountCallback> callback = std::make_shared<TestDomainAccountCallback>();
     std::shared_ptr<DomainAccountPlugin> plugin = std::make_shared<TestDomainAccountPlugin>();
     DomainAccountClient::GetInstance().RegisterPlugin(plugin);
     ret = DomainAccountClient::GetInstance().HasAccount(info, callback);
+    if (callback != nullptr) {
+        callback->WaitForCallbackResult();
+    }
     DomainAccountClient::GetInstance().UnregisterPlugin();
     return ret == ERR_OK;
 }
