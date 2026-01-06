@@ -599,6 +599,11 @@ HWTEST_F(OsAccountManagerServiceNoPermissionModuleTest, SubscribeConstraints_No_
         osAccountManagerService_->SubscribeOsAccountConstraints(info, nullptr));
     EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
         osAccountManagerService_->UnsubscribeOsAccountConstraints(info, nullptr));
+    info.enableAcross = false;
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
+        osAccountManagerService_->SubscribeOsAccountConstraints(info, nullptr));
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
+        osAccountManagerService_->UnsubscribeOsAccountConstraints(info, nullptr));
 }
 }  // namespace AccountSA
 }  // namespace OHOS
