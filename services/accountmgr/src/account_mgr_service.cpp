@@ -358,6 +358,9 @@ ErrCode AccountMgrService::GetOsAccountDistributedInfo(int32_t localId, OhosAcco
 
 ErrCode AccountMgrService::GetOsAccountDistributedInfoInner(int32_t localId, OhosAccountInfo &info)
 {
+    if (localId < 0) {
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
     ErrCode ret = OhosAccountManager::GetInstance().GetOhosAccountDistributedInfo(localId, info);
     if (ret != ERR_OK) {
         return ret;
@@ -386,6 +389,9 @@ ErrCode AccountMgrService::QueryOsAccountDistributedInfo(
 ErrCode AccountMgrService::InnerQueryOsAccountDistributedInfo(
     std::int32_t localId, std::string& accountName, std::string& uid, int32_t& status)
 {
+    if (localId < 0) {
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
     OhosAccountInfo ohosAccountInfo;
     ErrCode ret = OhosAccountManager::GetInstance().GetOhosAccountDistributedInfo(localId, ohosAccountInfo);
     if (ret != ERR_OK) {
