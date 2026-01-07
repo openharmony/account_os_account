@@ -48,6 +48,8 @@ const char OPERATION_REENROLL[] = "reenroll";
 #ifdef HICOLLIE_ENABLE
 const int32_t REENROLL_TIME_OUT = 6;
 #endif // HICOLLIE_ENABLE
+const int32_t AUTH_CANCEL_ERRCODE = 3;
+const int32_t NO_CRED_ERRCODE = 10;
 }
 
 using UserIDMClient = UserIam::UserAuth::UserIdmClient;
@@ -369,8 +371,10 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
     }
     if (result != 0) {
         innerCallback_->OnResult(result, extraInfo.Serialize());
-        ReportOsAccountOperationFail(authedAccountId, "auth", result,
-            "Failed to auth, type:" + std::to_string(authType_));
+        if (result != AUTH_CANCEL_ERRCODE) {
+            ReportOsAccountOperationFail(authedAccountId, "auth", result,
+                "Failed to auth, type:" + std::to_string(authType_));
+        }
         return AccountInfoReport::ReportSecurityInfo("", authedAccountId, ReportEvent::EVENT_LOGIN, result);
     }
     // private pin auth
@@ -494,8 +498,10 @@ void AddCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
         }
     }
     if (result != 0) {
-        ReportOsAccountOperationFail(userId_, "addCredential", result,
-            "Failed to add credential, type: " + std::to_string(credInfo_.authType));
+        if (result != AUTH_CANCEL_ERRCODE) {
+            ReportOsAccountOperationFail(userId_, "addCredential", result,
+                "Failed to add credential, type: " + std::to_string(credInfo_.authType));
+        }
         if (credInfo_.authType == AuthType::PIN) {
             DeleteSecretFlag(userId_, "addCredential");
         }
@@ -815,7 +821,7 @@ void GetCredInfoCallbackWrapper::OnCredentialInfo(int32_t result, const std::vec
         ACCOUNT_LOGE("InnerCallback_ is nullptr");
         return;
     }
-    if (result != 0) {
+    if (result != 0 && result != NO_CRED_ERRCODE) {
         REPORT_OS_ACCOUNT_FAIL(userId_, "getCredentialInfo", result,
             "Failed to get credential info, authType:" + std::to_string(authType_));
     }
@@ -874,7 +880,7 @@ void GetPropCallbackWrapper::OnResult(int32_t result, const Attributes &extraInf
         ACCOUNT_LOGE("inner callback is nullptr");
         return;
     }
-    if (result != 0) {
+    if (result != 0 && result != NO_CRED_ERRCODE) {
         ReportOsAccountOperationFail(userId_, "getProperty", result, "Failed to get property");
     }
     innerCallback_->OnResult(result, extraInfo.Serialize());

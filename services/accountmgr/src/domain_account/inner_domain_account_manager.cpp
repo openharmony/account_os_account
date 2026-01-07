@@ -232,7 +232,7 @@ ErrCode InnerDomainAuthCallback::OnResult(int32_t errCode, const DomainAccountPa
         CallbackOnResult(callback_, ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR, resultParcel);
         return ERR_OK;
     }
-    if ((errCode == ERR_OK) && (userId_ != 0)) {
+    if ((errCode == ERR_OK) && (userId_ > 0)) {
         InnerDomainAccountManager::GetInstance().InsertTokenToMap(userId_, (*authResult).token);
         DomainAccountInfo domainInfo;
         InnerDomainAccountManager::GetInstance().GetDomainAccountInfoByUserId(userId_, domainInfo);
@@ -2768,6 +2768,9 @@ bool InnerDomainAccountManager::FindCallbackInContextMap(
 
 ErrCode InnerDomainAccountManager::CleanUnbindDomainAccount()
 {
+    if ((libHandle_ == nullptr) && (plugin_ == nullptr)) {
+        return ERR_OK;
+    }
     std::vector<int32_t> allOsAccountIds;
     OsAccountControlFileManager &fileController = IInnerOsAccountManager::GetInstance().GetFileController();
     ErrCode errCode = fileController.GetOsAccountIdList(allOsAccountIds);
