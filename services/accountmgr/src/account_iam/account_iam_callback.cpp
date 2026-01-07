@@ -248,7 +248,7 @@ ErrCode AuthCallback::UnlockUserScreen(int32_t accountId, const std::vector<uint
 {
     ErrCode ret = ERR_OK;
     if (!isUpdateVerifiedStatus) {
-        if (authType_ == AuthType::RECOVERY_KEY) {
+        if (authType_ == AuthType::RECOVERY_KEY || authType_ == AuthType::COMPANION_DEVICE) {
             ACCOUNT_LOGI("No need to unlock screen.");
             return ERR_OK;
         }
@@ -358,7 +358,7 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         ACCOUNT_LOGE("Get account id from auth result failed");
         authedAccountId = static_cast<int32_t>(userId_);
     }
-    ACCOUNT_LOGI("Auth ret: authType=%{public}d, result=%{public}d, id=%{public}d", authType_, result, authedAccountId);
+    ACCOUNT_LOGW("Auth ret: type=%{public}d, ret=%{public}d, id=%{public}d", authType_, result, authedAccountId);
     if (innerCallback_ == nullptr) {
         ACCOUNT_LOGE("innerCallback_ is nullptr");
         return;

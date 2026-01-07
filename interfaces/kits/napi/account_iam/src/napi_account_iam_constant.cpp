@@ -30,6 +30,7 @@ napi_value AuthTypeConstructor(napi_env env)
     napi_value fingerPrint = nullptr;
     napi_value recoveryKey = nullptr;
     napi_value privatePin  = nullptr;
+    napi_value companionDevice  = nullptr;
     napi_value domain = nullptr;
     NAPI_CALL(env, napi_create_object(env, &authType));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(AuthType::PIN), &pin));
@@ -37,12 +38,14 @@ napi_value AuthTypeConstructor(napi_env env)
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(AuthType::FINGERPRINT), &fingerPrint));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(AuthType::RECOVERY_KEY), &recoveryKey));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(AuthType::PRIVATE_PIN), &privatePin));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(AuthType::COMPANION_DEVICE), &companionDevice));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(IAMAuthType::DOMAIN), &domain));
     NAPI_CALL(env, napi_set_named_property(env, authType, "PIN", pin));
     NAPI_CALL(env, napi_set_named_property(env, authType, "FACE", face));
     NAPI_CALL(env, napi_set_named_property(env, authType, "FINGERPRINT", fingerPrint));
     NAPI_CALL(env, napi_set_named_property(env, authType, "RECOVERY_KEY", recoveryKey));
     NAPI_CALL(env, napi_set_named_property(env, authType, "PRIVATE_PIN", privatePin));
+    NAPI_CALL(env, napi_set_named_property(env, authType, "COMPANION_DEVICE", companionDevice));
     NAPI_CALL(env, napi_set_named_property(env, authType, "DOMAIN", domain));
     return authType;
 }
