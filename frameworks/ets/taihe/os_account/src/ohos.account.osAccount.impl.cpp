@@ -63,7 +63,8 @@ const std::set<int32_t> TARGET_TYPES = {
     static_cast<int32_t>(UserIam::UserAuth::AuthType::PIN),
     static_cast<int32_t>(UserIam::UserAuth::AuthType::FINGERPRINT),
     static_cast<int32_t>(UserIam::UserAuth::AuthType::FACE),
-    static_cast<int32_t>(UserIam::UserAuth::AuthType::PRIVATE_PIN)
+    static_cast<int32_t>(UserIam::UserAuth::AuthType::PRIVATE_PIN),
+    static_cast<int32_t>(UserIam::UserAuth::AuthType::COMPANION_DEVICE)
 };
 const std::set<int32_t> UNSUPPORTED_TYPES = {
     static_cast<int32_t>(UserIam::UserAuth::AuthType::RECOVERY_KEY),
@@ -275,6 +276,8 @@ AuthType ConvertToAuthTypeTH(const AccountSA::AuthType &type)
             return AuthType(AuthType::key_t::RECOVERY_KEY);
         case AccountSA::AuthType::PRIVATE_PIN:
             return AuthType(AuthType::key_t::PRIVATE_PIN);
+        case AccountSA::AuthType::COMPANION_DEVICE:
+            return AuthType(AuthType::key_t::COMPANION_DEVICE);
         case AccountSA::IAMAuthType::DOMAIN:
             return AuthType(AuthType::key_t::DOMAIN);
         default:

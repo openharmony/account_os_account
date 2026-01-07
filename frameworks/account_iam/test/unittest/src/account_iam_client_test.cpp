@@ -1281,6 +1281,8 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetAuthTypeIndex_0100, TestSize.
         AccountIAMClient::GetInstance().GetAuthTypeIndex(AuthType::PRIVATE_PIN));
     ASSERT_EQ(static_cast<uint8_t>(AuthTypeIndex::TUI_PIN),
         AccountIAMClient::GetInstance().GetAuthTypeIndex(AuthType::TUI_PIN));
+    ASSERT_EQ(static_cast<uint8_t>(AuthTypeIndex::COMPANION_DEVICE),
+        AccountIAMClient::GetInstance().GetAuthTypeIndex(AuthType::COMPANION_DEVICE));
     ASSERT_EQ(static_cast<uint8_t>(AuthTypeIndex::DOMAIN),
         AccountIAMClient::GetInstance().GetAuthTypeIndex(static_cast<AuthType>(IAMAuthType::DOMAIN)));
     ASSERT_EQ(static_cast<uint8_t>(AuthTypeIndex::INVALID),

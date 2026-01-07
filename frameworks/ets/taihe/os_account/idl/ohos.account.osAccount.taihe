@@ -285,6 +285,7 @@ enum AuthType : i32 {
     FINGERPRINT = 4,
     RECOVERY_KEY = 8,
     PRIVATE_PIN = 16,
+    COMPANION_DEVICE = 64,
     DOMAIN = 1024
 }
 

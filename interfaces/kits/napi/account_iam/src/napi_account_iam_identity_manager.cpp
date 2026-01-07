@@ -36,7 +36,8 @@ const std::set<int32_t> TARGET_TYPES = {
     static_cast<int32_t>(AuthType::PIN),
     static_cast<int32_t>(AuthType::FINGERPRINT),
     static_cast<int32_t>(AuthType::FACE),
-    static_cast<int32_t>(AuthType::PRIVATE_PIN)
+    static_cast<int32_t>(AuthType::PRIVATE_PIN),
+    static_cast<int32_t>(AuthType::COMPANION_DEVICE)
 };
 const std::set<int32_t> UNSUPPORTED_TYPES = {
     static_cast<int32_t>(AuthType::RECOVERY_KEY),
