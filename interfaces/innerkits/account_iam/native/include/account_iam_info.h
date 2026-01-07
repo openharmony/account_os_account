@@ -173,6 +173,7 @@ enum class AuthTypeIndex : uint8_t {
     RECOVERY_KEY = 3, // AuthType::RECOVERY_PIN (8)
     PRIVATE_PIN = 4,  // AuthType::PRIVATE_PIN (16)
     TUI_PIN = 5,      // AuthType::TUI_PIN (32)
+    COMPANION_DEVICE = 6,      // AuthType::COMPANION_DEVICE (64)
     DOMAIN = 10,      // AuthType::DOMAIN (1024)
 };
 

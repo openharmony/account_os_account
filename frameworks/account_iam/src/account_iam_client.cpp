@@ -442,6 +442,8 @@ uint8_t AccountIAMClient::GetAuthTypeIndex(AuthType authType)
             return static_cast<uint8_t>(AuthTypeIndex::PRIVATE_PIN);
         case AuthType::TUI_PIN:
             return static_cast<uint8_t>(AuthTypeIndex::TUI_PIN);
+        case AuthType::COMPANION_DEVICE:
+            return static_cast<uint8_t>(AuthTypeIndex::COMPANION_DEVICE);
         case IAMAuthType::DOMAIN:
             return static_cast<uint8_t>(AuthTypeIndex::DOMAIN);
         default:
