@@ -924,29 +924,29 @@ std::string ConvertMapViewToStringInner(uintptr_t parameters)
 DomainServerConfig ConvertToDomainServerConfigTH(const std::string& id, const std::string& domain,
     const std::string& parameters)
 {
-    const DomainServerConfig emptyDomainServerConfig = {
+    DomainServerConfig domainServerConfig = {
         .parameters = 0,
-        .id = string(""),
-        .domain = string("")
+        .id = id,
+        .domain = domain,
     };
     if (parameters.empty()) {
         ACCOUNT_LOGE("Parameters is invalid.");
-        return emptyDomainServerConfig;
+        return domainServerConfig;
     }
     auto parametersJson = nlohmann::json::parse(parameters, nullptr, false);
     if (parametersJson.is_discarded()) {
         ACCOUNT_LOGE("Failed to parse json string");
-        return emptyDomainServerConfig;
+        return domainServerConfig;
     }
     ani_env *env = get_env();
     AAFwk::WantParams parametersWantParams;
     from_json(parametersJson, parametersWantParams);
     ani_ref parametersRef = AppExecFwk::WrapWantParams(env, parametersWantParams);
-    DomainServerConfig domainServerConfig = DomainServerConfig{
-        .id = id,
-        .domain = domain,
-        .parameters = reinterpret_cast<uintptr_t>(parametersRef),
-    };
+    if (parametersRef == nullptr) {
+        ACCOUNT_LOGE("WrapWantParams failed.");
+        return domainServerConfig;
+    }
+    domainServerConfig.parameters = reinterpret_cast<uintptr_t>(parametersRef);
     return domainServerConfig;
 }
 
