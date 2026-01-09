@@ -1490,7 +1490,7 @@ ErrCode OsAccountManagerService::DumpOsAccountInfo(std::vector<std::string> &sta
         return result;
     }
 
-    return DumpStateByAccounts(osAccountInfos, state);
+    return DumpStateByAccounts(osAccountInfos, state, false);
 }
 
 ErrCode OsAccountManagerService::GetCreatedOsAccountNumFromDatabase(const std::string& storeID,
@@ -1595,7 +1595,7 @@ ErrCode OsAccountManagerService::GetOsAccountListFromDatabase(const std::string&
 }
 
 ErrCode OsAccountManagerService::DumpStateByAccounts(
-    const std::vector<OsAccountInfo> &osAccountInfos, std::vector<std::string> &state)
+    const std::vector<OsAccountInfo> &osAccountInfos, std::vector<std::string> &state, bool dumpSensitiveInfo)
 {
     ACCOUNT_LOGD("Enter");
     for (auto osAccountInfo : osAccountInfos) {
@@ -1620,16 +1620,20 @@ ErrCode OsAccountManagerService::DumpStateByAccounts(
         state.emplace_back(DUMP_TAB_CHARACTER + "isForeground: " + std::to_string(osAccountInfo.GetIsForeground()));
         state.emplace_back(DUMP_TAB_CHARACTER + "dispalyId: " + std::to_string(osAccountInfo.GetDisplayId()));
 
-        state.emplace_back(DUMP_TAB_CHARACTER + "Constraints:");
-        auto constraints = osAccountInfo.GetConstraints();
-        std::transform(constraints.begin(), constraints.end(), std::back_inserter(state),
-            [](auto constraint) {return DUMP_TAB_CHARACTER + DUMP_TAB_CHARACTER + constraint; });
-
+        if (dumpSensitiveInfo) {
+            state.emplace_back(DUMP_TAB_CHARACTER + "Constraints:");
+            auto constraints = osAccountInfo.GetConstraints();
+            std::transform(constraints.begin(), constraints.end(), std::back_inserter(state),
+                [](auto constraint) {return DUMP_TAB_CHARACTER + DUMP_TAB_CHARACTER + constraint; });
+        } else {
+            state.emplace_back(DUMP_TAB_CHARACTER + "Constraints: *");
+        }
         state.emplace_back(DUMP_TAB_CHARACTER + "Verified: " +
             (osAccountInfo.GetIsVerified() ? "true" : "false"));
 
         int64_t serialNumber = osAccountInfo.GetSerialNumber();
-        state.emplace_back(DUMP_TAB_CHARACTER + "Serial Number: " + std::to_string(serialNumber));
+        state.emplace_back(DUMP_TAB_CHARACTER + "Serial Number: " +
+            (dumpSensitiveInfo ? std::to_string(serialNumber) : "*"));
         state.emplace_back(DUMP_TAB_CHARACTER + "Create Completed: " +
             (osAccountInfo.GetIsCreateCompleted() ? "true" : "false"));
         state.emplace_back(DUMP_TAB_CHARACTER + "To Be Removed: " +

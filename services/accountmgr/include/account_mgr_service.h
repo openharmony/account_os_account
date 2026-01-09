@@ -101,7 +101,6 @@ private:
 
     bool registerToService_ = false;
     ServiceRunningState state_ = ServiceRunningState::STATE_NOT_START;
-    std::unique_ptr<AccountDumpHelper> dumpHelper_{};
 
     std::mutex serviceMutex_;
     wptr<IRemoteObject> appAccountManagerService_ = nullptr;
