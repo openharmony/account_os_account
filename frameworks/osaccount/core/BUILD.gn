@@ -26,7 +26,6 @@ config("os_account_core_config") {
   cflags_cc = [
     "-Wdate-time",
     "-Wformat=2",
-    "-Wfloat-equal",
     "-Wshadow",
   ]
 

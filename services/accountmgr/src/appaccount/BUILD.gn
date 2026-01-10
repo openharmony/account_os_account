@@ -19,7 +19,6 @@ config("app_account_service_core_config") {
   cflags_cc = [
     "-Wdate-time",
     "-Wformat=2",
-    "-Wfloat-equal",
     "-Wshadow",
   ]
 }

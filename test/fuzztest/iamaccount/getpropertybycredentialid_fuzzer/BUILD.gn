@@ -36,7 +36,6 @@ ohos_fuzztest("GetPropertyByCredentialIdFuzzTest") {
   cflags_cc = [
     "-Wdate-time",
     "-Wformat=2",
-    "-Wfloat-equal",
     "-Wshadow",
   ]
 

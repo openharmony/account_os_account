@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2026 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -97,6 +97,14 @@ config("bundle_manager_config") {
       [ "${services_path}/accountmgr/include/bundle_manager_adapter" ]
 }
 
+config("authorization_config") {
+  include_dirs = [ 
+    "${services_path}/accountmgr/include/authorization",
+    "${authorization_framework_path}/include",
+    "${authorization_interfaces_native_path}/include",
+  ]
+}
+
 ability_manager_sources =
     [ "src/ability_manager_adapter/ability_manager_adapter.cpp" ]
 
@@ -158,12 +166,22 @@ ohos_shared_library("accountmgr") {
   cflags_cc = [
     "-Wdate-time",
     "-Wformat=2",
-    "-Wfloat-equal",
     "-Wshadow",
     "-fno-asynchronous-unwind-tables",
     "-fno-unwind-tables",
     "-Os",
   ]
+  configs = [
+    ":accountmgr_config",
+    ":bundle_manager_config",
+    ":domain_account_config",
+  ]
+
+  public_configs = [
+    ":accountmgr_public_config",
+    ":domain_account_config",
+  ]
+
   if (use_libfuzzer) {
     cflags_cc += [ "-DFUZZ_TEST" ]
   }
@@ -200,10 +218,6 @@ ohos_shared_library("accountmgr") {
     cflags += [ "-DACTIVATE_LAST_LOGGED_IN_ACCOUNT" ]
   }
 
-  if (os_account_enable_account_1) {
-    cflags += [ "-DENABLE_U1_ACCOUNT" ]
-  }
-
   sources = [
     "${domain_account_framework_path}/src/domain_account_common.cpp",
     "${innerkits_native_path}/src/account_info.cpp",
@@ -222,16 +236,6 @@ ohos_shared_library("accountmgr") {
   if (target_cpu == "arm64") {
     defines += [ "_ARM64_" ]
   }
-  configs = [
-    ":accountmgr_config",
-    ":bundle_manager_config",
-    ":domain_account_config",
-  ]
-
-  public_configs = [
-    ":accountmgr_public_config",
-    ":domain_account_config",
-  ]
 
   use_exceptions = true
 
@@ -271,6 +275,24 @@ ohos_shared_library("accountmgr") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+
+  if (os_account_enable_account_1) {
+    cflags += [ "-DENABLE_U1_ACCOUNT" ]
+  }
+  if (os_account_support_authorization) {
+    cflags += [ "-DSUPPORT_AUTHORIZATION" ]
+    configs += [ ":authorization_config" ]
+    sources += [
+      "src/authorization/authorization_manager_service.cpp",
+      "src/authorization/inner_authorization_manager.cpp",
+      "${authorization_framework_path}/src/authorization_common.cpp",
+    ]
+    deps += [
+      "${authorization_framework_path}:authorization_stub",
+      "${authorization_framework_path}:connect_ability_callback_stub",
+      "${authorization_framework_path}:authorization_callback_proxy",
+      ]
+  }
 
   if (os_account_enable_multiple_foreground_os_accounts) {
     cflags += [ "-DENABLE_MULTI_FOREGROUND_OS_ACCOUNTS" ]
@@ -428,7 +450,6 @@ ohos_shared_library("account_database_adapter") {
   cflags_cc = [
     "-Wdate-time",
     "-Wformat=2",
-    "-Wfloat-equal",
     "-Wshadow",
     "-fvisibility=hidden",
   ]

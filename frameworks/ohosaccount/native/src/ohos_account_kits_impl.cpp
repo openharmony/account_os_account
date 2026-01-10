@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -459,6 +459,18 @@ sptr<IRemoteObject> OhosAccountKitsImpl::GetAccountIAMService()
     }
     sptr<IRemoteObject> result = nullptr;
     accountProxy->GetAccountIAMService(result);
+    return result;
+}
+
+sptr<IRemoteObject> OhosAccountKitsImpl::GetAuthorizationService()
+{
+    auto accountProxy = GetService();
+    if (accountProxy == nullptr) {
+        ACCOUNT_LOGE("Get proxy failed");
+        return nullptr;
+    }
+    sptr<IRemoteObject> result = nullptr;
+    accountProxy->GetAuthorizationService(result);
     return result;
 }
 } // namespace AccountSA

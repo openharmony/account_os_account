@@ -45,7 +45,6 @@ ohos_fuzztest("CancelStubFuzzTest") {
   cflags_cc = [
     "-Wdate-time",
     "-Wformat=2",
-    "-Wfloat-equal",
     "-Wshadow",
   ]
 
