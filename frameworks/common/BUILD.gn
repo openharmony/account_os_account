@@ -69,7 +69,6 @@ ohos_shared_library("libaccount_common") {
   cflags_cc = [
     "-Wdate-time",
     "-Wformat=2",
-    "-Wfloat-equal",
     "-Wshadow",
   ]
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -109,6 +109,7 @@ bool GetCallbackProperty(napi_env env, napi_value obj, napi_ref &property, int a
 bool GetIntProperty(napi_env env, napi_value obj, int32_t &property);
 bool GetOptionIntProperty(napi_env env, napi_value obj, int32_t &property, bool &hasProperty);
 bool GetLongIntProperty(napi_env env, napi_value obj, int64_t &property);
+bool GetOptionBoolProperty(napi_env env, napi_value obj, const std::string &propertyName, bool &property);
 bool GetBoolProperty(napi_env env, napi_value obj, bool &property);
 bool GetStringProperty(napi_env env, napi_value obj, std::string &property);
 bool GetStringArrayProperty(napi_env env, napi_value obj, std::vector<std::string> &property, bool allowEmpty);
@@ -132,6 +133,8 @@ napi_value CreateUint8Array(napi_env env, const uint8_t *data, size_t length);
 napi_status ParseUint8TypedArray(napi_env env, napi_value value, uint8_t **data, size_t *length);
 napi_status ParseUint8ArrayToNativeUint8Array(napi_env env, napi_value value, uint8_t **data, size_t *length);
 napi_status ParseUint8TypedArrayToVector(napi_env env, napi_value value, std::vector<uint8_t> &vec);
+bool GetOptionalUint8TypedArrayToVector(napi_env env, napi_value obj, const std::string &propertyName,
+    std::vector<uint8_t> &vec);
 napi_status ParseUint8TypedArrayToUint64(napi_env env, napi_value value, uint64_t &result);
 void NapiCallVoidFunction(napi_env env, napi_value *argv, size_t argc, napi_ref funcRef);
 napi_value CreateAuthResult(

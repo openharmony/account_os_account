@@ -1,0 +1,277 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/config/components/idl_tool/idl.gni")
+import("//build/ohos.gni")
+import("../../os_account.gni")
+
+config("authorization_innnerkits_config") {
+  visibility = [ ":*" ]
+
+  cflags = []
+  if (target_cpu == "arm") {
+    cflags += [ "-DBINDER_IPC_32BIT" ]
+  }
+
+  cflags += [ "-pipe" ]
+  cflags_cc = [
+    "-Wdate-time",
+    "-Wformat=2",
+    "-Wshadow",
+  ]
+
+  defines = [
+    "ACCOUNT_LOG_TAG = \"AuthorizationFwk\"",
+    "LOG_DOMAIN = 0xD001B00",
+  ]
+}
+
+config("authorization_innerkits_public_config") {
+  visibility = [ ":*" ]
+
+  include_dirs = [
+    "${authorization_interfaces_native_path}/include",
+    "${common_path}/utils/include",
+    "${innerkits_common}/include",
+    "${target_gen_dir}",
+  ]
+}
+
+idl_gen_interface("authorization_interface") {
+  sources = [
+    "IAuthorization.idl",
+    "IAuthorizationCallback.idl",
+    "IConnectAbilityCallback.idl",
+  ]
+  log_domainid = "0xD001B00"
+  log_tag = "AuthorizationFwk"
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+ohos_shared_library("authorization_innerkits") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  sources = [
+    "${authorization_framework_path}/src/authorization_client.cpp",
+    "${authorization_framework_path}/src/authorization_common.cpp",
+  ]
+
+  configs = [ ":authorization_innnerkits_config" ]
+
+  public_configs = [ ":authorization_innerkits_public_config" ]
+
+  # IDL
+  output_values = get_target_outputs(":authorization_interface")
+  sources += filter_include(output_values,
+                            [
+                              "*authorization_proxy.cpp",
+                              "*authorization_callback_stub.cpp",
+                              "*connect_ability_callback_proxy.cpp",
+                            ])
+
+  deps = [
+    ":authorization_interface",
+    "${common_path}:libaccount_common",
+    "${innerkits_native_path}:libaccountkits",
+  ]
+
+  external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "cJSON:cjson",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+    "samgr:samgr_proxy",
+  ]
+
+  if (os_account_support_authorization) {
+    cflags_cc = [ "-DSUPPORT_AUTHORIZATION" ]
+  }
+
+  innerapi_tags = [ "platformsdk_indirect" ]
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+ohos_source_set("authorization_stub") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  configs = [ ":authorization_innnerkits_config" ]
+  public_configs = [ ":authorization_innerkits_public_config" ]
+
+  output_values = get_target_outputs(":authorization_interface")
+  sources = filter_include(output_values, [ "*authorization_stub.cpp" ])
+  deps = [ ":authorization_interface" ]
+  external_deps = [
+    "cJSON:cjson",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+    "samgr:samgr_proxy",
+  ]
+  if (os_account_support_authorization) {
+    cflags_cc = [ "-DSUPPORT_AUTHORIZATION" ]
+  }
+
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+ohos_source_set("authorization_proxy") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  configs = [ ":authorization_innnerkits_config" ]
+  public_configs = [ ":authorization_innerkits_public_config" ]
+
+  output_values = get_target_outputs(":authorization_interface")
+  sources = filter_include(output_values, [ "*authorization_proxy.cpp" ])
+  deps = [ ":authorization_interface" ]
+  external_deps = [
+    "cJSON:cjson",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+    "samgr:samgr_proxy",
+  ]
+  if (os_account_support_authorization) {
+    cflags_cc = [ "-DSUPPORT_AUTHORIZATION" ]
+  }
+
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+ohos_source_set("authorization_callback_proxy") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  configs = [ ":authorization_innnerkits_config" ]
+  public_configs = [ ":authorization_innerkits_public_config" ]
+
+  output_values = get_target_outputs(":authorization_interface")
+  sources = filter_include(output_values, [ "*authorization_callback_proxy.cpp" ])
+  deps = [ ":authorization_interface" ]
+  external_deps = [
+    "cJSON:cjson",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+    "samgr:samgr_proxy",
+  ]
+  if (os_account_support_authorization) {
+    cflags_cc = [ "-DSUPPORT_AUTHORIZATION" ]
+  }
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+ohos_source_set("authorization_callback_stub") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  configs = [ ":authorization_innnerkits_config" ]
+  public_configs = [ ":authorization_innerkits_public_config" ]
+
+  output_values = get_target_outputs(":authorization_interface")
+  sources = filter_include(output_values, [ "*authorization_callback_stub.cpp" ])
+  deps = [ ":authorization_interface" ]
+  external_deps = [
+    "cJSON:cjson",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+    "samgr:samgr_proxy",
+  ]
+  if (os_account_support_authorization) {
+    cflags_cc = [ "-DSUPPORT_AUTHORIZATION" ]
+  }
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+ohos_source_set("connect_ability_callback_proxy") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  configs = [ ":authorization_innnerkits_config" ]
+  public_configs = [ ":authorization_innerkits_public_config" ]
+
+  output_values = get_target_outputs(":authorization_interface")
+  sources = filter_include(output_values, [ "*connect_ability_callback_proxy.cpp" ])
+  deps = [ ":authorization_interface" ]
+  external_deps = [
+    "cJSON:cjson",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+    "samgr:samgr_proxy",
+  ]
+  if (os_account_support_authorization) {
+    cflags_cc = [ "-DSUPPORT_AUTHORIZATION" ]
+  }
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+ohos_source_set("connect_ability_callback_stub") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  configs = [ ":authorization_innnerkits_config" ]
+  public_configs = [ ":authorization_innerkits_public_config" ]
+
+  output_values = get_target_outputs(":authorization_interface")
+  sources = filter_include(output_values, [ "*connect_ability_callback_stub.cpp" ])
+  deps = [ ":authorization_interface" ]
+  external_deps = [
+    "cJSON:cjson",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+    "samgr:samgr_proxy",
+  ]
+  if (os_account_support_authorization) {
+    cflags_cc = [ "-DSUPPORT_AUTHORIZATION" ]
+  }
+  subsystem_name = "account"
+  part_name = "os_account"
+}

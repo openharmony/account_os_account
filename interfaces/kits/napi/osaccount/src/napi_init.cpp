@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,6 +15,7 @@
 
 #include "napi_os_account.h"
 #include "napi_account_iam_module.h"
+#include "napi_authorization_module.h"
 #include "napi_domain_account_module.h"
 
 namespace OHOS {
@@ -32,6 +33,7 @@ static napi_value Init(napi_env env, napi_value exports)
     OsAccountInit(env, exports);
     AccountIAMInit(env, exports);
     DomainAccountInit(env, exports);
+    AuthorizationInit(env, exports);
     return exports;
 }
 EXTERN_C_END

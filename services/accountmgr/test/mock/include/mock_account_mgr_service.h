@@ -79,6 +79,12 @@ public:
         funcResult = nullptr;
         return 0;
     }
+    
+    ErrCode GetAuthorizationService(sptr<IRemoteObject>& funcResult) override
+    {
+        funcResult = nullptr;
+        return 0;
+    }
 
     bool IsServiceStarted() const override
     {

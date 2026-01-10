@@ -28,7 +28,6 @@ config("domain_account_napi_kit_config") {
   cflags_cc = [
     "-Wdate-time",
     "-Wformat=2",
-    "-Wfloat-equal",
     "-Wshadow",
   ]
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -64,6 +64,7 @@ public:
     ErrCode GetOsAccountService(sptr<IRemoteObject>& funcResult) override;
     ErrCode GetAccountIAMService(sptr<IRemoteObject>& funcResult) override;
     ErrCode GetDomainAccountService(sptr<IRemoteObject>& funcResult) override;
+    ErrCode GetAuthorizationService(sptr<IRemoteObject>& funcResult) override;
 
     void OnStart() override;
     void OnStop() override;
@@ -107,6 +108,7 @@ private:
     wptr<OsAccountManagerService> osAccountManagerService_ = nullptr;
     wptr<IRemoteObject> accountIAMService_ = nullptr;
     wptr<IRemoteObject> domainAccountMgrService_ = nullptr;
+    wptr<IRemoteObject> authorizationManagerService_ = nullptr;
 
     std::mutex statusMutex_;
     bool isStorageReady_ = false;

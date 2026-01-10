@@ -35,7 +35,6 @@ ohos_source_set("account_test_common_source_set") {
   cflags_cc = [
     "-Wdate-time",
     "-Wformat=2",
-    "-Wfloat-equal",
     "-Wshadow",
   ]
 
