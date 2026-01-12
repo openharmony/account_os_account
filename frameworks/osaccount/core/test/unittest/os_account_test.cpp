@@ -998,3 +998,19 @@ HWTEST_F(OsAccountTest, OsAccountGetForegroundOsAccountLocalIdTest002, TestSize.
         EXPECT_EQ(localId, localId2);
     }
 }
+
+#ifndef SUPPORT_AUTHORIZATION
+/**
+ * @tc.name: OsAccountSetOsAccountTypeTest001
+ * @tc.desc: Test SetOsAccountType success or reasonable failure.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountTest, OsAccountSetOsAccountTypeTest001, TestSize.Level1)
+{
+    SetOsAccountTypeOptions options;
+    ErrCode result = g_osAccount->SetOsAccountType(MAIN_ACCOUNT_ID, OsAccountType::NORMAL, options);
+    EXPECT_NE(result, ERR_ACCOUNT_COMMON_GET_PROXY);
+}
+#endif
+

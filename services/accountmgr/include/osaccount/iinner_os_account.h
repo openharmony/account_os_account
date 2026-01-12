@@ -54,6 +54,8 @@ public:
     virtual ErrCode GetOsAccountShortName(const int id, std::string &shortName) = 0;
     virtual ErrCode GetOsAccountName(const int id, std::string &name) = 0;
     virtual ErrCode GetOsAccountType(const int id, OsAccountType &type) = 0;
+    virtual ErrCode SetOsAccountType(const int id,
+        const OsAccountType &type, const SetOsAccountTypeOptions& options) = 0;
     virtual ErrCode GetOsAccountProfilePhoto(const int id, std::string &photo) = 0;
     virtual ErrCode IsMultiOsAccountEnable(bool &isMultiOsAccountEnable) = 0;
     virtual ErrCode SetOsAccountName(const int id, const std::string &name) = 0;

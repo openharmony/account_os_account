@@ -1298,3 +1298,40 @@ HWTEST_F(OsAccountInfoTest, SetOsAccountToBeRemoved_UpdateDefaultActivatedError_
     EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(tempAccountId));
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 }
+
+/**
+ * @tc.name: OsAccountInfoParcel_SetOsAccountTypeOptions_0100
+ * @tc.desc: Test SetOsAccountTypeOptions Marshalling and Unmarshalling success
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInfoTest, OsAccountInfoParcel_SetOsAccountTypeOptions_0100, TestSize.Level1)
+{
+    Parcel parcel;
+    SetOsAccountTypeOptions options;
+    options.token = std::make_optional<std::vector<uint8_t>>(std::vector<uint8_t>{1, 2, 3});
+    EXPECT_TRUE(options.Marshalling(parcel));
+
+    SetOsAccountTypeOptions *unmarshalledOptions = SetOsAccountTypeOptions::Unmarshalling(parcel);
+    EXPECT_NE(unmarshalledOptions, nullptr);
+    EXPECT_TRUE(unmarshalledOptions->token.has_value());
+    EXPECT_EQ(unmarshalledOptions->token.value().size(), 3);
+    EXPECT_EQ(unmarshalledOptions->token.value()[0], 1);
+    delete unmarshalledOptions;
+}
+
+/**
+ * @tc.name: OsAccountInfoParcel_SetOsAccountTypeOptions_0300
+ * @tc.desc: Test SetOsAccountTypeOptions ReadFromParcel
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInfoTest, OsAccountInfoParcel_SetOsAccountTypeOptions_0200, TestSize.Level1)
+{
+    Parcel parcel;
+    SetOsAccountTypeOptions options;
+    options.token = std::make_optional<std::vector<uint8_t>>(std::vector<uint8_t>{1, 2, 3});
+    EXPECT_TRUE(options.Marshalling(parcel));
+    EXPECT_TRUE(options.ReadFromParcel(parcel));
+}
+

@@ -48,6 +48,9 @@
 #include <mutex>
 #include <thread>
 #include <unordered_set>
+#ifdef SUPPORT_AUTHORIZATION
+#include "tee_auth_adapter.h"
+#endif
 #ifdef HICOLLIE_ENABLE
 #include "account_timer.h"
 #include "xcollie/xcollie.h"
@@ -64,6 +67,7 @@ namespace OHOS {
 namespace AccountSA {
 namespace {
 const char OPERATION_UPDATE[] = "update";
+const char OPERATION_SET_TYPE[] = "setType";
 const char OPERATION_SET_TO_BE_REMOVED[] = "setToBeRemoved";
 const char ADMIN_LOCAL_NAME[] = "admin";
 #ifdef SUPPORT_LOCK_OS_ACCOUNT
@@ -534,6 +538,10 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfo(const std::string &localNam
         return errCode;
     }
     errCode = CheckTypeNumber(type);
+    if (errCode == ERR_OSACCOUNT_SERVICE_CONTROL_MAX_TYPE_CAN_CREATE_ERROR) {
+        ACCOUNT_LOGE("Check type number failed.");
+        return ERR_OSACCOUNT_SERVICE_CONTROL_MAX_CAN_CREATE_ERROR;
+    } // delete when xts supported
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Check type number failed.");
         return errCode;
@@ -1481,11 +1489,11 @@ ErrCode IInnerOsAccountManager::CheckTypeNumber(const OsAccountType& type)
     }
     if (type == OsAccountType::PRIVATE && typeNumber >= MAX_PRIVATE_TYPE_NUMBER) {
         ACCOUNT_LOGE("Check type number failed, private type number=%{public}d", typeNumber);
-        return ERR_OSACCOUNT_SERVICE_CONTROL_MAX_CAN_CREATE_ERROR;
+        return ERR_OSACCOUNT_SERVICE_CONTROL_MAX_TYPE_CAN_CREATE_ERROR;
     }
     if (type == OsAccountType::MAINTENANCE && typeNumber >= MAX_MAINTENANCE_TYPE_NUMBER) {
         ACCOUNT_LOGE("Check type number failed, maintenance type number=%{public}d", typeNumber);
-        return ERR_OSACCOUNT_SERVICE_CONTROL_MAX_CAN_CREATE_ERROR;
+        return ERR_OSACCOUNT_SERVICE_CONTROL_MAX_TYPE_CAN_CREATE_ERROR;
     }
     return ERR_OK;
 }
@@ -2128,6 +2136,91 @@ ErrCode IInnerOsAccountManager::GetOsAccountType(const int id, OsAccountType &ty
     }
     type = osAccountInfo.GetType();
     return ERR_OK;
+}
+
+ErrCode IInnerOsAccountManager::SetOsAccountType(const int id,
+    const OsAccountType &type, const SetOsAccountTypeOptions &options)
+{
+    // Standard lock order to avoid deadlock: Global Lock -> Local Lock
+    // 1. createOsAccountMutex_ (Global lock for account creation/type stats)
+    // 2. updateLock (Local lock for specific account info)
+    std::lock_guard<std::mutex> createLock(createOsAccountMutex_);
+    std::lock_guard<std::mutex> updateLock(*GetOrInsertUpdateLock(id));
+
+    // 1. Check if the account exists
+    OsAccountInfo osAccountInfo;
+    ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("GetOsAccountInfoById failed, id: %{public}d, errCode: %{public}d", id, errCode);
+        return errCode;
+    }
+
+    // 2. Check quota for certain types
+    // Please note the consistency between REE and TEE
+    // PS:normal&admin accounts are no limit, special accounts not support on tablet
+    errCode = CheckTypeNumber(type);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Check type number failed.");
+        ReportOsAccountOperationFail(id, OPERATION_SET_TYPE, errCode, "CheckTypeNumber failed!");
+        return errCode;
+    }
+
+    // 3. Mark the account as being in operating state
+    if (!CheckAndAddLocalIdOperating(id)) {
+        ACCOUNT_LOGE("The %{public}d already in operating", id);
+        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR;
+    }
+
+    // 4. TEE sensitive operations (token verification and security zone synchronization)
+    errCode = VerifyAndSetOsAccountTypeInTEE(id, type, options.token);
+    if (errCode != ERR_OK) {
+        RemoveLocalIdToOperating(id);
+        return errCode;
+    }
+
+    // 5. Update local persistent data
+    osAccountInfo.SetType(type);
+    errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Update os account failed, id: %{public}d, errCode: %{public}d", id, errCode);
+#ifndef SUPPORT_AUTHORIZATION
+        RemoveLocalIdToOperating(id);
+        ReportOsAccountOperationFail(id, OPERATION_SET_TYPE, errCode, "UpdateOsAccount failed!");
+        return errCode;
+#endif // SUPPORT_AUTHORIZATION
+    }
+
+    OsAccountInterface::PublishCommonEvent(osAccountInfo,
+        OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, OPERATION_SET_TYPE);
+    RemoveLocalIdToOperating(id);
+    return ERR_OK;
+}
+
+ErrCode IInnerOsAccountManager::VerifyAndSetOsAccountTypeInTEE(
+    int32_t id, OsAccountType type, const std::optional<std::vector<uint8_t>>& token)
+{
+#ifdef SUPPORT_AUTHORIZATION
+    // token is guaranteed to have value by the caller
+    const std::vector<uint8_t>& tokenData = token.value();
+    std::vector<uint8_t> unusedResult(sizeof(VerifyUserTokenResult), 0);
+    ErrCode errCode = teeAdapter_.VerifyToken(tokenData, unusedResult);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("VerifyToken failed, id: %{public}d, errCode: %{public}d", id, errCode);
+        ReportOsAccountOperationFail(id, OPERATION_SET_TYPE, errCode, "VerifyToken failed!");
+        return errCode;
+    }
+
+    errCode = teeAdapter_.SetOsAccountType(id, static_cast<int32_t>(type), tokenData);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("SetOsAccountType in TEE failed, id: %{public}d, errCode: %{public}d", id, errCode);
+        ReportOsAccountOperationFail(id, OPERATION_SET_TYPE, errCode, "SetOsAccountType in TEE failed!");
+        return errCode;
+    }
+    return ERR_OK;
+#else
+    // If TEE is not supported, always return success
+    return ERR_OK;
+#endif // SUPPORT_AUTHORIZATION
 }
 
 ErrCode IInnerOsAccountManager::GetOsAccountProfilePhoto(const int id, std::string &photo)

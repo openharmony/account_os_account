@@ -55,6 +55,9 @@ interface AccountManager {
     GetOsAccountTypeSync(): OsAccountType;
     @gen_promise("getOsAccountType")
     GetOsAccountTypeWithIdSync(localId: i32): OsAccountType;
+
+    @gen_promise("setOsAccountType")
+    SetOsAccountTypeSync(localId: i32, type: OsAccountType, options: Optional<SetOsAccountTypeOptions>): void;
     
     @rename("onActivate")
     OnActivate(name: String, callback: (id:i32) => void): void;
@@ -789,4 +792,8 @@ struct ConstraintSourceTypeInfo {
 
 struct CreateOsAccountForDomainOptions {
     @extends options: CreateOsAccountOptions;
+}
+
+struct SetOsAccountTypeOptions {
+    token: Optional<@typedarray Array<u8>>;
 }

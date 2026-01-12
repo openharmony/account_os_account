@@ -544,6 +544,21 @@ ErrCode OsAccount::GetOsAccountType(const int id, OsAccountType& type)
     return ConvertToAccountErrCode(errCode);
 }
 
+ErrCode OsAccount::SetOsAccountType(const int id, const OsAccountType &type, const SetOsAccountTypeOptions &options)
+{
+    ErrCode result = CheckLocalId(id);
+    if (result != ERR_OK) {
+        return result;
+    }
+    auto proxy = GetOsAccountProxy();
+    if (proxy == nullptr) {
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+
+    auto errCode = proxy->SetOsAccountType(id, static_cast<int32_t>(type), options);
+    return ConvertToAccountErrCode(errCode);
+}
+
 ErrCode OsAccount::GetOsAccountProfilePhoto(const int id, std::string &photo)
 {
     ErrCode result = CheckLocalId(id);

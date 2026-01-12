@@ -161,6 +161,27 @@ ErrCode CheckOsAccountConstraint(const std::string &constraint)
     }
     return ERR_OK;
 }
+
+ErrCode ValidateToken(const SetOsAccountTypeOptions &options)
+{
+#ifdef SUPPORT_AUTHORIZATION
+    if (!options.token.has_value()) {
+        ACCOUNT_LOGE("SetOsAccountType failed, token is required");
+        return ERR_AUTHORIZATION_PRIVILEGE_DENIED;
+    }
+    const auto &token = options.token.value();
+    if (token.empty() || token.size() > Constants::MAX_TOKEN_SIZE) {
+        ACCOUNT_LOGE("SetOsAccountType failed, token is invalid!");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+#else
+    if (options.token.has_value()) {
+        ACCOUNT_LOGE("SetOsAccountType failed, token is not supported");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+#endif
+    return ERR_OK;
+}
 }  // namespace
 
 OsAccountManagerService::OsAccountManagerService() : innerManager_(IInnerOsAccountManager::GetInstance()),
@@ -947,6 +968,52 @@ ErrCode OsAccountManagerService::GetOsAccountType(int32_t id, int32_t& typeValue
     auto res = innerManager_.GetOsAccountType(id, type);
     typeValue = static_cast<int32_t>(type);
     return res;
+}
+
+ErrCode OsAccountManagerService::SetOsAccountType(int32_t id, int32_t typeValue, const SetOsAccountTypeOptions &options)
+{
+    // permission check
+    ErrCode result = AccountPermissionManager::CheckSystemApp();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Is not system application, result = %{public}u.", result);
+        return result;
+    }
+
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("Account manager service, permission denied!");
+        REPORT_PERMISSION_FAIL();
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+
+    // parameters check
+    ErrCode res = CheckLocalId(id);
+    if (res != ERR_OK) {
+        return res;
+    }
+
+    res = CheckLocalIdRestricted(id);
+    if (res != ERR_OK) {
+        ACCOUNT_LOGW("Check local id restricted, result = %{public}d, localId = %{public}d.", res, id);
+        return res;
+    }
+
+    if (id == Constants::START_USER_ID) {
+        ACCOUNT_LOGE("SetOsAccountType failed, current user is restricted");
+        return ERR_ACCOUNT_COMMON_ACCOUNT_IS_RESTRICTED;
+    }
+
+    res = ValidateToken(options);
+    if (res != ERR_OK) {
+        return res;
+    }
+
+    auto type = static_cast<OsAccountType>(typeValue);
+    if (IsTypeOutOfRange(type)) {
+        ACCOUNT_LOGE("Os account type is invalid");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    return innerManager_.SetOsAccountType(id, type, options);
 }
 
 ErrCode OsAccountManagerService::GetOsAccountProfilePhoto(const int id, std::string &photo)

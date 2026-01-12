@@ -143,7 +143,8 @@ void OsAccountInnerAccmgrMockTest::SetUp(void) __attribute__((no_sanitize("cfi")
 }
 
 void OsAccountInnerAccmgrMockTest::TearDown(void)
-{}
+{
+}
 
 #ifdef SUPPORT_LOCK_OS_ACCOUNT
 /*
@@ -352,7 +353,8 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, QueryOsAccountInfo001, TestSize.Level1)
     std::shared_ptr<AccountFileOperator> accountFileOperator = std::make_shared<AccountFileOperator>();
     std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(TEST_ACCOUNT_ID) +
                        Constants::PATH_SEPARATOR + Constants::USER_INFO_FILE_NAME;
-    std::string accountInfoStr = "123";
+    accountInfo.SetIsCreateCompleted(true);
+    std::string accountInfoStr = accountInfo.ToString();
     EXPECT_EQ(ERR_OK, accountFileOperator->InputFileByPathAndContent(path, accountInfoStr));
     std::string content;
     EXPECT_EQ(ERR_OK, accountFileOperator->GetFileContentByPath(path, content));
@@ -863,10 +865,163 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, AccountStatusTest001, TestSize.Level1)
     EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(id));
 }
 
+#ifndef SUPPORT_AUTHORIZATION
+/*
+ * @tc.name: SetOsAccountTypeMockTest001
+ * @tc.desc: Set os account type successfully
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, SetOsAccountTypeMockTest001, TestSize.Level1)
+{
+    OsAccountInfo createInfo;
+    createInfo.SetLocalName("SetOsAccountTypeMockTest001");
+    createInfo.SetType(NORMAL);
+    createInfo.SetLocalId(TEST_USER_ID108);
+    EXPECT_EQ(ERR_OK, innerMgrService_->CreateOsAccountWithFullInfo(createInfo));
+
+    int id = createInfo.GetLocalId();
+    OsAccountType type;
+    EXPECT_EQ(ERR_OK, innerMgrService_->GetOsAccountType(id, type));
+    EXPECT_EQ(NORMAL, type);
+
+    SetOsAccountTypeOptions options;
+    EXPECT_EQ(ERR_OK, innerMgrService_->SetOsAccountType(id, OsAccountType::GUEST, options));
+    EXPECT_EQ(ERR_OK, innerMgrService_->GetOsAccountType(id, type));
+    EXPECT_EQ(GUEST, type);
+
+    EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(id));
+}
+
+/*
+ * @tc.name: SetOsAccountTypeMockTest002
+ * @tc.desc: Account not exist
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, SetOsAccountTypeMockTest002, TestSize.Level1)
+{
+    auto ptr = std::make_shared<MockOsAccountControlFileManager>();
+    auto ptrOld = innerMgrService_->osAccountControl_;
+    innerMgrService_->osAccountControl_ = ptr;
+
+    EXPECT_CALL(*ptr, GetOsAccountInfoById(::testing::_, ::testing::_))
+        .WillOnce(Return(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR));
+
+    SetOsAccountTypeOptions options;
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR,
+        innerMgrService_->SetOsAccountType(TEST_USER_ID108, OsAccountType::GUEST, options));
+
+    innerMgrService_->osAccountControl_ = ptrOld;
+}
+
+/*
+ * @tc.name: SetOsAccountTypeMockTest003
+ * @tc.desc: Type is same
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, SetOsAccountTypeMockTest003, TestSize.Level1)
+{
+    auto ptr = std::make_shared<MockOsAccountControlFileManager>();
+    auto ptrOld = innerMgrService_->osAccountControl_;
+    innerMgrService_->osAccountControl_ = ptr;
+
+    OsAccountInfo osAccountInfo;
+    osAccountInfo.SetType(OsAccountType::GUEST);
+    EXPECT_CALL(*ptr, GetOsAccountInfoById(::testing::_, ::testing::_))
+        .WillOnce(DoAll(SetArgReferee<1>(osAccountInfo), Return(ERR_OK)));
+
+    SetOsAccountTypeOptions options;
+    EXPECT_EQ(ERR_OK, innerMgrService_->SetOsAccountType(TEST_USER_ID108, OsAccountType::GUEST, options));
+
+    innerMgrService_->osAccountControl_ = ptrOld;
+}
+
+/*
+ * @tc.name: SetOsAccountTypeMockTest004
+ * @tc.desc: CheckTypeNumber fails (PRIVATE account limit or list error)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, SetOsAccountTypeMockTest004, TestSize.Level1)
+{
+    // No TEE mocks needed - CheckTypeNumber fails before TEE operations
+    auto ptr = std::make_shared<MockOsAccountControlFileManager>();
+    auto ptrOld = innerMgrService_->osAccountControl_;
+    innerMgrService_->osAccountControl_ = ptr;
+
+    OsAccountInfo osAccountInfo;
+    osAccountInfo.SetType(OsAccountType::NORMAL);
+    EXPECT_CALL(*ptr, GetOsAccountInfoById(::testing::_, ::testing::_))
+        .WillOnce(DoAll(SetArgReferee<1>(osAccountInfo), Return(ERR_OK)));
+
+    EXPECT_CALL(*ptr, GetOsAccountIdList(::testing::_))
+        .WillOnce(Return(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER));
+
+    SetOsAccountTypeOptions options;
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
+        innerMgrService_->SetOsAccountType(TEST_USER_ID108, OsAccountType::PRIVATE, options));
+
+    innerMgrService_->osAccountControl_ = ptrOld;
+}
+
+/*
+ * @tc.name: SetOsAccountTypeMockTest005
+ * @tc.desc: UpdateOsAccount fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, SetOsAccountTypeMockTest005, TestSize.Level1)
+{
+    auto ptr = std::make_shared<MockOsAccountControlFileManager>();
+    auto ptrOld = innerMgrService_->osAccountControl_;
+    innerMgrService_->osAccountControl_ = ptr;
+
+    OsAccountInfo osAccountInfo;
+    osAccountInfo.SetType(OsAccountType::NORMAL);
+    EXPECT_CALL(*ptr, GetOsAccountInfoById(::testing::_, ::testing::_))
+        .WillOnce(DoAll(SetArgReferee<1>(osAccountInfo), Return(ERR_OK)));
+
+    EXPECT_CALL(*ptr, UpdateOsAccount(::testing::_))
+        .WillOnce(Return(ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR));
+
+    SetOsAccountTypeOptions options;
+    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR,
+        innerMgrService_->SetOsAccountType(TEST_USER_ID108, OsAccountType::GUEST, options));
+
+    innerMgrService_->osAccountControl_ = ptrOld;
+}
+
+/*
+ * @tc.name: SetOsAccountTypeMockTest006
+ * @tc.desc: SetOsAccountType successfully (actual implementation doesn't check constraints)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, SetOsAccountTypeMockTest006, TestSize.Level1)
+{
+    auto ptr = std::make_shared<MockOsAccountControlFileManager>();
+    auto ptrOld = innerMgrService_->osAccountControl_;
+    innerMgrService_->osAccountControl_ = ptr;
+
+    OsAccountInfo osAccountInfo;
+    osAccountInfo.SetType(OsAccountType::NORMAL);
+    EXPECT_CALL(*ptr, GetOsAccountInfoById(::testing::_, ::testing::_))
+        .WillOnce(DoAll(SetArgReferee<1>(osAccountInfo), Return(ERR_OK)));
+
+    EXPECT_CALL(*ptr, UpdateOsAccount(::testing::_))
+        .WillOnce(Return(ERR_OK));
+
+    SetOsAccountTypeOptions options;
+    EXPECT_EQ(ERR_OK, innerMgrService_->SetOsAccountType(TEST_USER_ID108, OsAccountType::GUEST, options));
+
+    innerMgrService_->osAccountControl_ = ptrOld;
+}
+#endif
+
 /*
  * @tc.name: AccountStatusTest002
- * @tc.desc: Get os account all constraints successfully
- * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(OsAccountInnerAccmgrMockTest, AccountStatusTest002, TestSize.Level1)

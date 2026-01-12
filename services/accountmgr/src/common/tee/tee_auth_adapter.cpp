@@ -15,6 +15,7 @@
 
 #include "tee_auth_adapter.h"
 #include "account_log_wrapper.h"
+#include "securec.h"
 #include <mutex>
 #include <securec.h>
 
@@ -90,9 +91,9 @@ ErrCode OsAccountTeeAdapter::ConvertTeecErrCode(TEEC_Result teeResult)
         case TEEC_ERROR_BAD_PARAMETERS:
             return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
         case TEEC_ERROR_USER_TOKEN_INVALID:
-            return ERR_ACCOUNT_COMMON_TEE_USER_TOKEN_INVALID;
+            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
         case TEEC_ERROR_USER_TOKEN_EXPIRED:
-            return ERR_ACCOUNT_COMMON_TEE_USER_TOKEN_EXPIRED;
+            return ERR_JS_AUTHORIZATION_DENIED;
         default:
             return ERR_ACCOUNT_COMMON_OPERATION_FAIL;
     }

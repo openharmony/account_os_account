@@ -95,6 +95,7 @@ static napi_property_descriptor g_osAccountProperties[] = {
     DECLARE_NAPI_FUNCTION("checkOsAccountConstraintEnabled", CheckConstraintEnabled),
     DECLARE_NAPI_FUNCTION("getOsAccountTypeFromProcess", GetOsAccountTypeFromProcess),
     DECLARE_NAPI_FUNCTION("getOsAccountType", GetOsAccountType),
+    DECLARE_NAPI_FUNCTION("setOsAccountType", SetOsAccountType),
     DECLARE_NAPI_FUNCTION("isMultiOsAccountEnable", IsMultiOsAccountEnable),
     DECLARE_NAPI_FUNCTION("checkMultiOsAccountEnabled", CheckMultiOsAccountEnabled),
     DECLARE_NAPI_FUNCTION("isOsAccountVerified", IsOsAccountVerified),
@@ -1219,6 +1220,32 @@ napi_value CheckConstraintEnabled(napi_env env, napi_callback_info cbInfo)
 napi_value GetOsAccountType(napi_env env, napi_callback_info cbInfo)
 {
     return GetOsAccountTypeFromProcessInner(env, cbInfo, true);
+}
+
+napi_value SetOsAccountType(napi_env env, napi_callback_info cbInfo)
+{
+    ACCOUNT_LOGI("SetOsAccountType: function called");
+    auto asyncContext = std::make_unique<SetTypeAsyncContext>();
+    asyncContext->env = env;
+    asyncContext->throwErr = true;
+
+    if (!ParseParaSetType(env, cbInfo, asyncContext.get())) {
+        ACCOUNT_LOGE("SetOsAccountType: ParseParaSetType failed");
+        return nullptr;
+    }
+
+    napi_value result = nullptr;
+    NAPI_CALL(env, napi_create_promise(env, &asyncContext->deferred, &result));
+
+    napi_value resource = nullptr;
+    NAPI_CALL(env, napi_create_string_utf8(env, "SetOsAccountType", NAPI_AUTO_LENGTH, &resource));
+
+    NAPI_CALL(env, napi_create_async_work(env, nullptr, resource, SetTypeExecuteCB, SetTypeCompletedCB,
+        reinterpret_cast<void *>(asyncContext.get()), &asyncContext->work));
+
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, asyncContext->work, napi_qos_default));
+    asyncContext.release();
+    return result;
 }
 
 napi_value GetOsAccountTypeFromProcess(napi_env env, napi_callback_info cbInfo)
