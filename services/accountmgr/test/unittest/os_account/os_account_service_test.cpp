@@ -21,8 +21,9 @@
 #include "account_log_wrapper.h"
 #include "account_test_common.h"
 #include "os_account_constants.h"
-#include "os_account_manager_service.h"
 #define private public
+#include "os_account_manager_service.h"
+#include "ipc_skeleton.h"
 #include "os_account_user_callback.h"
 #undef private
 
@@ -47,6 +48,12 @@ public:
     void TearDown();
 public:
     OsAccountManagerService *osAccountService_ = nullptr;
+
+    void CreateOsAccountForTest(OsAccountInfo &osAccountInfo)
+    {
+        osAccountInfo.SetIsCreateCompleted(true);
+        osAccountService_->innerManager_.osAccountControl_->InsertOsAccount(osAccountInfo);
+    }
 };
 
 void OsAccountServiceTest::SetUpTestCase(void)
@@ -245,5 +252,177 @@ HWTEST_F(OsAccountServiceTest, GetServerConfigInfo002, TestSize.Level1)
     EXPECT_EQ(controlManager->DelOsAccount(TEST_ACCOUNT_ID), ERR_OK);
 }
 #endif //SUPPORT_DOMAIN_ACCOUNTS
+#ifndef SUPPORT_AUTHORIZATION
+/**
+ * @tc.name: SetOsAccountType001
+ * @tc.desc: Test SetOsAccountType with invalid ID parameters.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountServiceTest, SetOsAccountType001, TestSize.Level1)
+{
+    SetOsAccountTypeOptions options;
+
+    // Test 1: Negative ID - should fail in CheckLocalId
+    ErrCode result = osAccountService_->SetOsAccountType(-100,
+        static_cast<int32_t>(OsAccountType::NORMAL), options);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+
+    // Test 2: ADMIN_LOCAL_ID - should fail in CheckLocalIdRestricted
+    result = osAccountService_->SetOsAccountType(Constants::ADMIN_LOCAL_ID,
+        static_cast<int32_t>(OsAccountType::NORMAL), options);
+    EXPECT_EQ(result, ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+
+    // Test 3: START_USER_ID - should return ERR_ACCOUNT_COMMON_ACCOUNT_IS_RESTRICTED
+    result = osAccountService_->SetOsAccountType(Constants::START_USER_ID,
+        static_cast<int32_t>(OsAccountType::NORMAL), options);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_ACCOUNT_IS_RESTRICTED);
+
+    // Test 4: Non-existent account ID
+    const int32_t nonExistentId = 99999;
+    result = osAccountService_->SetOsAccountType(nonExistentId,
+        static_cast<int32_t>(OsAccountType::GUEST), options);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+}
+
+/**
+ * @tc.name: SetOsAccountType002
+ * @tc.desc: Test SetOsAccountType with invalid type parameters.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountServiceTest, SetOsAccountType002, TestSize.Level1)
+{
+    // Create a test account
+    OsAccountInfo osAccountInfo(102, "SetTypeTest002", OsAccountType::NORMAL, 0);
+    CreateOsAccountForTest(osAccountInfo);
+    int32_t localId = osAccountInfo.GetLocalId();
+
+    uint64_t oldToken = IPCSkeleton::GetCallingTokenID();
+    uint64_t newToken = 0;
+    ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, newToken, true));
+
+    SetOsAccountTypeOptions options;
+
+    // Test 1: type = END
+    ErrCode result = osAccountService_->SetOsAccountType(localId,
+        static_cast<int32_t>(OsAccountType::END), options);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+
+    // Test 2: type < ADMIN
+    result = osAccountService_->SetOsAccountType(localId, -1, options);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+
+    // Test 3: type > valid range
+    result = osAccountService_->SetOsAccountType(localId, 9999, options);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+
+    ASSERT_TRUE(RecoveryPermission(newToken, oldToken));
+
+    // Clean up: remove the test account
+    osAccountService_->innerManager_.osAccountControl_->DelOsAccount(localId);
+}
+
+/**
+ * @tc.name: SetOsAccountType003
+ * @tc.desc: Test SetOsAccountType permission checks.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountServiceTest, SetOsAccountType003, TestSize.Level1)
+{
+    // Create a test account
+    OsAccountInfo osAccountInfo(103, "SetTypeTest003", OsAccountType::NORMAL, 0);
+    CreateOsAccountForTest(osAccountInfo);
+    int32_t localId = osAccountInfo.GetLocalId();
+
+    SetOsAccountTypeOptions options;
+
+    // Test 1: Non-system app
+    uint64_t oldToken = IPCSkeleton::GetCallingTokenID();
+    uint64_t newToken = 0;
+    ASSERT_TRUE(AllocPermission({}, newToken, false));
+    ErrCode result = osAccountService_->SetOsAccountType(localId,
+        static_cast<int32_t>(OsAccountType::NORMAL), options);
+    EXPECT_NE(result, ERR_OK);
+    ASSERT_TRUE(RecoveryPermission(newToken, oldToken));
+
+    // Test 2: Missing MANAGE_LOCAL_ACCOUNTS permission
+    oldToken = IPCSkeleton::GetCallingTokenID();
+    newToken = 0;
+    ASSERT_TRUE(AllocPermission({"ohos.permission.GET_LOCAL_ACCOUNTS"}, newToken, true));
+    
+    // Simulate non-root UID to bypass root check in PermissionCheck
+    setuid(TEST_USER_ID * UID_TRANSFORM_DIVISOR);
+    result = osAccountService_->SetOsAccountType(localId,
+        static_cast<int32_t>(OsAccountType::NORMAL), options);
+    setuid(0);
+
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    ASSERT_TRUE(RecoveryPermission(newToken, oldToken));
+
+    // Clean up: remove the test account
+    osAccountService_->innerManager_.osAccountControl_->DelOsAccount(localId);
+}
+
+/**
+ * @tc.name: SetOsAccountType004
+ * @tc.desc: Test SetOsAccountType with invalid token parameters.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountServiceTest, SetOsAccountType004, TestSize.Level1)
+{
+    // Create a test account
+    OsAccountInfo osAccountInfo(104, "SetTypeTest004", OsAccountType::NORMAL, 0);
+    CreateOsAccountForTest(osAccountInfo);
+    int32_t localId = osAccountInfo.GetLocalId();
+
+    uint64_t oldToken = IPCSkeleton::GetCallingTokenID();
+    uint64_t newToken = 0;
+    ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, newToken, true));
+
+    SetOsAccountTypeOptions options;
+
+    // Test: token is nullopt by default in non-authorization mode
+    ErrCode result = osAccountService_->SetOsAccountType(localId,
+        static_cast<int32_t>(OsAccountType::NORMAL), options);
+    EXPECT_EQ(result, ERR_OK);
+
+    ASSERT_TRUE(RecoveryPermission(newToken, oldToken));
+
+    // Clean up: remove the test account
+    osAccountService_->innerManager_.osAccountControl_->DelOsAccount(localId);
+}
+
+/**
+ * @tc.name: SetOsAccountType005
+ * @tc.desc: Test SetOsAccountType normal scenarios.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountServiceTest, SetOsAccountType005, TestSize.Level1)
+{
+    // Create a NORMAL account
+    OsAccountInfo osAccountInfo(105, "SetTypeTest005", OsAccountType::NORMAL, 0);
+    CreateOsAccountForTest(osAccountInfo);
+    int32_t localId = osAccountInfo.GetLocalId();
+
+    uint64_t oldToken = IPCSkeleton::GetCallingTokenID();
+    uint64_t newToken = 0;
+    ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, newToken, true));
+
+    // Test: Set to same type (NORMAL -> NORMAL), should succeed without modification
+    SetOsAccountTypeOptions options;
+    ErrCode result = osAccountService_->SetOsAccountType(localId,
+        static_cast<int32_t>(OsAccountType::NORMAL), options);
+    EXPECT_EQ(result, ERR_OK);
+
+    ASSERT_TRUE(RecoveryPermission(newToken, oldToken));
+
+    // Clean up: remove the test account
+    osAccountService_->innerManager_.osAccountControl_->DelOsAccount(localId);
+}
+#endif
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -460,5 +460,58 @@ bool RemoveOsAccountOptions::ReadFromParcel(Parcel &parcel)
     }
     return true;
 }
+
+SetOsAccountTypeOptions::SetOsAccountTypeOptions()
+{}
+
+SetOsAccountTypeOptions::~SetOsAccountTypeOptions()
+{}
+
+bool SetOsAccountTypeOptions::Marshalling(Parcel &parcel) const
+{
+    bool hasToken = token.has_value();
+    if (!parcel.WriteBool(hasToken)) {
+        ACCOUNT_LOGE("Write hasToken failed.");
+        return false;
+    }
+    if (hasToken) {
+        if (!parcel.WriteUInt8Vector(token.value())) {
+            ACCOUNT_LOGE("Write token failed.");
+            return false;
+        }
+    }
+    return true;
+}
+
+SetOsAccountTypeOptions *SetOsAccountTypeOptions::Unmarshalling(Parcel &parcel)
+{
+    SetOsAccountTypeOptions *options = new (std::nothrow) SetOsAccountTypeOptions();
+    if ((options != nullptr) && (!options->ReadFromParcel(parcel))) {
+        ACCOUNT_LOGW("read from parcel failed");
+        delete options;
+        options = nullptr;
+    }
+    return options;
+}
+
+bool SetOsAccountTypeOptions::ReadFromParcel(Parcel &parcel)
+{
+    bool hasToken = false;
+    if (!parcel.ReadBool(hasToken)) {
+        ACCOUNT_LOGE("Read hasToken failed.");
+        return false;
+    }
+    if (hasToken) {
+        std::vector<uint8_t> tokenData = {};
+        if (!parcel.ReadUInt8Vector(&tokenData)) {
+            ACCOUNT_LOGE("Read token failed.");
+            return false;
+        }
+        token = std::make_optional<std::vector<uint8_t>>(tokenData);
+    } else {
+        token = std::nullopt;
+    }
+    return true;
+}
 }  // namespace AccountSA
 }  // namespace OHOS

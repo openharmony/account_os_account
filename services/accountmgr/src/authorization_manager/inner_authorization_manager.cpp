@@ -37,6 +37,7 @@
 #include "privilege_hisysevent_utils.h"
 #include "privileges_map.h"
 #include "service_extension_connect.h"
+#include "securec.h"
 
 namespace OHOS {
 namespace AccountSA {
