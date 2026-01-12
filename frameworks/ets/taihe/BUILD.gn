@@ -106,6 +106,7 @@ taihe_shared_library("app_account_taihe_native") {
     "ipc:rpc_taihe",
     "napi:ace_napi",
     "runtime_core:ani_helpers",
+    "window_manager:libwm",
   ]
 
   defines = [
