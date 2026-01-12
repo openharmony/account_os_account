@@ -69,6 +69,7 @@ ohos_moduletest("app_account_check_labels_module_test") {
 
   external_deps = [
     "ability_base:base",
+    "ability_base:configuration",
     "ability_base:want",
     "ability_runtime:app_manager",
     "bundle_framework:appexecfwk_base",
@@ -146,6 +147,7 @@ ohos_moduletest("app_account_manager_service_associated_data_test") {
 
   external_deps = [
     "ability_base:base",
+    "ability_base:configuration",
     "ability_base:want",
     "ability_runtime:ability_connect_callback_stub",
     "ability_runtime:app_manager",
@@ -414,6 +416,7 @@ ohos_moduletest("app_account_control_manager_module_test") {
 
   external_deps = [
     "ability_base:base",
+    "ability_base:configuration",
     "ability_base:want",
     "ability_runtime:ability_connect_callback_stub",
     "ability_runtime:app_manager",
@@ -688,6 +691,7 @@ ohos_moduletest("app_account_manager_service_module_test") {
 
   external_deps = [
     "ability_base:base",
+    "ability_base:configuration",
     "ability_base:want",
     "ability_runtime:app_manager",
     "access_token:libaccesstoken_sdk",
@@ -752,6 +756,7 @@ ohos_moduletest("app_account_manager_service_check_test") {
 
   external_deps = [
     "ability_base:base",
+    "ability_base:configuration",
     "ability_base:want",
     "ability_runtime:app_manager",
     "access_token:libaccesstoken_sdk",
@@ -802,6 +807,7 @@ ohos_moduletest("app_account_manager_service_not_mock_module_test") {
 
   external_deps = [
     "ability_base:base",
+    "ability_base:configuration",
     "ability_base:want",
     "ability_runtime:app_manager",
     "access_token:libaccesstoken_sdk",
@@ -980,6 +986,7 @@ ohos_moduletest("app_account_manager_service_subscribe_module_test") {
 
   external_deps = [
     "ability_base:base",
+    "ability_base:configuration",
     "ability_base:want",
     "ability_runtime:app_manager",
     "access_token:libaccesstoken_sdk",
@@ -1038,6 +1045,7 @@ ohos_moduletest("app_account_manager_service_sync_module_test") {
 
   external_deps = [
     "ability_base:base",
+    "ability_base:configuration",
     "ability_base:want",
     "ability_runtime:app_manager",
     "access_token:libaccesstoken_sdk",
