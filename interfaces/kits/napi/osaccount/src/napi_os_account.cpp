@@ -2016,11 +2016,9 @@ static void OnConstraintSubEnvCleanup(void* data)
         std::lock_guard<std::mutex> lock(g_lockForConstraintChangeSubscribers);
         auto it = g_osAccountConstraintChangeSubscribers.begin();
         while (it != g_osAccountConstraintChangeSubscribers.end()) {
-            if ((*it)->env == cleanupEnv) {
+            if (((*it) != nullptr) && ((*it)->env == cleanupEnv)) {
                 ACCOUNT_LOGW("Removing subscriber for destroyed environment");
-                if ((*it) != nullptr) {
-                    OsAccountManager::UnsubscribeOsAccountConstraints((*it));
-                }
+                OsAccountManager::UnsubscribeOsAccountConstraints((*it));
                 it = g_osAccountConstraintChangeSubscribers.erase(it);
             } else {
                 ++it;
