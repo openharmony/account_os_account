@@ -814,6 +814,116 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_CreateOsAc
 }
 
 /*
+ * @tc.name: DomainAccountClientModuleTest_CreateOsAccountForDomain_007
+ * @tc.desc: CreateOsAccountForDomain successfully with 100 bind domain.
+ * @tc.desc: disallowedHapList and allowedHapList is null.
+ * @tc.type: FUNC
+ * @tc.require: I6KNUZ
+ */
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_CreateOsAccountForDomain_007, TestSize.Level1)
+{
+    // query if the 100 account bound
+    OsAccountInfo osAccountInfo;
+    EXPECT_EQ(OsAccountManager::QueryOsAccountById(OHOS::AccountSA::Constants::START_USER_ID, osAccountInfo), ERR_OK);
+    DomainAccountInfo startUserDomainInfo;
+    osAccountInfo.GetDomainInfo(startUserDomainInfo);
+    bool bound = !startUserDomainInfo.accountName_.empty();
+
+    CreateOsAccountForDomainOptions options;
+    options.hasShortName = true;
+    options.shortName = "shortExist";
+    options.disallowedHapList = {};
+    options.allowedHapList = {};
+
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = ACCOUNT_NAME;
+    domainInfo.domain_ = STRING_DOMAIN;
+    domainInfo.accountId_ = STRING_ACCOUNTID;
+    std::vector<std::string> constraints;
+    constraints.emplace_back(CONSTRAINT_CREATE_ACCOUNT_DIRECTLY);
+    ErrCode errCode = OsAccountManager::SetOsAccountConstraints(TEST_UID, constraints, true);
+    ASSERT_EQ(errCode, ERR_OK);
+    auto callback = std::make_shared<MockDomainCreateDomainAccountCallback>();
+    ASSERT_NE(callback, nullptr);
+    auto testCallback = std::make_shared<TestCreateDomainAccountCallback>(callback);
+    if (!bound) {
+        EXPECT_CALL(*callback, OnResult(ERR_OK, ACCOUNT_NAME, STRING_DOMAIN, STRING_ACCOUNTID))
+        .Times(Exactly(1));
+    }
+
+    ASSERT_NE(testCallback, nullptr);
+    errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, testCallback, options);
+    EXPECT_EQ(errCode, bound ? ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR : ERR_OK);
+    if (!bound) {
+        std::unique_lock<std::mutex> lock(testCallback->mutex);
+        testCallback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
+                                  [lockCallback = testCallback]() { return lockCallback->isReady; });
+        EXPECT_EQ(OsAccountManager::QueryOsAccountById(testCallback->GetLocalId(), osAccountInfo), ERR_OK);
+        osAccountInfo.GetDomainInfo(startUserDomainInfo);
+        EXPECT_EQ(testCallback->GetLocalId(), OHOS::AccountSA::Constants::START_USER_ID);
+        EXPECT_EQ(startUserDomainInfo.accountName_, ACCOUNT_NAME);
+    }
+
+    errCode = OsAccountManager::SetOsAccountConstraints(TEST_UID, constraints, false);
+    EXPECT_EQ(errCode, ERR_OK);
+}
+
+/*
+ * @tc.name: DomainAccountClientModuleTest_CreateOsAccountForDomain_008
+ * @tc.desc: CreateOsAccountForDomain successfully with 100 bind domain.
+ * @tc.desc: disallowedHapList and allowedHapList have value.
+ * @tc.type: FUNC
+ * @tc.require: I6KNUZ
+ */
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_CreateOsAccountForDomain_008, TestSize.Level1)
+{
+    // query if the 100 account bound
+    OsAccountInfo osAccountInfo;
+    EXPECT_EQ(OsAccountManager::QueryOsAccountById(OHOS::AccountSA::Constants::START_USER_ID, osAccountInfo), ERR_OK);
+    DomainAccountInfo startUserDomainInfo;
+    osAccountInfo.GetDomainInfo(startUserDomainInfo);
+    bool bound = !startUserDomainInfo.accountName_.empty();
+
+    CreateOsAccountForDomainOptions options;
+    options.hasShortName = true;
+    options.shortName = "shortExist";
+    options.disallowedHapList = { "test.demo1.com" };
+    options.allowedHapList = { "test.demo1.com", "test.demo2.com", "test.demo3.com"};
+
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = ACCOUNT_NAME;
+    domainInfo.domain_ = STRING_DOMAIN;
+    domainInfo.accountId_ = STRING_ACCOUNTID;
+    std::vector<std::string> constraints;
+    constraints.emplace_back(CONSTRAINT_CREATE_ACCOUNT_DIRECTLY);
+    ErrCode errCode = OsAccountManager::SetOsAccountConstraints(TEST_UID, constraints, true);
+    ASSERT_EQ(errCode, ERR_OK);
+    auto callback = std::make_shared<MockDomainCreateDomainAccountCallback>();
+    ASSERT_NE(callback, nullptr);
+    auto testCallback = std::make_shared<TestCreateDomainAccountCallback>(callback);
+    if (!bound) {
+        EXPECT_CALL(*callback, OnResult(ERR_OK, ACCOUNT_NAME, STRING_DOMAIN, STRING_ACCOUNTID))
+        .Times(Exactly(1));
+    }
+
+    ASSERT_NE(testCallback, nullptr);
+    errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, testCallback, options);
+    EXPECT_EQ(errCode, bound ? ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR : ERR_OK);
+    if (!bound) {
+        std::unique_lock<std::mutex> lock(testCallback->mutex);
+        testCallback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
+                                  [lockCallback = testCallback]() { return lockCallback->isReady; });
+        EXPECT_EQ(OsAccountManager::QueryOsAccountById(testCallback->GetLocalId(), osAccountInfo), ERR_OK);
+        osAccountInfo.GetDomainInfo(startUserDomainInfo);
+        EXPECT_EQ(testCallback->GetLocalId(), OHOS::AccountSA::Constants::START_USER_ID);
+        EXPECT_EQ(startUserDomainInfo.accountName_, ACCOUNT_NAME);
+    }
+
+    errCode = OsAccountManager::SetOsAccountConstraints(TEST_UID, constraints, false);
+    EXPECT_EQ(errCode, ERR_OK);
+}
+
+/*
  * @tc.name: DomainAccountClientModuleTest_CreateOsAccountForDomain_006
  * @tc.desc: CreateOsAccountForDomain failed with domain info is already bind.
  * @tc.type: FUNC
