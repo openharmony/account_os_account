@@ -1134,6 +1134,18 @@ public:
             innerOptions.shortName = innerShortName;
             innerOptions.hasShortName = true;
         }
+        if (options.has_value() && options.value().options.disallowedPreinstalledBundles.has_value()) {
+            for (const auto &bundleName : options.value().options.disallowedPreinstalledBundles.value()) {
+                innerOptions.disallowedHapList.emplace_back(bundleName.data(), bundleName.size());
+            }
+        }
+        if (options.has_value() && options.value().options.allowedPreinstalledBundles.has_value()) {
+            std::vector<std::string> allowedList;
+            for (const auto &bundleName : options.value().options.allowedPreinstalledBundles.value()) {
+                allowedList.emplace_back(bundleName.data(), bundleName.size());
+            }
+            innerOptions.allowedHapList = allowedList;
+        }
         std::shared_ptr<THCreateDomainCallback> createDomainCallback = std::make_shared<THCreateDomainCallback>();
         ErrCode errCode = AccountSA::OsAccountManager::CreateOsAccountForDomain(innerType, innerDomainAccountInfo,
             createDomainCallback, innerOptions);
