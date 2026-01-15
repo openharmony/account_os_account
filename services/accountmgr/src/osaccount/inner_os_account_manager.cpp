@@ -97,6 +97,9 @@ const std::vector<int32_t> NO_DESKTOP_OS_ACCOUNTS = {
 #endif // ENABLE_U1_ACCOUNT
 };
 #endif // SUPPORT_STOP_MAIN_OS_ACCOUNT
+static constexpr unsigned int ACCOUNT_OS_ACCOUNT = 0xC01B00;
+#define FDSAN_EXCHANGED(fd) fdsan_exchange_owner_tag(fd, 0, ACCOUNT_OS_ACCOUNT)
+#define FDSAN_CLOSE(fd) fdsan_close_with_tag(fd, ACCOUNT_OS_ACCOUNT)
 }
 
 
@@ -2500,7 +2503,7 @@ void IInnerOsAccountManager::ExecuteDeactivationAnimation(int32_t pipeFd, const 
         ACCOUNT_LOGE("Failed to execv animation: %{public}s", strerror(err));
         ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_DEACTIVATE, err,
             "Failed to launch deactivation animation, execv error");
-        close(pipeFd);
+        FDSAN_CLOSE(pipeFd);
         exit(EXIT_FAILURE);
     }
 }
@@ -2566,26 +2569,27 @@ void IInnerOsAccountManager::LaunchDeactivationAnimation(const OsAccountInfo &os
             "Failed to launch deactivation animation, create pipe error");
         return;
     }
-
+    FDSAN_EXCHANGED(pipeFd[PIPE_READ_END]);
+    FDSAN_EXCHANGED(pipeFd[PIPE_WRITE_END]);
     pid_t pid = fork();
     if (pid == 0) {
-        close(pipeFd[PIPE_READ_END]);
+        FDSAN_CLOSE(pipeFd[PIPE_READ_END]);
         ExecuteDeactivationAnimation(pipeFd[PIPE_WRITE_END], osAccountInfo);
     } else if (pid > 0) {
-        close(pipeFd[PIPE_WRITE_END]);
+        FDSAN_CLOSE(pipeFd[PIPE_WRITE_END]);
         ErrCode ret = WaitForAnimationReady(pipeFd[PIPE_READ_END]);
         if (ret != ERR_OK) {
             ReportOsAccountOperationFail(localId, Constants::OPERATION_DEACTIVATE, ret,
                 "Failed to launch deactivation animation, wait msg error");
         }
-        close(pipeFd[PIPE_READ_END]);
+        FDSAN_CLOSE(pipeFd[PIPE_READ_END]);
     } else {
         int32_t err = errno;
         ACCOUNT_LOGE("Failed to fork deactivation animation process: %{public}s", strerror(err));
         ReportOsAccountOperationFail(localId, Constants::OPERATION_DEACTIVATE, err,
             "Failed to launch deactivation animation, fork error");
-        close(pipeFd[PIPE_READ_END]);
-        close(pipeFd[PIPE_WRITE_END]);
+        FDSAN_CLOSE(pipeFd[PIPE_READ_END]);
+        FDSAN_CLOSE(pipeFd[PIPE_WRITE_END]);
     }
 }
 #ifdef FUZZ_TEST
