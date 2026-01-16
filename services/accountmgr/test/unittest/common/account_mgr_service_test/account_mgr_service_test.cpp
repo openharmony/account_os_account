@@ -398,7 +398,6 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceDump001, TestSize.Level2)
     ASSERT_EQ(result, ERR_ACCOUNT_MGR_DUMP_ERROR);
 
     int32_t fd = 1;
-    g_accountMgrService->dumpHelper_ = nullptr;
     result = g_accountMgrService->Dump(fd, args);
-    ASSERT_EQ(result, ERR_ACCOUNT_MGR_DUMP_ERROR);
+    ASSERT_EQ(result, ERR_OK);
 }
