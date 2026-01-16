@@ -672,62 +672,7 @@ bool AccountMgrService::Init()
     }
     PerfStat::GetInstance().SetInstanceInitTime(GetTickCount());
 
-    dumpHelper_ = std::make_unique<AccountDumpHelper>(osAccountManagerService_.GetRefPtr());
     ACCOUNT_LOGI("init end success");
-    return true;
-}
-
-bool AccountMgrService::CreateOsAccountService()
-{
-    osAccountManagerService_ = new (std::nothrow) OsAccountManagerService();
-    if (osAccountManagerService_ == nullptr) {
-        ACCOUNT_LOGE("memory alloc failed for osAccountManagerService_!");
-        ReportServiceStartFail(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR,
-            "Insufficient memory to create os account manager service");
-        return false;
-    }
-    return true;
-}
-
-bool AccountMgrService::CreateAppAccountService()
-{
-#ifdef HAS_APP_ACCOUNT_PART
-    appAccountManagerService_ = new (std::nothrow) AppAccountManagerService();
-    if (appAccountManagerService_ == nullptr) {
-        ACCOUNT_LOGE("memory alloc failed for appAccountManagerService!");
-        ReportServiceStartFail(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR,
-            "Insufficient memory to create app account manager service");
-        return false;
-    }
-#endif
-    return true;
-}
-
-bool AccountMgrService::CreateIAMService()
-{
-#ifdef HAS_USER_AUTH_PART
-    accountIAMService_ = new (std::nothrow) AccountIAMService();
-    if (accountIAMService_ == nullptr) {
-        ACCOUNT_LOGE("memory alloc for AccountIAMService failed!");
-        ReportServiceStartFail(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR,
-            "Insufficient memory to create account iam service");
-        return false;
-    }
-#endif
-    return true;
-}
-
-bool AccountMgrService::CreateDomainService()
-{
-#ifdef SUPPORT_DOMAIN_ACCOUNTS
-    domainAccountMgrService_ = new (std::nothrow) DomainAccountManagerService();
-    if (domainAccountMgrService_ == nullptr) {
-        ACCOUNT_LOGE("memory alloc for DomainAccountManagerService failed!");
-        ReportServiceStartFail(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR,
-            "Insufficient memory to create domain account manager service");
-        return false;
-    }
-#endif // SUPPORT_DOMAIN_ACCOUNTS
     return true;
 }
 
@@ -737,18 +682,19 @@ ErrCode AccountMgrService::Dump(std::int32_t fd, const std::vector<std::u16strin
         ACCOUNT_LOGE("dump fd invalid");
         return ERR_ACCOUNT_MGR_DUMP_ERROR;
     }
-
-    if (dumpHelper_ == nullptr) {
-        ACCOUNT_LOGE("dumpHelper_ is nullptr!");
-        return ERR_ACCOUNT_MGR_DUMP_ERROR;
+    sptr<IRemoteObject> servicePtr = nullptr;
+    GetOsAccountService(servicePtr);
+    if (servicePtr == nullptr) {
+        ACCOUNT_LOGE("dump servicePtr is nullptr");
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
-
+    AccountDumpHelper dumpHelper(static_cast<OsAccountManagerService *>(servicePtr.GetRefPtr()));
     std::vector<std::string> argsInStr;
     std::transform(args.begin(), args.end(), std::back_inserter(argsInStr),
         [](const auto &arg) { return Str16ToStr8(arg); });
 
     std::string result;
-    dumpHelper_->Dump(argsInStr, result);
+    dumpHelper.Dump(argsInStr, result);
     std::int32_t ret = dprintf(fd, "%s", result.c_str());
     if (ret < 0) {
         ACCOUNT_LOGE("dprintf to dump fd failed");

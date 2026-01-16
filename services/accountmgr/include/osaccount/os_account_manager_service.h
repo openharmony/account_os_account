@@ -175,8 +175,8 @@ public:
     ErrCode CallbackExit([[maybe_unused]] uint32_t code, [[maybe_unused]] int32_t result) override;
 
 private:
-    virtual ErrCode DumpStateByAccounts(
-        const std::vector<OsAccountInfo> &osAccountInfos, std::vector<std::string> &state);
+    virtual ErrCode DumpStateByAccounts(const std::vector<OsAccountInfo> &osAccountInfos,
+        std::vector<std::string> &state, bool dumpSensitiveInfo = true);
     bool PermissionCheck(const std::string& permissionName, const std::string& constraintName);
     bool CheckCreateOsAccountWhiteList();
     ErrCode ValidateShortName(const std::string &shortName);
