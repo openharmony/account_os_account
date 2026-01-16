@@ -1838,6 +1838,10 @@ bool HasAccountSync(DomainAccountInfo const& domainAccountInfo)
     }
     std::unique_lock<std::mutex> lock(callbackInner->mutex_);
     callbackInner->cv_.wait(lock, [callbackInner] { return callbackInner->onResultCalled_;});
+    if (callbackInner->errCode_ != ERR_OK) {
+        ACCOUNT_LOGE("HasAccountSync failed with errCode: %{public}d", callbackInner->errCode_);
+        SetTaiheBusinessErrorFromNativeCode(callbackInner->errCode_);
+    }
     return callbackInner->isHasDomainAccount_;
 }
 
