@@ -139,6 +139,10 @@ ErrCode OsAccountStaticSubscriberManager::Publish(int32_t fromId, OsAccountState
         return ERR_OK;
     }
     for (const std::shared_ptr<StaticSubscriber> &subscriber : it->second) {
+        if (subscriber == nullptr) {
+            ACCOUNT_LOGE("Subscriber is nullptr");
+            continue;
+        }
         auto task = [subscriber, state, fromId, toId, displayId] {
             COsAccountStateData data;
             data.fromId = fromId;
