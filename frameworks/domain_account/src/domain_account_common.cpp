@@ -20,6 +20,7 @@
 #include "parcel.h"
 #include "os_account_constants.h"
 #include "account_error_no.h"
+#include "os_account_info_json_parser.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -375,6 +376,30 @@ DomainAuthResult *DomainAuthResult::Unmarshalling(Parcel &parcel)
 
 bool CreateOsAccountForDomainOptions::Marshalling(Parcel &parcel) const
 {
+    if (allowedHapList.has_value()) {
+        if (!parcel.WriteBool(true)) {
+            ACCOUNT_LOGE("Write has value failed.");
+            return false;
+        }
+        std::vector<std::string> list = allowedHapList.value();
+        if (list.size() > ALLOWED_HAP_LIST_MAX_SIZE) {
+            ACCOUNT_LOGE("Abnormal allowedHapList data size, size %{public}zu", list.size());
+            return false;
+        }
+        if (!parcel.WriteStringVector(list)) {
+            ACCOUNT_LOGE("Write allowedHapList failed.");
+            return false;
+        }
+    } else {
+        if (!parcel.WriteBool(false)) {
+            ACCOUNT_LOGE("Write has not value failed.");
+            return false;
+        }
+    }
+    if (!parcel.WriteStringVector(disallowedHapList)) {
+        ACCOUNT_LOGE("Failed to write disallowedHapList");
+        return false;
+    }
     if (!parcel.WriteString(shortName)) {
         ACCOUNT_LOGE("Failed to write shortName");
         return false;
@@ -399,6 +424,27 @@ CreateOsAccountForDomainOptions *CreateOsAccountForDomainOptions::Unmarshalling(
 
 bool CreateOsAccountForDomainOptions::ReadFromParcel(Parcel &parcel)
 {
+    bool hasValue = false;
+    if (!parcel.ReadBool(hasValue)) {
+        ACCOUNT_LOGE("Read has value failed.");
+        return false;
+    }
+    if (hasValue) {
+        std::vector<std::string> list = {};
+        if (!parcel.ReadStringVector(&list)) {
+            ACCOUNT_LOGE("Read allowedHapList failed.");
+            return false;
+        }
+        if (list.size() > ALLOWED_HAP_LIST_MAX_SIZE) {
+            ACCOUNT_LOGE("Abnormal allowedHapList data size reading form parcel, size %{public}zu", list.size());
+            return false;
+        }
+        allowedHapList = std::make_optional<std::vector<std::string>>(list);
+    }
+    if (!parcel.ReadStringVector(&disallowedHapList)) {
+        ACCOUNT_LOGE("Failed to read disallowedHapList.");
+        return false;
+    }
     if (!parcel.ReadString(shortName)) {
         ACCOUNT_LOGE("Failed to read shortName.");
         return false;

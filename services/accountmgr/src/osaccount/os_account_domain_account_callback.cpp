@@ -76,8 +76,8 @@ ErrCode CheckAndCreateDomainAccountCallback::OnResult(int32_t errCode, const Dom
     if (errCode != ERR_OK) {
         return HandleErrorWithEmptyResult(errCode, resultParcel);
     }
-    auto callbackWrapper =
-        std::make_shared<BindDomainAccountCallback>(osAccountControl_, osAccountInfo, innerCallback_);
+    auto callbackWrapper = std::make_shared<BindDomainAccountCallback>(
+        osAccountControl_, osAccountInfo, innerCallback_, accountOptions_);
     if (callbackWrapper == nullptr) {
         ACCOUNT_LOGE("Create BindDomainAccountCallback failed");
         return HandleErrorWithEmptyResult(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR, resultParcel);
@@ -92,8 +92,9 @@ ErrCode CheckAndCreateDomainAccountCallback::OnResult(int32_t errCode, const Dom
 
 BindDomainAccountCallback::BindDomainAccountCallback(
     std::shared_ptr<IOsAccountControl> &osAccountControl, const OsAccountInfo &osAccountInfo,
-    const sptr<IDomainAccountCallback> &callback)
-    : osAccountControl_(osAccountControl), osAccountInfo_(osAccountInfo), innerCallback_(callback)
+    const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions &accountOptions)
+    : osAccountControl_(osAccountControl), osAccountInfo_(osAccountInfo), innerCallback_(callback),
+    accountOptions_(accountOptions)
 {}
 
 void BindDomainAccountCallback::OnResult(int32_t errCode, Parcel &parcel)
@@ -114,7 +115,10 @@ void BindDomainAccountCallback::OnResult(int32_t errCode, Parcel &parcel)
     }
     Parcel resultParcel;
     if (osAccountInfo_.GetLocalId() != Constants::START_USER_ID) {
-        errCode = IInnerOsAccountManager::GetInstance().SendMsgForAccountCreate(osAccountInfo_);
+        CreateOsAccountOptions options;
+        options.disallowedHapList = accountOptions_.disallowedHapList;
+        options.allowedHapList = accountOptions_.allowedHapList;
+        errCode = IInnerOsAccountManager::GetInstance().SendMsgForAccountCreate(osAccountInfo_, options);
         if (errCode != ERR_OK) {
             DomainAccountInfo curDomainInfo;
             osAccountInfo_.GetDomainInfo(curDomainInfo);

@@ -43,13 +43,14 @@ private:
 class BindDomainAccountCallback final : public DomainAccountCallback {
 public:
     BindDomainAccountCallback(std::shared_ptr<IOsAccountControl> &osAccountControl, const OsAccountInfo &osAccountInfo,
-        const sptr<IDomainAccountCallback> &callback);
+        const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions &accountOptions = {});
     void OnResult(const int32_t errCode, Parcel &parcel) override;
 
 private:
     std::shared_ptr<IOsAccountControl> osAccountControl_;
     OsAccountInfo osAccountInfo_;
     sptr<IDomainAccountCallback> innerCallback_ = nullptr;
+    CreateOsAccountForDomainOptions accountOptions_ = {};
 };
 } // namespace AccountSA
 } // namespace OHOS

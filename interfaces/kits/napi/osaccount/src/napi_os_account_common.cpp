@@ -662,6 +662,23 @@ bool ParseParaCreateOAForDomain(napi_env env, napi_callback_info cbInfo,
                 AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
                 return false;
             }
+            bool hasDisallowedBundleNames = false;
+            napi_has_named_property(env, argv[PARAMTWO], "disallowedBundleNames", &hasDisallowedBundleNames);
+            if (hasDisallowedBundleNames) {
+                GetStringArrayPropertyByKey(env, argv[PARAMTWO], "disallowedBundleNames",
+                    asyncContext->domainOptions.disallowedHapList, true);
+            } else {
+                GetStringArrayPropertyByKey(env, argv[PARAMTWO], "disallowedPreinstalledBundles",
+                    asyncContext->domainOptions.disallowedHapList, true);
+            }
+            bool hasAllowedPreinstalledBundles = false;
+            napi_has_named_property(
+                env, argv[PARAMTWO], "allowedPreinstalledBundles", &hasAllowedPreinstalledBundles);
+            if (hasAllowedPreinstalledBundles) {
+                std::vector<std::string> list;
+                GetStringArrayPropertyByKey(env, argv[PARAMTWO], "allowedPreinstalledBundles", list, true);
+                asyncContext->domainOptions.allowedHapList = std::make_optional<std::vector<std::string>>(list);
+            }
         }
     }
 
