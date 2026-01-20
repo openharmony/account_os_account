@@ -151,7 +151,8 @@ private:
     void StartPluginGetDomainAccountInfo(GetDomainAccountInfoOptions options,
         const sptr<IDomainAccountCallback> &callbackService);
     ErrCode CancelAuthWork(const uint64_t &contextId);
-
+    void StartPluginHasDomainAccount(const GetDomainAccountInfoOptions &options,
+        const sptr<IDomainAccountCallback> &callback);
 protected:
     friend InnerDomainAuthCallback;
     bool AddToContextMap(const uint64_t contextId, const sptr<InnerDomainAuthCallback> &innerCallback);
