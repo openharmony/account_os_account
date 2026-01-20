@@ -1,0 +1,8 @@
+{
+    "privileges": [
+        {
+            "name":"privilege.manage_local_accounts",
+            "description":"Manage local accounts"
+        }
+    ]
+}

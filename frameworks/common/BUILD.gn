@@ -24,6 +24,7 @@ config("account_common_config") {
     "file_operator/include",
     "log/include",
     "perf_stat/include",
+    "privileges/include",
     "${os_account_dfx_path}/hisysevent_adapter",
     "${os_account_dfx_path}/data_dfx",
     "utils/include",
@@ -33,6 +34,7 @@ config("account_common_config") {
     "${os_account_path}/interfaces/innerkits/osaccount/native/include",
     "${domain_account_interfaces_native_path}/include",
     "${app_account_innerkits_native_path}/include",
+    rebase_path(target_out_dir),
   ]
 }
 
@@ -57,6 +59,7 @@ ohos_shared_library("libaccount_common") {
     "json_utils/src/os_account_info_json_parser.cpp",
     "log/src/account_log_wrapper.cpp",
     "perf_stat/src/perf_stat.cpp",
+    "privileges/src/privileges_map.cpp",
     "utils/src/account_permission_manager.cpp",
     "utils/src/account_timeout_task.cpp",
     "utils/src/memory_guard.cpp",
@@ -82,6 +85,8 @@ ohos_shared_library("libaccount_common") {
   }
 
   public_configs = [ ":account_common_config" ]
+
+  deps = [ ":privileges_definition_parse" ]
 
   external_deps = [
     "ability_base:want",
@@ -111,4 +116,18 @@ ohos_shared_library("libaccount_common") {
   subsystem_name = "account"
   innerapi_tags = [ "platformsdk" ]
   part_name = "os_account"
+}
+
+action("privileges_definition_parse") {
+  script = "./privileges/privileges_definition_parser.py"
+  input_json =
+      "${os_account_path}/services/authorization_manager/config/privileges.json"
+  inputs = [ input_json ]
+  args = [
+    "--input-json",
+    rebase_path(input_json, root_build_dir),
+    "--output-path",
+    rebase_path(target_out_dir) + "/privileges_map_constant.h",
+  ]
+  outputs = [ "$target_out_dir/privileges_map_constant.h" ]
 }

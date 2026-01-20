@@ -17,6 +17,19 @@ import("../../../../../os_account.gni")
 
 module_output_path = "os_account/os_account"
 
+action("privileges_definition_parse_test") {
+  script = "${common_path}/privileges/privileges_definition_parser.py"
+  input_json = "privileges_test.json"
+  inputs = [ input_json ]
+  args = [
+    "--input-json",
+    rebase_path(input_json, root_build_dir),
+    "--output-path",
+    rebase_path(target_out_dir) + "/privileges_map_constant.h",
+  ]
+  outputs = [ "$target_out_dir/privileges_map_constant.h" ]
+}
+
 ohos_unittest("AccountCommonTest") {
   branch_protector_ret = "pac_ret"
 
@@ -91,11 +104,37 @@ ohos_unittest("AccountJsonTest") {
   part_name = "os_account"
 }
 
+ohos_unittest("PrivilegesMapTest") {
+  module_out_path = module_output_path
+
+  sources = [
+    "${common_path}/privileges/src/privileges_map.cpp",
+    "privileges_map_test.cpp",
+  ]
+
+  configs = [
+    "${common_path}:account_common_config",
+    "${common_path}/test:common_test_config",
+  ]
+
+  include_dirs = [ rebase_path(target_out_dir) ]
+
+  deps = [ ":privileges_definition_parse_test" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+  ]
+  part_name = "os_account"
+}
+
 group("unittest") {
   testonly = true
 
   deps = [
     ":AccountCommonTest",
     ":AccountJsonTest",
+    ":PrivilegesMapTest",
   ]
 }

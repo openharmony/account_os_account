@@ -1,0 +1,12 @@
+{
+    "privileges": [
+        {
+            "name": "test.privilege.one",
+            "description": "Description for test privilege one"
+        },
+        {
+            "name": "test.privilege.two",
+            "description": "Description for test privilege two"
+        }
+    ]
+}
