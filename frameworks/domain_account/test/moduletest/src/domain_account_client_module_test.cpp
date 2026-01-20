@@ -914,7 +914,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_HasDomainA
     ASSERT_NE(callback, nullptr);
     auto testCallback = std::make_shared<TestHasDomainInfoCallback>(callback);
     ASSERT_NE(testCallback, nullptr);
-    EXPECT_CALL(*callback, OnResult(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, _)).Times(Exactly(1));
+    EXPECT_CALL(*callback, OnResult(ERR_JS_CAPABILITY_NOT_SUPPORTED, _)).Times(Exactly(1));
     EXPECT_EQ(DomainAccountClient::GetInstance().HasAccount(info, testCallback), ERR_OK);
     std::unique_lock<std::mutex> lock(testCallback->mutex);
     testCallback->cv.wait_for(

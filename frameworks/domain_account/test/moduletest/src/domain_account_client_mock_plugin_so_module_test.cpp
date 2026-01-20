@@ -1470,6 +1470,18 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, BindDomainAccount009, TestSi
     EXPECT_EQ(ERR_OK, fileController.GetOsAccountInfoById(info.GetLocalId(), readInfo));
     ASSERT_EQ("testaccount", readInfo.domainInfo_.accountName_);
     ASSERT_EQ(false, fileController.accountFileOperator_->IsExistFile(filePath));
+    domainInfo.accountName_ = "testAccount";
+    domainInfo.domain_ = "testDomain";
+    auto callback2 = std::make_shared<MockDomainHasDomainInfoCallback>();
+    ASSERT_NE(callback2, nullptr);
+    auto testCallback = std::make_shared<TestHasDomainInfoCallback>(callback2);
+    ASSERT_NE(testCallback, nullptr);
+    EXPECT_EQ(DomainAccountClient::GetInstance().HasAccount(domainInfo, testCallback), ERR_OK);
+    domainInfo.accountName_ = "testAccountInvalid";
+    EXPECT_EQ(DomainAccountClient::GetInstance().HasAccount(domainInfo, testCallback), ERR_OK);
+    domainInfo.accountName_ = "testDomainInvalid";
+    domainInfo.domain_ = "testDomainInvalid";
+    EXPECT_EQ(DomainAccountClient::GetInstance().HasAccount(domainInfo, testCallback), ERR_OK);
     EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(info.GetLocalId()));
     UnloadPluginMethods();
 }
