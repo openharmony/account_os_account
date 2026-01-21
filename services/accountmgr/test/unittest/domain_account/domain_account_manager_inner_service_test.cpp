@@ -576,6 +576,10 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
     AuthStatusInfo authInfo;
     EXPECT_EQ(instance->PluginGetAuthStatusInfo(info, authInfo), ERR_JS_CAPABILITY_NOT_SUPPORTED);
     GetDomainAccountInfoOptions options;
+    instance->StartPluginHasDomainAccount(options, nullptr);
+    sptr<IDomainAccountCallback> innerCallback = new (std::nothrow) InnerDomainAuthCallback(MAIN_ACCOUNT_ID, nullptr);
+    ASSERT_NE(innerCallback, nullptr);
+    instance->StartPluginHasDomainAccount(options, innerCallback);
     EXPECT_EQ(instance->PluginGetDomainAccountInfo(options, info), ERR_JS_CAPABILITY_NOT_SUPPORTED);
 }
 
@@ -628,6 +632,9 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
     EXPECT_EQ(instance->PluginAuthToken(info, password, resultParcel), ERR_OK);
     EXPECT_EQ(instance->PluginGetAuthStatusInfo(info, authInfo), ERR_OK);
     EXPECT_EQ(instance->PluginGetDomainAccountInfo(options, info), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    sptr<IDomainAccountCallback> innerCallback = new (std::nothrow) InnerDomainAuthCallback(MAIN_ACCOUNT_ID, nullptr);
+    ASSERT_NE(innerCallback, nullptr);
+    instance->StartPluginHasDomainAccount(options, innerCallback);
 }
 
 /**

@@ -172,6 +172,12 @@ PluginBussnessError *GetAccountInfo(const PluginGetDomainAccountInfoOptions *opt
     } else {
         (*domainAccountInfo)->serverConfigId.data = nullptr;
     }
+    if (strcmp(options->domainAccountInfo.accountName.data, "testAccountInvalid") == 0) {
+        SetPluginString("testAccount", (*domainAccountInfo)->accountName);
+    }
+    if (strcmp(options->domainAccountInfo.accountName.data, "testDomainInvalid") == 0) {
+        SetPluginString("testDomain", (*domainAccountInfo)->domain);
+    }
     return error;
 }
 

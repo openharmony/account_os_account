@@ -2054,8 +2054,13 @@ ErrCode InnerDomainAccountManager::HasDomainAccount(
     GetDomainAccountInfoOptions options;
     options.accountInfo = info;
     options.callingUid = callingUid;
+    std::function<void()> task;
     std::lock_guard<std::mutex> lock(mutex_);
-    auto task = [this, options, callback, plugin = plugin_] { this->StartHasDomainAccount(plugin, options, callback); };
+    if (plugin_ != nullptr) {
+        task = [this, options, callback, plugin = plugin_] { this->StartHasDomainAccount(plugin, options, callback); };
+    } else {
+        task = [this, options, callback] { this->StartPluginHasDomainAccount(options, callback); };
+    }
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), THREAD_HAS_ACCOUNT);
     taskThread.detach();
@@ -2183,6 +2188,36 @@ void InnerDomainAccountManager::StartGetDomainAccountInfo(const sptr<IDomainAcco
         ACCOUNT_LOGE("failed to get domain account, errCode: %{public}d", errCode);
         ErrorOnResult(errCode, callback);
     }
+}
+
+void InnerDomainAccountManager::StartPluginHasDomainAccount(const GetDomainAccountInfoOptions &options,
+    const sptr<IDomainAccountCallback> &callback)
+{
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("callback is nullptr");
+        return;
+    }
+    DomainAccountInfo info;
+    ErrCode errCode = PluginGetDomainAccountInfo(options, info);
+    Parcel parcelResult;
+    DomainAccountParcel domainAccountParcel;
+    if (errCode == ERR_JS_ACCOUNT_NOT_FOUND) {
+        parcelResult.WriteBool(false);
+        domainAccountParcel.SetParcelData(parcelResult);
+        callback->OnResult(ERR_OK, domainAccountParcel);
+        return;
+    }
+    if (errCode != ERR_OK) {
+        parcelResult.WriteBool(false);
+    } else if ((info.domain_ != options.accountInfo.domain_) ||
+        (info.accountName_ != options.accountInfo.accountName_)) {
+        parcelResult.WriteBool(false);
+    } else {
+        parcelResult.WriteBool(true);
+    }
+    domainAccountParcel.SetParcelData(parcelResult);
+    callback->OnResult(errCode, domainAccountParcel);
+    return;
 }
 
 ErrCode InnerDomainAccountManager::PluginGetDomainAccountInfo(const GetDomainAccountInfoOptions &options,
