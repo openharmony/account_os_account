@@ -71,7 +71,8 @@
         "window_manager",
         "openssl",
         "config_policy",
-        "icu"
+        "icu",
+        "tee_client"
       ],
       "third_party": []
     },

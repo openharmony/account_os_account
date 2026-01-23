@@ -277,6 +277,12 @@ ohos_shared_library("accountmgr") {
     external_deps += [ "window_manager:libdm_lite" ]
   }
 
+  if (os_account_support_authorization) {
+    cflags_cc += [ "-DSUPPORT_AUTHORIZATION" ]
+    external_deps += [ "tee_client:libteec" ]
+    sources += [ "./src/common/tee/tee_auth_adapter.cpp" ]
+  }
+
   if (os_account_multiple_active_accounts ||
       os_account_support_deactivate_main_os_account) {
     external_deps += [ "ability_runtime:app_manager" ]
