@@ -147,6 +147,10 @@ declare_args() {
   os_account_enable_multiple_foreground_os_accounts = false
 }
 
+declare_args() {
+  os_account_support_authorization = false
+}
+
 if (!defined(global_parts_info) ||
     defined(global_parts_info.hiviewdfx_hicollie)) {
   hicollie_enable = true
