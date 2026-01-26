@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-#include "tee/tee_auth_adapter.h"
+#include "tee_auth_adapter.h"
+#include "account_log_wrapper.h"
 #include <mutex>
 
 namespace OHOS {
 namespace AccountSA {
-using namespace OHOS::EAA;
 namespace {
     constexpr uint32_t TOKEN_TYPE_AUTHORIZATION = 0;
     constexpr uint32_t ACCOUNT_INFO_PARAM_INDEX = 0;
