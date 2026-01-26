@@ -62,6 +62,10 @@ config("accountmgr_config") {
     "${os_account_core_path}/include",
     "${os_account_interfaces_native_path}/include",
   ]
+
+  if (os_account_support_authorization) {
+    include_dirs += [ "./include/common/tee" ]
+  }
 }
 
 config("account_iam_config") {
