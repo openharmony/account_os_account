@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -34,7 +34,8 @@ enum {
     ACCOUNT_MODULE_ACCOUNT_IAM_KIT,
     ACCOUNT_MODULE_OHOSACCOUNT_SERVICE,
     ACCOUNT_MODULE_DOMAIN_ACCOUNT_SERVICE,
-    ACCOUNT_MODULE_OHOSACCOUNT_KIT
+    ACCOUNT_MODULE_OHOSACCOUNT_KIT,
+    ACCOUNT_MODULE_AUTHORIZATION,
 };
 
 // Error code for common
@@ -302,6 +303,12 @@ enum {
     ERR_OHOSACCOUNT_KIT_SUBSCRIBE_ERROR,
     ERR_OHOSACCOUNT_KIT_SUBSCRIBE_MAX_SIZE_ERROR,
     ERR_OHOSACCOUNT_KIT_CALLBACK_ALREADY_REGISTERED_ERROR,
+};
+
+constexpr ErrCode AUTHORIZATION_ERR_OFFSET =
+    ErrCodeOffset(SUBSYS_ACCOUNT, ACCOUNT_MODULE_AUTHORIZATION);
+enum {
+    ERR_AUTHORIZATION_NOT_SUPPORT = AUTHORIZATION_ERR_OFFSET + 0x0001,
 };
 
 enum IAMResultCode : int32_t {

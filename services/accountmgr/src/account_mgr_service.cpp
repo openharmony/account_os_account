@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -35,6 +35,9 @@
 #endif // HAS_CES_PART
 #include "app_account_manager_service.h"
 #endif
+#ifdef SUPPORT_AUTHORIZATION
+#include "authorization_manager_service.h"
+#endif // SUPPORT_AUTHORIZATION
 #include "datetime_ex.h"
 #include "directory_ex.h"
 #include "domain_account_manager_service.h"
@@ -487,6 +490,23 @@ ErrCode AccountMgrService::GetAccountIAMService(sptr<IRemoteObject>& funcResult)
     funcResult = nullptr;
     return ERR_OK;
 #endif // HAS_USER_AUTH_PART
+}
+
+ErrCode AccountMgrService::GetAuthorizationService(sptr<IRemoteObject>& funcResult)
+{
+    [[maybe_unused]] auto timerPtr = RequestTimer(Constants::OPERATION_GET_SERVICE);
+#ifdef SUPPORT_AUTHORIZATION
+    std::lock_guard<std::mutex> lock(serviceMutex_);
+    funcResult = authorizationManagerService_.promote();
+    if (funcResult == nullptr) {
+        funcResult = new (std::nothrow) AuthorizationManagerService();
+        authorizationManagerService_ = funcResult;
+    }
+    return ERR_OK;
+#else
+    funcResult = nullptr;
+    return ERR_AUTHORIZATION_NOT_SUPPORT;
+#endif // SUPPORT_AUTHORIZATION
 }
 
 ErrCode AccountMgrService::GetDomainAccountService(sptr<IRemoteObject>& funcResult)

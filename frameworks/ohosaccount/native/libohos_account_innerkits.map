@@ -22,6 +22,7 @@
         "OHOS::AccountSA::OhosAccountKitsImpl::GetAppAccountService()";
         "OHOS::AccountSA::OhosAccountKitsImpl::GetOsAccountService()";
         "OHOS::AccountSA::OhosAccountKitsImpl::GetAccountIAMService()";
+        "OHOS::AccountSA::OhosAccountKitsImpl::GetAuthorizationService()";
         "OHOS::AccountSA::OhosAccountKitsImpl::QueryOhosAccountInfo(OHOS::AccountSA::OhosAccountInfo&)";
         OHOS::AccountSA::OhosAccountKitsImpl::QueryDistributedVirtualDeviceId*;
         "OHOS::AccountSA::WriteOhosAccountInfo(OHOS::MessageParcel&, OHOS::AccountSA::OhosAccountInfo const&)";

@@ -68,7 +68,6 @@ config("mock_accountmgr_config") {
   cflags_cc = [
     "-Wdate-time",
     "-Wformat=2",
-    "-Wfloat-equal",
     "-Wshadow",
   ]
   if (os_account_multiple_active_accounts) {

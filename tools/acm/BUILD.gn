@@ -58,7 +58,6 @@ ohos_source_set("tools_acm_source_set") {
   cflags_cc = [
     "-Wdate-time",
     "-Wformat=2",
-    "-Wfloat-equal",
     "-Wshadow",
   ]
 

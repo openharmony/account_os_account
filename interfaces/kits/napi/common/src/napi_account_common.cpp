@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -158,6 +158,29 @@ bool GetLongIntProperty(napi_env env, napi_value obj, int64_t &property)
     }
 
     NAPI_CALL_BASE(env, napi_get_value_int64(env, obj, &property), false);
+    return true;
+}
+
+bool GetOptionBoolProperty(napi_env env, napi_value obj, const std::string &propertyName, bool &property)
+{
+    bool hasProp = false;
+    NAPI_CALL_BASE(env, napi_has_named_property(env, obj, propertyName.c_str(), &hasProp), false);
+    if (!hasProp) {
+        return true;
+    }
+    napi_value value = nullptr;
+    NAPI_CALL_BASE(env, napi_get_named_property(env, obj, propertyName.c_str(), &value), false);
+    napi_valuetype valueType = napi_undefined;
+    NAPI_CALL_BASE(env, napi_typeof(env, value, &valueType), false);
+    if ((valueType == napi_undefined) || (valueType == napi_null)) {
+        ACCOUNT_LOGI("this key's value is undefined or null");
+        return true;
+    }
+    if (valueType != napi_boolean) {
+        ACCOUNT_LOGE("This value is not boolean");
+        return false;
+    }
+    NAPI_CALL_BASE(env, napi_get_value_bool(env, value, &property), false);
     return true;
 }
 
@@ -401,6 +424,29 @@ napi_status ParseUint8TypedArray(napi_env env, napi_value value, uint8_t **data,
         *length = 0;
     }
     return napi_ok;
+}
+
+bool GetOptionalUint8TypedArrayToVector(napi_env env, napi_value obj, const std::string &propertyName,
+    std::vector<uint8_t> &vec)
+{
+    bool hasProp = false;
+    NAPI_CALL_BASE(env, napi_has_named_property(env, obj, propertyName.c_str(), &hasProp), false);
+    if (!hasProp) {
+        ACCOUNT_LOGI("This property has no '%{public}s' key", propertyName.c_str());
+        return true;
+    }
+    napi_value value = nullptr;
+    NAPI_CALL_BASE(env, napi_get_named_property(env, obj, propertyName.c_str(), &value), false);
+    napi_valuetype valuetype = napi_undefined;
+    NAPI_CALL_BASE(env, napi_typeof(env, value, &valuetype), false);
+    if ((valuetype == napi_undefined) || (valuetype == napi_null)) {
+        ACCOUNT_LOGI("This key's value is undefined or null");
+        return true;
+    }
+    if (ParseUint8TypedArrayToVector(env, value, vec) != napi_ok) {
+        return false;
+    }
+    return true;
 }
 
 napi_status ParseUint8TypedArrayToVector(napi_env env, napi_value value, std::vector<uint8_t> &vec)
