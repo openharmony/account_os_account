@@ -44,6 +44,11 @@ account_iam_interfaces_native_path =
     "${os_account_path}/interfaces/innerkits/account_iam/native"
 account_iam_framework_path = "${os_account_path}/frameworks/account_iam"
 
+authorization_kits_path = "${os_account_path}/interfaces/kits/napi/authorization"
+authorization_interfaces_native_path =
+    "${os_account_path}/interfaces/innerkits/authorization/native"
+authorization_framework_path = "${os_account_path}/frameworks/authorization"
+
 domain_account_napi_path =
     "${os_account_path}/interfaces/kits/napi/domain_account"
 domain_account_interfaces_native_path =
@@ -144,11 +149,11 @@ declare_args() {
 }
 
 declare_args() {
-  os_account_enable_multiple_foreground_os_accounts = false
+  os_account_support_authorization = false
 }
 
 declare_args() {
-  os_account_support_authorization = false
+  os_account_enable_multiple_foreground_os_accounts = false
 }
 
 if (!defined(global_parts_info) ||

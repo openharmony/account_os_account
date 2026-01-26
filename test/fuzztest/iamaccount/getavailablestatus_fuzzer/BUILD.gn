@@ -37,7 +37,6 @@ ohos_fuzztest("GetAvailableStatusFuzzTest") {
   cflags_cc = [
     "-Wdate-time",
     "-Wformat=2",
-    "-Wfloat-equal",
     "-Wshadow",
   ]
 
