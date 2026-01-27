@@ -93,6 +93,7 @@ ohos_shared_library("authorization_innerkits") {
   ]
 
   external_deps = [
+    "ability_base:want",
     "access_token:libaccesstoken_sdk",
     "cJSON:cjson",
     "c_utils:utils",
