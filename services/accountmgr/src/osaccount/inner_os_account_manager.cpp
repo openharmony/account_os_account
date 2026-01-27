@@ -1157,6 +1157,14 @@ ErrCode IInnerOsAccountManager::PrepareRemoveOsAccount(OsAccountInfo &osAccountI
 {
     int32_t id = osAccountInfo.GetLocalId();
     ErrCode errCode = ERR_OK;
+#ifdef HAS_USER_IDM_PART
+    errCode = OsAccountInterface::SendToIDMAccountDelete(osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("SendToIDMAccountDelete failed, id %{public}d, errCode %{public}d",
+            osAccountInfo.GetLocalId(), errCode);
+        return errCode;
+    }
+#endif // HAS_USER_IDM_PART
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
     DomainAccountInfo curDomainInfo;
     osAccountInfo.GetDomainInfo(curDomainInfo);
@@ -1231,6 +1239,11 @@ ErrCode IInnerOsAccountManager::RemoveOsAccountOperate(const int id, OsAccountIn
         return errCode;
     }
 
+    errCode = osAccountControl_->RemoveOAConstraintsInfo(id);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("RemoveOsAccount failed to remove os account constraints info");
+        return errCode;
+    }
     CheckAndRefreshLocalIdRecord(id);
     subscribeManager_.Publish(id, OS_ACCOUNT_SUBSCRIBE_TYPE::REMOVED);
     return errCode;
@@ -1437,19 +1450,6 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountRemove(OsAccountInfo &osAccount
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("SendToStorageAccountRemove failed, id %{public}d, errCode %{public}d", localId, errCode);
         return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
-    }
-#ifdef HAS_USER_IDM_PART
-    errCode = OsAccountInterface::SendToIDMAccountDelete(osAccountInfo);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("SendToIDMAccountDelete failed, id %{public}d, errCode %{public}d",
-            osAccountInfo.GetLocalId(), errCode);
-        return errCode;
-    }
-#endif // HAS_USER_IDM_PART
-    errCode = osAccountControl_->RemoveOAConstraintsInfo(localId);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("RemoveOsAccount failed to remove os account constraints info");
-        return errCode;
     }
     errCode = osAccountControl_->DelOsAccount(localId);
     if (errCode != ERR_OK) {
