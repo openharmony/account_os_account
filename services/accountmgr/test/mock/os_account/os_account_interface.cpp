@@ -15,11 +15,10 @@
 #include "os_account_constants.h"
 #include "os_account_interface.h"
 #include "account_log_wrapper.h"
-#include "os_account_paramter_mock_test.h"
 
 namespace OHOS {
 namespace AccountSA {
-int g_errType = ERR_INTERFACE_OK;
+
 ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo, const uint64_t displayId,
     const OsAccountStartCallbackFunc &callbackFunc, bool isAppRecovery)
 {
@@ -40,9 +39,6 @@ ErrCode OsAccountInterface::SendToBMSAccountCreate(
     const std::optional<std::vector<std::string>> &allowedHapList)
 {
     ACCOUNT_LOGI("mock OsAccountInterface SendToBMSAccountCreate start");
-    if (g_errType == ERR_INTERFACE_BMS_CREATE) {
-        return ERR_INTERFACE_FAILED;
-    }
     if (osAccountInfo.GetLocalName() == "CreateOsAccountRollback001") {
         return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
     }
@@ -65,9 +61,6 @@ ErrCode OsAccountInterface::IsBundleInstalled(const std::string &bundleName, int
 ErrCode OsAccountInterface::SendToAMSAccountDeactivate(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("mock OsAccountInterface SendToAMSAccountDeactivate start");
-    if (g_errType == ERR_INTERFACE_AMS_DEACTIVATION) {
-        return ERR_INTERFACE_FAILED;
-    }
     return ERR_OK;
 }
 
@@ -106,9 +99,6 @@ ErrCode OsAccountInterface::SendToBMSAccountDelete(OsAccountInfo &osAccountInfo)
 ErrCode OsAccountInterface::SendToIDMAccountDelete(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("mock OsAccountInterface SendToIDMAccountDelete start");
-    if (g_errType == ERR_INTERFACE_IDM_DELETE) {
-        return ERR_INTERFACE_FAILED;
-    }
     return ERR_OK;
 }
 #endif // HAS_USER_IDM_PART
@@ -150,9 +140,6 @@ ErrCode OsAccountInterface::SendToStorageAccountCreate(OsAccountInfo &osAccountI
 ErrCode OsAccountInterface::SendToStorageAccountRemove(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("mock OsAccountInterface SendToStorageAccountRemove start");
-    if (g_errType == ERR_INTERFACE_STORAGE_REMOVE) {
-        return ERR_INTERFACE_FAILED;
-    }
     return ERR_OK;
 }
 
@@ -161,27 +148,18 @@ ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountIn
     ACCOUNT_LOGI("mock OsAccountInterface SendToStorageAccountStart start");
     osAccountInfo.SetIsVerified(true);
     osAccountInfo.SetIsLoggedIn(true);
-    if (g_errType == ERR_INTERFACE_STORAGE_START) {
-        return ERR_INTERFACE_FAILED;
-    }
     return ERR_OK;
 }
 
 ErrCode OsAccountInterface::SendToStorageAccountStop(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("mock OsAccountInterface SendToStorageAccountStop start");
-    if (g_errType == ERR_INTERFACE_STORAGE_STOP) {
-        return ERR_INTERFACE_FAILED;
-    }
     return ERR_OK;
 }
 
 ErrCode OsAccountInterface::CheckAllAppDied(int32_t accountId)
 {
     ACCOUNT_LOGI("mock OsAccountInterface CheckAllAppDied start");
-    if (g_errType == ERR_INTERFACE_CHECKALLAPPDIED) {
-        return ERR_INTERFACE_FAILED;
-    }
     return ERR_OK;
 }
 }  // namespace AccountSA
