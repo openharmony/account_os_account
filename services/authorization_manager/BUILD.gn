@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+# Copyright (c) 2026 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -11,15 +11,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("../os_account.gni")
+import("//build/ohos.gni")
 
-group("services_target") {
-  deps = [
-    "accountmgr:accountmgr_target",
-  ]
-  if (os_account_support_authorization) {
-    deps += [
-      "authorization_manager:authorization_manager_target",
-    ]
-  }
+ohos_prebuilt_etc("privileges_config") {
+  source = "config/privileges.json"
+  relative_install_dir = "account/authorization_manage"
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+group("authorization_manager_target") {
+  deps = [ ":privileges_config" ]
 }
