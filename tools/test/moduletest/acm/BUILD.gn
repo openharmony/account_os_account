@@ -75,6 +75,7 @@ ohos_moduletest("account_command_module_mock_test") {
     "${account_iam_framework_path}:account_iam_stub",
     "${account_iam_framework_path}:account_iam_innerkits",
     "${account_test_common}:account_test_common_source_set",
+    "${app_account_innerkits_native_path}:app_account_interface",
     "${common_path}:libaccount_common",
     "${domain_account_framework_path}:domain_account_innerkits",
     "${domain_account_framework_path}:domain_account_stub",
