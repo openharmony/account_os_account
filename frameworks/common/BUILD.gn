@@ -120,7 +120,7 @@ ohos_shared_library("libaccount_common") {
 action("privileges_definition_parse") {
   script = "./privileges/privileges_definition_parser.py"
   input_json =
-      "${os_account_path}/services/authorization_manager/config/privileges.json"
+      "${os_account_path}/services/accountmgr/authorization_manager/config/privileges.json"
   inputs = [ input_json ]
   args = [
     "--input-json",

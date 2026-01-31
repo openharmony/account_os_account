@@ -504,6 +504,7 @@ group("accountmgr_target") {
     ":os_account_config",
     ":os_account_constraint_config",
     ":os_account_constraint_definition",
+    "authorization_manager:authorization_manager_target",
   ]
   deps += [ ":account_database_adapter" ]
 }
