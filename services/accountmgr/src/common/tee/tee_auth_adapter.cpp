@@ -20,15 +20,26 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
-    constexpr uint32_t TOKEN_TYPE_AUTHORIZATION = 0;
-    constexpr uint32_t ACCOUNT_INFO_PARAM_INDEX = 0;
-    constexpr uint32_t TYPE_PARAM_INDEX = 1;
-    constexpr uint32_t TOKEN_PARAM_INDEX = 2;
+    constexpr uint32_t INDEX_ZERO = 0;
+    constexpr uint32_t INDEX_ONE = 1;
+    constexpr uint32_t INDEX_TWO = 2;
+    constexpr uint32_t INDEX_THREE = 3;
+    constexpr uint32_t ADMIN_TOKEN_TYPE = 0;
+    constexpr uint32_t ENT_DEVICE_TYPE = 1;
+    constexpr TEEC_Result TEEC_ERROR_USER_TOKEN_INVALID = static_cast<TEEC_Result>(0x10000004);
+    constexpr TEEC_Result TEEC_ERROR_USER_TOKEN_EXPIRED = static_cast<TEEC_Result>(0x10000005);
+    uint8_t g_taPATH[] = "/vendor/bin/edab8b4f-3bfd-486d-863c-ca04744e49d0.sec";
     const TEEC_UUID ACCOUNT_TA_UUID = {
         0xedab8b4f, 0x3bfd, 0x486d,
         {0x86, 0x3c, 0xca, 0x04, 0x74, 0x4e, 0x49, 0xd0}
     };
-    uint8_t g_taPath[] = "/vendor/bin/edab8b4f-3bfd-486d-863c-ca04744e49d0.sec";
+    enum TA_CommonId : uint32_t {
+        USER_ROLE_GET_VERSION_CMD_ID = 0x00000001,
+        USER_ROLE_SET_CMD_ID = 0x00010001,
+        USER_ROLE_DELETE_CMD_ID = 0x00010002,
+        USER_TOKEN_VERIFY_CMD_ID = 0x00020002,
+        CHECK_TIMESTAMP_EXPIRE_CMD_ID = 0x00020003,
+    };
 }
 
 OsAccountTeeAdapter::TeecContextGuard::~TeecContextGuard()
@@ -43,7 +54,7 @@ TEEC_Result OsAccountTeeAdapter::TeecContextGuard::Initialize()
     std::call_once(initFlag_, [&]() {
         initResult_ = TEEC_InitializeContext(nullptr, &context_);
         if (initResult_ == TEEC_SUCCESS) {
-            context_.ta_path = g_taPath;
+            context_.ta_path = g_taPATH;
         }
     });
     return initResult_;
@@ -74,16 +85,20 @@ ErrCode OsAccountTeeAdapter::ConvertTeecErrCode(TEEC_Result teeResult)
 {
     switch (teeResult) {
         case TEEC_ERROR_ACCESS_DENIED:
-            return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+            return ERR_ACCOUNT_COMMON_TEE_PERMISSION_DENIED;
         case TEEC_ERROR_BAD_PARAMETERS:
             return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+        case TEEC_ERROR_USER_TOKEN_INVALID:
+            return ERR_ACCOUNT_COMMON_TEE_USER_TOKEN_INVALID;
+        case TEEC_ERROR_USER_TOKEN_EXPIRED:
+            return ERR_ACCOUNT_COMMON_TEE_USER_TOKEN_EXPIRED;
         default:
             return ERR_ACCOUNT_COMMON_OPERATION_FAIL;
     }
 }
 
-ErrCode OsAccountTeeAdapter::ExecuteCommand(uint32_t command, int32_t id,
-    int32_t param, const std::vector<uint8_t>& token)
+ErrCode OsAccountTeeAdapter::ExecuteCommand(
+    uint32_t command, const std::function<ErrCode(TEEC_Operation &)> &setParams)
 {
     // Initialize TEE context
     OsAccountTeeAdapter::TeecContextGuard contextGuard;
@@ -92,7 +107,6 @@ ErrCode OsAccountTeeAdapter::ExecuteCommand(uint32_t command, int32_t id,
         ACCOUNT_LOGE("TEEC_InitializeContext failed, result: %{public}u", result);
         return ERR_ACCOUNT_COMMON_OPERATION_FAIL;
     }
-
     // Open TEE session
     OsAccountTeeAdapter::TeecSessionGuard sessionGuard;
     result = sessionGuard.Open(contextGuard.Get(), &ACCOUNT_TA_UUID);
@@ -100,46 +114,124 @@ ErrCode OsAccountTeeAdapter::ExecuteCommand(uint32_t command, int32_t id,
         ACCOUNT_LOGE("TEEC_OpenSession failed, result: %{public}u", result);
         return ERR_ACCOUNT_COMMON_OPERATION_FAIL;
     }
-
     TEEC_Operation operation = {0};
-    operation.started = 1;
-    operation.paramTypes = TEEC_PARAM_TYPES(TEEC_VALUE_INPUT, TEEC_VALUE_INPUT,
-                                             TEEC_MEMREF_TEMP_INPUT, TEEC_NONE);
-    operation.params[ACCOUNT_INFO_PARAM_INDEX].value.a = static_cast<uint32_t>(id);
-    operation.params[ACCOUNT_INFO_PARAM_INDEX].value.b = static_cast<uint32_t>(param);
-    operation.params[TYPE_PARAM_INDEX].value.a = TOKEN_TYPE_AUTHORIZATION;
-    operation.params[TOKEN_PARAM_INDEX].tmpref.buffer = const_cast<uint8_t*>(token.data());
-    if (token.size() > MAX_TOKEN_SIZE) {
-        ACCOUNT_LOGE("Token size exceeds MAX_TOKEN_SIZE");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    ErrCode ret = setParams(operation);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("setParams failed, ret: %{public}d", ret);
+        return ret;
     }
-    operation.params[TOKEN_PARAM_INDEX].tmpref.size = static_cast<uint32_t>(token.size());
-
     uint32_t origin = 0;
     result = TEEC_InvokeCommand(sessionGuard.Get(), command, &operation, &origin);
     if (result != TEEC_SUCCESS) {
-        ACCOUNT_LOGE("TEEC_InvokeCommand failed, command: %{public}u, id: %{public}d, "
-                     "result: %{public}u, origin: %{public}u", command, id, result, origin);
+        ACCOUNT_LOGE("TEEC_InvokeCommand failed, command: %{public}u, result: %{public}u, origin: %{public}u",
+            command, result, origin);
         return ConvertTeecErrCode(result);
     }
-
     return ERR_OK;
 }
 
 ErrCode OsAccountTeeAdapter::SetOsAccountType(int32_t id, int32_t type, const std::vector<uint8_t>& token)
 {
-    if (token.size() > MAX_TOKEN_SIZE) {
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    std::function<ErrCode(TEEC_Operation &)> setParamTask = [id, type, &token](TEEC_Operation &operation) {
+        operation.started = 1;
+        operation.paramTypes = TEEC_PARAM_TYPES(TEEC_VALUE_INPUT, TEEC_VALUE_INPUT,
+                                                 TEEC_MEMREF_TEMP_INPUT, TEEC_MEMREF_TEMP_INPUT);
+        operation.params[INDEX_ZERO].value.a = static_cast<uint32_t>(id);
+        operation.params[INDEX_ZERO].value.b = static_cast<uint32_t>(type);
+        operation.params[INDEX_ONE].value.a = ADMIN_TOKEN_TYPE;
+        operation.params[INDEX_TWO].tmpref.buffer = const_cast<uint8_t*>(token.data());
+        operation.params[INDEX_TWO].tmpref.size = static_cast<uint32_t>(token.size());
+        return ERR_OK;
+    };
+    ErrCode ret = ExecuteCommand(USER_ROLE_SET_CMD_ID, setParamTask);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("SetOsAccountType failed, ret = %{public}d", ret);
     }
-    return ExecuteCommand(0x00010001, id, type, token);
+    return ret;
 }
 
-ErrCode OsAccountTeeAdapter::DelOsAccountType(int32_t id, int32_t type, const std::vector<uint8_t>& token)
+ErrCode OsAccountTeeAdapter::SetDomainAccountType(int32_t id, int32_t type,
+    const std::vector<uint8_t>& edaToken, const std::vector<uint8_t>& certToken)
 {
-    if (token.size() > MAX_TOKEN_SIZE) {
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    std::function<ErrCode(TEEC_Operation &)> setParamTask = [id, type,
+            &edaToken, &certToken](TEEC_Operation &operation) {
+        operation.started = 1;
+        operation.paramTypes = TEEC_PARAM_TYPES(TEEC_VALUE_INPUT, TEEC_VALUE_INPUT,
+                                                 TEEC_MEMREF_TEMP_INPUT, TEEC_MEMREF_TEMP_INPUT);
+        operation.params[INDEX_ZERO].value.a = static_cast<uint32_t>(id);
+        operation.params[INDEX_ZERO].value.b = static_cast<uint32_t>(type);
+        operation.params[INDEX_ONE].value.a = ENT_DEVICE_TYPE;
+        operation.params[INDEX_TWO].tmpref.buffer = const_cast<uint8_t*>(edaToken.data());
+        operation.params[INDEX_TWO].tmpref.size = static_cast<uint32_t>(edaToken.size());
+        operation.params[INDEX_THREE].tmpref.buffer = const_cast<uint8_t*>(certToken.data());
+        operation.params[INDEX_THREE].tmpref.size = static_cast<uint32_t>(certToken.size());
+        return ERR_OK;
+    };
+    ErrCode ret = ExecuteCommand(USER_ROLE_SET_CMD_ID, setParamTask);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("SetOsAccountType failed, ret = %{public}d", ret);
     }
-    return ExecuteCommand(0x00010002, id, type, token);
+    return ret;
+}
+
+ErrCode OsAccountTeeAdapter::DelOsAccountType(int32_t id, const std::vector<uint8_t>& token)
+{
+    std::function<ErrCode(TEEC_Operation &)> setParamTask = [id, &token](TEEC_Operation &operation) {
+        operation.started = 1;
+        operation.paramTypes = TEEC_PARAM_TYPES(TEEC_VALUE_INPUT, TEEC_MEMREF_TEMP_INPUT,
+            TEEC_NONE, TEEC_NONE);
+        operation.params[INDEX_ZERO].value.a = static_cast<uint32_t>(id);
+        operation.params[INDEX_ONE].tmpref.buffer = const_cast<uint8_t*>(token.data());
+        operation.params[INDEX_ONE].tmpref.size = static_cast<uint32_t>(token.size());
+        return ERR_OK;
+    };
+    ErrCode ret = ExecuteCommand(USER_ROLE_DELETE_CMD_ID, setParamTask);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("DelOsAccountType failed, ret = %{public}d", ret);
+    }
+    return ret;
+}
+
+ErrCode OsAccountTeeAdapter::VerifyToken(const std::vector<uint8_t>& token, std::vector<uint8_t>& tokenResult)
+{
+    std::function<ErrCode(TEEC_Operation &)> setParamTask = [&token, &tokenResult] (TEEC_Operation &operation) {
+        operation.started = 1;
+        operation.paramTypes = TEEC_PARAM_TYPES(TEEC_MEMREF_TEMP_INPUT, TEEC_MEMREF_TEMP_OUTPUT,
+            TEEC_NONE, TEEC_NONE);
+        operation.params[INDEX_ZERO].tmpref.buffer = const_cast<uint8_t*>(token.data());
+        operation.params[INDEX_ZERO].tmpref.size = static_cast<uint32_t>(token.size());
+        operation.params[INDEX_ONE].tmpref.buffer = const_cast<uint8_t*>(tokenResult.data());
+        operation.params[INDEX_ONE].tmpref.size = static_cast<uint32_t>(tokenResult.size());
+        return ERR_OK;
+    };
+    ErrCode ret = ExecuteCommand(USER_TOKEN_VERIFY_CMD_ID, setParamTask);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("VerifyToken failed, ret = %{public}d", ret);
+    }
+    return ret;
+}
+
+ErrCode OsAccountTeeAdapter::CheckTimestampExpired(
+    const uint32_t grantTime, const int32_t period, int32_t &remainTimeSec, bool &isValid)
+{
+    VerifyGrantTimeResult result;
+    std::function<ErrCode(TEEC_Operation &)> setParamTask = [&grantTime, &period, &result](TEEC_Operation &operation) {
+        operation.started = 1;
+        operation.paramTypes = TEEC_PARAM_TYPES(TEEC_VALUE_INPUT, TEEC_MEMREF_TEMP_OUTPUT, TEEC_NONE, TEEC_NONE);
+        operation.params[INDEX_ZERO].value.a = grantTime;
+        operation.params[INDEX_ZERO].value.b = static_cast<uint32_t>(period);
+        operation.params[INDEX_ONE].tmpref.buffer = reinterpret_cast<uint8_t *>(&result);
+        operation.params[INDEX_ONE].tmpref.size = sizeof(VerifyGrantTimeResult);
+        return ERR_OK;
+    };
+    ErrCode ret = ExecuteCommand(CHECK_TIMESTAMP_EXPIRE_CMD_ID, setParamTask);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("CheckTimestampExpired failed, ret = %{public}d", ret);
+        return ret;
+    }
+    isValid = (result.isEffective == 1);
+    remainTimeSec = result.remainValidityTime;
+    return ERR_OK;
 }
 } // namespace AccountSA
 } // namespace OHOS
