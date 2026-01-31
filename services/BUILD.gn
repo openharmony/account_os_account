@@ -17,9 +17,4 @@ group("services_target") {
   deps = [
     "accountmgr:accountmgr_target",
   ]
-  if (os_account_support_authorization) {
-    deps += [
-      "authorization_manager:authorization_manager_target",
-    ]
-  }
 }
