@@ -25,7 +25,11 @@
 
 namespace OHOS {
 namespace AccountSA {
-constexpr size_t MAX_TOKEN_SIZE = 1024;
+struct VerifyGrantTimeResult {
+    int32_t isEffective = 0;
+    int32_t remainValidityTime = 0;
+};
+
 /**
  * @brief An adapter class for managing OS account operations with Trusted Application (TA) in TEE.
  *
@@ -48,18 +52,50 @@ public:
      * @param id - Indicates the local ID of the OS account.
      * @param type - Indicates the target account type.
      * @param token - Indicates the authorization token for authentication.
+     *     The length of the token should be checked before calling this function.
      * @return error code, see account_error_no.h
      */
     ErrCode SetOsAccountType(int32_t id, int32_t type, const std::vector<uint8_t>& token);
 
     /**
-     * @brief Deletes OS account type from TA.
+     * @brief Sets domain account type to TA.
      * @param id - Indicates the local ID of the OS account.
-     * @param type - Indicates the account type to be deleted.
-     * @param token - Indicates the authorization token for authentication.
+     * @param type - Indicates the target account type.
+     * @param edaToken - Indicates the EDA token for authorization.
+     * @param certToken - Indicates the certificate token for authorization.
      * @return error code, see account_error_no.h
      */
-    ErrCode DelOsAccountType(int32_t id, int32_t type, const std::vector<uint8_t>& token);
+    ErrCode SetDomainAccountType(int32_t id, int32_t type, const std::vector<uint8_t>& edaToken,
+        const std::vector<uint8_t>& certToken);
+
+    /**
+     * @brief Deletes OS account type from TA.
+     * @param id - Indicates the local ID of the OS account.
+     * @param token - Indicates the authorization token for authentication.
+     *     The length of the token should be checked before calling this function.
+     * @return error code, see account_error_no.h
+     */
+    ErrCode DelOsAccountType(int32_t id, const std::vector<uint8_t>& token);
+
+    /**
+     * @brief Verify token.
+     * @param token - Indicates the authorization token for authentication.
+     *     The length of the token should be checked before calling this function.
+     * @param tokenResult - Indicates the result of token verification.
+     * @return error code, see account_error_no.h
+     */
+    ErrCode VerifyToken(const std::vector<uint8_t>& token, std::vector<uint8_t>& tokenResult);
+
+    /**
+     * @brief Checks whether the timestamp is expired.
+     * @param grantTime - Indicates the timestamp of the grant.
+     * @param period - Indicates the period of the grant.
+     * @param remainTimeSec - Indicates the remaining time.
+     * @param isValid - Indicates whether the timestamp is valid.
+     * @return error code, see account_error_no.h
+     */
+    ErrCode CheckTimestampExpired(const uint32_t grantTime,
+        const int32_t period, int32_t &remainTimeSec, bool &isValid);
 
 private:
     /**
@@ -113,12 +149,10 @@ private:
     /**
      * @brief Executes TA command with given parameters.
      * @param command - Indicates the TA command ID.
-     * @param id - Indicates the OS account ID.
-     * @param param1 - Indicates the first parameter.
-     * @param token - Indicates the authorization token.
+     * @param setParams - A function to set parameters for the TEEC_Operation.
      * @return error code, see account_error_no.h
      */
-    ErrCode ExecuteCommand(uint32_t command, int32_t id, int32_t param1, const std::vector<uint8_t>& token);
+    ErrCode ExecuteCommand(uint32_t command, const std::function<ErrCode(TEEC_Operation&)>& setParams);
 
     /**
      * @brief Converts TEEC error code to account error code.
