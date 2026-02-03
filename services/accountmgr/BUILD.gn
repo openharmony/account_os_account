@@ -62,10 +62,6 @@ config("accountmgr_config") {
     "${os_account_core_path}/include",
     "${os_account_interfaces_native_path}/include",
   ]
-
-  if (os_account_support_authorization) {
-    include_dirs += [ "./include/common/tee" ]
-  }
 }
 
 config("account_iam_config") {
@@ -102,10 +98,12 @@ config("bundle_manager_config") {
 }
 
 config("authorization_config") {
-  include_dirs = [ 
+  include_dirs = [
     "${services_path}/accountmgr/include/authorization",
     "${authorization_framework_path}/include",
     "${authorization_interfaces_native_path}/include",
+    "./include/common/tee",
+    "./include/authorization_manager",
   ]
 }
 
@@ -287,26 +285,24 @@ ohos_shared_library("accountmgr") {
     cflags += [ "-DSUPPORT_AUTHORIZATION" ]
     configs += [ ":authorization_config" ]
     sources += [
+      "${authorization_framework_path}/src/authorization_common.cpp",
+      "./src/common/tee/tee_auth_adapter.cpp",
       "src/authorization/authorization_manager_service.cpp",
       "src/authorization/inner_authorization_manager.cpp",
-      "${authorization_framework_path}/src/authorization_common.cpp",
+      "src/authorization_manager/privilege_cache_manager.cpp",
+      "src/authorization_manager/privilege_utils.cpp",
     ]
     deps += [
+      "${authorization_framework_path}:authorization_callback_proxy",
       "${authorization_framework_path}:authorization_stub",
       "${authorization_framework_path}:connect_ability_callback_stub",
-      "${authorization_framework_path}:authorization_callback_proxy",
-      ]
+    ]
+    external_deps += [ "tee_client:libteec" ]
   }
 
   if (os_account_enable_multiple_foreground_os_accounts) {
     cflags += [ "-DENABLE_MULTI_FOREGROUND_OS_ACCOUNTS" ]
     external_deps += [ "window_manager:libdm_lite" ]
-  }
-
-  if (os_account_support_authorization) {
-    cflags_cc += [ "-DSUPPORT_AUTHORIZATION" ]
-    external_deps += [ "tee_client:libteec" ]
-    sources += [ "./src/common/tee/tee_auth_adapter.cpp" ]
   }
 
   if (os_account_multiple_active_accounts ||
