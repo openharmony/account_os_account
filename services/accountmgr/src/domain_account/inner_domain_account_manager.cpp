@@ -118,7 +118,7 @@ static bool IsSupportNetRequest()
         return true;
     }
     int32_t accountId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
-    if (accountId == 0) { // account 0 not limited by network policy
+    if (accountId == 0 || accountId == 1) { // account 0 or 1 not limited by network policy
         return true;
     }
     bool isForeground = false;
