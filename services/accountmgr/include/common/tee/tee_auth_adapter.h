@@ -16,6 +16,7 @@
 #ifndef OS_ACCOUNT_AUTHORIZATION_TEE_ADAPTER_H
 #define OS_ACCOUNT_AUTHORIZATION_TEE_ADAPTER_H
 
+#include <functional>
 #include <stdint.h>
 #include <vector>
 #include <mutex>
