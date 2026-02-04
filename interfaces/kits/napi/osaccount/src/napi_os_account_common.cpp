@@ -321,13 +321,45 @@ void MakeArrayToJs(napi_env env, const std::vector<std::string> &constraints, na
 
 bool ParseParaRemoveOACB(napi_env env, napi_callback_info cbInfo, RemoveOAAsyncContext *asyncContext)
 {
+    size_t argc = ARGS_SIZE_TWO;
+    napi_value argv[ARGS_SIZE_TWO] = {0};
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+    if (argc == ARGS_SIZE_TWO) {
+        bool hasToken = false;
+        napi_has_named_property(env, argv[PARAMONE], "token", &hasToken);
+        if (hasToken) {
+            napi_value value = nullptr;
+            std::vector<uint8_t> tokenData;
+            NAPI_CALL_BASE(env, napi_get_named_property(env, argv[PARAMONE], "token", &value), false);
+            if (ParseUint8TypedArrayToVector(env, value, tokenData) != napi_ok) {
+                ACCOUNT_LOGE("Get token failed");
+                std::string errMsg = "Parameter error. The type of token must be Uint8Array";
+                AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+                return false;
+            }
+            asyncContext->token = std::make_optional<std::vector<uint8_t>>(tokenData);
+            if (!GetIntProperty(env, argv[PARAMZERO], asyncContext->id)) {
+                ACCOUNT_LOGE("Get id failed");
+                std::string errMsg = "Parameter error. The type of \"localId\" must be number";
+                AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+                return false;
+            }
+            return true;
+        }
+    }
     return ParseCallbackAndId(env, cbInfo, asyncContext->callbackRef, asyncContext->id, asyncContext->throwErr);
 }
 
 void RemoveOAExecuteCB(napi_env env, void *data)
 {
     RemoveOAAsyncContext *asyncContext = reinterpret_cast<RemoveOAAsyncContext *>(data);
-    asyncContext->errCode = OsAccountManager::RemoveOsAccount(asyncContext->id);
+    if (asyncContext->token.has_value()) {
+        RemoveOsAccountOptions options;
+        options.token = asyncContext->token;
+        asyncContext->errCode = OsAccountManager::RemoveOsAccount(asyncContext->id, options);
+    } else {
+        asyncContext->errCode = OsAccountManager::RemoveOsAccount(asyncContext->id);
+    }
     ACCOUNT_LOGD("errcode is %{public}d", asyncContext->errCode);
     asyncContext->status = (asyncContext->errCode == 0) ? napi_ok : napi_generic_failure;
 }
@@ -547,6 +579,25 @@ void ActivateOACallbackCompletedCB(napi_env env, napi_status status, void *data)
     delete asyncContext;
 }
 
+bool ParseParaCreateOANameAndType(napi_env env, napi_value argv[], CreateOAAsyncContext *asyncContext)
+{
+    if (!GetStringProperty(env, argv[PARAMZERO], asyncContext->name)) {
+        ACCOUNT_LOGE("Get name failed");
+        std::string errMsg = "Parameter error. The type of \"localName\" must be string";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        return false;
+    }
+    int32_t type = 0;
+    if (!GetIntProperty(env, argv[PARAMONE], type)) {
+        ACCOUNT_LOGE("Get type failed");
+        std::string errMsg = "Parameter error. The type of \"type\" must be OsAccountType";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        return false;
+    }
+    asyncContext->type = static_cast<OsAccountType>(type);
+    return true;
+}
+
 bool ParseParaCreateOA(napi_env env, napi_callback_info cbInfo, CreateOAAsyncContext *asyncContext)
 {
     size_t argc = ARGS_SIZE_THREE;
@@ -579,26 +630,18 @@ bool ParseParaCreateOA(napi_env env, napi_callback_info cbInfo, CreateOAAsyncCon
                 GetStringArrayPropertyByKey(env, argv[PARAMTWO], "allowedPreinstalledBundles", list, true);
                 asyncContext->allowedHapList = std::make_optional<std::vector<std::string>>(list);
             }
+            bool hasToken = false;
+            napi_has_named_property(env, argv[PARAMTWO], "token", &hasToken);
+            if (hasToken) {
+                napi_value value = nullptr;
+                std::vector<uint8_t> tokenData;
+                NAPI_CALL_BASE(env, napi_get_named_property(env, argv[PARAMTWO], "token", &value), false);
+                ParseUint8TypedArrayToVector(env, value, tokenData);
+                asyncContext->token = std::make_optional<std::vector<uint8_t>>(tokenData);
+            }
         }
     }
-
-    if (!GetStringProperty(env, argv[PARAMZERO], asyncContext->name)) {
-        ACCOUNT_LOGE("Get name failed");
-        std::string errMsg = "Parameter error. The type of \"localName\" must be string";
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
-        return false;
-    }
-
-    int32_t type = 0;
-    if (!GetIntProperty(env, argv[PARAMONE], type)) {
-        ACCOUNT_LOGE("Get type failed");
-        std::string errMsg = "Parameter error. The type of \"type\" must be OsAccountType";
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
-        return false;
-    }
-
-    asyncContext->type = static_cast<OsAccountType>(type);
-    return true;
+    return ParseParaCreateOANameAndType(env, argv, asyncContext);
 }
 
 static bool ParseDomainAccountInfo(napi_env env, napi_value object, DomainAccountInfo &info)
@@ -709,6 +752,7 @@ void CreateOAExecuteCB(napi_env env, void *data)
     options.disallowedHapList = asyncContext->disallowedHapList;
     options.allowedHapList = asyncContext->allowedHapList;
     options.hasShortName = asyncContext->hasShortName;
+    options.token = asyncContext->token;
     asyncContext->errCode = OsAccountManager::CreateOsAccount(asyncContext->name, asyncContext->shortName,
         asyncContext->type, options, asyncContext->osAccountInfos);
     asyncContext->status = (asyncContext->errCode == 0) ? napi_ok : napi_generic_failure;

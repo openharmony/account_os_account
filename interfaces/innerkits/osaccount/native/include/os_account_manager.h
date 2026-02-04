@@ -121,6 +121,15 @@ public:
     static ErrCode RemoveOsAccount(const int id);
 
     /**
+     * @brief Removes an OS account based on its local ID and authorization token.
+     * @permission ohos.permission.MANAGE_LOCAL_ACCOUNTS
+     * @param id - Indicates the local ID of the OS account.
+     * @param token - Indicates the authorization token.
+     * @return error code, see account_error_no.h
+     */
+    static ErrCode RemoveOsAccount(const int id, const RemoveOsAccountOptions& options);
+
+    /**
      * @brief Checks whether the specified OS account exists.
      * @param id - Indicates the local ID of the OS account.
      * @param isOsAccountExists - Indicates whether the specified OS account exists.

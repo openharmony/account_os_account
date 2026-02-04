@@ -56,6 +56,7 @@ public:
     ErrCode UpdateOsAccountWithFullInfo(const OsAccountInfo& osAccountInfo) override;
 
     ErrCode RemoveOsAccount(int32_t id) override;
+    ErrCode RemoveOsAccount(int32_t id, const RemoveOsAccountOptions &options) override;
 
     ErrCode IsOsAccountExists(int32_t id, bool &isOsAccountExists) override;
     ErrCode IsOsAccountActived(int32_t id, bool &isOsAccountActived) override;

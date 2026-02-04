@@ -270,6 +270,22 @@ ErrCode OsAccount::RemoveOsAccount(const int id)
     return ConvertToAccountErrCode(errCode);
 }
 
+ErrCode OsAccount::RemoveOsAccount(const int id, const RemoveOsAccountOptions& options)
+{
+    if (id < 0) {
+        ACCOUNT_LOGE("Id is invalid");
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
+
+    auto proxy = GetOsAccountProxy();
+    if (proxy == nullptr) {
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+
+    auto errCode = proxy->RemoveOsAccount(id, options);
+    return ConvertToAccountErrCode(errCode);
+}
+
 ErrCode OsAccount::IsOsAccountExists(const int id, bool &isOsAccountExists)
 {
     isOsAccountExists = false;
@@ -1160,7 +1176,7 @@ ErrCode OsAccount::IsOsAccountForeground(bool &isForeground)
 ErrCode OsAccount::IsOsAccountForeground(const int32_t localId, bool &isForeground)
 {
     if (localId < Constants::ADMIN_LOCAL_ID) {
-        ACCOUNT_LOGE("LocalId %{public}d is invlaid", localId);
+        ACCOUNT_LOGE("LocalId %{public}d is invalid", localId);
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     return IsOsAccountForegroundCommon(localId, Constants::ANY_DISPLAY_ID, isForeground);
@@ -1169,7 +1185,7 @@ ErrCode OsAccount::IsOsAccountForeground(const int32_t localId, bool &isForegrou
 ErrCode OsAccount::IsOsAccountForeground(const int32_t localId, const uint64_t displayId, bool &isForeground)
 {
     if (localId < Constants::ADMIN_LOCAL_ID) {
-        ACCOUNT_LOGE("LocalId %{public}d is invlaid", localId);
+        ACCOUNT_LOGE("LocalId %{public}d is invalid", localId);
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     ErrCode result = CheckDisplayId(displayId);

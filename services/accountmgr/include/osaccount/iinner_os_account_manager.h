@@ -50,6 +50,7 @@ public:
     ErrCode UpdateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo) override;
     ErrCode UpdateFirstOsAccountInfo(OsAccountInfo& accountInfoOld, OsAccountInfo& osAccountInfo) override;
     ErrCode RemoveOsAccount(const int id) override;
+    ErrCode RemoveOsAccount(const int id, const RemoveOsAccountOptions &options) override;
     ErrCode IsOsAccountExists(const int id, bool &isOsAccountExits) override;
     ErrCode IsOsAccountActived(const int id, bool &isOsAccountActived) override;
     ErrCode IsOsAccountConstraintEnable(
