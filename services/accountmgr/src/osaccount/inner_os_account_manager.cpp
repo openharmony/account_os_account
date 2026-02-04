@@ -1052,22 +1052,17 @@ ErrCode IInnerOsAccountManager::BindDomainAccount(const OsAccountType &type,
         ACCOUNT_LOGE("The domain account is already bound");
         return ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR;
     }
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
-    bool isEnabled = false;
-    if (IsOsAccountConstraintEnable(Constants::START_USER_ID,
-        CONSTRAINT_CREATE_ACCOUNT_DIRECTLY, isEnabled) != ERR_OK) {
-        return ERR_OSACCOUNT_KIT_IS_OS_ACCOUNT_CONSTRAINT_ENABLE_ERROR;
-    }
-#else
-    bool isEnabled = true;
-#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
+
+#ifdef ENABLE_ACCOUNT_SHORT_NAME
     std::vector<OsAccountInfo> osAccountInfos;
     errCode = QueryAllCreatedOsAccounts(osAccountInfos);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Query all created osAccount failed, errCode:%{public}d", errCode);
         return errCode;
     }
-    if (isEnabled && (osAccountInfos.size() == 1) && (osAccountInfos[0].GetLocalId() == Constants::START_USER_ID)) {
+    if ((osAccountInfos.size() == 1) && (osAccountInfos[0].GetLocalId() == Constants::START_USER_ID)
+        && (osAccountInfos[0].GetShortName().empty() || osAccountInfos[0].GetLocalName().empty())
+    ) {
         DomainAccountInfo curDomainInfo;
         osAccountInfos[0].GetDomainInfo(curDomainInfo);
         if (curDomainInfo.domain_.empty()) {
@@ -1077,6 +1072,7 @@ ErrCode IInnerOsAccountManager::BindDomainAccount(const OsAccountType &type,
             osAccountInfo = osAccountInfos[0];
         }
     }
+#endif // ENABLE_ACCOUNT_SHORT_NAME
     if (osAccountInfo.GetLocalId() != Constants::START_USER_ID) {
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
         errCode = PrepareOsAccountInfo(domainAccountInfo.accountName_, options.shortName,

@@ -20,6 +20,7 @@
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "account_test_common.h"
+#include "ipc_skeleton.h"
 #include "os_account_constants.h"
 #define private public
 #include "os_account_manager_service.h"
@@ -168,6 +169,26 @@ HWTEST_F(OsAccountServiceTest, GetOsAccountLocalIdFromDomain001, TestSize.Level1
     EXPECT_EQ(osAccountService_->GetOsAccountLocalIdFromDomain(info, id), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     info.accountName_ = LONG_STR;
     EXPECT_EQ(osAccountService_->GetOsAccountLocalIdFromDomain(info, id), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: GetOsAccountLocalIdFromDomain002
+ * @tc.desc: GetOsAccountLocalIdFromDomain coverage
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountServiceTest, GetOsAccountLocalIdFromDomain002, TestSize.Level1)
+{
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    uint64_t tokenId;
+    ASSERT_TRUE(AllocPermission({}, tokenId));
+    setuid(TEST_USER_ID * UID_TRANSFORM_DIVISOR);
+    DomainAccountInfo info;
+    CreateOsAccountForDomainOptions options;
+    EXPECT_EQ(osAccountService_->CreateOsAccountForDomain(OsAccountType::ADMIN, info, nullptr, options),
+        ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    setuid(0);
+    ASSERT_TRUE(RecoveryPermission(tokenId, selfTokenId));
 }
 
 /**
