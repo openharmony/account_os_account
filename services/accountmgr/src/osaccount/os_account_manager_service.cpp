@@ -1838,6 +1838,12 @@ ErrCode OsAccountManagerService::UnsubscribeOsAccountConstraints(const OsAccount
             REPORT_PERMISSION_FAIL();
             return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
         }
+    } else {
+        ErrCode checkResult = AccountPermissionManager::CheckSystemApp();
+        if (checkResult != ERR_OK) {
+            ACCOUNT_LOGE("Is not system application, result = %{public}u.", checkResult);
+            return checkResult;
+        }
     }
     ErrCode result = constraintManger_.UnsubscribeOsAccountConstraints(subscribeInfo, eventListener);
     if (result != ERR_OK) {
