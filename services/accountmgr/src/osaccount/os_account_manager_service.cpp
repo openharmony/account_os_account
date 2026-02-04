@@ -517,6 +517,41 @@ ErrCode OsAccountManagerService::RemoveOsAccount(int32_t id)
     return innerManager_.RemoveOsAccount(id);
 }
 
+ErrCode OsAccountManagerService::RemoveOsAccount(int32_t id, const RemoveOsAccountOptions &options)
+{
+    ErrCode result = AccountPermissionManager::CheckSystemApp();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Is not system application, result = %{public}u.", result);
+        return result;
+    }
+    if (!options.token.has_value() || options.token.value().empty()) {
+        ACCOUNT_LOGE("Token is invalid!");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    // parameters check
+    ErrCode res = CheckLocalId(id);
+    if (res != ERR_OK) {
+        return res;
+    }
+    if (id == Constants::START_USER_ID) {
+        ACCOUNT_LOGE("Cannot remove system preinstalled user");
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
+    res = CheckLocalIdRestricted(id);
+    if (res != ERR_OK) {
+        ACCOUNT_LOGW("Check local id restricted, result = %{public}d, localId = %{public}d.", res, id);
+        return res;
+    }
+    // permission check
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, CONSTANT_REMOVE)) {
+        ACCOUNT_LOGE("Account manager service, permission denied!");
+        REPORT_PERMISSION_FAIL();
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+
+    return innerManager_.RemoveOsAccount(id, options);
+}
+
 ErrCode OsAccountManagerService::IsOsAccountExists(int32_t id, bool &isOsAccountExists)
 {
     return innerManager_.IsOsAccountExists(id, isOsAccountExists);

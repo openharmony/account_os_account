@@ -18,12 +18,14 @@
         "VTT for OHOS::AccountSA::OsAccountInfo";
         "VTT for OHOS::AccountSA::OsAccountSubscribeInfo";
         "VTT for OHOS::AccountSA::CreateOsAccountOptions";
+        "VTT for OHOS::AccountSA::RemoveOsAccountOptions";
         "VTT for OHOS::AccountSA::CreateOsAccountForDomainOptions";
         "VTT for OHOS::AccountSA::ForegroundOsAccount";
         "VTT for OHOS::AccountSA::ConstraintSourceTypeInfo";
         "vtable for OHOS::AccountSA::OsAccountInfo";
         "vtable for OHOS::AccountSA::OsAccountSubscribeInfo";
         "vtable for OHOS::AccountSA::CreateOsAccountOptions";
+        "vtable for OHOS::AccountSA::RemoveOsAccountOptions";
         "vtable for OHOS::AccountSA::CreateOsAccountForDomainOptions";
         "vtable for OHOS::AccountSA::ForegroundOsAccount";
         "vtable for OHOS::AccountSA::ConstraintSourceTypeInfo";
@@ -117,6 +119,7 @@
         "OHOS::AccountSA::OsAccountManager::CreateOsAccountWithFullInfo(OHOS::AccountSA::OsAccountInfo&)";
         "OHOS::AccountSA::OsAccountManager::UpdateOsAccountWithFullInfo(OHOS::AccountSA::OsAccountInfo&)";
         "OHOS::AccountSA::OsAccountManager::RemoveOsAccount(int)";
+        "OHOS::AccountSA::OsAccountManager::RemoveOsAccount(int, OHOS::AccountSA::RemoveOsAccountOptions const&)";
         "OHOS::AccountSA::OsAccountManager::BindDomainAccount(int, OHOS::AccountSA::DomainAccountInfo const&, std::__h::shared_ptr<OHOS::AccountSA::DomainAccountCallback> const&)";
         "OHOS::AccountSA::OsAccountManager::IsOsAccountExists(int, bool&)";
         "OHOS::AccountSA::OsAccountManager::IsOsAccountActived(int, bool&)";
@@ -278,6 +281,7 @@
         "OHOS::AccountSA::OsAccountSubscribeInfo::GetStates(std::__h::set<OHOS::AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE, std::__h::less<OHOS::AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE>, std::__h::allocator<OHOS::AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE>>&) const";
         "OHOS::AccountSA::OsAccountSubscribeInfo::IsWithHandshake() const";
         *OHOS::AccountSA::CreateOsAccountOptions*;
+        *OHOS::AccountSA::RemoveOsAccountOptions*;
         *OHOS::AccountSA::CreateOsAccountForDomainOptions*;
         "vtable for OHOS::AccountSA::DomainAccountInfo";
         "OHOS::AccountSA::DomainAccountInfo::DomainAccountInfo()";
