@@ -53,6 +53,9 @@
 #ifdef HICOLLIE_ENABLE
 #include "xcollie/xcollie.h"
 #endif // HICOLLIE_ENABLE
+#ifdef SUPPORT_AUTHORIZATION
+#include "privilege_cache_manager.h"
+#endif // SUPPORT_AUTHORIZATION
 
 namespace OHOS {
 namespace AccountSA {
@@ -681,6 +684,12 @@ bool AccountMgrService::Init()
 #if defined(HAS_APP_ACCOUNT_PART) && defined(HAS_CES_PART)
     AppAccountCommonEventObserver::GetInstance();
 #endif // defined(HAS_APP_ACCOUNT_PART) && defined(HAS_CES_PART)
+#ifdef SUPPORT_AUTHORIZATION
+    ErrCode ret = PrivilegeCacheManager::GetInstance().FromPersistFile();
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Recover cache from file failed, ret=%{public}d", ret);
+    }
+#endif // SUPPORT_AUTHORIZATION
     state_ = ServiceRunningState::STATE_RUNNING;
     if (!registerToService_) {
         if (!Publish(&DelayedRefSingleton<AccountMgrService>::GetInstance())) {
