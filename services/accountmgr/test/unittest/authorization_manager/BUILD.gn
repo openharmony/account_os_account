@@ -1,0 +1,117 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//build/test.gni")
+import("../../../../../os_account.gni")
+
+module_output_path = "os_account/authorization_manager"
+
+config("authorization_manager_test_config") {
+  include_dirs = [
+    "${services_path}/accountmgr/include/authorization_manager",
+    "${services_path}/accountmgr/include",
+    "${common_path}/log/include",
+    "${innerkits_common}/include",
+    "${services_path}/accountmgr/include/tee",
+  ]
+}
+
+ohos_unittest("PrivilegeCacheManagerMockTest") {
+  module_out_path = module_output_path
+
+  sources = [
+    "${services_path}/accountmgr/src/account_file_watcher_manager.cpp",
+    "${services_path}/accountmgr/src/authorization_manager/privilege_cache_manager.cpp",
+    "privilege_cache_manager_mock_test.cpp",
+  ]
+
+  include_dirs = [
+    "${services_path}/accountmgr/include/common/tee",
+    "${services_path}/accountmgr/include/authorization_manager",
+    "${services_path}/accountmgr/include",
+    "${os_account_path}/dfx/hitrace_adapter",
+  ]
+
+  cflags_cc = [
+    "-DACCOUNT_TEST",
+    "-DHAS_HUKS_PART",
+    "-DENABLE_FILE_WATCHER",
+  ]
+
+  configs = [
+    ":authorization_manager_test_config",
+    "${services_path}/accountmgr/test:accountmgr_test_config",
+  ]
+
+  deps = [ "${common_path}:libaccount_common" ]
+
+  external_deps = [
+    "ability_base:want",
+    "ability_runtime:wantagent_innerkits",
+    "cJSON:cjson",
+    "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
+    "hicollie:libhicollie",
+    "hilog:libhilog",
+    "huks:libhukssdk",
+    "ipc:ipc_core",
+    "tee_client:libteec",
+    "time_service:time_client",
+  ]
+
+  part_name = "os_account"
+}
+
+ohos_unittest("PrivilegeUtilsTest") {
+  module_out_path = module_output_path
+
+  sources = [
+    "${services_path}/accountmgr/src/authorization_manager/privilege_utils.cpp",
+    "privilege_utils_test.cpp",
+  ]
+
+  include_dirs = [
+    "${services_path}/authorization_manager/include",
+    "${services_path}/accountmgr/include",
+  ]
+
+  configs = [
+    ":authorization_manager_test_config",
+    "${services_path}/accountmgr/test:accountmgr_test_config",
+  ]
+
+  deps = [ "${common_path}:libaccount_common" ]
+
+  external_deps = [
+    "ability_base:want",
+    "ability_runtime:wantagent_innerkits",
+    "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "time_service:time_client",
+  ]
+
+  part_name = "os_account"
+}
+
+group("unittest") {
+  testonly = true
+
+  deps = [ ":PrivilegeCacheManagerMockTest" ]
+  if (os_account_support_authorization) {
+    deps += [ ":PrivilegeUtilsTest" ]
+  }
+}
