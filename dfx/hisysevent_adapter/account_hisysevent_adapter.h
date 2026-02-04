@@ -76,6 +76,9 @@ const char APP_DFX_ASSET_ERR_LOG[] = "assetErrorLog";
 const char APP_DFX_AUTHENTICATOR_SESSION[] = "authenticatorSessionError";
 const char APP_DFX_GET_ALL_ACCOUNTS[] = "getAllAccounts";
 const char APP_DFX_CONNECT_ABILITY[] = "connectAbility";
+
+//AUTH_DFX
+const char ACQUIRE_AUTH[] = "acquireAuthorization";
 }
 
 struct DomainHisysEventInfo {

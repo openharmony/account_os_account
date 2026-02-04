@@ -204,6 +204,7 @@ taihe_shared_library("os_account_taihe_native") {
     "${account_iam_kits_path}/src/napi_account_iam_onsetdata.cpp",
     "./common/src/taihe_distributed_account_converter.cpp",
     "os_account/ani/src/ani_os_account_transfer.cpp",
+    "os_account/ani/src/ani_ui_extension.cpp",
     "os_account/src/ani_constructor.cpp",
     "os_account/src/ohos.account.osAccount.impl.cpp",
     "os_account/src/ohos.account.osAccount_accountManager.impl.cpp",
@@ -235,13 +236,19 @@ taihe_shared_library("os_account_taihe_native") {
     "${domain_account_framework_path}:domain_account_innerkits",
     "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${authorization_framework_path}:authorization_innerkits",
   ]
 
   external_deps = [
     "ability_base:want",
+    "ability_runtime:ability_context_native",
+    "ability_runtime:abilitykit_native",
+    "ability_runtime:ani_base_context",
     "ability_runtime:ani_common",
     "ability_runtime:app_context",
     "ability_runtime:runtime",
+    "ability_runtime:ui_extension",
+    "ace_engine:ace_uicontent",
     "access_token:libtokenid_sdk",
     "access_token:libaccesstoken_sdk",
     "cJSON:cjson",
@@ -254,6 +261,7 @@ taihe_shared_library("os_account_taihe_native") {
     "runtime_core:ani",
     "runtime_core:ani_helpers",
     "samgr:samgr_proxy",
+    "window_manager:libwm",
   ]
 
   cflags_cc = [ "-w" ]

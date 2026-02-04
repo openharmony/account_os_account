@@ -41,6 +41,7 @@ config("authorization_innerkits_public_config") {
 
   include_dirs = [
     "${authorization_interfaces_native_path}/include",
+    "${authorization_framework_path}/include",
     "${common_path}/utils/include",
     "${innerkits_common}/include",
     "${target_gen_dir}",
@@ -51,6 +52,7 @@ idl_gen_interface("authorization_interface") {
   sources = [
     "IAuthorization.idl",
     "IAuthorizationCallback.idl",
+    "IAuthRemoteObject.idl",
     "IConnectAbilityCallback.idl",
   ]
   log_domainid = "0xD001B00"
@@ -69,6 +71,7 @@ ohos_shared_library("authorization_innerkits") {
   }
 
   sources = [
+    "${authorization_framework_path}/src/authorization_callback_service.cpp",
     "${authorization_framework_path}/src/authorization_client.cpp",
     "${authorization_framework_path}/src/authorization_common.cpp",
   ]
@@ -83,6 +86,7 @@ ohos_shared_library("authorization_innerkits") {
                             [
                               "*authorization_proxy.cpp",
                               "*authorization_callback_stub.cpp",
+                              "*auth_remote_object_stub.cpp",
                               "*connect_ability_callback_proxy.cpp",
                             ])
 
@@ -95,6 +99,7 @@ ohos_shared_library("authorization_innerkits") {
   external_deps = [
     "ability_base:want",
     "access_token:libaccesstoken_sdk",
+    "ability_runtime:app_manager",
     "cJSON:cjson",
     "c_utils:utils",
     "hilog:libhilog",

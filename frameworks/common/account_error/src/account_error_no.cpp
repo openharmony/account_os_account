@@ -168,6 +168,22 @@ bool CheckJsErrorCode(int32_t errCode)
     return true;
 }
 
+int32_t AuthorizationConvertToJsErrCode(int32_t nativeErrCode)
+{
+    switch (nativeErrCode) {
+        case ERR_OK:
+            return ERR_JS_SUCCESS;
+        case ERR_ACCOUNT_COMMON_PERMISSION_DENIED:
+            return ERR_JS_PERMISSION_DENIED;
+        case ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR:
+            return ERR_JS_IS_NOT_SYSTEM_APP;
+        case ERR_ACCOUNT_COMMON_INVALID_PARAMETER:
+            return ERR_JS_INVALID_PARAMETER;
+        default:
+            return ERR_JS_SYSTEM_SERVICE_EXCEPTION;
+    }
+}
+
 int32_t GenerateBusinessErrorCode(int32_t nativeErrCode)
 {
     int32_t jsErrCode = nativeErrCode;

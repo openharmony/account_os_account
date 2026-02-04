@@ -29,6 +29,11 @@ struct OsAccountConfig {
     std::string u1AccountName;
     bool isBlockBoot = false;
 #endif // ENABLE_U1_ACCOUNT
+#ifdef SUPPORT_AUTHORIZATION
+    std::string authAppBundleName = "";
+    std::string authAppUIExtensionAbilityName = "";
+    std::string authAppServiceExtensionAbilityName = "";
+#endif // SUPPORT_AUTHORIZATION
 };
 
 class IOsAccountControl {

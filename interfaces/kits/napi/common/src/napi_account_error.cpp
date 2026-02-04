@@ -71,6 +71,13 @@ napi_value GenerateBusinessError(napi_env env, int32_t nativeErrCode)
     return GenerateBusinessError(env, jsErrCode, jsErrMsg);
 }
 
+napi_value GenerateAuthorizationBusinessError(napi_env env, int32_t nativeErrCode)
+{
+    int32_t jsErrCode = AuthorizationConvertToJsErrCode(nativeErrCode);
+    std::string jsErrMsg = ConvertToJsErrMsg(jsErrCode);
+    return GenerateBusinessError(env, jsErrCode, jsErrMsg);
+}
+
 void AccountNapiThrow(napi_env env, int32_t nativeErrCode, bool throwErr)
 {
     if (throwErr) {

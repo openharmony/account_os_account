@@ -14,14 +14,25 @@
  */
 #include "authorization_common.h"
 #include <string>
+#include <string_ex.h>
 #include <vector>
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 
 namespace OHOS {
 namespace AccountSA {
+constexpr std::uint8_t TWO_BYTE_MASK = 0xF0;
+
 bool ConnectAbilityInfo::ReadFromParcel(Parcel &parcel)
 {
+    if (!parcel.ReadString(privilege)) {
+        ACCOUNT_LOGE("Read privilege failed.");
+        return false;
+    }
+    if (!parcel.ReadString(description)) {
+        ACCOUNT_LOGE("Read description failed.");
+        return false;
+    }
     if (!parcel.ReadString(bundleName)) {
         ACCOUNT_LOGE("Read bundleName failed.");
         return false;
@@ -30,17 +41,49 @@ bool ConnectAbilityInfo::ReadFromParcel(Parcel &parcel)
         ACCOUNT_LOGE("Read abilityName failed.");
         return false;
     }
+    if (!parcel.ReadInt32(callingUid)) {
+        ACCOUNT_LOGE("Read callingUid failed.");
+        return false;
+    }
+    if (!parcel.ReadInt32(callingPid)) {
+        ACCOUNT_LOGE("Read callingPid failed.");
+        return false;
+    }
+    if (!parcel.ReadUInt8Vector(&challenge)) {
+        ACCOUNT_LOGE("Read challenge failed.");
+        return false;
+    }
     return true;
 }
 
 bool ConnectAbilityInfo::Marshalling(Parcel &parcel) const
 {
+    if (!parcel.WriteString(privilege)) {
+        ACCOUNT_LOGE("Failed to write privilege.");
+        return false;
+    }
+    if (!parcel.WriteString(description)) {
+        ACCOUNT_LOGE("Failed to write description.");
+        return false;
+    }
     if (!parcel.WriteString(bundleName)) {
         ACCOUNT_LOGE("Failed to write bundleName.");
         return false;
     }
     if (!parcel.WriteString(abilityName)) {
         ACCOUNT_LOGE("Failed to write abilityName.");
+        return false;
+    }
+    if (!parcel.WriteInt32(callingUid)) {
+        ACCOUNT_LOGE("Failed to write callingUid.");
+        return false;
+    }
+    if (!parcel.WriteInt32(callingPid)) {
+        ACCOUNT_LOGE("Failed to write callingPid.");
+        return false;
+    }
+    if (!parcel.WriteUInt8Vector(challenge)) {
+        ACCOUNT_LOGE("Failed to write bundleName.");
         return false;
     }
     return true;
@@ -75,6 +118,12 @@ bool AuthorizationResult::ReadFromParcel(Parcel &parcel)
         ACCOUNT_LOGE("Read token failed.");
         return false;
     }
+    int32_t resultCodeValue;
+    if (!parcel.ReadInt32(resultCodeValue)) {
+        ACCOUNT_LOGE("Read resultCodeValue failed.");
+        return false;
+    }
+    resultCode = static_cast<AuthorizationResultCode>(resultCodeValue);
     return true;
 }
 
@@ -96,6 +145,10 @@ bool AuthorizationResult::Marshalling(Parcel &parcel) const
         ACCOUNT_LOGE("Failed to write token.");
         return false;
     }
+    if (!parcel.WriteInt32(static_cast<int32_t>(resultCode))) {
+        ACCOUNT_LOGE("Failed to write resultCode.");
+        return false;
+    }
     return true;
 }
 
@@ -112,6 +165,10 @@ AuthorizationResult *AuthorizationResult::Unmarshalling(Parcel &parcel)
 
 bool AcquireAuthorizationOptions::ReadFromParcel(Parcel &parcel)
 {
+    if (!parcel.ReadBool(hasContext)) {
+        ACCOUNT_LOGE("Read challenge failed.");
+        return false;
+    }
     if (!parcel.ReadUInt8Vector(&challenge)) {
         ACCOUNT_LOGE("Read challenge failed.");
         return false;
@@ -129,6 +186,10 @@ bool AcquireAuthorizationOptions::ReadFromParcel(Parcel &parcel)
 
 bool AcquireAuthorizationOptions::Marshalling(Parcel &parcel) const
 {
+    if (!parcel.WriteBool(hasContext)) {
+        ACCOUNT_LOGE("Failed to write hasContext");
+        return false;
+    }
     if (!parcel.WriteUInt8Vector(challenge)) {
         ACCOUNT_LOGE("Failed to write challenge.");
         return false;
@@ -154,6 +215,25 @@ AcquireAuthorizationOptions *AcquireAuthorizationOptions::Unmarshalling(Parcel &
         info = nullptr;
     }
     return info;
+}
+
+void TransVectorU8ToString(const std::vector<uint8_t> &vec, std::string &str)
+{
+    str.clear();
+    for (uint8_t item : vec) {
+        if ((item & TWO_BYTE_MASK) == 0) {
+            str.append("0");
+        }
+        str.append(DexToHexString(item, true));
+    }
+}
+
+void TransStringToVectorU8(std::vector<uint8_t> &vec, const std::string &str)
+{
+    vec.clear();
+    for (char ch : str) {
+        vec.push_back(static_cast<uint8_t>(ch));
+    }
 }
 }
 }
