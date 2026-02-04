@@ -149,6 +149,9 @@ private:
 #ifdef ENABLE_U1_ACCOUNT
     void GetU1Config(const CJsonUnique &configJson, OsAccountConfig &config);
 #endif // ENABLE_U1_ACCOUNT
+#ifdef SUPPORT_AUTHORIZATION
+    void GetAuthAppConfig(const CJsonUnique &configJson, OsAccountConfig &config);
+#endif // SUPPORT_AUTHORIZATION
 private:
     std::shared_ptr<AccountFileOperator> accountFileOperator_;
 #if defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)

@@ -56,7 +56,7 @@ typedef UserIam::UserAuth::GetSecUserInfoCallback GetSecUserInfoCallback;
 typedef UserIam::UserAuth::GetCredentialInfoCallback GetCredentialInfoCallback;
 typedef UserIam::UserAuth::PrepareRemoteAuthCallback PrepareRemoteAuthCallback;
 typedef UserIam::UserAuth::GetSecUserInfoCallback GetSecUserInfoCallback;
-
+const int32_t AUTHORIZATION_INTENT_NUM = 100001;
 enum IAMAuthType {
     DOMAIN = 1024,
     TYPE_END,

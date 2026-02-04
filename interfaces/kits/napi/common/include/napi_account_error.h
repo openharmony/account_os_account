@@ -26,6 +26,7 @@ namespace AccountJsKit {
 napi_value GenerateBusinessSuccess(napi_env env, bool throwErr);
 napi_value GenerateBusinessError(napi_env env, int32_t jsErrCode, const std::string &jsErrMsg);
 napi_value GenerateBusinessError(napi_env env, int32_t nativeErrCode);
+napi_value GenerateAuthorizationBusinessError(napi_env env, int32_t nativeErrCode);
 napi_value GenerateBusinessError(napi_env env, int32_t nativeErrCode, bool throwErr);
 void GenerateBusinessError(const int32_t nativeErrCode, int32_t &jsErrCode, std::string &errMsg);
 void AccountNapiThrow(napi_env env, int32_t jsErrCode, const std::string &jsErrMsg, bool throwErr = true);

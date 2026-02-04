@@ -13,16 +13,50 @@
  * limitations under the License.
  */
 
-#ifndef AUTHORIZATION_INNERKITS_AUTHORIZATIONT_INCLUDE_AUTHORIZATION_CALLBACK_H
-#define AUTHORIZATION_INNERKITS_AUTHORIZATIONT_INCLUDE_AUTHORIZATION_CALLBACK_H
+#ifndef AUTHORIZATION_INNERKITS_AUTHORIZATION_INCLUDE_AUTHORIZATION_CALLBACK_H
+#define AUTHORIZATION_INNERKITS_AUTHORIZATION_INCLUDE_AUTHORIZATION_CALLBACK_H
 
-#include "authorization_callback_stub.h"
+#include <cstdint>
+#include <iremote_broker.h>
+#include <string_ex.h>
 #include "authorization_common.h"
 
 namespace OHOS {
 namespace AccountSA {
-class AuthorizationResultCallback : public AuthorizationCallbackStub {
+/**
+ * @brief Callback interface for authorization events.
+ *
+ * This class defines the callback interface that authorization clients
+ * must implement to receive authorization results and handle UI extension
+ * connections for user interaction.
+ */
+class AuthorizationCallback {
+public:
+    /**
+     * @brief Called when authorization result is available.
+     *
+     * This method is invoked when the authorization process completes,
+     * either successfully or with an error.
+     *
+     * @param resultCode The result code from authorization service
+     * @param result The authorization result containing token and other information
+     * @return ERR_OK on success
+     */
+    virtual ErrCode OnResult(int32_t resultCode, const AccountSA::AuthorizationResult& result) = 0;
+
+    /**
+     * @brief Called when UI extension connection is needed.
+     *
+     * This method is invoked when the authorization service requires
+     * user interaction through a UI extension.
+     *
+     * @param info The connection ability information containing bundle name and ability name
+     * @param callback The callback remote object for communication
+     * @return ERR_OK on success
+     */
+    virtual ErrCode OnConnectAbility(const AccountSA::ConnectAbilityInfo &info,
+        const sptr<IRemoteObject> &callback) = 0;
 };
 }
 }
-#endif // AUTHORIZATION_INNERKITS_AUTHORIZATIONT_INCLUDE_AUTHORIZATION_CALLBACK_H
+#endif // AUTHORIZATION_INNERKITS_AUTHORIZATION_INCLUDE_AUTHORIZATION_CALLBACK_H

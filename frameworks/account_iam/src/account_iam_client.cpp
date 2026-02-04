@@ -21,6 +21,9 @@
 #include "account_log_wrapper.h"
 #include "account_proxy.h"
 #include "account_permission_manager.h"
+#ifdef SUPPORT_AUTHORIZATION
+#include "authorization_client.h"
+#endif // SUPPORT_AUTHORIZATION
 #include "ipc_skeleton.h"
 #include "ohos_account_kits_impl.h"
 #include "os_account_manager.h"
@@ -609,6 +612,14 @@ ErrCode AccountIAMClient::RegisterPINInputer(const std::shared_ptr<IInputer> &in
     }
     auto iamInputer = std::make_shared<IAMInputer>(userId, inputer);
     if (UserIam::PinAuth::PinAuthRegister::GetInstance().RegisterInputer(iamInputer)) {
+#ifdef SUPPORT_AUTHORIZATION
+        result = AuthorizationClient::GetInstance().RegisterAuthAppRemoteObject();
+        if (result != ERR_OK) {
+            ACCOUNT_LOGI("RegisterAuthAppRemoteObject fail, error:%{public}d", result);
+            UserIam::PinAuth::PinAuthRegister::GetInstance().UnRegisterInputer();
+            return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+        }
+#endif // SUPPORT_AUTHORIZATION
         pinInputer_ = inputer;
         ACCOUNT_LOGI("Register inputer successful!");
         return ERR_OK;
@@ -686,6 +697,9 @@ ErrCode AccountIAMClient::UnregisterPINInputer()
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     UserIam::PinAuth::PinAuthRegister::GetInstance().UnRegisterInputer();
+#ifdef SUPPORT_AUTHORIZATION
+    AuthorizationClient::GetInstance().UnRegisterAuthAppRemoteObject();
+#endif // SUPPORT_AUTHORIZATION
     std::lock_guard<std::mutex> lock(pinMutex_);
     pinInputer_ = nullptr;
     ACCOUNT_LOGI("Unregister PIN inputer successful!");

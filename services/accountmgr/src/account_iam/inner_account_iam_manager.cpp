@@ -276,7 +276,11 @@ void InnerAccountIAMManager::CopyAuthParam(const AuthParam &authParam, UserIam::
     iamAuthParam.challenge = authParam.challenge;
     iamAuthParam.authType = authParam.authType;
     iamAuthParam.authTrustLevel = authParam.authTrustLevel;
-    iamAuthParam.authIntent = static_cast<UserIam::UserAuth::AuthIntent>(authParam.authIntent);
+    if (static_cast<int32_t>(authParam.authIntent) == AUTHORIZATION_INTENT_NUM) {
+        iamAuthParam.authIntent = UserIam::UserAuth::AuthIntent::DEFAULT;
+    } else {
+        iamAuthParam.authIntent = static_cast<UserIam::UserAuth::AuthIntent>(authParam.authIntent);
+    }
     if (authParam.remoteAuthParam != std::nullopt) {
         iamAuthParam.remoteAuthParam = UserIam::UserAuth::RemoteAuthParam();
         if (authParam.remoteAuthParam.value().verifierNetworkId != std::nullopt) {

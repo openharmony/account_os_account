@@ -39,9 +39,9 @@ namespace {
         USER_ROLE_DELETE_CMD_ID = 0x00010002,
         USER_TOKEN_VERIFY_CMD_ID = 0x00020002,
         CHECK_TIMESTAMP_EXPIRE_CMD_ID = 0x00020003,
+        USER_TOKEN_APPLY_CMD_ID = 0x00020001,
     };
 }
-
 OsAccountTeeAdapter::TeecContextGuard::~TeecContextGuard()
 {
     if (initResult_ == TEEC_SUCCESS) {
@@ -231,6 +231,27 @@ ErrCode OsAccountTeeAdapter::CheckTimestampExpired(
     }
     isValid = (result.isEffective == 1);
     remainTimeSec = result.remainValidityTime;
+    return ERR_OK;
+}
+
+ErrCode OsAccountTeeAdapter::TaAcquireAuthorization(const ApplyUserTokenParam &param, ApplyUserTokenResult &tokenResult)
+{
+    std::function<ErrCode(TEEC_Operation &)> setParamTask = [&param, &tokenResult](TEEC_Operation &operation) {
+        (void)memset_s(&operation, sizeof(TEEC_Operation), 0, sizeof(TEEC_Operation));
+        operation.started = 1;
+        operation.paramTypes = TEEC_PARAM_TYPES(TEEC_MEMREF_TEMP_INPUT, TEEC_MEMREF_TEMP_OUTPUT, TEEC_NONE, TEEC_NONE);
+        operation.params[INDEX_ZERO].tmpref.buffer =
+            reinterpret_cast<uint8_t *>(const_cast<ApplyUserTokenParam *>(&param));
+        operation.params[INDEX_ZERO].tmpref.size = sizeof(param);
+        operation.params[INDEX_ONE].tmpref.buffer = reinterpret_cast<uint8_t *>(&tokenResult);
+        operation.params[INDEX_ONE].tmpref.size = sizeof(tokenResult);
+        return ERR_OK;
+    };
+    ErrCode ret = ExecuteCommand(USER_TOKEN_APPLY_CMD_ID, setParamTask);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Failt to TAAcquireAuthorization, errCode:%{public}d", ret);
+        return ERR_AUTHORIZATION_TA_ERROR;
+    }
     return ERR_OK;
 }
 } // namespace AccountSA
