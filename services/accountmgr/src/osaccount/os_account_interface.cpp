@@ -316,8 +316,8 @@ void OsAccountInterface::SendToBMSAccountUnlockedWithTimeout(const OsAccountInfo
             ReportOsAccountOperationFail(localId, Constants::OPERATION_SECOND_MOUNT, -1,
                 "Create new bundle el5 dir time out");
         };
-        int32_t timerId = HiviewDFX::XCollie::GetInstance().SetTimer(
-            TIMER_NAME, WAIT_BMS_TIMEOUT, callbackFunc, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
+        int32_t timerId = HiviewDFX::XCollie::GetInstance().SetTimer("SecondMountUnlockBMSTimer", WAIT_BMS_TIMEOUT,
+            callbackFunc, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
 #endif // HICOLLIE_ENABLE
         SendToBMSAccountUnlocked(osAccountInfo);
 #ifdef HICOLLIE_ENABLE
@@ -944,8 +944,8 @@ void OsAccountInterface::SendToStorageAccountUnlocked(const OsAccountInfo &osAcc
         ACCOUNT_LOGE("Notify storage unlock timeout, localId=%{public}d", localId);
         ReportOsAccountOperationFail(localId, Constants::OPERATION_SECOND_MOUNT, -1, "Notify storage unlock timeout");
     };
-    int32_t timerId = HiviewDFX::XCollie::GetInstance().SetTimer(
-        TIMER_NAME, STORAGE_TIMEOUT, callbackFunc, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
+    int32_t timerId = HiviewDFX::XCollie::GetInstance().SetTimer("SecondMountUnlockStorageTimer", STORAGE_TIMEOUT,
+        callbackFunc, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
 #endif // HICOLLIE_ENABLE
     StartTraceAdapter("StorageManager NotifyUserChangedEvent");
     proxy->NotifyUserChangedEvent(localId, StorageService::EVENT_USER_UNLOCKED);
@@ -976,8 +976,8 @@ void OsAccountInterface::SendToStorageAccountSwitched(const OsAccountInfo &osAcc
         ACCOUNT_LOGE("Notify storage switch timeout, localId=%{public}d", localId);
         ReportOsAccountOperationFail(localId, Constants::OPERATION_SECOND_MOUNT, -1, "Notify storage switch timeout");
     };
-    int32_t timerId = HiviewDFX::XCollie::GetInstance().SetTimer(
-        TIMER_NAME, STORAGE_TIMEOUT, callbackFunc, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
+    int32_t timerId = HiviewDFX::XCollie::GetInstance().SetTimer("SecondMountSwitchStorageTimer", STORAGE_TIMEOUT,
+        callbackFunc, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
 #endif // HICOLLIE_ENABLE
     StartTraceAdapter("StorageManager NotifyUserChangedEvent");
     proxy->NotifyUserChangedEvent(localId, StorageService::EVENT_USER_SWITCHED);
