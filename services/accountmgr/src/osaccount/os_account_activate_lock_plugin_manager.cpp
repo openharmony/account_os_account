@@ -20,6 +20,7 @@
 #include <future>
 #include <pthread.h>
 #include <thread>
+#include "hitrace_adapter.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -37,7 +38,9 @@ OsAccountActivateLockPluginManager::OsAccountActivateLockPluginManager(
     const std::string &libPath, const std::string &libName)
 {
     InitFuncSymbolList();
+    StartTraceAdapter("LoadActiateLockPlugin");
     LoaderLib(libPath, libName);
+    FinishTraceAdapter();
     ACCOUNT_LOGI("OsAccountActivateLockPluginManager init end.");
 }
 
