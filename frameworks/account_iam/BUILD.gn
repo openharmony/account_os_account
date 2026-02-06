@@ -121,6 +121,13 @@ ohos_shared_library("account_iam_innerkits") {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
   }
 
+  if (os_account_support_authorization) {
+    cflags_cc += [ "-DSUPPORT_AUTHORIZATION" ]
+    deps += [
+      "${authorization_framework_path}:authorization_innerkits"
+    ]
+  }
+
   innerapi_tags = [ "platformsdk_indirect" ]
   subsystem_name = "account"
   part_name = "os_account"

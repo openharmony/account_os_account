@@ -26,10 +26,31 @@
 
 namespace OHOS {
 namespace AccountSA {
+constexpr int32_t USER_TOKEN_LEN = 2048;
+constexpr int32_t AUTH_TOKEN_LEN = 1024;
+constexpr int32_t PERMISSION_MAX_LEN = 1024;
+
 struct VerifyGrantTimeResult {
     int32_t isEffective = 0;
     int32_t remainValidityTime = 0;
 };
+
+typedef struct {
+    uint32_t pid;
+    uint8_t permission[PERMISSION_MAX_LEN + 1];
+    uint8_t permissionSize;
+    int32_t grantValidityPeriod;
+    int32_t grantUserId;
+    uint8_t authToken[AUTH_TOKEN_LEN];
+    size_t authTokenSize;
+} __attribute__((__packed__)) ApplyUserTokenParam;
+
+typedef struct {
+    uint8_t userToken[USER_TOKEN_LEN];
+    size_t userTokenSize;
+    int32_t remainValidityTime;
+    uint32_t grantTime;
+} __attribute__((__packed__)) ApplyUserTokenResult;
 
 /**
  * @brief An adapter class for managing OS account operations with Trusted Application (TA) in TEE.
@@ -98,6 +119,29 @@ public:
     ErrCode CheckTimestampExpired(const uint32_t grantTime,
         const int32_t period, int32_t &remainTimeSec, bool &isValid);
 
+    /**
+     * @brief Acquires authorization from Trusted Application (TA) in TEE.
+     *
+     * This method communicates with the TA to obtain an authorization token
+     * for a specific privilege. The TA validates the request and returns
+     * a user token if authorization is granted.
+     *
+     * @param param The parameters for the authorization request, including:
+     *             - pid: The process ID of the requesting application
+     *             - permission: The privilege string to authorize
+     *             - permissionSize: Size of the privilege string
+     *             - grantValidityPeriod: Validity period in seconds
+     *             - grantUserId: The user ID to grant privilege
+     *             - authToken: The IAM authentication token
+     *             - authTokenSize: Size of the authentication token
+     * @param result The output result containing:
+     *             - userToken: The granted user token from TA
+     *             - userTokenSize: Size of the user token
+     *             - remainValidityTime: Remaining validity time in seconds
+     *             - grantTime: The timestamp when privilege was granted
+     * @return ERR_OK on success, error code on failure (see account_error_no.h)
+     */
+    ErrCode TaAcquireAuthorization(const ApplyUserTokenParam &param, ApplyUserTokenResult &result);
 private:
     /**
      * @brief A RAII wrapper class for TEEC_Context.

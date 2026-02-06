@@ -16,5 +16,6 @@
 sequenceable OHOS.IRemoteObject;
 
 interface OHOS.AccountSA.IConnectAbilityCallback {
-   [oneway]void OnResult([in] int resultCode, [in] unsigned char [] iamToken);
+   void OnResult([in] int resultCode, [in] unsigned char [] iamToken, [in] int accountId,
+      [in] int iamResultCode);
 }

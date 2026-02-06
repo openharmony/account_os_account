@@ -70,6 +70,12 @@ const char START_USER_STRING_ID[] = "100";
 const char DEVICE_OWNER_ID[] = "deviceOwnerId";
 const char NEXT_LOCAL_ID[] = "NextLocalId";
 const char IS_SERIAL_NUMBER_FULL[] = "isSerialNumberFull";
+#ifdef SUPPORT_AUTHORIZATION
+const char AUTH_APP_BUNDLE_NAME[] = "bundleName";
+const char AUTH_APP_UI_ABILITY_NAME[] = "modalAppAbilityName";
+const char AUTH_APP_SYS_ABILITY_NAME[] = "modalSystemAbilityName";
+const char AUTH_CONFIG_KEY[] = "authorizationWidget";
+#endif // SUPPORT_AUTHORIZATION
 }
 
 bool GetValidAccountID(const std::string& dirName, std::int32_t& accountID)
@@ -93,6 +99,21 @@ bool GetValidAccountID(const std::string& dirName, std::int32_t& accountID)
     sstream >> accountID;
     return (accountID >= Constants::ADMIN_LOCAL_ID && accountID <= Constants::MAX_USER_ID);
 }
+
+#ifdef SUPPORT_AUTHORIZATION
+void OsAccountControlFileManager::GetAuthAppConfig(const CJsonUnique &configJson, OsAccountConfig &config)
+{
+    CJson *appJson = nullptr;
+    bool ret = GetDataByType<CJson *>(configJson, AUTH_CONFIG_KEY, appJson);
+    if (!ret) {
+        ACCOUNT_LOGE("Failed to parse %{public}s", AUTH_CONFIG_KEY);
+        return;
+    }
+    GetDataByType<std::string>(appJson, AUTH_APP_BUNDLE_NAME, config.authAppBundleName);
+    GetDataByType<std::string>(appJson, AUTH_APP_UI_ABILITY_NAME, config.authAppUIExtensionAbilityName);
+    GetDataByType<std::string>(appJson, AUTH_APP_SYS_ABILITY_NAME, config.authAppServiceExtensionAbilityName);
+}
+#endif // SUPPORT_AUTHORIZATION
 
 #ifdef ENABLE_U1_ACCOUNT
 void OsAccountControlFileManager::GetU1Config(const CJsonUnique &configJson, OsAccountConfig &config)
@@ -170,6 +191,9 @@ ErrCode OsAccountControlFileManager::GetOsAccountConfig(OsAccountConfig &config)
         (config.maxLoggedInOsAccountNum <= 0)) {
         config.maxLoggedInOsAccountNum = config.maxOsAccountNum;
     }
+#ifdef SUPPORT_AUTHORIZATION
+    GetAuthAppConfig(configJson, config);
+#endif // SUPPORT_AUTHORIZATION
     return ERR_OK;
 }
 

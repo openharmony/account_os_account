@@ -24,33 +24,38 @@
 #include "napi_account_common.h"
 #include "ui_content.h"
 #include "ui_extension_context.h"
+#include "want.h"
 
 namespace OHOS {
 namespace AccountJsKit {
 struct AcquireAuthorizationContext : public CommonAsyncContext {
-    AcquireAuthorizationContext(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
+    AcquireAuthorizationContext(napi_env napiEnv, bool isThrowable) : CommonAsyncContext(napiEnv, isThrowable) {};
     AccountSA::AcquireAuthorizationOptions options;
     AccountSA::AuthorizationResult authorizationResult;
     std::string privilege;
     bool hasOptions = false;
     bool uiAbilityFlag = false;
+    bool skipAuthorization = false;  // Flag to skip authorization flow (e.g., when context conversion fails)
+    int32_t sessionId = -1;
     std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext;
     std::shared_ptr<AbilityRuntime::UIExtensionContext> uiExtensionContext;
 };
 
 class UIExtensionCallback {
 public:
-    explicit UIExtensionCallback(std::shared_ptr<AcquireAuthorizationContext> &context);
+    explicit UIExtensionCallback(const std::shared_ptr<AcquireAuthorizationContext> &context);
     ~UIExtensionCallback() = default;
     void SetSessionId(int32_t sessionId);
-    void SetCallBack(sptr<IRemoteObject> &callback);
+    void SetCallBack(const sptr<IRemoteObject> &callback);
     void OnRelease(int32_t releaseCode);
     void OnResult(int32_t resultCode, const OHOS::AAFwk::Want &result);
     void OnReceive(const OHOS::AAFwk::WantParams &request);
     void OnError(int32_t code, const std::string &name, const std::string &message);
     void OnRemoteReady(const std::shared_ptr<OHOS::Ace::ModalUIExtensionProxy> &uiProxy);
     void OnDestroy();
-    void ReleaseHandler(int32_t code);
+    void ReleaseHandler(int32_t code,
+        AccountSA::AuthorizationResultCode resultCode = AccountSA::AuthorizationResultCode::AUTHORIZATION_SUCCESS,
+        const std::vector<uint8_t> &iamToken = std::vector<uint8_t>(), int32_t accountId = -1);
 
 private:
     int32_t sessionId_ = 0;
@@ -60,28 +65,29 @@ private:
     sptr<IRemoteObject> callback_ = nullptr;
 };
 
-struct RequestAsyncContextHandle {
-    explicit RequestAsyncContextHandle(std::shared_ptr<AcquireAuthorizationContext>& requestAsyncContext)
-    {
-        asyncContextPtr = requestAsyncContext;
-    }
-
-    std::shared_ptr<AcquireAuthorizationContext> asyncContextPtr = nullptr;
-};
-
-class NapiAuthorizationResultCallback : public AccountSA::AuthorizationResultCallback {
+class NapiAuthorizationResultCallback final : public AccountSA::AuthorizationCallback {
 public:
-    NapiAuthorizationResultCallback(std::shared_ptr<AcquireAuthorizationContext>& asyncContextPtr)
+    NapiAuthorizationResultCallback(AcquireAuthorizationContext *asyncContextPtr)
     {
-        asyncContextPtr_ = asyncContextPtr;
+        env_ = asyncContextPtr->env;
+        deferred_ = asyncContextPtr->deferred;
+        if (asyncContextPtr->hasOptions) {
+            context_ = std::make_shared<AcquireAuthorizationContext>(env_, true);
+            context_->hasOptions = asyncContextPtr->hasOptions;
+            context_->uiAbilityFlag = asyncContextPtr->uiAbilityFlag;
+            context_->sessionId = asyncContextPtr->sessionId;
+            context_->abilityContext = asyncContextPtr->abilityContext;
+            context_->uiExtensionContext = asyncContextPtr->uiExtensionContext;
+            context_->options.hasContext = asyncContextPtr->options.hasContext;
+        }
     }
-
-    ~NapiAuthorizationResultCallback() = default;
     ErrCode OnResult(int32_t resultCode, const AccountSA::AuthorizationResult& result) override;
     ErrCode OnConnectAbility(const AccountSA::ConnectAbilityInfo &info,
         const sptr<IRemoteObject> &callback) override;
 private:
-    std::shared_ptr<AcquireAuthorizationContext> asyncContextPtr_;
+    napi_env env_;
+    napi_deferred deferred_ = nullptr;
+    std::shared_ptr<AcquireAuthorizationContext> context_ = nullptr;
 };
 
 class NapiAuthorizationManager {

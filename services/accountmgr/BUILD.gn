@@ -287,17 +287,21 @@ ohos_shared_library("accountmgr") {
     sources += [
       "${authorization_framework_path}/src/authorization_common.cpp",
       "./src/common/tee/tee_auth_adapter.cpp",
-      "src/authorization/authorization_manager_service.cpp",
-      "src/authorization/inner_authorization_manager.cpp",
+      "src/authorization_manager/authorization_manager_service.cpp",
+      "src/authorization_manager/inner_authorization_manager.cpp",
       "src/authorization_manager/privilege_cache_manager.cpp",
       "src/authorization_manager/privilege_utils.cpp",
+      "src/authorization_manager/service_extension_connect.cpp",
     ]
     deps += [
       "${authorization_framework_path}:authorization_callback_proxy",
       "${authorization_framework_path}:authorization_stub",
       "${authorization_framework_path}:connect_ability_callback_stub",
     ]
-    external_deps += [ "tee_client:libteec" ]
+    external_deps += [
+      "ability_runtime:extension_manager",
+      "tee_client:libteec"
+    ]
   }
 
   if (os_account_enable_multiple_foreground_os_accounts) {
