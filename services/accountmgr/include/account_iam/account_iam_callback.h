@@ -72,6 +72,9 @@ private:
     uint32_t callerTokenId_ = 0;
     AuthType authType_;
     AuthIntent authIntent_;
+    int32_t callingUid_ = -1;
+    int32_t callingPid_ = -1;
+    bool isFromAuth_ = false;
     bool isRemoteAuth_ = false;
     sptr<IIDMCallback> innerCallback_ = nullptr;
     sptr<AuthCallbackDeathRecipient> deathRecipient_ = nullptr;

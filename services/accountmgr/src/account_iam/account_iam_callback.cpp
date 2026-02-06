@@ -27,6 +27,9 @@
 #include "account_hisysevent_adapter.h"
 #include "iinner_os_account_manager.h"
 #include "inner_account_iam_manager.h"
+#ifdef SUPPORT_AUTHORIZATION
+#include "inner_authorization_manager.h"
+#endif // SUPPORT_AUTHORIZATION
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
 #include "inner_domain_account_manager.h"
 #endif // SUPPORT_DOMAIN_ACCOUNTS
@@ -78,6 +81,12 @@ AuthCallback::AuthCallback(
     if (authType == AuthType::PIN) {
         callerTokenId_ = IPCSkeleton::GetCallingTokenID();
     }
+    if (static_cast<int32_t>(authIntent) == AUTHORIZATION_INTENT_NUM) {
+        authIntent_ = AuthIntent::DEFAULT;
+        callingUid_ = IPCSkeleton::GetCallingUid();
+        callingPid_ = IPCSkeleton::GetCallingPid();
+        isFromAuth_ = true;
+    }
 }
 
 AuthCallback::AuthCallback(uint32_t userId, AuthType authType, AuthIntent authIntent,
@@ -88,6 +97,12 @@ AuthCallback::AuthCallback(uint32_t userId, AuthType authType, AuthIntent authIn
     // save caller tokenId for pin re-enroll
     if (authType == AuthType::PIN) {
         callerTokenId_ = IPCSkeleton::GetCallingTokenID();
+    }
+    if (static_cast<int32_t>(authIntent) == AUTHORIZATION_INTENT_NUM) {
+        authIntent_ = AuthIntent::DEFAULT;
+        callingUid_ = IPCSkeleton::GetCallingUid();
+        callingPid_ = IPCSkeleton::GetCallingPid();
+        isFromAuth_ = true;
     }
 }
 
@@ -365,6 +380,13 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         ACCOUNT_LOGE("innerCallback_ is nullptr");
         return;
     }
+#ifdef SUPPORT_AUTHORIZATION
+    if (isFromAuth_ && (result == ERR_OK || result == NO_CRED_ERRCODE)) {
+        std::vector<uint8_t> token;
+        extraInfo.GetUint8ArrayValue(Attributes::ATTR_SIGNATURE, token);
+        InnerAuthorizationManager::GetInstance().UpdateAuthInfo(token, authedAccountId, callingUid_);
+    }
+#endif // SUPPORT_AUTHORIZATION
     sptr<IRemoteObject> remoteObject = innerCallback_->AsObject();
     if ((deathRecipient_ != nullptr) && (remoteObject != nullptr)) {
         remoteObject->RemoveDeathRecipient(deathRecipient_);

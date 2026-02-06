@@ -19,10 +19,18 @@ use ohos.account.distributedAccount as distributedAccount;
 
 @!sts_inject_into_module("import { BusinessError } from '@ohos.base';")
 @!sts_inject_into_module("import { RecordData } from '@ohos.base';")
-
+@!sts_inject_into_module("import Context from 'application.Context';")
 @!sts_inject("""
 static { loadLibrary("os_account_taihe_native.z") }
 """)
+
+@overload("getAuthorizationManager")
+function GetAuthorizationManager(): AuthorizationManager;
+
+interface AuthorizationManager {
+    @gen_promise("acquireAuthorization")
+    AcquireAuthorizationSync(privilege: String, options: Optional<AcquireAuthorizationOptions>): AcquireAuthorizationResult;
+}
 
 @overload("getAccountManager")
 function GetAccountManager(): AccountManager;
@@ -559,6 +567,28 @@ struct AuthResult {
     credentialId: Optional<@typedarray Array<u8>>;
     accountId: Optional<i32>;
     pinValidityPeriod: Optional<i64>;
+}
+
+struct AcquireAuthorizationOptions {
+    challenge: Optional<@typedarray Array<u8>>;
+    isReuseNeeded: Optional<bool>;
+    isInteractionAllowed: Optional<bool>;
+    interactionContext : Optional<@sts_type("Context") Opaque>;
+}
+
+struct AcquireAuthorizationResult {
+    resultCode: AuthorizationResultCode;
+    privilege: String;
+    isReused: Optional<bool>;
+    validityPeriod: Optional<i32>;
+    token: Optional<@typedarray Array<u8>>;
+}
+enum AuthorizationResultCode : i32 {
+ 	AUTHORIZATION_SUCCESS = 0,
+ 	AUTHORIZATION_CANCELED = 12300301,
+ 	AUTHORIZATION_INTERACTION_NOT_ALLOWED = 12300302,
+    AUTHORIZATION_DENIED = 12300303,
+    AUTHORIZATION_SERVICE_BUSY = 12300304
 }
 
 enum AuthTrustLevel: i32 {

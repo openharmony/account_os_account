@@ -314,6 +314,14 @@ enum {
     ERR_AUTHORIZATION_NOT_SUPPORT = AUTHORIZATION_ERR_OFFSET + 0x0001,
     ERR_AUTHORIZATION_PRIVILEGE_DENIED,
     ERR_AUTHORIZATION_CHECK_TIME_FAILED,
+    ERR_AUTHORIZATION_GET_CONTENT_ERROR,
+    ERR_AUTHORIZATION_CREATE_UI_EXTENSION_ERROR,
+    ERR_AUTHORIZATION_CREATE_SYS_EXTENSION_ERROR,
+    ERR_AUTHORIZATION_TA_ERROR,
+    ERR_AUTHORIZATION_CACHE_ERROR,
+    ERR_AUTHORIZATION_GET_PROXY_ERROR,
+    ERR_AUTHORIZATION_GET_STUB_ERROR,
+    ERR_AUTHORIZATION_ALREADY_HAS_ERROR,
 };
 
 enum IAMResultCode : int32_t {
@@ -424,7 +432,7 @@ int32_t GenerateBusinessErrorCode(int32_t nativeErrCode);
 bool CheckJsErrorCode(int32_t errCode);
 std::string ConvertToJsErrMsg(int32_t jsErrCode);
 int32_t AccountIAMConvertToJSErrCode(int32_t errCode);
-
+int32_t AuthorizationConvertToJsErrCode(int32_t nativeErrCode);
 std::string& NativeErrMsg();
 }  // namespace OHOS
 

@@ -19,7 +19,10 @@
 #include "account_info.h"
 #include "account_log_wrapper.h"
 #include "ani_common_want.h"
+#include "ani_ui_extension.h"
+#include "authorization_client.h"
 #include "domain_account_callback.h"
+#include "iconnect_ability_callback.h"
 #include "ohos.account.distributedAccount.impl.hpp"
 #include "ohos.account.distributedAccount.proj.hpp"
 #include "ohos.account.osAccount.impl.hpp"
@@ -50,6 +53,7 @@ const bool DEFAULT_BOOL = false;
 const int UID_TRANSFORM_DIVISOR = 200000;
 const AccountSA::OsAccountType DEFAULT_ACCOUNT_TYPE = AccountSA::OsAccountType::END;
 constexpr std::int32_t MAX_SUBSCRIBER_NAME_LEN = 1024;
+constexpr std::int32_t MAX_CHALLENGE_LEN = 32;
 std::mutex g_lockForOsAccountSubscribers;
 std::mutex g_lockForConstraintChangeSubscribers;
 std::vector<std::shared_ptr<AccountSA::TaiheConstraintSubscriberPtr>> g_osAccountConstraintChangeSubscribers;
@@ -1203,10 +1207,358 @@ AccountManager GetAccountManager()
     return make_holder<AccountManagerImpl, AccountManager>();
 }
 
+/**
+ * @brief Convert native authorization result code to Taihe key type.
+ *
+ * @param type The native authorization result code
+ * @return The corresponding Taihe authorization result code key
+ */
+AuthorizationResultCode::key_t ConvertToAuthorizationResultCodeKey(AccountSA::AuthorizationResultCode type)
+{
+    switch (type) {
+        case AccountSA::AuthorizationResultCode::AUTHORIZATION_SUCCESS:
+            return AuthorizationResultCode::key_t::AUTHORIZATION_SUCCESS;
+        case AccountSA::AuthorizationResultCode::AUTHORIZATION_CANCELED:
+            return AuthorizationResultCode::key_t::AUTHORIZATION_CANCELED;
+        case AccountSA::AuthorizationResultCode::AUTHORIZATION_INTERACTION_NOT_ALLOWED:
+            return AuthorizationResultCode::key_t::AUTHORIZATION_INTERACTION_NOT_ALLOWED;
+        case AccountSA::AuthorizationResultCode::AUTHORIZATION_DENIED:
+            return AuthorizationResultCode::key_t::AUTHORIZATION_DENIED;
+        default:
+            return AuthorizationResultCode::key_t::AUTHORIZATION_SERVICE_BUSY;
+    }
+}
+
+/**
+ * @brief Callback implementation for authorization result.
+ *
+ * This class handles the callback from the native authorization service,
+ * converting the result to Taihe format and notifying waiting threads.
+ */
+class TaiheAuthorizationResultCallback final : public AccountSA::AuthorizationCallback {
+public:
+    /**
+     * @brief Constructor.
+     * @param context The authorization context
+     * @param privilege The privilege string
+     */
+    TaiheAuthorizationResultCallback(
+        std::shared_ptr<OHOS::AccountSA::TaiheAcquireAuthorizationContext> &context,
+        std::string privilege)
+    {
+        context_ = context;
+        taiheResult.privilege = taihe::string(privilege.c_str());
+    }
+
+    /**
+     * @brief Handle authorization result callback.
+     * @param errCode The error code
+     * @param result The authorization result
+     * @return ERR_OK on success
+     */
+    ErrCode OnResult(int32_t errCode, const AccountSA::AuthorizationResult& result) override;
+
+    /**
+     * @brief Handle connect ability callback.
+     * @param info The connection ability information
+     * @param callback The callback object
+     * @return ERR_OK on success
+     */
+    ErrCode OnConnectAbility(const AccountSA::ConnectAbilityInfo &info,
+        const sptr<IRemoteObject> &callback) override;
+
+    // Member variables
+    int32_t errCode_ = -1;
+    std::mutex mutex_;
+    std::condition_variable cv_;
+    bool onResultCalled_ = false;
+    std::shared_ptr<OHOS::AccountSA::TaiheAcquireAuthorizationContext> context_;
+    AcquireAuthorizationResult taiheResult{
+        .resultCode = AuthorizationResultCode(AuthorizationResultCode::key_t::AUTHORIZATION_SUCCESS),
+        .privilege = taihe::string("")
+    };
+};
+
+ErrCode TaiheAuthorizationResultCallback::OnResult(int32_t errCode, const AccountSA::AuthorizationResult& result)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (onResultCalled_) {
+        ACCOUNT_LOGE("OnResult has been called.");
+        return ERR_OK;
+    }
+    // Close UI extension if needed
+    if (context_ != nullptr && context_->hasOptions && context_->options.hasContext) {
+        CloseUIExtension(context_);
+    }
+    errCode_ = errCode;
+    taiheResult.resultCode = AuthorizationResultCode(ConvertToAuthorizationResultCodeKey(result.resultCode));
+    if (result.resultCode == AccountSA::AuthorizationResultCode::AUTHORIZATION_SUCCESS) {
+        taiheResult.isReused = taihe::optional<bool>(std::in_place_t{}, result.isReused);
+        taiheResult.validityPeriod = optional<int32_t>(std::in_place_t{}, result.validityPeriod);
+        if (result.token.size() > 0) {
+            taiheResult.token = optional<array<uint8_t>>(std::in_place_t{}, taihe::copy_data_t{},
+                                                          result.token.data(), result.token.size());
+        }
+    }
+    onResultCalled_ = true;
+    cv_.notify_one();
+    return ERR_OK;
+}
+
+ErrCode TaiheAuthorizationResultCallback::OnConnectAbility(const AccountSA::ConnectAbilityInfo &info,
+    const sptr<IRemoteObject> &callback)
+{
+    ACCOUNT_LOGI("TaiheAuthorizationResultCallback OnConnectAbility");
+    if (context_ == nullptr) {
+        ACCOUNT_LOGI("CreateUIExtension has not context.");
+        std::unique_lock<std::mutex> lock(mutex_);
+        errCode_ = ERR_JS_SYSTEM_SERVICE_EXCEPTION;
+        cv_.notify_one();
+        return ERR_AUTHORIZATION_CREATE_UI_EXTENSION_ERROR;
+    }
+    if (!context_->hasOptions || !context_->options.hasContext) {
+        ACCOUNT_LOGI("CreateUIExtension has not context.");
+        std::unique_lock<std::mutex> lock(mutex_);
+        errCode_ = ERR_JS_SYSTEM_SERVICE_EXCEPTION;
+        cv_.notify_one();
+        return ERR_AUTHORIZATION_CREATE_UI_EXTENSION_ERROR;
+    }
+    ErrCode errCode = CreateUIExtension(context_, info, callback);
+    if (errCode == ERR_OK) {
+        return ERR_OK;
+    }
+    auto connectCallback = iface_cast<AccountSA::IConnectAbilityCallback>(callback);
+    if (connectCallback == nullptr) {
+        ACCOUNT_LOGE("ConnectAbilityCallback proxy is nullptr");
+        std::unique_lock<std::mutex> lock(mutex_);
+        errCode_ = ERR_JS_SYSTEM_SERVICE_EXCEPTION;
+        cv_.notify_one();
+        return ERR_OK;
+    }
+    std::vector<uint8_t> iamToken;
+
+    ErrCode callbackRet = connectCallback->OnResult(errCode, iamToken, -1, -1);
+    if (callbackRet != ERR_OK) {
+        ACCOUNT_LOGW("Failed to call OnResult, errCode: %{public}d", callbackRet);
+    }
+    ACCOUNT_LOGI("Post authorizationCallback OnConnectAbility finish.");
+    return ERR_OK;
+}
+
+void SetAuthorizationTaiheBusinessErrorFromNativeCode(int32_t nativeErrCode)
+{
+    if (nativeErrCode == ERR_OK) {
+        return;
+    }
+    int32_t jsErrCode;
+    std::string errMsg;
+    jsErrCode = AuthorizationConvertToJsErrCode(nativeErrCode);
+    errMsg = ConvertToJsErrMsg(jsErrCode);
+    taihe::set_business_error(jsErrCode, errMsg.c_str());
+}
+
+/**
+ * @brief Initialize authorization result object.
+ * @param privilegeStr The privilege string
+ * @return Initialized authorization result
+ */
+static AcquireAuthorizationResult InitializeAuthorizationResult(const std::string& privilegeStr)
+{
+    return AcquireAuthorizationResult{
+        .resultCode = AuthorizationResultCode(AuthorizationResultCode::key_t::AUTHORIZATION_SUCCESS),
+        .privilege = taihe::string(privilegeStr.c_str())
+    };
+}
+
+/**
+ * @brief Parse and validate challenge option from taihe options.
+ * @param taiheOptions The taihe options
+ * @param options Output authorization options
+ * @return true if valid, false otherwise
+ */
+static bool ParseChallengeOption(
+    const optional_view<ohos::account::osAccount::AcquireAuthorizationOptions>& taiheOptions,
+    AccountSA::AcquireAuthorizationOptions& options)
+{
+    if (!taiheOptions.value().challenge.has_value()) {
+        return true;
+    }
+
+    auto taiheChallenge = taiheOptions.value().challenge.value();
+    std::vector<uint8_t> challenge(taiheChallenge.data(), taiheChallenge.data() + taiheChallenge.size());
+    options.challenge = challenge;
+
+    if (options.challenge.size() >= MAX_CHALLENGE_LEN) {
+        ACCOUNT_LOGE("Challenge size exceeds limit: %{public}zu", options.challenge.size());
+        SetAuthorizationTaiheBusinessErrorFromNativeCode(ERR_JS_INVALID_PARAMETER);
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Parse interaction context from taihe options.
+ * @param taiheOptions The taihe options
+ * @param context Output authorization context
+ * @param options Output authorization options
+ * @param resultCode Output authorization result code (set when context conversion fails)
+ * @return true if valid or should be ignored, false if should throw exception
+ */
+static bool ParseInteractionContext(
+    const optional_view<ohos::account::osAccount::AcquireAuthorizationOptions>& taiheOptions,
+    std::shared_ptr<OHOS::AccountSA::TaiheAcquireAuthorizationContext>& context,
+    AccountSA::AcquireAuthorizationOptions& options,
+    AccountSA::AuthorizationResultCode& resultCode)
+{
+    if (!taiheOptions.value().interactionContext.has_value()) {
+        return true;
+    }
+
+    ani_object aniContext = reinterpret_cast<ani_object>(taiheOptions.value().interactionContext.value());
+    if (!context->FillInfoFromContext(aniContext)) {
+        ACCOUNT_LOGE("Failed to fill info from context");
+
+        // When interaction is required, set result code to INTERACTION_NOT_ALLOWED
+        if (options.isInteractionAllowed) {
+            ACCOUNT_LOGE("Context conversion failed when interaction is required");
+            resultCode = AccountSA::AuthorizationResultCode::AUTHORIZATION_INTERACTION_NOT_ALLOWED;
+            return true;  // Don't throw exception, just set result code
+        }
+
+        // When interaction is not required, ignore the error
+        ACCOUNT_LOGI("Interaction is not allowed, ignore context conversion error");
+        return true;
+    }
+
+    options.hasContext = true;
+    return true;
+}
+
+/**
+ * @brief Parse all taihe options into authorization options.
+ * @param taiheOptions The taihe options
+ * @param context The authorization context
+ * @param options Output authorization options
+ * @param resultCode Output authorization result code (set when context conversion fails)
+ * @return true if valid, false otherwise
+ */
+static bool ParseTaiheOptions(
+    const optional_view<ohos::account::osAccount::AcquireAuthorizationOptions>& taiheOptions,
+    std::shared_ptr<OHOS::AccountSA::TaiheAcquireAuthorizationContext>& context,
+    AccountSA::AcquireAuthorizationOptions& options,
+    AccountSA::AuthorizationResultCode& resultCode)
+{
+    if (!taiheOptions.has_value()) {
+        return true;
+    }
+
+    context->hasOptions = true;
+
+    // Parse challenge option
+    if (!ParseChallengeOption(taiheOptions, options)) {
+        return false;
+    }
+
+    // Parse isReuseNeeded option
+    if (taiheOptions.value().isReuseNeeded.has_value()) {
+        options.isReuseNeeded = taiheOptions.value().isReuseNeeded.value();
+    }
+
+    // Parse isInteractionAllowed option
+    if (taiheOptions.value().isInteractionAllowed.has_value()) {
+        options.isInteractionAllowed = taiheOptions.value().isInteractionAllowed.value();
+    }
+
+    // Parse interaction context
+    if (!ParseInteractionContext(taiheOptions, context, options, resultCode)) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Wait for authorization result with timeout protection.
+ * @param callback The authorization callback
+ * @return Authorization result on success, empty result on failure
+ */
+static AcquireAuthorizationResult WaitForAuthorizationResult(
+    const std::shared_ptr<TaiheAuthorizationResultCallback>& callback)
+{
+    std::unique_lock<std::mutex> lock(callback->mutex_);
+    callback->cv_.wait(lock, [callback] { return callback->onResultCalled_; });
+
+    if (callback->errCode_ != ERR_OK) {
+        ACCOUNT_LOGE("AcquireAuthorization failed with errCode: %{public}d", callback->errCode_);
+        SetAuthorizationTaiheBusinessErrorFromNativeCode(callback->errCode_);
+        return AcquireAuthorizationResult{
+            .resultCode = AuthorizationResultCode(AuthorizationResultCode::key_t::AUTHORIZATION_SERVICE_BUSY),
+            .privilege = taihe::string("")
+        };
+    }
+
+    return callback->taiheResult;
+}
+
+class AuthorizationManagerImpl {
+public:
+    AuthorizationManagerImpl() {}
+
+    /**
+     * @brief Acquire authorization synchronously.
+     * @param privilege The privilege to acquire
+     * @param taiheOptions The authorization options
+     * @return Authorization result
+     */
+    AcquireAuthorizationResult AcquireAuthorizationSync(string_view privilege,
+        optional_view<ohos::account::osAccount::AcquireAuthorizationOptions> const& taiheOptions)
+    {
+        ani_env *env = get_env();
+        std::string privilegeStr(privilege.data(), privilege.size());
+
+        // Initialize result and context
+        AcquireAuthorizationResult taiheResult = InitializeAuthorizationResult(privilegeStr);
+        std::shared_ptr<OHOS::AccountSA::TaiheAcquireAuthorizationContext> context =
+            std::make_shared<OHOS::AccountSA::TaiheAcquireAuthorizationContext>(env);
+
+        // Parse options
+        AccountSA::AuthorizationResultCode parseResultCode = AccountSA::AuthorizationResultCode::AUTHORIZATION_SUCCESS;
+        if (!ParseTaiheOptions(taiheOptions, context, context->options, parseResultCode)) {
+            return taiheResult;
+        }
+
+        // If context conversion failed when interaction was required, return error directly
+        if (parseResultCode != AccountSA::AuthorizationResultCode::AUTHORIZATION_SUCCESS) {
+            ACCOUNT_LOGE("Context conversion failed, returning INTERACTION_NOT_ALLOWED");
+            taiheResult.resultCode = AuthorizationResultCode(ConvertToAuthorizationResultCodeKey(parseResultCode));
+            return taiheResult;
+        }
+
+        // Create callback and acquire authorization
+        auto callback = std::make_shared<TaiheAuthorizationResultCallback>(context, privilegeStr);
+        ErrCode errCode = AccountSA::AuthorizationClient::GetInstance().AcquireAuthorization(
+            privilegeStr, context->options, callback);
+        if (errCode != ERR_OK) {
+            SetAuthorizationTaiheBusinessErrorFromNativeCode(errCode);
+            return taiheResult;
+        }
+
+        // Wait for result
+        return WaitForAuthorizationResult(callback);
+    }
+};
+
+AuthorizationManager GetAuthorizationManager()
+{
+    return make_holder<AuthorizationManagerImpl, AuthorizationManager>();
+}
+
 
 } // namespace
 
 TH_EXPORT_CPP_API_GetAccountManager(GetAccountManager);
+TH_EXPORT_CPP_API_GetAuthorizationManager(GetAuthorizationManager);
 
 namespace OHOS {
 namespace AccountSA {

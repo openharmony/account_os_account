@@ -13,22 +13,7 @@
  * limitations under the License.
  */
 
-#include "authorization_manager_service.h"
-#include "inner_authorization_manager.h"
+sequenceable OHOS.IRemoteObject;
 
-namespace OHOS {
-namespace AccountSA {
-AuthorizationManagerService::AuthorizationManagerService()
-{}
-
-AuthorizationManagerService::~AuthorizationManagerService()
-{}
-
-ErrCode AuthorizationManagerService::AcquireAuthorization(const std::string &privilege,
-    const AcquireAuthorizationOptions &options, const sptr<IRemoteObject> &authorizationResultCallback)
-{
-    return InnerAuthorizationManager::GetInstance().AcquireAuthorization(privilege, options,
-        authorizationResultCallback);
-}
-}
+interface OHOS.AccountSA.IAuthRemoteObject {
 }
