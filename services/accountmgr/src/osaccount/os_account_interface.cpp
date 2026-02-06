@@ -971,20 +971,9 @@ void OsAccountInterface::SendToStorageAccountSwitched(const OsAccountInfo &osAcc
             "GetSystemAbility for storage failed!");
         return;
     }
-#ifdef HICOLLIE_ENABLE
-    XCollieCallback callbackFunc = [localId](void *) {
-        ACCOUNT_LOGE("Notify storage switch timeout, localId=%{public}d", localId);
-        ReportOsAccountOperationFail(localId, Constants::OPERATION_SECOND_MOUNT, -1, "Notify storage switch timeout");
-    };
-    int32_t timerId = HiviewDFX::XCollie::GetInstance().SetTimer("SecondMountSwitchStorageTimer", STORAGE_TIMEOUT,
-        callbackFunc, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
-#endif // HICOLLIE_ENABLE
     StartTraceAdapter("StorageManager NotifyUserChangedEvent");
     proxy->NotifyUserChangedEvent(localId, StorageService::EVENT_USER_SWITCHED);
     FinishTraceAdapter();
-#ifdef HICOLLIE_ENABLE
-    HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
-#endif // HICOLLIE_ENABLE
     ReportOsAccountLifeCycle(localId, "notifyStorageSwitched");
     ACCOUNT_LOGI("End, %{public}d", localId);
 #endif
