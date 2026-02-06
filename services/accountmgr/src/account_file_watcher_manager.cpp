@@ -228,10 +228,13 @@ int32_t GenerateAccountInfoDigest(const std::string &inData, uint8_t* outData, u
 
 AccountFileWatcherMgr::AccountFileWatcherMgr()
 {
+    StartTraceAdapter("InitAccountFileWatcherMgr");
     std::shared_ptr<AccountTimeoutTask> task = std::make_shared<AccountTimeoutTask>();
     bool state = task->RunTask("InitEncryptionKey", [] {
 #ifdef HAS_HUKS_PART
+        StartTraceAdapter("InitEncryptionKey");
         InitEncryptionKey();
+        FinishTraceAdapter();
 #endif // HAS_HUKS_PART
     });
     if (!state) {
@@ -243,6 +246,7 @@ AccountFileWatcherMgr::AccountFileWatcherMgr()
     }
     accountFileOperator_ = std::make_shared<AccountFileOperator>();
     FD_ZERO(&fds_);
+    FinishTraceAdapter();
 }
 
 AccountFileWatcherMgr &AccountFileWatcherMgr::GetInstance()

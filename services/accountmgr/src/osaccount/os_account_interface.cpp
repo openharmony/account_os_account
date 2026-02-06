@@ -28,6 +28,9 @@
 #include "common_event_support.h"
 #endif // HAS_CES_PART
 #include "datetime_ex.h"
+#ifdef HICOLLIE_ENABLE
+#include "xcollie/xcollie.h"
+#endif // HICOLLIE_ENABLE
 #include "account_hisysevent_adapter.h"
 #include "hitrace_adapter.h"
 #include "if_system_ability_manager.h"
@@ -66,6 +69,9 @@ constexpr uint32_t CRYPTO_FLAG_EL2 = 2;
 #endif
 
 constexpr int32_t WAIT_BMS_TIMEOUT = 5;
+#ifdef HICOLLIE_ENABLE
+constexpr int32_t STORAGE_TIMEOUT = 10; // seconds
+#endif // HICOLLIE_ENABLE
 constexpr int32_t DELAY_FOR_EXCEPTION = 100;
 constexpr int32_t MAX_RETRY_TIMES = 10;
 constexpr int32_t MAX_GETBUNDLE_WAIT_TIMES = 10 * 1000 * 1000;
@@ -303,14 +309,25 @@ void OsAccountInterface::SendToBMSAccountUnlockedWithTimeout(const OsAccountInfo
     std::promise<bool> promise;
     std::future<bool> future = promise.get_future();
     std::thread([osAccountInfo, p = std::move(promise)]() mutable {
+#ifdef HICOLLIE_ENABLE
+        auto localId = osAccountInfo.GetLocalId();
+        XCollieCallback callbackFunc = [localId](void *) {
+            ACCOUNT_LOGE("XCollieCallback: SendToBMSAccountUnlocked timeout, %{public}d", localId);
+            ReportOsAccountOperationFail(localId, Constants::OPERATION_SECOND_MOUNT, -1,
+                "Create new bundle el5 dir time out");
+        };
+        int32_t timerId = HiviewDFX::XCollie::GetInstance().SetTimer("SecondMountUnlockBMSTimer", WAIT_BMS_TIMEOUT,
+            callbackFunc, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
+#endif // HICOLLIE_ENABLE
         SendToBMSAccountUnlocked(osAccountInfo);
+#ifdef HICOLLIE_ENABLE
+        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
         p.set_value(true);
     }).detach();
 
     if (future.wait_for(std::chrono::seconds(WAIT_BMS_TIMEOUT)) == std::future_status::timeout) {
         ACCOUNT_LOGE("SendToBMSAccountUnlocked timeout, %{public}d", osAccountInfo.GetLocalId());
-        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_SECOND_MOUNT, -1,
-            "Create new bundle el5 dir time out");
     }
 }
 
@@ -922,9 +939,20 @@ void OsAccountInterface::SendToStorageAccountUnlocked(const OsAccountInfo &osAcc
             "GetSystemAbility for storage failed!");
         return;
     }
+#ifdef HICOLLIE_ENABLE
+    XCollieCallback callbackFunc = [localId](void *) {
+        ACCOUNT_LOGE("Notify storage unlock timeout, localId=%{public}d", localId);
+        ReportOsAccountOperationFail(localId, Constants::OPERATION_SECOND_MOUNT, -1, "Notify storage unlock timeout");
+    };
+    int32_t timerId = HiviewDFX::XCollie::GetInstance().SetTimer("SecondMountUnlockStorageTimer", STORAGE_TIMEOUT,
+        callbackFunc, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
+#endif // HICOLLIE_ENABLE
     StartTraceAdapter("StorageManager NotifyUserChangedEvent");
     proxy->NotifyUserChangedEvent(localId, StorageService::EVENT_USER_UNLOCKED);
     FinishTraceAdapter();
+#ifdef HICOLLIE_ENABLE
+    HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
     ReportOsAccountLifeCycle(localId, "notifyStorageUnlock");
     ACCOUNT_LOGI("End, %{public}d", localId);
 #endif

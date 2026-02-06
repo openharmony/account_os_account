@@ -31,6 +31,7 @@ ohos_unittest("PrivilegeCacheManagerMockTest") {
   module_out_path = module_output_path
 
   sources = [
+    "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
     "${services_path}/accountmgr/src/account_file_watcher_manager.cpp",
     "${services_path}/accountmgr/src/authorization_manager/privilege_cache_manager.cpp",
     "privilege_cache_manager_mock_test.cpp",
@@ -70,6 +71,11 @@ ohos_unittest("PrivilegeCacheManagerMockTest") {
     "tee_client:libteec",
     "time_service:time_client",
   ]
+
+  if (has_hiviewdfx_hitrace_part) {
+    external_deps += [ "hitrace:hitrace_meter" ]
+    cflags_cc += [ "-DHAS_HITRACE_PART" ]
+  }
 
   part_name = "os_account"
 }
