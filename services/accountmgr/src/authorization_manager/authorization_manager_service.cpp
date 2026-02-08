@@ -104,7 +104,7 @@ ErrCode AuthorizationManagerService::UnRegisterAuthAppRemoteObject()
 
 ErrCode AuthorizationManagerService::AcquireAuthorization(const std::string &privilege,
     const AcquireAuthorizationOptions &options, const sptr<IRemoteObject> &authorizationResultCallback,
-    const sptr<IRemoteObject> &requestRemoteObj)
+    const sptr<IRemoteObject> &requestRemoteObj, AuthorizationResult &authorizationResult)
 {
     int32_t localId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
     ErrCode result = AccountPermissionManager::CheckSystemApp();
@@ -119,7 +119,6 @@ ErrCode AuthorizationManagerService::AcquireAuthorization(const std::string &pri
         ACCOUNT_LOGE("Failed to verify permission, result = %{public}d", result);
         return result;
     }
-    AuthorizationResult authorizationResult;
     authorizationResult.privilege = privilege;
     auto callback = iface_cast<IAuthorizationCallback>(authorizationResultCallback);
     if (callback == nullptr) {
@@ -131,8 +130,7 @@ ErrCode AuthorizationManagerService::AcquireAuthorization(const std::string &pri
     if (SessionAbilityConnection::GetInstance().HasServiceConnect()) {
         ACCOUNT_LOGI("Failed to hasServiceConnect");
         authorizationResult.resultCode = AuthorizationResultCode::AUTHORIZATION_SYSTEM_BUSY;
-        callback->OnResult(ERR_OK, authorizationResult);
-        return ERR_OK;
+        return static_cast<int32_t>(AuthorizationResultCode::AUTHORIZATION_SYSTEM_BUSY);
     }
     PrivilegeBriefDef def;
     bool ret = GetPrivilegeBriefDef(privilege, def);
@@ -146,10 +144,8 @@ ErrCode AuthorizationManagerService::AcquireAuthorization(const std::string &pri
     if (!options.isReuseNeeded && !options.isInteractionAllowed) {
         REPORT_OS_ACCOUNT_FAIL(localId, Constants::ACQUIRE_AUTH, ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
             "heck isReuseNeeded = false and isInteractionAllowed = false");
-        ACCOUNT_LOGE("Check isReuseNeeded = false and isInteractionAllowed = false.");
         authorizationResult.resultCode = AuthorizationResultCode::AUTHORIZATION_INTERACTION_NOT_ALLOWED;
-        callback->OnResult(ERR_OK, authorizationResult);
-        return ERR_OK;
+        return static_cast<int32_t>(AuthorizationResultCode::AUTHORIZATION_INTERACTION_NOT_ALLOWED);
     }
     if (options.isReuseNeeded) {
         uint32_t code;
@@ -164,17 +160,18 @@ ErrCode AuthorizationManagerService::AcquireAuthorization(const std::string &pri
         info.privilegeIdx = code;
         int32_t validityPeriod = -1;
         result = PrivilegeCacheManager::GetInstance().CheckPrivilege(info, validityPeriod);
-        if (result != ERR_OK) {
-            authorizationResult.resultCode = AuthorizationResultCode::AUTHORIZATION_DENIED;
-            REPORT_OS_ACCOUNT_FAIL(localId, Constants::ACQUIRE_AUTH, result, "Fail to check privilege");
-            ACCOUNT_LOGE("Fail to check privilege=%{public}s approved, errCode:%{public}d", privilege.c_str(), result);
-            callback->OnResult(ERR_OK, authorizationResult);
+        if (result == ERR_OK) {
+            authorizationResult.resultCode = AuthorizationResultCode::AUTHORIZATION_RESULT_FROM_CACHE;
+            authorizationResult.validityPeriod = validityPeriod;
+            authorizationResult.isReused = options.isReuseNeeded;
             return ERR_OK;
         }
-        authorizationResult.validityPeriod = validityPeriod;
-        authorizationResult.isReused = options.isReuseNeeded;
-        return InnerAuthorizationManager::GetInstance().AcquireOnResultCallback(authorizationResultCallback,
-            authorizationResult, ERR_OK);
+        if (!options.isInteractionAllowed) {
+            authorizationResult.resultCode = AuthorizationResultCode::AUTHORIZATION_INTERACTION_NOT_ALLOWED;
+            REPORT_OS_ACCOUNT_FAIL(localId, Constants::ACQUIRE_AUTH, result, "Fail to check privilege");
+            ACCOUNT_LOGE("Fail to check privilege=%{public}s approved, errCode:%{public}d", privilege.c_str(), result);
+            return static_cast<int32_t>(AuthorizationResultCode::AUTHORIZATION_INTERACTION_NOT_ALLOWED);
+        }
     }
 
     return InnerAuthorizationManager::GetInstance().AcquireAuthorization(def, options,
