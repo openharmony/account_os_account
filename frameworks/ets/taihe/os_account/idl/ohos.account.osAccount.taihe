@@ -30,6 +30,9 @@ function GetAuthorizationManager(): AuthorizationManager;
 interface AuthorizationManager {
     @gen_promise("acquireAuthorization")
     AcquireAuthorizationSync(privilege: String, options: Optional<AcquireAuthorizationOptions>): AcquireAuthorizationResult;
+
+    @gen_promise("releaseAuthorization")
+ 	ReleaseAuthorizationSync(privilege: String): void;
 }
 
 @overload("getAccountManager")
@@ -75,7 +78,7 @@ interface AccountManager {
 
     @rename("offConstraintChanged")
     offConstraintChanged(callback: Optional<(data: ConstraintChangeInfo) => void>): void;
-
+    
     @gen_async("activateOsAccount")
     @gen_promise("activateOsAccount")
     ActivateOsAccountSync(localId: i32): void;

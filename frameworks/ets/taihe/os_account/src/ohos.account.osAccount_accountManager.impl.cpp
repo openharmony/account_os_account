@@ -552,7 +552,7 @@ public:
             }
         }
     }
-
+    
     void ActivateOsAccountSync(int32_t localId)
     {
         ErrCode errCode = AccountSA::OsAccountManager::ActivateOsAccount(localId);
@@ -1546,6 +1546,17 @@ public:
 
         // Wait for result
         return WaitForAuthorizationResult(callback);
+    }
+
+    void ReleaseAuthorizationSync(string_view privilegeName)
+    {
+        std::string privilege(privilegeName.data(), privilegeName.size());
+        ErrCode errCode = AccountSA::AuthorizationClient::GetInstance().ReleaseAuthorization(privilege);
+        ACCOUNT_LOGI("ReleaseAuthorization returned errCode: %{public}d", errCode);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("ReleaseAuthorization failed with errCode: %{public}d", errCode);
+            SetTaiheBusinessErrorFromNativeCode(errCode);
+        }
     }
 };
 
