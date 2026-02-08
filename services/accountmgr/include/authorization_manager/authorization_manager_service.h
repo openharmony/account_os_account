@@ -84,6 +84,34 @@ public:
      */
     ErrCode UnRegisterAuthAppRemoteObject() override;
 
+    /**
+     * @brief Check authorization for a specific privilege.
+     * @param privilege The privilege to authorize
+     * @param isAuthorized The result check privilege
+     * @return ERR_OK on success, error code on failure
+     */
+    ErrCode CheckAuthorization(const std::string &privilege, bool &isAuthorized) override;
+
+    /**
+     * @brief Check authorization for a specific privilege.
+     * @param privilege The privilege to authorize
+     * @param pid The process id
+     * @param isAuthorized The result check privilege
+     * @return ERR_OK on success, error code on failure
+     */
+    ErrCode CheckAuthorization(const std::string &privilege, int32_t pid, bool &isAuthorized) override;
+
+    /**
+     * @brief Check authorization for a specific privilege and verify token.
+     * @param privilege The privilege to authorize
+     * @param pid The process id
+     * @param token The token to verify
+     * @param result The result of check
+     * @return ERR_OK on success, error code on failure
+     */
+    ErrCode CheckAuthorization(const std::string &privilege, int32_t pid,
+        const std::vector<uint8_t> &token, CheckAuthorizationResult &result) override;
+
 private:
     /// OS account configuration
     OsAccountConfig config_;

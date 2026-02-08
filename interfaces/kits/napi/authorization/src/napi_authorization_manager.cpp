@@ -679,6 +679,79 @@ napi_value NapiAuthorizationManager::ReleaseAuthorization(napi_env env, napi_cal
     return result;
 }
 
+static bool ParseContextForHasAuthorization(napi_env env, napi_callback_info cbInfo,
+    HasAuthorizationContext *asyncContext)
+{
+    size_t argc = ARG_SIZE_ONE;
+    napi_value argv[ARG_SIZE_ONE] = {nullptr};
+    asyncContext->env = env;
+    napi_value thisVar = nullptr;
+    NAPI_CALL_BASE(env, napi_get_cb_info(env, cbInfo, &argc, argv, &thisVar, NULL), false);
+    if (argc < ARG_SIZE_ONE) {
+        ACCOUNT_LOGE("Need input at least one parameter, but got %{public}zu", argc);
+        std::string errMsg = "Parameter error. The number of parameters should be at least 1";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        return false;
+    }
+    if (!GetStringProperty(env, argv[PARAM_ZERO], asyncContext->privilege)) {
+        ACCOUNT_LOGE("Get privilege failed");
+        std::string errMsg = "The type of privilege must be string";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        return false;
+    }
+    return true;
+}
+
+static void HasAuthorizationCompletedCB(napi_env env, napi_status status, void *data)
+{
+    HasAuthorizationContext *asyncContext = reinterpret_cast<HasAuthorizationContext *>(data);
+    napi_value errJs = nullptr;
+    napi_value dataJS = nullptr;
+    if (asyncContext->errCode == ERR_OK) {
+        errJs = GenerateBusinessSuccess(env, true);
+        napi_get_boolean(env, asyncContext->isAuthorized, &dataJS);
+    } else {
+        errJs = GenerateAuthorizationBusinessError(env, asyncContext->errCode);
+        napi_get_null(env, &dataJS);
+    }
+    ProcessCallbackOrPromise(env, asyncContext, errJs, dataJS);
+    delete asyncContext;
+}
+
+static void HasAuthorizationExecuteCB(napi_env env, void *data)
+{
+    HasAuthorizationContext *asyncContext = reinterpret_cast<HasAuthorizationContext *>(data);
+    if (asyncContext == nullptr) {
+        ACCOUNT_LOGE("AsyncContext is nullptr.");
+        return;
+    }
+    asyncContext->errCode = AuthorizationClient::GetInstance().CheckAuthorization(
+        asyncContext->privilege, asyncContext->isAuthorized);
+    ACCOUNT_LOGD("errCode is %{public}d, isAuthorized is %{public}d",
+        asyncContext->errCode, asyncContext->isAuthorized);
+}
+
+napi_value NapiAuthorizationManager::HasAuthorization(napi_env env, napi_callback_info cbInfo)
+{
+    auto context = std::make_unique<HasAuthorizationContext>();
+    context->env = env;
+    if (!ParseContextForHasAuthorization(env, cbInfo, context.get())) {
+        ACCOUNT_LOGE("Failed to parse parameter for HasAuthorizationContext");
+        return nullptr;
+    }
+
+    napi_value result = nullptr;
+    NAPI_CALL(env, napi_create_promise(env, &context->deferred, &result));
+    napi_value resource = nullptr;
+    NAPI_CALL(env, napi_create_string_utf8(env, "HasAuthorization", NAPI_AUTO_LENGTH, &resource));
+    NAPI_CALL(env, napi_create_async_work(env, nullptr, resource, HasAuthorizationExecuteCB,
+        HasAuthorizationCompletedCB, reinterpret_cast<void*>(context.get()),
+        &(context->work)));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_user_initiated));
+    context.release();
+    return result;
+}
+
 napi_value NapiAuthorizationManager::GetAuthorizationManager(napi_env env, napi_callback_info cbInfo)
 {
     if (!IsSystemApp(env)) {
@@ -740,6 +813,7 @@ napi_value NapiAuthorizationManager::Init(napi_env env, napi_value exports)
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("acquireAuthorization", AcquireAuthorization),
         DECLARE_NAPI_FUNCTION("releaseAuthorization", ReleaseAuthorization),
+        DECLARE_NAPI_FUNCTION("hasAuthorization", HasAuthorization),
     };
     std::string className = "AuthorizationManager";
     napi_value cons = nullptr;

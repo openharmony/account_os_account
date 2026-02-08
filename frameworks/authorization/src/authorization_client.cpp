@@ -218,6 +218,91 @@ ErrCode AuthorizationClient::ReleaseAuthorization(const std::string &privilege)
 #endif // SUPPORT_AUTHORIZATION
 }
 
+ErrCode AuthorizationClient::CheckAuthorization(const std::string &privilege, bool &isAuthorized)
+{
+#ifdef SUPPORT_AUTHORIZATION
+    isAuthorized = false;
+    auto proxy = GetAuthorizationProxy();
+    if (proxy == nullptr) {
+        ACCOUNT_LOGE("Failed to get authorization proxy");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->CheckAuthorization(privilege, isAuthorized);
+#else
+    isAuthorized = false;
+    ErrCode errCode = AccountPermissionManager::CheckSystemApp();
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Caller is not system application, errCode: %{public}d", errCode);
+        return errCode;
+    }
+    uint32_t privilegeId = 0;
+    if (!TransferPrivilegeToCode(privilege, privilegeId)) {
+        ACCOUNT_LOGE("Failed to get privilegeId from privilege");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    return ERR_OK;
+#endif // SUPPORT_AUTHORIZATION
+}
+
+ErrCode AuthorizationClient::CheckAuthorization(const std::string &privilege, int32_t pid, bool &isAuthorized)
+{
+#ifdef SUPPORT_AUTHORIZATION
+    isAuthorized = false;
+    auto proxy = GetAuthorizationProxy();
+    if (proxy == nullptr) {
+        ACCOUNT_LOGE("Failed to get authorization proxy");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->CheckAuthorization(privilege, pid, isAuthorized);
+#else
+    isAuthorized = true;
+    ErrCode errCode = AccountPermissionManager::CheckSystemApp();
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Caller is not system application, errCode: %{public}d", errCode);
+        return errCode;
+    }
+    uint32_t privilegeId = 0;
+    if (!TransferPrivilegeToCode(privilege, privilegeId)) {
+        ACCOUNT_LOGE("Failed to get privilegeId from privilege");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    return ERR_OK;
+#endif // SUPPORT_AUTHORIZATION
+}
+
+ErrCode AuthorizationClient::CheckAuthorization(const std::string &privilege, int32_t pid,
+    const std::vector<uint8_t> &token, CheckAuthorizationResult &result)
+{
+#ifdef SUPPORT_AUTHORIZATION
+    result.isAuthorized = false;
+    result.challenge = {};
+    auto proxy = GetAuthorizationProxy();
+    if (proxy == nullptr) {
+        ACCOUNT_LOGE("Failed to get authorization proxy");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->CheckAuthorization(privilege, pid, token, result);
+#else
+    result.isAuthorized = true;
+    result.challenge = {};
+    ErrCode errCode = AccountPermissionManager::CheckSystemApp();
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Caller is not system application, errCode: %{public}d", errCode);
+        return errCode;
+    }
+    uint32_t privilegeId = 0;
+    if (!TransferPrivilegeToCode(privilege, privilegeId)) {
+        ACCOUNT_LOGE("Failed to get privilegeId from privilege");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    if (token.empty()) {
+        ACCOUNT_LOGE("Failed to get parameter, token is empty");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    return ERR_OK;
+#endif // SUPPORT_AUTHORIZATION
+}
+
 #ifdef SUPPORT_AUTHORIZATION
 void AuthorizationClient::ResetAuthorizationProxy(const wptr<IRemoteObject>& remote)
 {
