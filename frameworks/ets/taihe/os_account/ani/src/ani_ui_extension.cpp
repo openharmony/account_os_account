@@ -34,6 +34,7 @@ const std::string ACCOUNTID_KEY = "authResultAccountID";
 const std::string CODE_KEY = "authResultCode";
 const int32_t CANCEL_ERROR = 1;
 const int32_t DENIED_ERROR = 2;
+const int32_t BACKGROUNT_ERROR = 1011;
 }
 
 /**
@@ -94,8 +95,13 @@ void UIExtensionCallback::OnError(int32_t code, const std::string &name, const s
 {
     ACCOUNT_LOGI("enter OnError errCode:%{public}d, name:%{public}s, message:%{public}s", code, name.c_str(),
         message.c_str());
-    if (!isOnResult_.load()) {
+    if (isOnResult_.load()) {
+        return;
+    }
+    if (code == BACKGROUNT_ERROR) {
         ReleaseHandler(ERR_OK, AUTHORIZATION_INTERACTION_NOT_ALLOWED);
+    } else {
+        ReleaseHandler(ERR_AUTHORIZATION_CREATE_UI_EXTENSION_ERROR);
     }
 }
 

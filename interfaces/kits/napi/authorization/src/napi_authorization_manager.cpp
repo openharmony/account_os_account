@@ -46,6 +46,8 @@ const std::string TOKEN_KEY = "authResultToken";
 const std::string ACCOUNTID_KEY = "authResultAccountID";
 const std::string CODE_KEY = "authResultCode";
 constexpr std::int32_t MAX_CHALLENGE_LEN = 32;
+std::atomic<bool> g_hasAcquireCall(false);
+const int32_t BACKGROUNT_ERROR = 1011;
 }
 
 static Ace::UIContent* GetUIContent(const std::shared_ptr<AcquireAuthorizationContext> &context)
@@ -175,8 +177,13 @@ void UIExtensionCallback::OnError(int32_t code, const std::string &name, const s
 {
     ACCOUNT_LOGI("enter OnError errCode:%{public}d, name:%{public}s, message:%{public}s", code, name.c_str(),
         message.c_str());
-    if (!isOnResult_.load()) {
+    if (isOnResult_.load()) {
+        return;
+    }
+    if (code == BACKGROUNT_ERROR) {
         ReleaseHandler(ERR_OK, AUTHORIZATION_INTERACTION_NOT_ALLOWED);
+    } else {
+        ReleaseHandler(ERR_AUTHORIZATION_CREATE_UI_EXTENSION_ERROR);
     }
 }
 
@@ -303,6 +310,7 @@ std::function<void()> OnAuthorizationResultTask(const std::shared_ptr<AcquireAut
             errJs = GenerateAuthorizationBusinessError(asyncContextPtr->env, asyncContextPtr->errCode);
         }
         ReturnPromise(asyncContextPtr->env, asyncContextPtr.get(), errJs, resultJs);
+        g_hasAcquireCall.exchange(false);
         napi_close_handle_scope(asyncContextPtr->env, scope);
     };
 }
@@ -459,15 +467,10 @@ static bool GetContext(
     napi_value contextValue = nullptr;
     if (!GetInteractionContextObject(env, object, contextValue, asyncContext->options.hasContext)) {
         // When interaction is required, throw parameter error exception
-        if (asyncContext->options.isInteractionAllowed) {
-            ACCOUNT_LOGE("Failed to get interactionContext object when interaction is required");
-            std::string errMsg = "Parameter error. The type of \"interactionContext\" must be Context object";
-            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
-            return false;
-        }
-        // When interaction is not required, ignore the error and return true
-        ACCOUNT_LOGI("Interaction is not allowed, ignore context retrieval error");
-        return true;
+        ACCOUNT_LOGE("Failed to get interactionContext object when interaction is required");
+        std::string errMsg = "Parameter error. The type of \"interactionContext\" must be Context object";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+        return false;
     }
 
     if (!asyncContext->options.hasContext) {
@@ -476,17 +479,10 @@ static bool GetContext(
 
     if (!ConvertContextObject(env, contextValue, asyncContext)) {
         // When interaction is required, set result code to INTERACTION_NOT_ALLOWED
-        if (asyncContext->options.isInteractionAllowed) {
-            ACCOUNT_LOGE("Failed to convert context object when interaction is required");
-            asyncContext->authorizationResult.resultCode =
-                AccountSA::AuthorizationResultCode::AUTHORIZATION_INTERACTION_NOT_ALLOWED;
-            asyncContext->errCode = ERR_OK;
-            asyncContext->skipAuthorization = true;
-            return true;
-        }
-        // When interaction is not required, ignore the error and return true
-        ACCOUNT_LOGI("Interaction is not allowed, ignore context conversion error");
-        return true;
+        ACCOUNT_LOGE("Failed to convert context object.");
+        std::string errMsg = "Parameter error. The type of \"interactionContext\" must be Context object";
+        AccountNapiThrow(env, ERR_JS_INVALID_PARAMETER, errMsg, true);
+        return false;
     }
 
     return true;
@@ -596,21 +592,25 @@ static void AcquireAuthorizationExecuteCB(napi_env env, void *data)
         return;
     }
 
-    // Check if authorization should be skipped (e.g., when context conversion fails)
-    if (asyncContext->skipAuthorization) {
-        ACCOUNT_LOGI("Authorization skipped due to context conversion failure");
-        auto callback = std::make_shared<NapiAuthorizationResultCallback>(asyncContext);
-        callback->OnResult(asyncContext->errCode, asyncContext->authorizationResult);
+    auto callback = std::make_shared<NapiAuthorizationResultCallback>(asyncContext);
+    AuthorizationResult result;
+    result.privilege = asyncContext->privilege;
+    if (g_hasAcquireCall.load()) {
+        ACCOUNT_LOGE("AcquireAuthorizationSync busy");
+        result.resultCode = AuthorizationResultCode::AUTHORIZATION_SYSTEM_BUSY;
+        callback->OnResult(ERR_OK, result);
         return;
     }
-
-    auto callback = std::make_shared<NapiAuthorizationResultCallback>(asyncContext);
+    g_hasAcquireCall.exchange(true);
     asyncContext->errCode = AuthorizationClient::GetInstance().AcquireAuthorization(
-        asyncContext->privilege, asyncContext->options, callback);
-    if (asyncContext->errCode != ERR_OK) {
-        AuthorizationResult result;
-        callback->OnResult(asyncContext->errCode, result);
+        asyncContext->privilege, asyncContext->options, callback, result);
+    if (asyncContext->errCode == ERR_OK) {
+        return;
     }
+    if (CheckAndGetAuthorizationResultCode(asyncContext->errCode, result.resultCode)) {
+        asyncContext->errCode = ERR_OK;
+    }
+    callback->OnResult(asyncContext->errCode, result);
 }
 
 static void ReleaseAuthorizationExecuteCB(napi_env env, void *data)

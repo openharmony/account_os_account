@@ -54,7 +54,7 @@ public:
      * @return ERR_OK on success, error code on failure
      */
     ErrCode AcquireAuthorization(const std::string &privilege, const AcquireAuthorizationOptions &options,
-        const std::shared_ptr<AuthorizationCallback> &callback);
+        const std::shared_ptr<AuthorizationCallback> &callback, AuthorizationResult &authorizationResult);
 
     /**
      * @brief Releases an authorization for the target privilege.

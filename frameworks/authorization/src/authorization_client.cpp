@@ -145,7 +145,8 @@ sptr<AuthRemoteObjectStub> AuthorizationClient::GetOrCreateRequestRemoteObject()
 #endif // SUPPORT_AUTHORIZATION
 
 ErrCode AuthorizationClient::AcquireAuthorization(const std::string &privilege,
-    const AcquireAuthorizationOptions &options, const std::shared_ptr<AuthorizationCallback> &callback)
+    const AcquireAuthorizationOptions &options, const std::shared_ptr<AuthorizationCallback> &callback,
+    AuthorizationResult &authorizationResult)
 {
 #ifdef SUPPORT_AUTHORIZATION
     if (callback == nullptr) {
@@ -173,12 +174,15 @@ ErrCode AuthorizationClient::AcquireAuthorization(const std::string &privilege,
     }
 
     ErrCode errCode = proxy->AcquireAuthorization(privilege, options,
-        temp->AsObject(), requestRemoteObj->AsObject());
+        temp->AsObject(), requestRemoteObj->AsObject(), authorizationResult);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Failed to acquire authorization, errCode:%{public}d", errCode);
         return errCode;
     }
-
+    if (authorizationResult.resultCode == AUTHORIZATION_RESULT_FROM_CACHE) {
+        ACCOUNT_LOGE("Get result form cache");
+        return static_cast<int32_t>(authorizationResult.resultCode);
+    }
     {
         std::lock_guard<std::recursive_mutex> lock(callbackMutex_);
         callbackService_ = temp;
@@ -186,11 +190,7 @@ ErrCode AuthorizationClient::AcquireAuthorization(const std::string &privilege,
 
     return ERR_OK;
 #else
-    AuthorizationResult result;
-    result.privilege = privilege;
-    result.resultCode = AUTHORIZATION_DENIED;
-    callback->OnResult(ERR_OK, result);
-    return ERR_OK;
+    return static_cast<int32_t>(AUTHORIZATION_DENIED);
 #endif // SUPPORT_AUTHORIZATION
 }
 
