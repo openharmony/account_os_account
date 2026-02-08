@@ -60,6 +60,14 @@ public:
      */
     ErrCode AcquireAuthorization(const std::string &privilege, const AcquireAuthorizationOptions &options,
         const sptr<IRemoteObject> &authorizationResultCallback, const sptr<IRemoteObject> &requestRemoteObj) override;
+    
+    /**
+     * @brief Releases authorization for a specific privilege.
+     *
+     * @param privilege The privilege to authorize
+     * @return ERR_OK on success, error code on failure
+     */
+    ErrCode ReleaseAuthorization(const std::string &privilege) override;
 
     /**
      * @brief Registers the authorization application remote object.

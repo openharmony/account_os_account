@@ -21,6 +21,7 @@ interface_token ohos.accountfwk.IAuthorization;
 interface OHOS.AccountSA.IAuthorization {
     void AcquireAuthorization([in] String privilege, [in] AcquireAuthorizationOptions options,
         [in] IRemoteObject authorizationResultCallback, [in] IRemoteObject authAppRemoteObject);
+    void ReleaseAuthorization([in] String privilege);
     void RegisterAuthAppRemoteObject([in] IRemoteObject authAppRemoteObject);
     void UnRegisterAuthAppRemoteObject();
 }
