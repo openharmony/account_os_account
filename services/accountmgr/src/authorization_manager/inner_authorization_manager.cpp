@@ -33,6 +33,7 @@
 #include "ipc_skeleton.h"
 #include "os_account_info.h"
 #include "privilege_cache_manager.h"
+#include "privilege_hisysevent_utils.h"
 #include "privileges_map.h"
 #include "service_extension_connect.h"
 
@@ -395,6 +396,62 @@ ErrCode InnerAuthorizationManager::StartServiceExtensionConnection(ConnectAbilit
     }
 
     return SessionAbilityConnection::GetInstance().SessionConnectExtension(info, callback, result);
+}
+
+ErrCode InnerAuthorizationManager::CheckAuthorization(
+    const uint32_t privilegeId, const uint32_t pid, bool &isAuthorized)
+{
+    AuthenCallerInfo info;
+    info.pid = pid;
+    info.privilegeIdx = privilegeId;
+    int remainTime = -1;
+    ErrCode errCode = PrivilegeCacheManager::GetInstance().CheckPrivilege(info, remainTime);
+    isAuthorized = errCode == ERR_OK;
+    if ((errCode != ERR_OK) && (errCode != ERR_AUTHORIZATION_PRIVILEGE_DENIED)) {
+        ACCOUNT_LOGE("Failed to check privilege, errCode: %{public}d", errCode);
+        return ERR_ACCOUNT_COMMON_OPERATION_FAIL;
+    }
+    ACCOUNT_LOGI("CheckAuthorization successed, isAuthorized: %{public}d, privilegeId: %{public}d, pid: %{public}d",
+        isAuthorized, privilegeId, pid);
+    return ERR_OK;
+}
+
+ErrCode InnerAuthorizationManager::VerifyToken(const std::vector<uint8_t> &token,
+    const std::string &privilege, const uint32_t pid, std::vector<uint8_t> &challenge)
+{
+    OsAccountTeeAdapter adapter;
+    std::vector<uint8_t> outToken(sizeof(VerifyUserTokenResult), 0);
+    ErrCode errCode = adapter.VerifyToken(token, outToken);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to verify token, errCode:%{public}d", errCode);
+        REPORT_OS_ACCOUNT_FAIL(-1, PRIVILEGE_OPT_VERIFY_TOKEN, errCode, "Failed to verify token");
+        return errCode;
+    }
+
+    if (outToken.size() != sizeof(VerifyUserTokenResult)) {
+        ACCOUNT_LOGI("Invalid outToken size from TEE");
+        REPORT_OS_ACCOUNT_FAIL(-1, PRIVILEGE_OPT_VERIFY_TOKEN, errCode,
+            "Invalid outToken size from TEE");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    VerifyUserTokenResult tokenRet;
+    errno_t err = memcpy_s(&tokenRet, sizeof(VerifyUserTokenResult), outToken.data(), sizeof(VerifyUserTokenResult));
+    if (err != 0) {
+        ACCOUNT_LOGI("Failed to memcpy outToken, err: %{public}d", err);
+        REPORT_OS_ACCOUNT_FAIL(-1, PRIVILEGE_OPT_VERIFY_TOKEN, err, "Failed to memcpy_s outToken");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    uint32_t pidFromToken = tokenRet.userTokenPlain.userTokenDataPlain.pid;
+    uint32_t privilegeIdFromToken = tokenRet.userTokenPlain.userTokenDataPlain.privilege;
+    if (pid != pidFromToken || privilege != TransferCodeToPrivilege(privilegeIdFromToken)) {
+        ACCOUNT_LOGI("Failed to compare pid or privilegeId, VerifyToken operation failed");
+        return ERR_OK;
+    }
+    auto &challengeData = tokenRet.userTokenPlain.userTokenDataPlain.challenge;
+    challenge = std::vector<uint8_t>(challengeData, challengeData + sizeof(challengeData));
+    ACCOUNT_LOGI("VerifyToken successed, privilege: %{public}s, pid: %{public}d", privilege.c_str(), pid);
+    return ERR_OK;
 }
 }
 }

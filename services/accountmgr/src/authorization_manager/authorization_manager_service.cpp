@@ -204,5 +204,69 @@ ErrCode AuthorizationManagerService::ReleaseAuthorization(const std::string &pri
     }
     return ERR_OK;
 }
+
+ErrCode AuthorizationManagerService::CheckAuthorization(const std::string &privilege, bool &isAuthorized)
+{
+    isAuthorized = false;
+    int32_t pid = IPCSkeleton::GetCallingPid();
+    return CheckAuthorization(privilege, pid, isAuthorized);
+}
+
+ErrCode AuthorizationManagerService::CheckAuthorization(
+    const std::string &privilege, int32_t pid, bool &isAuthorized)
+{
+    isAuthorized = false;
+    ErrCode errCode = AccountPermissionManager::CheckSystemApp();
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Caller is not system application, errCode: %{public}d", errCode);
+        return errCode;
+    }
+
+    uint32_t privilegeId = 0;
+    if (!TransferPrivilegeToCode(privilege, privilegeId)) {
+        ACCOUNT_LOGE("Failed to get privilegeId from privilege");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    errCode = InnerAuthorizationManager::GetInstance().CheckAuthorization(
+        privilegeId, pid, isAuthorized);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to CheckAuthorization with pid, errCode: %{public}d", errCode);
+        return errCode;
+    }
+    ACCOUNT_LOGI("CheckAuthorization successed, privilege: %{public}s, pid: %{public}d",
+        privilege.c_str(), pid);
+    return ERR_OK;
+}
+
+ErrCode AuthorizationManagerService::CheckAuthorization(const std::string &privilege, int32_t pid,
+    const std::vector<uint8_t> &token, CheckAuthorizationResult &result)
+{
+    result.isAuthorized = false;
+    result.challenge = {};
+    ErrCode errCode = CheckAuthorization(privilege, pid, result.isAuthorized);
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
+    if (!result.isAuthorized) {
+        ACCOUNT_LOGE("Failed to check privilege");
+        return ERR_OK;
+    }
+    if (token.empty()) {
+        ACCOUNT_LOGE("Failed to get parameter, token is empty");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    errCode = InnerAuthorizationManager::GetInstance().VerifyToken(
+        token, privilege, pid, result.challenge);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to verify token, errCode: %{public}d", errCode);
+        return errCode;
+    }
+
+    ACCOUNT_LOGI("Check authorization successed, privilege: %{public}s, pid: %{public}d",
+        privilege.c_str(), pid);
+    return ERR_OK;
+}
 }
 }

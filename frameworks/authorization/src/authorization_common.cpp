@@ -22,6 +22,42 @@
 namespace OHOS {
 namespace AccountSA {
 constexpr std::uint8_t TWO_BYTE_MASK = 0xF0;
+bool CheckAuthorizationResult::ReadFromParcel(Parcel &parcel)
+{
+    if (!parcel.ReadBool(isAuthorized)) {
+        ACCOUNT_LOGE("Failed to read isAuthrization");
+        return false;
+    }
+    if (!parcel.ReadUInt8Vector(&challenge)) {
+        ACCOUNT_LOGE("Failed to read challenge");
+        return false;
+    }
+    return true;
+}
+
+bool CheckAuthorizationResult::Marshalling(Parcel &parcel) const
+{
+    if (!parcel.WriteBool(isAuthorized)) {
+        ACCOUNT_LOGE("Failed to write isAuthrization.");
+        return false;
+    }
+    if (!parcel.WriteUInt8Vector(challenge)) {
+        ACCOUNT_LOGE("Failed to write challenge.");
+        return false;
+    }
+    return true;
+}
+
+CheckAuthorizationResult *CheckAuthorizationResult::Unmarshalling(Parcel &parcel)
+{
+    CheckAuthorizationResult *info = new (std::nothrow) CheckAuthorizationResult();
+    if ((info != nullptr) && (!info->ReadFromParcel(parcel))) {
+        ACCOUNT_LOGW("Read from parcel failed, please check info value.");
+        delete info;
+        info = nullptr;
+    }
+    return info;
+}
 
 bool ConnectAbilityInfo::ReadFromParcel(Parcel &parcel)
 {
