@@ -61,6 +61,11 @@ ErrCode OsAccountManager::RemoveOsAccount(const int id)
     return OsAccount::GetInstance().RemoveOsAccount(id);
 }
 
+ErrCode OsAccountManager::RemoveOsAccount(const int id, const RemoveOsAccountOptions& options)
+{
+    return OsAccount::GetInstance().RemoveOsAccount(id, options);
+}
+
 ErrCode OsAccountManager::IsOsAccountExists(const int id, bool &isOsAccountExists)
 {
     return OsAccount::GetInstance().IsOsAccountExists(id, isOsAccountExists);

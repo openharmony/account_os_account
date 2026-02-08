@@ -68,6 +68,7 @@ struct QueryOAByIdAsyncContext : public CommonAsyncContext {
 
 struct RemoveOAAsyncContext : public CommonAsyncContext {
     int id = 0;
+    std::optional<std::vector<uint8_t>> token = std::nullopt;
 };
 
 struct SetOANameAsyncContext : public CommonAsyncContext {
@@ -94,6 +95,7 @@ struct CreateOAAsyncContext : public CommonAsyncContext {
     OsAccountType type;
     std::string name;
     std::string shortName;
+    std::optional<std::vector<uint8_t>> token = std::nullopt;
     std::vector<std::string> disallowedHapList;
     std::optional<std::vector<std::string>> allowedHapList = std::nullopt;
     OsAccountInfo osAccountInfos;

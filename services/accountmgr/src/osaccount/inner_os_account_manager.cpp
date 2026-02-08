@@ -56,6 +56,9 @@
 #include "display_manager_lite.h"
 #include <cstdint>
 #endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+#ifdef SUPPORT_AUTHORIZATION
+#include "tee_auth_adapter.h"
+#endif // SUPPORT_AUTHORIZATION
 
 namespace OHOS {
 namespace AccountSA {
@@ -833,6 +836,16 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(const std::string &localName, co
         RemoveLocalIdToOperating(osAccountInfo.GetLocalId());
         return errCode;
     }
+#ifdef SUPPORT_AUTHORIZATION
+    if (options.token.has_value()) {
+        OsAccountTeeAdapter teeAdapter;
+        errCode = teeAdapter.SetOsAccountType(osAccountInfo.GetLocalId(), type, options.token.value());
+        if (errCode != ERR_OK) {
+            RemoveLocalIdToOperating(osAccountInfo.GetLocalId());
+            return errCode;
+        }
+    }
+#endif // SUPPORT_AUTHORIZATION
     errCode = SendMsgForAccountCreate(osAccountInfo, options);
     RemoveLocalIdToOperating(osAccountInfo.GetLocalId());
     return errCode;
@@ -1278,7 +1291,49 @@ ErrCode IInnerOsAccountManager::RemoveOsAccount(const int id)
         ReportOsAccountOperationFail(id, Constants::OPERATION_REMOVE, errCode, "Failed to update ToBeRemoved status");
         return errCode;
     }
+    // then remove account
+    errCode = RemoveOsAccountOperate(id, osAccountInfo);
+    RemoveLocalIdToOperating(id);
+    return errCode;
+}
 
+ErrCode IInnerOsAccountManager::RemoveOsAccount(const int id, const RemoveOsAccountOptions &options)
+{
+    ACCOUNT_LOGI("Remove id is %{public}d with options", id);
+    if (!CheckAndAddLocalIdOperating(id)) {
+        ACCOUNT_LOGE("The %{public}d already in operating", id);
+        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR;
+    }
+    OsAccountInfo osAccountInfo;
+    ErrCode errCode = GetRealOsAccountInfoById(id, osAccountInfo);
+    if (errCode != ERR_OK) {
+        RemoveLocalIdToOperating(id);
+        ACCOUNT_LOGE("RemoveOsAccount cannot find os account info, errCode %{public}d.", errCode);
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
+#ifdef SUPPORT_AUTHORIZATION
+    OsAccountTeeAdapter teeAdapter;
+    errCode = teeAdapter.DelOsAccountType(id, options.token.value());
+    if (errCode != ERR_OK) {
+        RemoveLocalIdToOperating(id);
+        ACCOUNT_LOGE("CheckOsAccountPermission failed, errCode=%{public}d", errCode);
+        return errCode;
+    }
+#endif
+    errCode = OsAccountInterface::SendToStorageAccountCreateComplete(id);
+    if (errCode != ERR_OK) {
+        RemoveLocalIdToOperating(id);
+        ACCOUNT_LOGE("SendToStorageAccountCreateComplete failed, errCode=%{public}d, id=%{public}d", errCode, id);
+        return errCode;
+    }
+    // set remove flag first
+    osAccountInfo.SetToBeRemoved(true);
+    errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to update ToBeRemoved status, errCode=%{public}d.", errCode);
+        ReportOsAccountOperationFail(id, Constants::OPERATION_REMOVE, errCode, "Failed to update ToBeRemoved status");
+        return errCode;
+    }
     // then remove account
     errCode = RemoveOsAccountOperate(id, osAccountInfo);
     RemoveLocalIdToOperating(id);
