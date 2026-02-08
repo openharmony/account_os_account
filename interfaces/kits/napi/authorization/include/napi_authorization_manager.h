@@ -41,6 +41,10 @@ struct AcquireAuthorizationContext : public CommonAsyncContext {
     std::shared_ptr<AbilityRuntime::UIExtensionContext> uiExtensionContext;
 };
 
+struct ReleaseAuthorizationAsyncContext : public CommonAsyncContext {
+    std::string privilege;
+};
+
 class UIExtensionCallback {
 public:
     explicit UIExtensionCallback(const std::shared_ptr<AcquireAuthorizationContext> &context);
@@ -98,6 +102,7 @@ private:
     static napi_value JsConstructor(napi_env env, napi_callback_info cbInfo);
     static napi_value AuthorizationResultCodeConstructor(napi_env env);
     static napi_value AcquireAuthorization(napi_env env, napi_callback_info cbInfo);
+    static napi_value ReleaseAuthorization(napi_env env, napi_callback_info cbInfo);
     static napi_value GetAuthorizationManager(napi_env env, napi_callback_info cbInfo);
 };
 }

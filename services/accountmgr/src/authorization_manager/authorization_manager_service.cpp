@@ -180,5 +180,29 @@ ErrCode AuthorizationManagerService::AcquireAuthorization(const std::string &pri
     return InnerAuthorizationManager::GetInstance().AcquireAuthorization(def, options,
         config_, authorizationResultCallback, requestRemoteObj);
 }
+
+ErrCode AuthorizationManagerService::ReleaseAuthorization(const std::string &privilege)
+{
+    ErrCode res = AccountPermissionManager::CheckSystemApp();
+    if (res != ERR_OK) {
+        ACCOUNT_LOGE("Caller is not system application, result = %{public}d.", res);
+        return res;
+    }
+    uint32_t privilegeId = 0;
+    if (!TransferPrivilegeToCode(privilege, privilegeId)) {
+        ACCOUNT_LOGE("TransferPrivilegeToCode failed, privilege = %{public}s.", privilege.c_str());
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    AuthenCallerInfo authenCallerInfo;
+    authenCallerInfo.pid = IPCSkeleton::GetCallingPid();
+    authenCallerInfo.uid = IPCSkeleton::GetCallingUid();
+    authenCallerInfo.privilegeIdx = privilegeId;
+    res = PrivilegeCacheManager::GetInstance().RemoveSingle(authenCallerInfo);
+    if (res != ERR_OK) {
+        ACCOUNT_LOGE("RemoveSingle failed, result = %{public}d.", res);
+        return ERR_ACCOUNT_COMMON_OPERATION_FAIL;
+    }
+    return ERR_OK;
+}
 }
 }

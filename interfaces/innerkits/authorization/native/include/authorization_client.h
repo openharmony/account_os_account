@@ -57,6 +57,14 @@ public:
         const std::shared_ptr<AuthorizationCallback> &callback);
 
     /**
+     * @brief Releases an authorization for the target privilege.
+     *
+     * @param privilege The privilege to authorize
+     * @return ERR_OK on success, error code on failure
+     */
+    ErrCode ReleaseAuthorization(const std::string &privilege);
+
+    /**
      * @brief Registers the authorization application remote object.
      *
      * @return ERR_OK on success, error code on failure

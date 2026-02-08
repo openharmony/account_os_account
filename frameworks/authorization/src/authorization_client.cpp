@@ -16,11 +16,13 @@
 #include <mutex>
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
+#include "account_permission_manager.h"
 #include "app_mgr_client.h"
 #include "auth_remote_object_stub.h"
 #ifdef SUPPORT_AUTHORIZATION
 #include "ohos_account_kits_impl.h"
 #endif // SUPPORT_AUTHORIZATION
+#include "privileges_map.h"
 #include "singleton.h"
 
 namespace OHOS {
@@ -188,6 +190,30 @@ ErrCode AuthorizationClient::AcquireAuthorization(const std::string &privilege,
     result.privilege = privilege;
     result.resultCode = AUTHORIZATION_DENIED;
     callback->OnResult(ERR_OK, result);
+    return ERR_OK;
+#endif // SUPPORT_AUTHORIZATION
+}
+
+ErrCode AuthorizationClient::ReleaseAuthorization(const std::string &privilege)
+{
+#ifdef SUPPORT_AUTHORIZATION
+    auto proxy = GetAuthorizationProxy();
+    if (proxy == nullptr) {
+        ACCOUNT_LOGE("Failed to get authorization proxy");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->ReleaseAuthorization(privilege);
+#else
+    ErrCode res = AccountPermissionManager::CheckSystemApp();
+    if (res != ERR_OK) {
+        ACCOUNT_LOGE("Caller is not system application, result = %{public}d.", res);
+        return res;
+    }
+    uint32_t privilegeId = 0;
+    if (!TransferPrivilegeToCode(privilege, privilegeId)) {
+        ACCOUNT_LOGE("TransferPrivilegeToCode failed, privilege = %{public}s.", privilege.c_str());
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
     return ERR_OK;
 #endif // SUPPORT_AUTHORIZATION
 }

@@ -561,6 +561,28 @@ static bool ParseContextForAcquireAuthorization(napi_env env, napi_callback_info
     return true;
 }
 
+static bool ParseContextForReleaseAuthorization(napi_env env, napi_callback_info cbInfo,
+    std::unique_ptr<ReleaseAuthorizationAsyncContext> &asyncContext)
+{
+    size_t argc = ARG_SIZE_ONE;
+    napi_value argv[ARG_SIZE_ONE] = {nullptr};
+    napi_value thisVar = nullptr;
+    NAPI_CALL_BASE(env, napi_get_cb_info(env, cbInfo, &argc, argv, &thisVar, NULL), false);
+    if (argc < ARG_SIZE_ONE) {
+        ACCOUNT_LOGE("The number of parameters should be at least 1");
+        std::string errMsg = "Parameter error. The number of parameters should be at least 1";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+        return false;
+    }
+    if (!GetStringProperty(env, argv[PARAM_ZERO], asyncContext->privilege)) {
+        ACCOUNT_LOGE("Get privilege failed");
+        std::string errMsg = "The type of \"privilege\" must be string";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+        return false;
+    }
+    return true;
+}
+
 static void AcquireAuthorizationCompletedCB(napi_env env, napi_status status, void *data)
 {
     delete reinterpret_cast<AcquireAuthorizationContext *>(data);
@@ -591,6 +613,33 @@ static void AcquireAuthorizationExecuteCB(napi_env env, void *data)
     }
 }
 
+static void ReleaseAuthorizationExecuteCB(napi_env env, void *data)
+{
+    ReleaseAuthorizationAsyncContext *asyncContext = reinterpret_cast<ReleaseAuthorizationAsyncContext *>(data);
+    if (asyncContext == nullptr) {
+        ACCOUNT_LOGE("AsyncContext is nullptr.");
+        return;
+    }
+    asyncContext->errCode = AuthorizationClient::GetInstance().ReleaseAuthorization(asyncContext->privilege);
+    ACCOUNT_LOGI("ReleaseAuthorizationExecuteCB, errCode: %{public}d", asyncContext->errCode);
+}
+
+static void ReleaseAuthorizationCompletedCB(napi_env env, napi_status status, void *data)
+{
+    ReleaseAuthorizationAsyncContext *asyncContext = reinterpret_cast<ReleaseAuthorizationAsyncContext *>(data);
+    napi_value errJs = nullptr;
+    napi_value dataJs = nullptr;
+    if (asyncContext->errCode == ERR_OK) {
+        napi_get_null(env, &errJs);
+        napi_get_null(env, &dataJs);
+    } else {
+        errJs = GenerateAuthorizationBusinessError(env, asyncContext->errCode);
+        napi_get_null(env, &dataJs);
+    }
+    ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
+    delete asyncContext;
+}
+
 napi_value NapiAuthorizationManager::AcquireAuthorization(napi_env env, napi_callback_info cbInfo)
 {
     auto context = std::make_unique<AcquireAuthorizationContext>(env, true);
@@ -605,6 +654,28 @@ napi_value NapiAuthorizationManager::AcquireAuthorization(napi_env env, napi_cal
         AcquireAuthorizationCompletedCB, reinterpret_cast<void*>(context.get()), &(context->work)));
     NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_user_initiated));
     context.release();
+    return result;
+}
+
+napi_value NapiAuthorizationManager::ReleaseAuthorization(napi_env env, napi_callback_info cbInfo)
+{
+    auto releaseAuthorizationAsyncContext = std::make_unique<ReleaseAuthorizationAsyncContext>();
+    releaseAuthorizationAsyncContext->env = env;
+    if (!ParseContextForReleaseAuthorization(env, cbInfo, releaseAuthorizationAsyncContext)) {
+        ACCOUNT_LOGE("Parse parameters for ReleaseAuthorization failed");
+        return nullptr;
+    }
+    napi_value result = nullptr;
+    napi_value resource = nullptr;
+    NAPI_CALL(env, napi_create_promise(env, &releaseAuthorizationAsyncContext->deferred, &result));
+    NAPI_CALL(env, napi_create_string_utf8(env, "ReleaseAuthorization", NAPI_AUTO_LENGTH, &resource));
+    NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
+        ReleaseAuthorizationExecuteCB,
+        ReleaseAuthorizationCompletedCB,
+        reinterpret_cast<void *>(releaseAuthorizationAsyncContext.get()),
+        &releaseAuthorizationAsyncContext->work));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, releaseAuthorizationAsyncContext->work, napi_qos_default));
+    releaseAuthorizationAsyncContext.release();
     return result;
 }
 
@@ -668,6 +739,7 @@ napi_value NapiAuthorizationManager::Init(napi_env env, napi_value exports)
 
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("acquireAuthorization", AcquireAuthorization),
+        DECLARE_NAPI_FUNCTION("releaseAuthorization", ReleaseAuthorization),
     };
     std::string className = "AuthorizationManager";
     napi_value cons = nullptr;
