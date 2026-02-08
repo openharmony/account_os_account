@@ -22,6 +22,14 @@
 
 namespace OHOS {
 namespace AccountSA {
+struct CheckAuthorizationResult : public Parcelable {
+    bool ReadFromParcel(Parcel &parcel);
+    bool Marshalling(Parcel &parcel) const override;
+    static CheckAuthorizationResult *Unmarshalling(Parcel &parcel);
+    bool isAuthorized = false;
+    std::vector<uint8_t> challenge = {};
+};
+
 /**
  * @brief Information for connecting to UI extension ability.
  *

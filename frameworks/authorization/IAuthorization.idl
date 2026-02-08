@@ -14,6 +14,7 @@
  */
 
 sequenceable AuthorizationCommon..OHOS.AccountSA.AcquireAuthorizationOptions;
+sequenceable AuthorizationCommon..OHOS.AccountSA.CheckAuthorizationResult;
 sequenceable OHOS.IRemoteObject;
 
 interface_token ohos.accountfwk.IAuthorization;
@@ -24,4 +25,8 @@ interface OHOS.AccountSA.IAuthorization {
     void ReleaseAuthorization([in] String privilege);
     void RegisterAuthAppRemoteObject([in] IRemoteObject authAppRemoteObject);
     void UnRegisterAuthAppRemoteObject();
+    void CheckAuthorization([in] String privilege, [out] boolean isAuthorized);
+    void CheckAuthorization([in] String privilege, [in] int pid, [out] boolean isAuthorized);
+    void CheckAuthorization([in] String privilege, [in] int pid,
+        [in] unsigned char[] token, [out] CheckAuthorizationResult authResult);
 }

@@ -29,6 +29,49 @@ namespace AccountSA {
 constexpr int32_t USER_TOKEN_LEN = 2048;
 constexpr int32_t AUTH_TOKEN_LEN = 1024;
 constexpr int32_t PERMISSION_MAX_LEN = 1024;
+constexpr size_t MAX_TOKEN_SIZE = 1024;
+constexpr size_t CHALLENGE_LEN = 32;
+constexpr size_t TOKEN_DATA_CIPHER_SIZE = 4;
+constexpr size_t TOKEN_DATA_TAG_SIZE = 16;
+constexpr size_t TOKEN_DATA_IV_SIZE = 12;
+constexpr size_t TOKEN_CRYPTO_SIGN_SIZE = 32;
+
+typedef struct {
+    uint32_t pid;
+    uint32_t privilege;
+    uint32_t grantTime;
+    int32_t grantValidityPeriod;
+    uint8_t challenge[CHALLENGE_LEN];
+    uint8_t authToken[AUTH_TOKEN_LEN];
+    size_t authTokenSize;
+} __attribute__((__packed__)) UserTokenDataPlain;
+
+typedef struct {
+    int32_t grantUserId;
+} UserTokenDataToEncrypt;
+
+typedef struct {
+    UserTokenDataPlain userTokenDataPlain;
+    UserTokenDataToEncrypt userTokenDataToEncrypt;
+} UserTokenPlain;
+
+typedef struct {
+    uint8_t dataCipher[TOKEN_DATA_CIPHER_SIZE];
+    uint8_t tag[TOKEN_DATA_TAG_SIZE];
+    uint8_t iv[TOKEN_DATA_IV_SIZE];
+} __attribute__((__packed__)) UserTokenDataCipher;
+
+typedef struct {
+    uint32_t version;
+    UserTokenDataPlain userTokenDataPlain;
+    UserTokenDataCipher userTokenDataCipher;
+    uint8_t sign[TOKEN_CRYPTO_SIGN_SIZE];
+} __attribute__((__packed__)) UserTokenCrypto;
+
+typedef struct {
+    UserTokenPlain userTokenPlain;
+    int32_t remainValidityTime;
+} __attribute__((__packed__)) VerifyUserTokenResult;
 
 struct VerifyGrantTimeResult {
     int32_t isEffective = 0;

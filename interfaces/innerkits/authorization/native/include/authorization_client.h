@@ -78,6 +78,22 @@ public:
      */
     ErrCode UnRegisterAuthAppRemoteObject();
 
+    /**
+     * Check an authorization for the target privilege.
+     */
+    ErrCode CheckAuthorization(const std::string &privilege, bool &isAuthorized);
+
+    /**
+     * Check an authorization for the target privilege with pid.
+     */
+    ErrCode CheckAuthorization(const std::string &privilege, int32_t pid, bool &isAuthorized);
+
+    /**
+     * Check an authorization for the target privilege and verify the token.
+     */
+    ErrCode CheckAuthorization(const std::string &privilege, int32_t pid,
+        const std::vector<uint8_t> &token, CheckAuthorizationResult &result);
+
 private:
     AuthorizationClient();
     ~AuthorizationClient();
