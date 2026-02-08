@@ -35,6 +35,7 @@ public:
     ErrCode CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
         const std::shared_ptr<DomainAccountCallback> &callback, const CreateOsAccountForDomainOptions& options = {});
     ErrCode RemoveOsAccount(const int id);
+    ErrCode RemoveOsAccount(const int id, const RemoveOsAccountOptions &options);
     ErrCode IsOsAccountExists(const int id, bool &isOsAccountExists);
     ErrCode IsOsAccountActived(const int id, bool &isOsAccountActived);
     ErrCode IsOsAccountConstraintEnable(const int id, const std::string &constraint, bool &isConstraintEnable);

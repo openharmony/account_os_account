@@ -97,6 +97,8 @@ void DeactivateOACompletedCB(napi_env env, napi_status status, void *data);
 
 bool ParseParaCreateOA(napi_env env, napi_callback_info cbInfo, CreateOAAsyncContext *asyncContext);
 
+bool ParseParaCreateOANameAndType(napi_env env, napi_value argv[], CreateOAAsyncContext *asyncContext);
+
 bool ParseParaCreateOAForDomain(napi_env env, napi_callback_info cbInfo,
     CreateOAForDomainAsyncContext *asyncContext);
 

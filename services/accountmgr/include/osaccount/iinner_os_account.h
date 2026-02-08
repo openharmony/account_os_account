@@ -38,6 +38,7 @@ public:
     virtual ErrCode UpdateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo) = 0;
     virtual ErrCode UpdateFirstOsAccountInfo(OsAccountInfo& accountInfoOld, OsAccountInfo& osAccountInfo) = 0;
     virtual ErrCode RemoveOsAccount(const int id) = 0;
+    virtual ErrCode RemoveOsAccount(const int id, const RemoveOsAccountOptions &options) = 0;
     virtual ErrCode IsOsAccountExists(const int id, bool &isOsAccountExits) = 0;
     virtual ErrCode IsOsAccountActived(const int id, bool &isOsAccountActived) = 0;
     virtual ErrCode IsOsAccountConstraintEnable(
