@@ -217,6 +217,29 @@ AcquireAuthorizationOptions *AcquireAuthorizationOptions::Unmarshalling(Parcel &
     return info;
 }
 
+bool CheckAndGetAuthorizationResultCode(int32_t errCode, AuthorizationResultCode &resultCode)
+{
+    switch (errCode) {
+        case static_cast<int32_t>(AuthorizationResultCode::AUTHORIZATION_RESULT_FROM_CACHE):
+            resultCode = AuthorizationResultCode::AUTHORIZATION_SUCCESS;
+            return true;
+        case static_cast<int32_t>(AuthorizationResultCode::AUTHORIZATION_CANCELED):
+            resultCode = AuthorizationResultCode::AUTHORIZATION_CANCELED;
+            return true;
+        case static_cast<int32_t>(AuthorizationResultCode::AUTHORIZATION_INTERACTION_NOT_ALLOWED):
+            resultCode = AuthorizationResultCode::AUTHORIZATION_INTERACTION_NOT_ALLOWED;
+            return true;
+        case static_cast<int32_t>(AuthorizationResultCode::AUTHORIZATION_DENIED):
+            resultCode = AuthorizationResultCode::AUTHORIZATION_DENIED;
+            return true;
+        case static_cast<int32_t>(AuthorizationResultCode::AUTHORIZATION_SYSTEM_BUSY):
+            resultCode = AuthorizationResultCode::AUTHORIZATION_SYSTEM_BUSY;
+            return true;
+        default:
+            return false;
+    }
+}
+
 void TransVectorU8ToString(const std::vector<uint8_t> &vec, std::string &str)
 {
     str.clear();

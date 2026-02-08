@@ -174,9 +174,7 @@ ErrCode SessionAbilityConnection::SessionConnectExtension(const ConnectAbilityIn
         ACCOUNT_LOGI("Session ability extension is already connected");
         REPORT_OS_ACCOUNT_FAIL(localId_, Constants::ACQUIRE_AUTH,
             ERR_AUTHORIZATION_ALREADY_HAS_ERROR, "Session ability extension is already connected");
-        authorizationResult.resultCode = AuthorizationResultCode::AUTHORIZATION_SYSTEM_BUSY;
-        callback->OnResult(ERR_OK, authorizationResult);
-        return ERR_OK;
+        return static_cast<int32_t>(AuthorizationResultCode::AUTHORIZATION_SYSTEM_BUSY);
     }
 
     ErrCode errCode = CreateCallbackDeathRecipient(callback);

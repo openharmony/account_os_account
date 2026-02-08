@@ -103,19 +103,6 @@ ErrCode ConnectAbilityCallback::OnResult(int32_t errorCode, const std::vector<ui
     return func_(errCode, result_, info_.callingPid);
 }
 
-ErrCode InnerAuthorizationManager::AcquireOnResultCallback(const sptr<IRemoteObject> &authorizationCallback,
-    const AuthorizationResult &result, int32_t errCode)
-{
-    auto callback = iface_cast<IAuthorizationCallback>(authorizationCallback);
-    if (callback == nullptr) {
-        ACCOUNT_LOGE("Get AuthorizationResultCallback proxy is nullptr");
-        REPORT_OS_ACCOUNT_FAIL(IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR,
-            Constants::ACQUIRE_AUTH, ERR_AUTHORIZATION_GET_PROXY_ERROR, "Get proxy is nullptr");
-        return ERR_AUTHORIZATION_GET_PROXY_ERROR;
-    }
-    return callback->OnResult(errCode, result);
-}
-
 std::pair<ErrCode, AuthorizationResultCode> InnerAuthorizationManager::ApplyTaAuthorization(
     const std::vector<uint8_t> &iamToken, int32_t accountId, ApplyUserTokenResult &tokenResult,
     ConnectAbilityInfo &info)
@@ -381,10 +368,6 @@ ErrCode InnerAuthorizationManager::StartServiceExtensionConnection(ConnectAbilit
     const std::string &serviceAbilityName, sptr<IAuthorizationCallback> &callback,
     AuthorizationResult &result, const sptr<IRemoteObject> &requestRemoteObj)
 {
-    std::lock_guard<std::mutex> lock(g_mutex);
-    g_requestRemoteObjectMap[info.callingPid] = requestRemoteObj;
-    info.abilityName = serviceAbilityName;
-
     ErrCode errCode = BundleManagerAdapter::GetInstance()->GetNameForUid(
         info.callingUid, info.callingBundleName);
     if (errCode != ERR_OK) {
@@ -393,7 +376,9 @@ ErrCode InnerAuthorizationManager::StartServiceExtensionConnection(ConnectAbilit
             "Failed to get bundle name");
         return errCode;
     }
-
+    std::lock_guard<std::mutex> lock(g_mutex);
+    g_requestRemoteObjectMap[info.callingPid] = requestRemoteObj;
+    info.abilityName = serviceAbilityName;
     return SessionAbilityConnection::GetInstance().SessionConnectExtension(info, callback, result);
 }
 }

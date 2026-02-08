@@ -35,7 +35,6 @@ struct AcquireAuthorizationContext : public CommonAsyncContext {
     std::string privilege;
     bool hasOptions = false;
     bool uiAbilityFlag = false;
-    bool skipAuthorization = false;  // Flag to skip authorization flow (e.g., when context conversion fails)
     int32_t sessionId = -1;
     std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext;
     std::shared_ptr<AbilityRuntime::UIExtensionContext> uiExtensionContext;
