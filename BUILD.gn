@@ -45,6 +45,7 @@ group("account_build_moduletest") {
     ]
   }
   deps += [
+    "${os_account_path}/frameworks/authorization/test/moduletest:moduletest",
     "${os_account_path}/frameworks/domain_account/test/moduletest:moduletest",
     "${os_account_path}/frameworks/ohosaccount/test:moduletest",
     "${os_account_path}/frameworks/osaccount/native/test/moduletest:moduletest",
