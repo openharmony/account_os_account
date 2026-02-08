@@ -109,17 +109,6 @@ public:
         const sptr<IRemoteObject> &requestRemoteObj);
 
     /**
-     * @brief Callback for authorization result.
-     *
-     * @param authorizationResultCallback The callback object
-     * @param result The authorization result
-     * @param errCode The error code from authorization service
-     * @return ERR_OK on success, error code on failure
-     */
-    ErrCode AcquireOnResultCallback(const sptr<IRemoteObject> &authorizationResultCallback,
-        const AuthorizationResult &result, int32_t errCode);
-
-    /**
      * @brief Updates authorization information after successful authorization.
      *
      * @param iamToken The IAM token from authorization service

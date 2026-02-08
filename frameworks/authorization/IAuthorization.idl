@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+sequenceable AuthorizationCommon..OHOS.AccountSA.AuthorizationResult;
 sequenceable AuthorizationCommon..OHOS.AccountSA.AcquireAuthorizationOptions;
 sequenceable OHOS.IRemoteObject;
 
@@ -20,7 +20,8 @@ interface_token ohos.accountfwk.IAuthorization;
 
 interface OHOS.AccountSA.IAuthorization {
     void AcquireAuthorization([in] String privilege, [in] AcquireAuthorizationOptions options,
-        [in] IRemoteObject authorizationResultCallback, [in] IRemoteObject authAppRemoteObject);
+        [in] IRemoteObject authorizationResultCallback, [in] IRemoteObject authAppRemoteObject,
+        [out] AuthorizationResult authorizationResult);
     void ReleaseAuthorization([in] String privilege);
     void RegisterAuthAppRemoteObject([in] IRemoteObject authAppRemoteObject);
     void UnRegisterAuthAppRemoteObject();

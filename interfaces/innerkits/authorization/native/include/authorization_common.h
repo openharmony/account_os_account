@@ -92,6 +92,7 @@ public:
 enum AuthorizationResultCode : int32_t {
     /// Authorization succeeded
     AUTHORIZATION_SUCCESS = 0,
+    AUTHORIZATION_RESULT_FROM_CACHE = 1,
     /// Authorization was canceled by user
     AUTHORIZATION_CANCELED = 12300301,
     /// Interaction is not allowed for this authorization
@@ -173,6 +174,13 @@ public:
     bool Marshalling(Parcel &parcel) const override;
     static AcquireAuthorizationOptions *Unmarshalling(Parcel &parcel);
 };
+
+/**
+ * @brief check and get authorization result code for errCode.
+ *
+ * @param errCode
+*/
+bool CheckAndGetAuthorizationResultCode(int32_t errCode, AuthorizationResultCode &resultCode);
 
 /**
  * @brief Converts a uint8 vector to a hex string.
