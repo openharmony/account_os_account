@@ -33,6 +33,9 @@ interface AuthorizationManager {
 
     @gen_promise("releaseAuthorization")
  	ReleaseAuthorizationSync(privilege: String): void;
+
+    @gen_promise("hasAuthorization")
+    HasAuthorizationSync(privilege: String): bool;
 }
 
 @overload("getAccountManager")

@@ -1558,6 +1558,20 @@ public:
             SetTaiheBusinessErrorFromNativeCode(errCode);
         }
     }
+
+    bool HasAuthorizationSync(string_view privilege)
+    {
+        std::string privilegeStr(privilege.data(), privilege.size());
+        bool isAuthorized = false;
+        ErrCode errCode = AccountSA::AuthorizationClient::GetInstance().CheckAuthorization(
+            privilegeStr, isAuthorized);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("HasAuthorizationSync failed with errCode: %{public}d", errCode);
+            SetAuthorizationTaiheBusinessErrorFromNativeCode(errCode);
+            return false;
+        }
+        return isAuthorized;
+    }
 };
 
 AuthorizationManager GetAuthorizationManager()

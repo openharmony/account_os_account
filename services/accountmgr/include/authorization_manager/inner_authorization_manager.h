@@ -145,6 +145,26 @@ public:
         int32_t accountId, ApplyUserTokenResult &tokenResult, ConnectAbilityInfo &info);
 
     /**
+     * @brief Check privilege from privilege cache.
+     * @param privilegeId The privilege id
+     * @param pid  The process id
+     * @param isAuthorized The result of check privilegeId and pid
+     * @return ERR_OK on success, error code on failure
+     */
+    ErrCode CheckAuthorization(const uint32_t privilegeId, const uint32_t pid, bool &isAuthorized);
+
+    /**
+     * @brief verify token to TA.
+     * @param token The authorization token for authentication
+     * @param challenge The challenge in the token
+     * @param pid The process id
+     * @param privilegeId he privilege id
+     * @return Pair of error code and authorization result code
+     */
+    ErrCode VerifyToken(const std::vector<uint8_t> &token, const std::string &privilege,
+        const uint32_t pid, std::vector<uint8_t> &challenge);
+
+    /**
      * @brief Death recipient for monitoring application death.
      *
      * This inner class monitors the death of the calling application
