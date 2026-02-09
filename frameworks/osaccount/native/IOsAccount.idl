@@ -21,7 +21,6 @@ rawdata OHOS.AccountSA.StringRawData;
 sequenceable OHOS.AccountSA.OsAccountStateParcel;
 sequenceable OHOS.AccountSA.OsAccountInfo;
 sequenceable OsAccountInfo..OHOS.AccountSA.CreateOsAccountOptions;
-sequenceable OsAccountInfo..OHOS.AccountSA.RemoveOsAccountOptions;
 sequenceable OsAccountInfo..OHOS.AccountSA.ConstraintSourceTypeInfo;
 sequenceable OsAccountInfo..OHOS.AccountSA.OsAccountSubscribeInfo;
 sequenceable OsAccountInfo..OHOS.AccountSA.ForegroundOsAccount;
@@ -29,6 +28,7 @@ sequenceable DomainAccountCommon..OHOS.AccountSA.DomainAccountInfo;
 sequenceable DomainAccountCommon..OHOS.AccountSA.CreateOsAccountForDomainOptions;
 sequenceable OHOS.AccountSA.OsAccountConstraintSubscribeInfo;
 sequenceable OHOS.IRemoteObject;
+sequenceable OsAccountInfo..OHOS.AccountSA.RemoveOsAccountOptions;
 
 option_stub_hooks on;
 
@@ -50,7 +50,6 @@ interface OHOS.AccountSA.IOsAccount {
     void CreateOsAccountForDomain([in] int typeValue, [in] DomainAccountInfo domainInfo,
         [in] IDomainAccountCallback domainAccountCallback);
     void RemoveOsAccount([in] int id);
-    void RemoveOsAccount([in] int id, [in] RemoveOsAccountOptions options);
     void IsOsAccountExists([in] int id, [out] boolean isOsAccountExists);
     void IsOsAccountActived([in] int id, [out] boolean isOsAccountActived);
     void IsOsAccountConstraintEnable(
@@ -135,4 +134,5 @@ interface OHOS.AccountSA.IOsAccount {
     void GetDefaultActivatedOsAccount([in] unsigned long displayId, [out] int id);
     void GetForegroundOsAccountLocalId([out] int localId);
     void GetForegroundOsAccountDisplayId([in] int localId, [out] unsigned long displayId);
+    void RemoveOsAccount([in] int id, [in] RemoveOsAccountOptions options);
 }
