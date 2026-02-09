@@ -18,6 +18,7 @@
 #include <cstdint>
 #include <map>
 #include <mutex>
+#include <securec.h>
 #include <set>
 #include <string>
 #include <utility>
