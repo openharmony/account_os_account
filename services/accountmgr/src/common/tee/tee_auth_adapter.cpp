@@ -16,6 +16,7 @@
 #include "tee_auth_adapter.h"
 #include "account_log_wrapper.h"
 #include <mutex>
+#include <securec.h>
 
 namespace OHOS {
 namespace AccountSA {
