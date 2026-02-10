@@ -26,7 +26,7 @@
         "OHOS::AccountSA::OsAccount::ActivateOsAccount(int, unsigned long)";
         "OHOS::AccountSA::OsAccount::ActivateOsAccount(int, unsigned long long)";
         "OHOS::AccountSA::OsAccount::DeactivateOsAccount(int)";
-        "OHOS::AccountSA::OsAccount::DeactivateAllOsAccounts()";
+        "OHOS::AccountSA::OsAccount::DeactivateAllOsAccounts(bool)";
         "VTT for OHOS::AccountSA::OsAccountInfo";
         "VTT for OHOS::AccountSA::CreateOsAccountOptions";
         "VTT for OHOS::AccountSA::RemoveOsAccountOptions";

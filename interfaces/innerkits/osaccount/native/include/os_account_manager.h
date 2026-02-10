@@ -435,9 +435,10 @@ public:
      * </p>
      *
      * @permission ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION
+     * @param isAnimationEnabled - Indicates whether to enable the deactivation animation.
      * @return error code, see account_error_no.h
      */
-    static ErrCode DeactivateAllOsAccounts();
+    static ErrCode DeactivateAllOsAccounts(const bool isAnimationEnabled = true);
 
     /**
      * @brief Starts the specified OS account.
