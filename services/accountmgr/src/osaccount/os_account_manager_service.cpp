@@ -1234,7 +1234,7 @@ ErrCode OsAccountManagerService::DeactivateOsAccount(int32_t id)
 #ifdef FUZZ_TEST
 // LCOV_EXCL_START
 #endif
-ErrCode OsAccountManagerService::DeactivateAllOsAccounts()
+ErrCode OsAccountManagerService::DeactivateAllOsAccounts(const bool isAnimationEnabled)
 {
     ErrCode checkResult = AccountPermissionManager::CheckSystemApp();
     if (checkResult != ERR_OK) {
@@ -1260,13 +1260,14 @@ ErrCode OsAccountManagerService::DeactivateAllOsAccounts()
     }
     ErrCode result = ERR_OK;
     for (auto osAccountId : userIds) {
-        ACCOUNT_LOGI("DeactivateAllOsAccounts, id=%{public}d", osAccountId);
+        ACCOUNT_LOGI(
+            "DeactivateAllOsAccounts, id=%{public}d, isAnimationEnabled=%{public}d", osAccountId, isAnimationEnabled);
 #ifdef ENABLE_U1_ACCOUNT
         if (osAccountId == Constants::U1_ID) {
             continue;
         }
 #endif // ENABLE_U1_ACCOUNT
-        res = innerManager_.DeactivateOsAccount(osAccountId);
+        res = innerManager_.DeactivateOsAccount(osAccountId, true, isAnimationEnabled);
         if (res != ERR_OK) {
             ACCOUNT_LOGE("Deactivate os account id failed, id=%{public}d", osAccountId);
             result = res;
