@@ -28,6 +28,9 @@ static const std::unordered_map<uint32_t, std::string> g_errorStringMap = {
     {ERR_JS_MULTI_USER_NOT_SUPPORT, "Multiple users not supported, please cancel the creation"},
     {ERR_JS_ACCOUNT_TYPE_NOT_SUPPORT, "Account type not supported, please create a non administrator account"},
     {ERR_JS_ACCOUNT_RESTRICTED, "Account is restricted, the operation account ID is the reserved for system"},
+    {ERR_JS_AUTHORIZATION_DENIED, "Access denied due to user access control policy. Possible causes: "
+        "(1)The operation is restricted by the OS-account constraint; "
+        "(2)The required privilege for the operation has not been granted."},
     {ERR_JS_LISTENER_ALREADY_REGISTERED,
      "Listener is already registered, please register new listener or delete old listener and try again"},
     {ERR_JS_LISTENER_NOT_REGISTERED, "Listener is not registered, please use the registered listener"},
@@ -80,6 +83,7 @@ static const std::unordered_map<uint32_t, std::string> g_errorStringMap = {
     {ERR_JS_SERVER_CONFIG_UPPER_LIMIT, "The number of server config reaches the upper limit"},
     {ERR_JS_OS_ACCOUNT_ALREADY_BOUND, "The OS account is already bound."},
     {ERR_JS_DOMAIN_ACCOUNT_ALREADY_BOUND, "The domain account is already bound."},
+    {ERR_JS_ACCOUNT_TYPE_MAX_CAN_CREATED, "The number of accounts of the specified type has reached the upper limit."},
     {ERR_JS_AUTH_CANCELLED, "The authentication, enrollment, or update operation is canceled."},
     {ERR_JS_ACCOUNT_CROSS_DEVICE_CAPABILITY_NOT_SUPPORT, "Cross-device capability not supported"},
     {ERR_JS_ACCOUNT_CROSS_DEVICE_COMMUNICATION_FAILED, "Cross-device communication failed"},
@@ -276,6 +280,8 @@ int32_t OsAccountConvertToJSErrCode(int32_t errCode)
             return ERR_JS_ACCOUNT_ALREADY_ACTIVATED;
         case ERR_OSACCOUNT_SERVICE_CONTROL_MAX_CAN_CREATE_ERROR:
             return ERR_JS_ACCOUNT_NUMBER_REACH_LIMIT;
+        case ERR_OSACCOUNT_SERVICE_CONTROL_MAX_TYPE_CAN_CREATE_ERROR:
+            return ERR_JS_ACCOUNT_TYPE_MAX_CAN_CREATED;
         case ERR_OSACCOUNT_SERVICE_LOGGED_IN_ACCOUNTS_OVERSIZE:
             return ERR_JS_ACCOUNT_LOGGED_IN_ACCOUNTS_OVERSIZE;
         case ERR_OSACCOUNT_SERVICE_MANAGER_NOT_ENABLE_MULTI_ERROR:
@@ -286,9 +292,12 @@ int32_t OsAccountConvertToJSErrCode(int32_t errCode)
         case ERR_OSACCOUNT_SERVICE_CONTROL_CANNOT_DELETE_ID_ERROR:
         case ERR_OSACCOUNT_SERVICE_CONTROL_ID_CANNOT_CREATE_ERROR:
         case ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_STOP_ACTIVE_ERROR:
+        case ERR_ACCOUNT_COMMON_ACCOUNT_IS_RESTRICTED:
             return ERR_JS_ACCOUNT_RESTRICTED;
         case ERR_OSACCOUNT_KIT_NO_SPECIFIED_SUBSCRIBER_HAS_BEEN_REGISTERED:
             return ERR_JS_LISTENER_NOT_REGISTERED;
+        case ERR_AUTHORIZATION_PRIVILEGE_DENIED:
+            return ERR_JS_AUTHORIZATION_DENIED;
         case ERR_ACCOUNT_COMMON_PERMISSION_DENIED:
             return ERR_JS_PERMISSION_DENIED;
         case ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR:
@@ -350,7 +359,11 @@ static bool IsOsAccountServiceError(int32_t errCode)
            (errCode == ERR_ACCOUNT_COMMON_SHORT_NAME_HAD_EXISTED) ||
            (errCode == ERR_ACCOUNT_COMMON_ACCOUNT_IN_DISPLAY_ID_NOT_FOUND_ERROR) ||
            (errCode == ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR) ||
-           (errCode == ERR_ACCOUNT_COMMON_CROSS_DISPLAY_ACTIVE_ERROR);
+           (errCode == ERR_ACCOUNT_COMMON_CROSS_DISPLAY_ACTIVE_ERROR) ||
+           (errCode == ERR_ACCOUNT_COMMON_ACCOUNT_IS_RESTRICTED) ||
+           (errCode == ERR_ACCOUNT_COMMON_TEE_USER_TOKEN_INVALID) ||
+           (errCode == ERR_ACCOUNT_COMMON_TEE_USER_TOKEN_EXPIRED) ||
+           (errCode == ERR_AUTHORIZATION_PRIVILEGE_DENIED);
 }
 
 static bool IsDomainAccountServiceError(int32_t errCode)

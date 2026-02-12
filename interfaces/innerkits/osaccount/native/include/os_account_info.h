@@ -15,6 +15,7 @@
 
 #ifndef OS_ACCOUNT_INTERFACES_INNERKITS_OS_ACCOUNT_INFO_H
 #define OS_ACCOUNT_INTERFACES_INNERKITS_OS_ACCOUNT_INFO_H
+#include <optional>
 #include <vector>
 #include "domain_account_common.h"
 #include "iaccount_info.h"
@@ -73,6 +74,15 @@ struct RemoveOsAccountOptions: public Parcelable {
     bool ReadFromParcel(Parcel &parcel);
     bool Marshalling(Parcel &parcel) const override;
     static RemoveOsAccountOptions *Unmarshalling(Parcel &parcel);
+};
+
+struct SetOsAccountTypeOptions : public Parcelable {
+    SetOsAccountTypeOptions();
+    virtual ~SetOsAccountTypeOptions();
+    std::optional<std::vector<uint8_t>> token;
+    bool ReadFromParcel(Parcel &parcel);
+    bool Marshalling(Parcel &parcel) const override;
+    static SetOsAccountTypeOptions *Unmarshalling(Parcel &parcel);
 };
 
 class OsAccountInfo : public IAccountInfo, public Parcelable {

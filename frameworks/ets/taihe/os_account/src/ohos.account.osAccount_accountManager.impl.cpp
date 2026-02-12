@@ -281,6 +281,24 @@ public:
         return ConvertToOsAccountTypeKey(TaiheReturn(errCode, type, DEFAULT_ACCOUNT_TYPE));
     }
 
+    void SetOsAccountTypeSync(int32_t localId, OsAccountType type, optional_view<SetOsAccountTypeOptions> options)
+    {
+        AccountSA::SetOsAccountTypeOptions innerOptions;
+        if (options.has_value() && options.value().token.has_value()) {
+            auto tokenView = options.value().token.value();
+            if (tokenView.size() > 0) {
+                innerOptions.token = std::vector<uint8_t>(tokenView.begin(), tokenView.end());
+            } else {
+                innerOptions.token = std::vector<uint8_t>{};
+            }
+        } else {
+            innerOptions.token = std::nullopt;
+        }
+        AccountSA::OsAccountType targetType = static_cast<AccountSA::OsAccountType>(type.get_value());
+        ErrCode errCode = AccountSA::OsAccountManager::SetOsAccountType(localId, targetType, innerOptions);
+        SetTaiheBusinessErrorFromNativeCode(errCode);
+    }
+
     static bool IsSubscribedInMap(AccountSA::SubscribeCBInfo *subscribeCBInfo)
     {
         std::lock_guard<std::mutex> lock(g_lockForOsAccountSubscribers);

@@ -1593,6 +1593,30 @@ HWTEST_F(OsAccountManagerServiceModuleTest, GetOsAccountType001, TestSize.Level1
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoA.GetLocalId()), ERR_OK);
 }
 
+#ifndef SUPPORT_AUTHORIZATION
+/**
+ * @tc.name: SetOsAccountType001
+ * @tc.desc: Test SetOsAccountType.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, SetOsAccountType001, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfoA;
+    ASSERT_EQ(osAccountManagerService_->CreateOsAccount("SetTypeName001", OsAccountType::NORMAL, osAccountInfoA),
+        ERR_OK);
+    SetOsAccountTypeOptions options;
+    EXPECT_EQ(osAccountManagerService_->SetOsAccountType(
+        osAccountInfoA.GetLocalId(), OsAccountType::GUEST, options), ERR_OK);
+
+    int32_t type = 0;
+    EXPECT_EQ(osAccountManagerService_->GetOsAccountType(osAccountInfoA.GetLocalId(), type), ERR_OK);
+    EXPECT_EQ(type, static_cast<int32_t>(OsAccountType::GUEST));
+
+    EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoA.GetLocalId()), ERR_OK);
+}
+#endif
+
 /**
  * @tc.name: PrivateTypeTest001
  * @tc.desc: Test PRIVATE type os account.

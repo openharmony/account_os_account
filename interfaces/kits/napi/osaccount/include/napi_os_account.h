@@ -201,6 +201,14 @@ struct GetTypeAsyncContext : public CommonAsyncContext {
     OsAccountType type;
 };
 
+struct SetTypeAsyncContext : public CommonAsyncContext {
+    int id = -1;
+    OsAccountType type = OsAccountType::END;
+    // if token is provided, it must be non-empty.
+    // if token is not provided, it must be std::nullopt.
+    SetOsAccountTypeOptions options;
+};
+
 struct IsMultiEnAsyncContext : public CommonAsyncContext {
     bool isMultiOAEnable = false;
 };
@@ -372,6 +380,8 @@ napi_value CheckOsAccountActivated(napi_env env, napi_callback_info cbInfo);
 napi_value IsOsAccountConstraintEnable(napi_env env, napi_callback_info cbInfo);
 
 napi_value CheckConstraintEnabled(napi_env env, napi_callback_info cbInfo);
+
+napi_value SetOsAccountType(napi_env env, napi_callback_info cbInfo);
 
 napi_value GetOsAccountType(napi_env env, napi_callback_info cbInfo);
 

@@ -136,6 +136,9 @@ const char SHORT_NAME[] = "shortName";
 
 // start type
 const OS_ACCOUNT_SWITCH_MOD NOW_OS_ACCOUNT_SWITCH_MOD = OS_ACCOUNT_SWITCH_MOD::HOT_SWITCH;
+#ifdef SUPPORT_AUTHORIZATION
+const size_t MAX_TOKEN_SIZE = 1024 + 116 + 8;
+#endif
 };  // namespace Constants
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -86,6 +86,7 @@ public:
 
     ErrCode GetOsAccountTypeFromProcess(int32_t& typeValue) override;
     ErrCode GetOsAccountType(int32_t id, int32_t& typeValue) override;
+    ErrCode SetOsAccountType(int32_t id, int32_t typeValue, const SetOsAccountTypeOptions &options) override;
     ErrCode GetOsAccountProfilePhoto(const int id, std::string &photo);
     ErrCode GetOsAccountProfilePhoto(int32_t id, StringRawData& stringRawData) override;
 

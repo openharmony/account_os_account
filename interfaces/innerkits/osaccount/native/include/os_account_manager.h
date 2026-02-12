@@ -297,6 +297,15 @@ public:
     static ErrCode GetOsAccountType(const int id, OsAccountType& type);
 
     /**
+     * @brief Sets the type of an OS account.
+     * @permission ohos.permission.MANAGE_LOCAL_ACCOUNTS
+     * @param id - Indicates the local ID of the OS account.
+     * @param type - Indicates the type of the OS account.
+     * @return error code, see account_error_no.h
+     */
+    static ErrCode SetOsAccountType(const int id, const OsAccountType& type, const SetOsAccountTypeOptions& options);
+
+    /**
      * @brief Gets the profile photo of an OS account based on its local ID.
      * @selinux The caller needs to configure selinux permissions: allow Caller_SA_Name accountmgr:fd {use}.
      * @permission ohos.permission.MANAGE_LOCAL_ACCOUNTS
