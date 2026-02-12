@@ -19,6 +19,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include "iinner_os_account.h"
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
 #include "inner_domain_account_manager.h"
@@ -34,7 +35,9 @@
 #endif // SUPPORT_LOCK_OS_ACCOUNT
 #include "safe_map.h"
 #include "singleton.h"
-
+#ifdef SUPPORT_AUTHORIZATION
+#include "tee_auth_adapter.h"
+#endif // SUPPORT_AUTHORIZATION
 namespace OHOS {
 namespace AccountSA {
 class IInnerOsAccountManager : public IInnerOsAccount {
@@ -66,6 +69,7 @@ public:
     ErrCode GetOsAccountShortName(const int id, std::string &shortName) override;
     ErrCode GetOsAccountName(const int id, std::string &name) override;
     ErrCode GetOsAccountType(const int id, OsAccountType &type) override;
+    ErrCode SetOsAccountType(const int id, const OsAccountType &type, const SetOsAccountTypeOptions &options) override;
     ErrCode GetOsAccountProfilePhoto(const int id, std::string &photo) override;
     ErrCode IsMultiOsAccountEnable(bool &isMultiOsAccountEnable) override;
     ErrCode SetOsAccountName(const int id, const std::string &name) override;
@@ -204,6 +208,8 @@ private:
     ErrCode RetryToInsertOsAccount(OsAccountInfo &osAccountInfo);
     bool JudgeOsAccountUpdate(cJSON *accountIndexJson);
     std::shared_ptr<std::mutex> GetOrInsertUpdateLock(int32_t id);
+    ErrCode VerifyAndSetOsAccountTypeInTEE(int32_t id, OsAccountType type,
+        const std::optional<std::vector<uint8_t>>& token);
     ErrCode UpdateAccountToBackground(int32_t oldId);
     ErrCode IsValidOsAccount(const OsAccountInfo &osAccountInfo);
     ErrCode GetNonSACreatedOACount(unsigned int &nonSACreatedOACount) const;
@@ -214,6 +220,8 @@ private:
         OsAccountInfo &osAccountInfo, int32_t &foregroundId);
     ErrCode ResetDefaultActivatedAccount(int32_t localId);
     ErrCode CheckHighestHapInstallForCreate(OsAccountInfo &osAccountInfo);
+    ErrCode UpdateOsAccountConstraintsInfo(int32_t id, OsAccountInfo &osAccountInfo,
+        const std::vector<std::string> &constraints);
 #ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
     void QueryAllDisplayIds(std::vector<uint64_t> &displayIds);
     ErrCode ValidateDisplayForActivation(const int id, const uint64_t displayId);
@@ -232,8 +240,12 @@ private:
     mutable std::mutex ativeMutex_;
     mutable std::mutex operatingMutex_;
     mutable std::mutex updateLockMutex_;
+    mutable std::mutex typeNumberMutex_;  // Protects type number check to avoid race with create
     mutable std::mutex createOsAccountMutex_;
     SafeMap<uint64_t, int32_t> foregroundAccountMap_;
+#ifdef SUPPORT_AUTHORIZATION
+    OsAccountTeeAdapter teeAdapter_;  // TEE adapter for secure account operations
+#endif // SUPPORT_AUTHORIZATION
 #ifdef SUPPORT_LOCK_OS_ACCOUNT
     OsAccountLockOsAccountPluginManager &lockOsAccountPluginManager_;
 #endif

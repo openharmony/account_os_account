@@ -1739,6 +1739,97 @@ void GetTypeCompletedCB(napi_env env, napi_status status, void *data)
     delete asyncContext;
 }
 
+static bool ParseParaSetTypeOptions(napi_env env, napi_value object, SetTypeAsyncContext *asyncContext)
+{
+    napi_valuetype valueType = napi_undefined;
+    NAPI_CALL_BASE(env, napi_typeof(env, object, &valueType), false);
+
+    if (valueType != napi_object) {
+        ACCOUNT_LOGE("Get options failed, invalid type %{public}d", valueType);
+        std::string errMsg = "Parameter error. The type of \"options\" must be object";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        return false;
+    }
+
+    napi_value tokenValue = nullptr;
+    NAPI_CALL_BASE(env, napi_get_named_property(env, object, "token", &tokenValue), false);
+    napi_valuetype tokenValueType = napi_undefined;
+    NAPI_CALL_BASE(env, napi_typeof(env, tokenValue, &tokenValueType), false);
+
+    // Handle undefined or null token value
+    if (tokenValueType == napi_undefined || tokenValueType == napi_null) {
+        asyncContext->options.token = std::nullopt;
+        return true;
+    }
+
+    std::vector<uint8_t> token;
+    if (ParseUint8TypedArrayToVector(env, tokenValue, token) != napi_ok) {
+        ACCOUNT_LOGE("Get token failed");
+        std::string errMsg = "Parameter error. The type of \"token\" in options must be Uint8Array";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        return false;
+    }
+    asyncContext->options.token = std::move(token);
+    return true;
+}
+
+bool ParseParaSetType(napi_env env, napi_callback_info cbInfo, SetTypeAsyncContext *asyncContext)
+{
+    size_t argc = ARGS_SIZE_THREE;
+    napi_value argv[ARGS_SIZE_THREE] = {0};
+    NAPI_CALL_BASE(env, napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr), false);
+    if (argc < ARGS_SIZE_TWO) {
+        ACCOUNT_LOGE("The number of parameters should be at least 2.");
+        std::string errMsg = "Parameter error. The number of parameters should be at least 2";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        return false;
+    }
+
+    if (!GetIntProperty(env, argv[PARAMZERO], asyncContext->id)) {
+        ACCOUNT_LOGE("Get localId failed.");
+        std::string errMsg = "Parameter error. The type of \"localId\" must be number";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        return false;
+    }
+
+    int32_t type;
+    if (!GetIntProperty(env, argv[PARAMONE], type)) {
+        ACCOUNT_LOGE("Get type failed.");
+        std::string errMsg = "Parameter error. The type of \"type\" must be number";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        return false;
+    }
+    asyncContext->type = static_cast<OsAccountType>(type);
+
+    if (argc >= ARGS_SIZE_THREE) {
+        return ParseParaSetTypeOptions(env, argv[PARAMTWO], asyncContext);
+    }
+    return true;
+}
+
+void SetTypeExecuteCB(napi_env env, void *data)
+{
+    SetTypeAsyncContext *asyncContext = reinterpret_cast<SetTypeAsyncContext *>(data);
+    asyncContext->errCode = OsAccountManager::SetOsAccountType(asyncContext->id,
+        asyncContext->type, asyncContext->options);
+}
+
+void SetTypeCompletedCB(napi_env env, napi_status status, void *data)
+{
+    SetTypeAsyncContext *asyncContext = reinterpret_cast<SetTypeAsyncContext *>(data);
+    napi_value errJs = nullptr;
+    napi_value dataJs = nullptr;
+    if (asyncContext->errCode == ERR_OK) {
+        errJs = GenerateBusinessSuccess(env, asyncContext->throwErr);
+        NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &dataJs));
+    } else {
+        errJs = GenerateBusinessError(env, asyncContext->errCode, asyncContext->throwErr);
+        NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &dataJs));
+    }
+    ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
+    delete asyncContext;
+}
+
 bool ParseParaIsMultiEn(napi_env env, napi_callback_info cbInfo, IsMultiEnAsyncContext *asyncContext)
 {
     return ParseOneParaContext(env, cbInfo, asyncContext);

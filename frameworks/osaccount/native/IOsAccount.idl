@@ -24,6 +24,7 @@ sequenceable OsAccountInfo..OHOS.AccountSA.CreateOsAccountOptions;
 sequenceable OsAccountInfo..OHOS.AccountSA.ConstraintSourceTypeInfo;
 sequenceable OsAccountInfo..OHOS.AccountSA.OsAccountSubscribeInfo;
 sequenceable OsAccountInfo..OHOS.AccountSA.ForegroundOsAccount;
+sequenceable OsAccountInfo..OHOS.AccountSA.SetOsAccountTypeOptions;
 sequenceable DomainAccountCommon..OHOS.AccountSA.DomainAccountInfo;
 sequenceable DomainAccountCommon..OHOS.AccountSA.CreateOsAccountForDomainOptions;
 sequenceable OHOS.AccountSA.OsAccountConstraintSubscribeInfo;
@@ -135,4 +136,5 @@ interface OHOS.AccountSA.IOsAccount {
     void GetForegroundOsAccountLocalId([out] int localId);
     void GetForegroundOsAccountDisplayId([in] int localId, [out] unsigned long displayId);
     void RemoveOsAccount([in] int id, [in] RemoveOsAccountOptions options);
+    void SetOsAccountType([in] int id, [in] int typeValue, [in] SetOsAccountTypeOptions options);
 }

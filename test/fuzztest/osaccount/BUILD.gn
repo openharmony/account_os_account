@@ -42,6 +42,7 @@ group("fuzztest") {
     "getosaccountprofilephoto_fuzzer:GetOsAccountProfilePhotoFuzzTest",
     "getosaccountshortname_fuzzer:GetOsAccountShortNameFuzzTest",
     "getosaccounttype_fuzzer:GetOsAccountTypeFuzzTest",
+    "setosaccounttype_fuzzer:SetOsAccountTypeFuzzTest",
     "getserialnumberbyosaccountlocalid_fuzzer:GetSerialNumberByOsAccountLocalIdFuzzTest",
     "getserialnumberfromdatabase_fuzzer:GetSerialNumberFromDatabaseFuzzTest",
     "isosaccountactived_fuzzer:IsOsAccountActivedFuzzTest",

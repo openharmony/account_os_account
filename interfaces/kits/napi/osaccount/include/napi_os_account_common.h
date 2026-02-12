@@ -228,6 +228,12 @@ void GetTypeExecuteCB(napi_env env, void *data);
 
 void GetTypeCompletedCB(napi_env env, napi_status status, void *data);
 
+bool ParseParaSetType(napi_env env, napi_callback_info cbInfo, SetTypeAsyncContext *asyncContext);
+
+void SetTypeExecuteCB(napi_env env, void *data);
+
+void SetTypeCompletedCB(napi_env env, napi_status status, void *data);
+
 bool ParseParaIsMultiEn(napi_env env, napi_callback_info cbInfo, IsMultiEnAsyncContext *asyncContext);
 
 void IsMultiEnExecuteCB(napi_env env, void *data);
