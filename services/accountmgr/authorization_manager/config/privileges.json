@@ -3,6 +3,18 @@
         {
             "name":"ohos.privilege.manage_local_accounts",
             "description":"Manage local accounts"
+        },
+        {
+            "name":"ohos.privilege.kill_process",
+            "description":"Kill process across users"
+        },
+        {
+            "name":"ohos.privilege.modify_system_time",
+            "description":"Modify system time"
+        },
+        {
+            "name":"ohos.privilege.reset_device",
+            "description":"Reset device"
         }
     ]
 }
