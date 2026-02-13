@@ -118,7 +118,7 @@ HWTEST_F(AuthorizationClientModuleCovTest, CheckAuthorization003, TestSize.Level
     ErrCode errCode = AuthorizationClient::GetInstance().CheckAuthorization(
         privilege, isAuthorized);
     EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
-    EXPECT_EQ(result.isAuthorized, false);
+    EXPECT_EQ(isAuthorized, false);
 
     ASSERT_TRUE(RecoveryPermission(tokenID, selfTokenId));
 }
@@ -188,8 +188,8 @@ HWTEST_F(AuthorizationClientModuleCovTest, CheckAuthorizationWithToken001, TestS
     std::vector<uint8_t> token = {};
     CheckAuthorizationResult result;
     result.isAuthorized = isAuthorized;
-    ErrCode errCode = AuthorizationClient::GetInstance().CheckAuthorization(
-        privilege, pid, token, result);
+    ErrCode errCode = AuthorizationClient::GetInstance().CheckAuthorizationToken(
+        token, privilege, pid, result);
     EXPECT_EQ(errCode, ERR_OK);
     EXPECT_EQ(result.isAuthorized, false);
 }
@@ -208,8 +208,8 @@ HWTEST_F(AuthorizationClientModuleCovTest, CheckAuthorizationWithToken002, TestS
     std::vector<uint8_t> token = {};
     CheckAuthorizationResult result;
     result.isAuthorized = isAuthorized;
-    ErrCode errCode = AuthorizationClient::GetInstance().CheckAuthorization(
-        privilege, pid, token, result);
+    ErrCode errCode = AuthorizationClient::GetInstance().CheckAuthorizationToken(
+        token, privilege, pid, result);
     EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     EXPECT_EQ(result.isAuthorized, false);
 }
@@ -228,8 +228,8 @@ HWTEST_F(AuthorizationClientModuleCovTest, CheckAuthorizationWithToken003, TestS
     std::vector<uint8_t> token = {1, 2, 3, 4};
     CheckAuthorizationResult result;
     result.isAuthorized = isAuthorized;
-    ErrCode errCode = AuthorizationClient::GetInstance().CheckAuthorization(
-        privilege, pid, token, result);
+    ErrCode errCode = AuthorizationClient::GetInstance().CheckAuthorizationToken(
+        token, privilege, pid, result);
     EXPECT_EQ(errCode, ERR_OK);
     EXPECT_EQ(result.isAuthorized, false);
 }
@@ -366,8 +366,8 @@ HWTEST_F(AuthorizationClientModuleCovTest, CheckAuthorizationWithToken001, TestS
     std::vector<uint8_t> token = { 1, 2, 3, 4 };
     CheckAuthorizationResult result;
     result.isAuthorized = isAuthorized;
-    ErrCode errCode = AuthorizationClient::GetInstance().CheckAuthorization(
-        privilege, pid, token, result);
+    ErrCode errCode = AuthorizationClient::GetInstance().CheckAuthorizationToken(
+        token, privilege, pid, result);
     EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     EXPECT_EQ(result.isAuthorized, true);
 }
@@ -386,8 +386,8 @@ HWTEST_F(AuthorizationClientModuleCovTest, CheckAuthorizationWithToken002, TestS
     std::vector<uint8_t> token = {};
     CheckAuthorizationResult result;
     result.isAuthorized = isAuthorized;
-    ErrCode errCode = AuthorizationClient::GetInstance().CheckAuthorization(
-        privilege, pid, token, result);
+    ErrCode errCode = AuthorizationClient::GetInstance().CheckAuthorizationToken(
+        token, privilege, pid, result);
     EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     EXPECT_EQ(result.isAuthorized, true);
 }
@@ -406,8 +406,8 @@ HWTEST_F(AuthorizationClientModuleCovTest, CheckAuthorizationWithToken003, TestS
     std::vector<uint8_t> token = { 1, 2, 3, 4 };
     CheckAuthorizationResult result;
     result.isAuthorized = isAuthorized;
-    ErrCode errCode = AuthorizationClient::GetInstance().CheckAuthorization(
-        privilege, pid, token, result);
+    ErrCode errCode = AuthorizationClient::GetInstance().CheckAuthorizationToken(
+        token, privilege, pid, result);
     EXPECT_EQ(errCode, ERR_OK);
     EXPECT_EQ(result.isAuthorized, true);
 }
@@ -429,8 +429,8 @@ HWTEST_F(AuthorizationClientModuleCovTest, CheckAuthorizationWithToken004, TestS
     std::vector<uint8_t> token = { 1, 2, 3, 4 };
     CheckAuthorizationResult result;
     result.isAuthorized = isAuthorized;
-    ErrCode errCode = AuthorizationClient::GetInstance().CheckAuthorization(
-        privilege, pid, token, result);
+    ErrCode errCode = AuthorizationClient::GetInstance().CheckAuthorizationToken(
+        token, privilege, pid, result);
     EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
     EXPECT_EQ(result.isAuthorized, true);
 

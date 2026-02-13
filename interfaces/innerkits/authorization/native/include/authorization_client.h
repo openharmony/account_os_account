@@ -91,8 +91,8 @@ public:
     /**
      * Check an authorization for the target privilege and verify the token.
      */
-    ErrCode CheckAuthorization(const std::string &privilege, int32_t pid,
-        const std::vector<uint8_t> &token, CheckAuthorizationResult &result);
+    ErrCode CheckAuthorizationToken(const std::vector<uint8_t> &token,
+        const std::string &privilege, int32_t pid, CheckAuthorizationResult &result);
 
 private:
     AuthorizationClient();

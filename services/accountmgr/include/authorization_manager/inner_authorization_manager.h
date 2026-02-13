@@ -140,18 +140,20 @@ public:
      * @param isAuthorized The result of check privilegeId and pid
      * @return ERR_OK on success, error code on failure
      */
-    ErrCode CheckAuthorization(const uint32_t privilegeId, const uint32_t pid, bool &isAuthorized);
+    ErrCode CheckAuthorization(const uint32_t privilegeId,
+        const int32_t pid, bool &isAuthorized);
 
     /**
      * @brief verify token to TA.
      * @param token The authorization token for authentication
-     * @param challenge The challenge in the token
      * @param pid The process id
      * @param privilegeId he privilege id
+     * @param challenge The challenge in the token
+     * @param iamToken The iamToken in the token
      * @return Pair of error code and authorization result code
      */
     ErrCode VerifyToken(const std::vector<uint8_t> &token, const std::string &privilege,
-        const uint32_t pid, std::vector<uint8_t> &challenge);
+        const uint32_t pid, std::vector<uint8_t> &challenge, std::vector<uint8_t> &iamToken);
 
     /**
      * @brief Death recipient for monitoring application death.

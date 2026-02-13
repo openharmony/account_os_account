@@ -24,6 +24,7 @@ namespace AccountSA {
 constexpr std::uint8_t TWO_BYTE_MASK = 0xF0;
 bool CheckAuthorizationResult::ReadFromParcel(Parcel &parcel)
 {
+#ifdef SUPPORT_AUTHORIZATION
     if (!parcel.ReadBool(isAuthorized)) {
         ACCOUNT_LOGE("Failed to read isAuthrization");
         return false;
@@ -32,11 +33,17 @@ bool CheckAuthorizationResult::ReadFromParcel(Parcel &parcel)
         ACCOUNT_LOGE("Failed to read challenge");
         return false;
     }
+    if (!parcel.ReadUInt8Vector(&iamToken)) {
+        ACCOUNT_LOGE("Failed to read iamToken");
+        return false;
+    }
+#endif // SUPPORT_AUTHORIZATION
     return true;
 }
 
 bool CheckAuthorizationResult::Marshalling(Parcel &parcel) const
 {
+#ifdef SUPPORT_AUTHORIZATION
     if (!parcel.WriteBool(isAuthorized)) {
         ACCOUNT_LOGE("Failed to write isAuthrization.");
         return false;
@@ -45,6 +52,11 @@ bool CheckAuthorizationResult::Marshalling(Parcel &parcel) const
         ACCOUNT_LOGE("Failed to write challenge.");
         return false;
     }
+    if (!parcel.WriteUInt8Vector(iamToken)) {
+        ACCOUNT_LOGE("Failed to write iamToken.");
+        return false;
+    }
+#endif // SUPPORT_AUTHORIZATION
     return true;
 }
 
