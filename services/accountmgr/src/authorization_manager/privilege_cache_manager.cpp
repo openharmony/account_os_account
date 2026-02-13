@@ -421,33 +421,34 @@ PrivilegeCacheManager &PrivilegeCacheManager::GetInstance()
 
 ErrCode PrivilegeCacheManager::CheckPrivilege(const AuthenCallerInfo &callerInfo, int32_t &remainTime)
 {
-    int32_t localId = callerInfo.uid / UID_TRANSFORM_DIVISOR;
-    if (localId == Constants::ADMIN_LOCAL_ID) {
-        int32_t aclLevel = -1;
-        ErrCode ret = GetAcl(callerInfo.pid, aclLevel);
-        if (ret != ERR_OK) {
-            ACCOUNT_LOGE("Get ACL level failed, ret=%{public}d", ret);
-            return ret;
+    // Step1. Check cache
+    {
+        std::lock_guard<std::recursive_mutex> lock(mapMutex_);
+        auto iter = processPrivilegeMap_.find(callerInfo.pid);
+        if (iter != processPrivilegeMap_.end()) {
+            ErrCode ret = iter->second->CheckPrivilege(callerInfo.privilegeIdx, remainTime);
+            if ((ret != ERR_OK) && (ret != ERR_AUTHORIZATION_PRIVILEGE_DENIED)) {
+                ACCOUNT_LOGE("Check privilege failed, ret=%{public}d, pid=%{public}d", ret, callerInfo.pid);
+            }
+            if (ret != ERR_AUTHORIZATION_PRIVILEGE_DENIED) {
+                return ret;
+            }
         }
-        if (aclLevel < 1) {
-            ACCOUNT_LOGW("ACL level is too low, level=%{public}d", aclLevel);
-            return ERR_AUTHORIZATION_PRIVILEGE_DENIED;
-        }
-        remainTime = -1;
+    }
+    // Step2. Check if it is ACL granted
+    remainTime = -1;
+    int32_t aclLevel = -1;
+    ErrCode ret = GetAcl(callerInfo.pid, aclLevel);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Get ACL level failed, ret=%{public}d", ret);
+        return ret;
+    }
+    if (aclLevel >= 1) {
+        ACCOUNT_LOGW("ACL level granted, pid=%{public}d", callerInfo.pid);
         return ERR_OK;
     }
-    std::lock_guard<std::recursive_mutex> lock(mapMutex_);
-    auto iter = processPrivilegeMap_.find(callerInfo.pid);
-    if (iter == processPrivilegeMap_.end()) {
-        ACCOUNT_LOGW("Process privilege record not found, pid=%{public}d", callerInfo.pid);
-        return ERR_AUTHORIZATION_PRIVILEGE_DENIED;
-    }
-    ErrCode ret = iter->second->CheckPrivilege(callerInfo.privilegeIdx, remainTime);
-    if ((ret != ERR_OK) && (ret != ERR_AUTHORIZATION_PRIVILEGE_DENIED)) {
-        ACCOUNT_LOGE("Check privilege failed, ret=%{public}d, pid=%{public}d", ret, callerInfo.pid);
-    }
     StartCleanTask();
-    return ret;
+    return ERR_AUTHORIZATION_PRIVILEGE_DENIED;
 }
 
 ErrCode PrivilegeCacheManager::RemoveSingle(const AuthenCallerInfo &callerInfo)

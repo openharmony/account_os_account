@@ -28,6 +28,6 @@ interface OHOS.AccountSA.IAuthorization {
     void UnRegisterAuthAppRemoteObject();
     void CheckAuthorization([in] String privilege, [out] boolean isAuthorized);
     void CheckAuthorization([in] String privilege, [in] int pid, [out] boolean isAuthorized);
-    void CheckAuthorization([in] String privilege, [in] int pid,
-        [in] unsigned char[] token, [out] CheckAuthorizationResult authResult);
+    void CheckAuthorizationToken([in] unsigned char[] token, [in] String privilege, [in] int pid,
+        [out] CheckAuthorizationResult authResult);
 }
