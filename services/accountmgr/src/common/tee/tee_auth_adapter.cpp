@@ -42,6 +42,7 @@ namespace {
         USER_TOKEN_VERIFY_CMD_ID = 0x00020002,
         CHECK_TIMESTAMP_EXPIRE_CMD_ID = 0x00020003,
         USER_TOKEN_APPLY_CMD_ID = 0x00020001,
+        USER_ROLE_BATCH_SET_CMD_ID = 0X00010004,
     };
 }
 OsAccountTeeAdapter::TeecContextGuard::~TeecContextGuard()
@@ -172,6 +173,54 @@ ErrCode OsAccountTeeAdapter::SetDomainAccountType(int32_t id, int32_t type,
     ErrCode ret = ExecuteCommand(USER_ROLE_SET_CMD_ID, setParamTask);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("SetOsAccountType failed, ret = %{public}d", ret);
+    }
+    return ret;
+}
+
+ErrCode OsAccountTeeAdapter::MigrateOsAccountTypesToTee(
+    const std::vector<int32_t> &ids, const std::vector<int32_t> &types)
+{
+    if (ids.empty() || types.empty()) {
+        ACCOUNT_LOGE("MigrateOsAccountTypesToTee: ids or types is empty");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    if (ids.size() != types.size()) {
+        ACCOUNT_LOGE("MigrateOsAccountTypesToTee: ids size %{public}zu != types size %{public}zu",
+            ids.size(), types.size());
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    // Batch migration: migrate multiple account types in one TEE call
+    ACCOUNT_LOGI("MigrateOsAccountTypesToTee: start batch migration, count=%{public}zu", ids.size());
+
+    std::vector<uint32_t> idArray;
+    std::vector<uint32_t> typeArray;
+
+    // Convert to uint32 arrays
+    for (size_t i = 0; i < ids.size(); ++i) {
+        idArray.push_back(static_cast<uint32_t>(ids[i]));
+        typeArray.push_back(static_cast<uint32_t>(types[i]));
+    }
+
+    std::function<ErrCode(TEEC_Operation &)> setParamTask =
+        [&idArray, &typeArray](TEEC_Operation &operation) {
+            operation.started = 1;
+            operation.paramTypes = TEEC_PARAM_TYPES(
+                TEEC_MEMREF_TEMP_INPUT, TEEC_MEMREF_TEMP_INPUT, TEEC_NONE, TEEC_NONE);
+            operation.params[INDEX_ZERO].tmpref.buffer = reinterpret_cast<uint8_t*>(idArray.data());
+            operation.params[INDEX_ZERO].tmpref.size = static_cast<uint32_t>(idArray.size() * sizeof(uint32_t));
+            operation.params[INDEX_ONE].tmpref.buffer = reinterpret_cast<uint8_t*>(typeArray.data());
+            operation.params[INDEX_ONE].tmpref.size = static_cast<uint32_t>(typeArray.size() * sizeof(uint32_t));
+            return ERR_OK;
+        };
+
+    ErrCode ret = ExecuteCommand(USER_ROLE_BATCH_SET_CMD_ID, setParamTask);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("MigrateOsAccountTypesToTee failed, count=%{public}zu, ret=%{public}d",
+            ids.size(), ret);
+    } else {
+        ACCOUNT_LOGI("MigrateOsAccountTypesToTee success, count=%{public}zu", ids.size());
     }
     return ret;
 }

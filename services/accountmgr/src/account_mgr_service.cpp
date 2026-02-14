@@ -689,6 +689,10 @@ bool AccountMgrService::Init()
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("Recover cache from file failed, ret=%{public}d", ret);
     }
+
+    // Migrate existing account types to TEE for upgrade compatibility
+    // Start migration in separate thread to avoid blocking service startup
+    StartOsAccountTypeMigrationAsync();
 #endif // SUPPORT_AUTHORIZATION
     state_ = ServiceRunningState::STATE_RUNNING;
     if (!registerToService_) {
@@ -704,6 +708,27 @@ bool AccountMgrService::Init()
     ACCOUNT_LOGI("init end success");
     return true;
 }
+
+#ifdef SUPPORT_AUTHORIZATION
+void AccountMgrService::StartOsAccountTypeMigrationAsync()
+{
+    // Start OS account type migration in a detached thread to avoid blocking service startup
+    std::thread migrationTask([]() {
+        ACCOUNT_LOGI("OS account type migration to TEE thread started");
+        ErrCode ret = IInnerOsAccountManager::GetInstance().MigrateOsAccountTypesToTEE();
+        if (ret != ERR_OK) {
+            ACCOUNT_LOGW("OS account type migration to TEE failed, ret=%{public}d", ret);
+        } else {
+            ACCOUNT_LOGI("OS account type migration to TEE completed successfully");
+        }
+        ACCOUNT_LOGI("OS account type migration thread finished");
+    });
+
+    // Detach the thread to run independently
+    // The thread will clean up itself when complete
+    migrationTask.detach();
+}
+#endif // SUPPORT_AUTHORIZATION
 
 ErrCode AccountMgrService::Dump(std::int32_t fd, const std::vector<std::u16string> &args)
 {

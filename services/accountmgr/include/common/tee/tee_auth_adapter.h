@@ -143,6 +143,14 @@ public:
     ErrCode DelOsAccountType(int32_t id, const std::vector<uint8_t>& token);
 
     /**
+     * @brief Migrates OS account types to TA in batch.
+     * @param ids - Indicates the local IDs of OS accounts to migrate.
+     * @param types - Indicates the target account types for migration.
+     * @return error code, see account_error_no.h
+     */
+    ErrCode MigrateOsAccountTypesToTee(const std::vector<int32_t> &ids, const std::vector<int32_t> &types);
+
+    /**
      * @brief Verify token.
      * @param token - Indicates the authorization token for authentication.
      *     The length of the token should be checked before calling this function.

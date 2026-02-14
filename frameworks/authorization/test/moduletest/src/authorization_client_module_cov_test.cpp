@@ -118,7 +118,7 @@ HWTEST_F(AuthorizationClientModuleCovTest, CheckAuthorization003, TestSize.Level
     ErrCode errCode = AuthorizationClient::GetInstance().CheckAuthorization(
         privilege, isAuthorized);
     EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
-    EXPECT_EQ(result.isAuthorized, false);
+    EXPECT_EQ(isAuthorized, false);
 
     ASSERT_TRUE(RecoveryPermission(tokenID, selfTokenId));
 }

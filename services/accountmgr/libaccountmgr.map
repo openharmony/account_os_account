@@ -136,6 +136,8 @@
         "OHOS::AccountSA::IInnerOsAccountManager::IsLocalIdInOperating(int)";
         "OHOS::AccountSA::IInnerOsAccountManager::IsOsAccountIDInActiveList(int)";
         "OHOS::AccountSA::IInnerOsAccountManager::PrepareOsAccountInfo(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::OsAccountType const&, OHOS::AccountSA::DomainAccountInfo const&, OHOS::AccountSA::OsAccountInfo&)";
+        "OHOS::AccountSA::IInnerOsAccountManager::MigrateOsAccountTypesToTEE()";
+        "OHOS::AccountSA::IInnerOsAccountManager::MigrateOsAccountTypesToTee(std::__h::vector<int, std::__h::allocator<int>> const&, std::__h::vector<int, std::__h::allocator<int>> const&)";
         "OHOS::AccountSA::IInnerOsAccountManager::PushIdIntoActiveList(int)";
         "OHOS::AccountSA::IInnerOsAccountManager::RemoveLocalIdToOperating(int)";
         "OHOS::AccountSA::IInnerOsAccountManager::ResetAccountStatus()";
