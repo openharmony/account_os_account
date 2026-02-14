@@ -202,17 +202,9 @@ ErrCode AuthorizationManagerService::ReleaseAuthorization(const std::string &pri
     return ERR_OK;
 }
 
-ErrCode AuthorizationManagerService::CheckAuthorization(const std::string &privilege, bool &isAuthorized)
+static ErrCode CheckAuth(const std::string &privilege, int32_t pid,
+    bool &isAuthorized)
 {
-    isAuthorized = false;
-    int32_t pid = IPCSkeleton::GetCallingPid();
-    return CheckAuthorization(privilege, pid, isAuthorized);
-}
-
-ErrCode AuthorizationManagerService::CheckAuthorization(
-    const std::string &privilege, int32_t pid, bool &isAuthorized)
-{
-    isAuthorized = false;
     ErrCode errCode = AccountPermissionManager::CheckSystemApp();
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Caller is not system application, errCode: %{public}d", errCode);
@@ -236,16 +228,31 @@ ErrCode AuthorizationManagerService::CheckAuthorization(
     return ERR_OK;
 }
 
-ErrCode AuthorizationManagerService::CheckAuthorization(const std::string &privilege, int32_t pid,
-    const std::vector<uint8_t> &token, CheckAuthorizationResult &result)
+ErrCode AuthorizationManagerService::CheckAuthorization(const std::string &privilege, bool &isAuthorized)
+{
+    isAuthorized = false;
+    int32_t pid = IPCSkeleton::GetCallingPid();
+    return CheckAuth(privilege, pid, isAuthorized);
+}
+
+ErrCode AuthorizationManagerService::CheckAuthorization(
+    const std::string &privilege, int32_t pid, bool &isAuthorized)
+{
+    isAuthorized = false;
+    return CheckAuth(privilege, pid, isAuthorized);
+}
+
+ErrCode AuthorizationManagerService::CheckAuthorizationToken(const std::vector<uint8_t> &token,
+    const std::string &privilege, int32_t pid, CheckAuthorizationResult &result)
 {
     result.isAuthorized = false;
     result.challenge = {};
-    ErrCode errCode = CheckAuthorization(privilege, pid, result.isAuthorized);
+    bool isAuthorized = false;
+    ErrCode errCode = CheckAuth(privilege, pid, isAuthorized);
     if (errCode != ERR_OK) {
         return errCode;
     }
-    if (!result.isAuthorized) {
+    if (!isAuthorized) {
         ACCOUNT_LOGE("Failed to check privilege");
         return ERR_OK;
     }
@@ -253,14 +260,18 @@ ErrCode AuthorizationManagerService::CheckAuthorization(const std::string &privi
         ACCOUNT_LOGE("Failed to get parameter, token is empty");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
-
+    if (pid < 0) {
+        ACCOUNT_LOGE("Failed to get parameter, pid < 0");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    const uint32_t newPid = (uint32_t)pid;
     errCode = InnerAuthorizationManager::GetInstance().VerifyToken(
-        token, privilege, pid, result.challenge);
+        token, privilege, newPid, result.challenge, result.iamToken);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Failed to verify token, errCode: %{public}d", errCode);
         return errCode;
     }
-
+    result.isAuthorized = isAuthorized;
     ACCOUNT_LOGI("Check authorization successed, privilege: %{public}s, pid: %{public}d",
         privilege.c_str(), pid);
     return ERR_OK;

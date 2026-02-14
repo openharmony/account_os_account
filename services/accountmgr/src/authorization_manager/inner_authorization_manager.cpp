@@ -386,7 +386,7 @@ ErrCode InnerAuthorizationManager::StartServiceExtensionConnection(ConnectAbilit
 }
 
 ErrCode InnerAuthorizationManager::CheckAuthorization(
-    const uint32_t privilegeId, const uint32_t pid, bool &isAuthorized)
+    const uint32_t privilegeId, const int32_t pid, bool &isAuthorized)
 {
     AuthenCallerInfo info;
     info.pid = pid;
@@ -403,8 +403,8 @@ ErrCode InnerAuthorizationManager::CheckAuthorization(
     return ERR_OK;
 }
 
-ErrCode InnerAuthorizationManager::VerifyToken(const std::vector<uint8_t> &token,
-    const std::string &privilege, const uint32_t pid, std::vector<uint8_t> &challenge)
+ErrCode InnerAuthorizationManager::VerifyToken(const std::vector<uint8_t> &token, const std::string &privilege,
+    const uint32_t pid, std::vector<uint8_t> &challenge, std::vector<uint8_t> &iamToken)
 {
     OsAccountTeeAdapter adapter;
     std::vector<uint8_t> outToken(sizeof(VerifyUserTokenResult), 0);
@@ -437,6 +437,8 @@ ErrCode InnerAuthorizationManager::VerifyToken(const std::vector<uint8_t> &token
     }
     auto &challengeData = tokenRet.userTokenPlain.userTokenDataPlain.challenge;
     challenge = std::vector<uint8_t>(challengeData, challengeData + sizeof(challengeData));
+    auto &iamTokenData = tokenRet.userTokenPlain.userTokenDataPlain.authToken;
+    iamToken = std::vector<uint8_t>(iamTokenData, iamTokenData + sizeof(iamTokenData));
     ACCOUNT_LOGI("VerifyToken successed, privilege: %{public}s, pid: %{public}d", privilege.c_str(), pid);
     return ERR_OK;
 }

@@ -104,14 +104,14 @@ public:
 
     /**
      * @brief Check authorization for a specific privilege and verify token.
+     * @param token The token to verify
      * @param privilege The privilege to authorize
      * @param pid The process id
-     * @param token The token to verify
      * @param result The result of check
      * @return ERR_OK on success, error code on failure
      */
-    ErrCode CheckAuthorization(const std::string &privilege, int32_t pid,
-        const std::vector<uint8_t> &token, CheckAuthorizationResult &result) override;
+    ErrCode CheckAuthorizationToken(const std::vector<uint8_t> &token, const std::string &privilege, int32_t pid,
+        CheckAuthorizationResult &result) override;
 
 private:
     /// OS account configuration

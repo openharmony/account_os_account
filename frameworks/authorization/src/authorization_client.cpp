@@ -244,7 +244,8 @@ ErrCode AuthorizationClient::CheckAuthorization(const std::string &privilege, bo
 #endif // SUPPORT_AUTHORIZATION
 }
 
-ErrCode AuthorizationClient::CheckAuthorization(const std::string &privilege, int32_t pid, bool &isAuthorized)
+ErrCode AuthorizationClient::CheckAuthorization(
+    const std::string &privilege, int32_t pid, bool &isAuthorized)
 {
 #ifdef SUPPORT_AUTHORIZATION
     isAuthorized = false;
@@ -270,8 +271,8 @@ ErrCode AuthorizationClient::CheckAuthorization(const std::string &privilege, in
 #endif // SUPPORT_AUTHORIZATION
 }
 
-ErrCode AuthorizationClient::CheckAuthorization(const std::string &privilege, int32_t pid,
-    const std::vector<uint8_t> &token, CheckAuthorizationResult &result)
+ErrCode AuthorizationClient::CheckAuthorizationToken(const std::vector<uint8_t> &token,
+    const std::string &privilege, int32_t pid, CheckAuthorizationResult &result)
 {
 #ifdef SUPPORT_AUTHORIZATION
     result.isAuthorized = false;
@@ -281,7 +282,7 @@ ErrCode AuthorizationClient::CheckAuthorization(const std::string &privilege, in
         ACCOUNT_LOGE("Failed to get authorization proxy");
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->CheckAuthorization(privilege, pid, token, result);
+    return proxy->CheckAuthorizationToken(token, privilege, pid, result);
 #else
     result.isAuthorized = true;
     result.challenge = {};

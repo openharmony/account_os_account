@@ -28,6 +28,7 @@ struct CheckAuthorizationResult : public Parcelable {
     static CheckAuthorizationResult *Unmarshalling(Parcel &parcel);
     bool isAuthorized = false;
     std::vector<uint8_t> challenge = {};
+    std::vector<uint8_t> iamToken = {};
 };
 
 /**
