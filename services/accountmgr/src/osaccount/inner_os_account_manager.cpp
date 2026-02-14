@@ -2223,6 +2223,65 @@ ErrCode IInnerOsAccountManager::VerifyAndSetOsAccountTypeInTEE(
 #endif // SUPPORT_AUTHORIZATION
 }
 
+ErrCode IInnerOsAccountManager::MigrateOsAccountTypesToTEE()
+{
+#ifdef SUPPORT_AUTHORIZATION
+    ACCOUNT_LOGI("Start migrating OS account types to TEE for upgrade compatibility");
+
+    // Get all created and non-to-be-removed accounts
+    std::vector<OsAccountInfo> osAccountInfos;
+    ErrCode errCode = osAccountControl_->GetOsAccountList(osAccountInfos);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("GetOsAccountList failed, errCode=%{public}d", errCode);
+        return errCode;
+    }
+
+    // Prepare arrays for batch migration
+    std::vector<int32_t> ids;
+    std::vector<int32_t> types;
+
+    // Collect valid accounts
+    for (const auto &osAccountInfo : osAccountInfos) {
+        // Skip accounts that are not created completed or are to be removed
+        if (!osAccountInfo.GetIsCreateCompleted() || osAccountInfo.GetToBeRemoved()) {
+            continue;
+        }
+
+        int32_t localId = osAccountInfo.GetLocalId();
+        OsAccountType type = osAccountInfo.GetType();
+
+        // Check if account ID is already in operating state
+        if (!CheckAndAddLocalIdOperating(localId)) {
+            ACCOUNT_LOGW("Account %{public}d is in operating state, skip migration", localId);
+            continue;
+        }
+
+        ids.push_back(localId);
+        types.push_back(static_cast<int32_t>(type));
+        RemoveLocalIdToOperating(localId);
+    }
+
+    // Perform batch migration if there are accounts to migrate
+    if (!ids.empty()) {
+        errCode = teeAdapter_.MigrateOsAccountTypesToTee(ids, types);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("Batch migrate account types to TEE failed, count=%{public}zu, errCode=%{public}d",
+                ids.size(), errCode);
+        } else {
+            ACCOUNT_LOGI("Batch migrate account types to TEE success, count=%{public}zu", ids.size());
+        }
+    } else {
+        ACCOUNT_LOGI("No valid accounts to migrate");
+    }
+
+    return ERR_OK;
+#else
+    // If TEE is not supported, migration is not needed
+    ACCOUNT_LOGI("TEE is not supported, skip migration");
+    return ERR_OK;
+#endif // SUPPORT_AUTHORIZATION
+}
+
 ErrCode IInnerOsAccountManager::GetOsAccountProfilePhoto(const int id, std::string &photo)
 {
     OsAccountInfo osAccountInfo;

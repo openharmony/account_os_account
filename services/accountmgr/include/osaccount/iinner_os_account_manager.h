@@ -129,6 +129,7 @@ public:
     ErrCode GetTypeNumber(const OsAccountType& type, int32_t& typeNumber) override;
     ErrCode CheckTypeNumber(const OsAccountType& type) override;
     ErrCode ActivateDefaultOsAccount() override;
+    ErrCode MigrateOsAccountTypesToTEE();  // Migrate account types to TEE for upgrade compatibility
 
     int32_t CleanGarbageOsAccounts(int32_t excludeId = -1) override;
     void ResetAccountStatus() override;
