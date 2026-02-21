@@ -845,13 +845,19 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(const std::string &localName, co
         return errCode;
     }
 #ifdef SUPPORT_AUTHORIZATION
-    if (options.token.has_value()) {
-        OsAccountTeeAdapter teeAdapter;
+    OsAccountTeeAdapter teeAdapter;
+    if (options.isEdmCalling) {
+        errCode = teeAdapter.SetOsAccountType(osAccountInfo.GetLocalId(), type, options.binData, options.certData);
+    } else if (options.token.has_value()) {
         errCode = teeAdapter.SetOsAccountType(osAccountInfo.GetLocalId(), type, options.token.value());
-        if (errCode != ERR_OK) {
-            RemoveLocalIdToOperating(osAccountInfo.GetLocalId());
-            return errCode;
-        }
+    } else {
+        errCode = ERR_OK;
+    }
+    if (errCode != ERR_OK) {
+        RemoveLocalIdToOperating(osAccountInfo.GetLocalId());
+        ACCOUNT_LOGE("Set account type failed, errCode:%{public}d, isEdmCalling:%{public}d",
+            errCode, options.isEdmCalling);
+        return errCode;
     }
 #endif // SUPPORT_AUTHORIZATION
     errCode = SendMsgForAccountCreate(osAccountInfo, options);
@@ -901,6 +907,17 @@ ErrCode IInnerOsAccountManager::CreateOsAccountWithFullInfo(OsAccountInfo &osAcc
         RemoveLocalIdToOperating(osAccountInfo.GetLocalId());
         return errCode;
     }
+#ifdef SUPPORT_AUTHORIZATION
+    if ((osAccountInfo.GetLocalId() != Constants::MAINTENANCE_MODE_ID) && options.token.has_value()) {
+        OsAccountTeeAdapter teeAdap;
+        errCode = teeAdap.SetOsAccountType(osAccountInfo.GetLocalId(), osAccountInfo.GetType(), options.token.value());
+        if (errCode != ERR_OK) {
+            RemoveLocalIdToOperating(osAccountInfo.GetLocalId());
+            ACCOUNT_LOGE("Set account type failed, errCode:%{public}d", errCode);
+            return errCode;
+        }
+    }
+#endif // SUPPORT_AUTHORIZATION
     errCode = SendMsgForAccountCreate(osAccountInfo, options);
     RemoveLocalIdToOperating(osAccountInfo.GetLocalId());
     return errCode;
@@ -1297,6 +1314,7 @@ ErrCode IInnerOsAccountManager::RemoveOsAccount(const int id)
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Failed to update ToBeRemoved status, errCode=%{public}d.", errCode);
         ReportOsAccountOperationFail(id, Constants::OPERATION_REMOVE, errCode, "Failed to update ToBeRemoved status");
+        RemoveLocalIdToOperating(id);
         return errCode;
     }
     // then remove account
@@ -1319,15 +1337,6 @@ ErrCode IInnerOsAccountManager::RemoveOsAccount(const int id, const RemoveOsAcco
         ACCOUNT_LOGE("RemoveOsAccount cannot find os account info, errCode %{public}d.", errCode);
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
-#ifdef SUPPORT_AUTHORIZATION
-    OsAccountTeeAdapter teeAdapter;
-    errCode = teeAdapter.DelOsAccountType(id, options.token.value());
-    if (errCode != ERR_OK) {
-        RemoveLocalIdToOperating(id);
-        ACCOUNT_LOGE("CheckOsAccountPermission failed, errCode=%{public}d", errCode);
-        return errCode;
-    }
-#endif
     errCode = OsAccountInterface::SendToStorageAccountCreateComplete(id);
     if (errCode != ERR_OK) {
         RemoveLocalIdToOperating(id);
@@ -1339,9 +1348,22 @@ ErrCode IInnerOsAccountManager::RemoveOsAccount(const int id, const RemoveOsAcco
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Failed to update ToBeRemoved status, errCode=%{public}d.", errCode);
+        RemoveLocalIdToOperating(id);
         ReportOsAccountOperationFail(id, Constants::OPERATION_REMOVE, errCode, "Failed to update ToBeRemoved status");
         return errCode;
     }
+#ifdef SUPPORT_AUTHORIZATION
+    if (osAccountInfo.GetLocalId() != Constants::MAINTENANCE_MODE_ID &&
+        (options.token.has_value() || options.isEdmCalling)) {
+        OsAccountTeeAdapter teeAdapter;
+        errCode = teeAdapter.DelOsAccountType(id, {});
+        if (errCode != ERR_OK) {
+            RemoveLocalIdToOperating(id);
+            ACCOUNT_LOGE("Delete account type failed, errCode=%{public}d", errCode);
+            return errCode;
+        }
+    }
+#endif // SUPPORT_AUTHORIZATION
     // then remove account
     errCode = RemoveOsAccountOperate(id, osAccountInfo);
     RemoveLocalIdToOperating(id);

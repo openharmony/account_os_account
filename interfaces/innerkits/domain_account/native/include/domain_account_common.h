@@ -45,7 +45,19 @@ typedef enum {
     LOG_OUT,
 } DomainAccountEvent;
 
-struct CreateOsAccountForDomainOptions: public Parcelable {
+struct EdmAuthorizationOption {
+    // used when edm calling, not transfered through IPC
+    bool isEdmCalling = false;
+    std::vector<uint8_t> certData;
+    std::vector<uint8_t> binData;
+    ~EdmAuthorizationOption()
+    {
+        std::fill(certData.begin(), certData.end(), 0);
+        std::fill(binData.begin(), binData.end(), 0);
+    }
+};
+
+struct CreateOsAccountForDomainOptions: public EdmAuthorizationOption, public Parcelable {
     std::vector<std::string> disallowedHapList = {};
     std::optional<std::vector<std::string>> allowedHapList = std::nullopt;
     bool ReadFromParcel(Parcel &parcel);
@@ -53,6 +65,8 @@ struct CreateOsAccountForDomainOptions: public Parcelable {
     static CreateOsAccountForDomainOptions *Unmarshalling(Parcel &parcel);
     std::string shortName;
     bool hasShortName = false;
+    bool hasToken = false;
+    std::vector<uint8_t> token;
 };
 
 class DomainAccountInfo : public Parcelable {
