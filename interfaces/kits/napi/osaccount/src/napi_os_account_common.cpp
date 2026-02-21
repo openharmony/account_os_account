@@ -319,44 +319,78 @@ void MakeArrayToJs(napi_env env, const std::vector<std::string> &constraints, na
     }
 }
 
+bool ParseRemoveOsAccountOptions(napi_env env, napi_value optionObj, std::optional<RemoveOsAccountOptions> &options)
+{
+    bool hasToken = false;
+    NAPI_CALL_BASE(env, napi_has_named_property(env, optionObj, "token", &hasToken), false);
+    bool hasOption = false;
+    RemoveOsAccountOptions tmpOption;
+    options = std::nullopt;
+    if (hasToken) {
+        napi_value value = nullptr;
+        std::vector<uint8_t> tokenData;
+        NAPI_CALL_BASE(env, napi_get_named_property(env, optionObj, "token", &value), false);
+        if (ParseUint8TypedArrayToVector(env, value, tokenData) != napi_ok) {
+            ACCOUNT_LOGE("Get token failed");
+            std::string errMsg = "Parameter error. The type of \"token\" must be Uint8Array";
+            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+            return false;
+        }
+        tmpOption.token = std::move(tokenData);
+        hasOption = true;
+    }
+    if (hasOption) {
+        options = std::move(tmpOption);
+    }
+    return true;
+}
+
+bool ParseCallbackOrRemoveAccountOpt(napi_env env, napi_value obj, RemoveOAAsyncContext *asyncContext)
+{
+    napi_valuetype valueType = napi_undefined;
+    NAPI_CALL_BASE(env, napi_typeof(env, obj, &valueType), false);
+    if (valueType == napi_object) {
+        // parse as option
+        if (!ParseRemoveOsAccountOptions(env, obj, asyncContext->options)) {
+            ACCOUNT_LOGE("Parse remove os account option failed.");
+            return false;
+        }
+    } else {
+        if (!GetCallbackProperty(env, obj, asyncContext->callbackRef, 1)) {
+            ACCOUNT_LOGE("Get callbackRef failed");
+            std::string errMsg = "Parameter error. The type of \"callback\" must be function";
+            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+            return false;
+        }
+    }
+    return true;
+}
+
 bool ParseParaRemoveOACB(napi_env env, napi_callback_info cbInfo, RemoveOAAsyncContext *asyncContext)
 {
     size_t argc = ARGS_SIZE_TWO;
     napi_value argv[ARGS_SIZE_TWO] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+    if (!GetIntProperty(env, argv[PARAMZERO], asyncContext->id)) {
+        ACCOUNT_LOGE("Get id failed");
+        std::string errMsg = "Parameter error. The type of \"localId\" must be number";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        return false;
+    }
     if (argc == ARGS_SIZE_TWO) {
-        bool hasToken = false;
-        napi_has_named_property(env, argv[PARAMONE], "token", &hasToken);
-        if (hasToken) {
-            napi_value value = nullptr;
-            std::vector<uint8_t> tokenData;
-            NAPI_CALL_BASE(env, napi_get_named_property(env, argv[PARAMONE], "token", &value), false);
-            if (ParseUint8TypedArrayToVector(env, value, tokenData) != napi_ok) {
-                ACCOUNT_LOGE("Get token failed");
-                std::string errMsg = "Parameter error. The type of token must be Uint8Array";
-                AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
-                return false;
-            }
-            asyncContext->token = std::make_optional<std::vector<uint8_t>>(tokenData);
-            if (!GetIntProperty(env, argv[PARAMZERO], asyncContext->id)) {
-                ACCOUNT_LOGE("Get id failed");
-                std::string errMsg = "Parameter error. The type of \"localId\" must be number";
-                AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
-                return false;
-            }
-            return true;
+        if (!ParseCallbackOrRemoveAccountOpt(env, argv[PARAMONE], asyncContext)) {
+            ACCOUNT_LOGE("Parse remove os account option failed.");
+            return false;
         }
     }
-    return ParseCallbackAndId(env, cbInfo, asyncContext->callbackRef, asyncContext->id, asyncContext->throwErr);
+    return true;
 }
 
 void RemoveOAExecuteCB(napi_env env, void *data)
 {
     RemoveOAAsyncContext *asyncContext = reinterpret_cast<RemoveOAAsyncContext *>(data);
-    if (asyncContext->token.has_value()) {
-        RemoveOsAccountOptions options;
-        options.token = asyncContext->token;
-        asyncContext->errCode = OsAccountManager::RemoveOsAccount(asyncContext->id, options);
+    if (asyncContext->options.has_value()) {
+        asyncContext->errCode = OsAccountManager::RemoveOsAccount(asyncContext->id, asyncContext->options.value());
     } else {
         asyncContext->errCode = OsAccountManager::RemoveOsAccount(asyncContext->id);
     }
@@ -684,6 +718,12 @@ static bool ParseDomainOptionInfo(napi_env env, napi_value object, CreateOsAccou
         return false;
     }
     domainOptions.hasShortName = true;
+    napi_has_named_property(env, object, "token", &domainOptions.hasToken);
+    if (domainOptions.hasToken) {
+        napi_value value = nullptr;
+        NAPI_CALL_BASE(env, napi_get_named_property(env, object, "token", &value), false);
+        ParseUint8TypedArrayToVector(env, value, domainOptions.token);
+    }
     return true;
 }
 

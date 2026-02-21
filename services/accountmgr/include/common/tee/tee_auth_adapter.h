@@ -123,14 +123,23 @@ public:
     ErrCode SetOsAccountType(int32_t id, int32_t type, const std::vector<uint8_t>& token);
 
     /**
-     * @brief Sets domain account type to TA.
+     * @brief Sets domain account type to TA for EDM (Enterprise Device Management).
+     *
+     * This function sets the account type for domain/enterprise accounts with dual-token
+     * authentication support. The behavior varies based on token availability:
+     * - If both edaToken and certToken are empty: uses EMPTY token type
+     * - Otherwise: uses ENT_DEVICE_TYPE with EDA and certificate tokens for authorization
+     *
      * @param id - Indicates the local ID of the OS account.
-     * @param type - Indicates the target account type.
-     * @param edaToken - Indicates the EDA token for authorization.
-     * @param certToken - Indicates the certificate token for authorization.
-     * @return error code, see account_error_no.h
+     * @param type - Indicates the target account type to set.
+     * @param edaToken - Indicates the EDA (Enterprise Device Authorization) token for EDM authentication.
+     *     Can be empty for non-EDM scenarios.
+     * @param certToken - Indicates the certificate token for EDM authentication.
+     *     Can be empty for non-EDM scenarios.
+     *     The length of tokens should be checked before calling this function.
+     * @return ERR_OK on success, error code on failure (see account_error_no.h)
      */
-    ErrCode SetDomainAccountType(int32_t id, int32_t type, const std::vector<uint8_t>& edaToken,
+    ErrCode SetOsAccountType(int32_t id, int32_t type, const std::vector<uint8_t>& edaToken,
         const std::vector<uint8_t>& certToken);
 
     /**
@@ -185,6 +194,14 @@ public:
      * @return ERR_OK on success, error code on failure (see account_error_no.h)
      */
     ErrCode TaAcquireAuthorization(const ApplyUserTokenParam &param, ApplyUserTokenResult &result);
+
+    /**
+     * @brief Get bin and cert for EDM authentication.
+     * @param binData The bin file data for authentication
+     * @param certData The certificate data for authentication
+     * @return ERR_OK on success, error code on failure
+     */
+    ErrCode GetEdmBinAndCert(std::vector<uint8_t> &binData, std::vector<uint8_t> &certData);
 private:
     /**
      * @brief A RAII wrapper class for TEEC_Context.

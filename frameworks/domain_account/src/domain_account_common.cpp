@@ -408,6 +408,14 @@ bool CreateOsAccountForDomainOptions::Marshalling(Parcel &parcel) const
         ACCOUNT_LOGE("Failed to write hasShortName");
         return false;
     }
+    if (!parcel.WriteBool(hasToken)) {
+        ACCOUNT_LOGE("Failed to write hasToken.");
+        return false;
+    }
+    if (!parcel.WriteUInt8Vector(token)) {
+        ACCOUNT_LOGE("Failed to write token.");
+        return false;
+    }
     return true;
 }
 
@@ -451,6 +459,14 @@ bool CreateOsAccountForDomainOptions::ReadFromParcel(Parcel &parcel)
     }
     if (!parcel.ReadBool(hasShortName)) {
         ACCOUNT_LOGE("Failed to read hasShortName.");
+        return false;
+    }
+    if (!parcel.ReadBool(hasToken)) {
+        ACCOUNT_LOGE("Failed to read hasToken.");
+        return false;
+    }
+    if (!parcel.ReadUInt8Vector(&token)) {
+        ACCOUNT_LOGE("Failed to read token.");
         return false;
     }
     return true;

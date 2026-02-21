@@ -14,10 +14,12 @@
  */
 
 #include "tee_auth_adapter.h"
-#include "account_log_wrapper.h"
-#include "securec.h"
+
+#include <fstream>
 #include <mutex>
 #include <securec.h>
+#include "account_file_operator.h"
+#include "account_log_wrapper.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -28,6 +30,7 @@ namespace {
     constexpr uint32_t INDEX_THREE = 3;
     constexpr uint32_t ADMIN_TOKEN_TYPE = 0;
     constexpr uint32_t ENT_DEVICE_TYPE = 1;
+    constexpr uint32_t NO_TOKEN_TYPE = 2;
     constexpr TEEC_Result TEEC_ERROR_USER_TOKEN_INVALID = static_cast<TEEC_Result>(0x10000004);
     constexpr TEEC_Result TEEC_ERROR_USER_TOKEN_EXPIRED = static_cast<TEEC_Result>(0x10000005);
     uint8_t g_taPATH[] = "/vendor/bin/edab8b4f-3bfd-486d-863c-ca04744e49d0.sec";
@@ -152,26 +155,38 @@ ErrCode OsAccountTeeAdapter::SetOsAccountType(int32_t id, int32_t type, const st
     return ret;
 }
 
-ErrCode OsAccountTeeAdapter::SetDomainAccountType(int32_t id, int32_t type,
+ErrCode OsAccountTeeAdapter::SetOsAccountType(int32_t id, int32_t type,
     const std::vector<uint8_t>& edaToken, const std::vector<uint8_t>& certToken)
 {
-    std::function<ErrCode(TEEC_Operation &)> setParamTask = [id, type,
-            &edaToken, &certToken](TEEC_Operation &operation) {
-        operation.started = 1;
-        operation.paramTypes = TEEC_PARAM_TYPES(TEEC_VALUE_INPUT, TEEC_VALUE_INPUT,
-                                                 TEEC_MEMREF_TEMP_INPUT, TEEC_MEMREF_TEMP_INPUT);
-        operation.params[INDEX_ZERO].value.a = static_cast<uint32_t>(id);
-        operation.params[INDEX_ZERO].value.b = static_cast<uint32_t>(type);
-        operation.params[INDEX_ONE].value.a = ENT_DEVICE_TYPE;
-        operation.params[INDEX_TWO].tmpref.buffer = const_cast<uint8_t*>(edaToken.data());
-        operation.params[INDEX_TWO].tmpref.size = static_cast<uint32_t>(edaToken.size());
-        operation.params[INDEX_THREE].tmpref.buffer = const_cast<uint8_t*>(certToken.data());
-        operation.params[INDEX_THREE].tmpref.size = static_cast<uint32_t>(certToken.size());
-        return ERR_OK;
-    };
+    std::function<ErrCode(TEEC_Operation &)> setParamTask;
+    if (edaToken.empty() && certToken.empty()) {
+        setParamTask = [id, type](TEEC_Operation &operation) {
+            operation.started = 1;
+            operation.paramTypes =
+                TEEC_PARAM_TYPES(TEEC_VALUE_INPUT, TEEC_VALUE_INPUT, TEEC_MEMREF_TEMP_INPUT, TEEC_MEMREF_TEMP_INPUT);
+            operation.params[INDEX_ZERO].value.a = static_cast<uint32_t>(id);
+            operation.params[INDEX_ZERO].value.b = static_cast<uint32_t>(type);
+            operation.params[INDEX_ONE].value.a = NO_TOKEN_TYPE;
+            return ERR_OK;
+        };
+    } else {
+        setParamTask = [id, type, &edaToken, &certToken](TEEC_Operation &operation) {
+            operation.started = 1;
+            operation.paramTypes =
+                TEEC_PARAM_TYPES(TEEC_VALUE_INPUT, TEEC_VALUE_INPUT, TEEC_MEMREF_TEMP_INPUT, TEEC_MEMREF_TEMP_INPUT);
+            operation.params[INDEX_ZERO].value.a = static_cast<uint32_t>(id);
+            operation.params[INDEX_ZERO].value.b = static_cast<uint32_t>(type);
+            operation.params[INDEX_ONE].value.a = ENT_DEVICE_TYPE;
+            operation.params[INDEX_TWO].tmpref.buffer = const_cast<uint8_t *>(edaToken.data());
+            operation.params[INDEX_TWO].tmpref.size = static_cast<uint32_t>(edaToken.size());
+            operation.params[INDEX_THREE].tmpref.buffer = const_cast<uint8_t *>(certToken.data());
+            operation.params[INDEX_THREE].tmpref.size = static_cast<uint32_t>(certToken.size());
+            return ERR_OK;
+        };
+    }
     ErrCode ret = ExecuteCommand(USER_ROLE_SET_CMD_ID, setParamTask);
     if (ret != ERR_OK) {
-        ACCOUNT_LOGE("SetOsAccountType failed, ret = %{public}d", ret);
+        ACCOUNT_LOGE("SetOsAccountType for edm failed, ret = %{public}d", ret);
     }
     return ret;
 }
@@ -255,6 +270,41 @@ ErrCode OsAccountTeeAdapter::TaAcquireAuthorization(const ApplyUserTokenParam &p
         return ERR_AUTHORIZATION_TA_ERROR;
     }
     return ERR_OK;
+}
+
+static ErrCode GetFileContextWithNoLock(const std::string &path, std::vector<uint8_t> &byteData)
+{
+    AccountFileOperator fileOperator;
+    ErrCode err = fileOperator.CheckFileExistence(path);
+    if (err != ERR_OK) {
+        ACCOUNT_LOGE("Check file existence failed, path=%{public}s, ret=%{public}d", path.c_str(), err);
+        return err;
+    }
+    byteData.clear();
+    std::ifstream file(path);
+    if (!file.is_open()) {
+        ACCOUNT_LOGE("Open file failed");
+        return ERR_ACCOUNT_COMMON_FILE_OPEN_FAILED;
+    }
+    std::copy(
+        std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>(), std::back_inserter(byteData));
+    return ERR_OK;
+}
+
+ErrCode OsAccountTeeAdapter::GetEdmBinAndCert(std::vector<uint8_t> &binData, std::vector<uint8_t> &certData)
+{
+    std::string binPath = "/data/service/el1/public/cust/enterprise/eda.bin";
+    std::string certPath = "/etc/edm/cacert.pem";
+    ErrCode errCode = GetFileContextWithNoLock(binPath, binData);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to get eda.bin, errCode: %{public}d", errCode);
+        return errCode;
+    }
+    errCode = GetFileContextWithNoLock(certPath, certData);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to get cacert.pem, errCode: %{public}d", errCode);
+    }
+    return errCode;
 }
 } // namespace AccountSA
 } // namespace OHOS

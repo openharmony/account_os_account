@@ -25,6 +25,9 @@
 #include "ios_account_control.h"
 #include "os_account_constants.h"
 #include "os_account_control_file_manager.h"
+#ifdef SUPPORT_AUTHORIZATION
+#include "tee_auth_adapter.h"
+#endif // SUPPORT_AUTHORIZATION
 
 namespace OHOS {
 namespace AccountSA {
@@ -76,6 +79,16 @@ ErrCode CheckAndCreateDomainAccountCallback::OnResult(int32_t errCode, const Dom
     if (errCode != ERR_OK) {
         return HandleErrorWithEmptyResult(errCode, resultParcel);
     }
+#ifdef SUPPORT_AUTHORIZATION
+    if (osAccountInfo.GetLocalId() != Constants::START_USER_ID && accountOptions_.hasToken) {
+        OsAccountTeeAdapter teeAdapter;
+        errCode = teeAdapter.SetOsAccountType(osAccountInfo.GetLocalId(), type_, accountOptions_.token);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("Set account type failed, errCode:%{public}d", errCode);
+            return HandleErrorWithEmptyResult(errCode, resultParcel);
+        }
+    }
+#endif // SUPPORT_AUTHORIZATION
     auto callbackWrapper = std::make_shared<BindDomainAccountCallback>(
         osAccountControl_, osAccountInfo, innerCallback_, accountOptions_);
     if (callbackWrapper == nullptr) {

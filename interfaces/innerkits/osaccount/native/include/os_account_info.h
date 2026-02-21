@@ -58,7 +58,7 @@ struct ForegroundOsAccount : public Parcelable {
     static ForegroundOsAccount *Unmarshalling(Parcel &parcel);
 };
 
-struct CreateOsAccountOptions: public Parcelable {
+struct CreateOsAccountOptions : public EdmAuthorizationOption, public Parcelable {
     std::optional<std::vector<uint8_t>> token = std::nullopt;
     std::vector<std::string> disallowedHapList = {};
     std::optional<std::vector<std::string>> allowedHapList = std::nullopt;
@@ -69,7 +69,7 @@ struct CreateOsAccountOptions: public Parcelable {
     bool hasShortName = true;
 };
 
-struct RemoveOsAccountOptions: public Parcelable {
+struct RemoveOsAccountOptions : public EdmAuthorizationOption, public Parcelable {
     std::optional<std::vector<uint8_t>> token = std::nullopt;
     bool ReadFromParcel(Parcel &parcel);
     bool Marshalling(Parcel &parcel) const override;
