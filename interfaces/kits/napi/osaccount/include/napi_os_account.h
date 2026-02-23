@@ -68,7 +68,7 @@ struct QueryOAByIdAsyncContext : public CommonAsyncContext {
 
 struct RemoveOAAsyncContext : public CommonAsyncContext {
     int id = 0;
-    std::optional<std::vector<uint8_t>> token = std::nullopt;
+    std::optional<RemoveOsAccountOptions> options = std::nullopt;
 };
 
 struct SetOANameAsyncContext : public CommonAsyncContext {

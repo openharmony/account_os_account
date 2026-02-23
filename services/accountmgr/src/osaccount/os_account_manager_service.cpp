@@ -28,6 +28,10 @@
 #include "account_timer.h"
 #include "xcollie/xcollie.h"
 #endif // HICOLLIE_ENABLE
+#ifdef SUPPORT_AUTHORIZATION
+#include "inner_authorization_manager.h"
+#include "tee_auth_adapter.h"
+#endif // SUPPORT_AUTHORIZATION
 #include "os_account_info_json_parser.h"
 
 namespace OHOS {
@@ -62,12 +66,18 @@ const char INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION[] =
 const char INTERACT_ACROSS_LOCAL_ACCOUNTS[] = "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS";
 const std::string GET_DOMAIN_ACCOUNTS = "ohos.permission.GET_DOMAIN_ACCOUNTS";
 const std::string MANAGE_EDM_POLICY = "ohos.permission.MANAGE_EDM_POLICY";
-const std::set<uint32_t> uidWhiteListForCreation { 3057 };
+const int32_t EDM_UID = 3057;
+const std::set<uint32_t> uidWhiteListForCreation {EDM_UID};
 const std::string SPECIAL_CHARACTER_ARRAY = "<>|\":*?/\\";
 const std::vector<std::string> SHORT_NAME_CANNOT_BE_NAME_ARRAY = {".", ".."};
 #ifdef HICOLLIE_ENABLE
 constexpr std::int32_t RECOVERY_TIMEOUT = 6; // timeout 6s
 #endif
+#ifdef SUPPORT_AUTHORIZATION
+const std::string MANAGE_LOCAL_ACCOUNT_PRIVILEGE_NAME = "ohos.privilege.manage_local_accounts";
+const int32_t MAINTENANCE_UID = 4444;
+const int32_t SPACE_MGR_UID = 7013;
+#endif // SUPPORT_AUTHORIZATION
 const std::set<uint32_t> WATCH_DOG_WHITE_LIST = {
     static_cast<uint32_t>(IOsAccountIpcCode::COMMAND_CREATE_OS_ACCOUNT),
     static_cast<uint32_t>(
@@ -182,6 +192,44 @@ ErrCode ValidateToken(const SetOsAccountTypeOptions &options)
 #endif
     return ERR_OK;
 }
+
+#ifdef SUPPORT_AUTHORIZATION
+std::function<ErrCode()> GenerateEdmStrategy(EdmAuthorizationOption &edmOption)
+{
+    return [&edmOption]() -> ErrCode {
+        std::vector<uint8_t> binData;
+        std::vector<uint8_t> certData;
+        OsAccountTeeAdapter teeAdapter;
+        ErrCode errCode = teeAdapter.GetEdmBinAndCert(binData, certData);
+        if (errCode == ERR_ACCOUNT_COMMON_FILE_NOT_EXIST) {
+            std::fill(binData.begin(), binData.end(), 0);
+            std::fill(certData.begin(), certData.end(), 0);
+            edmOption.isEdmCalling = true;
+            return ERR_OK;
+        }
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("Failed to get edm bin and cert, errCode: %{public}d", errCode);
+            std::fill(binData.begin(), binData.end(), 0);
+            std::fill(certData.begin(), certData.end(), 0);
+            return errCode;
+        }
+        edmOption.binData = std::move(binData);
+        edmOption.certData = std::move(certData);
+        edmOption.isEdmCalling = true;
+        return ERR_OK;
+    };
+}
+
+std::function<ErrCode()> GenMaintenaceStrategy(const int32_t localId)
+{
+    return [localId]() -> ErrCode {
+        if (localId != Constants::MAINTENANCE_MODE_ID) {
+            return ERR_JS_AUTHORIZATION_DENIED;
+        }
+        return ERR_OK;
+    };
+}
+#endif // SUPPORT_AUTHORIZATION
 }  // namespace
 
 OsAccountManagerService::OsAccountManagerService() : innerManager_(IInnerOsAccountManager::GetInstance()),
@@ -198,7 +246,22 @@ ErrCode OsAccountManagerService::CreateOsAccount(
     if (errCode != ERR_OK) {
         return errCode;
     }
+#ifdef SUPPORT_AUTHORIZATION
+    CreateOsAccountOptions edmOption;
+    errCode = PrivilegeCheck(std::nullopt, MANAGE_LOCAL_ACCOUNT_PRIVILEGE_NAME,
+        {{EDM_UID, GenerateEdmStrategy(edmOption)}, {SPACE_MGR_UID, GenerateEdmStrategy(edmOption)}});
+    // do not react to check privilege error, just log it
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Privilege check failed, ret=%{public}d.", errCode);
+    }
+    if (edmOption.isEdmCalling) {
+        return innerManager_.CreateOsAccount(name, "", type, osAccountInfo, edmOption);
+    } else {
+        return innerManager_.CreateOsAccount(name, type, osAccountInfo);
+    }
+#else
     return innerManager_.CreateOsAccount(name, type, osAccountInfo);
+#endif // SUPPORT_AUTHORIZATION
 }
 
 ErrCode OsAccountManagerService::CreateOsAccount(
@@ -276,8 +339,20 @@ ErrCode OsAccountManagerService::CreateOsAccount(const std::string &localName, c
             return errCode;
         }
     }
-
+#ifdef SUPPORT_AUTHORIZATION
+    CreateOsAccountOptions dupOption = options;
+    if (options.token.has_value()) {
+        errCode = PrivilegeCheck(options.token, MANAGE_LOCAL_ACCOUNT_PRIVILEGE_NAME,
+            {{EDM_UID, GenerateEdmStrategy(dupOption)}, {SPACE_MGR_UID, GenerateEdmStrategy(dupOption)}});
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("Privilege check failed, ret=%{public}d.", errCode);
+            return errCode;
+        }
+    }
+    return innerManager_.CreateOsAccount(localName, shortName, type, osAccountInfo, dupOption);
+#else
     return innerManager_.CreateOsAccount(localName, shortName, type, osAccountInfo, options);
+#endif // SUPPORT_AUTHORIZATION
 }
 
 ErrCode OsAccountManagerService::CreateOsAccount(const std::string &localName, const std::string &shortName,
@@ -392,7 +467,16 @@ ErrCode OsAccountManagerService::CreateOsAccountWithFullInfo(const OsAccountInfo
         ACCOUNT_LOGE("Cannot create admin account error");
         return ERR_OSACCOUNT_SERVICE_MANAGER_CREATE_OSACCOUNT_TYPE_ERROR;
     }
-
+#ifdef SUPPORT_AUTHORIZATION
+    if (options.token.has_value()) {
+        errCode = PrivilegeCheck(options.token, MANAGE_LOCAL_ACCOUNT_PRIVILEGE_NAME,
+            {{MAINTENANCE_UID, GenMaintenaceStrategy(osAccountInfo.GetLocalId())}});
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("Privilege check failed, ret=%{public}d.", errCode);
+            return errCode;
+        }
+    }
+#endif // SUPPORT_AUTHORIZATION
     auto convertOsAccountInfo = osAccountInfo;
     errCode = innerManager_.CreateOsAccountWithFullInfo(convertOsAccountInfo, options);
     if (errCode == ERR_OK) {
@@ -484,6 +568,16 @@ ErrCode OsAccountManagerService::CreateOsAccountForDomain(const OsAccountType &t
         ACCOUNT_LOGE("Do not allowed create admin.");
         return ERR_OSACCOUNT_SERVICE_MANAGER_CREATE_OSACCOUNT_TYPE_ERROR;
     }
+#ifdef SUPPORT_AUTHORIZATION
+    if (options.hasToken) {
+        // check rule
+        errCode = PrivilegeCheck(options.token, MANAGE_LOCAL_ACCOUNT_PRIVILEGE_NAME);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("Privilege check failed, ret=%{public}d.", errCode);
+            return errCode;
+        }
+    }
+#endif // SUPPORT_AUTHORIZATION
     return innerManager_.CreateOsAccountForDomain(type, domainInfo, callback, options);
 }
 
@@ -534,8 +628,22 @@ ErrCode OsAccountManagerService::RemoveOsAccount(int32_t id)
         REPORT_PERMISSION_FAIL();
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
-
+#ifdef SUPPORT_AUTHORIZATION
+    RemoveOsAccountOptions options;
+    res = PrivilegeCheck(std::nullopt, MANAGE_LOCAL_ACCOUNT_PRIVILEGE_NAME,
+        {{EDM_UID, GenerateEdmStrategy(options)}, {SPACE_MGR_UID, GenerateEdmStrategy(options)},
+        {MAINTENANCE_UID, GenMaintenaceStrategy(id)}});
+    if (res != ERR_OK) {
+        ACCOUNT_LOGE("Privilege check failed, ret=%{public}d.", res);
+    }
+    if (options.isEdmCalling || id == Constants::MAINTENANCE_MODE_ID) {
+        return innerManager_.RemoveOsAccount(id, options);
+    } else {
+        return innerManager_.RemoveOsAccount(id);
+    }
+#else
     return innerManager_.RemoveOsAccount(id);
+#endif // SUPPORT_AUTHORIZATION
 }
 
 ErrCode OsAccountManagerService::RemoveOsAccount(int32_t id, const RemoveOsAccountOptions &options)
@@ -569,7 +677,16 @@ ErrCode OsAccountManagerService::RemoveOsAccount(int32_t id, const RemoveOsAccou
         REPORT_PERMISSION_FAIL();
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
-
+#ifdef SUPPORT_AUTHORIZATION
+    RemoveOsAccountOptions dupOption = options;
+    res = PrivilegeCheck(options.token, MANAGE_LOCAL_ACCOUNT_PRIVILEGE_NAME,
+        {{EDM_UID, GenerateEdmStrategy(dupOption)}, {SPACE_MGR_UID, GenerateEdmStrategy(dupOption)},
+        {MAINTENANCE_UID, GenMaintenaceStrategy(id)}});
+    if (res != ERR_OK) {
+        ACCOUNT_LOGE("Privilege check failed, ret=%{public}d.", res);
+        return res;
+    }
+#endif // SUPPORT_AUTHORIZATION
     return innerManager_.RemoveOsAccount(id, options);
 }
 
@@ -2459,5 +2576,31 @@ ErrCode OsAccountManagerService::GetServerConfigInfo(OsAccountInfo &osAccountInf
     return ERR_OK;
 }
 #endif
+
+#ifdef SUPPORT_AUTHORIZATION
+ErrCode OsAccountManagerService::PrivilegeCheck(const std::optional<std::vector<uint8_t>> &token,
+    const std::string &privilegeName, const std::map<int32_t, std::function<ErrCode()>> bypassStrategy)
+{
+    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    auto it = bypassStrategy.find(callerUid);
+    if (it != bypassStrategy.end()) {
+        ACCOUNT_LOGW("Caller is in white user list, skip privilege check, uid=%{public}d", callerUid);
+        return it->second();
+    }
+    if (!token.has_value()) {
+        ACCOUNT_LOGW("Token is empty, default deny caller operation.");
+        return ERR_JS_AUTHORIZATION_DENIED;
+    }
+    std::vector<uint8_t> challenge;
+    std::vector<uint8_t> iamToken;
+    ErrCode errCode = InnerAuthorizationManager::GetInstance().VerifyToken(
+        token.value(), privilegeName, IPCSkeleton::GetCallingPid(), challenge, iamToken);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("VerifyToken failed, errCode=%{public}d", errCode);
+    }
+    return errCode;
+}
+#endif // SUPPORT_AUTHORIZATION
+
 }  // namespace AccountSA
 }  // namespace OHOS
