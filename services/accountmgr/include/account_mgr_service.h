@@ -97,6 +97,9 @@ private:
 #ifdef HAS_APP_ACCOUNT_PART
     void MoveAppAccountData();
 #endif
+#ifdef SUPPORT_AUTHORIZATION
+    void StartOsAccountTypeMigrationAsync();
+#endif
     ErrCode InnerQueryOsAccountDistributedInfo(
         int32_t localId, std::string& accountName, std::string& uid, int32_t& status);
 
