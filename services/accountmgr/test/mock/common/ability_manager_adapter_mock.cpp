@@ -51,7 +51,7 @@ ErrCode AbilityManagerAdapter::DisconnectAbility(const sptr<AAFwk::IAbilityConne
 ErrCode AbilityManagerAdapter::StartUser(int accountId, const uint64_t displayId,
     const sptr<AAFwk::IUserCallback> &callback, bool isAppRecovery)
 {
-    auto task = [accountId, callback] { callback->OnStartUserDone(accountId, 0); };
+    auto task = [accountId, callback] { callback->OnUserCmdDone(accountId, 0); };
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), "StartUser");
     taskThread.detach();
@@ -60,7 +60,7 @@ ErrCode AbilityManagerAdapter::StartUser(int accountId, const uint64_t displayId
 
 ErrCode AbilityManagerAdapter::StopUser(int accountId, const sptr<AAFwk::IUserCallback> &callback)
 {
-    auto task = [accountId, callback] { callback->OnStopUserDone(accountId, 0); };
+    auto task = [accountId, callback] { callback->OnUserCmdDone(accountId, 0); };
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), "StopUser");
     taskThread.detach();
@@ -69,7 +69,7 @@ ErrCode AbilityManagerAdapter::StopUser(int accountId, const sptr<AAFwk::IUserCa
 
 ErrCode AbilityManagerAdapter::LogoutUser(int32_t accountId, const sptr<IUserCallback> &callback)
 {
-    auto task = [accountId, callback] { callback->OnLogoutUserDone(accountId, 0); };
+    auto task = [accountId, callback] { callback->OnUserCmdDone(accountId, 0); };
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), "LogoutUser");
     taskThread.detach();
