@@ -174,7 +174,9 @@ ErrCode SessionAbilityConnection::SessionConnectExtension(const ConnectAbilityIn
         ACCOUNT_LOGI("Session ability extension is already connected");
         REPORT_OS_ACCOUNT_FAIL(localId_, Constants::ACQUIRE_AUTH,
             ERR_AUTHORIZATION_ALREADY_HAS_ERROR, "Session ability extension is already connected");
-        return static_cast<int32_t>(AuthorizationResultCode::AUTHORIZATION_SYSTEM_BUSY);
+        authorizationResult.resultCode = AuthorizationResultCode::AUTHORIZATION_SERVICE_BUSY;
+        callback->OnResult(ERR_OK, authorizationResult);
+        return ERR_OK;
     }
 
     ErrCode errCode = CreateCallbackDeathRecipient(callback);
@@ -201,7 +203,7 @@ ErrCode SessionAbilityConnection::CallbackOnResult(int32_t errCode, Authorizatio
 }
 
 ErrCode SessionAbilityConnection::SaveAuthorizationResult(ErrCode errCode, AuthorizationResultCode &resultCode,
-    const std::vector<uint8_t> &iamToken, int32_t remainValidityTime)
+    const std::vector<uint8_t> &taToken, int32_t remainValidityTime)
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (abilityConnectionStub_ == nullptr) {
@@ -212,7 +214,7 @@ ErrCode SessionAbilityConnection::SaveAuthorizationResult(ErrCode errCode, Autho
     }
     errCode_ = errCode;
     authResult_.resultCode = resultCode;
-    authResult_.token = iamToken;
+    authResult_.token = taToken;
     authResult_.validityPeriod = remainValidityTime;
     hasAuthCallback_.exchange(true);
     return ERR_OK;
@@ -224,15 +226,18 @@ bool SessionAbilityConnection::HasServiceConnect()
     return abilityConnectionStub_ != nullptr;
 }
 
-void SessionAbilityConnection::GetConnectInfo(int32_t callingUid, ConnectAbilityInfo &info)
+bool SessionAbilityConnection::GetConnectInfo(int32_t callingPid, ConnectAbilityInfo &info)
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
-    if (callingUid == authAppUid_) {
+    if (callingPid == authAppPid_) {
         info = info_;
+        return true;
     }
+    ACCOUNT_LOGE("Fail to getConnectInfo callingpid=%{public}d, authpid=%{public}d", callingPid, authAppPid_);
+    return false;
 }
 
-ErrCode SessionAbilityConnection::RegisterAuthAppRemoteObject(int32_t callingUid,
+ErrCode SessionAbilityConnection::RegisterAuthAppRemoteObject(int32_t callingPid,
     const sptr<IRemoteObject> &authAppRemoteObj)
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
@@ -248,31 +253,31 @@ ErrCode SessionAbilityConnection::RegisterAuthAppRemoteObject(int32_t callingUid
             "AuthAppRemoteObj is nullptr");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
-    auto deathRecipient = new (std::nothrow) AuthAppDeathRecipient();
-    if (deathRecipient == nullptr) {
+    authDeathRecipient_ = new (std::nothrow) AuthAppDeathRecipient();
+    if (authDeathRecipient_ == nullptr) {
         ACCOUNT_LOGE("DeathRecipient is nullptr");
         REPORT_OS_ACCOUNT_FAIL(localId_, Constants::ACQUIRE_AUTH, ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT,
             "DeathRecipient is nullptr");
         return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
     }
-    if (!authAppRemoteObj->AddDeathRecipient(deathRecipient)) {
+    if (!authAppRemoteObj->AddDeathRecipient(authDeathRecipient_)) {
         ACCOUNT_LOGE("Fail to AddDeathRecipient");
         REPORT_OS_ACCOUNT_FAIL(localId_, Constants::ACQUIRE_AUTH, ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT,
             "Fail to AddDeathRecipient");
         return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
     }
     authAppRemoteObj_ = authAppRemoteObj;
-    authAppUid_ = callingUid;
+    authAppPid_ = callingPid;
     return ERR_OK;
 }
 
-ErrCode SessionAbilityConnection::UnRegisterAuthAppRemoteObject(int32_t callingUid)
+ErrCode SessionAbilityConnection::UnRegisterAuthAppRemoteObject(int32_t callingPid)
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
-    if (authAppUid_ != callingUid) {
-        ACCOUNT_LOGE("CallingUid not equal.");
+    if (authAppPid_ != callingPid) {
+        ACCOUNT_LOGE("CallingPid not equal callingPid=%{public}d, authpid=%{public}d.", callingPid, authAppPid_);
         REPORT_OS_ACCOUNT_FAIL(localId_, Constants::ACQUIRE_AUTH, ERR_AUTHORIZATION_NOT_SUPPORT,
-            "CallingUid not equal");
+            "CallingPid not equal");
         return ERR_AUTHORIZATION_NOT_SUPPORT;
     }
     CallbackOnResult(errCode_, hasAuthCallback_ ? authResult_.resultCode :
@@ -289,16 +294,39 @@ void SessionAbilityConnection::SessionDisconnectExtension()
             "AbilityConnectionStub is nullptr");
         return;
     }
-    authAppRemoteObj_.clear();
-    authAppRemoteObj_ = nullptr;
+    if (authAppRemoteObj_ != nullptr) {
+        authAppRemoteObj_.clear();
+        authAppRemoteObj_ = nullptr;
+    }
     auto ret = AAFwk::ExtensionManagerClient::GetInstance().DisconnectAbility(abilityConnectionStub_);
-    abilityConnectionStub_.clear();
-    abilityConnectionStub_ = nullptr;
-    authAppUid_ = -1;
-    callback_ = nullptr;
+    if (abilityConnectionStub_ != nullptr) {
+        abilityConnectionStub_.clear();
+        abilityConnectionStub_ = nullptr;
+    }
+    authAppPid_ = -1;
+    if (callback_ != nullptr) {
+        callback_ = nullptr;
+    }
+    if (authDeathRecipient_ != nullptr) {
+        authDeathRecipient_ = nullptr;
+    }
     hasAuthCallback_.exchange(false);
     errCode_ = ERR_OK;
     ACCOUNT_LOGI("Session ability disconnected, ret: %{public}d", ret);
+}
+
+void SessionAbilityConnection::OnAuthAppRemoteDeath(const wptr<IRemoteObject> &remote)
+{
+    sptr<IRemoteObject> object = remote.promote();
+    if (object == nullptr) {
+        ACCOUNT_LOGE("object is nullptr");
+        return;
+    }
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    if (authDeathRecipient_ != nullptr && authAppRemoteObj_ == object) {
+        object->RemoveDeathRecipient(authDeathRecipient_);
+        SessionAbilityConnection::GetInstance().CallbackOnResult(ERR_AUTHORIZATION_CREATE_SYS_EXTENSION_ERROR);
+    }
 }
 
 void SessionAbilityConnection::AuthAppDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& remote)
@@ -309,7 +337,7 @@ void SessionAbilityConnection::AuthAppDeathRecipient::OnRemoteDied(const wptr<IR
             Constants::ACQUIRE_AUTH, ERR_AUTHORIZATION_GET_STUB_ERROR, "Remote is nullptr");
         return;
     }
-    SessionAbilityConnection::GetInstance().CallbackOnResult(ERR_AUTHORIZATION_CREATE_SYS_EXTENSION_ERROR);
+    SessionAbilityConnection::GetInstance().OnAuthAppRemoteDeath(remote);
 }
 
 void SessionAbilityConnection::AppDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& remote)

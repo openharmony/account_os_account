@@ -120,7 +120,7 @@ bool AuthorizationClient::CheckCallbackService(const std::string &privilege,
     if (callbackService_ != nullptr) {
         ACCOUNT_LOGE("Already has request");
         AuthorizationResult result;
-        result.resultCode = AuthorizationResultCode::AUTHORIZATION_SYSTEM_BUSY;
+        result.resultCode = AuthorizationResultCode::AUTHORIZATION_SERVICE_BUSY;
         result.privilege = privilege;
         callback->OnResult(ERR_OK, result);
         return false;
@@ -145,27 +145,20 @@ sptr<AuthRemoteObjectStub> AuthorizationClient::GetOrCreateRequestRemoteObject()
 #endif // SUPPORT_AUTHORIZATION
 
 ErrCode AuthorizationClient::AcquireAuthorization(const std::string &privilege,
-    const AcquireAuthorizationOptions &options, const std::shared_ptr<AuthorizationCallback> &callback,
-    AuthorizationResult &authorizationResult)
+    const AcquireAuthorizationOptions &options, const std::shared_ptr<AuthorizationCallback> &callback)
 {
 #ifdef SUPPORT_AUTHORIZATION
     if (callback == nullptr) {
         ACCOUNT_LOGE("Callback is nullptr");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
-
-    if (!CheckCallbackService(privilege, callback)) {
-        return ERR_OK;
-    }
-
     sptr<AuthRemoteObjectStub> requestRemoteObj = GetOrCreateRequestRemoteObject();
     if (requestRemoteObj == nullptr) {
         ACCOUNT_LOGE("Failed to get or create request remote object");
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
 
-    sptr<AuthorizationCallbackService> temp = sptr<AuthorizationCallbackService>::MakeSptr(callback,
-        []() { AuthorizationClient::GetInstance().EraseAuthCallBack(); });
+    sptr<AuthorizationCallbackService> resultCallback = sptr<AuthorizationCallbackService>::MakeSptr(callback);
 
     auto proxy = GetAuthorizationProxy();
     if (proxy == nullptr) {
@@ -174,23 +167,18 @@ ErrCode AuthorizationClient::AcquireAuthorization(const std::string &privilege,
     }
 
     ErrCode errCode = proxy->AcquireAuthorization(privilege, options,
-        temp->AsObject(), requestRemoteObj->AsObject(), authorizationResult);
+        resultCallback->AsObject(), requestRemoteObj->AsObject());
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Failed to acquire authorization, errCode:%{public}d", errCode);
         return errCode;
     }
-    if (authorizationResult.resultCode == AUTHORIZATION_RESULT_FROM_CACHE) {
-        ACCOUNT_LOGE("Get result form cache");
-        return static_cast<int32_t>(authorizationResult.resultCode);
-    }
-    {
-        std::lock_guard<std::recursive_mutex> lock(callbackMutex_);
-        callbackService_ = temp;
-    }
-
     return ERR_OK;
 #else
-    return static_cast<int32_t>(AUTHORIZATION_DENIED);
+    AuthorizationResult result;
+    result.privilege = privilege;
+    result.resultCode = AUTHORIZATION_DENIED;
+    callback->OnResult(ERR_OK, result);
+    return ERR_OK;
 #endif // SUPPORT_AUTHORIZATION
 }
 

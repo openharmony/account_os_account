@@ -37,7 +37,6 @@
 #include "privilege_hisysevent_utils.h"
 #include "privileges_map.h"
 #include "service_extension_connect.h"
-#include "securec.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -46,6 +45,7 @@ std::mutex g_mutex;
 static std::map<int32_t, sptr<IAuthorizationCallback>> g_callbackMap;
 static std::map<int32_t, sptr<IRemoteObject>> g_requestRemoteObjectMap;
 static std::map<int32_t, std::shared_ptr<ConnectAbilityCallback>> g_connectbackMap;
+static std::map<int32_t, int32_t> g_pidToUidMap;
 }
 
 ConnectAbilityCallback::ConnectAbilityCallback(ConnectAbilityInfo &info,
@@ -73,6 +73,7 @@ std::function<ErrCode(int32_t,  AuthorizationResult &, int32_t)> acquireAuthoriz
         g_callbackMap.erase(it);
         g_connectbackMap.erase(callingPid);
         g_requestRemoteObjectMap.erase(callingPid);
+        g_pidToUidMap.erase(callingPid);
         return errCode;
     };
 }
@@ -99,9 +100,8 @@ ErrCode ConnectAbilityCallback::OnResult(int32_t errorCode, const std::vector<ui
         InnerAuthorizationManager::GetInstance().ApplyTaAuthorization(iamToken, accountId, tokenResult, info_);
     result_.resultCode = resultCode;
     if (errCode == ERR_OK && resultCode == AuthorizationResultCode::AUTHORIZATION_SUCCESS) {
-        std::vector<uint8_t> token(tokenResult.userToken, tokenResult.userToken + tokenResult.userTokenSize);
         result_.validityPeriod = tokenResult.remainValidityTime;
-        result_.token = token;
+        result_.token.assign(tokenResult.userToken, tokenResult.userToken + tokenResult.userTokenSize);
     }
     return func_(errCode, result_, info_.callingPid);
 }
@@ -152,6 +152,7 @@ void InnerAuthorizationManager::AppDeathRecipient::OnRemoteDied(const wptr<IRemo
             g_callbackMap.erase(it);
             g_connectbackMap.erase(callingPid);
             g_requestRemoteObjectMap.erase(callingPid);
+            g_pidToUidMap.erase(callingPid);
             break;
         }
     }
@@ -267,19 +268,36 @@ ErrCode InnerAuthorizationManager::AcquireAuthorization(const PrivilegeBriefDef 
 }
 
 ErrCode InnerAuthorizationManager::UpdateAuthInfo(const std::vector<uint8_t> &iamToken, int32_t accountId,
-    int32_t callingUid)
+    int32_t callingPid)
 {
     ConnectAbilityInfo info;
     ApplyUserTokenResult tokenResult;
     std::vector<uint8_t> token;
-    SessionAbilityConnection::GetInstance().GetConnectInfo(callingUid, info);
+    if (!SessionAbilityConnection::GetInstance().GetConnectInfo(callingPid, info)) {
+        ACCOUNT_LOGI("Fail to getConnectInfo");
+        return ERR_OK;
+    }
     auto [errCode, resultCode] = ApplyTaAuthorization(iamToken, accountId, tokenResult, info);
     if (errCode == ERR_OK && resultCode == AuthorizationResultCode::AUTHORIZATION_SUCCESS) {
         token.assign(tokenResult.userToken, tokenResult.userToken + tokenResult.userTokenSize);
     }
     ACCOUNT_LOGI("Get auth result, resultCode:%{public}d", static_cast<int32_t>(resultCode));
-    return SessionAbilityConnection::GetInstance().SaveAuthorizationResult(errCode, resultCode, token,
+    ErrCode ret = SessionAbilityConnection::GetInstance().SaveAuthorizationResult(errCode, resultCode, token,
         tokenResult.remainValidityTime);
+    std::fill(token.begin(), token.end(), 0);
+    return ret;
+}
+
+bool InnerAuthorizationManager::HasExtensionConnect()
+{
+    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    std::lock_guard<std::mutex> lock(g_mutex);
+    for (auto it = g_pidToUidMap.begin(); it != g_pidToUidMap.end(); ++it) {
+        if (callingUid == it->second) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void InnerAuthorizationManager::InitializeConnectAbilityInfo(const PrivilegeBriefDef &pdef,
@@ -312,8 +330,9 @@ ErrCode InnerAuthorizationManager::StartUIExtensionConnection(const ConnectAbili
         ACCOUNT_LOGE("DeathRecipient is nullptr");
         return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
     }
-    if (!callback->AsObject()->AddDeathRecipient(deathRecipient)) {
+    if (callback->AsObject() == nullptr || !callback->AsObject()->AddDeathRecipient(deathRecipient)) {
         ACCOUNT_LOGE("Fail to AddDeathRecipient");
+        deathRecipient = nullptr;
         return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
     }
     ConnectAbilityInfo uiInfo = info;
@@ -353,8 +372,9 @@ ErrCode InnerAuthorizationManager::StartUIExtensionConnection(const ConnectAbili
                 g_callbackMap.erase(it);
                 g_connectbackMap.erase(uiInfo.callingPid);
                 g_requestRemoteObjectMap.erase(uiInfo.callingPid);
+                g_pidToUidMap.erase(uiInfo.callingPid);
             }
-
+            g_pidToUidMap[uiInfo.callingPid] = uiInfo.callingUid;
             g_callbackMap[uiInfo.callingPid] = callback;
             g_connectbackMap[uiInfo.callingPid] = connectCallback;
             g_requestRemoteObjectMap[uiInfo.callingPid] = requestRemoteObj;

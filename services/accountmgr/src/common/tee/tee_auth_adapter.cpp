@@ -48,6 +48,17 @@ namespace {
         USER_ROLE_BATCH_SET_CMD_ID = 0X00010004,
     };
 }
+
+ApplyUserTokenParam::~ApplyUserTokenParam()
+{
+    (void)memset_s(&authToken, authTokenSize * sizeof(uint8_t), 0, authTokenSize * sizeof(uint8_t));
+}
+
+ApplyUserTokenResult::~ApplyUserTokenResult()
+{
+    (void)memset_s(&userToken, userTokenSize * sizeof(uint8_t), 0, userTokenSize * sizeof(uint8_t));
+}
+
 OsAccountTeeAdapter::TeecContextGuard::~TeecContextGuard()
 {
     if (initResult_ == TEEC_SUCCESS) {
