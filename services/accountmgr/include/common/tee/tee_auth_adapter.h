@@ -152,6 +152,14 @@ public:
     ErrCode DelOsAccountType(int32_t id, const std::vector<uint8_t>& token);
 
     /**
+     * @brief Gets OS account type from TA.
+     * @param id - Indicates the local ID of the OS account.
+     * @param type - Indicates the output account type.
+     * @return error code, see account_error_no.h
+     */
+    ErrCode GetOsAccountType(int32_t id, int32_t &type);
+
+    /**
      * @brief Migrates OS account types to TA in batch.
      * @param ids - Indicates the local IDs of OS accounts to migrate.
      * @param types - Indicates the target account types for migration.
@@ -263,9 +271,11 @@ private:
      * @brief Executes TA command with given parameters.
      * @param command - Indicates the TA command ID.
      * @param setParams - A function to set parameters for the TEEC_Operation.
+     * @param processResult - A function to process results from the TEEC_Operation.
      * @return error code, see account_error_no.h
      */
-    ErrCode ExecuteCommand(uint32_t command, const std::function<ErrCode(TEEC_Operation&)>& setParams);
+    ErrCode ExecuteCommand(uint32_t command, const std::function<ErrCode(TEEC_Operation&)>& setParams,
+        const std::function<ErrCode(TEEC_Operation&)>& processResult = nullptr);
 
     /**
      * @brief Converts TEEC error code to account error code.
