@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -331,11 +331,18 @@ int32_t InnerAccountIAMManager::AuthUser(
         ACCOUNT_LOGE("failed to add death recipient for auth callback");
         return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
     }
-
-    auto callbackWrapper = std::make_shared<AuthCallback>(authParam.userId,
-        authParam.authType, authParam.authIntent, (authParam.remoteAuthParam != std::nullopt), callback);
+    std::shared_ptr<AuthCallback> callbackWrapper= nullptr;
+#ifdef SUPPORT_AUTHORIZATION
+    if (static_cast<int32_t>(authParam.authIntent) == AUTHORIZATION_INTENT_NUM) {
+        callbackWrapper = std::make_shared<AuthorizationAuthCallback>(authParam.userId,
+            authParam.authType, authParam.authIntent, callback);
+    }
+#endif // SUPPORT_AUTHORIZATION
+    if (callbackWrapper == nullptr) {
+        callbackWrapper = std::make_shared<AuthCallback>(authParam.userId,
+            authParam.authType, authParam.authIntent, (authParam.remoteAuthParam != std::nullopt), callback);
+    }
     callbackWrapper->SetDeathRecipient(deathRecipient);
-
     UserIam::UserAuth::AuthParam iamAuthParam;
     CopyAuthParam(authParam, iamAuthParam);
     ACCOUNT_LOGI("Start to auth user.");

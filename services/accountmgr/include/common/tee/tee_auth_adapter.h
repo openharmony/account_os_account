@@ -78,7 +78,7 @@ struct VerifyGrantTimeResult {
     int32_t remainValidityTime = 0;
 };
 
-typedef struct {
+typedef struct ApplyUserTokenParam {
     uint32_t pid;
     uint8_t permission[PERMISSION_MAX_LEN + 1];
     uint8_t permissionSize;
@@ -86,13 +86,15 @@ typedef struct {
     int32_t grantUserId;
     uint8_t authToken[AUTH_TOKEN_LEN];
     size_t authTokenSize;
+    ~ApplyUserTokenParam();
 } __attribute__((__packed__)) ApplyUserTokenParam;
 
-typedef struct {
+typedef struct ApplyUserTokenResult {
     uint8_t userToken[USER_TOKEN_LEN];
     size_t userTokenSize;
     int32_t remainValidityTime;
     uint32_t grantTime;
+    ~ApplyUserTokenResult();
 } __attribute__((__packed__)) ApplyUserTokenResult;
 
 /**

@@ -59,8 +59,7 @@ public:
      * @return ERR_OK on success, error code on failure
      */
     ErrCode AcquireAuthorization(const std::string &privilege, const AcquireAuthorizationOptions &options,
-        const sptr<IRemoteObject> &authorizationResultCallback, const sptr<IRemoteObject> &requestRemoteObj,
-        AuthorizationResult &authorizationResult) override;
+        const sptr<IRemoteObject> &authorizationResultCallback, const sptr<IRemoteObject> &requestRemoteObj) override;
     
     /**
      * @brief Releases authorization for a specific privilege.

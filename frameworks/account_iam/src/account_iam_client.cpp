@@ -40,6 +40,9 @@ namespace {
 const char PERMISSION_ACCESS_PIN_AUTH[] = "ohos.permission.ACCESS_PIN_AUTH";
 const char PERMISSION_MANAGE_USER_IDM[] = "ohos.permission.MANAGE_USER_IDM";
 const char PERMISSION_ACCESS_USER_AUTH_INTERNAL[] = "ohos.permission.ACCESS_USER_AUTH_INTERNAL";
+#ifdef SUPPORT_AUTHORIZATION
+const char PERMISSION_START_SYSTEM_DIALOG[] = "ohos.permission.START_SYSTEM_DIALOG";
+#endif // SUPPORT_AUTHORIZATION
 const int32_t UINT8_SHIFT_LENGTH = 8;
 }
 
@@ -613,11 +616,14 @@ ErrCode AccountIAMClient::RegisterPINInputer(const std::shared_ptr<IInputer> &in
     auto iamInputer = std::make_shared<IAMInputer>(userId, inputer);
     if (UserIam::PinAuth::PinAuthRegister::GetInstance().RegisterInputer(iamInputer)) {
 #ifdef SUPPORT_AUTHORIZATION
-        result = AuthorizationClient::GetInstance().RegisterAuthAppRemoteObject();
-        if (result != ERR_OK) {
-            ACCOUNT_LOGI("RegisterAuthAppRemoteObject fail, error:%{public}d", result);
-            UserIam::PinAuth::PinAuthRegister::GetInstance().UnRegisterInputer();
-            return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+        // service will check again
+        if (CheckSelfPermission(PERMISSION_START_SYSTEM_DIALOG)) {
+            result = AuthorizationClient::GetInstance().RegisterAuthAppRemoteObject();
+            if (result != ERR_OK) {
+                ACCOUNT_LOGI("RegisterAuthAppRemoteObject fail, error:%{public}d", result);
+                UserIam::PinAuth::PinAuthRegister::GetInstance().UnRegisterInputer();
+                return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+            }
         }
 #endif // SUPPORT_AUTHORIZATION
         pinInputer_ = inputer;
@@ -698,7 +704,9 @@ ErrCode AccountIAMClient::UnregisterPINInputer()
     }
     UserIam::PinAuth::PinAuthRegister::GetInstance().UnRegisterInputer();
 #ifdef SUPPORT_AUTHORIZATION
-    AuthorizationClient::GetInstance().UnRegisterAuthAppRemoteObject();
+    if (CheckSelfPermission(PERMISSION_START_SYSTEM_DIALOG)) {
+        AuthorizationClient::GetInstance().UnRegisterAuthAppRemoteObject();
+    }
 #endif // SUPPORT_AUTHORIZATION
     std::lock_guard<std::mutex> lock(pinMutex_);
     pinInputer_ = nullptr;

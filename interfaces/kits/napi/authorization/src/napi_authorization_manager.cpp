@@ -45,8 +45,6 @@ const std::string UI_EXTENSION_TYPE = "sys/commonUI";
 const std::string TOKEN_KEY = "authResultToken";
 const std::string ACCOUNTID_KEY = "authResultAccountID";
 const std::string CODE_KEY = "authResultCode";
-constexpr std::int32_t MAX_CHALLENGE_LEN = 32;
-std::atomic<bool> g_hasAcquireCall(false);
 const int32_t BACKGROUNT_ERROR = 1011;
 }
 
@@ -310,7 +308,6 @@ std::function<void()> OnAuthorizationResultTask(const std::shared_ptr<AcquireAut
             errJs = GenerateAuthorizationBusinessError(asyncContextPtr->env, asyncContextPtr->errCode);
         }
         ReturnPromise(asyncContextPtr->env, asyncContextPtr.get(), errJs, resultJs);
-        g_hasAcquireCall.exchange(false);
         napi_close_handle_scope(asyncContextPtr->env, scope);
     };
 }
@@ -398,6 +395,7 @@ static bool GetInteractionContextObject(const napi_env &env, const napi_value &o
 
     if ((valueType == napi_undefined) || (valueType == napi_null)) {
         ACCOUNT_LOGI("The interactionContext of AcquireAuthorizationOptions is undefined or null");
+        hasContext = false;
         return true;
     }
 
@@ -438,6 +436,7 @@ static bool ConvertContextObject(const napi_env &env, const napi_value &contextV
         (asyncContext->abilityContext->GetApplicationInfo() != nullptr)) {
         ACCOUNT_LOGI("Convert to ability context success");
         asyncContext->uiAbilityFlag = true;
+        asyncContext->options.isContextValid = true;
         return true;
     }
 
@@ -450,7 +449,7 @@ static bool ConvertContextObject(const napi_env &env, const napi_value &contextV
         ACCOUNT_LOGE("Convert to ui extension context failed");
         return false;
     }
-
+    asyncContext->options.isContextValid = true;
     return true;
 }
 
@@ -477,20 +476,26 @@ static bool GetContext(
         return true;
     }
 
-    if (!ConvertContextObject(env, contextValue, asyncContext)) {
-        // When interaction is required, set result code to INTERACTION_NOT_ALLOWED
-        ACCOUNT_LOGE("Failed to convert context object.");
-        std::string errMsg = "Parameter error. The type of \"interactionContext\" must be Context object";
-        AccountNapiThrow(env, ERR_JS_INVALID_PARAMETER, errMsg, true);
-        return false;
-    }
-
+    ConvertContextObject(env, contextValue, asyncContext);
     return true;
 }
 
 static bool ParseContextForAcquireAuthorizationOptions(napi_env env, napi_value value,
     AcquireAuthorizationContext *asyncContext)
 {
+    napi_valuetype valueType = napi_undefined;
+    NAPI_CALL_BASE(env, napi_typeof(env, value, &valueType), false);
+    if ((valueType == napi_undefined) || (valueType == napi_null)) {
+        ACCOUNT_LOGI("the callback is undefined or null");
+        return true;
+    }
+    if (valueType != napi_object) {
+        ACCOUNT_LOGE("Obj is not an object");
+        std::string errMsg = "Parameter error. The type of \"acquireAuthorizationOptions\" must be object";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+        return false;
+    }
+    asyncContext->hasOptions = true;
     if (!GetOptionBoolProperty(env, value, "isInteractionAllowed", asyncContext->options.isInteractionAllowed)) {
         ACCOUNT_LOGE("Get options's isInteractionAllowed failed");
         std::string errMsg = "Parameter error. The type of \"isInteractionAllowed\" must be bool";
@@ -501,12 +506,6 @@ static bool ParseContextForAcquireAuthorizationOptions(napi_env env, napi_value 
         ACCOUNT_LOGE("Get options's challenge failed");
         std::string errMsg = "Parameter error. The type of \"challenge\" must be Uint8Array";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
-        return false;
-    }
-    if (asyncContext->options.challenge.size() > MAX_CHALLENGE_LEN) {
-        ACCOUNT_LOGE("Get options's challenge failed");
-        std::string errMsg = "Parameter error. The size of \"challenge\" must not exceed 32 bytes";
-        AccountNapiThrow(env, ERR_JS_INVALID_PARAMETER, errMsg, true);
         return false;
     }
     if (!GetOptionBoolProperty(env, value, "isReuseNeeded", asyncContext->options.isReuseNeeded)) {
@@ -551,7 +550,6 @@ static bool ParseContextForAcquireAuthorization(napi_env env, napi_callback_info
         return false;
     }
     if (argc == ARG_SIZE_TWO) {
-        asyncContext->hasOptions = true;
         return ParseContextForAcquireAuthorizationOptions(env, argv[PARAM_ONE], asyncContext);
     }
     return true;
@@ -593,24 +591,14 @@ static void AcquireAuthorizationExecuteCB(napi_env env, void *data)
     }
 
     auto callback = std::make_shared<NapiAuthorizationResultCallback>(asyncContext);
-    AuthorizationResult result;
-    result.privilege = asyncContext->privilege;
-    if (g_hasAcquireCall.load()) {
-        ACCOUNT_LOGE("AcquireAuthorizationSync busy");
-        result.resultCode = AuthorizationResultCode::AUTHORIZATION_SYSTEM_BUSY;
-        callback->OnResult(ERR_OK, result);
-        return;
-    }
-    g_hasAcquireCall.exchange(true);
+    
     asyncContext->errCode = AuthorizationClient::GetInstance().AcquireAuthorization(
-        asyncContext->privilege, asyncContext->options, callback, result);
-    if (asyncContext->errCode == ERR_OK) {
-        return;
+        asyncContext->privilege, asyncContext->options, callback);
+    if (asyncContext->errCode != ERR_OK) {
+        AuthorizationResult result;
+        result.privilege = asyncContext->privilege;
+        callback->OnResult(asyncContext->errCode, result);
     }
-    if (CheckAndGetAuthorizationResultCode(asyncContext->errCode, result.resultCode)) {
-        asyncContext->errCode = ERR_OK;
-    }
-    callback->OnResult(asyncContext->errCode, result);
 }
 
 static void ReleaseAuthorizationExecuteCB(napi_env env, void *data)
@@ -792,12 +780,12 @@ napi_value NapiAuthorizationManager::AuthorizationResultCodeConstructor(napi_env
     NAPI_CALL(env, napi_create_int32(env,
         static_cast<int32_t>(AuthorizationResultCode::AUTHORIZATION_DENIED), &denied));
     NAPI_CALL(env, napi_create_int32(env,
-        static_cast<int32_t>(AuthorizationResultCode::AUTHORIZATION_SYSTEM_BUSY), &systemBusy));
+        static_cast<int32_t>(AuthorizationResultCode::AUTHORIZATION_SERVICE_BUSY), &systemBusy));
     NAPI_CALL(env, napi_set_named_property(env, resultCode, "AUTHORIZATION_SUCCESS", success));
     NAPI_CALL(env, napi_set_named_property(env, resultCode, "AUTHORIZATION_CANCELED", canceled));
     NAPI_CALL(env, napi_set_named_property(env, resultCode, "AUTHORIZATION_INTERACTION_NOT_ALLOWED", notAllowed));
     NAPI_CALL(env, napi_set_named_property(env, resultCode, "AUTHORIZATION_DENIED", denied));
-    NAPI_CALL(env, napi_set_named_property(env, resultCode, "AUTHORIZATION_SYSTEM_BUSY", systemBusy));
+    NAPI_CALL(env, napi_set_named_property(env, resultCode, "AUTHORIZATION_SERVICE_BUSY", systemBusy));
     return resultCode;
 }
 
