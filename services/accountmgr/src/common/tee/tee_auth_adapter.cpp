@@ -42,6 +42,7 @@ namespace {
         USER_ROLE_GET_VERSION_CMD_ID = 0x00000001,
         USER_ROLE_SET_CMD_ID = 0x00010001,
         USER_ROLE_DELETE_CMD_ID = 0x00010002,
+        USER_ROLE_GET_CMD_ID = 0x00010003,
         USER_TOKEN_VERIFY_CMD_ID = 0x00020002,
         CHECK_TIMESTAMP_EXPIRE_CMD_ID = 0x00020003,
         USER_TOKEN_APPLY_CMD_ID = 0x00020001,
@@ -104,7 +105,8 @@ ErrCode OsAccountTeeAdapter::ConvertTeecErrCode(TEEC_Result teeResult)
 }
 
 ErrCode OsAccountTeeAdapter::ExecuteCommand(
-    uint32_t command, const std::function<ErrCode(TEEC_Operation &)> &setParams)
+    uint32_t command, const std::function<ErrCode(TEEC_Operation &)> &setParams,
+    const std::function<ErrCode(TEEC_Operation &)> &processResult)
 {
     // Initialize TEE context
     OsAccountTeeAdapter::TeecContextGuard contextGuard;
@@ -133,7 +135,29 @@ ErrCode OsAccountTeeAdapter::ExecuteCommand(
             command, result, origin);
         return ConvertTeecErrCode(result);
     }
+    if (processResult != nullptr) {
+        return processResult(operation);
+    }
     return ERR_OK;
+}
+
+ErrCode OsAccountTeeAdapter::GetOsAccountType(int32_t id, int32_t &type)
+{
+    std::function<ErrCode(TEEC_Operation &)> setParamTask = [id](TEEC_Operation &operation) {
+        operation.started = 1;
+        operation.paramTypes = TEEC_PARAM_TYPES(TEEC_VALUE_INPUT, TEEC_VALUE_OUTPUT, TEEC_NONE, TEEC_NONE);
+        operation.params[INDEX_ZERO].value.a = static_cast<uint32_t>(id);
+        return ERR_OK;
+    };
+    std::function<ErrCode(TEEC_Operation &)> processResultTask = [&type](TEEC_Operation &operation) {
+        type = static_cast<int32_t>(operation.params[INDEX_ONE].value.a);
+        return ERR_OK;
+    };
+    ErrCode ret = ExecuteCommand(USER_ROLE_GET_CMD_ID, setParamTask, processResultTask);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("GetOsAccountType failed, ret = %{public}d", ret);
+    }
+    return ret;
 }
 
 ErrCode OsAccountTeeAdapter::SetOsAccountType(int32_t id, int32_t type, const std::vector<uint8_t>& token)

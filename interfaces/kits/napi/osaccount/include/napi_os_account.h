@@ -21,6 +21,7 @@
 #include <mutex>
 #include <vector>
 #include <optional>
+#include <securec.h>
 #include "os_account_info.h"
 #include "os_account_manager.h"
 #include "os_account_constraint_subscriber.h"
@@ -207,6 +208,13 @@ struct SetTypeAsyncContext : public CommonAsyncContext {
     // if token is provided, it must be non-empty.
     // if token is not provided, it must be std::nullopt.
     SetOsAccountTypeOptions options;
+
+    virtual ~SetTypeAsyncContext()
+    {
+        if (options.token.has_value() && !options.token->empty()) {
+            (void)memset_s(options.token->data(), options.token->size(), 0, options.token->size());
+        }
+    }
 };
 
 struct IsMultiEnAsyncContext : public CommonAsyncContext {
