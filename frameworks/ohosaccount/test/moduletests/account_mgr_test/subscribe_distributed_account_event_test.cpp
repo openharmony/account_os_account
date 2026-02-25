@@ -43,6 +43,8 @@ using namespace OHOS;
 using namespace OHOS::AccountSA;
 using namespace OHOS::AccountSA::Constants;
 
+static OsAccountInfo g_subDistributedAccount;
+
 class SubscribeDistributedAccountModuleTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -54,10 +56,15 @@ public:
 void SubscribeDistributedAccountModuleTest::SetUpTestCase(void)
 {
     ASSERT_NE(GetAllAccountPermission(), 0);
+    ASSERT_EQ(OsAccountManager::CreateOsAccount("SubDistributed003", OsAccountType::NORMAL, g_subDistributedAccount),
+        ERR_OK);
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(g_subDistributedAccount.GetLocalId()), ERR_OK);
 }
 
 void SubscribeDistributedAccountModuleTest::TearDownTestCase(void)
-{}
+{
+    EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(g_subDistributedAccount.GetLocalId()));
+}
 
 void SubscribeDistributedAccountModuleTest::SetUp(void) __attribute__((no_sanitize("cfi")))
 {
@@ -89,17 +96,12 @@ public:
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest001, TestSize.Level0)
 {
-    OsAccountInfo SubDistributedAccount;
-    ASSERT_EQ(OsAccountManager::CreateOsAccount("SubDistributed001", OsAccountType::NORMAL, SubDistributedAccount),
-        ERR_OK);
-    EXPECT_EQ(OsAccountManager::ActivateOsAccount(SubDistributedAccount.GetLocalId()), ERR_OK);
-
     // login
     auto loginSubscribeCallback = std::make_shared<MockDistributedAccountSubscribeCallback>();
     EXPECT_EQ(ERR_OK, OhosAccountKits::GetInstance().SubscribeDistributedAccountEvent(
         DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGIN, loginSubscribeCallback));
     DistributedAccountEventData loginEventData;
-    loginEventData.id_ = SubDistributedAccount.GetLocalId();
+    loginEventData.id_ = g_subDistributedAccount.GetLocalId();
     loginEventData.type_ = DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGIN;
     EXPECT_CALL(*loginSubscribeCallback, OnAccountsChanged(loginEventData)).Times(Exactly(1));
 
@@ -108,7 +110,7 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest0
     EXPECT_EQ(ERR_OK, OhosAccountKits::GetInstance().SubscribeDistributedAccountEvent(
         DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGOUT, logoutSubscribeCallback));
     DistributedAccountEventData logoutEventData;
-    logoutEventData.id_ = SubDistributedAccount.GetLocalId();
+    logoutEventData.id_ = g_subDistributedAccount.GetLocalId();
     logoutEventData.type_ = DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGOUT;
     EXPECT_CALL(*logoutSubscribeCallback, OnAccountsChanged(logoutEventData)).Times(Exactly(1));
 
@@ -122,8 +124,6 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest0
         DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGIN, loginSubscribeCallback));
     EXPECT_EQ(ERR_OK, OhosAccountKits::GetInstance().UnsubscribeDistributedAccountEvent(
         DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGOUT, logoutSubscribeCallback));
-
-    EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(SubDistributedAccount.GetLocalId()));
 }
 
 /**
@@ -134,17 +134,12 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest0
 */
 HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest002, TestSize.Level0)
 {
-    OsAccountInfo SubDistributedAccount;
-    ASSERT_EQ(OsAccountManager::CreateOsAccount("SubDistributed002", OsAccountType::NORMAL, SubDistributedAccount),
-        ERR_OK);
-    EXPECT_EQ(OsAccountManager::ActivateOsAccount(SubDistributedAccount.GetLocalId()), ERR_OK);
-
     // login
     auto loginSubscribeCallback = std::make_shared<MockDistributedAccountSubscribeCallback>();
     EXPECT_EQ(ERR_OK, OhosAccountKits::GetInstance().SubscribeDistributedAccountEvent(
         DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGIN, loginSubscribeCallback));
     DistributedAccountEventData loginEventData;
-    loginEventData.id_ = SubDistributedAccount.GetLocalId();
+    loginEventData.id_ = g_subDistributedAccount.GetLocalId();
     loginEventData.type_ = DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGIN;
     // 2 times
     EXPECT_CALL(*loginSubscribeCallback, OnAccountsChanged(loginEventData)).Times(Exactly(2));
@@ -154,7 +149,7 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest0
     EXPECT_EQ(ERR_OK, OhosAccountKits::GetInstance().SubscribeDistributedAccountEvent(
         DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGOFF, logoffSubscribeCallback));
     DistributedAccountEventData logoffEventData;
-    logoffEventData.id_ = SubDistributedAccount.GetLocalId();
+    logoffEventData.id_ = g_subDistributedAccount.GetLocalId();
     logoffEventData.type_ = DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGOFF;
     // 2 times
     EXPECT_CALL(*logoffSubscribeCallback, OnAccountsChanged(logoffEventData)).Times(Exactly(2));
@@ -174,8 +169,6 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest0
         DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGIN, loginSubscribeCallback));
     EXPECT_EQ(ERR_OK, OhosAccountKits::GetInstance().UnsubscribeDistributedAccountEvent(
         DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGOFF, logoffSubscribeCallback));
-
-    EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(SubDistributedAccount.GetLocalId()));
 }
 
 /**
@@ -186,17 +179,12 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest0
 */
 HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest003, TestSize.Level0)
 {
-    OsAccountInfo SubDistributedAccount;
-    ASSERT_EQ(OsAccountManager::CreateOsAccount("SubDistributed003", OsAccountType::NORMAL, SubDistributedAccount),
-        ERR_OK);
-    EXPECT_EQ(OsAccountManager::ActivateOsAccount(SubDistributedAccount.GetLocalId()), ERR_OK);
-
     // login
     auto loginSubscribeCallback = std::make_shared<MockDistributedAccountSubscribeCallback>();
     EXPECT_EQ(ERR_OK, OhosAccountKits::GetInstance().SubscribeDistributedAccountEvent(
         DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGIN, loginSubscribeCallback));
     DistributedAccountEventData loginEventData;
-    loginEventData.id_ = SubDistributedAccount.GetLocalId();
+    loginEventData.id_ = g_subDistributedAccount.GetLocalId();
     loginEventData.type_ = DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGIN;
     EXPECT_CALL(*loginSubscribeCallback, OnAccountsChanged(loginEventData)).Times(Exactly(1));
 
@@ -204,7 +192,7 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest0
     EXPECT_EQ(ERR_OK, OhosAccountKits::GetInstance().SubscribeDistributedAccountEvent(
         DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::TOKEN_INVALID, loginSubscribeCallback));
     DistributedAccountEventData tokenInvalidEventData;
-    tokenInvalidEventData.id_ = SubDistributedAccount.GetLocalId();
+    tokenInvalidEventData.id_ = g_subDistributedAccount.GetLocalId();
     tokenInvalidEventData.type_ = DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::TOKEN_INVALID;
     EXPECT_CALL(*loginSubscribeCallback, OnAccountsChanged(tokenInvalidEventData)).Times(Exactly(1));
 
@@ -218,8 +206,6 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest0
         DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGIN, loginSubscribeCallback));
     EXPECT_EQ(ERR_OK, OhosAccountKits::GetInstance().UnsubscribeDistributedAccountEvent(
         DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::TOKEN_INVALID, loginSubscribeCallback));
-
-    EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(SubDistributedAccount.GetLocalId()));
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
@@ -250,11 +236,6 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest0
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest005, TestSize.Level1)
 {
-    OsAccountInfo SubDistributedAccount;
-    ASSERT_EQ(OsAccountManager::CreateOsAccount("SubDistributed005", OsAccountType::NORMAL, SubDistributedAccount),
-        ERR_OK);
-    EXPECT_EQ(OsAccountManager::ActivateOsAccount(SubDistributedAccount.GetLocalId()), ERR_OK);
-
     // login
     auto loginSubscribeCallback = std::make_shared<MockDistributedAccountSubscribeCallback>();
     EXPECT_EQ(ERR_OK, OhosAccountKits::GetInstance().SubscribeDistributedAccountEvent(
@@ -263,12 +244,14 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest0
     EXPECT_EQ(ERR_OK, OhosAccountKits::GetInstance().SubscribeDistributedAccountEvent(
         DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGIN, loginSubscribeCallback));
     DistributedAccountEventData loginEventData;
-    loginEventData.id_ = SubDistributedAccount.GetLocalId();
+    loginEventData.id_ = g_subDistributedAccount.GetLocalId();
     loginEventData.type_ = DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGIN;
     EXPECT_CALL(*loginSubscribeCallback, OnAccountsChanged(loginEventData)).Times(Exactly(1));
 
     EXPECT_EQ(OhosAccountKits::GetInstance().UpdateOhosAccountInfo(
         "TestName005", "TestUID005", "Ohos.account.event.LOGIN"), ERR_OK);
+    EXPECT_EQ(OhosAccountKits::GetInstance().UpdateOhosAccountInfo(
+        "TestName005", "TestUID005", "Ohos.account.event.LOGOUT"), ERR_OK);
 
     sleep(1);
     // unsub not exist type
@@ -281,8 +264,6 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest0
     EXPECT_EQ(ERR_OHOSACCOUNT_KIT_NO_SPECIFIED_CALLBACK_HAS_BEEN_REGISTERED,
         OhosAccountKits::GetInstance().UnsubscribeDistributedAccountEvent(
         DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGIN, loginSubscribeCallback));
-
-    EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(SubDistributedAccount.GetLocalId()));
 }
 
 /**
@@ -293,18 +274,13 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest0
 */
 HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest006, TestSize.Level1)
 {
-    OsAccountInfo SubDistributedAccount;
-    ASSERT_EQ(OsAccountManager::CreateOsAccount("SubDistributed006", OsAccountType::NORMAL, SubDistributedAccount),
-        ERR_OK);
-    EXPECT_EQ(OsAccountManager::ActivateOsAccount(SubDistributedAccount.GetLocalId()), ERR_OK);
-
     // login callback 1
     auto loginSubscribeCallbackOne = std::make_shared<MockDistributedAccountSubscribeCallback>();
     EXPECT_EQ(ERR_OK, OhosAccountKits::GetInstance().SubscribeDistributedAccountEvent(
         DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGIN, loginSubscribeCallbackOne));
     DistributedAccountEventData loginEventData;
     Parcel parcel;
-    loginEventData.id_ = SubDistributedAccount.GetLocalId();
+    loginEventData.id_ = g_subDistributedAccount.GetLocalId();
     loginEventData.type_ = DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGIN;
     loginEventData.Marshalling(parcel);
     EXPECT_CALL(*loginSubscribeCallbackOne, OnAccountsChanged(loginEventData)).Times(Exactly(1));
@@ -323,7 +299,5 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest0
         DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGIN, loginSubscribeCallbackOne));
     EXPECT_EQ(ERR_OK, OhosAccountKits::GetInstance().UnsubscribeDistributedAccountEvent(
         DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGIN, loginSubscribeCallbackTwo));
-
-    EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(SubDistributedAccount.GetLocalId()));
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS

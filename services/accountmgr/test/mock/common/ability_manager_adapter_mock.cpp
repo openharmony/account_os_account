@@ -13,8 +13,6 @@
  * limitations under the License.
  */
 
-#include <gtest/gtest.h>
-#include <gmock/gmock.h>
 #include <thread>
 #include "ability_manager_adapter_mock.h"
 

@@ -43,7 +43,7 @@ void IInnerOsAccountManagerMigrationTest::SetUpTestCase(void)
 void IInnerOsAccountManagerMigrationTest::TearDownTestCase(void)
 {}
 
-void IInnerOsAccountManagerMigrationTest::SetUp()
+void IInnerOsAccountManagerMigrationTest::SetUp() __attribute__((no_sanitize("cfi")))
 {
     testing::UnitTest *test = testing::UnitTest::GetInstance();
     ASSERT_NE(test, nullptr);

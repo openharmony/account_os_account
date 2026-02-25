@@ -540,6 +540,23 @@ HWTEST_F(AccountIamCallbackTest, AuthCallback_UnlockUserScreen_0200, TestSize.Le
 }
 
 /**
+ * @tc.name: AuthCallback_UnlockUserScreen_0300
+ * @tc.desc: UnlockUserScreen with COMPANION_DEVICE.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIamCallbackTest, AuthCallback_UnlockUserScreen_0300, TestSize.Level0)
+{
+    sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
+    auto userAuthCallback = std::make_shared<AuthCallback>(
+        TEST_USER_ID, AuthType::COMPANION_DEVICE, AccountSA::AuthIntent::DEFAULT, callback);
+    EXPECT_TRUE(userAuthCallback->innerCallback_ != nullptr);
+    std::vector<uint8_t> secret = {8, 8, 8, 8, 8, 8, 8};
+    bool isUpdateVerifiedStatus = false;
+    EXPECT_EQ(ERR_OK, userAuthCallback->UnlockUserScreen(-1, {}, secret, isUpdateVerifiedStatus));
+}
+
+/**
  * @tc.name: UpdateCredCallback_InnerOnResult_0100
  * @tc.desc: InnerOnResult isUpdateVerifiedStatus=false.
  * @tc.type: FUNC

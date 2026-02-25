@@ -222,7 +222,7 @@ void TestStateMachine(bool withHandshake, bool isBlock)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountSubscribeTest, OsAccountSubscribeTest01, TestSize.Level0)
+HWTEST_F(OsAccountSubscribeTest, OsAccountSubscribeTest01, TestSize.Level1)
 {
     bool withHandshake = true;
     bool isBlock = false;
@@ -236,7 +236,7 @@ HWTEST_F(OsAccountSubscribeTest, OsAccountSubscribeTest01, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountSubscribeTest, OsAccountSubscribeTest02, TestSize.Level0)
+HWTEST_F(OsAccountSubscribeTest, OsAccountSubscribeTest02, TestSize.Level1)
 {
     bool withHandshake = true;
     bool isBlock = true;
@@ -250,7 +250,7 @@ HWTEST_F(OsAccountSubscribeTest, OsAccountSubscribeTest02, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountSubscribeTest, OsAccountSubscribeTest03, TestSize.Level0)
+HWTEST_F(OsAccountSubscribeTest, OsAccountSubscribeTest03, TestSize.Level1)
 {
     bool withHandshake = false;
     bool isBlock = false;

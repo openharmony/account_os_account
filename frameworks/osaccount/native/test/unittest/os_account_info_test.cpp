@@ -662,7 +662,7 @@ HWTEST_F(OsAccountInfoTest, GetOsAccountName02, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
     CreateOsAccountOptions options;
-    options.allowedHapList = {};
+    options.allowedHapList = std::make_optional<std::vector<std::string>>({});
     EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccount("GetOsAccountName02", "GetOsAccountName02",
         OsAccountType::NORMAL, options, osAccountInfo));
     uint32_t localId = osAccountInfo.GetLocalId();
@@ -692,7 +692,7 @@ HWTEST_F(OsAccountInfoTest, GetOsAccountNameById02, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
     CreateOsAccountOptions options;
-    options.allowedHapList = {};
+    options.allowedHapList = std::make_optional<std::vector<std::string>>({});
     EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccount("testName", "testName", OsAccountType::NORMAL, options,
         osAccountInfo));
     uint32_t localId = osAccountInfo.GetLocalId();
@@ -795,7 +795,7 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0103, TestSize.Level1)
     osAccountInfo.SetCreateTime(1695883215000);
     osAccountInfo.SetLastLoginTime(1695863215000);
     CreateOsAccountOptions options;
-    options.allowedHapList = {};
+    options.allowedHapList = std::make_optional<std::vector<std::string>>({});
     EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccountWithFullInfo(osAccountInfo, options));
 
     osAccountInfo.SetLocalName("update117");
@@ -818,7 +818,7 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0104, TestSize.Level1)
     osAccountInfo.SetSerialNumber(1100);
     osAccountInfo.SetCreateTime(1695883215000);
     CreateOsAccountOptions options;
-    options.allowedHapList = {};
+    options.allowedHapList = std::make_optional<std::vector<std::string>>({});
     EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccountWithFullInfo(osAccountInfo, options));
 
     osAccountInfo.SetLastLoginTime(1695863290000);
@@ -841,7 +841,7 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0105, TestSize.Level1)
     osAccountInfo.SetSerialNumber(1100);
     osAccountInfo.SetCreateTime(1695883215000);
     CreateOsAccountOptions options;
-    options.allowedHapList = {};
+    options.allowedHapList = std::make_optional<std::vector<std::string>>({});
     EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccountWithFullInfo(osAccountInfo, options));
 
     osAccountInfo.SetLastLoginTime(1695863290000);
@@ -927,7 +927,7 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccount00, TestSize.Level1)
     OsAccountInfo osAccountInfoOne;
     OsAccountInfo osAccountInfoTwo;
     CreateOsAccountOptions options;
-    options.allowedHapList = {};
+    options.allowedHapList = std::make_optional<std::vector<std::string>>({});
     EXPECT_EQ(ERR_OK,
         OsAccountManager::CreateOsAccount(STRING_NAME, "shortName", OsAccountType::NORMAL, options, osAccountInfoOne));
     EXPECT_EQ(ERR_ACCOUNT_COMMON_NAME_HAD_EXISTED,
@@ -948,7 +948,7 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccount01, TestSize.Level1)
     OsAccountInfo osAccountInfoOne;
     OsAccountInfo osAccountInfoTwo;
     CreateOsAccountOptions options;
-    options.allowedHapList = {};
+    options.allowedHapList = std::make_optional<std::vector<std::string>>({});
     EXPECT_EQ(ERR_OK,
         OsAccountManager::CreateOsAccount(STRING_NAME, "shortName", OsAccountType::NORMAL, options, osAccountInfoOne));
     EXPECT_EQ(ERR_ACCOUNT_COMMON_NAME_HAD_EXISTED,
@@ -986,7 +986,7 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccount02, TestSize.Level1)
 {
     OsAccountInfo accountInfo;
     CreateOsAccountOptions options;
-    options.allowedHapList = {};
+    options.allowedHapList = std::make_optional<std::vector<std::string>>({});
     EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, OsAccountManager::CreateOsAccount("CreateOsAccount02", "..",
         OsAccountType::NORMAL, accountInfo));
 }
@@ -1106,10 +1106,12 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccount09, TestSize.Level1)
     EXPECT_EQ(OsAccountManager::CreateOsAccount("name2", "***", OsAccountType::NORMAL, osAccountInfoOne),
               ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
-    EXPECT_EQ(OsAccountManager::CreateOsAccount("name3", "？", OsAccountType::NORMAL, osAccountInfoOne),
+    CreateOsAccountOptions options;
+    options.allowedHapList = std::make_optional<std::vector<std::string>>({});
+    EXPECT_EQ(OsAccountManager::CreateOsAccount("name3", "？", OsAccountType::NORMAL, options, osAccountInfoOne),
               ERR_OK);
     OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
-    EXPECT_EQ(OsAccountManager::CreateOsAccount("name4", "：", OsAccountType::NORMAL, osAccountInfoOne),
+    EXPECT_EQ(OsAccountManager::CreateOsAccount("name4", "：", OsAccountType::NORMAL, options, osAccountInfoOne),
             ERR_OK);
     OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
 }
@@ -1121,8 +1123,10 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccount10, TestSize.Level1)
               ERR_OK);
     OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
     OsAccountInfo osAccountInfoTwo;
+    CreateOsAccountOptions options;
+    options.allowedHapList = std::make_optional<std::vector<std::string>>({});
     EXPECT_NE(OsAccountManager::CreateOsAccount(OVER_LENGTH_ACCOUNT_NAME, "sn",
-        OsAccountType::NORMAL, osAccountInfoTwo), ERR_OK);
+        OsAccountType::NORMAL, options, osAccountInfoTwo), ERR_OK);
     OsAccountManager::RemoveOsAccount(osAccountInfoTwo.GetLocalId());
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
@@ -1154,7 +1158,7 @@ HWTEST_F(OsAccountInfoTest, SetOsAccountToBeRemoved_UpdateDefaultActivated_001, 
     // Step 1: Create test account
     OsAccountInfo osAccountInfo;
     CreateOsAccountOptions options;
-    options.allowedHapList = {};
+    options.allowedHapList = std::make_optional<std::vector<std::string>>({});
     EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccount("TestDefaultActivatedAccount", "testShort",
               OsAccountType::NORMAL, options, osAccountInfo));
 
@@ -1190,7 +1194,7 @@ HWTEST_F(OsAccountInfoTest, SetOsAccountToBeRemoved_NonDefaultAccount_002, TestS
     // Step 1: Create test account
     OsAccountInfo testAccountInfo;
     CreateOsAccountOptions options;
-    options.allowedHapList = {};
+    options.allowedHapList = std::make_optional<std::vector<std::string>>({});
     EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccount("TestDefaultActivatedAccount2", "testShort2",
               OsAccountType::NORMAL, options, testAccountInfo));
 
@@ -1228,7 +1232,7 @@ HWTEST_F(OsAccountInfoTest, SetOsAccountToBeRemoved_CancelRemoval_003, TestSize.
     // Step 1: Create test account
     OsAccountInfo testAccountInfo;
     CreateOsAccountOptions options;
-    options.allowedHapList = {};
+    options.allowedHapList = std::make_optional<std::vector<std::string>>({});
     EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccount("TestDefaultActivatedAccount3", "testShort3",
               OsAccountType::NORMAL, options, testAccountInfo));
 
@@ -1258,7 +1262,7 @@ HWTEST_F(OsAccountInfoTest, SetOsAccountToBeRemoved_UpdateDefaultActivatedError_
     // Step 1: Create test account
     OsAccountInfo osAccountInfo;
     CreateOsAccountOptions options;
-    options.allowedHapList = {};
+    options.allowedHapList = std::make_optional<std::vector<std::string>>({});
     EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccount("TestDefaultActivatedAccountError", "testError",
               OsAccountType::NORMAL, options, osAccountInfo));
 

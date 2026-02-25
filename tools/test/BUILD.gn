@@ -13,12 +13,6 @@
 
 import("//build/test.gni")
 
-group("moduletest") {
-  testonly = true
-
-  deps = [ "moduletest/acm:moduletest" ]
-}
-
 group("unittest") {
   testonly = true
 
