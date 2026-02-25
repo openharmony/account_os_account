@@ -56,7 +56,6 @@ const char U1_CONFIG[] = "1";
 const char SYSTEM_ACCOUNT_NAME[] = "name";
 const char SYSTEM_ACCOUNT_TYPE[] = "type";
 #endif // ENABLE_U1_ACCOUNT
-const std::string TEST_FILE_PATH = "/data/service/el1/public/account/test";
 const std::string STRING_PHOTO =
     "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD//gAUU29mdHdhcmU6IFNuaXBhc3Rl/"
     "9sAQwADAgIDAgIDAwMDBAMDBAUIBQUEBAUKBwcGCAwKDAwLCgsLDQ4SEA0OEQ4LCxAWEBETFBUVFQwPFxgWFBgSFBUU/"
@@ -103,14 +102,22 @@ public:
 
 void OsAccountControlFileManagerUnitTest::SetUpTestCase(void)
 {
+#ifdef ACCOUNT_TEST
+    AccountFileOperator osAccountFileOperator;
+    osAccountFileOperator.DeleteDirOrFile(Constants::USER_INFO_BASE);
+    GTEST_LOG_(INFO) << "delete account test path " << Constants::USER_INFO_BASE;
+#endif  // ACCOUNT_TEST
     ASSERT_NE(g_controlManager, nullptr);
     g_controlManager->Init();
 }
 
 void OsAccountControlFileManagerUnitTest::TearDownTestCase(void)
 {
-    std::string cmd = "rm -rf " + TEST_FILE_PATH + "*";
-    system(cmd.c_str());
+#ifdef ACCOUNT_TEST
+    AccountFileOperator osAccountFileOperator;
+    osAccountFileOperator.DeleteDirOrFile(Constants::USER_INFO_BASE);
+    GTEST_LOG_(INFO) << "delete account test path " << Constants::USER_INFO_BASE;
+#endif  // ACCOUNT_TEST
 }
 
 

@@ -169,26 +169,130 @@ ohos_unittest("OsAccountFileManagerMultipleThreadTest") {
   }
 
   module_out_path = module_output_path
-
-  sources = [ "os_account_file_manager_multiple_thread_test.cpp" ]
+  include_dirs = [
+    "${account_test_common}/include",
+    "${app_account_innerkits_native_path}/include",
+    "${os_account_dfx_path}/hidumper_adapter",
+    "${services_path}/accountmgr/include/bundle_manager_adapter",
+    "${services_path}/accountmgr/include/ability_manager_adapter",
+    "${services_path}/accountmgr/include",
+    "${os_account_dfx_path}/hitrace_adapter",
+    "${services_path}/accountmgr/include/account_iam",
+    "${services_path}/accountmgr/include/appaccount",
+    "${services_path}/accountmgr/include/domain_account",
+    "${services_path}/accountmgr/include/osaccount",
+    "${os_account_path}/interfaces/innerkits/ohosaccount/native/include/",
+    "${services_path}/accountmgr/include/common/database/kvstore",
+    "${services_path}/accountmgr/include/common/database",
+  ]
+  sources = [
+    "${account_test_common}/src/account_test_common.cpp",
+    "${app_account_services_path}/test/mock/common/ability_manager_adapter_mock.cpp",
+    "${app_account_services_path}/test/mock/common/bundle_manager_adapter.cpp",
+    "${common_path}/log/src/account_log_wrapper.cpp",
+    "${innerkits_native_path}/src/ohos_account_kits.cpp",
+    "${innerkits_native_path}/src/ohos_account_kits_impl.cpp",
+    "${os_account_core_path}/src/os_account_constraint_subscriber_manager.cpp",
+    "${os_account_innerkits_native_path}/src/os_account_constraint_subscriber.cpp",
+    "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
+    "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
+    "${services_path}/accountmgr/src/account_iam/account_iam_callback.cpp",
+    "${services_path}/accountmgr/src/account_iam/account_iam_service.cpp",
+    "${services_path}/accountmgr/src/account_iam/inner_account_iam_manager.cpp",
+    "${services_path}/accountmgr/src/appaccount/app_account_control_manager.cpp",
+    "${services_path}/accountmgr/src/common/database/kvstore/kvstore_adapter_impl.cpp",
+    "os_account_file_manager_multiple_thread_test.cpp"
+  ]
+  sources += account_service_sources
   configs = [
-    ":os_account_control_file_manager_test_config",
+    ":os_account_amgr_mock_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
+    "${app_account_innerkits_native_path}:app_account_interface_public_config",
   ]
+
   deps = [
+    "${account_iam_framework_path}:account_iam_stub",
+    "${account_iam_framework_path}:account_iam_innerkits",
     "${common_path}:libaccount_common",
+    "${domain_account_framework_path}:domain_account_innerkits",
+    "${domain_account_framework_path}:domain_account_stub",
+    "${innerkits_native_path}:account_stub",
+    "${innerkits_native_path}:libaccountkits",
+    "${os_account_innerkits_native_path}:os_account_event_proxy",
     "${os_account_innerkits_native_path}:os_account_innerkits",
-    "${services_path}/accountmgr:accountmgr",
+    "${os_account_innerkits_native_path}:os_account_constraint_event_stub",
+    "${os_account_innerkits_native_path}:os_account_state_reply_callback_proxy",
+    "${os_account_innerkits_native_path}:os_account_state_reply_callback_stub",
+    "${os_account_innerkits_native_path}:os_account_proxy",
+    "${os_account_innerkits_native_path}:os_account_stub",
   ]
+
+  use_exceptions = true
 
   external_deps = [
+    "ability_base:base",
+    "ability_base:want",
+    "ability_runtime:ability_manager",
+    "ability_runtime:app_manager",
+    "ability_runtime:wantagent_innerkits",
+    "access_token:libaccesstoken_sdk",
+    "access_token:libtokenid_sdk",
+    "access_token:libtokensetproc_shared",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
     "cJSON:cjson",
     "c_utils:utils",
+    "config_policy:configpolicy_util",
     "googletest:gmock_main",
     "googletest:gtest_main",
     "hilog:libhilog",
-    "kv_store:distributeddata_inner",
+    "init:libbegetutil",
+    "ipc:ipc_single",
+    "openssl:libcrypto_shared",
+    "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
   ]
+  cflags_cc = []
+  if (use_libfuzzer) {
+    cflags_cc += [ "-DFUZZ_TEST" ]
+  }
+
+  if (has_storage_service_part) {
+    external_deps += [ "storage_service:storage_manager_sa_proxy" ]
+  }
+  if (os_account_distributed_feature && !use_libfuzzer) {
+    cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
+    cflags_cc += [ "-DDISTRIBUTED_FEATURE_ENABLED" ]
+    sources +=
+        [ "${services_path}/accountmgr/src/account_file_watcher_manager.cpp" ]
+    if (has_huks_part) {
+      external_deps += [ "huks:libhukssdk" ]
+      cflags_cc += [ "-DHAS_HUKS_PART" ]
+    }
+  }
+  if (has_user_auth_part) {
+    cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
+    external_deps += [ "user_auth_framework:userauth_client" ]
+  }
+  if (has_ces_part) {
+    cflags_cc += [ "-DHAS_CES_PART" ]
+    external_deps += [ "common_event_service:cesfwk_innerkits" ]
+  }
+  if (has_kv_store_part) {
+    external_deps += [ "kv_store:distributeddata_inner" ]
+    sources += account_data_storage_source
+    cflags_cc += [ "-DHAS_KV_STORE_PART" ]
+  }
+  if (os_account_support_lock_os_account) {
+    cflags_cc += [ "-DSUPPORT_LOCK_OS_ACCOUNT" ]
+  }
+  cflags_cc += [ "-DACCOUNT_TEST" ]
+  cflags_cc += [ "-DBUNDLE_ADAPTER_MOCK" ]
+  cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNTS" ]
+  if (os_account_support_domain_accounts) {
+    cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+    deps += [ "${domain_account_framework_path}:domain_account_plugin_proxy" ]
+  }
   part_name = "os_account"
 }
 
