@@ -65,6 +65,7 @@ const char GET_LOCAL_ACCOUNTS_IDENTIFIERS[] = "ohos.permission.GET_LOCAL_ACCOUNT
 const char INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION[] =
     "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION";
 const char INTERACT_ACROSS_LOCAL_ACCOUNTS[] = "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS";
+const char GET_LOCAL_ACCOUNT_IDENTIFIERS[] = "ohos.permission.GET_LOCAL_ACCOUNT_IDENTIFIERS";
 const std::string GET_DOMAIN_ACCOUNTS = "ohos.permission.GET_DOMAIN_ACCOUNTS";
 const std::string MANAGE_EDM_POLICY = "ohos.permission.MANAGE_EDM_POLICY";
 const int32_t EDM_UID = 3057;
@@ -2211,11 +2212,23 @@ ErrCode OsAccountManagerService::GetOsAccountNameById(int32_t id, std::string &n
         ACCOUNT_LOGE("Is not system application, result = %{public}u.", result);
         return result;
     }
-    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "") && !PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")) {
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "") && !PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")
+        && !PermissionCheck(GET_LOCAL_ACCOUNT_IDENTIFIERS, "")) {
         ACCOUNT_LOGE("Check permission failed.");
         REPORT_PERMISSION_FAIL();
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
+
+    if (id < Constants::ADMIN_LOCAL_ID) {
+        ACCOUNT_LOGE("LocalId %{public}d not exist.", id);
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
+
+    if (id >= Constants::ADMIN_LOCAL_ID && id < Constants::START_USER_ID) {
+        ACCOUNT_LOGE("LocalId %{public}d is restricted.", id);
+        return ERR_ACCOUNT_COMMON_ACCOUNT_IS_RESTRICTED;
+    }
+
     ErrCode errCode = innerManager_.GetOsAccountName(id, name);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Failed get account name, errCode=%{public}d, id=%{public}d", errCode, id);

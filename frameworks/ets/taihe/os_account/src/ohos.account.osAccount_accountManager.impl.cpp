@@ -1070,6 +1070,17 @@ public:
         return taihe::string(name);
     }
 
+    taihe::string GetOsAccountNameByIdSync(int32_t localId)
+    {
+        std::string name;
+        ErrCode errCode = AccountSA::OsAccountManager::GetOsAccountNameById(localId, name);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("GetOsAccountNameByIdSync failed with errCode: %{public}d", errCode);
+            SetTaiheBusinessErrorFromNativeCode(errCode);
+        }
+        return taihe::string(name);
+    }
+
     uint32_t GetOsAccountCountSync()
     {
         unsigned int osAccountsCount;

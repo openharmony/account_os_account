@@ -21,6 +21,7 @@
 
 using namespace OHOS;
 using namespace OHOS::AccountSA;
+
 OsAccount_ErrCode OH_OsAccount_GetName(char *buffer, size_t buffer_size)
 {
     if ((buffer == nullptr) || (buffer_size == 0)) {
@@ -45,5 +46,39 @@ OsAccount_ErrCode OH_OsAccount_GetName(char *buffer, size_t buffer_size)
         return OsAccount_ErrCode::OS_ACCOUNT_ERR_INTERNAL_ERROR;
     }
     buffer[accountSize] = '\0';
+    return OsAccount_ErrCode::OS_ACCOUNT_ERR_OK;
+}
+
+OsAccount_ErrCode OH_OsAccount_GetNameByLocalId(int32_t localId, char *name, size_t name_size)
+{
+    if ((name == nullptr) || (name_size == 0) || (name_size > LOGIN_NAME_MAX)) {
+        ACCOUNT_LOGE(
+            "Name is nullptr or length is zero or exceeds maximum allowed length.");
+        return OsAccount_ErrCode::OS_ACCOUNT_ERR_INVALID_PARAMETER;
+    }
+    std::string accountName;
+    ErrCode err = AccountSA::OsAccountManager::GetOsAccountNameById(localId, accountName);
+    if (err == ERR_ACCOUNT_COMMON_PERMISSION_DENIED) {
+        return OsAccount_ErrCode::OS_ACCOUNT_ERR_PERMISSION_DENIED;
+    } else if (err == ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR) {
+        return OsAccount_ErrCode::OS_ACCOUNT_ERR_ACCOUNT_NOT_FOUND;
+    } else if (err == ERR_ACCOUNT_COMMON_ACCOUNT_IS_RESTRICTED) {
+        return OsAccount_ErrCode::OS_ACCOUNT_ERR_RESTRICTED_ACCOUNT;
+    } else if (err != ERR_OK) {
+        ACCOUNT_LOGE("Internal error(%{public}d).", err);
+        return OsAccount_ErrCode::OS_ACCOUNT_ERR_INTERNAL_ERROR;
+    }
+    size_t accountSize = accountName.size();
+    if (name_size <= accountSize) {
+        ACCOUNT_LOGE(
+            "Name size(%{public}zu) is less than length of account name(%{public}zu).", name_size, accountSize);
+        return OsAccount_ErrCode::OS_ACCOUNT_ERR_INVALID_PARAMETER;
+    }
+    err = strncpy_s(name, name_size, accountName.c_str(), accountSize);
+    if (err != EOK) {
+        ACCOUNT_LOGE("Failed to strncpy_s, err(%{public}d).", err);
+        return OsAccount_ErrCode::OS_ACCOUNT_ERR_INTERNAL_ERROR;
+    }
+    name[accountSize] = '\0';
     return OsAccount_ErrCode::OS_ACCOUNT_ERR_OK;
 }

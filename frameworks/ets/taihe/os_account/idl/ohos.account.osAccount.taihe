@@ -210,6 +210,9 @@ interface AccountManager {
     @gen_promise("getOsAccountName")
     GetOsAccountNameSync(): String;
 
+    @gen_promise("getOsAccountNameByLocalId")
+    GetOsAccountNameByIdSync(localId: i32): String;
+
     @gen_async("getOsAccountCount")
     @gen_promise("getOsAccountCount")
     GetOsAccountCountSync():u32;

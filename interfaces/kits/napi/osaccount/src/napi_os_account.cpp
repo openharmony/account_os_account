@@ -75,6 +75,7 @@ static napi_property_descriptor g_osAccountProperties[] = {
     DECLARE_NAPI_FUNCTION("getForegroundOsAccountDisplayId", GetForegroundOsAccountDisplayId),
     DECLARE_NAPI_FUNCTION("getOsAccountProfilePhoto", GetOsAccountProfilePhoto),
     DECLARE_NAPI_FUNCTION("getOsAccountName", GetOsAccountName),
+    DECLARE_NAPI_FUNCTION("getOsAccountNameByLocalId", GetOsAccountNameById),
     DECLARE_NAPI_FUNCTION("queryCurrentOsAccount", QueryCurrentOsAccount),
     DECLARE_NAPI_FUNCTION("getCurrentOsAccount", GetCurrentOsAccount),
     DECLARE_NAPI_FUNCTION("getOsAccountLocalIdFromUid", GetOsAccountLocalIdFromUid),
@@ -844,6 +845,31 @@ napi_value GetOsAccountName(napi_env env, napi_callback_info cbInfo)
 
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource, GetOsAccountNameExecuteCB,
         GetOsAccountNameCallbackCompletedCB,
+        reinterpret_cast<void *>(context.get()), &context->work));
+
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_default));
+    context.release();
+    return result;
+}
+
+napi_value GetOsAccountNameById(napi_env env, napi_callback_info cbInfo)
+{
+    auto context = std::make_unique<GetOsAccountNameByIdContext>();
+    context->env = env;
+    context->throwErr = true;
+
+    if (!ParseCallbackAndId(env, cbInfo, context->callbackRef, context->id, context->throwErr)) {
+        return nullptr;
+    }
+
+    napi_value result = nullptr;
+    NAPI_CALL(env, napi_create_promise(env, &context->deferred, &result));
+    
+    napi_value resource = nullptr;
+    NAPI_CALL(env, napi_create_string_utf8(env, "GetOsAccountNameById", NAPI_AUTO_LENGTH, &resource));
+
+    NAPI_CALL(env, napi_create_async_work(env, nullptr, resource, GetOsAccountNameByIdExecuteCB,
+        GetOsAccountNameByIdCallbackCompletedCB,
         reinterpret_cast<void *>(context.get()), &context->work));
 
     NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_default));

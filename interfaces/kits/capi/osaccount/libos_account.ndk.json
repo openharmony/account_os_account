@@ -2,5 +2,9 @@
     {
         "first_introduced": "12",
         "name":"OH_OsAccount_GetName"
+    },
+    {
+        "first_introduced": "26.0.0",
+        "name":"OH_OsAccount_GetNameByLocalId"
     }
 ]

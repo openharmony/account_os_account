@@ -576,11 +576,7 @@ HWTEST_F(OsAccountInfoTest, GetOsAccountNameById01, TestSize.Level1)
     EXPECT_EQ(name100, osAccountInfo100.GetLocalName());
 
     std::string name0;
-    EXPECT_EQ(ERR_OK, OsAccountManager::GetOsAccountNameById(ROOT_UID, name0));
-    OsAccountInfo osAccountInfo0;
-    setuid(ROOT_UID);
-    EXPECT_EQ(ERR_OK, OsAccountManager::QueryOsAccountById(ROOT_UID, osAccountInfo0));
-    EXPECT_EQ(name0, osAccountInfo0.GetLocalName());
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_ACCOUNT_IS_RESTRICTED, OsAccountManager::GetOsAccountNameById(ROOT_UID, name0));
 }
 
 /**
@@ -725,7 +721,7 @@ HWTEST_F(OsAccountInfoTest, GetOsAccountNameById03, TestSize.Level1)
     isExist = true;
     EXPECT_EQ(ERR_OK, OsAccountManager::IsOsAccountExists(localId, isExist));
     ASSERT_EQ(isExist, false);
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR, OsAccountManager::GetOsAccountNameById(localId, name));
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_ACCOUNT_IS_RESTRICTED, OsAccountManager::GetOsAccountNameById(localId, name));
 }
 
 /**
