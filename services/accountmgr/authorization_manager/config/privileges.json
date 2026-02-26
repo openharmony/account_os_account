@@ -13,6 +13,10 @@
             "description":"Modify system time"
         },
         {
+            "name":"ohos.privilege.modify_security_settings",
+            "description":"Modify security settings"
+        },
+        {
             "name":"ohos.privilege.reset_device",
             "description":"Reset device"
         }
