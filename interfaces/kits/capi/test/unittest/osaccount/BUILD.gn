@@ -43,8 +43,38 @@ ohos_unittest("os_account_ndk_test") {
   ]
 }
 
+ohos_unittest("os_account_utils_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  module_out_path = module_output_path
+
+  sources = [ "os_account_utils_test.cpp" ]
+  include_dirs = [
+    "./",
+    "${os_account_path}/interfaces/kits/capi/osaccount/include",
+  ]
+
+  deps =
+      [ "${os_account_path}/interfaces/kits/capi/osaccount:libos_account_utils" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
+  ]
+}
+
 group("unittest") {
   testonly = true
 
   deps = [ ":os_account_ndk_test" ]
+  if (os_account_support_set_os_account_id) {
+    deps += [ ":os_account_utils_test" ]
+  }
 }

@@ -65,3 +65,43 @@ ohos_shared_library("libos_account_ndk") {
   subsystem_name = "account"
   part_name = "os_account"
 }
+
+ohos_shared_library("libos_account_utils") {
+  output_extension = "so"
+
+  sanitize = {
+    integer_overflow = true
+    cfi = true
+    debug = false
+    cfi_cross_dso = true
+    boundary_sanitize = true
+    ubsan = true
+  }
+
+  sources = [ "src/os_account_utils.cpp" ]
+  include_dirs = [
+    "include",
+    "${common_path}/log/",
+  ]
+
+  defines = [
+    "ACCOUNT_LOG_TAG = \"SetOsAccountId\"",
+    "LOG_DOMAIN = 0xD001B00",
+  ]
+
+  deps = [
+    "${common_path}:libaccount_common",
+  ]
+
+  external_deps = [
+    "hilog:libhilog",
+  ]
+
+  cflags_cc = [
+    "-Wall",
+    "-Werror",
+  ]
+
+  subsystem_name = "account"
+  part_name = "os_account"
+}
