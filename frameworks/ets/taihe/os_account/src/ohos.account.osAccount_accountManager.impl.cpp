@@ -185,6 +185,17 @@ AccountSA::CreateOsAccountOptions ConvertToInnerOptions(optional_view<CreateOsAc
         innerOptions.allowedHapList = allowedList;
     }
 
+    if (opts.token.has_value()) {
+        auto tokenView = opts.token.value();
+        if (tokenView.size() > 0) {
+            innerOptions.token = std::vector<uint8_t>(tokenView.begin(), tokenView.end());
+        } else {
+            innerOptions.token = std::vector<uint8_t>{};
+        }
+    } else {
+        innerOptions.token = std::nullopt;
+    }
+
     return innerOptions;
 }
 
@@ -929,6 +940,26 @@ public:
         ErrCode errCode = AccountSA::OsAccountManager::RemoveOsAccount(localId);
         if (errCode != ERR_OK) {
             ACCOUNT_LOGE("RemoveOsAccountSync failed with errCode: %{public}d", errCode);
+            SetTaiheBusinessErrorFromNativeCode(errCode);
+        }
+    }
+
+    void RemoveOsAccountWithOptionSync(int32_t localId, RemoveOsAccountOptions options)
+    {
+        AccountSA::RemoveOsAccountOptions innerOptions;
+        if (options.token.has_value()) {
+            auto tokenView = options.token.value();
+            if (tokenView.size() > 0) {
+                innerOptions.token = std::vector<uint8_t>(tokenView.begin(), tokenView.end());
+            } else {
+                innerOptions.token = std::vector<uint8_t>{};
+            }
+        } else {
+            innerOptions.token = std::nullopt;
+        }
+        ErrCode errCode = AccountSA::OsAccountManager::RemoveOsAccount(localId, innerOptions);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("RemoveOsAccountWithOptionSync failed with errCode: %{public}d", errCode);
             SetTaiheBusinessErrorFromNativeCode(errCode);
         }
     }
