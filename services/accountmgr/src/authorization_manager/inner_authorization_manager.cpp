@@ -147,10 +147,11 @@ void InnerAuthorizationManager::AppDeathRecipient::OnRemoteDied(const wptr<IRemo
     for (auto it = g_callbackMap.begin(); it != g_callbackMap.end(); ++it) {
         if (object == it->second->AsObject()) {
             ACCOUNT_LOGI("remove remote.");
+            int32_t callingPid = it->first;
             it->second = nullptr;
             g_callbackMap.erase(it);
-            g_connectbackMap.erase(it->first);
-            g_requestRemoteObjectMap.erase(it->first);
+            g_connectbackMap.erase(callingPid);
+            g_requestRemoteObjectMap.erase(callingPid);
             break;
         }
     }
