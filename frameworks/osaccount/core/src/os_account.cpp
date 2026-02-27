@@ -482,6 +482,17 @@ ErrCode OsAccount::QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccou
     return ConvertToAccountErrCode(errCode);
 }
 
+ErrCode OsAccount::GetOsAccountLocalIds(std::vector<int32_t> &ids)
+{
+    auto proxy = GetOsAccountProxy();
+    if (proxy == nullptr) {
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+
+    auto errCode = proxy->GetOsAccountLocalIds(ids);
+    return ConvertToAccountErrCode(errCode);
+}
+
 ErrCode OsAccount::QueryCurrentOsAccount(OsAccountInfo &osAccountInfo)
 {
     auto proxy = GetOsAccountProxy();

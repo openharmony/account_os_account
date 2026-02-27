@@ -132,6 +132,10 @@ struct QueryCreateOAAsyncContext : public CommonAsyncContext {
     std::vector<OsAccountInfo> osAccountInfos;
 };
 
+struct GetOsAccountLocalIdsAsyncContext : public CommonAsyncContext {
+    std::vector<int32_t> osAccountIds;
+};
+
 struct QueryOAConstraintSrcTypeContext : public CommonAsyncContext {
     int32_t id = 0;
     std::string constraint;
@@ -334,6 +338,8 @@ napi_value GetOsAccountLocalIdFromProcess(napi_env env, napi_callback_info cbInf
 napi_value GetOsAccountLocalIdFromProcessInner(napi_env env, napi_callback_info cbInfo, bool throwErr);
 
 napi_value QueryAllCreatedOsAccounts(napi_env env, napi_callback_info cbInfo);
+
+napi_value GetOsAccountLocalIds(napi_env env, napi_callback_info cbInfo);
 
 napi_value GetActivatedOsAccountIds(napi_env env, napi_callback_info cbInfo);
 

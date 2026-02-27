@@ -137,4 +137,5 @@ interface OHOS.AccountSA.IOsAccount {
     void GetForegroundOsAccountDisplayId([in] int localId, [out] unsigned long displayId);
     void RemoveOsAccount([in] int id, [in] RemoveOsAccountOptions options);
     void SetOsAccountType([in] int id, [in] int typeValue, [in] SetOsAccountTypeOptions options);
+    void GetOsAccountLocalIds([out] int[] ids);
 }

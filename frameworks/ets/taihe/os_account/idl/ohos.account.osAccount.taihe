@@ -135,6 +135,9 @@ interface AccountManager {
     @gen_promise("queryAllCreatedOsAccounts")
     QueryAllCreatedOsAccountsSync(): Array<OsAccountInfo>;
 
+    @gen_promise("getOsAccountLocalIds")
+    GetOsAccountLocalIdsSync(): Array<i32>;
+
     @gen_promise("queryMaxLoggedInOsAccountNumber")
     QueryMaxLoggedInOsAccountNumberSync(): i32;
 

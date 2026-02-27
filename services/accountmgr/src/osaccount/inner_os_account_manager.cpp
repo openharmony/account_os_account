@@ -1980,6 +1980,23 @@ ErrCode IInnerOsAccountManager::QueryAllCreatedOsAccounts(std::vector<OsAccountI
 // LCOV_EXCL_STOP
 #endif
 
+ErrCode IInnerOsAccountManager::GetOsAccountLocalIds(std::vector<int32_t> &ids)
+{
+    std::vector<OsAccountInfo> osAccountInfos;
+    ErrCode errCode = QueryAllCreatedOsAccounts(osAccountInfos);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("QueryAllCreatedOsAccounts failed, errCode %{public}d.", errCode);
+        return errCode;
+    }
+    for (const auto &info : osAccountInfos) {
+        int32_t localId = info.GetLocalId();
+        if (localId >= Constants::START_USER_ID) {
+            ids.push_back(localId);
+        }
+    }
+    return ERR_OK;
+}
+
 ErrCode IInnerOsAccountManager::DealWithDeviceOwnerId(const bool isDeviceOwner, const int32_t localId)
 {
     ACCOUNT_LOGD("Enter.");

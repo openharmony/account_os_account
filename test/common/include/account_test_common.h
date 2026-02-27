@@ -25,6 +25,7 @@ const std::vector<std::string> ALL_ACCOUNT_PERMISSION_LIST {
     "ohos.permission.GET_DISTRIBUTED_ACCOUNTS",
     "ohos.permission.DISTRIBUTED_DATASYNC",
     "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS",
+    "ohos.permission.GET_LOCAL_ACCOUNT_IDENTIFIERS",
     "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION"
 };
 

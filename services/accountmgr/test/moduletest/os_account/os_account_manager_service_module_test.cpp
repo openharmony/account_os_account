@@ -2595,5 +2595,17 @@ HWTEST_F(OsAccountManagerServiceModuleTest, RemoveOsAccountTokenNotSupported001,
     EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
+/**
+ * @tc.name: GetOsAccountLocalIdsTest001
+ * @tc.desc: Test GetOsAccountLocalIds - query with created accounts
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, GetOsAccountLocalIdsTest001, TestSize.Level1)
+{
+    std::vector<int32_t> ids;
+    ErrCode result = osAccountManagerService_->GetOsAccountLocalIds(ids);
+    EXPECT_EQ(result, ERR_OK);
+}
 }  // namespace AccountSA
 }  // namespace OHOS
