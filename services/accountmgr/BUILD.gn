@@ -273,10 +273,15 @@ ohos_shared_library("accountmgr") {
     "hilog:libhilog",
     "init:libbegetutil",
     "ipc:ipc_single",
-    "openssl:libcrypto_shared",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+
+  if (os_account_distributed_feature) {
+    external_deps += [ "openssl:libcrypto_shared" ]
+  } else {
+    cflags += [ "-DDLOPEN_OPENSSL" ]
+  }
 
   if (os_account_enable_account_1) {
     cflags += [ "-DENABLE_U1_ACCOUNT" ]
