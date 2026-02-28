@@ -79,7 +79,7 @@ interface OHOS.AccountSA.IOsAccount {
     void SetOsAccountProfilePhoto([in] int id, [in] StringRawData stringRawData);
     void ActivateOsAccount([in] int id);
     void DeactivateOsAccount([in] int id);
-    void DeactivateAllOsAccounts();
+    void DeactivateAllOsAccounts([in] boolean isAnimationEnabled);
     void StartOsAccount([in] int id);
     void GetOsAccountLocalIdBySerialNumber([in] long serialNumber, [out] int id);
     void GetSerialNumberByOsAccountLocalId([in] int id, [out] long serialNumber);

@@ -80,7 +80,7 @@
         "OHOS::AccountSA::OsAccount::ActivateOsAccount(int, unsigned long)";
         "OHOS::AccountSA::OsAccount::ActivateOsAccount(int, unsigned long long)";
         "OHOS::AccountSA::OsAccount::DeactivateOsAccount(int)";
-        "OHOS::AccountSA::OsAccount::DeactivateAllOsAccounts()";
+        "OHOS::AccountSA::OsAccount::DeactivateAllOsAccounts(bool)";
         "OHOS::AccountSA::OsAccount::StartOsAccount(int)";
         "OHOS::AccountSA::OsAccount::GetOsAccountLocalIdBySerialNumber(long long, int&)";
         "OHOS::AccountSA::OsAccount::GetOsAccountLocalIdBySerialNumber(long, int&)";
@@ -188,7 +188,7 @@
         "OHOS::AccountSA::OsAccountManager::ActivateOsAccount(int, unsigned long)";
         "OHOS::AccountSA::OsAccountManager::ActivateOsAccount(int, unsigned long long)";
         "OHOS::AccountSA::OsAccountManager::DeactivateOsAccount(int)";
-        "OHOS::AccountSA::OsAccountManager::DeactivateAllOsAccounts()";
+        "OHOS::AccountSA::OsAccountManager::DeactivateAllOsAccounts(bool)";
         "OHOS::AccountSA::OsAccountManager::QueryActiveOsAccountIds(std::__h::vector<int, std::__h::allocator<int>>&)";
         "OHOS::AccountSA::OsAccountManager::GetUnlockedOsAccountLocalIds(std::__h::vector<int, std::__h::allocator<int>>&)";
         "OHOS::AccountSA::OsAccountManager::SetGlobalOsAccountConstraints(std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>> const&, bool, int, bool)";
