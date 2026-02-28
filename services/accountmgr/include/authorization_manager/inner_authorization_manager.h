@@ -116,8 +116,8 @@ public:
      * @param callingUid The UID of the calling process
      * @return ERR_OK on success, error code on failure
      */
-    ErrCode UpdateAuthInfo(const std::vector<uint8_t> &iamToken, int32_t accountId, int32_t callingUid);
-
+    ErrCode UpdateAuthInfo(const std::vector<uint8_t> &iamToken, int32_t accountId, int32_t callingPid);
+    bool HasExtensionConnect();
     /**
      * @brief Applies TA authorization and updates privilege cache.
      *

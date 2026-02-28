@@ -101,7 +101,6 @@ public:
 enum AuthorizationResultCode : int32_t {
     /// Authorization succeeded
     AUTHORIZATION_SUCCESS = 0,
-    AUTHORIZATION_RESULT_FROM_CACHE = 1,
     /// Authorization was canceled by user
     AUTHORIZATION_CANCELED = 12300301,
     /// Interaction is not allowed for this authorization
@@ -109,7 +108,7 @@ enum AuthorizationResultCode : int32_t {
     /// Authorization was denied
     AUTHORIZATION_DENIED = 12300303,
     /// System is busy, cannot process authorization
-    AUTHORIZATION_SYSTEM_BUSY = 12300304,
+    AUTHORIZATION_SERVICE_BUSY = 12300304,
 };
 
 /**
@@ -142,6 +141,11 @@ public:
         return *this;
     }
 
+    ~AuthorizationResult()
+    {
+        std::fill(token.begin(), token.end(), 0);
+    }
+
     /// The privilege that was authorized
     std::string privilege = "";
     /// The result code of the authorization
@@ -149,7 +153,7 @@ public:
     /// Whether the authorization result was reused from a previous successful authorization
     bool isReused = true;
     /// Validity period of the authorization token (in seconds)
-    int32_t validityPeriod;
+    int32_t validityPeriod = 0;
     /// The authorization token
     std::vector<uint8_t> token;
 
@@ -178,18 +182,11 @@ public:
     bool isReuseNeeded = true;
     /// Whether user interaction is allowed
     bool isInteractionAllowed = true;
-
+    bool isContextValid = false;
     bool ReadFromParcel(Parcel &parcel);
     bool Marshalling(Parcel &parcel) const override;
     static AcquireAuthorizationOptions *Unmarshalling(Parcel &parcel);
 };
-
-/**
- * @brief check and get authorization result code for errCode.
- *
- * @param errCode
-*/
-bool CheckAndGetAuthorizationResultCode(int32_t errCode, AuthorizationResultCode &resultCode);
 
 /**
  * @brief Converts a uint8 vector to a hex string.

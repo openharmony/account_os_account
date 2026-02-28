@@ -52,24 +52,24 @@ public:
         AuthorizationResult &authorizationResult);
 
     /**
-     * @brief Gets connection information for a calling UID.
+     * @brief Gets connection information for a calling PID.
      *
-     * @param callingUid The UID of the calling process
+     * @param callingPid The PID of the calling process
      * @param info Output connection ability information
      */
-    void GetConnectInfo(int32_t callingUid, ConnectAbilityInfo &info);
+    bool GetConnectInfo(int32_t callingPid, ConnectAbilityInfo &info);
 
     /**
      * @brief Saves authorization result after successful authorization.
      *
      * @param errCode The result code from authorization service
-     * @param iamToken The IAM token
+     * @param taToken The ta token
      * @param accountId The account ID
      * @param remainValidityTime Remaining validity time of the token
      * @return ERR_OK on success, error code on failure
      */
     ErrCode SaveAuthorizationResult(ErrCode errCode, AuthorizationResultCode &resultCode,
-        const std::vector<uint8_t> &iamToken, int32_t remainValidityTime);
+        const std::vector<uint8_t> &taToken, int32_t remainValidityTime);
 
     /**
      * @brief Checks if there is an active service connection.
@@ -85,19 +85,19 @@ public:
     /**
      * @brief Registers the authorization application remote object.
      *
-     * @param callingUid The UID of the calling process
+     * @param callingPid The PID of the calling process
      * @param authAppRemoteObj The remote object to register
      * @return ERR_OK on success, error code on failure
      */
-    ErrCode RegisterAuthAppRemoteObject(int32_t callingUid, const sptr<IRemoteObject> &authAppRemoteObj);
+    ErrCode RegisterAuthAppRemoteObject(int32_t callingPid, const sptr<IRemoteObject> &authAppRemoteObj);
 
     /**
      * @brief Unregisters the authorization application remote object.
      *
-     * @param callingUid The UID of the calling process
+     * @param callingPid The PID of the calling process
      * @return ERR_OK on success, error code on failure
      */
-    ErrCode UnRegisterAuthAppRemoteObject(int32_t callingUid);
+    ErrCode UnRegisterAuthAppRemoteObject(int32_t callingPid);
 
     /**
      * @brief Callback handler for authorization result.
@@ -244,6 +244,7 @@ private:
      * @return ERR_OK on success, error code on failure
      */
     ErrCode CreateCallbackDeathRecipient(const sptr<IAuthorizationCallback> &callback);
+    void OnAuthAppRemoteDeath(const wptr<IRemoteObject> &remote);
 
     /**
      * @brief Creates ability connection stub and connects to service extension.
@@ -270,8 +271,9 @@ private:
     sptr<SessionAbilityConnectionStub> abilityConnectionStub_;
     /// Remote object of the authorization app
     sptr<IRemoteObject> authAppRemoteObj_;
-    /// UID of the authorization app
-    int32_t authAppUid_ = -1;
+    sptr<IRemoteObject::DeathRecipient> authDeathRecipient_;
+    /// PID of the authorization app
+    int32_t authAppPid_ = -1;
     /// The local ID for the connection
     int32_t localId_ = -1;
     /// Flag indicating whether authorization callback is registered

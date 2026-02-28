@@ -26,11 +26,9 @@ namespace AccountSA {
  * @param callback The inner authorization callback
  * @param afterOnResult The cleanup function to call after OnResult completes
  */
-AuthorizationCallbackService::AuthorizationCallbackService(const std::shared_ptr<AuthorizationCallback> &callback,
-    std::function<void()> afterOnResult)
+AuthorizationCallbackService::AuthorizationCallbackService(const std::shared_ptr<AuthorizationCallback> &callback)
 {
     innerCallback_ = callback;
-    afterOnResult_ = afterOnResult;
 }
 
 AuthorizationCallbackService::~AuthorizationCallbackService()
@@ -49,9 +47,6 @@ ErrCode AuthorizationCallbackService::OnResult(int32_t resultCode, const Account
     if (innerCallback_ == nullptr) {
         ACCOUNT_LOGE("Inner callback is nullptr");
         // Still call afterOnResult_ for cleanup even if callback is null
-        if (afterOnResult_ != nullptr) {
-            afterOnResult_();
-        }
         return ERR_OK;
     }
 
@@ -60,9 +55,6 @@ ErrCode AuthorizationCallbackService::OnResult(int32_t resultCode, const Account
         ACCOUNT_LOGE("Inner callback OnResult failed, errCode:%{public}d", ret);
     }
 
-    if (afterOnResult_ != nullptr) {
-        afterOnResult_();
-    }
     return ERR_OK;
 }
 

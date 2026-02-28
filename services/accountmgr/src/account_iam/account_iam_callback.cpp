@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -81,12 +81,6 @@ AuthCallback::AuthCallback(
     if (authType == AuthType::PIN) {
         callerTokenId_ = IPCSkeleton::GetCallingTokenID();
     }
-    if (static_cast<int32_t>(authIntent) == AUTHORIZATION_INTENT_NUM) {
-        authIntent_ = AuthIntent::DEFAULT;
-        callingUid_ = IPCSkeleton::GetCallingUid();
-        callingPid_ = IPCSkeleton::GetCallingPid();
-        isFromAuth_ = true;
-    }
 }
 
 AuthCallback::AuthCallback(uint32_t userId, AuthType authType, AuthIntent authIntent,
@@ -97,12 +91,6 @@ AuthCallback::AuthCallback(uint32_t userId, AuthType authType, AuthIntent authIn
     // save caller tokenId for pin re-enroll
     if (authType == AuthType::PIN) {
         callerTokenId_ = IPCSkeleton::GetCallingTokenID();
-    }
-    if (static_cast<int32_t>(authIntent) == AUTHORIZATION_INTENT_NUM) {
-        authIntent_ = AuthIntent::DEFAULT;
-        callingUid_ = IPCSkeleton::GetCallingUid();
-        callingPid_ = IPCSkeleton::GetCallingPid();
-        isFromAuth_ = true;
     }
 }
 
@@ -380,13 +368,6 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         ACCOUNT_LOGE("innerCallback_ is nullptr");
         return;
     }
-#ifdef SUPPORT_AUTHORIZATION
-    if (isFromAuth_ && (result == ERR_OK || result == NO_CRED_ERRCODE)) {
-        std::vector<uint8_t> token;
-        extraInfo.GetUint8ArrayValue(Attributes::ATTR_SIGNATURE, token);
-        InnerAuthorizationManager::GetInstance().UpdateAuthInfo(token, authedAccountId, callingUid_);
-    }
-#endif // SUPPORT_AUTHORIZATION
     sptr<IRemoteObject> remoteObject = innerCallback_->AsObject();
     if ((deathRecipient_ != nullptr) && (remoteObject != nullptr)) {
         remoteObject->RemoveDeathRecipient(deathRecipient_);
@@ -424,6 +405,46 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
     (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsLoggedIn(authedAccountId, true);
     AccountInfoReport::ReportSecurityInfo("", authedAccountId, ReportEvent::EVENT_LOGIN, result);
 }
+
+#ifdef SUPPORT_AUTHORIZATION
+AuthorizationAuthCallback::AuthorizationAuthCallback(
+    uint32_t userId, AuthType authType, AuthIntent authIntent, const sptr<IIDMCallback> &callback)
+    : AuthCallback(userId, authType, authIntent, callback)
+{
+    // save caller tokenId for pin re-enroll
+    if (authType == AuthType::PIN) {
+        callerTokenId_ = IPCSkeleton::GetCallingTokenID();
+    }
+    authIntent_ = AuthIntent::DEFAULT;
+    callingUid_ = IPCSkeleton::GetCallingUid();
+    callingPid_ = IPCSkeleton::GetCallingPid();
+}
+
+void AuthorizationAuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
+{
+    int32_t authedAccountId = 0;
+    if (!extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_USER_ID, authedAccountId)) {
+        ACCOUNT_LOGE("Get account id from auth result failed");
+        authedAccountId = static_cast<int32_t>(userId_);
+    }
+    ACCOUNT_LOGW("Auth ret: type=%{public}d, ret=%{public}d, id=%{public}d", authType_, result, authedAccountId);
+    if (innerCallback_ == nullptr) {
+        ACCOUNT_LOGE("innerCallback_ is nullptr");
+        return;
+    }
+    if (result == ERR_OK || result == NO_CRED_ERRCODE) {
+        std::vector<uint8_t> token;
+        extraInfo.GetUint8ArrayValue(Attributes::ATTR_SIGNATURE, token);
+        ErrCode errCode = InnerAuthorizationManager::GetInstance().UpdateAuthInfo(token, authedAccountId, callingPid_);
+        if (errCode != ERR_OK) {
+            innerCallback_->OnResult(errCode, extraInfo.Serialize());
+            return;
+        }
+    }
+    innerCallback_->OnResult(result, extraInfo.Serialize());
+    return;
+}
+#endif // SUPPORT_AUTHORIZATION
 
 void AuthCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
 {
