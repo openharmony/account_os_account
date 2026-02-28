@@ -14,10 +14,12 @@
  */
 
 #include "authorization_callback_service.h"
+#include "admin_authorization_callback_service.h"
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "authorization_callback.h"
 #include "authorization_callback_stub.h"
+#include "admin_authorization_callback_stub.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -76,6 +78,27 @@ ErrCode AuthorizationCallbackService::OnConnectAbility(const AccountSA::ConnectA
     ErrCode ret = innerCallback_->OnConnectAbility(info, callback);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("Inner callback OnConnectAbility failed, errCode:%{public}d", ret);
+    }
+    return ERR_OK;
+}
+
+AdminAuthorizationCallbackService::AdminAuthorizationCallbackService(
+    const std::shared_ptr<AdminAuthorizationCallback> &callback)
+{
+    innerCallback_ = callback;
+}
+
+ErrCode AdminAuthorizationCallbackService::OnResult(const AdminAuthorizationResult &result)
+{
+    ACCOUNT_LOGI("AdminAuthorizationCallbackService OnResult resultCode:%{public}d", result.resultCode);
+    if (innerCallback_ == nullptr) {
+        ACCOUNT_LOGE("Inner callback is nullptr");
+        return ERR_OK;
+    }
+
+    ErrCode ret = innerCallback_->OnResult(result);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Inner callback OnResult failed, errCode:%{public}d", ret);
     }
     return ERR_OK;
 }

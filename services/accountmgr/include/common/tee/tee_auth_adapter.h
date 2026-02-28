@@ -86,6 +86,7 @@ typedef struct ApplyUserTokenParam {
     int32_t grantUserId;
     uint8_t authToken[AUTH_TOKEN_LEN];
     size_t authTokenSize;
+    uint8_t challenge[CHALLENGE_LEN];
     ~ApplyUserTokenParam();
 } __attribute__((__packed__)) ApplyUserTokenParam;
 
