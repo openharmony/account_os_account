@@ -26,17 +26,23 @@
 
 #include "account_error_no.h"
 #include "account_hisysevent_adapter.h"
+#include "account_iam_info.h"
 #include "account_log_wrapper.h"
 #include "authorization_common.h"
 #include "bundle_manager_adapter.h"
-#include "iauthorization_callback.h"
+#include "iadmin_authorization_callback.h"
 #include "iinner_os_account_manager.h"
+#include "inner_account_iam_manager.h"
 #include "ipc_skeleton.h"
 #include "os_account_info.h"
 #include "privilege_cache_manager.h"
 #include "privilege_hisysevent_utils.h"
 #include "privileges_map.h"
 #include "service_extension_connect.h"
+#include "singleton.h"
+#include "tee_auth_adapter.h"
+#include "user_auth_client.h"
+#include "token_setproc.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -46,6 +52,7 @@ static std::map<int32_t, sptr<IAuthorizationCallback>> g_callbackMap;
 static std::map<int32_t, sptr<IRemoteObject>> g_requestRemoteObjectMap;
 static std::map<int32_t, std::shared_ptr<ConnectAbilityCallback>> g_connectbackMap;
 static std::map<int32_t, int32_t> g_pidToUidMap;
+static const std::int32_t GRANT_VALIDITY_PERIOD = 300;
 }
 
 ConnectAbilityCallback::ConnectAbilityCallback(ConnectAbilityInfo &info,
@@ -462,6 +469,204 @@ ErrCode InnerAuthorizationManager::VerifyToken(const std::vector<uint8_t> &token
     iamToken = std::vector<uint8_t>(iamTokenData, iamTokenData + sizeof(iamTokenData));
     ACCOUNT_LOGI("VerifyToken successed, privilege: %{public}s, pid: %{public}d", privilege.c_str(), pid);
     return ERR_OK;
+}
+
+ErrCode InnerAuthorizationManager::AcquireAdminAuthorization(int32_t accountId,
+    const std::vector<uint8_t> &challenge, const sptr<IAdminAuthorizationCallback> &callback)
+{
+    ACCOUNT_LOGI("AcquireAdminAuthorization accountId: %{public}d", accountId);
+
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("Callback is nullptr");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    ErrCode errCode = CallUserIAMForAuthentication(accountId, challenge, callback);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to call UserIAM for authentication, errCode: %{public}d", errCode);
+        return errCode;
+    }
+
+    return ERR_OK;
+}
+
+void InnerAuthorizationManager::CopyAuthParam(const AuthParam &authParam, UserIam::UserAuth::AuthParam &iamAuthParam)
+{
+    iamAuthParam.userId = authParam.userId;
+    iamAuthParam.challenge = authParam.challenge;
+    iamAuthParam.authType = authParam.authType;
+    iamAuthParam.authTrustLevel = authParam.authTrustLevel;
+    if (static_cast<int32_t>(authParam.authIntent) == AUTHORIZATION_INTENT_NUM) {
+        iamAuthParam.authIntent = UserIam::UserAuth::AuthIntent::DEFAULT;
+    } else {
+        iamAuthParam.authIntent = static_cast<UserIam::UserAuth::AuthIntent>(authParam.authIntent);
+    }
+    if (authParam.remoteAuthParam != std::nullopt) {
+        iamAuthParam.remoteAuthParam = UserIam::UserAuth::RemoteAuthParam();
+        if (authParam.remoteAuthParam.value().verifierNetworkId != std::nullopt) {
+            iamAuthParam.remoteAuthParam.value().verifierNetworkId =
+                authParam.remoteAuthParam.value().verifierNetworkId.value();
+        }
+        if (authParam.remoteAuthParam.value().collectorNetworkId != std::nullopt) {
+            iamAuthParam.remoteAuthParam.value().collectorNetworkId =
+                authParam.remoteAuthParam.value().collectorNetworkId.value();
+        }
+        if (authParam.remoteAuthParam.value().collectorTokenId != std::nullopt) {
+            iamAuthParam.remoteAuthParam.value().collectorTokenId =
+                authParam.remoteAuthParam.value().collectorTokenId.value();
+        }
+    }
+}
+
+ErrCode InnerAuthorizationManager::CallUserIAMForAuthentication(int32_t accountId,
+    const std::vector<uint8_t> &challenge, const sptr<IAdminAuthorizationCallback> &callback)
+{
+    uint64_t contextId = 0;
+    ACCOUNT_LOGI("CallUserIAMForAuthentication accountId: %{public}d", accountId);
+
+    AuthParam authParam;
+    authParam.authType = AuthType::PIN;
+    authParam.authIntent = AuthIntent::DEFAULT;
+    authParam.authTrustLevel = AuthTrustLevel::ATL4;
+    authParam.userId = accountId;
+    authParam.challenge = challenge;
+    
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("callback is nullptr");
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+    }
+    OsAccountInfo osAccountInfo;
+    if ((authParam.remoteAuthParam == std::nullopt) &&
+        (IInnerOsAccountManager::GetInstance().GetRealOsAccountInfoById(authParam.userId,
+            osAccountInfo)) != ERR_OK) {
+        ACCOUNT_LOGE("Account does not exist");
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
+    bool isDeactivating = false;
+    IInnerOsAccountManager::GetInstance().IsOsAccountDeactivating(authParam.userId, isDeactivating);
+    if (isDeactivating) {
+        ACCOUNT_LOGE("The target account is deactivating, accountId:%{public}d", authParam.userId);
+        return ERR_IAM_BUSY;
+    }
+#ifdef SUPPORT_LOCK_OS_ACCOUNT
+    bool isLocking = false;
+    IInnerOsAccountManager::GetInstance().IsOsAccountLocking(authParam.userId, isLocking);
+    if (isLocking) {
+        ACCOUNT_LOGE("The target account is isLocking, accountId:%{public}d", authParam.userId);
+        return ERR_IAM_BUSY;
+    }
+#endif
+    sptr<AuthCallbackDeathRecipient> deathRecipient = new (std::nothrow) AuthCallbackDeathRecipient();
+    if ((deathRecipient == nullptr) || (!callback->AsObject()->AddDeathRecipient(deathRecipient))) {
+        ACCOUNT_LOGE("failed to add death recipient for auth callback");
+        return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
+    }
+
+    auto callbackWrapper = std::make_shared<AdminAuthCallback>(challenge, callback, accountId);
+    callbackWrapper->SetDeathRecipient(deathRecipient);
+
+    UserIam::UserAuth::AuthParam iamAuthParam;
+    CopyAuthParam(authParam, iamAuthParam);
+    ACCOUNT_LOGI("Start to auth user.");
+    SetFirstCallerTokenID(IPCSkeleton::GetCallingTokenID());
+    contextId = UserIam::UserAuth::UserAuthClient::GetInstance().BeginAuthentication(iamAuthParam, callbackWrapper);
+    deathRecipient->SetContextId(contextId);
+    return ERR_OK;
+}
+
+ErrCode AdminAuthCallback::CallTAForToken(int32_t accountId,
+    const std::vector<uint8_t> &challenge, const std::vector<uint8_t> &iamToken, std::vector<uint8_t> &token)
+{
+    ACCOUNT_LOGI("CallTAForToken accountId: %{public}d", accountId);
+    token.clear();
+
+    OsAccountTeeAdapter teeAdapter;
+    ApplyUserTokenParam param;
+    param.pid = static_cast<uint32_t>(IPCSkeleton::GetCallingPid());
+    param.grantUserId = accountId;
+    param.permissionSize = 0;
+    param.grantValidityPeriod = GRANT_VALIDITY_PERIOD;
+    errno_t err = memcpy_s(param.challenge, sizeof(param.challenge), challenge.data(),
+        challenge.size());
+    if (err != 0) {
+        ACCOUNT_LOGE("Failed to copy challenge, err:%{public}d", err);
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    if (iamToken.size() != 0) {
+        err = memcpy_s(param.authToken, sizeof(param.authToken), iamToken.data(), iamToken.size());
+        if (err != 0) {
+            ACCOUNT_LOGE("Failed to copy iamToken, err:%{public}d", err);
+            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+        }
+    }
+    param.authTokenSize = iamToken.size();
+
+    ApplyUserTokenResult tokenResult;
+    ErrCode errCode = teeAdapter.TaAcquireAuthorization(param, tokenResult);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to call TA for token, errCode:%{public}d", errCode);
+        return errCode;
+    }
+
+    token = std::vector<uint8_t>(tokenResult.userToken, tokenResult.userToken + tokenResult.userTokenSize);
+    ACCOUNT_LOGI("CallTAForToken success, token size:%{public}zu", token.size());
+
+    return ERR_OK;
+}
+
+AdminAuthCallback::AdminAuthCallback(
+    const std::vector<uint8_t> &challenge, const sptr<IAdminAuthorizationCallback> &callback, int32_t userId)
+    : userId_(userId), innerCallback_(callback), challenge_(challenge)
+{
+}
+
+void AdminAuthCallback::SetDeathRecipient(const sptr<AuthCallbackDeathRecipient> &deathRecipient)
+{
+    deathRecipient_ = deathRecipient;
+}
+
+void AdminAuthCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
+{
+    return;
+}
+
+void AdminAuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
+{
+    AdminAuthorizationResult adminAuthResult;
+    adminAuthResult.resultCode = result;
+    adminAuthResult.token = {};
+
+    if (result != ERR_OK && result != ERR_IAM_NOT_ENROLLED) {
+        innerCallback_->OnResult(adminAuthResult);
+        ACCOUNT_LOGE("Authentication failed, errCode: %{public}d", result);
+        return;
+    }
+
+    std::vector<uint8_t> iamToken;
+    int32_t accountId;
+    if (result == ERR_OK) {
+        extraInfo.GetUint8ArrayValue(Attributes::ATTR_SIGNATURE, iamToken);
+        extraInfo.GetInt32Value(Attributes::ATTR_USER_ID, accountId);
+        if (accountId != userId_) {
+            adminAuthResult.resultCode = ERR_AUTHORIZATION_INVALID_ADMIN_ACCOUNT_OR_PASSWORD;
+            innerCallback_->OnResult(adminAuthResult);
+            ACCOUNT_LOGE("Authentication failed, errCode: %{public}d", result);
+            return;
+        }
+    } else {
+        accountId = userId_;
+    }
+    std::vector<uint8_t> taToken;
+    ErrCode errCode = AdminAuthCallback::CallTAForToken(accountId, challenge_, iamToken, taToken);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to call TA for token, errCode: %{public}d", errCode);
+        adminAuthResult.resultCode = errCode;
+        innerCallback_->OnResult(adminAuthResult);
+        return;
+    }
+    adminAuthResult.resultCode = ERR_OK;
+    adminAuthResult.token = taToken;
+    innerCallback_->OnResult(adminAuthResult);
 }
 }
 }

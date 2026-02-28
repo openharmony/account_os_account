@@ -203,6 +203,71 @@ void TransVectorU8ToString(const std::vector<uint8_t> &vec, std::string &str);
  * @param str Input hex string
  */
 void TransStringToVectorU8(std::vector<uint8_t> &vec, const std::string &str);
+
+/**
+ * @brief Result of an admin authorization request.
+ *
+ * This class contains the result of an admin authorization attempt,
+ * including the token and result code.
+ */
+struct AdminAuthorizationResult : public Parcelable {
+    int32_t resultCode = 0;
+    std::vector<uint8_t> token;
+
+    bool ReadFromParcel(Parcel &parcel)
+    {
+        if (!parcel.ReadInt32(resultCode)) {
+            return false;
+        }
+        if (!parcel.ReadUInt8Vector(&token)) {
+            return false;
+        }
+        return true;
+    }
+
+    bool Marshalling(Parcel &parcel) const override
+    {
+        if (!parcel.WriteInt32(resultCode)) {
+            return false;
+        }
+        if (!parcel.WriteUInt8Vector(token)) {
+            return false;
+        }
+        return true;
+    }
+
+    static AdminAuthorizationResult *Unmarshalling(Parcel &parcel)
+    {
+        AdminAuthorizationResult *info = new (std::nothrow) AdminAuthorizationResult();
+        if ((info != nullptr) && (!info->ReadFromParcel(parcel))) {
+            delete info;
+            info = nullptr;
+        }
+        return info;
+    }
+};
+
+/**
+ * @brief Callback interface for admin authorization events.
+ *
+ * This class defines the callback interface that clients must implement
+ * to receive admin authorization results. Business processes need to
+ * implement this interface to obtain authorization results.
+ */
+class AdminAuthorizationCallback {
+public:
+    /**
+     * @brief Called when admin authorization result is available.
+     *
+     * This method is called when the admin authorization flow completes,
+     * whether successful or failed. On success, result.token contains the
+     * authorization token; on failure, result.resultCode contains the error code.
+     *
+     * @param result The admin authorization result containing token and status
+     * @return ERR_OK if callback is successfully processed
+     */
+    virtual int32_t OnResult(const AdminAuthorizationResult &result) = 0;
+};
 }
 }
 #endif // AUTHORIZATION_INNERKITS_AUTHORIZATION_INCLUDE_AUTHORIZATION_COMMON_H

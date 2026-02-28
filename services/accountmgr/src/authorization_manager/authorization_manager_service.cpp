@@ -268,6 +268,61 @@ ErrCode AuthorizationManagerService::CheckAuthorization(
     return CheckAuth(privilege, pid, isAuthorized);
 }
 
+ErrCode AuthorizationManagerService::ValidateAdminAuthParams(const std::string &adminName,
+    const sptr<IRemoteObject> &callback, sptr<IAdminAuthorizationCallback> &callbackProxy)
+{
+    if (adminName.empty()) {
+        ACCOUNT_LOGE("AdminName is empty");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("Callback is nullptr");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    callbackProxy = iface_cast<IAdminAuthorizationCallback>(callback);
+    if (callbackProxy == nullptr) {
+        ACCOUNT_LOGE("Failed to get IAdminAuthorizationCallback proxy");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    return ERR_OK;
+}
+
+ErrCode AuthorizationManagerService::VerifyAdminAuthPermission()
+{
+    ErrCode result = AccountPermissionManager::VerifyPermission(PERMISSION_ACCESS_USER_AUTH_INTERNAL);
+    if (result != ERR_OK) {
+        result = AccountPermissionManager::VerifyPermission(PERMISSION_ACQUIRE_AUTHORIZATION);
+        if (result != ERR_OK) {
+            ACCOUNT_LOGE("Failed to verify permission, result: %{public}d", result);
+            return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+        }
+    }
+    return ERR_OK;
+}
+
+ErrCode AuthorizationManagerService::FindAccountIdByName(const std::string &adminName, int32_t &accountId)
+{
+    std::vector<OsAccountInfo> osAccountList;
+    ErrCode errCode = IInnerOsAccountManager::GetInstance().QueryAllCreatedOsAccounts(osAccountList);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to get os account list, errCode: %{public}d", errCode);
+        return errCode;
+    }
+
+    accountId = -1;
+    for (const auto &accountInfo : osAccountList) {
+        if (accountInfo.GetLocalName() == adminName) {
+            accountId = accountInfo.GetLocalId();
+            break;
+        }
+    }
+
+    return ERR_OK;
+}
+
 ErrCode AuthorizationManagerService::CheckAuthorizationToken(const std::vector<uint8_t> &token,
     const std::string &privilege, int32_t pid, CheckAuthorizationResult &result)
 {
@@ -301,6 +356,50 @@ ErrCode AuthorizationManagerService::CheckAuthorizationToken(const std::vector<u
     ACCOUNT_LOGI("Check authorization successed, privilege: %{public}s, pid: %{public}d",
         privilege.c_str(), pid);
     return ERR_OK;
+}
+
+ErrCode AuthorizationManagerService::AcquireAdminAuthorization(const std::string &adminName,
+    const std::vector<uint8_t> &challenge, const sptr<IRemoteObject> &callback)
+{
+#ifdef SUPPORT_AUTHORIZATION
+    sptr<IAdminAuthorizationCallback> callbackProxy;
+    ErrCode errCode = ValidateAdminAuthParams(adminName, callback, callbackProxy);
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
+
+    errCode = VerifyAdminAuthPermission();
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
+
+    int32_t targetAccountId = -1;
+    errCode = FindAccountIdByName(adminName, targetAccountId);
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
+
+    if (targetAccountId == -1) {
+        ACCOUNT_LOGE("Admin account not found, adminName: %{public}s", adminName.c_str());
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    auto [verifyErrCode, resultCode] = InnerAuthorizationManager::GetInstance().VerifyAdminAccount(targetAccountId);
+    if (verifyErrCode != ERR_OK || resultCode != AuthorizationResultCode::AUTHORIZATION_SUCCESS) {
+        return ERR_AUTHORIZATION_INVALID_ADMIN_ACCOUNT_OR_PASSWORD;
+    }
+
+    errCode = InnerAuthorizationManager::GetInstance().AcquireAdminAuthorization(
+        targetAccountId, challenge, callbackProxy);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to acquire admin authorization, errCode: %{public}d", errCode);
+        return errCode;
+    }
+
+    return ERR_OK;
+#else
+    return ERR_ACCOUNT_COMMON_NOT_SUPPORT;
+#endif // SUPPORT_AUTHORIZATION
 }
 }
 }
