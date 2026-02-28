@@ -19,6 +19,10 @@
         {
             "name":"ohos.privilege.reset_device",
             "description":"Reset device"
+        },
+        {
+            "name":"ohos.privilege.set_secure_shield_mode",
+            "description":"Set Secure Shield Mode"
         }
     ]
 }
