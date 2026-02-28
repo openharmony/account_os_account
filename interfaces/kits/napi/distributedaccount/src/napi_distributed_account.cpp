@@ -362,7 +362,7 @@ napi_value NapiDistributedAccount::QueryOhosAccountInfo(napi_env env, napi_callb
         QueryOhosAccountInfoExecuteCB,
         QueryOhosAccountInfoCompletedCB,
         reinterpret_cast<void *>(asyncContext), &asyncContext->work));
-    NAPI_CALL(env, napi_queue_async_work_with_qos(env, asyncContext->work, napi_qos_default));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, asyncContext->work, napi_qos_user_initiated));
     contextPtr.release();
     return result;
 }
@@ -543,7 +543,7 @@ napi_value NapiDistributedAccount::GetOsAccountDistributedInfoByLocalId(napi_env
         QueryOhosAccountInfoExecuteCB,
         QueryOhosAccountInfoCompletedCB,
         reinterpret_cast<void *>(asyncContext), &asyncContext->work));
-    NAPI_CALL(env, napi_queue_async_work_with_qos(env, asyncContext->work, napi_qos_default));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, asyncContext->work, napi_qos_user_initiated));
     contextPtr.release();
     return result;
 }

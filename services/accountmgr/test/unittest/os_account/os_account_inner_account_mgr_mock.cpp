@@ -600,7 +600,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, CreateOsAccountWithFullInfo002, TestSize.
 {
     OsAccountInfo osAccountInfo;
     CreateOsAccountOptions options;
-    options.allowedHapList = {};
+    options.allowedHapList = std::make_optional<std::vector<std::string>>({});
     EXPECT_EQ(ERR_OK, innerMgrService_->CreateOsAccount("CreateOsAccountWithFullInfo002",
         "CreateOsAccountWithFullInfo002", OsAccountType::NORMAL, osAccountInfo, options));
 

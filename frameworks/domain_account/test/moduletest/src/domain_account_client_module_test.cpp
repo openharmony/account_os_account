@@ -461,7 +461,10 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_0
 HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_004, TestSize.Level0)
 {
     OsAccountInfo accountInfo;
-    ErrCode errCode = OsAccountManager::CreateOsAccount(STRING_NAME, OsAccountType::NORMAL, accountInfo);
+    CreateOsAccountOptions options;
+    options.allowedHapList = std::make_optional<std::vector<std::string>>({});
+    ErrCode errCode = OsAccountManager::CreateOsAccount(STRING_NAME, STRING_NAME, OsAccountType::NORMAL, options,
+        accountInfo);
     ASSERT_EQ(errCode, ERR_OK);
     auto testCallback = std::make_shared<TestDomainAuthCallback>(nullptr);
     ASSERT_NE(testCallback, nullptr);
