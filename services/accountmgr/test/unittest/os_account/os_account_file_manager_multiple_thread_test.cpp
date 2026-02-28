@@ -28,6 +28,7 @@ using namespace testing;
 using namespace testing::mt;
 using namespace testing::ext;
 using namespace OHOS::AccountSA;
+using namespace OHOS::AccountSA::Constants;
 using namespace OHOS;
 using namespace AccountSA;
 namespace {
@@ -55,6 +56,11 @@ public:
 
 void OsAccountFileManagerMultipleThreadTest::SetUpTestCase(void)
 {
+#ifdef ACCOUNT_TEST
+    AccountFileOperator osAccountFileOperator;
+    osAccountFileOperator.DeleteDirOrFile(USER_INFO_BASE);
+    GTEST_LOG_(INFO) << "delete account test path " << USER_INFO_BASE;
+#endif  // ACCOUNT_TEST
     ASSERT_NE(g_controlManager, nullptr);
     g_controlManager->Init();
     g_controlManager->GetAllowCreateId(g_id);
@@ -74,6 +80,11 @@ void OsAccountFileManagerMultipleThreadTest::TearDownTestCase(void)
     ASSERT_EQ(g_controlManager->UpdateGlobalOAConstraints(std::to_string(ID), CONSTRAINTS, false), ERR_OK);
     ASSERT_EQ(g_controlManager->UpdateSpecificOAConstraints(std::to_string(ID), std::to_string(ID), CONSTRAINTS, false),
         ERR_OK);
+#ifdef ACCOUNT_TEST
+    AccountFileOperator osAccountFileOperator;
+    osAccountFileOperator.DeleteDirOrFile(USER_INFO_BASE);
+    GTEST_LOG_(INFO) << "delete account test path " << USER_INFO_BASE;
+#endif  // ACCOUNT_TEST
 }
 
 void OsAccountFileManagerMultipleThreadTest::SetUp(void)

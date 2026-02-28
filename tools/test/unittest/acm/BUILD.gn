@@ -11,6 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("//base/account/os_account/services/accountmgr/os_account_service.gni")
 import("//build/test.gni")
 import("../../../../os_account.gni")
 
@@ -27,17 +28,42 @@ ohos_unittest("account_command_test") {
 
   module_out_path = module_output_path
 
-  include_dirs = []
-
   sources = [
     "${tools_path}/acm/src/account_command.cpp",
-    "account_command_create_test.cpp",
-    "account_command_delete_test.cpp",
-    "account_command_dump_test.cpp",
-    "account_command_set_test.cpp",
-    "account_command_switch_test.cpp",
     "account_command_test.cpp",
   ]
+
+  include_dirs = [
+    "${app_account_innerkits_native_path}/include",
+    "${os_account_dfx_path}/hidumper_adapter",
+    "${services_path}/accountmgr/include/bundle_manager_adapter",
+    "${services_path}/accountmgr/include/ability_manager_adapter",
+    "${services_path}/accountmgr/include",
+    "${os_account_dfx_path}/hitrace_adapter",
+    "${services_path}/accountmgr/include/account_iam",
+    "${services_path}/accountmgr/include/appaccount",
+    "${services_path}/accountmgr/include/domain_account",
+    "${services_path}/accountmgr/include/osaccount",
+    "${os_account_path}/interfaces/innerkits/ohosaccount/native/include/",
+    "${services_path}/accountmgr/test/unittest/os_account/mock",
+    "${services_path}/accountmgr/include/common/database/kvstore",
+    "${services_path}/accountmgr/include/common/database",
+  ]
+  sources += [
+    "${app_account_services_path}/test/mock/common/ability_manager_adapter_mock.cpp",
+    "${app_account_services_path}/test/mock/common/bundle_manager_adapter.cpp",
+    "${common_path}/log/src/account_log_wrapper.cpp",
+    "${innerkits_native_path}/src/account_info.cpp",
+    "${innerkits_native_path}/src/ohos_account_kits.cpp",
+    "${innerkits_native_path}/src/ohos_account_kits_impl.cpp",
+    "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
+    "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
+    "${services_path}/accountmgr/src/account_iam/account_iam_callback.cpp",
+    "${services_path}/accountmgr/src/account_iam/account_iam_service.cpp",
+    "${services_path}/accountmgr/src/account_iam/inner_account_iam_manager.cpp",
+    "${services_path}/accountmgr/src/appaccount/app_account_control_manager.cpp",
+  ]
+  sources += account_service_sources
 
   configs = [ "${tools_path}/acm:tools_acm_config" ]
 
@@ -48,20 +74,97 @@ ohos_unittest("account_command_test") {
 
   cflags += [ "-DENABLE_MULTIPLE_ACTIVE_ACCOUNTS" ]
 
-  deps = [
-    "${account_test_common}:account_test_common_source_set",
-    "${common_path}:libaccount_common",
-    "${os_account_innerkits_native_path}:os_account_innerkits",
+  configs += [
+    "${app_account_innerkits_native_path}:app_account_interface_public_config",
   ]
 
+  deps = [
+    "${account_iam_framework_path}:account_iam_stub",
+    "${account_iam_framework_path}:account_iam_innerkits",
+    "${account_test_common}:account_test_common_source_set",
+    "${app_account_innerkits_native_path}:app_account_authenticator_callback_proxy",
+    "${app_account_innerkits_native_path}:app_account_authenticator_callback_stub",
+    "${common_path}:libaccount_common",
+    "${domain_account_framework_path}:domain_account_innerkits",
+    "${os_account_innerkits_native_path}:os_account_proxy",
+    "${os_account_innerkits_native_path}:os_account_stub",
+    "${domain_account_framework_path}:domain_account_stub",
+    "${innerkits_native_path}:account_stub",
+    "${innerkits_native_path}:libaccountkits",
+    "${os_account_innerkits_native_path}:os_account_event_proxy",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${os_account_innerkits_native_path}:os_account_state_reply_callback_proxy",
+    "${os_account_innerkits_native_path}:os_account_state_reply_callback_stub",
+  ]
+
+  use_exceptions = true
+
   external_deps = [
-    "ability_runtime:tools_aa_source_set",
+    "ability_base:base",
+    "ability_base:want",
+    "ability_runtime:ability_manager",
+    "ability_runtime:app_manager",
+    "ability_runtime:wantagent_innerkits",
+    "access_token:libaccesstoken_sdk",
+    "access_token:libtokenid_sdk",
+    "access_token:libtokensetproc_shared",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "c_utils:utils",
+    "config_policy:configpolicy_util",
     "googletest:gmock_main",
     "googletest:gtest_main",
     "hilog:libhilog",
+    "init:libbegetutil",
     "ipc:ipc_single",
+    "openssl:libcrypto_shared",
+    "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
   ]
+  if (has_storage_service_part) {
+    external_deps += [ "storage_service:storage_manager_sa_proxy" ]
+  }
+  cflags_cc = []
+  if (use_libfuzzer) {
+    cflags_cc += [ "-DFUZZ_TEST" ]
+  }
+  
+  if (os_account_multiple_active_accounts) {
+    cflags_cc += [ "-DENABLE_MULTIPLE_ACTIVE_ACCOUNTS" ]
+  }
+  if (has_user_auth_part) {
+    cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
+    external_deps += [ "user_auth_framework:userauth_client" ]
+  }
+  if (has_ces_part) {
+    cflags_cc += [ "-DHAS_CES_PART" ]
+    external_deps += [ "common_event_service:cesfwk_innerkits" ]
+  }
+  if (has_kv_store_part) {
+    external_deps += [ "kv_store:distributeddata_inner" ]
+  }
+  if (os_account_distributed_feature && !use_libfuzzer) {
+    cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
+    sources +=
+        [ "${services_path}/accountmgr/src/account_file_watcher_manager.cpp" ]
+    if (has_huks_part) {
+      external_deps += [ "huks:libhukssdk" ]
+      cflags_cc += [ "-DHAS_HUKS_PART" ]
+    }
+  }
+  cflags_cc += [ "-DACCOUNT_TEST" ]
+  cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNTS" ]
+  if (os_account_support_deactivate_main_os_account) {
+    cflags_cc += [ "-DSUPPORT_STOP_MAIN_OS_ACCOUNT" ]
+  }
+  if (os_account_support_domain_accounts) {
+    cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+    deps += [ "${domain_account_framework_path}:domain_account_plugin_proxy" ]
+  }
+  if (os_account_support_lock_os_account) {
+    cflags_cc += [ "-DSUPPORT_LOCK_OS_ACCOUNT" ]
+  }
 }
 
 group("unittest") {

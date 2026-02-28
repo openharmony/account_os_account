@@ -251,7 +251,7 @@ napi_value QueryOsAccountById(napi_env env, napi_callback_info cbInfo)
         reinterpret_cast<void *>(queryOAByIdCB.get()),
         &queryOAByIdCB->work);
 
-    napi_queue_async_work_with_qos(env, queryOAByIdCB->work, napi_qos_default);
+    napi_queue_async_work_with_qos(env, queryOAByIdCB->work, napi_qos_user_initiated);
     queryOAByIdCB.release();
     return result;
 }
@@ -634,7 +634,7 @@ napi_value GetOsAccountLocalIdFromProcessInner(napi_env env, napi_callback_info 
         reinterpret_cast<void *>(getIdCB.get()),
         &getIdCB->work);
 
-    napi_queue_async_work_with_qos(env, getIdCB->work, napi_qos_default);
+    napi_queue_async_work_with_qos(env, getIdCB->work, napi_qos_user_initiated);
     getIdCB.release();
     return result;
 }
@@ -667,7 +667,7 @@ napi_value QueryAllCreatedOsAccounts(napi_env env, napi_callback_info cbInfo)
         reinterpret_cast<void *>(queryAllOA.get()),
         &queryAllOA->work);
 
-    napi_queue_async_work_with_qos(env, queryAllOA->work, napi_qos_default);
+    napi_queue_async_work_with_qos(env, queryAllOA->work, napi_qos_user_initiated);
     queryAllOA.release();
     return result;
 }
@@ -743,7 +743,7 @@ napi_value QueryActivatedOsAccountIdsInner(napi_env env, napi_callback_info cbIn
         reinterpret_cast<void *>(queryActiveIds.get()),
         &queryActiveIds->work);
 
-    napi_queue_async_work_with_qos(env, queryActiveIds->work, napi_qos_default);
+    napi_queue_async_work_with_qos(env, queryActiveIds->work, napi_qos_user_initiated);
     queryActiveIds.release();
     return result;
 }
@@ -772,7 +772,7 @@ napi_value GetForegroundOsAccountLocalId(napi_env env, napi_callback_info cbInfo
         reinterpret_cast<void *>(getForegroundIds.get()),
         &getForegroundIds->work));
 
-    NAPI_CALL(env, napi_queue_async_work_with_qos(env, getForegroundIds->work, napi_qos_default));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, getForegroundIds->work, napi_qos_user_initiated));
     getForegroundIds.release();
     return result;
 }
@@ -801,7 +801,7 @@ napi_value GetForegroundOsAccountDisplayId(napi_env env, napi_callback_info cbIn
         reinterpret_cast<void *>(getDisplayId.get()),
         &getDisplayId->work));
 
-    NAPI_CALL(env, napi_queue_async_work_with_qos(env, getDisplayId->work, napi_qos_default));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, getDisplayId->work, napi_qos_user_initiated));
     getDisplayId.release();
     return result;
 }
@@ -919,7 +919,7 @@ napi_value GetOsAccountLocalIdFromUidInner(napi_env env, napi_callback_info cbIn
     napi_create_async_work(env, nullptr, resource, GetIdByUidExecuteCB, GetIdByUidCallbackCompletedCB,
         reinterpret_cast<void *>(idByUid.get()), &idByUid->work);
 
-    napi_queue_async_work_with_qos(env, idByUid->work, napi_qos_default);
+    napi_queue_async_work_with_qos(env, idByUid->work, napi_qos_user_initiated);
     idByUid.release();
     return result;
 }
@@ -1164,7 +1164,7 @@ napi_value InnerIsOsAccountActived(napi_env env, napi_callback_info cbInfo, bool
     napi_create_async_work(env, nullptr, resource, IsActivedExecuteCB, IsActivedCompletedCB,
         reinterpret_cast<void *>(isActived.get()), &isActived->work);
 
-    napi_queue_async_work_with_qos(env, isActived->work, napi_qos_default);
+    napi_queue_async_work_with_qos(env, isActived->work, napi_qos_user_initiated);
     isActived.release();
     return result;
 }
@@ -1276,7 +1276,7 @@ napi_value GetOsAccountTypeFromProcessInner(napi_env env, napi_callback_info cbI
     napi_create_async_work(env, nullptr, resource, GetTypeExecuteCB, GetTypeCompletedCB,
         reinterpret_cast<void *>(getType.get()), &getType->work);
 
-    napi_queue_async_work_with_qos(env, getType->work, napi_qos_default);
+    napi_queue_async_work_with_qos(env, getType->work, napi_qos_user_initiated);
     getType.release();
     return result;
 }
@@ -1342,7 +1342,7 @@ napi_value InnerIsOsAccountVerified(napi_env env, napi_callback_info cbInfo, boo
     napi_create_async_work(env, nullptr, resource, IsVerifiedExecuteCB, IsVerifiedCompletedCB,
         reinterpret_cast<void *>(isVerified.get()), &isVerified->work);
 
-    napi_queue_async_work_with_qos(env, isVerified->work, napi_qos_default);
+    napi_queue_async_work_with_qos(env, isVerified->work, napi_qos_user_initiated);
     isVerified.release();
     return result;
 }

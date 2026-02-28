@@ -1398,7 +1398,7 @@ napi_value NapiDomainAccountManager::IsAuthenticationExpired(napi_env env, napi_
         IsAuthenticationExpiredCompletedCB,
         reinterpret_cast<void *>(asyncContextPtr.get()),
         &asyncContextPtr->work));
-    NAPI_CALL(env, napi_queue_async_work_with_qos(env, asyncContextPtr->work, napi_qos_default));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, asyncContextPtr->work, napi_qos_user_initiated));
     asyncContextPtr.release();
     return result;
 }
