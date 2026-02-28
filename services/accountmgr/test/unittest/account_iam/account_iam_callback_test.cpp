@@ -16,7 +16,9 @@
 #include <gtest/gtest.h>
 #include "accesstoken_kit.h"
 #define private public
+#define protected public
 #include "account_iam_callback.h"
+#undef protected
 #include "iinner_os_account_manager.h"
 #include "os_account_info.h"
 #undef private

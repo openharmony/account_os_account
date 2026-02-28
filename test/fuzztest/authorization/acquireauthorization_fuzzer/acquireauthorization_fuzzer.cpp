@@ -62,15 +62,14 @@ bool AcquireAuthorizationFuzzTest(const uint8_t* data, size_t size)
     for (uint32_t i = 0; i < challengeSize; i++) {
         options.challenge.push_back(fuzzData.GetData<uint8_t>());
     }
-    AuthorizationResult result;
     // Create callback with different strategies
     uint32_t callbackType = fuzzData.GetData<uint32_t>() % 2;
     if (callbackType == 1) {
         auto callback = std::make_shared<MockAuthorizationCallback>();
-        AuthorizationClient::GetInstance().AcquireAuthorization(privilege, options, callback, result);
+        AuthorizationClient::GetInstance().AcquireAuthorization(privilege, options, callback);
     } else {
         // nullptr case - test error handling
-        AuthorizationClient::GetInstance().AcquireAuthorization(privilege, options, nullptr, result);
+        AuthorizationClient::GetInstance().AcquireAuthorization(privilege, options, nullptr);
     }
     return true;
 }

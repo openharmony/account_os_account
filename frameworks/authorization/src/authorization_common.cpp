@@ -229,6 +229,10 @@ bool AcquireAuthorizationOptions::ReadFromParcel(Parcel &parcel)
         ACCOUNT_LOGE("Read isInteractionAllowed failed.");
         return false;
     }
+    if (!parcel.ReadBool(isContextValid)) {
+        ACCOUNT_LOGE("Read isContextValid failed.");
+        return false;
+    }
     return true;
 }
 
@@ -250,6 +254,10 @@ bool AcquireAuthorizationOptions::Marshalling(Parcel &parcel) const
         ACCOUNT_LOGE("Failed to write isInteractionAllowed.");
         return false;
     }
+    if (!parcel.WriteBool(isContextValid)) {
+        ACCOUNT_LOGE("Failed to write isContextValid.");
+        return false;
+    }
 
     return true;
 }
@@ -263,29 +271,6 @@ AcquireAuthorizationOptions *AcquireAuthorizationOptions::Unmarshalling(Parcel &
         info = nullptr;
     }
     return info;
-}
-
-bool CheckAndGetAuthorizationResultCode(int32_t errCode, AuthorizationResultCode &resultCode)
-{
-    switch (errCode) {
-        case static_cast<int32_t>(AuthorizationResultCode::AUTHORIZATION_RESULT_FROM_CACHE):
-            resultCode = AuthorizationResultCode::AUTHORIZATION_SUCCESS;
-            return true;
-        case static_cast<int32_t>(AuthorizationResultCode::AUTHORIZATION_CANCELED):
-            resultCode = AuthorizationResultCode::AUTHORIZATION_CANCELED;
-            return true;
-        case static_cast<int32_t>(AuthorizationResultCode::AUTHORIZATION_INTERACTION_NOT_ALLOWED):
-            resultCode = AuthorizationResultCode::AUTHORIZATION_INTERACTION_NOT_ALLOWED;
-            return true;
-        case static_cast<int32_t>(AuthorizationResultCode::AUTHORIZATION_DENIED):
-            resultCode = AuthorizationResultCode::AUTHORIZATION_DENIED;
-            return true;
-        case static_cast<int32_t>(AuthorizationResultCode::AUTHORIZATION_SYSTEM_BUSY):
-            resultCode = AuthorizationResultCode::AUTHORIZATION_SYSTEM_BUSY;
-            return true;
-        default:
-            return false;
-    }
 }
 
 void TransVectorU8ToString(const std::vector<uint8_t> &vec, std::string &str)

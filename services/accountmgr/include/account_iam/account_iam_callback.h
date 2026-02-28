@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -67,18 +67,30 @@ private:
         const std::vector<uint8_t> &secret, bool &isUpdateVerifiedStatus);
     bool IsTokenFromRemoteDevice(const Attributes &extraInfo);
 
-private:
+protected:
     uint32_t userId_;
     uint32_t callerTokenId_ = 0;
     AuthType authType_;
     AuthIntent authIntent_;
-    int32_t callingUid_ = -1;
-    int32_t callingPid_ = -1;
-    bool isFromAuth_ = false;
     bool isRemoteAuth_ = false;
     sptr<IIDMCallback> innerCallback_ = nullptr;
     sptr<AuthCallbackDeathRecipient> deathRecipient_ = nullptr;
 };
+
+#ifdef SUPPORT_AUTHORIZATION
+class AuthorizationAuthCallback : public AuthCallback {
+public:
+    AuthorizationAuthCallback(uint32_t userId, AuthType authType, AuthIntent authIntent,
+        const sptr<IIDMCallback> &callback);
+    virtual ~AuthorizationAuthCallback() = default;
+
+    void OnResult(int32_t result, const Attributes &extraInfo) override;
+
+private:
+    int32_t callingUid_ = -1;
+    int32_t callingPid_ = -1;
+};
+#endif // SUPPORT_AUTHORIZATION
 
 class IDMCallbackDeathRecipient : public IRemoteObject::DeathRecipient {
 public:

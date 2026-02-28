@@ -178,7 +178,7 @@ void UIExtensionCallback::OnDestroy()
 {
     ACCOUNT_LOGI("enter OnDestroy");
     if (!isOnResult_.load()) {
-        ReleaseHandler(EXTENSION_ERROR, AUTHORIZATION_SYSTEM_BUSY);
+        ReleaseHandler(EXTENSION_ERROR, AUTHORIZATION_SERVICE_BUSY);
     }
 }
 

@@ -58,7 +58,6 @@ std::mutex g_lockForOsAccountSubscribers;
 std::mutex g_lockForConstraintChangeSubscribers;
 std::vector<std::shared_ptr<AccountSA::TaiheConstraintSubscriberPtr>> g_osAccountConstraintChangeSubscribers;
 std::map<AccountSA::OsAccountManager *, std::vector<AccountSA::SubscribeCBInfo *>> g_osAccountSubscribers;
-std::atomic<bool> g_hasAcquireCall(false);
 
 template <typename T> T TaiheReturn(ErrCode errCode, T result, const T defult)
 {
@@ -1407,12 +1406,6 @@ static bool ParseChallengeOption(
     std::vector<uint8_t> challenge(taiheChallenge.data(), taiheChallenge.data() + taiheChallenge.size());
     options.challenge = challenge;
 
-    if (options.challenge.size() >= MAX_CHALLENGE_LEN) {
-        ACCOUNT_LOGE("Challenge size exceeds limit: %{public}zu", options.challenge.size());
-        SetAuthorizationTaiheBusinessErrorFromNativeCode(ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-        return false;
-    }
-
     return true;
 }
 
@@ -1422,27 +1415,25 @@ static bool ParseChallengeOption(
  * @param context Output authorization context
  * @param options Output authorization options
  * @param resultCode Output authorization result code (set when context conversion fails)
- * @return true if valid or should be ignored, false if should throw exception
+ * @return void
  */
-static bool ParseInteractionContext(
+static void ParseInteractionContext(
     const optional_view<ohos::account::osAccount::AcquireAuthorizationOptions>& taiheOptions,
     std::shared_ptr<OHOS::AccountSA::TaiheAcquireAuthorizationContext>& context,
     AccountSA::AcquireAuthorizationOptions& options,
     AccountSA::AuthorizationResultCode& resultCode)
 {
     if (!taiheOptions.value().interactionContext.has_value()) {
-        return true;
+        return;
     }
-
+    options.hasContext = true;
     ani_object aniContext = reinterpret_cast<ani_object>(taiheOptions.value().interactionContext.value());
     if (!context->FillInfoFromContext(aniContext)) {
         ACCOUNT_LOGE("Failed to fill info from context");
-        SetAuthorizationTaiheBusinessErrorFromNativeCode(ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-        return false;
+        return;
     }
-
-    options.hasContext = true;
-    return true;
+    options.isContextValid = true;
+    return;
 }
 
 /**
@@ -1481,9 +1472,7 @@ static bool ParseTaiheOptions(
     }
 
     // Parse interaction context
-    if (!ParseInteractionContext(taiheOptions, context, options, resultCode)) {
-        return false;
-    }
+    ParseInteractionContext(taiheOptions, context, options, resultCode);
 
     return true;
 }
@@ -1502,13 +1491,11 @@ static AcquireAuthorizationResult WaitForAuthorizationResult(
     if (callback->errCode_ != ERR_OK) {
         ACCOUNT_LOGE("AcquireAuthorization failed with errCode: %{public}d", callback->errCode_);
         SetAuthorizationTaiheBusinessErrorFromNativeCode(callback->errCode_);
-        g_hasAcquireCall.exchange(false);
         return AcquireAuthorizationResult{
             .resultCode = AuthorizationResultCode(AuthorizationResultCode::key_t::AUTHORIZATION_SERVICE_BUSY),
             .privilege = taihe::string("")
         };
     }
-    g_hasAcquireCall.exchange(false);
     return callback->taiheResult;
 }
 
@@ -1546,36 +1533,14 @@ public:
             taiheResult.resultCode = AuthorizationResultCode(ConvertToAuthorizationResultCodeKey(parseResultCode));
             return taiheResult;
         }
-        if (g_hasAcquireCall.load()) {
-            ACCOUNT_LOGE("AcquireAuthorizationSync busy");
-            taiheResult.resultCode = AuthorizationResultCode(ConvertToAuthorizationResultCodeKey(
-                AccountSA::AuthorizationResultCode::AUTHORIZATION_SYSTEM_BUSY));
-            return taiheResult;
-        }
-        g_hasAcquireCall.exchange(true);
         // Create callback and acquire authorization
         auto callback = std::make_shared<TaiheAuthorizationResultCallback>(context, privilegeStr);
-        AuthorizationResult result;
-        result.privilege = privilege;
         ErrCode errCode = AccountSA::AuthorizationClient::GetInstance().AcquireAuthorization(
-            privilegeStr, context->options, callback, result);
+            privilegeStr, context->options, callback);
         if (errCode != ERR_OK) {
-            if (!CheckAndGetAuthorizationResultCode(errCode, result.resultCode)) {
-                ACCOUNT_LOGE("AcquireAuthorization return error:%{public}d", errCode);
-                SetAuthorizationTaiheBusinessErrorFromNativeCode(errCode);
-                g_hasAcquireCall.exchange(false);
-                return taiheResult;
-            }
-            ACCOUNT_LOGE("AcquireAuthorization return error:%{public}d", errCode);
-            taiheResult.resultCode = AuthorizationResultCode(ConvertToAuthorizationResultCodeKey(result.resultCode));
-            if (result.resultCode == AccountSA::AuthorizationResultCode::AUTHORIZATION_SUCCESS) {
-                taiheResult.isReused = taihe::optional<bool>(std::in_place_t{}, result.isReused);
-                taiheResult.validityPeriod = optional<int32_t>(std::in_place_t{}, result.validityPeriod);
-            }
-            g_hasAcquireCall.exchange(false);
+            SetAuthorizationTaiheBusinessErrorFromNativeCode(errCode);
             return taiheResult;
         }
-
         // Wait for result
         return WaitForAuthorizationResult(callback);
     }
