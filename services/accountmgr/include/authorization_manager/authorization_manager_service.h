@@ -23,6 +23,7 @@
 #include "authorization_callback.h"
 #include "authorization_common.h"
 #include "authorization_stub.h"
+#include "iadmin_authorization_callback.h"
 #include "ios_account_control.h"
 
 namespace OHOS {
@@ -112,7 +113,30 @@ public:
     ErrCode CheckAuthorizationToken(const std::vector<uint8_t> &token, const std::string &privilege, int32_t pid,
         CheckAuthorizationResult &result) override;
 
+    /**
+     * @brief Acquires authorization for the specified admin account.
+     *
+     * This method implements the server-side admin authorization logic, including:
+     * 1. Permission verification (token type must be SHELL, requires ACCESS_USER_AUTH_INTERNAL permission)
+     * 2. Find the account with the specified name and verify if it is admin type
+     * 3. Call UserIAM for user authentication
+     * 4. After successful authentication, call TA to issue authorization token
+     * 5. Return authorization result through callback
+     *
+     * @param adminName The admin account name
+     * @param challenge The challenge value for authorization verification
+     * @param callback The callback object to receive authorization result
+     * @return ERR_OK if request is successfully processed, error code on failure
+     */
+    ErrCode AcquireAdminAuthorization(const std::string &adminName, const std::vector<uint8_t> &challenge,
+        const sptr<IRemoteObject> &callback) override;
+
 private:
+    ErrCode ValidateAdminAuthParams(const std::string &adminName, const sptr<IRemoteObject> &callback,
+        sptr<IAdminAuthorizationCallback> &callbackProxy);
+    ErrCode VerifyAdminAuthPermission();
+    ErrCode FindAccountIdByName(const std::string &adminNameName, int32_t &accountId);
+
     /// OS account configuration
     OsAccountConfig config_;
 };

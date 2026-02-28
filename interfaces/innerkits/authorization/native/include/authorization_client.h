@@ -22,6 +22,7 @@
 #include "authorization_callback_service.h"
 #include "authorization_common.h"
 #include "iauthorization.h"
+#include "admin_authorization_callback_service.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -93,6 +94,29 @@ public:
      */
     ErrCode CheckAuthorizationToken(const std::vector<uint8_t> &token,
         const std::string &privilege, int32_t pid, CheckAuthorizationResult &result);
+
+    /**
+     * @brief Acquires authorization for the specified admin account.
+     *
+     * This method is used by business processes to request admin authorization
+     * from the account service. The caller needs to specify the admin account name
+     * and challenge value, and the authorization result will be returned asynchronously
+     * through the callback.
+     *
+     * Flow:
+     * 1. Business process calls this interface to initiate admin authorization request
+     * 2. Account SA verifies if the account type is admin
+     * 3. Account SA calls UserIAM for identity authentication
+     * 4. After successful authentication, Account SA calls TA to issue authorization token
+     * 5. Returns authorization result through callback (contains token or error code)
+     *
+     * @param adminName The admin account name
+     * @param challenge The challenge value for authorization verification
+     * @param callback The callback object to receive authorization result
+     * @return ERR_OK if request is successfully initiated, error code on failure
+     */
+    ErrCode AcquireAdminAuthorization(const std::string &adminName, std::vector<uint8_t> &challenge,
+        const std::shared_ptr<AdminAuthorizationCallback> &callback);
 
 private:
     AuthorizationClient();
