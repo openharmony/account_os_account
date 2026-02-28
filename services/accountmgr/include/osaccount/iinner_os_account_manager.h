@@ -78,7 +78,8 @@ public:
     ErrCode SetOsAccountProfilePhoto(const int id, const std::string &photo) override;
     ErrCode ActivateOsAccount(const int id, const bool startStorage = true,
         const uint64_t displayId = 0, bool isAppRecovery = false) override;
-    ErrCode DeactivateOsAccount(const int id, bool isStopStorage = true) override;
+    ErrCode DeactivateOsAccount(const int id, bool isStopStorage = true,
+        const bool isAnimationEnabled = true) override;
     ErrCode StartOsAccount(const int id) override;
     ErrCode GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id) override;
     ErrCode GetSerialNumberByOsAccountLocalId(const int &id, int64_t &serialNumber) override;

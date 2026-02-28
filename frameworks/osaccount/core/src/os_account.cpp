@@ -703,14 +703,14 @@ ErrCode OsAccount::DeactivateOsAccount(const int id)
     return ConvertToAccountErrCode(errCode);
 }
 
-ErrCode OsAccount::DeactivateAllOsAccounts()
+ErrCode OsAccount::DeactivateAllOsAccounts(const bool isAnimationEnabled)
 {
     auto proxy = GetOsAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
 
-    auto errCode = proxy->DeactivateAllOsAccounts();
+    auto errCode = proxy->DeactivateAllOsAccounts(isAnimationEnabled);
     return ConvertToAccountErrCode(errCode);
 }
 
