@@ -3554,3 +3554,16 @@ HWTEST_F(OsAccountManagerModuleTest, SetOsAccountConstraints001, TestSize.Level3
     EXPECT_EQ(OsAccountManager::SetOsAccountConstraints(
         -1, CONSTANTS_VECTOR, enable), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
+
+/**
+ * @tc.name: SetOsAccountType001
+ * @tc.desc: Test SetOsAccountType with invalid id.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, SetOsAccountType001, TestSize.Level1)
+{
+    SetOsAccountTypeOptions options;
+    EXPECT_EQ(OsAccountManager::SetOsAccountType(
+        -1, OsAccountType::ADMIN, options), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+}
