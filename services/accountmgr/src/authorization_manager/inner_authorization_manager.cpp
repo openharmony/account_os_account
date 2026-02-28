@@ -459,7 +459,8 @@ ErrCode InnerAuthorizationManager::VerifyToken(const std::vector<uint8_t> &token
     auto &challengeData = tokenRet.userTokenPlain.userTokenDataPlain.challenge;
     challenge = std::vector<uint8_t>(challengeData, challengeData + sizeof(challengeData));
     auto &iamTokenData = tokenRet.userTokenPlain.userTokenDataPlain.authToken;
-    iamToken = std::vector<uint8_t>(iamTokenData, iamTokenData + sizeof(iamTokenData));
+    size_t iamTokenSize = tokenRet.userTokenPlain.userTokenDataPlain.authTokenSize;
+    iamToken = std::vector<uint8_t>(iamTokenData, iamTokenData + iamTokenSize);
     ACCOUNT_LOGI("VerifyToken successed, privilege: %{public}s, pid: %{public}d", privilege.c_str(), pid);
     return ERR_OK;
 }
