@@ -19,11 +19,13 @@
 #include "account_permission_manager.h"
 #include "app_mgr_client.h"
 #include "auth_remote_object_stub.h"
+#include "errors.h"
 #ifdef SUPPORT_AUTHORIZATION
 #include "ohos_account_kits_impl.h"
 #endif // SUPPORT_AUTHORIZATION
 #include "privileges_map.h"
 #include "singleton.h"
+#include "admin_authorization_callback_service.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -289,6 +291,38 @@ ErrCode AuthorizationClient::CheckAuthorizationToken(const std::vector<uint8_t> 
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     return ERR_OK;
+#endif // SUPPORT_AUTHORIZATION
+}
+
+ErrCode AuthorizationClient::AcquireAdminAuthorization(const std::string &adminName,
+    std::vector<uint8_t> &challenge, const std::shared_ptr<AdminAuthorizationCallback> &callback)
+{
+#ifdef SUPPORT_AUTHORIZATION
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("Callback is nullptr");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    if (adminName.empty()) {
+        ACCOUNT_LOGE("AdminName is empty");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    auto proxy = GetAuthorizationProxy();
+    if (proxy == nullptr) {
+        ACCOUNT_LOGE("Failed to get authorization proxy");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+
+    sptr<AdminAuthorizationCallbackService> callbackService =
+        new (std::nothrow) AdminAuthorizationCallbackService(callback);
+    if (callbackService == nullptr) {
+        ACCOUNT_LOGE("Failed to create AdminAuthorizationCallbackService");
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    }
+
+    return proxy->AcquireAdminAuthorization(adminName, challenge, callbackService->AsObject());
+#else
+    return ERR_AUTHORIZATION_NOT_SUPPORT;
 #endif // SUPPORT_AUTHORIZATION
 }
 

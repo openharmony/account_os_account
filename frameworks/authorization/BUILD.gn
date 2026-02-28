@@ -50,9 +50,10 @@ config("authorization_innerkits_public_config") {
 
 idl_gen_interface("authorization_interface") {
   sources = [
+    "IAdminAuthorizationCallback.idl",
+    "IAuthRemoteObject.idl",
     "IAuthorization.idl",
     "IAuthorizationCallback.idl",
-    "IAuthRemoteObject.idl",
     "IConnectAbilityCallback.idl",
   ]
   log_domainid = "0xD001B00"
@@ -98,8 +99,8 @@ ohos_shared_library("authorization_innerkits") {
 
   external_deps = [
     "ability_base:want",
-    "access_token:libaccesstoken_sdk",
     "ability_runtime:app_manager",
+    "access_token:libaccesstoken_sdk",
     "cJSON:cjson",
     "c_utils:utils",
     "hilog:libhilog",
@@ -185,7 +186,8 @@ ohos_source_set("authorization_callback_proxy") {
   public_configs = [ ":authorization_innerkits_public_config" ]
 
   output_values = get_target_outputs(":authorization_interface")
-  sources = filter_include(output_values, [ "*authorization_callback_proxy.cpp" ])
+  sources =
+      filter_include(output_values, [ "*authorization_callback_proxy.cpp" ])
   deps = [ ":authorization_interface" ]
   external_deps = [
     "cJSON:cjson",
@@ -212,7 +214,8 @@ ohos_source_set("authorization_callback_stub") {
   public_configs = [ ":authorization_innerkits_public_config" ]
 
   output_values = get_target_outputs(":authorization_interface")
-  sources = filter_include(output_values, [ "*authorization_callback_stub.cpp" ])
+  sources =
+      filter_include(output_values, [ "*authorization_callback_stub.cpp" ])
   deps = [ ":authorization_interface" ]
   external_deps = [
     "cJSON:cjson",
@@ -228,6 +231,68 @@ ohos_source_set("authorization_callback_stub") {
   part_name = "os_account"
 }
 
+ohos_source_set("admin_authorization_callback_proxy") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  configs = [ ":authorization_innnerkits_config" ]
+  public_configs = [ ":authorization_innerkits_public_config" ]
+
+  output_values = get_target_outputs(":authorization_interface")
+  sources = filter_include(output_values,
+                           [ "*admin_authorization_callback_proxy.cpp" ])
+  deps = [ ":authorization_interface" ]
+  external_deps = [
+    "cJSON:cjson",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+    "samgr:samgr_proxy",
+  ]
+
+  if (os_account_support_authorization) {
+    cflags_cc = [ "-DSUPPORT_AUTHORIZATION" ]
+  }
+
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+ohos_source_set("admin_authorization_callback_stub") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  configs = [ ":authorization_innnerkits_config" ]
+  public_configs = [ ":authorization_innerkits_public_config" ]
+
+  output_values = get_target_outputs(":authorization_interface")
+  sources = filter_include(output_values,
+                           [ "*admin_authorization_callback_stub.cpp" ])
+  deps = [ ":authorization_interface" ]
+  external_deps = [
+    "cJSON:cjson",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+    "samgr:samgr_proxy",
+  ]
+
+  if (os_account_support_authorization) {
+    cflags_cc = [ "-DSUPPORT_AUTHORIZATION" ]
+  }
+
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
 ohos_source_set("connect_ability_callback_proxy") {
   sanitize = {
     cfi = true
@@ -239,7 +304,8 @@ ohos_source_set("connect_ability_callback_proxy") {
   public_configs = [ ":authorization_innerkits_public_config" ]
 
   output_values = get_target_outputs(":authorization_interface")
-  sources = filter_include(output_values, [ "*connect_ability_callback_proxy.cpp" ])
+  sources =
+      filter_include(output_values, [ "*connect_ability_callback_proxy.cpp" ])
   deps = [ ":authorization_interface" ]
   external_deps = [
     "cJSON:cjson",
@@ -266,7 +332,8 @@ ohos_source_set("connect_ability_callback_stub") {
   public_configs = [ ":authorization_innerkits_public_config" ]
 
   output_values = get_target_outputs(":authorization_interface")
-  sources = filter_include(output_values, [ "*connect_ability_callback_stub.cpp" ])
+  sources =
+      filter_include(output_values, [ "*connect_ability_callback_stub.cpp" ])
   deps = [ ":authorization_interface" ]
   external_deps = [
     "cJSON:cjson",

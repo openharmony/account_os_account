@@ -15,6 +15,7 @@
 
 sequenceable AuthorizationCommon..OHOS.AccountSA.AcquireAuthorizationOptions;
 sequenceable AuthorizationCommon..OHOS.AccountSA.CheckAuthorizationResult;
+sequenceable AuthorizationCommon..OHOS.AccountSA.AdminAuthorizationResult;
 sequenceable OHOS.IRemoteObject;
 
 interface_token ohos.accountfwk.IAuthorization;
@@ -29,4 +30,6 @@ interface OHOS.AccountSA.IAuthorization {
     void CheckAuthorization([in] String privilege, [in] int pid, [out] boolean isAuthorized);
     void CheckAuthorizationToken([in] unsigned char[] token, [in] String privilege, [in] int pid,
         [out] CheckAuthorizationResult authResult);
+    void AcquireAdminAuthorization([in] String adminName, [in] unsigned char[] challenge,
+        [in] IRemoteObject adminAuthorizationCallback);
 }

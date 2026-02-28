@@ -16,12 +16,15 @@
 #ifndef OS_ACCOUNT_SERVICES_AUTHORIZATION_INCLUDE_INNER_AUTHORIZATION_MANAGER_H
 #define OS_ACCOUNT_SERVICES_AUTHORIZATION_INCLUDE_INNER_AUTHORIZATION_MANAGER_H
 
+#include "account_iam_client_callback.h"
 #include "authorization_common.h"
 #include "connect_ability_callback_stub.h"
+#include "iadmin_authorization_callback.h"
 #include "iauthorization_callback.h"
 #include "ios_account_control.h"
 #include "privileges_map.h"
 #include "tee_auth_adapter.h"
+#include "account_iam_callback.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -74,6 +77,26 @@ private:
     AuthorizationResult result_;
     /// The connection ability information
     ConnectAbilityInfo info_;
+};
+
+class AdminAuthCallback : public AuthenticationCallback {
+public:
+    explicit AdminAuthCallback(const std::vector<uint8_t> &challenge,
+        const sptr<IAdminAuthorizationCallback> &callback, int32_t userId);
+    virtual ~AdminAuthCallback() = default;
+
+    void SetDeathRecipient(const sptr<AuthCallbackDeathRecipient> &deathRecipient);
+    void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo) override;
+    void OnResult(int32_t result, const Attributes &extraInfo) override;
+
+private:
+    int32_t userId_ = -1;
+    sptr<IAdminAuthorizationCallback> innerCallback_ = nullptr;
+    sptr<AuthCallbackDeathRecipient> deathRecipient_ = nullptr;
+    const std::vector<uint8_t> challenge_;
+
+    ErrCode CallTAForToken(int32_t accountId, const std::vector<uint8_t> &challenge,
+        const std::vector<uint8_t> &iamToken, std::vector<uint8_t> &token);
 };
 
 /**
@@ -156,7 +179,56 @@ public:
         const uint32_t pid, std::vector<uint8_t> &challenge, std::vector<uint8_t> &iamToken);
 
     /**
-     * @brief Death recipient for monitoring application death.
+     * @brief Acquires authorization for the specified admin account.
+     *
+     * This method implements the core logic of admin authorization:
+     * 1. Call UserIAM for user authentication
+     * 2. After successful authentication, call TA to issue authorization token
+     * 3. Return authorization result through callback
+     *
+     * @param accountId The admin account ID
+     * @param challenge The challenge value for authorization verification
+     * @param callback The callback object to receive authorization result
+     * @return ERR_OK if request is successfully processed, error code on failure
+     */
+    ErrCode AcquireAdminAuthorization(int32_t accountId, const std::vector<uint8_t> &challenge,
+        const sptr<IAdminAuthorizationCallback> &callback);
+
+    /**
+     * @brief Calls UserIAM for user authentication.
+     *
+     * This method calls the UserIAM interface to authenticate the specified
+     * admin account. UserIAM will obtain and verify the password from the
+     * business process.
+     *
+     * @param accountId The admin account ID
+     * @param challenge The challenge value for authorization verification
+     * @param isAuthenticated Output parameter, authentication result (true means authentication succeeded)
+     * @return ERR_OK if call is successful, error code on failure
+     */
+    ErrCode CallUserIAMForAuthentication(int32_t accountId, const std::vector<uint8_t> &challenge,
+        const sptr<IAdminAuthorizationCallback> &callback);
+
+    /**
+     * @brief Calls TA to issue authorization token.
+     *
+     * This method calls the Trusted Execution Environment (TA) interface
+     * to issue an authorization token. The token is used for subsequent
+     * permission verification operations.
+     *
+     * @param accountId The admin account ID
+     * @param challenge The challenge value
+     * @param iamToken The IAM authentication token
+     * @param token Output parameter, the authorization token
+     * @return ERR_OK if call is successful, error code on failure
+     */
+    ErrCode CallTAForToken(int32_t accountId, const std::vector<uint8_t> &challenge,
+        const std::vector<uint8_t> &iamToken, std::vector<uint8_t> &token);
+
+    void CopyAuthParam(const AuthParam &authParam, UserIam::UserAuth::AuthParam &iamAuthParam);
+
+    /**
+     * Death recipient for monitoring application death.
      *
      * This inner class monitors the death of the calling application
      * and performs necessary cleanup.
@@ -176,6 +248,13 @@ public:
         DISALLOW_COPY_AND_MOVE(AppDeathRecipient);
     };
 
+    /**
+     * @brief Verifies that the account is an admin account.
+     * @param accountId The account ID to verify
+     * @return Pair of error code and authorization result code
+     */
+    std::pair<ErrCode, AuthorizationResultCode> VerifyAdminAccount(int32_t accountId);
+
 private:
     /**
      * @brief Private constructor for singleton pattern.
@@ -186,13 +265,6 @@ private:
      * @brief Private destructor.
      */
     ~InnerAuthorizationManager();
-
-    /**
-     * @brief Verifies that the account is an admin account.
-     * @param accountId The account ID to verify
-     * @return Pair of error code and authorization result code
-     */
-    std::pair<ErrCode, AuthorizationResultCode> VerifyAdminAccount(int32_t accountId);
 
     /**
      * @brief Calls TA authorization interface to get token.
