@@ -43,6 +43,7 @@
 #include "os_account_subscribe_manager.h"
 #include "parameter.h"
 #include "parcel.h"
+#include "securec.h"
 #include "string_ex.h"
 #include <pthread.h>
 #include <mutex>
@@ -2156,8 +2157,30 @@ ErrCode IInnerOsAccountManager::GetOsAccountType(const int id, OsAccountType &ty
     if (errCode != ERR_OK) {
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
+
+#ifdef SUPPORT_AUTHORIZATION
+    int32_t typeTee = 0;
+    errCode = teeAdapter_.GetOsAccountType(id, typeTee);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGW("GetOsAccountType from TEE failed, use local info. id=%{public}d, err=%{public}d", id, errCode);
+        type = osAccountInfo.GetType();
+        return ERR_OK;
+    }
+
+    OsAccountType realType = static_cast<OsAccountType>(typeTee);
+    type = realType;
+
+    if (osAccountInfo.GetType() != realType) {
+        ACCOUNT_LOGW("Local account type mismatch with TEE! Local: %{public}d, TEE: %{public}d. Fix it.",
+            osAccountInfo.GetType(), realType);
+        osAccountInfo.SetType(realType);
+        osAccountControl_->UpdateOsAccount(osAccountInfo);
+    }
+    return ERR_OK;
+#else
     type = osAccountInfo.GetType();
     return ERR_OK;
+#endif // SUPPORT_AUTHORIZATION
 }
 
 ErrCode IInnerOsAccountManager::SetOsAccountType(const int id,
@@ -2195,6 +2218,13 @@ ErrCode IInnerOsAccountManager::SetOsAccountType(const int id,
 
     // 4. TEE sensitive operations (token verification and security zone synchronization)
     errCode = VerifyAndSetOsAccountTypeInTEE(id, type, options.token);
+    // Clear token after use to prevent leakage
+    if (options.token.has_value()) {
+        std::vector<uint8_t> &tokenData = const_cast<std::vector<uint8_t>&>(options.token.value());
+        if (!tokenData.empty()) {
+            (void)memset_s(tokenData.data(), tokenData.size(), 0, tokenData.size());
+        }
+    }
     if (errCode != ERR_OK) {
         RemoveLocalIdToOperating(id);
         return errCode;
