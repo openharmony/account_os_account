@@ -48,5 +48,39 @@ bool ParseDomainAccountInfo(napi_env env, napi_value object, DomainAccountInfo &
     }
     return true;
 }
+
+bool ParseDomainAuthParameters(napi_env env, napi_value object, DomainAccountAuthOptions &authOptions)
+{
+    napi_valuetype type = napi_undefined;
+    napi_typeof(env, object, &type);
+    if (type != napi_object) {
+        ACCOUNT_LOGE("Value is not an object.");
+        return false;
+    }
+
+    napi_has_named_property(env, object, "serverParams", &authOptions.hasServerParams_);
+    if (authOptions.hasServerParams_) {
+        napi_value value = nullptr;
+        napi_valuetype valueType = napi_undefined;
+        napi_status status = napi_get_named_property(env, object, "serverParams", &value);
+        if (status != napi_ok) {
+            ACCOUNT_LOGE("Failed to get serverParams property");
+            return false;
+        }
+        valueType = napi_undefined;
+        napi_typeof(env, value, &valueType);
+        if (valueType == napi_undefined) {
+            // auth with no options
+            authOptions.hasServerParams_ = false;
+            ACCOUNT_LOGI("the server parameters is undefined");
+        } else {
+            if (!JsObjectToNativeString(env, value, authOptions.serverParams_)) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
 } // namespace AccountJsKit
 } // namespace OHOS

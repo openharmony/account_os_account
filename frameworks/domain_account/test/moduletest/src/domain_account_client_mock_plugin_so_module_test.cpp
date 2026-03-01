@@ -84,6 +84,7 @@ std::map<PluginMethodEnum, void *> PLUGIN_METHOD_MAP = {
     {PluginMethodEnum::UPDATE_SERVER_CONFIG, reinterpret_cast<void *>(UpdateServerConfig)},
     {PluginMethodEnum::UNBIND_ACCOUNT, reinterpret_cast<void *>(UnBindAccount)},
     {PluginMethodEnum::CANCEL_AUTH, reinterpret_cast<void *>(CancelAuth)},
+    {PluginMethodEnum::AUTH_WITH_SERVER_CONFIG, reinterpret_cast<void *>(AuthWithServerConfig)},
 };
 }
 
@@ -792,6 +793,61 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     isExpired = false;
     EXPECT_EQ(DomainAccountClient::GetInstance().IsAuthenticationExpired(domainInfo, isExpired), ERR_OK);
     EXPECT_TRUE(isExpired);
+
+    UnloadPluginMethods();
+    int32_t userId = -1;
+    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId), ERR_OK);
+    EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
+}
+
+/**
+ * @tc.name: DomainAccountClientModuleTest_IsAuthWithServerConfig_001
+ * @tc.desc: IsAuthWithServerConfig success.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_IsAuthWithServerConfig_001,
+         TestSize.Level3)
+{
+    LoadPluginMethods();
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = "testaccount";
+    domainInfo.domain_ = "test.example.com";
+    domainInfo.accountId_ = "testid";
+    domainInfo.serverConfigId_ = "100";
+    auto callback = std::make_shared<MockPluginSoDomainCreateDomainAccountCallback>();
+    ASSERT_NE(callback, nullptr);
+    auto testCallback = std::make_shared<TestPluginSoCreateDomainAccountCallback>(callback);
+    EXPECT_CALL(*callback, OnResult(ERR_OK, "testaccount", "test.example.com", _)).Times(Exactly(1));
+    ASSERT_NE(testCallback, nullptr);
+    ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, testCallback);
+    std::unique_lock<std::mutex> lock(testCallback->mutex);
+    testCallback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
+                              [lockCallback = testCallback]() { return lockCallback->isReady; });
+    ASSERT_EQ(errCode, ERR_OK);
+    uint64_t tokenID;
+    ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenID));
+    setuid(EDM_UID);
+
+    std::string policy = "{\"authenicationValidityPeriod\":1}";
+    EXPECT_EQ(DomainAccountClient::GetInstance().SetAccountPolicy(domainInfo, policy), ERR_OK);
+    setuid(ROOT_UID);
+    ASSERT_TRUE(RecoveryPermission(tokenID));
+
+    auto authCallback = std::make_shared<MockPluginSoDomainAuthCallback>();
+    ASSERT_NE(authCallback, nullptr);
+    EXPECT_CALL(*authCallback, OnResult(ERR_OK, _)).Times(Exactly(1));
+    auto testAuthCallback = std::make_shared<TestPluginSoDomainAuthCallback>(authCallback);
+    ASSERT_NE(testAuthCallback, nullptr);
+    DomainAccountAuthOptions authOptions;
+    authOptions.serverParams_ = "test_params";
+    authOptions.hasServerParams_ = true;
+    EXPECT_EQ(DomainAccountClient::GetInstance().Auth(domainInfo, DEFAULT_TOKEN,
+        authOptions, testAuthCallback), ERR_OK);
+    {
+        std::unique_lock<std::mutex> lock(testAuthCallback->mutex);
+        testAuthCallback->cv.wait(lock);
+    }
 
     UnloadPluginMethods();
     int32_t userId = -1;
