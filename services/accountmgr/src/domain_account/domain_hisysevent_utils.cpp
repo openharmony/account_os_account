@@ -57,6 +57,8 @@ static std::string GetOperationName(PluginMethodEnum methodEnum)
             return Constants::DOMAIN_OPT_GET_POLICY;
         case PluginMethodEnum::CANCEL_AUTH:
             return Constants::DOMAIN_OPT_CANCEL_AUTH;
+        case PluginMethodEnum::AUTH_WITH_SERVER_CONFIG:
+            return Constants::DOMAIN_OPT_AUTH_WITH_SERVER_CONFIG;
         default:
             ACCOUNT_LOGE("GetOperationName can not find name");
             return "";

@@ -54,6 +54,7 @@ namespace OHOS {
 namespace AccountSA {
 namespace {
 constexpr char THREAD_AUTH[] = "auth";
+constexpr char THREAD_AUTH_WITH_PARAM[] = "authWithParam";
 constexpr char THREAD_INNER_AUTH[] = "innerAuth";
 constexpr char THREAD_HAS_ACCOUNT[] = "hasAccount";
 constexpr char THREAD_GET_ACCOUNT[] = "getAccount";
@@ -92,6 +93,7 @@ static const std::map<PluginMethodEnum, std::string> METHOD_NAME_MAP = {
     {PluginMethodEnum::GET_ALL_SERVER_CONFIGS, "GetServerConfigList"},
     {PluginMethodEnum::GET_ACCOUNT_SERVER_CONFIG, "GetAccountServerConfig"},
     {PluginMethodEnum::AUTH, "Auth"},
+    {PluginMethodEnum::AUTH_WITH_SERVER_CONFIG, "AuthWithServerConfig"},
     {PluginMethodEnum::AUTH_WITH_POPUP, "AuthWithPopup"},
     {PluginMethodEnum::AUTH_WITH_TOKEN, "AuthWithToken"},
     {PluginMethodEnum::GET_ACCOUNT_INFO, "GetAccountInfo"},
@@ -1042,6 +1044,80 @@ ErrCode InnerDomainAccountManager::Auth(const DomainAccountInfo &info, const std
         domainAccountParcel.SetParcelData(emptyParcel);
         innerCallback->OnResult(err, domainAccountParcel);
     }
+    return ERR_OK;
+}
+
+ErrCode InnerDomainAccountManager::PluginAuthWithParameters(const DomainAccountInfo &info,
+    const std::vector<uint8_t> &password,
+    const std::string &serverParams) __attribute__((no_sanitize("cfi")))
+{
+    auto iter = methodMap_.find(PluginMethodEnum::AUTH_WITH_SERVER_CONFIG);
+    if (iter == methodMap_.end() || iter->second == nullptr) {
+        ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::AUTH_WITH_SERVER_CONFIG);
+        REPORT_DOMAIN_ACCOUNT_FAIL(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST,
+            "Method AuthWithServerConfigFunc not exsit", Constants::DOMAIN_OPT_AUTH_WITH_SERVER_CONFIG, -1, info);
+        return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
+    }
+    int32_t localId = GetCallingUserID();
+    if (localId == -1) {
+        ACCOUNT_LOGE("fail to get activated os account ids");
+        REPORT_DOMAIN_ACCOUNT_FAIL(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR,
+            "Get userId is invalid", Constants::DOMAIN_OPT_AUTH, -1, info);
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
+    PluginString param;
+    SetPluginString(serverParams, param);
+
+    PluginDomainAccountInfo domainAccountInfo;
+    SetPluginDomainAccountInfo(info, domainAccountInfo);
+    PluginUint8Vector credential;
+    SetPluginUint8Vector(password, credential);
+    PluginBussnessError* error = (*reinterpret_cast<AuthWithServerConfigFunc>(iter->second))(&param,
+        &domainAccountInfo, &credential, localId);
+    CleanPluginString(&(param.data), param.length);
+    CleanPluginString(&(domainAccountInfo.domain.data), domainAccountInfo.domain.length);
+    CleanPluginString(&(domainAccountInfo.serverConfigId.data), domainAccountInfo.serverConfigId.length);
+    CleanPluginString(&(domainAccountInfo.accountName.data), domainAccountInfo.accountName.length);
+    CleanPluginString(&(domainAccountInfo.accountId.data), domainAccountInfo.accountId.length);
+    return GetAndCleanPluginBussnessError(&error, iter->first, -1, info);
+}
+
+ErrCode InnerDomainAccountManager::AuthWithParameters(const DomainAccountInfo &info,
+    const std::vector<uint8_t> &password, const DomainAccountAuthOptions &authOptions,
+    const sptr<IDomainAccountCallback> &callback)
+{
+    ACCOUNT_LOGI("domain account auth with server parameters");
+    if (!IsSupportNetRequest()) {
+        ACCOUNT_LOGE("Not support background account request");
+        REPORT_DOMAIN_ACCOUNT_FAIL(ERR_DOMAIN_ACCOUNT_NOT_SUPPORT_BACKGROUND_ACCOUNT_REQUEST,
+            "Not support background account request", Constants::DOMAIN_OPT_AUTH, -1, info);
+        return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT_BACKGROUND_ACCOUNT_REQUEST;
+    }
+    int32_t userId = -1;
+    IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(info, userId);
+
+    std::function<void()> task;
+    task = [this, userId, info, password, authOptions, callback] {
+        sptr<InnerDomainAuthCallback> innerCallback = sptr<InnerDomainAuthCallback>::MakeSptr(userId, callback);
+        Parcel emptyParcel;
+        AccountSA::DomainAuthResult result;
+        ErrCode err = this->PluginAuthWithParameters(info, password, authOptions.serverParams_);
+
+        if (!result.Marshalling(emptyParcel)) {
+            ACCOUNT_LOGE("DomainAuthResult marshalling failed.");
+            err = ConvertToJSErrCode(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
+        }
+
+        if (innerCallback != nullptr) {
+            DomainAccountParcel domainAccountParcel;
+            domainAccountParcel.SetParcelData(emptyParcel);
+            innerCallback->OnResult(err, domainAccountParcel);
+        }
+    };
+    std::thread taskThread(task);
+    pthread_setname_np(taskThread.native_handle(), THREAD_AUTH_WITH_PARAM);
+    taskThread.detach();
+
     return ERR_OK;
 }
 

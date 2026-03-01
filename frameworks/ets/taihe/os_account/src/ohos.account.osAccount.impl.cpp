@@ -1790,6 +1790,37 @@ void Auth(DomainAccountInfo const& domainAccountInfo, array_view<uint8_t> creden
     }
 }
 
+void AuthWithOption(DomainAccountInfo const& domainAccountInfo, array_view<uint8_t> credential,
+    DomainAccountAuthOptions const &authOptions, IUserAuthCallback const& callback)
+{
+    AccountSA::DomainAccountInfo domainAccountInfoInner = ConvertToDomainAccountInfoInner(domainAccountInfo);
+    std::vector<uint8_t> credentialInner(credential.begin(), credential.begin() + credential.size());
+    std::shared_ptr<THDomainAccountCallback> callbackInner =
+            std::make_shared<THDomainAccountCallback>(callback);
+
+    AccountSA::DomainAccountAuthOptions innerOptions;
+    if (authOptions.serverParams.has_value()) {
+        std::string innerParameters = ConvertMapViewToStringInner(authOptions.serverParams.value());
+        innerOptions.serverParams_ = innerParameters;
+    }
+    int32_t errorCode = AccountSA::DomainAccountClient::GetInstance().Auth(domainAccountInfoInner,
+        credentialInner, innerOptions, callbackInner);
+    if (!credentialInner.empty()) {
+        (void)memset_s(const_cast<uint8_t*>(credentialInner.data()),
+            credentialInner.size(), 0, credentialInner.size());
+    }
+    if (errorCode != ERR_OK) {
+        Parcel emptyParcel;
+        AccountSA::DomainAuthResult emptyResult;
+        if (!emptyResult.Marshalling(emptyParcel)) {
+            ACCOUNT_LOGE("authResult Marshalling failed");
+            return;
+        }
+        callbackInner->OnResult(ConvertToJSErrCode(errorCode), emptyParcel);
+    }
+    return;
+}
+
 void AuthWithPopup(IUserAuthCallback const& callback)
 {
     std::shared_ptr<THDomainAccountCallback> callbackInner =
@@ -2240,6 +2271,7 @@ void TaiheCredentialSubscriberPtr::OnNotifyCredChangeEvent(int32_t userId, AuthT
 TH_EXPORT_CPP_API_IsAuthenticationExpiredSync(IsAuthenticationExpiredSync);
 TH_EXPORT_CPP_API_UnregisterPlugin(UnregisterPlugin);
 TH_EXPORT_CPP_API_Auth(Auth);
+TH_EXPORT_CPP_API_AuthWithOption(AuthWithOption);
 TH_EXPORT_CPP_API_AuthWithPopup(AuthWithPopup);
 TH_EXPORT_CPP_API_AuthWithPopupWithId(AuthWithPopupWithId);
 TH_EXPORT_CPP_API_HasAccountSync(HasAccountSync);

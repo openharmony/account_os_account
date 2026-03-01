@@ -136,6 +136,43 @@ DomainAccountInfo *DomainAccountInfo::Unmarshalling(Parcel &parcel)
     return domainAccountInfo;
 }
 
+DomainAccountAuthOptions::DomainAccountAuthOptions()
+{}
+ 
+bool DomainAccountAuthOptions::ReadFromParcel(Parcel &parcel)
+{
+    if (!parcel.ReadString(serverParams_)) {
+        ACCOUNT_LOGE("Failed to read server params");
+        return false;
+    }
+    return true;
+}
+
+bool DomainAccountAuthOptions::Marshalling(Parcel &parcel) const
+{
+    if (!parcel.WriteString(serverParams_)) {
+        ACCOUNT_LOGE("Failed to write server params");
+        return false;
+    }
+    return true;
+}
+
+DomainAccountAuthOptions *DomainAccountAuthOptions::Unmarshalling(Parcel &parcel)
+{
+    DomainAccountAuthOptions *authOptions = new (std::nothrow) DomainAccountAuthOptions();
+    if (authOptions == nullptr) {
+        return nullptr;
+    }
+
+    if (!authOptions->ReadFromParcel(parcel)) {
+        ACCOUNT_LOGE("Failed to read from parcel");
+        delete authOptions;
+        authOptions = nullptr;
+    }
+
+    return authOptions;
+}
+
 GetAccessTokenOptions::GetAccessTokenOptions(const int32_t &callingUid, const AAFwk::WantParams &getTokenParams)
     : callingUid_(callingUid), getTokenParams_(getTokenParams)
 {}

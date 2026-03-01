@@ -35,6 +35,8 @@ public:
     ErrCode UnregisterAccountStatusListener(const sptr<IDomainAccountCallback> &listener) override;
     ErrCode Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
         const sptr<IDomainAccountCallback> &callback) override;
+    ErrCode AuthWithParameters(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
+        const DomainAccountAuthOptions &authOptions, const sptr<IDomainAccountCallback> &callback) override;
     ErrCode AuthUser(int32_t userId, const std::vector<uint8_t> &password,
         const sptr<IDomainAccountCallback> &callback) override;
     ErrCode AuthWithPopup(int32_t userId, const sptr<IDomainAccountCallback> &callback) override;

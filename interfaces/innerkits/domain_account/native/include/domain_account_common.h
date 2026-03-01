@@ -95,6 +95,17 @@ public:
     static DomainAccountInfo *Unmarshalling(Parcel &parcel);
 };
 
+class DomainAccountAuthOptions : public Parcelable {
+public:
+    DomainAccountAuthOptions();
+public:
+    std::string serverParams_;
+    bool hasServerParams_;
+    bool ReadFromParcel(Parcel &parcel);
+    bool Marshalling(Parcel &parcel) const override;
+    static DomainAccountAuthOptions *Unmarshalling(Parcel &parcel);
+};
+
 class GetAccessTokenOptions : public Parcelable {
 public:
     GetAccessTokenOptions();
