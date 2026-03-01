@@ -19,6 +19,7 @@ group("fuzztest") {
   if (os_account_support_domain_accounts) {
     deps += [
       "authwithpopup_fuzzer:AuthWithPopUpFuzzTest",
+      "authclientwithserver_fuzzer:AuthClientWithServerFuzzTest",
       "domainauthuser_fuzzer:DomainAuthUserFuzzTest",
       "getaccesstoken_fuzzer:GetAccessTokenFuzzTest",
       "getaccountpolicy_fuzzer:GetAccountPolicyFuzzTest",

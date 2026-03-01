@@ -138,3 +138,38 @@ HWTEST_F(DomainAccountCommonModuleTest, DomainAccountCommonModuleTest_DomainServ
     std::shared_ptr<DomainServerConfig> infoPtr(result);
     EXPECT_EQ(infoPtr->id_, STRING_DOMAIN_NEW);
 }
+
+/**
+ * @tc.name: DomainAccountCommonModuleTest_DomainAccountAuthOptions_001
+ * @tc.desc: DomainAccountAuthOptions Marshalling successfully.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountCommonModuleTest, DomainAccountCommonModuleTest_DomainAccountAuthOptions_001, TestSize.Level3)
+{
+    DomainAccountAuthOptions authOptions;
+    authOptions.serverParams_ = "test_server_params";
+    authOptions.hasServerParams_ = true;
+    Parcel parcel;
+    authOptions.Marshalling(parcel);
+    DomainAccountAuthOptions *result = authOptions.Unmarshalling(parcel);
+    std::shared_ptr<DomainAccountAuthOptions> authOptionsPtr(result);
+    EXPECT_EQ(authOptionsPtr->serverParams_, "test_server_params");
+}
+
+/**
+ * @tc.name: DomainAccountCommonModuleTest_DomainAccountAuthOptions_002
+ * @tc.desc: DomainAccountAuthOptions ReadFromParcel successfully.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountCommonModuleTest, DomainAccountCommonModuleTest_DomainAccountAuthOptions_002, TestSize.Level3)
+{
+    Parcel parcel;
+    std::string testParams = "test_server_params";
+    parcel.WriteString(testParams);
+    DomainAccountAuthOptions authOptions;
+    bool result = authOptions.ReadFromParcel(parcel);
+    EXPECT_TRUE(result);
+    EXPECT_EQ(authOptions.serverParams_, testParams);
+}

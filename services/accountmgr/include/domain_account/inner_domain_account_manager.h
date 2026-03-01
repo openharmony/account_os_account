@@ -40,6 +40,8 @@ public:
     ErrCode UnregisterPlugin();
     ErrCode Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
         const sptr<IDomainAccountCallback> &callback);
+    ErrCode AuthWithParameters(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
+        const DomainAccountAuthOptions &authOptions, const sptr<IDomainAccountCallback> &callback);
     ErrCode AuthUser(int32_t userId, const std::vector<uint8_t> &password,
         const sptr<IDomainAccountCallback> &callback);
     void AuthResultInfoCallback(uint64_t contextId, PluginAuthResultInfo *authResultInfo, PluginBussnessError *error);
@@ -124,6 +126,8 @@ private:
     ErrCode CheckUserToken(const std::vector<uint8_t> &token, bool &isValid, const DomainAccountInfo &info);
     ErrCode PluginAuth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
         uint64_t &contextId);
+    ErrCode PluginAuthWithParameters(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
+        const std::string &serverParams);
     ErrCode PluginGetDomainAccountInfo(const GetDomainAccountInfoOptions &options,
         DomainAccountInfo &resultParcel);
     ErrCode PluginAuthWithPopup(const DomainAccountInfo &info, DomainAuthResult &resultParcel);

@@ -354,6 +354,10 @@ struct DomainAccountInfo {
     serverConfigId: Optional<String>;
 }
 
+struct DomainAccountAuthOptions {
+    serverParams: Optional<@sts_type("Record<string, RecordData>")Opaque>;
+}
+
 union DomainAccountInfoOrNull {
     infoData: DomainAccountInfo;
     nullData: @null unit;
@@ -511,6 +515,10 @@ function UnregisterPlugin(): void;
 @static("DomainAccountManager")
 @overload("auth")
 function Auth(domainAccountInfo: DomainAccountInfo, credential: @typedarray Array<u8>, callback: IUserAuthCallback): void;
+
+@static("DomainAccountManager")
+@overload("auth")
+function AuthWithOption(domainAccountInfo: DomainAccountInfo, credential: @typedarray Array<u8>, options: DomainAccountAuthOptions, callback: IUserAuthCallback): void;
 
 @static("DomainAccountManager")
 @overload("authWithPopup")

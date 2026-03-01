@@ -54,6 +54,7 @@ static const std::map<IDomainAccountIpcCode, std::vector<std::string>> PERMISSIO
     {IDomainAccountIpcCode::COMMAND_REGISTER_ACCOUNT_STATUS_LISTENER, {GET_LOCAL_ACCOUNTS}},
     {IDomainAccountIpcCode::COMMAND_UNREGISTER_ACCOUNT_STATUS_LISTENER, {GET_LOCAL_ACCOUNTS}},
     {IDomainAccountIpcCode::COMMAND_AUTH, {ACCESS_USER_AUTH_INTERNAL}},
+    {IDomainAccountIpcCode::COMMAND_AUTH_WITH_PARAMETERS, {ACCESS_USER_AUTH_INTERNAL}},
     {IDomainAccountIpcCode::COMMAND_AUTH_USER, {ACCESS_USER_AUTH_INTERNAL}},
     {IDomainAccountIpcCode::COMMAND_GET_DOMAIN_ACCOUNT_INFO, {GET_DOMAIN_ACCOUNTS}},
     {IDomainAccountIpcCode::COMMAND_IS_AUTHENTICATION_EXPIRED,
@@ -175,6 +176,18 @@ ErrCode DomainAccountManagerService::Auth(const DomainAccountInfo &info, const s
         return result;
     }
     return InnerDomainAccountManager::GetInstance().Auth(info, password, callback);
+}
+
+ErrCode DomainAccountManagerService::AuthWithParameters(const DomainAccountInfo &info,
+    const std::vector<uint8_t> &password, const DomainAccountAuthOptions &authOptions,
+    const sptr<IDomainAccountCallback> &callback)
+{
+    auto result = CheckPermission(IDomainAccountIpcCode::COMMAND_AUTH_WITH_PARAMETERS);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("auth with parameters, check permission failed.");
+        return result;
+    }
+    return InnerDomainAccountManager::GetInstance().AuthWithParameters(info, password, authOptions, callback);
 }
 
 ErrCode DomainAccountManagerService::AuthUser(int32_t userId, const std::vector<uint8_t> &password,

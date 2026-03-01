@@ -48,6 +48,9 @@ PluginBussnessError *UnBindAccountError(const PluginDomainAccountInfo *domainAcc
 PluginBussnessError *AuthBlocking(const PluginDomainAccountInfo *domainAccountInfo, const PluginUint8Vector *credential,
     const int32_t callerLocalId, PluginAuthResultInfoCallback callback, uint64_t *contextId);
 PluginBussnessError *CancelAuth(const uint64_t contextId);
+PluginBussnessError *AuthWithServerConfig(const PluginString *parameters,
+    const PluginDomainAccountInfo *domainAccountInfo, const PluginUint8Vector *credential, const int32_t callerLocalId);
+
 int32_t GetCallingLocalId();
 void ResetCallingLocalId();
 #ifdef __cplusplus

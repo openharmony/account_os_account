@@ -86,6 +86,17 @@ public:
         const std::shared_ptr<DomainAccountCallback> &callback);
 
     /**
+     * @brief Authenticates the specified domain account with a credential.
+     * @permission ohos.permission.ACCESS_USER_AUTH_INTERNAL
+     * @param domainAccountInfo - Indicates the domain account information.
+     * @param password - Indicates the credential for authentication.
+     * @param authOptions - Indicates the options for domain account authentication.
+     * @param callback - Indicates the callback for getting the authentication result.
+     * @return error code, see account_error_no.h
+     */
+    ErrCode Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
+        const DomainAccountAuthOptions &authOptions, const std::shared_ptr<DomainAccountCallback> &callback);
+    /**
      * @brief Authenticates a domain account bound with the specified userId with a credential.
      * @permission ohos.permission.ACCESS_USER_AUTH_INTERNAL
      * @param userId - Indicates the local ID of the specified OS account.

@@ -92,6 +92,7 @@ struct JsDomainPluginParam : public CommonAsyncContext {
     int32_t remainingTimes = INVALID_PARAMETER;
     int32_t freezingTime = INVALID_PARAMETER;
     int32_t callingUid = INVALID_PARAMETER;
+    AccountSA::DomainAccountAuthOptions authOptions;
 };
 
 class NapiDomainAccountPlugin final: public AccountSA::DomainAccountPlugin {
