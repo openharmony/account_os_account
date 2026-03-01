@@ -33,6 +33,7 @@ namespace {
 const size_t ARG_SIZE_ONE = 1;
 const size_t ARG_SIZE_TWO = 2;
 const size_t ARG_SIZE_THREE = 3;
+const size_t ARG_SIZE_FOUR = 4;
 const size_t PARAM_ONE = 1;
 const size_t PARAM_ZERO = 0;
 }
@@ -1029,10 +1030,10 @@ napi_value NapiDomainAccountManager::UnregisterPlugin(napi_env env, napi_callbac
 
 static bool ParseContextForAuth(napi_env env, napi_callback_info cbInfo, JsDomainPluginParam &authContext)
 {
-    size_t argc = ARG_SIZE_THREE;
-    napi_value argv[ARG_SIZE_THREE] = {nullptr};
+    size_t argc = ARG_SIZE_FOUR;
+    napi_value argv[ARG_SIZE_FOUR] = {nullptr};
     NAPI_CALL_BASE(env, napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr), false);
-    if (argc != ARG_SIZE_THREE) {
+    if (argc < ARG_SIZE_THREE) {
         ACCOUNT_LOGE("the number of parameter must be one, but got %{public}zu", argc);
         std::string errMsg = "Parameter error. The number of parameters should be at least 3";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
@@ -1050,6 +1051,14 @@ static bool ParseContextForAuth(napi_env env, napi_callback_info cbInfo, JsDomai
         std::string errMsg = "Parameter error. The type of \"credential\" must be Uint8Array";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return false;
+    }
+    if (argc == ARG_SIZE_FOUR) {
+        if (!ParseDomainAuthParameters(env, argv[index++], authContext.authOptions)) {
+            ACCOUNT_LOGE("get DomainAccountAuthOptions failed");
+            std::string errMsg = "Parameter error. The type of \"serverParameters\" must be DomainAccountAuthOptions";
+            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+            return false;
+        }
     }
     if (!GetNamedJsFunction(env, argv[index++], "onResult", authContext.callbackRef)) {
         ACCOUNT_LOGE("get callback failed");
@@ -1079,8 +1088,13 @@ napi_value NapiDomainAccountManager::Auth(napi_env env, napi_callback_info cbInf
             auto jsCallback = std::make_shared<JsDomainAccountAuthCallback>(env, param->callbackRef);
             auto callback = std::make_shared<NapiDomainAccountCallback>(env, jsCallback);
             param->callbackRef = nullptr;
-            param->errCode = DomainAccountClient::GetInstance().Auth(
-                param->domainAccountInfo, param->authData, callback);
+            if (param->authOptions.hasServerParams_) {
+                param->errCode = DomainAccountClient::GetInstance().Auth(
+                    param->domainAccountInfo, param->authData, param->authOptions, callback);
+            } else {
+                param->errCode = DomainAccountClient::GetInstance().Auth(
+                    param->domainAccountInfo, param->authData, callback);
+            }
             if (param->errCode != ERR_OK) {
                 Parcel emptyParcel;
                 AccountSA::DomainAuthResult emptyResult;

@@ -17,6 +17,7 @@ import IDomainAccountCallback;
 import IDomainAccountPlugin;
 sequenceable OHOS.AAFwk.WantParams;
 sequenceable DomainAccountCommon..OHOS.AccountSA.DomainAccountInfo;
+sequenceable DomainAccountCommon..OHOS.AccountSA.DomainAccountAuthOptions;
 sequenceable DomainAccountCommon..OHOS.AccountSA.DomainServerConfig;
 
 interface OHOS.AccountSA.IDomainAccount {
@@ -49,4 +50,6 @@ interface OHOS.AccountSA.IDomainAccount {
         [in] DomainAccountInfo oldAccountInfo, [in] DomainAccountInfo newAccountInfo);
     void SetAccountPolicy([in] DomainAccountInfo info, [in] String policy);
     void GetAccountPolicy([in] DomainAccountInfo info, [out] String policy);
+    void AuthWithParameters([in] DomainAccountInfo info, [in] unsigned char[] password,
+        [in] DomainAccountAuthOptions authOptions, [in] IDomainAccountCallback domainAccountCallback);
 }

@@ -121,6 +121,8 @@ typedef PluginBussnessError* (*GetAccountPolicyFunc)(const PluginDomainAccountIn
 typedef PluginBussnessError* (*SetAccountPolicyFunc)(const PluginString *parameters,
     const PluginDomainAccountInfo *domainAccountInfo, const int32_t callerLocalId);
 typedef PluginBussnessError* (*CancelAuthFunc)(const uint64_t contextId);
+typedef PluginBussnessError* (*AuthWithServerConfigFunc)(const PluginString *parameters,
+    const PluginDomainAccountInfo *domainAccountInfo, const PluginUint8Vector *credential, const int32_t callerLocalId);
 
 enum PluginMethodEnum {
     ADD_SERVER_CONFIG = 0,
@@ -143,6 +145,7 @@ enum PluginMethodEnum {
     SET_ACCOUNT_POLICY,
     GET_ACCOUNT_POLICY,
     CANCEL_AUTH,
+    AUTH_WITH_SERVER_CONFIG,
     //this is last just for count enum
     COUNT,
 };

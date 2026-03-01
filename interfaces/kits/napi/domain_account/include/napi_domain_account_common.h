@@ -29,6 +29,8 @@ namespace OHOS {
 namespace AccountJsKit {
 using namespace AccountSA;
 bool ParseDomainAccountInfo(napi_env env, napi_value object, DomainAccountInfo &info);
+
+bool ParseDomainAuthParameters(napi_env env, napi_value object, DomainAccountAuthOptions &DomainAccountAuthOptions);
 } // namespace AccountJsKit
 } // namespace OHOS
 

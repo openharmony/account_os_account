@@ -116,6 +116,19 @@ PluginBussnessError *Auth(const PluginDomainAccountInfo *domainAccountInfo, cons
     return error;
 }
 
+PluginBussnessError *AuthWithServerConfig(const PluginString *parameters,
+    const PluginDomainAccountInfo *domainAccountInfo, const PluginUint8Vector *credential, const int32_t callerLocalId)
+{
+    ACCOUNT_LOGI("Mock AuthWithServerConfig, sleep 1 second");
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    PluginBussnessError *error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    if (error != nullptr) {
+        error->code = 0;
+        error->msg.data = nullptr;
+    }
+    return error;
+}
+
 PluginBussnessError *BindAccount(const PluginDomainAccountInfo *domainAccountInfo, const int32_t localId)
 {
     ACCOUNT_LOGI("Mock BindAccount enter.");

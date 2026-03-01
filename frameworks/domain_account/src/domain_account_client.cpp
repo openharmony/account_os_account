@@ -202,6 +202,29 @@ ErrCode DomainAccountClient::Auth(const DomainAccountInfo &info, const std::vect
 #endif // SUPPORT_DOMAIN_ACCOUNTS
 }
 
+ErrCode DomainAccountClient::Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
+    const DomainAccountAuthOptions &authOptions, const std::shared_ptr<DomainAccountCallback> &callback)
+{
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+    ACCOUNT_LOGI("domain account auth");
+    sptr<DomainAccountCallbackService> callbackService = nullptr;
+    sptr<IDomainAccount> proxy = nullptr;
+    uint64_t contextId = 0;
+    std::lock_guard<std::recursive_mutex> lock(contextIdMutex_);
+    ErrCode result = AuthProxyInit(callback, callbackService, proxy, contextId);
+    if (result != ERR_OK) {
+        return result;
+    }
+    result = proxy->AuthWithParameters(info, password, authOptions, callbackService);
+    if (result != ERR_OK) {
+        EraseContext(contextId);
+    }
+    return result;
+#else
+    return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
+#endif // SUPPORT_DOMAIN_ACCOUNTS
+}
+
 ErrCode DomainAccountClient::AuthUser(int32_t userId, const std::vector<uint8_t> &password,
     const std::shared_ptr<DomainAccountCallback> &callback, uint64_t &contextId)
 {
