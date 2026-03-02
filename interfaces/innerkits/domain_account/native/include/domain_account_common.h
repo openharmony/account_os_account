@@ -100,7 +100,7 @@ public:
     DomainAccountAuthOptions();
 public:
     std::string serverParams_;
-    bool hasServerParams_;
+    bool hasServerParams_ = false;
     bool ReadFromParcel(Parcel &parcel);
     bool Marshalling(Parcel &parcel) const override;
     static DomainAccountAuthOptions *Unmarshalling(Parcel &parcel);
