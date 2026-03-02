@@ -20,13 +20,11 @@
 #include <dlfcn.h>
 #include <iomanip>
 #include <locale>
-#ifndef DLOPEN_OPENSSL
 #include <openssl/evp.h>
 #include <openssl/hmac.h>
 #include <openssl/rand.h>
 #include <openssl/sha.h>
 #include <openssl/types.h>
-#endif
 #include <sys/types.h>
 #include <sstream>
 #include <string_ex.h>
@@ -80,83 +78,6 @@ constexpr size_t UTF8_QUAD_BYTE_CHAR_LENGTH = 4;
 const char DEFAULT_ANON_STR[] = "**********";
 constexpr int32_t INTERCEPT_HEAD_PART_LEN_FOR_NAME = 1;
 
-#ifdef DLOPEN_OPENSSL
-#ifdef __cplusplus
-extern "C" {
-#endif
-#define SHA_LBLOCK 16
-#define SHA256_CBLOCK (SHA_LBLOCK*4)
-
-struct sha256_state_st {
-    uint32_t h[8];
-    uint32_t Nl, Nh;
-    uint8_t data[SHA256_CBLOCK];
-    unsigned num, md_len;
-};
-
-#ifdef __cplusplus
-}
-#endif
-typedef struct evp_md_st EVP_MD;
-using SHA256_CTX = struct sha256_state_st;
-
-using SHA256_InitFunc = int (*)(SHA256_CTX *);
-using SHA256_UpdateFunc = int (*)(SHA256_CTX *, const void *, size_t);
-using SHA256_FinalFunc = int (*)(unsigned char *, SHA256_CTX *);
-using EVP_MD_fetchFunc = EVP_MD *(*)(void *, const char *, const char *);
-using EVP_MD_freeFunc = void (*)(EVP_MD *);
-using PKCS5_PBKDF2_HMAC_Func = int (*)(const char *, int, const unsigned char *, int,
-    int, const EVP_MD *, int, unsigned char *);
-using Clean_Func = void (*)();
-
-static std::mutex g_mutex;
-static void *g_opensslLib = nullptr;
-static SHA256_InitFunc SHA256_Init = nullptr;
-static SHA256_UpdateFunc SHA256_Update = nullptr;
-static SHA256_FinalFunc SHA256_Final = nullptr;
-static EVP_MD_fetchFunc EVP_MD_fetch = nullptr;
-static EVP_MD_freeFunc EVP_MD_free = nullptr;
-static PKCS5_PBKDF2_HMAC_Func PKCS5_PBKDF2_HMAC = nullptr;
-static Clean_Func OPENSSL_CLEAN = nullptr;
-
-static void UnloadOpenSSL()
-{
-    if (g_opensslLib != nullptr) {
-        if (OPENSSL_CLEAN != nullptr) {
-            OPENSSL_CLEAN();
-        }
-        dlclose(g_opensslLib);
-        g_opensslLib = nullptr;
-    }
-}
-
-static bool LoadOpenSSL()
-{
-    if (g_opensslLib != nullptr) {
-        return true;
-    }
-    g_opensslLib = dlopen("libcrypto_openssl.z.so", RTLD_LAZY);
-    if (g_opensslLib == nullptr) {
-        ACCOUNT_LOGE("Failed to load libcrypto.so: %{public}s", dlerror());
-        return false;
-    }
-    SHA256_Init = reinterpret_cast<SHA256_InitFunc>(dlsym(g_opensslLib, "SHA256_Init"));
-    SHA256_Update = reinterpret_cast<SHA256_UpdateFunc>(dlsym(g_opensslLib, "SHA256_Update"));
-    SHA256_Final = reinterpret_cast<SHA256_FinalFunc>(dlsym(g_opensslLib, "SHA256_Final"));
-    EVP_MD_fetch = reinterpret_cast<EVP_MD_fetchFunc>(dlsym(g_opensslLib, "EVP_MD_fetch"));
-    EVP_MD_free = reinterpret_cast<EVP_MD_freeFunc>(dlsym(g_opensslLib, "EVP_MD_free"));
-    PKCS5_PBKDF2_HMAC = reinterpret_cast<PKCS5_PBKDF2_HMAC_Func>(dlsym(g_opensslLib, "PKCS5_PBKDF2_HMAC"));
-    OPENSSL_CLEAN = reinterpret_cast<Clean_Func>(dlsym(g_opensslLib, "OPENSSL_cleanup"));
-    if (SHA256_Init == nullptr || SHA256_Update == nullptr || SHA256_Final == nullptr ||
-        EVP_MD_fetch == nullptr || EVP_MD_free == nullptr || PKCS5_PBKDF2_HMAC == nullptr || OPENSSL_CLEAN == nullptr) {
-        ACCOUNT_LOGE("Failed to load OpenSSL functions");
-        UnloadOpenSSL();
-        return false;
-    }
-    return true;
-}
-#endif
-
 std::string AnonymizeNameStr(const std::string& nameStr)
 {
     if (nameStr.empty()) {
@@ -186,20 +107,11 @@ bool GetCallerBundleName(std::string &bundleName, bool &isSystemApp)
 std::string ReturnOhosUdidWithSha256(const std::string &uid)
 {
     unsigned char hash[HASH_LENGTH] = {0};
-#ifdef DLOPEN_OPENSSL
-    std::lock_guard<std::mutex> mutexLock(g_mutex);
-    if (!LoadOpenSSL()) {
-        ACCOUNT_LOGE("LoadOpenSSL failed in ComputeHash");
-        return "";
-    }
-#endif
     SHA256_CTX sha256Ctx;
     SHA256_Init(&sha256Ctx);
     SHA256_Update(&sha256Ctx, uid.c_str(), uid.length());
     SHA256_Final(hash, &sha256Ctx);
-#ifdef DLOPEN_OPENSSL
-    UnloadOpenSSL();
-#endif
+
     std::stringstream ss;
     for (std::uint32_t i = 0; i < HASH_LENGTH; ++i) {
         ss << std::hex << std::uppercase << std::setw(WIDTH_FOR_HEX) << std::setfill('0') << std::uint16_t(hash[i]);
@@ -212,19 +124,9 @@ std::string ReturnOhosUdidWithSha256(const std::string &uid)
 std::string GenerateDVID(const std::string &bundleName, const std::string &uid)
 {
     unsigned char newId[OUTPUT_LENGTH_IN_BYTES + 1] = {};
-#ifdef DLOPEN_OPENSSL
-    std::lock_guard<std::mutex> mutexLock(g_mutex);
-    if (!LoadOpenSSL()) {
-        ACCOUNT_LOGE("LoadOpenSSL failed in ComputeHash");
-        return "";
-    }
-#endif
     EVP_MD *sha256Md = EVP_MD_fetch(nullptr, "SHA2-256", nullptr);
     if (sha256Md == nullptr) {
         ACCOUNT_LOGE("EVP_MD_fetch failed");
-#ifdef DLOPEN_OPENSSL
-        UnloadOpenSSL();
-#endif
         return std::string("");
     }
     int ret = PKCS5_PBKDF2_HMAC(
@@ -234,12 +136,10 @@ std::string GenerateDVID(const std::string &bundleName, const std::string &uid)
         sha256Md,
         OUTPUT_LENGTH_IN_BYTES,
         newId);
+    // When calling PKCS5_PBKDF2_HMAC, returning 1 indicates success, and returning 0 indicates failure
     if (ret != 1) {
         ACCOUNT_LOGE("EVP_PBKDF2 failed ret: %{public}d", ret);
         EVP_MD_free(sha256Md);
-#ifdef DLOPEN_OPENSSL
-        UnloadOpenSSL();
-#endif
         return std::string("");
     }
     std::string ohosUidStr;
@@ -250,9 +150,6 @@ std::string GenerateDVID(const std::string &bundleName, const std::string &uid)
         ohosUidStr.append(DexToHexString(newId[i], true));
     }
     EVP_MD_free(sha256Md);
-#ifdef DLOPEN_OPENSSL
-    UnloadOpenSSL();
-#endif
     return ohosUidStr;
 }
 
