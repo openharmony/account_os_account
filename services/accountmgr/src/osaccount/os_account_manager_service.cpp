@@ -351,6 +351,10 @@ ErrCode OsAccountManagerService::CreateOsAccount(const std::string &localName, c
     }
     return innerManager_.CreateOsAccount(localName, shortName, type, osAccountInfo, dupOption);
 #else
+    if (options.token.has_value()) {
+        ACCOUNT_LOGE("CreateOsAccount failed, token is not supported.");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
     return innerManager_.CreateOsAccount(localName, shortName, type, osAccountInfo, options);
 #endif // SUPPORT_AUTHORIZATION
 }
@@ -577,6 +581,11 @@ ErrCode OsAccountManagerService::CreateOsAccountForDomain(const OsAccountType &t
             return errCode;
         }
     }
+#else
+    if (options.hasToken) {
+        ACCOUNT_LOGE("CreateOsAccountForDomain failed, token is not supported.");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
 #endif // SUPPORT_AUTHORIZATION
     return innerManager_.CreateOsAccountForDomain(type, domainInfo, callback, options);
 }
@@ -685,6 +694,11 @@ ErrCode OsAccountManagerService::RemoveOsAccount(int32_t id, const RemoveOsAccou
     if (res != ERR_OK) {
         ACCOUNT_LOGE("Privilege check failed, ret=%{public}d.", res);
         return res;
+    }
+#else
+    if (options.token.has_value()) {
+        ACCOUNT_LOGE("RemoveOsAccount failed, token is not supported.");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 #endif // SUPPORT_AUTHORIZATION
     return innerManager_.RemoveOsAccount(id, options);
