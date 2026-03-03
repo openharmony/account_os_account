@@ -95,33 +95,33 @@ ErrCode InnerDomainAccountManager::GetAccountServerConfig(const std::string &acc
 #endif // SUPPORT_DOMAIN_ACCOUNTS
 
 /**
- * @tc.name: OnStopUserDone001
- * @tc.desc: Test OsAccountUserCallback::OnStopUserDone return errCode 0
+ * @tc.name: OnUserCmdDone001
+ * @tc.desc: Test OsAccountUserCallback::OnUserCmdDone return errCode 0
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountServiceTest, OnStopUserDone001, TestSize.Level1)
+HWTEST_F(OsAccountServiceTest, OnUserCmdDone001, TestSize.Level1)
 {
-    sptr<OsAccountUserCallback> osAccountStopUserCallback = new (std::nothrow) OsAccountUserCallback();
-    ASSERT_NE(nullptr, osAccountStopUserCallback);
+    sptr<OsAccountUserCallback> osAccountUserCallback = new (std::nothrow) OsAccountUserCallback();
+    ASSERT_NE(nullptr, osAccountUserCallback);
     int errCode = 0;
-    osAccountStopUserCallback->OnStopUserDone(TEST_USER_ID, errCode);
-    EXPECT_EQ(osAccountStopUserCallback->resultCode_, ERR_OK);
+    osAccountUserCallback->OnUserCmdDone(TEST_USER_ID, errCode);
+    EXPECT_EQ(osAccountUserCallback->resultCode_, ERR_OK);
 }
 
 /**
- * @tc.name: OnStartUserDone001
- * @tc.desc: Test OsAccountUserCallback::OnStartUserDone return errCode 0
+ * @tc.name: OnUserCmdDone002
+ * @tc.desc: Test OsAccountUserCallback::OnUserCmdDone return errCode 0
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountServiceTest, OnStartUserDone001, TestSize.Level1)
+HWTEST_F(OsAccountServiceTest, OnUserCmdDone002, TestSize.Level1)
 {
-    sptr<OsAccountUserCallback> osAccountStartUserCallback = new (std::nothrow) OsAccountUserCallback(nullptr);
-    ASSERT_NE(nullptr, osAccountStartUserCallback);
+    sptr<OsAccountUserCallback> osAccountUserCallback = new (std::nothrow) OsAccountUserCallback(nullptr);
+    ASSERT_NE(nullptr, osAccountUserCallback);
     int errCode = 0;
-    osAccountStartUserCallback->OnStartUserDone(TEST_USER_ID, errCode);
-    EXPECT_EQ(osAccountStartUserCallback->resultCode_, ERR_OK);
+    osAccountUserCallback->OnUserCmdDone(TEST_USER_ID, errCode);
+    EXPECT_EQ(osAccountUserCallback->resultCode_, ERR_OK);
 }
 
 /**

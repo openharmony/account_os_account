@@ -29,37 +29,21 @@ OsAccountUserCallback::OsAccountUserCallback(const OsAccountStartCallbackFunc &c
     :startUserCallbackFunc_(callbackFunc)
 {}
 
-int OsAccountUserCallback::OnStopUserDoneInner(MessageParcel &data, MessageParcel &reply)
-{
-    auto accountId = data.ReadInt32();
-    auto errCode = data.ReadInt32();
-    OnStopUserDone(accountId, errCode);
-    return ERR_OK;
-}
-
-int OsAccountUserCallback::OnStartUserDoneInner(MessageParcel &data, MessageParcel &reply)
-{
-    auto accountId = data.ReadInt32();
-    auto errCode = data.ReadInt32();
-    OnStartUserDone(accountId, errCode);
-    return ERR_OK;
-}
-
-int OsAccountUserCallback::OnLogoutUserDoneInner(MessageParcel &data, MessageParcel &reply)
+int OsAccountUserCallback::OnUserCmdDoneInner(MessageParcel &data, MessageParcel &reply)
 {
     int32_t accountId;
     if (!data.ReadInt32(accountId)) {
         ACCOUNT_LOGE("Read accountId from reply failed.");
-        OnLogoutUserDone(-1, ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR);
+        OnUserCmdDone(-1, ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR);
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     int32_t errCode;
     if (!data.ReadInt32(errCode)) {
         ACCOUNT_LOGE("Read errCode from reply failed.");
-        OnLogoutUserDone(accountId, ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR);
+        OnUserCmdDone(accountId, ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR);
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
-    OnLogoutUserDone(accountId, errCode);
+    OnUserCmdDone(accountId, errCode);
     return ERR_OK;
 }
 
@@ -73,50 +57,25 @@ int OsAccountUserCallback::OnRemoteRequest(
         return ERR_INVALID_STATE;
     }
 
-    switch (code) {
-        case UserCallbackCmd::ON_STOP_USER_DONE:
-            return OnStopUserDoneInner(data, reply);
-        case UserCallbackCmd::ON_START_USER_DONE:
-            return OnStartUserDoneInner(data, reply);
-        case UserCallbackCmd::ON_LOGOUT_USER_DONE:
-            return OnLogoutUserDoneInner(data, reply);
-        default:
-            break;
+    if (code == 0) {
+        return OnUserCmdDoneInner(data, reply);
     }
 
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 
-void OsAccountUserCallback::OnStopUserDone(int userId, int errcode)
+void OsAccountUserCallback::OnUserCmdDone(int userId, int errcode)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    ACCOUNT_LOGI("In call back account, OnStopUserDone id is %{public}d, errcode is %{public}d.",
-        userId, errcode);
-    isCalled_ = true;
-    resultCode_ = errcode;
-    onStopCondition_.notify_one();
-}
-
-void OsAccountUserCallback::OnStartUserDone(int userId, int errcode)
-{
-    std::unique_lock<std::mutex> lock(mutex_);
-    ACCOUNT_LOGI("In call back account, OnStartUserDone id is %{public}d, errcode is %{public}d.",
+    ACCOUNT_LOGI("In call back account, OnUserCmdDone id is %{public}d, errcode is %{public}d.",
         userId, errcode);
     if (errcode == ERR_OK && startUserCallbackFunc_ != nullptr) {
         startUserCallbackFunc_(userId);
     }
     isCalled_ = true;
     resultCode_ = errcode;
+    onStopCondition_.notify_one();
     onStartCondition_.notify_one();
-}
-
-void OsAccountUserCallback::OnLogoutUserDone(int userId, int errcode)
-{
-    std::unique_lock<std::mutex> lock(mutex_);
-    ACCOUNT_LOGI("In call back account, OnLogoutUserDone id is %{public}d, errcode is %{public}d.",
-        userId, errcode);
-    isCalled_ = true;
-    resultCode_ = errcode;
     onLogoutCondition_.notify_one();
 }
 }  // namespace AccountSA
