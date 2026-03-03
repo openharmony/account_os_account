@@ -18,5 +18,8 @@ group("fuzztest") {
   deps += [
     # deps file
     "acquireauthorization_fuzzer:AcquireAuthorizationFuzzTest",
+    "checkauthorization_fuzzer:CheckAuthorizationFuzzTest",
+    "checkauthorizationtoken_fuzzer:CheckAuthorizationTokenFuzzTest",
+    "releaseauthorization_fuzzer:ReleaseAuthorizationFuzzTest",
   ]
 }
