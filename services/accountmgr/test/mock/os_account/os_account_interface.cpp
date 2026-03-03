@@ -24,7 +24,7 @@ ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo, 
 {
     ACCOUNT_LOGI("mock OsAccountInterface SendToAMSAccountStart start");
     sptr<OsAccountUserCallback> osAccountStartUserCallback = new (std::nothrow) OsAccountUserCallback(callbackFunc);
-    osAccountStartUserCallback->OnStartUserDone(osAccountInfo.GetLocalId(), 0);
+    osAccountStartUserCallback->OnUserCmdDone(osAccountInfo.GetLocalId(), 0);
     return ERR_OK;
 }
 

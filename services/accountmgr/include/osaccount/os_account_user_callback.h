@@ -31,9 +31,7 @@ public:
 
     virtual int OnRemoteRequest(
         uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
-    void OnStopUserDone(int userId, int errcode) override;
-    void OnStartUserDone(int userId, int errcode) override;
-    void OnLogoutUserDone(int userId, int errcode) override;
+    void OnUserCmdDone(int userId, int errcode) override;
 
 public:
     bool isCalled_ = false;
@@ -46,9 +44,7 @@ public:
 private:
     DISALLOW_COPY_AND_MOVE(OsAccountUserCallback);
 
-    int OnStopUserDoneInner(MessageParcel &data, MessageParcel &reply);
-    int OnStartUserDoneInner(MessageParcel &data, MessageParcel &reply);
-    int OnLogoutUserDoneInner(MessageParcel &data, MessageParcel &reply);
+    int OnUserCmdDoneInner(MessageParcel &data, MessageParcel &reply);
 };
 }  // namespace AccountSA
 }  // namespace OHOS
