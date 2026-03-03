@@ -13,13 +13,16 @@
  * limitations under the License.
  */
 
-#include <gtest/gtest.h>
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "account_test_common.h"
+#include <gtest/gtest.h>
+#define private public
 #include "authorization_client.h"
-#include "authorization_common.h"
+#undef private
 #include "accesstoken_kit.h"
+#include "authorization_callback.h"
+#include "authorization_common.h"
 #include "ipc_skeleton.h"
 #include "os_account_constants.h"
 #include "tee_client_api.h"
@@ -62,6 +65,17 @@ void AuthorizationClientModuleCovTest::SetUp(void) __attribute__((no_sanitize("c
 
 void AuthorizationClientModuleCovTest::TearDown(void)
 {}
+
+class MockAuthorizationResultCallback final : public AccountSA::AuthorizationCallback {
+public:
+    MockAuthorizationResultCallback() = default;
+    ErrCode OnResult(int32_t resultCode, const AccountSA::AuthorizationResult& result) override { return ERR_OK; }
+
+    ErrCode OnConnectAbility(const AccountSA::ConnectAbilityInfo& info, const sptr<IRemoteObject>& callback) override
+    {
+        return ERR_OK;
+    }
+};
 
 #ifdef SUPPORT_AUTHORIZATION
 /**
@@ -437,3 +451,390 @@ HWTEST_F(AuthorizationClientModuleCovTest, CheckAuthorizationWithToken004, TestS
     ASSERT_TRUE(RecoveryPermission(tokenID, selfTokenId));
 }
 #endif // SUPPORT_AUTHORIZATION
+
+#ifdef SUPPORT_AUTHORIZATION
+/**
+ * @tc.name: RegisterAuthAppRemoteObject001
+ * @tc.desc: register auth app remote object when already registered
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AuthorizationClientModuleCovTest, RegisterAuthAppRemoteObject001, TestSize.Level0)
+{
+    ErrCode errCode = AuthorizationClient::GetInstance().RegisterAuthAppRemoteObject();
+    EXPECT_EQ(errCode, ERR_OK);
+
+    ErrCode errCode2 = AuthorizationClient::GetInstance().RegisterAuthAppRemoteObject();
+    EXPECT_EQ(errCode2, ERR_OK);
+
+    AuthorizationClient::GetInstance().UnRegisterAuthAppRemoteObject();
+}
+
+/**
+ * @tc.name: AcquireAuthorization003
+ * @tc.desc: acquire authorization with nullptr callback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AuthorizationClientModuleCovTest, AcquireAuthorization003, TestSize.Level0)
+{
+    std::string privilege = PRIVILEGE_NAME;
+    AcquireAuthorizationOptions options;
+    std::shared_ptr<MockAuthorizationResultCallback> callback = nullptr;
+    ErrCode errCode = AuthorizationClient::GetInstance().AcquireAuthorization(privilege, options, callback);
+    EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: AcquireAuthorization002
+ * @tc.desc: acquire authorization when callback service already exists
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AuthorizationClientModuleCovTest, AcquireAuthorization002, TestSize.Level0)
+{
+    std::string privilege = PRIVILEGE_NAME;
+    AcquireAuthorizationOptions options;
+    auto callback = std::make_shared<MockAuthorizationResultCallback>();
+    ErrCode errCode = AuthorizationClient::GetInstance().AcquireAuthorization(privilege, options, callback);
+    EXPECT_NE(ERR_OK, errCode);
+}
+
+/**
+ * @tc.name: EraseAuthCallBack001
+ * @tc.desc: erase auth callback when callback service exists
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AuthorizationClientModuleCovTest, EraseAuthCallBack001, TestSize.Level0)
+{
+    AuthorizationClient::GetInstance().EraseAuthCallBack();
+    auto callback = std::make_shared<MockAuthorizationResultCallback>();
+
+    std::string privilege = PRIVILEGE_NAME;
+    AcquireAuthorizationOptions options;
+
+    ErrCode errCode = AuthorizationClient::GetInstance().AcquireAuthorization(privilege, options, callback);
+    EXPECT_NE(errCode, ERR_OK);
+}
+
+/**
+ * @tc.name: GetInstance001
+ * @tc.desc: test GetInstance singleton
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AuthorizationClientModuleCovTest, GetInstance001, TestSize.Level0)
+{
+    auto& instance1 = AuthorizationClient::GetInstance();
+    auto& instance2 = AuthorizationClient::GetInstance();
+    EXPECT_EQ(&instance1, &instance2);
+}
+
+#else
+/**
+ * @tc.name: RegisterAuthAppRemoteObject001
+ * @tc.desc: register auth app remote object without SUPPORT_AUTHORIZATION
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AuthorizationClientModuleCovTest, RegisterAuthAppRemoteObject001, TestSize.Level0)
+{
+    ErrCode errCode = AuthorizationClient::GetInstance().RegisterAuthAppRemoteObject();
+    EXPECT_EQ(errCode, ERR_OK);
+}
+
+/**
+ * @tc.name: UnRegisterAuthAppRemoteObject001
+ * @tc.desc: unregister auth app remote object without SUPPORT_AUTHORIZATION
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AuthorizationClientModuleCovTest, UnRegisterAuthAppRemoteObject001, TestSize.Level0)
+{
+    AuthorizationClient::GetInstance().EraseAuthCallBack();
+    ErrCode errCode = AuthorizationClient::GetInstance().UnRegisterAuthAppRemoteObject();
+    EXPECT_EQ(errCode, ERR_OK);
+}
+
+/**
+ * @tc.name: AcquireAuthorization001
+ * @tc.desc: acquire authorization without SUPPORT_AUTHORIZATION
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AuthorizationClientModuleCovTest, AcquireAuthorization001, TestSize.Level0)
+{
+    std::string privilege = PRIVILEGE_NAME;
+    AcquireAuthorizationOptions options;
+    auto callback = std::make_shared<MockAuthorizationResultCallback>();
+    ErrCode errCode = AuthorizationClient::GetInstance().AcquireAuthorization(privilege, options, callback);
+    EXPECT_EQ(errCode, ERR_OK);
+}
+
+/**
+ * @tc.name: GetInstance001
+ * @tc.desc: test GetInstance singleton without SUPPORT_AUTHORIZATION
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AuthorizationClientModuleCovTest, GetInstance001, TestSize.Level0)
+{
+    auto& instance1 = AuthorizationClient::GetInstance();
+    auto& instance2 = AuthorizationClient::GetInstance();
+    EXPECT_EQ(&instance1, &instance2);
+}
+#endif // SUPPORT_AUTHORIZATION
+
+/**
+ * @tc.name: ConnectAbilityInfo001
+ * @tc.desc: ConnectAbilityInfo Marshalling successfully.
+ * @tc.type: FUNC
+ *
+ * @tc.require:
+ */
+HWTEST_F(AuthorizationClientModuleCovTest, ConnectAbilityInfo001, TestSize.Level3)
+{
+    ConnectAbilityInfo connectAbilityInfo;
+    std::vector<uint8_t> challenge;
+    connectAbilityInfo.privilege = PRIVILEGE_NAME_TEST;
+    connectAbilityInfo.description = PRIVILEGE_NAME_TEST;
+    connectAbilityInfo.bundleName = PRIVILEGE_NAME_TEST;
+    connectAbilityInfo.abilityName = PRIVILEGE_NAME_TEST;
+    connectAbilityInfo.callingUid = 0;
+    connectAbilityInfo.callingPid = 0;
+    connectAbilityInfo.challenge = challenge;
+    connectAbilityInfo.timeout = 0;
+    connectAbilityInfo.callingBundleName = PRIVILEGE_NAME_TEST;
+    Parcel parcel;
+    connectAbilityInfo.Marshalling(parcel);
+    ConnectAbilityInfo* result = connectAbilityInfo.Unmarshalling(parcel);
+    ASSERT_NE(result, nullptr);
+    std::shared_ptr<ConnectAbilityInfo> resultPtr(result);
+    EXPECT_EQ(result->description, PRIVILEGE_NAME_TEST);
+}
+
+/**
+ * @tc.name: AcquireAuthorizationOptions001
+ * @tc.desc: AcquireAuthorizationOptions Marshalling successfully with
+ * default values.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AuthorizationClientModuleCovTest, AcquireAuthorizationOptions001, TestSize.Level3)
+{
+    AcquireAuthorizationOptions options;
+    Parcel parcel;
+    bool ret = options.Marshalling(parcel);
+    EXPECT_TRUE(ret);
+
+    AcquireAuthorizationOptions* result = options.Unmarshalling(parcel);
+    ASSERT_NE(result, nullptr);
+    std::shared_ptr<AcquireAuthorizationOptions> resultPtr(result);
+    EXPECT_EQ(result->hasContext, false);
+    EXPECT_EQ(result->isReuseNeeded, true);
+    EXPECT_EQ(result->isInteractionAllowed, true);
+    EXPECT_EQ(result->isContextValid, false);
+    EXPECT_TRUE(result->challenge.empty());
+}
+
+/**
+ * @tc.name: AcquireAuthorizationOptions002
+ * @tc.desc: AcquireAuthorizationOptions Marshalling successfully with
+ * custom values.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AuthorizationClientModuleCovTest, AcquireAuthorizationOptions002, TestSize.Level3)
+{
+    AcquireAuthorizationOptions options;
+    options.hasContext = true;
+    options.challenge = {1, 2, 3, 4, 5};
+    options.isReuseNeeded = false;
+    options.isInteractionAllowed = false;
+    options.isContextValid = true;
+
+    Parcel parcel;
+    bool ret = options.Marshalling(parcel);
+    EXPECT_TRUE(ret);
+
+    AcquireAuthorizationOptions* result = options.Unmarshalling(parcel);
+    std::shared_ptr<AcquireAuthorizationOptions> resultPtr(result);
+    ASSERT_NE(result, nullptr);
+    EXPECT_EQ(result->hasContext, true);
+    EXPECT_EQ(result->isReuseNeeded, false);
+    EXPECT_EQ(result->isInteractionAllowed, false);
+    EXPECT_EQ(result->isContextValid, true);
+    EXPECT_EQ(result->challenge.size(), 5);
+    EXPECT_EQ(result->challenge[0], 1);
+    EXPECT_EQ(result->challenge[4], 5);
+}
+
+/**
+ * @tc.name: AcquireAuthorizationOptions003
+ * @tc.desc: AcquireAuthorizationOptions with large challenge data.
+ *
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AuthorizationClientModuleCovTest, AcquireAuthorizationOptions003, TestSize.Level3)
+{
+    AcquireAuthorizationOptions options;
+    options.hasContext = true;
+    options.challenge = std::vector<uint8_t>(1000, 0xAB);
+    options.isReuseNeeded = true;
+    options.isInteractionAllowed = true;
+    options.isContextValid = false;
+
+    Parcel parcel;
+    bool ret = options.Marshalling(parcel);
+    EXPECT_TRUE(ret);
+
+    AcquireAuthorizationOptions* result = options.Unmarshalling(parcel);
+    std::shared_ptr<AcquireAuthorizationOptions> resultPtr(result);
+    ASSERT_NE(result, nullptr);
+    EXPECT_EQ(result->hasContext, true);
+    EXPECT_EQ(result->challenge.size(), 1000);
+    EXPECT_EQ(result->challenge[0], 0xAB);
+    EXPECT_EQ(result->challenge[999], 0xAB);
+}
+
+/**
+ * @tc.name: AcquireAuthorizationOptions004
+ * @tc.desc: AcquireAuthorizationOptions with empty challenge.
+ *
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AuthorizationClientModuleCovTest, AcquireAuthorizationOptions004, TestSize.Level3)
+{
+    AcquireAuthorizationOptions options;
+    options.hasContext = false;
+    options.challenge = {};
+    options.isReuseNeeded = true;
+    options.isInteractionAllowed = false;
+    options.isContextValid = true;
+
+    Parcel parcel;
+    bool ret = options.Marshalling(parcel);
+    EXPECT_TRUE(ret);
+
+    AcquireAuthorizationOptions* result = options.Unmarshalling(parcel);
+    std::shared_ptr<AcquireAuthorizationOptions> resultPtr(result);
+    ASSERT_NE(result, nullptr);
+    EXPECT_EQ(result->hasContext, false);
+    EXPECT_TRUE(result->challenge.empty());
+    EXPECT_EQ(result->isReuseNeeded, true);
+    EXPECT_EQ(result->isInteractionAllowed, false);
+    EXPECT_EQ(result->isContextValid, true);
+}
+
+/**
+ * @tc.name: AcquireAuthorizationOptions005
+ * @tc.desc: AcquireAuthorizationOptions with all boolean combinations.
+
+ * * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AuthorizationClientModuleCovTest, AcquireAuthorizationOptions005, TestSize.Level3)
+{
+    AcquireAuthorizationOptions options;
+    options.hasContext = true;
+    options.challenge = {0xFF, 0x00, 0xAA, 0x55};
+    options.isReuseNeeded = false;
+    options.isInteractionAllowed = true;
+    options.isContextValid = false;
+
+    Parcel parcel;
+    bool ret = options.Marshalling(parcel);
+    EXPECT_TRUE(ret);
+
+    AcquireAuthorizationOptions* result = options.Unmarshalling(parcel);
+    std::shared_ptr<AcquireAuthorizationOptions> resultPtr(result);
+    ASSERT_NE(result, nullptr);
+    EXPECT_EQ(result->hasContext, true);
+    EXPECT_EQ(result->isReuseNeeded, false);
+    EXPECT_EQ(result->isInteractionAllowed, true);
+    EXPECT_EQ(result->isContextValid, false);
+    EXPECT_EQ(result->challenge.size(), 4);
+    EXPECT_EQ(result->challenge[0], 0xFF);
+    EXPECT_EQ(result->challenge[1], 0x00);
+    EXPECT_EQ(result->challenge[2], 0xAA);
+    EXPECT_EQ(result->challenge[3], 0x55);
+}
+
+/**
+ * @tc.name: TransVectorU8ToString001
+ * @tc.desc: TransVectorU8ToString with empty vector.
+ * @tc.type: FUNC
+ *
+ * @tc.require:
+ */
+HWTEST_F(AuthorizationClientModuleCovTest, TransVectorU8ToString001, TestSize.Level3)
+{
+    std::vector<uint8_t> vec = {};
+    std::string str;
+    TransVectorU8ToString(vec, str);
+    EXPECT_TRUE(str.empty());
+}
+
+/**
+ * @tc.name: TransVectorU8ToString004
+ * @tc.desc: TransVectorU8ToString with multiple bytes mixed values.
+ *
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AuthorizationClientModuleCovTest, TransVectorU8ToString004, TestSize.Level3)
+{
+    std::vector<uint8_t> vec = {0x00, 0x01, 0x0F, 0x10, 0xAB, 0xFF};
+    std::string str;
+    TransVectorU8ToString(vec, str);
+    EXPECT_EQ(str, "00010F10ABFF");
+}
+
+/**
+ * @tc.name: TransStringToVectorU8001
+ * @tc.desc: TransStringToVectorU8 with empty string.
+ * @tc.type: FUNC
+ *
+ * @tc.require:
+ */
+HWTEST_F(AuthorizationClientModuleCovTest, TransStringToVectorU8001, TestSize.Level3)
+{
+    std::string str = "";
+    std::vector<uint8_t> vec;
+    TransStringToVectorU8(vec, str);
+    EXPECT_TRUE(vec.empty());
+}
+
+/**
+ * @tc.name: TransStringToVectorU8002
+ * @tc.desc: TransStringToVectorU8 with single character.
+ * @tc.type: FUNC
+ *
+ * @tc.require:
+ */
+HWTEST_F(AuthorizationClientModuleCovTest, TransStringToVectorU8002, TestSize.Level3)
+{
+    std::string str = "A";
+    std::vector<uint8_t> vec;
+    TransStringToVectorU8(vec, str);
+    ASSERT_EQ(vec.size(), 1);
+    EXPECT_EQ(vec[0], 'A');
+}
+
+/**
+ * @tc.name: TransStringToVectorU8003
+ * @tc.desc: TransStringToVectorU8 with multiple characters.
+ * @tc.type:
+ * FUNC
+ * @tc.require:
+ */
+HWTEST_F(AuthorizationClientModuleCovTest, TransStringToVectorU8003, TestSize.Level3)
+{
+    std::string str = "Hello";
+    std::vector<uint8_t> vec;
+    TransStringToVectorU8(vec, str);
+    ASSERT_EQ(vec.size(), 5);
+}
