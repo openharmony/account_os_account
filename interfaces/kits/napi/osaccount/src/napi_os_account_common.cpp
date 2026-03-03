@@ -327,10 +327,16 @@ bool ParseRemoveOsAccountOptions(napi_env env, napi_value optionObj, std::option
     RemoveOsAccountOptions tmpOption;
     options = std::nullopt;
     if (hasToken) {
-        napi_value value = nullptr;
+        napi_value tokenValue = nullptr;
+        NAPI_CALL_BASE(env, napi_get_named_property(env, optionObj, "token", &tokenValue), false);
+        napi_valuetype tokenValueType = napi_undefined;
+        NAPI_CALL_BASE(env, napi_typeof(env, tokenValue, &tokenValueType), false);
+        // Handle undefined token value
+        if (tokenValueType == napi_undefined) {
+            return true;
+        }
         std::vector<uint8_t> tokenData;
-        NAPI_CALL_BASE(env, napi_get_named_property(env, optionObj, "token", &value), false);
-        if (ParseUint8TypedArrayToVector(env, value, tokenData) != napi_ok) {
+        if (ParseUint8TypedArrayToVector(env, tokenValue, tokenData) != napi_ok) {
             ACCOUNT_LOGE("Get token failed");
             std::string errMsg = "Parameter error. The type of \"token\" must be Uint8Array";
             AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
@@ -632,6 +638,25 @@ bool ParseParaCreateOANameAndType(napi_env env, napi_value argv[], CreateOAAsync
     return true;
 }
 
+static bool ParseToken(napi_env env, napi_value object, CreateOAAsyncContext *asyncContext)
+{
+    napi_value tokenValue = nullptr;
+    NAPI_CALL_BASE(env, napi_get_named_property(env, object, "token", &tokenValue), false);
+    napi_valuetype tokenValueType = napi_undefined;
+    NAPI_CALL_BASE(env, napi_typeof(env, tokenValue, &tokenValueType), false);
+    if (tokenValueType == napi_undefined) {
+        asyncContext->token = std::nullopt;
+    } else if (tokenValueType == napi_null) {
+        ACCOUNT_LOGE("token is null");
+        return false;
+    } else {
+        std::vector<uint8_t> tokenData;
+        ParseUint8TypedArrayToVector(env, tokenValue, tokenData);
+        asyncContext->token = std::make_optional<std::vector<uint8_t>>(tokenData);
+    }
+    return true;
+}
+
 bool ParseParaCreateOA(napi_env env, napi_callback_info cbInfo, CreateOAAsyncContext *asyncContext)
 {
     size_t argc = ARGS_SIZE_THREE;
@@ -666,12 +691,11 @@ bool ParseParaCreateOA(napi_env env, napi_callback_info cbInfo, CreateOAAsyncCon
             }
             bool hasToken = false;
             napi_has_named_property(env, argv[PARAMTWO], "token", &hasToken);
-            if (hasToken) {
-                napi_value value = nullptr;
-                std::vector<uint8_t> tokenData;
-                NAPI_CALL_BASE(env, napi_get_named_property(env, argv[PARAMTWO], "token", &value), false);
-                ParseUint8TypedArrayToVector(env, value, tokenData);
-                asyncContext->token = std::make_optional<std::vector<uint8_t>>(tokenData);
+            if (hasToken && !ParseToken(env, argv[PARAMTWO], asyncContext)) {
+                ACCOUNT_LOGE("Get CreateOsAccountOptions's token failed");
+                std::string errMsg = "Parameter error. The type of arg 3 must be CreateOsAccountOptions";
+                AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+                return false;
             }
         }
     }
@@ -718,11 +742,18 @@ static bool ParseDomainOptionInfo(napi_env env, napi_value object, CreateOsAccou
         return false;
     }
     domainOptions.hasShortName = true;
-    napi_has_named_property(env, object, "token", &domainOptions.hasToken);
-    if (domainOptions.hasToken) {
-        napi_value value = nullptr;
-        NAPI_CALL_BASE(env, napi_get_named_property(env, object, "token", &value), false);
-        ParseUint8TypedArrayToVector(env, value, domainOptions.token);
+    napi_value tokenValue = nullptr;
+    NAPI_CALL_BASE(env, napi_get_named_property(env, object, "token", &tokenValue), false);
+    napi_valuetype tokenValueType = napi_undefined;
+    NAPI_CALL_BASE(env, napi_typeof(env, tokenValue, &tokenValueType), false);
+    if (tokenValueType == napi_undefined) {
+        domainOptions.hasToken = false;
+    } else if (tokenValueType == napi_null) {
+        ACCOUNT_LOGE("token is null");
+        return false;
+    } else {
+        ParseUint8TypedArrayToVector(env, tokenValue, domainOptions.token);
+        domainOptions.hasToken = true;
     }
     return true;
 }
