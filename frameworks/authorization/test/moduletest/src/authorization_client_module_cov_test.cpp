@@ -607,9 +607,10 @@ HWTEST_F(AuthorizationClientModuleCovTest, ConnectAbilityInfo001, TestSize.Level
     connectAbilityInfo.challenge = challenge;
     connectAbilityInfo.timeout = 0;
     connectAbilityInfo.callingBundleName = PRIVILEGE_NAME_TEST;
+    ConnectAbilityInfo connectAbilityInfo2 = connectAbilityInfo;
     Parcel parcel;
-    connectAbilityInfo.Marshalling(parcel);
-    ConnectAbilityInfo* result = connectAbilityInfo.Unmarshalling(parcel);
+    connectAbilityInfo2.Marshalling(parcel);
+    ConnectAbilityInfo* result = connectAbilityInfo2.Unmarshalling(parcel);
     ASSERT_NE(result, nullptr);
     std::shared_ptr<ConnectAbilityInfo> resultPtr(result);
     EXPECT_EQ(result->description, PRIVILEGE_NAME_TEST);
@@ -762,6 +763,30 @@ HWTEST_F(AuthorizationClientModuleCovTest, AcquireAuthorizationOptions005, TestS
     EXPECT_EQ(result->challenge[1], 0x00);
     EXPECT_EQ(result->challenge[2], 0xAA);
     EXPECT_EQ(result->challenge[3], 0x55);
+}
+
+/**
+ * @tc.name: AuthorizationResult001
+ * @tc.desc: AuthorizationResult
+
+ * * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AuthorizationClientModuleCovTest, AuthorizationResult001, TestSize.Level3)
+{
+    AuthorizationResult result1;
+    result1.privilege = "test";
+    result1.token = {0xFF, 0x00, 0xAA, 0x55};
+    AuthorizationResult result2 = result1;
+
+    Parcel parcel;
+    bool ret = result2.Marshalling(parcel);
+    EXPECT_TRUE(ret);
+
+    AuthorizationResult* result = result2.Unmarshalling(parcel);
+    std::shared_ptr<AuthorizationResult> resultPtr(result);
+    ASSERT_NE(result, nullptr);
+    EXPECT_EQ(result->privilege, "test");
 }
 
 /**
