@@ -25,6 +25,7 @@
 #include "authorization_common.h"
 #include "ipc_skeleton.h"
 #include "os_account_constants.h"
+#include "os_account_info.h"
 #include "tee_client_api.h"
 
 using namespace testing;
@@ -837,4 +838,66 @@ HWTEST_F(AuthorizationClientModuleCovTest, TransStringToVectorU8003, TestSize.Le
     std::vector<uint8_t> vec;
     TransStringToVectorU8(vec, str);
     ASSERT_EQ(vec.size(), 5);
+}
+
+/**
+ * @tc.name: CheckAuthorizationResult_Marshalling_0100
+ * @tc.desc: Marshalling
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AuthorizationClientModuleCovTest, CheckAuthorizationResult_Marshalling_0100, TestSize.Level3)
+{
+    CheckAuthorizationResult result;
+    result.isAuthorized = false;
+    result.challenge = {};
+    result.iamToken = {};
+    Parcel parcel;
+    EXPECT_TRUE(result.Marshalling(parcel));
+    EXPECT_NE(result.Unmarshalling(parcel), nullptr);
+}
+
+/**
+ * @tc.name: CheckAuthorizationResult_Marshalling_0200
+ * @tc.desc: Marshalling
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AuthorizationClientModuleCovTest, CheckAuthorizationResult_Marshalling_0200, TestSize.Level3)
+{
+    CheckAuthorizationResult result;
+    result.isAuthorized = false;
+    result.challenge = {};
+    result.iamToken = {};
+    Parcel parcel;
+    EXPECT_TRUE(result.Marshalling(parcel));
+    EXPECT_TRUE(result.ReadFromParcel(parcel));
+}
+
+/**
+ * @tc.name: CheckAuthorizationResult_Marshalling_0100
+ * @tc.desc: Marshalling
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AuthorizationClientModuleCovTest, RemoveOsAccountOptions_Marshalling_0100, TestSize.Level3)
+{
+    RemoveOsAccountOptions options;
+    Parcel parcel;
+    EXPECT_TRUE(options.Marshalling(parcel));
+    EXPECT_NE(options.Unmarshalling(parcel), nullptr);
+}
+
+/**
+ * @tc.name: CheckAuthorizationResult_Marshalling_0200
+ * @tc.desc: Marshalling
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AuthorizationClientModuleCovTest, RemoveOsAccountOptions_Marshalling_0200, TestSize.Level3)
+{
+    RemoveOsAccountOptions options;
+    Parcel parcel;
+    EXPECT_TRUE(options.Marshalling(parcel));
+    EXPECT_TRUE(options.ReadFromParcel(parcel));
 }
