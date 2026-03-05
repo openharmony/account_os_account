@@ -570,7 +570,26 @@ HWTEST_F(AuthorizationClientModuleCovTest, AcquireAuthorization001, TestSize.Lev
     AcquireAuthorizationOptions options;
     auto callback = std::make_shared<MockAuthorizationResultCallback>();
     ErrCode errCode = AuthorizationClient::GetInstance().AcquireAuthorization(privilege, options, callback);
-    EXPECT_EQ(errCode, ERR_OK);
+    EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+}
+
+/**
+ * @tc.name: AcquireAuthorization005
+ * @tc.desc: check authorization.
+ * @tc.type: FUNC
+ * @tc.require:
+*/
+HWTEST_F(AuthorizationClientModuleCovTest, AcquireAuthorization005, TestSize.Level0)
+{
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    uint64_t tokenID;
+    ASSERT_TRUE(AllocPermission(ALL_ACCOUNT_PERMISSION_LIST, tokenID, false));
+    std::string privilege = PRIVILEGE_NAME;
+    AcquireAuthorizationOptions options;
+    auto callback = std::make_shared<MockAuthorizationResultCallback>();
+    ErrCode errCode = AuthorizationClient::GetInstance().AcquireAuthorization(privilege, options, callback);
+    EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+    ASSERT_TRUE(RecoveryPermission(tokenID, selfTokenId));
 }
 
 /**

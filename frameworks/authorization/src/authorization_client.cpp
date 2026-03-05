@@ -35,6 +35,9 @@ static std::mutex g_mutex;
 static sptr<IRemoteObject> g_AuthAppRemoteObj = nullptr;
 // for start request app
 static sptr<AuthRemoteObjectStub> g_requestRemoteObj = nullptr;
+#ifndef SUPPORT_AUTHORIZATION
+const char PERMISSION_ACQUIRE_AUTHORIZATION[] = "ohos.permission.ACQUIRE_LOCAL_ACCOUNT_AUTHORIZATION";
+#endif
 }
 AuthorizationClient::AuthorizationClient()
 {}
@@ -176,6 +179,16 @@ ErrCode AuthorizationClient::AcquireAuthorization(const std::string &privilege,
     }
     return ERR_OK;
 #else
+    ErrCode errCode = AccountPermissionManager::CheckSystemApp();
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Caller is not system application, errCode: %{public}d", errCode);
+        return errCode;
+    }
+    errCode = AccountPermissionManager::VerifyPermission(PERMISSION_ACQUIRE_AUTHORIZATION);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to check permission.");
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
     AuthorizationResult result;
     result.privilege = privilege;
     result.resultCode = AUTHORIZATION_DENIED;
