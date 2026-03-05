@@ -34,6 +34,8 @@ public:
 namespace OHOS {
     bool SubscribeConstraintsFuzzTest(const uint8_t* data, size_t size)
     {
+        auto osSubscriber = std::make_shared<OsAccountSubscriber>();
+        OsAccountManager::SubscribeOsAccount(osSubscriber);
         int32_t result = ERR_OK;
         if ((data != nullptr) && (size != 0)) {
             FuzzData fuzzData(data, size);

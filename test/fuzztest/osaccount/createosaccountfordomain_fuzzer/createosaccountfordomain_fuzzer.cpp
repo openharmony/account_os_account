@@ -106,20 +106,20 @@ void CheckOsAccountStatus()
     OsAccountManager::GetOsAccountTypeFromProcess(osAccountType);
     std::vector<int32_t> activeOsAccountIds;
     OsAccountManager::QueryActiveOsAccountIds(activeOsAccountIds);
+    std::vector<int32_t> unlockedIds;
+    OsAccountManager::GetUnlockedOsAccountLocalIds(unlockedIds);
     OsAccountInfo osAccountInfo;
     OsAccountManager::QueryCurrentOsAccount(osAccountInfo);
     std::vector<OsAccountInfo> osAccountInfos;
     OsAccountManager::QueryAllCreatedOsAccounts(osAccountInfos);
-    uint32_t maxNum;
-    OsAccountManager::QueryMaxLoggedInOsAccountNumber(maxNum);
-    uint32_t maxOsAccountNumber;
-    OsAccountManager::QueryMaxOsAccountNumber(maxOsAccountNumber);
-    bool isVerified;
-    OsAccountManager::IsCurrentOsAccountVerified(isVerified);
-    bool isMainOsAccount;
-    OsAccountManager::IsMainOsAccount(isMainOsAccount);
-    bool isMultiOsAccountEnable;
-    OsAccountManager::IsMultiOsAccountEnable(isMultiOsAccountEnable);
+    uint32_t uintResult;
+    OsAccountManager::QueryMaxLoggedInOsAccountNumber(uintResult);
+    OsAccountManager::QueryMaxOsAccountNumber(uintResult);
+    bool boolResult;
+    OsAccountManager::IsCurrentOsAccountVerified(boolResult);
+    OsAccountManager::IsMainOsAccount(boolResult);
+    OsAccountManager::IsMultiOsAccountEnable(boolResult);
+    OsAccountManager::IsOsAccountForeground(boolResult);
     OsAccountManager::DeactivateAllOsAccounts();
 }
 } // namespace OHOS

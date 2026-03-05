@@ -40,6 +40,9 @@ void GetForegroundOsAccountLocalIdFuzzTest(const uint8_t *data, size_t size)
     // normal version
     OsAccountManager::GetForegroundOsAccountLocalId(0, localId);
     OsAccountManager::GetForegroundOsAccountLocalId(testId, localId);
+    uint64_t displayId;
+    OsAccountManager::GetForegroundOsAccountDisplayId(testId, displayId);
+    OsAccountManager::GetForegroundOsAccountDisplayId(0, displayId);
 }
 }
 

@@ -19,6 +19,7 @@
 #include <vector>
 #define private public
 #include "account_mgr_service.h"
+#include "ohos_account_manager.h"
 #undef private
 #include "fuzz_data.h"
 #include "iaccount.h"
@@ -64,6 +65,7 @@ bool CmdQueryOhosAccountInfoByUserIdStubFuzzTest(const uint8_t* data, size_t siz
     }
     MessageParcel reply;
     MessageOption option;
+    OhosAccountManager::GetInstance().OnInitialize();
     uint32_t code = static_cast<uint32_t>(IAccountIpcCode::COMMAND_QUERY_OS_ACCOUNT_DISTRIBUTED_INFO);
     DelayedRefSingleton<AccountMgrService>::GetInstance().state_ = ServiceRunningState::STATE_RUNNING;
     DelayedRefSingleton<AccountMgrService>::GetInstance().OnRemoteRequest(code, dataTemp, reply, option);

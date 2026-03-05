@@ -19,6 +19,7 @@
 #include <vector>
 #define private public
 #include "account_mgr_service.h"
+#include "ohos_account_manager.h"
 #undef private
 #include "fuzz_data.h"
 #include "iaccount.h"
@@ -101,6 +102,7 @@ void SendRequestWithCode(int32_t code)
 
 extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 {
+    OhosAccountManager::GetInstance().OnInitialize();
     OHOS::SendRequestWithCode(static_cast<uint32_t>(IAccountIpcCode::COMMAND_QUERY_OHOS_ACCOUNT_INFO));
     OHOS::SendRequestWithCode(static_cast<uint32_t>(IAccountIpcCode::COMMAND_QUERY_DISTRIBUTED_VIRTUAL_DEVICE_ID));
     OHOS::SendRequestWithCode(static_cast<uint32_t>(IAccountIpcCode::COMMAND_GET_OHOS_ACCOUNT_INFO));
