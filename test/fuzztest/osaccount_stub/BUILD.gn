@@ -62,6 +62,11 @@ group("fuzztest") {
     "subscribeosaccountstub_fuzzer:SubscribeOsAccountStubFuzzTest",
     "unsubscribeosaccountconstraintstub_fuzzer:UnsubscribeOsAccountConstraintStubFuzzTest",
     "updateosaccountwithfullinfostub_fuzzer:UpdateOsAccountWithFullInfoStubFuzzTest",
+    "procgetcreatedosaccountnumfromdatabasestub_fuzzer:procgetcreatedosaccountnumfromdatabaseStubFuzzTest",
+    "procgetserialnumberfromdatabasestub_fuzzer:procgetserialnumberfromdatabasestubFuzzTest",
+    "procgetmaxallowcreateidfromdatabasestub_fuzzer:procgetmaxallowcreateidfromdatabasestubFuzzTest",
+    "procgetosaccountfromdatabasestub_fuzzer:procgetosaccountfromdatabaseStubFuzzTest",
+    "procgetosaccountlistfromdatabasestub_fuzzer:procgetosaccountlistfromdatabasestubFuzzTest",
   ]
 
   if (os_account_support_domain_accounts) {

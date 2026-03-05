@@ -19,6 +19,7 @@
 #include <vector>
 #define private public
 #include "account_mgr_service.h"
+#include "ohos_account_manager.h"
 #undef private
 #include "fuzz_data.h"
 #include "iaccount.h"
@@ -55,6 +56,7 @@ bool CmdUpdateOhosAccountInfoStubFuzzTest(const uint8_t* data, size_t size)
         ACCOUNT_LOGE("Write eventStr failed!");
         return false;
     }
+    OhosAccountManager::GetInstance().OnInitialize();
     MessageParcel reply;
     MessageOption option;
     uint32_t code = static_cast<uint32_t>(IAccountIpcCode::COMMAND_UPDATE_OHOS_ACCOUNT_INFO);

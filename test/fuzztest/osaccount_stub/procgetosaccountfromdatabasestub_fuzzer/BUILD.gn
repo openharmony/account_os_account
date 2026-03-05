@@ -19,7 +19,7 @@ import("//build/ohos.gni")
 import("//build/test.gni")
 
 ##############################fuzztest##########################################
-ohos_fuzztest("procgetosaccountfromdatabasestub_fuzzerFuzzTest") {
+ohos_fuzztest("procgetosaccountfromdatabaseStubFuzzTest") {
   module_out_path = fuzz_output_path
 
   fuzz_config_file = "."

@@ -25,12 +25,8 @@
 
 using namespace std;
 using namespace OHOS::AccountSA;
-const int32_t MAX_TEST_ID = 10738; // Maximum test
 
 namespace OHOS {
-const int ENUM_TYPE_MAX = 5;
-const int PRIVATE_NUMBER = 3;
-const int END_NUMBER = 4;
 const std::u16string IOS_ACCOUNT_DESCRIPTOR = u"ohos.accountfwk.IOsAccount";
 bool ProcGetOsAccountFromDatabaseStubFuzzTest(const uint8_t *data, size_t size)
 {

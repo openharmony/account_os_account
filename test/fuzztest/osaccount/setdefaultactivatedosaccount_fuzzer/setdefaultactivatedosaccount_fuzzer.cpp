@@ -36,6 +36,9 @@ namespace OHOS {
             int32_t testId = fuzzData.GetData<bool>() ?
                 (fuzzData.GetData<int32_t>() % MAX_TEST_ID) : fuzzData.GetData<int32_t>();
             result = OsAccountManager::SetDefaultActivatedOsAccount(testId);
+            uint64_t displayId = fuzzData.GetData<bool>() ?
+                (fuzzData.GetData<uint64_t>() % MAX_TEST_ID) : fuzzData.GetData<uint64_t>();
+            OsAccountManager::SetDefaultActivatedOsAccount(displayId, testId);
         }
         return result == ERR_OK;
     }
