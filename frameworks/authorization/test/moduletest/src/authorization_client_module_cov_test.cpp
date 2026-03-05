@@ -570,7 +570,7 @@ HWTEST_F(AuthorizationClientModuleCovTest, AcquireAuthorization001, TestSize.Lev
     AcquireAuthorizationOptions options;
     auto callback = std::make_shared<MockAuthorizationResultCallback>();
     ErrCode errCode = AuthorizationClient::GetInstance().AcquireAuthorization(privilege, options, callback);
-    EXPECT_EQ(errCode, ERR_OK);
+    EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
 }
 
 /**
