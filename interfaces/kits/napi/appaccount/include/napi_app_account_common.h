@@ -270,7 +270,7 @@ void GetOAuthTokenInfoForResult(napi_env env, const std::vector<OAuthTokenInfo> 
 
 void GetOAuthListForResult(napi_env env, const std::set<std::string> &info, napi_value result);
 
-bool ParseContextWithExInfo(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext);
+void ParseContextWithExInfo(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext);
 
 bool ParseContextForAuth(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext);
 

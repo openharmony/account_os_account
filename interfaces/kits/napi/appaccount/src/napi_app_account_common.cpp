@@ -513,7 +513,7 @@ void GetOAuthListForResult(napi_env env, const std::set<std::string> &info, napi
     }
 }
 
-bool ParseContextWithExInfo(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
+void ParseContextWithExInfo(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
 {
     size_t argc = ARGS_SIZE_THREE;
     napi_value argv[ARGS_SIZE_THREE] = {0};
@@ -521,17 +521,15 @@ bool ParseContextWithExInfo(napi_env env, napi_callback_info cbInfo, AppAccountA
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
     if (argc < ARGS_SIZE_ONE) {
         asyncContext->errMsg = "the number of parameters should be at least 1";
-        return false;
+        return;
     }
     if (!GetStringProperty(env, argv[0], asyncContext->name)) {
         ACCOUNT_LOGE("the name is not a string");
         asyncContext->errMsg = "the name is not a string";
-        return false;
     }
     if (argc > PARAMTWO) {
         if (!GetCallbackProperty(env, argv[PARAMTWO], asyncContext->callbackRef, 1)) {
             ACCOUNT_LOGE("Get callbackRef failed");
-            return false;
         }
     }
     if (argc > ARGS_SIZE_ONE) {
@@ -539,21 +537,17 @@ bool ParseContextWithExInfo(napi_env env, napi_callback_info cbInfo, AppAccountA
         if (valueType == napi_string) {
             if (!GetStringProperty(env, argv[1], asyncContext->extraInfo)) {
                 asyncContext->errMsg = "the extraInfo is not a string";
-                return false;
             }
         } else if (valueType == napi_function) {
             if (!GetCallbackProperty(env, argv[1], asyncContext->callbackRef, 1)) {
                 ACCOUNT_LOGE("Get callbackRef failed");
-                return false;
             }
-            return true;
         } else {
             ACCOUNT_LOGE("Type matching failed");
             asyncContext->errMsg = "the type of param 2 is incorrect";
-            return false;
         }
     }
-    return true;
+    return;
 }
 
 bool ParseArguments(napi_env env, napi_value *argv, const napi_valuetype *valueTypes, size_t argc)
@@ -675,7 +669,7 @@ bool ParseContextOAuthProperty(napi_env env, napi_value &argv, PropertyType type
     return result;
 }
 
-bool ParseContextForOAuth(napi_env env, napi_callback_info cbInfo,
+static bool ParseContextForOAuthInner(napi_env env, napi_callback_info cbInfo,
     OAuthAsyncContext *asyncContext, const std::vector<PropertyType> &propertyList, napi_value *result)
 {
     // the inner caller promise posInfo.argcSize to be at least 1
@@ -696,12 +690,19 @@ bool ParseContextForOAuth(napi_env env, napi_callback_info cbInfo,
             return false;
         }
     }
+    return true;
+}
+
+bool ParseContextForOAuth(napi_env env, napi_callback_info cbInfo,
+    OAuthAsyncContext *asyncContext, const std::vector<PropertyType> &propertyList, napi_value *result)
+{
+    bool resultFlag = ParseContextForOAuthInner(env, cbInfo, asyncContext, propertyList, result);
     if (asyncContext->callbackRef == nullptr) {
         napi_create_promise(env, &asyncContext->deferred, result);
     } else {
         napi_get_undefined(env, result);
     }
-    return true;
+    return resultFlag;
 }
 
 bool ParseAppAccountProperty(napi_env env, napi_value &argv, PropertyType type, AppAccountAsyncContext *asyncContext)
@@ -744,7 +745,7 @@ bool ParseAppAccountProperty(napi_env env, napi_value &argv, PropertyType type, 
     return result;
 }
 
-bool ParseContextForAppAccount(napi_env env, napi_callback_info cbInfo,
+static bool ParseContextForAppAccountInner(napi_env env, napi_callback_info cbInfo,
     AppAccountAsyncContext *context, const std::vector<PropertyType> &propertyList, napi_value *result)
 {
     size_t argcSize = propertyList.size() + 1;
@@ -766,12 +767,19 @@ bool ParseContextForAppAccount(napi_env env, napi_callback_info cbInfo,
             return false;
         }
     }
+    return true;
+}
+
+bool ParseContextForAppAccount(napi_env env, napi_callback_info cbInfo,
+    AppAccountAsyncContext *context, const std::vector<PropertyType> &propertyList, napi_value *result)
+{
+    bool res = ParseContextForAppAccountInner(env, cbInfo, context, propertyList, result);
     if (context->callbackRef == nullptr) {
         napi_create_promise(env, &context->deferred, result);
     } else {
         napi_get_undefined(env, result);
     }
-    return true;
+    return res;
 }
 
 bool ParseContextCBArray(napi_env env, napi_callback_info cbInfo, GetAccountsAsyncContext *asyncContext)
