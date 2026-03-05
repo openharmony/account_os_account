@@ -34,7 +34,7 @@ public:
     static BundleManagerAdapter* GetInstance();
 
     ErrCode GetNameForUid(const int uid, std::string &bundleName);
-    ErrCode CreateNewBundleEl5Dir(int32_t userId);
+    ErrCode CreateNewBundleDir(int32_t userId);
     ErrCode CreateNewUser(int32_t userId, const std::vector<std::string> &disallowedHapList = {},
         const std::optional<std::vector<std::string>> &allowedHapList = std::nullopt);
     ErrCode IsBundleInstalled(const std::string &bundleName, int32_t userId,

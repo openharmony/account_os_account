@@ -287,7 +287,7 @@ void OsAccountInterface::SendToBMSAccountUnlocked(const OsAccountInfo &osAccount
     auto localId = osAccountInfo.GetLocalId();
     ACCOUNT_LOGI("Begin, %{public}d", localId);
     auto startTime = std::chrono::high_resolution_clock::now();
-    ErrCode res = BundleManagerAdapter::GetInstance()->CreateNewBundleEl5Dir(localId);
+    ErrCode res = BundleManagerAdapter::GetInstance()->CreateNewBundleDir(localId);
     auto endTime = std::chrono::high_resolution_clock::now();
     if (res != ERR_OK) {
         ACCOUNT_LOGE("Failed, %{public}d, errCode: %{public}d", localId, res);
