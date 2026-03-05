@@ -1815,7 +1815,12 @@ static bool ParseParaSetTypeOptions(napi_env env, napi_value object, SetTypeAsyn
     napi_valuetype valueType = napi_undefined;
     NAPI_CALL_BASE(env, napi_typeof(env, object, &valueType), false);
 
-    if (valueType != napi_object) {
+    if (valueType == napi_undefined) {
+        asyncContext->options.token = std::nullopt;
+        return true;
+    }
+
+    if (valueType != napi_object || valueType == napi_null) {
         ACCOUNT_LOGE("Get options failed, invalid type %{public}d", valueType);
         std::string errMsg = "Parameter error. The type of \"options\" must be object";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
@@ -1827,10 +1832,16 @@ static bool ParseParaSetTypeOptions(napi_env env, napi_value object, SetTypeAsyn
     napi_valuetype tokenValueType = napi_undefined;
     NAPI_CALL_BASE(env, napi_typeof(env, tokenValue, &tokenValueType), false);
 
-    // Handle undefined or null token value
-    if (tokenValueType == napi_undefined || tokenValueType == napi_null) {
+    if (tokenValueType == napi_undefined) {
         asyncContext->options.token = std::nullopt;
         return true;
+    }
+    
+    if (tokenValueType == napi_null) {
+        ACCOUNT_LOGE("Get token failed, token is null");
+        std::string errMsg = "Parameter error. The type of \"token\" in options must be Uint8Array";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        return false;
     }
 
     std::vector<uint8_t> token;

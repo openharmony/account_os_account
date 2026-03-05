@@ -1115,6 +1115,13 @@ ErrCode OsAccountManagerService::SetOsAccountType(int32_t id, int32_t typeValue,
         REPORT_PERMISSION_FAIL();
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
+    
+    bool isConstraintEnable = false;
+    innerManager_.IsOsAccountConstraintEnable(id, "constraint.os.account.set.type", isConstraintEnable);
+    if (isConstraintEnable) {
+        ACCOUNT_LOGE("SetOsAccountType failed, constraint is enable");
+        return ERR_AUTHORIZATION_PRIVILEGE_DENIED;
+    }
 
     // parameters check
     ErrCode res = CheckLocalId(id);

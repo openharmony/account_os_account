@@ -48,6 +48,7 @@
         "constraint.os.account.background.run",
         "constraint.data.roam",
         "constraint.os.account.set.icon",
+        "constraint.os.account.set.type",
         "constraint.wallpaper.set",
         "constraint.oem.unlock",
         "constraint.device.unmute",
