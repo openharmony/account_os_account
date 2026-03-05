@@ -574,6 +574,25 @@ HWTEST_F(AuthorizationClientModuleCovTest, AcquireAuthorization001, TestSize.Lev
 }
 
 /**
+ * @tc.name: AcquireAuthorization005
+ * @tc.desc: check authorization.
+ * @tc.type: FUNC
+ * @tc.require:
+*/
+HWTEST_F(AuthorizationClientModuleCovTest, AcquireAuthorization005, TestSize.Level0)
+{
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    uint64_t tokenID;
+    ASSERT_TRUE(AllocPermission(ALL_ACCOUNT_PERMISSION_LIST, tokenID, false));
+    std::string privilege = PRIVILEGE_NAME;
+    AcquireAuthorizationOptions options;
+    auto callback = std::make_shared<MockAuthorizationResultCallback>();
+    ErrCode errCode = AuthorizationClient::GetInstance().AcquireAuthorization(privilege, options, callback);
+    EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+    ASSERT_TRUE(RecoveryPermission(tokenID, selfTokenId));
+}
+
+/**
  * @tc.name: GetInstance001
  * @tc.desc: test GetInstance singleton without SUPPORT_AUTHORIZATION
  * @tc.type: FUNC

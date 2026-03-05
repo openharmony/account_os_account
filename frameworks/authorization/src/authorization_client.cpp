@@ -179,7 +179,13 @@ ErrCode AuthorizationClient::AcquireAuthorization(const std::string &privilege,
     }
     return ERR_OK;
 #else
-    if ((!CheckSelfPermission(PERMISSION_ACQUIRE_AUTHORIZATION))) {
+    ErrCode errCode = AccountPermissionManager::CheckSystemApp();
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Caller is not system application, errCode: %{public}d", errCode);
+        return errCode;
+    }
+    errCode = AccountPermissionManager::VerifyPermission(PERMISSION_ACQUIRE_AUTHORIZATION);
+    if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Failed to check permission.");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
