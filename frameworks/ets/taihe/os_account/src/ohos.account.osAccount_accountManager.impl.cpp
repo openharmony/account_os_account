@@ -1199,6 +1199,11 @@ public:
             }
             innerOptions.allowedHapList = allowedList;
         }
+        if (options.has_value() && options.value().options.token.has_value()) {
+            auto tokenView = options.value().options.token.value();
+            innerOptions.token = std::vector<uint8_t>(tokenView.begin(), tokenView.end());
+            innerOptions.hasToken = true;
+        }
         std::shared_ptr<THCreateDomainCallback> createDomainCallback = std::make_shared<THCreateDomainCallback>();
         ErrCode errCode = AccountSA::OsAccountManager::CreateOsAccountForDomain(innerType, innerDomainAccountInfo,
             createDomainCallback, innerOptions);
