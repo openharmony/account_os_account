@@ -619,25 +619,6 @@ void ActivateOACallbackCompletedCB(napi_env env, napi_status status, void *data)
     delete asyncContext;
 }
 
-bool ParseParaCreateOANameAndType(napi_env env, napi_value argv[], CreateOAAsyncContext *asyncContext)
-{
-    if (!GetStringProperty(env, argv[PARAMZERO], asyncContext->name)) {
-        ACCOUNT_LOGE("Get name failed");
-        std::string errMsg = "Parameter error. The type of \"localName\" must be string";
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
-        return false;
-    }
-    int32_t type = 0;
-    if (!GetIntProperty(env, argv[PARAMONE], type)) {
-        ACCOUNT_LOGE("Get type failed");
-        std::string errMsg = "Parameter error. The type of \"type\" must be OsAccountType";
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
-        return false;
-    }
-    asyncContext->type = static_cast<OsAccountType>(type);
-    return true;
-}
-
 static bool ParseToken(napi_env env, napi_value object, CreateOAAsyncContext *asyncContext)
 {
     napi_value tokenValue = nullptr;
@@ -699,7 +680,21 @@ bool ParseParaCreateOA(napi_env env, napi_callback_info cbInfo, CreateOAAsyncCon
             }
         }
     }
-    return ParseParaCreateOANameAndType(env, argv, asyncContext);
+    if (!GetStringProperty(env, argv[PARAMZERO], asyncContext->name)) {
+        ACCOUNT_LOGE("Get name failed");
+        std::string errMsg = "Parameter error. The type of \"localName\" must be string";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        return false;
+    }
+    int32_t type = 0;
+    if (!GetIntProperty(env, argv[PARAMONE], type)) {
+        ACCOUNT_LOGE("Get type failed");
+        std::string errMsg = "Parameter error. The type of \"type\" must be OsAccountType";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        return false;
+    }
+    asyncContext->type = static_cast<OsAccountType>(type);
+    return true;
 }
 
 static bool ParseDomainAccountInfo(napi_env env, napi_value object, DomainAccountInfo &info)
