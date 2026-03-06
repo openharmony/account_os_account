@@ -70,10 +70,14 @@ std::function<ErrCode(int32_t,  AuthorizationResult &, int32_t)> acquireAuthoriz
         auto it = g_callbackMap.find(callingPid);
         if (it == g_callbackMap.end()) {
             ACCOUNT_LOGE("Can not find AuthorizationResultCallback.");
+            REPORT_OS_ACCOUNT_FAIL(-1, PRIVILEGE_OPT_ACQUIRE_AUTH, ERR_AUTHORIZATION_GET_PROXY_ERROR,
+                "Can not find AuthorizationResultCallback.");
             return ERR_AUTHORIZATION_GET_PROXY_ERROR;
         }
         if (it->second == nullptr) {
             ACCOUNT_LOGE("AuthorizationResultCallback is nullptr");
+            REPORT_OS_ACCOUNT_FAIL(-1, PRIVILEGE_OPT_ACQUIRE_AUTH, ERR_AUTHORIZATION_GET_PROXY_ERROR,
+                "AuthorizationResultCallback is nullptr.");
             return ERR_AUTHORIZATION_GET_PROXY_ERROR;
         }
         ErrCode errCode = it->second->OnResult(errorCode, result);
@@ -90,9 +94,9 @@ ErrCode ConnectAbilityCallback::OnResult(int32_t errorCode, const std::vector<ui
 {
     ACCOUNT_LOGI("ConnectAbilityCallback OnResult errCode:%{public}d,resultCode:%{public}d", errorCode, iamResultCode);
     if (func_ == nullptr) {
-        ACCOUNT_LOGE("Get AuthorizationResultCallback proxy is nullptr");
-        REPORT_OS_ACCOUNT_FAIL(accountId, Constants::ACQUIRE_AUTH, ERR_AUTHORIZATION_GET_PROXY_ERROR,
-            "Get proxy is nullptr");
+        ACCOUNT_LOGE("Func_ is nullptr");
+        REPORT_OS_ACCOUNT_FAIL(accountId, PRIVILEGE_OPT_ACQUIRE_AUTH, ERR_AUTHORIZATION_GET_PROXY_ERROR,
+            "Func_ is nullptr");
         return ERR_AUTHORIZATION_GET_PROXY_ERROR;
     }
     result_.resultCode = static_cast<AuthorizationResultCode>(iamResultCode);
@@ -136,10 +140,9 @@ std::pair<ErrCode, AuthorizationResultCode> InnerAuthorizationManager::ApplyTaAu
 
 void InnerAuthorizationManager::AppDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& remote)
 {
-    ACCOUNT_LOGI("enter");
     if (remote == nullptr) {
         ACCOUNT_LOGE("Remote object is nullptr");
-        REPORT_OS_ACCOUNT_FAIL(-1, Constants::ACQUIRE_AUTH, ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
+        REPORT_OS_ACCOUNT_FAIL(-1, PRIVILEGE_OPT_ACQUIRE_AUTH, ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
             "Remote object is nullptr");
         return;
     }
@@ -147,7 +150,8 @@ void InnerAuthorizationManager::AppDeathRecipient::OnRemoteDied(const wptr<IRemo
     sptr<IRemoteObject> object = remote.promote();
     if (object == nullptr) {
         ACCOUNT_LOGE("Object is nullptr");
-        REPORT_OS_ACCOUNT_FAIL(-1, Constants::ACQUIRE_AUTH, ERR_ACCOUNT_COMMON_INVALID_PARAMETER, "Object is nullptr");
+        REPORT_OS_ACCOUNT_FAIL(-1, PRIVILEGE_OPT_ACQUIRE_AUTH, ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
+            "Object is nullptr");
         return;
     }
     std::lock_guard<std::mutex> lock(g_mutex);
@@ -183,12 +187,12 @@ std::pair<ErrCode, AuthorizationResultCode> InnerAuthorizationManager::VerifyAdm
     ErrCode errCode = IInnerOsAccountManager::GetInstance().GetOsAccountType(accountId, accountType);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Fail to get OsAccountType, errCode:%{public}d", errCode);
-        REPORT_OS_ACCOUNT_FAIL(accountId, Constants::ACQUIRE_AUTH, errCode, "Fail to get OsAccountType");
+        REPORT_OS_ACCOUNT_FAIL(accountId, PRIVILEGE_OPT_ACQUIRE_AUTH, errCode, "Fail to get OsAccountType");
         return {errCode, AuthorizationResultCode::AUTHORIZATION_SUCCESS};
     }
     if (accountType != OsAccountType::ADMIN) {
         ACCOUNT_LOGE("Fail to check osAccountType, errCode:%{public}d", static_cast<int32_t>(accountType));
-        REPORT_OS_ACCOUNT_FAIL(accountId, Constants::ACQUIRE_AUTH,
+        REPORT_OS_ACCOUNT_FAIL(accountId, PRIVILEGE_OPT_ACQUIRE_AUTH,
             static_cast<int32_t>(AuthorizationResultCode::AUTHORIZATION_DENIED), "Fail to check osAccountType");
         return {ERR_OK, AuthorizationResultCode::AUTHORIZATION_DENIED};
     }
@@ -211,7 +215,7 @@ ErrCode InnerAuthorizationManager::CallTaAuthorization(const std::vector<uint8_t
     ErrCode errCode = teeAdapter.TaAcquireAuthorization(param, tokenResult);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Fail to get authorization from ta, errCode:%{public}d", errCode);
-        REPORT_OS_ACCOUNT_FAIL(accountId, Constants::ACQUIRE_AUTH, errCode, "Fail to get authorization from ta");
+        REPORT_OS_ACCOUNT_FAIL(accountId, PRIVILEGE_OPT_ACQUIRE_AUTH, errCode, "Fail to get authorization from ta");
     }
     return errCode;
 }
@@ -223,7 +227,7 @@ ErrCode InnerAuthorizationManager::UpdatePrivilegeCache(ConnectAbilityInfo &info
     bool ret = TransferPrivilegeToCode(info.privilege, code);
     if (!ret) {
         ACCOUNT_LOGE("Fail to check privilege, privilege:%{public}s", info.privilege.c_str());
-        REPORT_OS_ACCOUNT_FAIL(info.callingUid / UID_TRANSFORM_DIVISOR, Constants::ACQUIRE_AUTH,
+        REPORT_OS_ACCOUNT_FAIL(info.callingUid / UID_TRANSFORM_DIVISOR, PRIVILEGE_OPT_ACQUIRE_AUTH,
             ret, "Fail to check privilege");
         return ret;
     }
@@ -239,9 +243,9 @@ ErrCode InnerAuthorizationManager::UpdatePrivilegeCache(ConnectAbilityInfo &info
 
     ErrCode errCode = PrivilegeCacheManager::GetInstance().AddCache(callerInfo, tokenResult.grantTime);
     if (errCode != ERR_OK) {
-        REPORT_OS_ACCOUNT_FAIL(info.callingUid / UID_TRANSFORM_DIVISOR, Constants::ACQUIRE_AUTH, errCode,
-            "Fail to check privilege approved.");
-        ACCOUNT_LOGE("Fail to check privilege=%{public}s approved, errCode:%{public}d",
+        REPORT_OS_ACCOUNT_FAIL(info.callingUid / UID_TRANSFORM_DIVISOR, PRIVILEGE_OPT_ACQUIRE_AUTH, errCode,
+            "Fail to add cache.");
+        ACCOUNT_LOGE("Fail to add cache privilege=%{public}s approved, errCode:%{public}d",
             info.privilege.c_str(), errCode);
         return ERR_AUTHORIZATION_CACHE_ERROR;
     }
@@ -252,10 +256,11 @@ ErrCode InnerAuthorizationManager::AcquireAuthorization(const PrivilegeBriefDef 
     const AcquireAuthorizationOptions &options, const OsAccountConfig &config,
     const sptr<IRemoteObject> &authorizationCallback, const sptr<IRemoteObject> &requestRemoteObj)
 {
-    ACCOUNT_LOGI("AcquireAuthorization privilege:%{public}s", pdef.privilegeName);
     auto callback = iface_cast<IAuthorizationCallback>(authorizationCallback);
     if (callback == nullptr) {
         ACCOUNT_LOGE("Get AuthorizationResultCallback proxy is nullptr");
+        REPORT_OS_ACCOUNT_FAIL(IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR, PRIVILEGE_OPT_ACQUIRE_AUTH,
+            ERR_AUTHORIZATION_GET_PROXY_ERROR, "Get AuthorizationResultCallback proxy is nullptr.");
         return ERR_AUTHORIZATION_GET_PROXY_ERROR;
     }
 
@@ -288,7 +293,6 @@ ErrCode InnerAuthorizationManager::UpdateAuthInfo(const std::vector<uint8_t> &ia
     if (errCode == ERR_OK && resultCode == AuthorizationResultCode::AUTHORIZATION_SUCCESS) {
         token.assign(tokenResult.userToken, tokenResult.userToken + tokenResult.userTokenSize);
     }
-    ACCOUNT_LOGI("Get auth result, resultCode:%{public}d", static_cast<int32_t>(resultCode));
     ErrCode ret = SessionAbilityConnection::GetInstance().SaveAuthorizationResult(errCode, resultCode, token,
         tokenResult.remainValidityTime);
     std::fill(token.begin(), token.end(), 0);
@@ -324,21 +328,29 @@ ErrCode InnerAuthorizationManager::StartUIExtensionConnection(const ConnectAbili
     const AuthorizationResult &result, const sptr<IRemoteObject> &requestRemoteObj)
 {
     if (callback == nullptr) {
-        ACCOUNT_LOGE("Authorization callback is nullptr");
+        ACCOUNT_LOGE("Callback is nullptr.");
+        REPORT_OS_ACCOUNT_FAIL(info.callingUid / UID_TRANSFORM_DIVISOR, PRIVILEGE_OPT_ACQUIRE_AUTH,
+            ERR_AUTHORIZATION_GET_PROXY_ERROR, "Callback is nullptr.");
         return ERR_AUTHORIZATION_GET_PROXY_ERROR;
     }
 
     if (requestRemoteObj == nullptr) {
         ACCOUNT_LOGE("Request remote object is nullptr");
+        REPORT_OS_ACCOUNT_FAIL(info.callingUid / UID_TRANSFORM_DIVISOR, PRIVILEGE_OPT_ACQUIRE_AUTH,
+            ERR_AUTHORIZATION_GET_PROXY_ERROR, "Request remote object is nullptr");
         return ERR_AUTHORIZATION_GET_PROXY_ERROR;
     }
     auto deathRecipient = new (std::nothrow) AppDeathRecipient();
     if (deathRecipient == nullptr) {
         ACCOUNT_LOGE("DeathRecipient is nullptr");
+        REPORT_OS_ACCOUNT_FAIL(info.callingUid / UID_TRANSFORM_DIVISOR, PRIVILEGE_OPT_ACQUIRE_AUTH,
+            ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT, "DeathRecipient is nullptr");
         return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
     }
     if (callback->AsObject() == nullptr || !callback->AsObject()->AddDeathRecipient(deathRecipient)) {
         ACCOUNT_LOGE("Fail to AddDeathRecipient");
+        REPORT_OS_ACCOUNT_FAIL(info.callingUid / UID_TRANSFORM_DIVISOR, PRIVILEGE_OPT_ACQUIRE_AUTH,
+            ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT, "Fail to AddDeathRecipient");
         deathRecipient = nullptr;
         return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
     }
@@ -403,7 +415,7 @@ ErrCode InnerAuthorizationManager::StartServiceExtensionConnection(ConnectAbilit
         info.callingUid, info.callingBundleName);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Failed to get bundle name");
-        REPORT_OS_ACCOUNT_FAIL(info.callingUid / UID_TRANSFORM_DIVISOR, Constants::ACQUIRE_AUTH, errCode,
+        REPORT_OS_ACCOUNT_FAIL(info.callingUid / UID_TRANSFORM_DIVISOR, PRIVILEGE_OPT_ACQUIRE_AUTH, errCode,
             "Failed to get bundle name");
         return errCode;
     }
