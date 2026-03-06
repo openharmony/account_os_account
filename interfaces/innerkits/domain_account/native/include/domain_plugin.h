@@ -58,6 +58,7 @@ typedef struct {
     PluginUint8Vector accountToken;
     int32_t remainTimes;
     int32_t freezingTime;
+    int32_t localId;
 } PluginAuthResultInfo;
 
 typedef struct {

@@ -138,8 +138,8 @@ bool GetOptionalUint8TypedArrayToVector(napi_env env, napi_value obj, const std:
     std::vector<uint8_t> &vec);
 napi_status ParseUint8TypedArrayToUint64(napi_env env, napi_value value, uint64_t &result);
 void NapiCallVoidFunction(napi_env env, napi_value *argv, size_t argc, napi_ref funcRef);
-napi_value CreateAuthResult(
-    napi_env env, const std::vector<uint8_t> &authData, int32_t remainTimes, int32_t freezingTime);
+napi_value CreateAuthResult(napi_env env, const std::vector<uint8_t> &authData, int32_t remainTimes,
+    int32_t freezingTime, int32_t accountId = -1);
 void ReleaseNapiRefAsync(napi_env env, napi_ref napiRef);
 void ReleaseNapiRefArray(napi_env env, const std::vector<napi_ref> &napiRefVec);
 bool JsObjectToNativeString(napi_env env, napi_value jsData, std::string &nativeData);

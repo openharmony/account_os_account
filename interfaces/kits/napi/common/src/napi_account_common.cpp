@@ -582,7 +582,7 @@ void SetInt32ToJsProperty(napi_env env, int32_t number, const std::string &prope
 }
 
 napi_value CreateAuthResult(
-    napi_env env, const std::vector<uint8_t> &token, int32_t remainTimes, int32_t freezingTime)
+    napi_env env, const std::vector<uint8_t> &token, int32_t remainTimes, int32_t freezingTime, int32_t accountId)
 {
     napi_value object = nullptr;
     NAPI_CALL(env, napi_create_object(env, &object));
@@ -599,6 +599,11 @@ napi_value CreateAuthResult(
     if (token.size() > 0) {
         napi_value napiToken = CreateUint8Array(env, token.data(), token.size());
         NAPI_CALL(env, napi_set_named_property(env, object, "token", napiToken));
+    }
+    if (accountId > 0) {
+        napi_value napiAccountId = nullptr;
+        NAPI_CALL(env, napi_create_int32(env, accountId, &napiAccountId));
+        NAPI_CALL(env, napi_set_named_property(env, object, "accountId", napiAccountId));
     }
     return object;
 }
