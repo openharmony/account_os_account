@@ -26,7 +26,6 @@
 #include "ipc_skeleton.h"
 #include "os_account_constants.h"
 #include "os_account_info.h"
-#include "tee_client_api.h"
 
 using namespace testing;
 using namespace testing::ext;
