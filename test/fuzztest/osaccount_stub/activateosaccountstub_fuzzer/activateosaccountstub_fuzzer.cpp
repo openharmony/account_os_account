@@ -120,6 +120,7 @@ void CheckOsAccountStatus()
     SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_IS_MAIN_OS_ACCOUNT));
     SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_IS_MULTI_OS_ACCOUNT_ENABLE));
     SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_DEACTIVATE_ALL_OS_ACCOUNTS));
+    SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_GET_UNLOCKED_OS_ACCOUNT_LOCAL_IDS));
     osAccountManagerService_->OnRemoteRequest(
         static_cast<int32_t>(IOsAccountIpcCode::COMMAND_CREATE_OS_ACCOUNT), data, reply, option);
     if (!ReadOsAccountInfo(reply, osAccountInfoOne)) {

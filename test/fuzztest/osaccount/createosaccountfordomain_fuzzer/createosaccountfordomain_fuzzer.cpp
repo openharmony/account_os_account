@@ -99,6 +99,7 @@ void CheckOsAccountStatus()
     OsAccountManager::GetDefaultActivatedOsAccount(defaultActivatedOsAccountId);
     std::vector<int32_t> localIds;
     OsAccountManager::GetBackgroundOsAccountLocalIds(localIds);
+    OsAccountManager::GetUnlockedOsAccountLocalIds(localIds);
     int osAccountLocalId;
     OsAccountManager::GetOsAccountLocalIdFromProcess(osAccountLocalId);
     OsAccountManager::GetOsAccountSwitchMod();
