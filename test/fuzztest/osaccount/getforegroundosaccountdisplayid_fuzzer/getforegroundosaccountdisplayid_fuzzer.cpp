@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "setdefaultactivatedosaccount_fuzzer.h"
+#include "getforegroundosaccountdisplayid_fuzzer.h"
 
 #include "os_account_manager.h"
 #include "account_log_wrapper.h"
@@ -25,29 +25,27 @@
 using namespace std;
 using namespace OHOS::AccountSA;
 
-const int32_t MAX_TEST_ID = 10738; // Maximum test ID for fuzzing
+const int32_t MAX_TEST_ID = 10738;
 
 namespace OHOS {
-    bool SetDefaultActivatedOsAccountFuzzTest(const uint8_t* data, size_t size)
-    {
-        uint64_t displayId = 0;
-        int32_t result = ERR_OK;
-        if ((data != nullptr) && (size != 0)) {
-            FuzzData fuzzData(data, size);
-            int32_t testId = fuzzData.GetData<bool>() ?
-                (fuzzData.GetData<int32_t>() % MAX_TEST_ID) : fuzzData.GetData<int32_t>();
-            result = OsAccountManager::SetDefaultActivatedOsAccount(testId);
-            OsAccountManager::SetDefaultActivatedOsAccount(displayId, testId);
-        }
-        return result == ERR_OK;
+void GetForegroundOsAccountDisplayIdFuzzTest(const uint8_t *data, size_t size)
+{
+    uint64_t displayId = 0;
+    if ((data == nullptr) || (size == 0)) {
+        return;
     }
+    FuzzData fuzzData(data, size);
+    int32_t localId = fuzzData.GetData<bool>() ?
+        (fuzzData.GetData<int32_t>() % MAX_TEST_ID) : fuzzData.GetData<int32_t>();
+    
+    OsAccountManager::GetForegroundOsAccountDisplayId(localId, displayId);
+}
 }
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::SetDefaultActivatedOsAccountFuzzTest(data, size);
+    OHOS::GetForegroundOsAccountDisplayIdFuzzTest(data, size);
     return 0;
 }
-
