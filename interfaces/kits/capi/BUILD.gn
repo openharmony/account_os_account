@@ -12,7 +12,11 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
+import("../../../os_account.gni")
 
 group("capi_packages") {
   deps = [ "osaccount:libos_account_ndk" ]
+  if (os_account_support_set_os_account_id) {
+    deps += [ "osaccount:libos_account_utils" ]
+  }
 }

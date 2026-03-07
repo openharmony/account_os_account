@@ -153,6 +153,10 @@ declare_args() {
 }
 
 declare_args() {
+  os_account_support_set_os_account_id = false
+}
+
+declare_args() {
   os_account_enable_multiple_foreground_os_accounts = false
 }
 
