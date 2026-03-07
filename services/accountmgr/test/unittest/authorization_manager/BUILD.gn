@@ -19,6 +19,7 @@ module_output_path = "os_account/authorization"
 
 config("authorization_manager_test_config") {
   include_dirs = [
+    ".",
     "${services_path}/accountmgr/include/authorization_manager",
     "${services_path}/accountmgr/include",
     "${common_path}/log/include",
@@ -68,7 +69,6 @@ ohos_unittest("PrivilegeCacheManagerMockTest") {
     "hilog:libhilog",
     "huks:libhukssdk",
     "ipc:ipc_core",
-    "tee_client:libteec",
     "time_service:time_client",
   ]
 
