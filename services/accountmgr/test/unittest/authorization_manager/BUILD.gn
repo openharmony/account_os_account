@@ -19,6 +19,7 @@ module_output_path = "os_account/authorization"
 
 config("authorization_manager_test_config") {
   include_dirs = [
+    ".",
     "${services_path}/accountmgr/include/authorization_manager",
     "${services_path}/accountmgr/include",
     "${common_path}/log/include",
@@ -66,15 +67,21 @@ ohos_unittest("PrivilegeCacheManagerMockTest") {
     "googletest:gtest_main",
     "hicollie:libhicollie",
     "hilog:libhilog",
-    "huks:libhukssdk",
     "ipc:ipc_core",
-    "tee_client:libteec",
     "time_service:time_client",
   ]
 
   if (has_hiviewdfx_hitrace_part) {
     external_deps += [ "hitrace:hitrace_meter" ]
     cflags_cc += [ "-DHAS_HITRACE_PART" ]
+  }
+
+  if (os_account_distributed_feature) {
+    cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
+    if (has_huks_part) {
+      external_deps += [ "huks:libhukssdk" ]
+      cflags_cc += [ "-DHAS_HUKS_PART" ]
+    }
   }
 
   part_name = "os_account"

@@ -29,7 +29,9 @@ namespace AccountSA {
 namespace {
 const uint32_t EXPIRED_TIME_OFFSET = 2; // seconds
 const int32_t UID_TRANSFORM_DIVISOR = 200000;
+#ifdef HAS_HUKS_PART
 const int32_t DIGEST_LENGTH = 32;
+#endif // HAS_HUKS_PART
 const int32_t MS_TO_SECOND = 1000;
 const char PRIVILEGE_RECORD_NAME[] = "privilegeName";
 const char PRIVILEGE_RECORD_EXPIRED_TIMESTAMP[] = "expiredTimeStamp";
@@ -776,6 +778,7 @@ void PrivilegeCacheManager::ReadAndCheckPersistRecordValid(
 ErrCode PrivilegeCacheManager::GenerateDigestFromHuks(const std::string &jsonStr, std::vector<uint8_t> &digest)
 {
     digest.clear();
+#ifdef HAS_HUKS_PART
     uint8_t buf[DIGEST_LENGTH] = {0};
     ErrCode ret = GenerateAccountInfoDigest(jsonStr, buf, DIGEST_LENGTH);
     if (ret != ERR_OK) {
@@ -783,6 +786,7 @@ ErrCode PrivilegeCacheManager::GenerateDigestFromHuks(const std::string &jsonStr
         return ret;
     }
     digest = std::vector<uint8_t>(buf, buf + DIGEST_LENGTH);
+#endif // HAS_HUKS_PART
     return ERR_OK;
 }
 
