@@ -173,3 +173,97 @@ HWTEST_F(DomainAccountCommonModuleTest, DomainAccountCommonModuleTest_DomainAcco
     EXPECT_TRUE(result);
     EXPECT_EQ(authOptions.serverParams_, testParams);
 }
+
+/**
+ * @tc.name: CreateOsAccountForDomainOptions_Marshalling_0100
+ * @tc.desc: CreateOsAccountForDomainOptions Marshalling with default values.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountCommonModuleTest, CreateOsAccountForDomainOptions_Marshalling_0100, TestSize.Level3)
+{
+    CreateOsAccountForDomainOptions options;
+    Parcel parcel;
+    EXPECT_TRUE(options.Marshalling(parcel));
+    EXPECT_NE(options.Unmarshalling(parcel), nullptr);
+}
+
+/**
+ * @tc.name: CreateOsAccountForDomainOptions_Marshalling_0200
+ * @tc.desc: CreateOsAccountForDomainOptions Marshalling with allowedHapList set.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountCommonModuleTest, CreateOsAccountForDomainOptions_Marshalling_0200, TestSize.Level3)
+{
+    CreateOsAccountForDomainOptions options;
+    options.allowedHapList = std::vector<std::string>{"com.example.hap1", "com.example.hap2"};
+    options.disallowedHapList = {"com.example.hap3"};
+    options.shortName = "testShortName";
+    options.hasShortName = true;
+    options.hasToken = true;
+    options.token = {1, 2, 3, 4, 5};
+    Parcel parcel;
+    EXPECT_TRUE(options.Marshalling(parcel));
+    CreateOsAccountForDomainOptions* result = options.Unmarshalling(parcel);
+    std::shared_ptr<CreateOsAccountForDomainOptions> resultPtr(result);
+    ASSERT_NE(result, nullptr);
+    EXPECT_TRUE(result->allowedHapList.has_value());
+    EXPECT_EQ(result->allowedHapList.value().size(), 2);
+    EXPECT_EQ(result->disallowedHapList.size(), 1);
+    EXPECT_EQ(result->shortName, "testShortName");
+    EXPECT_EQ(result->hasShortName, true);
+    EXPECT_EQ(result->hasToken, true);
+    EXPECT_EQ(result->token.size(), 5);
+}
+
+/**
+ * @tc.name: CreateOsAccountForDomainOptions_ReadFromParcel_0100
+ * @tc.desc: CreateOsAccountForDomainOptions ReadFromParcel with default values.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountCommonModuleTest, CreateOsAccountForDomainOptions_ReadFromParcel_0100, TestSize.Level3)
+{
+    CreateOsAccountForDomainOptions options;
+    Parcel parcel;
+    EXPECT_TRUE(options.Marshalling(parcel));
+    CreateOsAccountForDomainOptions result;
+    EXPECT_TRUE(result.ReadFromParcel(parcel));
+    EXPECT_FALSE(result.allowedHapList.has_value());
+    EXPECT_TRUE(result.disallowedHapList.empty());
+    EXPECT_TRUE(result.shortName.empty());
+    EXPECT_EQ(result.hasShortName, false);
+    EXPECT_EQ(result.hasToken, false);
+    EXPECT_TRUE(result.token.empty());
+}
+
+/**
+ * @tc.name: CreateOsAccountForDomainOptions_ReadFromParcel_0200
+ * @tc.desc: CreateOsAccountForDomainOptions ReadFromParcel with allowedHapList set.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountCommonModuleTest, CreateOsAccountForDomainOptions_ReadFromParcel_0200, TestSize.Level3)
+{
+    CreateOsAccountForDomainOptions options;
+    options.allowedHapList = std::vector<std::string>{"com.example.hap1", "com.example.hap2"};
+    options.disallowedHapList = {"com.example.hap3"};
+    options.shortName = "testShortName";
+    options.hasShortName = true;
+    options.hasToken = true;
+    options.token = {1, 2, 3, 4, 5};
+    Parcel parcel;
+    EXPECT_TRUE(options.Marshalling(parcel));
+    CreateOsAccountForDomainOptions result;
+    EXPECT_TRUE(result.ReadFromParcel(parcel));
+    EXPECT_TRUE(result.allowedHapList.has_value());
+    EXPECT_EQ(result.allowedHapList.value().size(), 2);
+    EXPECT_EQ(result.allowedHapList.value()[0], "com.example.hap1");
+    EXPECT_EQ(result.allowedHapList.value()[1], "com.example.hap2");
+    EXPECT_EQ(result.disallowedHapList.size(), 1);
+    EXPECT_EQ(result.shortName, "testShortName");
+    EXPECT_EQ(result.hasShortName, true);
+    EXPECT_EQ(result.hasToken, true);
+    EXPECT_EQ(result.token.size(), 5);
+}
