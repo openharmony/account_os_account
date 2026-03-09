@@ -67,6 +67,11 @@ struct CreateOsAccountForDomainOptions: public EdmAuthorizationOption, public Pa
     bool hasShortName = false;
     bool hasToken = false;
     std::vector<uint8_t> token;
+
+    ~CreateOsAccountForDomainOptions()
+    {
+        std::fill(token.begin(), token.end(), 0);
+    }
 };
 
 class DomainAccountInfo : public Parcelable {

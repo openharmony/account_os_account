@@ -67,6 +67,13 @@ struct CreateOsAccountOptions : public EdmAuthorizationOption, public Parcelable
     static CreateOsAccountOptions *Unmarshalling(Parcel &parcel);
     std::string shortName;
     bool hasShortName = true;
+
+    ~CreateOsAccountOptions()
+    {
+        if (token.has_value()) {
+            std::fill(token.value().begin(), token.value().end(), 0);
+        }
+    };
 };
 
 struct RemoveOsAccountOptions : public EdmAuthorizationOption, public Parcelable {
@@ -74,6 +81,13 @@ struct RemoveOsAccountOptions : public EdmAuthorizationOption, public Parcelable
     bool ReadFromParcel(Parcel &parcel);
     bool Marshalling(Parcel &parcel) const override;
     static RemoveOsAccountOptions *Unmarshalling(Parcel &parcel);
+
+    ~RemoveOsAccountOptions()
+    {
+        if (token.has_value()) {
+            std::fill(token.value().begin(), token.value().end(), 0);
+        }
+    };
 };
 
 struct SetOsAccountTypeOptions : public Parcelable {

@@ -1,0 +1,178 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("../../../../os_account.gni")
+import("../../../../services/accountmgr/os_account_service.gni")
+
+#####################hydra-fuzz###################
+import("//build/config/features.gni")
+import("//build/ohos.gni")
+import("//build/test.gni")
+
+##############################fuzztest##########################################
+ohos_fuzztest("ReleaseAuthorizationStubFuzzTest") {
+  module_out_path = fuzz_output_path
+
+  fuzz_config_file = "."
+  include_dirs = [
+    "${authorization_interfaces_native_path}/include",
+    "${os_account_path}/services/accountmgr/include/authorization_manager",
+    "${os_account_path}/services/accountmgr/include/bundle_manager_adapter",
+    "${os_account_path}/services/accountmgr/include/common/tee",
+    "${os_account_path}/services/accountmgr/include/common/database",
+    "${os_account_path}/services/accountmgr/include/common/database/kvstore",
+    "${os_account_path}/services/accountmgr/include/osaccount",
+    "${os_account_path}/services/accountmgr/include/domain_account",
+    "${os_account_path}/services/accountmgr/include/appaccount",
+    "${os_account_path}/services/accountmgr/include/account_iam",
+    "${os_account_path}/services/accountmgr/include",
+    "${authorization_framework_path}/include",
+    "${os_account_path}/test/fuzztest/authorization/common",
+    "${common_path}/include",
+    "${common_path}/json_utils/include",
+    "${os_account_dfx_path}/hitrace_adapter",
+    "${os_account_path}/dfx/hidumper_adapter",
+  ]
+  cflags = [
+    "-g",
+    "-O0",
+    "-Wno-unused-variable",
+    "-fno-omit-frame-pointer",
+  ]
+  version_script = "${services_path}/accountmgr/libaccountmgr.map"
+  if (target_cpu == "arm") {
+    cflags += [ "-DBINDER_IPC_32BIT" ]
+  }
+  sources = [ 
+    "releaseauthorizationstub_fuzzer.cpp",
+    "${os_account_path}/services/accountmgr/src/authorization_manager/authorization_manager_service.cpp",
+    "${os_account_path}/services/accountmgr/src/authorization_manager/inner_authorization_manager.cpp",
+    "${os_account_path}/services/accountmgr/src/authorization_manager/privilege_cache_manager.cpp",
+    "${os_account_path}/services/accountmgr/src/authorization_manager/privilege_utils.cpp",
+    "${os_account_path}/services/accountmgr/src/authorization_manager/service_extension_connect.cpp",
+    "${os_account_path}/services/accountmgr/src/common/tee/tee_auth_adapter.cpp",
+    "${os_account_path}/services/accountmgr/src/bundle_manager_adapter/bundle_manager_adapter.cpp",
+    "${domain_account_framework_path}/src/domain_account_common.cpp",
+  ]
+  sources += account_service_sources_mock
+  deps = [
+    "${account_iam_framework_path}:account_iam_innerkits",
+    "${account_iam_framework_path}:account_iam_stub",
+    "${innerkits_native_path}:account_stub",
+    "${innerkits_native_path}:libaccountkits",
+    "${os_account_innerkits_native_path}:os_account_event_proxy",
+    "${os_account_innerkits_native_path}:os_account_event_stub",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${os_account_innerkits_native_path}:os_account_state_reply_callback_stub",
+    "${os_account_innerkits_native_path}:os_account_stub", 
+    "${authorization_framework_path}:authorization_callback_stub",
+    "${authorization_framework_path}:authorization_proxy",
+    "${authorization_framework_path}:authorization_innerkits",
+    "${common_path}:libaccount_common",
+    "${os_account_path}/services/accountmgr:accountmgr",
+    "${account_iam_framework_path}:account_iam_innerkits",
+  ]
+  if (has_kv_store_part) {
+    deps += [
+      "${app_account_innerkits_native_path}:app_account_authenticator_callback_proxy",
+      "${app_account_innerkits_native_path}:app_account_authenticator_callback_stub",
+      "${app_account_innerkits_native_path}:app_account_authenticator_proxy",
+      "${app_account_innerkits_native_path}:app_account_event_proxy",
+      "${app_account_innerkits_native_path}:app_account_stub",
+      "${os_account_innerkits_native_path}:os_account_event_stub"
+    ]
+  }
+  external_deps = [
+    "ability_base:base",
+    "ability_base:want",
+    "ability_runtime:ability_manager",
+    "ability_runtime:app_manager",
+    "ability_runtime:wantagent_innerkits",
+    "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken_shared",
+    "access_token:libtokenid_sdk",
+    "access_token:libtokensetproc_shared",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
+    "c_utils:utils",
+    "config_policy:configpolicy_util",
+    "hilog:libhilog",
+    "init:libbegetutil",
+    "ipc:ipc_single",
+    "kv_store:distributeddata_inner",
+    "openssl:libcrypto_shared",
+    "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
+    "ability_runtime:extension_manager",
+    "ability_runtime:ability_connect_callback_stub",
+    "tee_client:libteec"
+  ]
+  if (has_user_auth_part) {
+    cflags += [
+      "-DHAS_USER_AUTH_PART",
+      "-DHAS_USER_IDM_PART",
+    ]
+    external_deps += [
+      "user_auth_framework:userauth_client",
+    ]
+  }
+  if (os_account_support_domain_accounts) {
+    cflags += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+    sources += [
+      "${domain_account_framework_path}/src/domain_account_callback_service.cpp",
+      "${domain_account_framework_path}/src/domain_account_parcel.cpp",
+    ]
+    deps += [
+      "${domain_account_framework_path}:domain_account_callback_proxy",
+      "${domain_account_framework_path}:domain_account_callback_stub",
+      "${domain_account_framework_path}:domain_account_plugin_proxy",
+    ]
+  }
+  if (hicollie_enable == true) {
+    external_deps += [ "hicollie:libhicollie" ]
+    cflags += [ "-DHICOLLIE_ENABLE" ]
+  }
+    if (security_guard_enabled) {
+    external_deps += [
+      "security_guard:libsg_collect_sdk",
+      "time_service:time_client",
+    ]
+    cflags += [ "-DSECURITY_GUARDE_ENABLE" ]
+  }
+    if (has_ces_part) {
+    cflags += [ "-DHAS_CES_PART" ]
+    external_deps += [ "common_event_service:cesfwk_innerkits" ]
+  }
+ 
+  deps += [
+    "${authorization_framework_path}:authorization_callback_proxy",
+    "${authorization_framework_path}:authorization_stub",
+    "${authorization_framework_path}:connect_ability_callback_stub",
+  ]
+  external_deps += [
+    "ability_runtime:extension_manager",
+    "tee_client:libteec"
+  ]
+
+  cflags += [ "-DENABLE_FILE_WATCHER" ]
+  if (has_huks_part) {
+    external_deps += [ "huks:libhukssdk" ]
+    cflags += [ "-DHAS_HUKS_PART" ]
+  }
+  cflags += [ "-DSUPPORT_AUTHORIZATION" ]
+  defines = [
+    "ACCOUNT_LOG_TAG = \"AuthorizationFuzzTest\"",
+    "LOG_DOMAIN = 0xD001B00",
+  ]
+}

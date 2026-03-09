@@ -348,6 +348,8 @@ ErrCode AuthorizationManagerService::CheckAuthorizationToken(const std::vector<u
     const uint32_t newPid = (uint32_t)pid;
     errCode = InnerAuthorizationManager::GetInstance().VerifyToken(
         token, privilege, newPid, result.challenge, result.iamToken);
+    auto tokenInfo = const_cast<std::vector<uint8_t>*>(&token);
+    std::fill(tokenInfo->begin(), tokenInfo->end(), 0);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Failed to verify token, errCode: %{public}d", errCode);
         return errCode;
