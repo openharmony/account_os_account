@@ -118,7 +118,7 @@ ErrCode GetProcessStartTime(const int32_t pid, int64_t &startTime)
             startTimeStr.c_str(), static_cast<int32_t>(res.ec));
         return static_cast<int32_t>(res.ec);
     }
-    startTime = timeStamp;
+    startTime = static_cast<int64_t>(timeStamp);
     return ERR_OK;
 }
 
