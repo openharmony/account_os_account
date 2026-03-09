@@ -86,7 +86,6 @@ ohos_moduletest("authorization_client_module_cov_test") {
     "hilog:libhilog",
     "ipc:ipc_single",
     "samgr:samgr_proxy",
-    "tee_client:libteec",
   ]
   cflags_cc = []
   if (os_account_support_authorization) {
