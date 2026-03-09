@@ -26,6 +26,7 @@
 #include "os_account_control_file_manager.h"
 #include "parameters.h"
 #include "privilege_cache_manager.h"
+#include "privilege_hisysevent_utils.h"
 #include "privileges_map.h"
 #include "service_extension_connect.h"
 
@@ -56,33 +57,33 @@ ErrCode AuthorizationManagerService::RegisterAuthAppRemoteObject(const sptr<IRem
     int32_t localId = callingUid / UID_TRANSFORM_DIVISOR;
     if (authAppRemoteObj == nullptr) {
         ACCOUNT_LOGE("AuthAppRemoteObj is nullptr.");
-        REPORT_OS_ACCOUNT_FAIL(localId, Constants::ACQUIRE_AUTH, ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
+        REPORT_OS_ACCOUNT_FAIL(localId, PRIVILEGE_OPT_ACQUIRE_AUTH, ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
             "RemoteObj is nullptr");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     ErrCode result = AccountPermissionManager::CheckSystemApp();
     if (result != ERR_OK) {
-        REPORT_OS_ACCOUNT_FAIL(localId, Constants::ACQUIRE_AUTH, result, "The caller is not system application");
+        REPORT_OS_ACCOUNT_FAIL(localId, PRIVILEGE_OPT_ACQUIRE_AUTH, result, "The caller is not system application");
         ACCOUNT_LOGE("The caller is not system application, err = %{public}d.", result);
         return result;
     }
     result = AccountPermissionManager::VerifyPermission(PERMISSION_START_SYSTEM_DIALOG);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Failed to verify dialog permission, result = %{public}d", result);
-        REPORT_OS_ACCOUNT_FAIL(localId, Constants::ACQUIRE_AUTH, result, "Failed to verify dialog permission");
+        REPORT_OS_ACCOUNT_FAIL(localId, PRIVILEGE_OPT_ACQUIRE_AUTH, result, "Failed to verify dialog permission");
         return result;
     }
     result = AccountPermissionManager::VerifyPermission(PERMISSION_ACCESS_USER_AUTH_INTERNAL);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Failed to verify auth permission, result = %{public}d", result);
-        REPORT_OS_ACCOUNT_FAIL(localId, Constants::ACQUIRE_AUTH, result, "Failed to verify auth permission");
+        REPORT_OS_ACCOUNT_FAIL(localId, PRIVILEGE_OPT_ACQUIRE_AUTH, result, "Failed to verify auth permission");
         return result;
     }
     std::string bundleName;
     result = BundleManagerAdapter::GetInstance()->GetNameForUid(callingUid, bundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Failed to get bundle name");
-        REPORT_OS_ACCOUNT_FAIL(localId, Constants::ACQUIRE_AUTH, result, "Failed to get bundle name");
+        REPORT_OS_ACCOUNT_FAIL(localId, PRIVILEGE_OPT_ACQUIRE_AUTH, result, "Failed to get bundle name");
         return result;
     }
     if (bundleName != config_.authAppBundleName) {
@@ -99,14 +100,14 @@ ErrCode AuthorizationManagerService::UnRegisterAuthAppRemoteObject()
     int32_t localId = callingUid / UID_TRANSFORM_DIVISOR;
     ErrCode result = AccountPermissionManager::CheckSystemApp();
     if (result != ERR_OK) {
-        REPORT_OS_ACCOUNT_FAIL(localId, Constants::ACQUIRE_AUTH, result, "The caller is not system application");
+        REPORT_OS_ACCOUNT_FAIL(localId, PRIVILEGE_OPT_ACQUIRE_AUTH, result, "The caller is not system application");
         ACCOUNT_LOGE("The caller is not system application, err = %{public}d.", result);
         return result;
     }
     result = AccountPermissionManager::VerifyPermission(PERMISSION_START_SYSTEM_DIALOG);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Failed to verify dialog permission, result = %{public}d", result);
-        REPORT_OS_ACCOUNT_FAIL(localId, Constants::ACQUIRE_AUTH, result, "Failed to verify dialog permission");
+        REPORT_OS_ACCOUNT_FAIL(localId, PRIVILEGE_OPT_ACQUIRE_AUTH, result, "Failed to verify dialog permission");
         return result;
     }
     return SessionAbilityConnection::GetInstance().UnRegisterAuthAppRemoteObject(IPCSkeleton::GetCallingPid());
@@ -119,19 +120,19 @@ ErrCode AuthorizationManagerService::AcquireAuthorization(const std::string &pri
     int32_t localId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
     ErrCode result = AccountPermissionManager::CheckSystemApp();
     if (result != ERR_OK) {
-        REPORT_OS_ACCOUNT_FAIL(localId, Constants::ACQUIRE_AUTH, result, "The caller is not system application");
+        REPORT_OS_ACCOUNT_FAIL(localId, PRIVILEGE_OPT_ACQUIRE_AUTH, result, "The caller is not system application");
         ACCOUNT_LOGE("The caller is not system application, err = %{public}d.", result);
         return result;
     }
     result = AccountPermissionManager::VerifyPermission(PERMISSION_ACQUIRE_AUTHORIZATION);
     if (result != ERR_OK) {
-        REPORT_OS_ACCOUNT_FAIL(localId, Constants::ACQUIRE_AUTH, result, "Failed to verify permission");
+        REPORT_OS_ACCOUNT_FAIL(localId, PRIVILEGE_OPT_ACQUIRE_AUTH, result, "Failed to verify permission");
         ACCOUNT_LOGE("Failed to verify permission, result = %{public}d", result);
         return result;
     }
     if (options.challenge.size() > MAX_CHALLENGE_LEN || (options.hasContext && !options.isContextValid)) {
         ACCOUNT_LOGE("Challenge size larger than 32 or context valid = %{public}d.", options.isContextValid);
-        REPORT_OS_ACCOUNT_FAIL(localId, Constants::ACQUIRE_AUTH, ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
+        REPORT_OS_ACCOUNT_FAIL(localId, PRIVILEGE_OPT_ACQUIRE_AUTH, ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
             "Challenge size larger than 32 or context is invalid");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
@@ -140,18 +141,22 @@ ErrCode AuthorizationManagerService::AcquireAuthorization(const std::string &pri
     auto callback = iface_cast<IAuthorizationCallback>(authorizationResultCallback);
     if (callback == nullptr) {
         ACCOUNT_LOGE("Get AuthorizationResultCallback proxy is nullptr");
-        REPORT_OS_ACCOUNT_FAIL(localId, Constants::ACQUIRE_AUTH, ERR_AUTHORIZATION_GET_PROXY_ERROR,
+        REPORT_OS_ACCOUNT_FAIL(localId, PRIVILEGE_OPT_ACQUIRE_AUTH, ERR_AUTHORIZATION_GET_PROXY_ERROR,
             "Get proxy is nullptr");
         return ERR_AUTHORIZATION_GET_PROXY_ERROR;
     }
     if (SessionAbilityConnection::GetInstance().HasServiceConnect()) {
         ACCOUNT_LOGI("Failed to hasServiceConnect");
+        REPORT_OS_ACCOUNT_FAIL(localId, PRIVILEGE_OPT_ACQUIRE_AUTH, static_cast<int32_t>(AUTHORIZATION_SERVICE_BUSY),
+            "Failed to hasServiceConnect");
         authorizationResult.resultCode = AuthorizationResultCode::AUTHORIZATION_SERVICE_BUSY;
         callback->OnResult(ERR_OK, authorizationResult);
         return ERR_OK;
     }
     if (options.hasContext && InnerAuthorizationManager::GetInstance().HasExtensionConnect()) {
         ACCOUNT_LOGI("Failed to hasExtensionConnect");
+        REPORT_OS_ACCOUNT_FAIL(localId, PRIVILEGE_OPT_ACQUIRE_AUTH, static_cast<int32_t>(AUTHORIZATION_SERVICE_BUSY),
+            "Failed to hasExtensionConnect");
         authorizationResult.resultCode = AuthorizationResultCode::AUTHORIZATION_SERVICE_BUSY;
         callback->OnResult(ERR_OK, authorizationResult);
         return ERR_OK;
@@ -160,14 +165,15 @@ ErrCode AuthorizationManagerService::AcquireAuthorization(const std::string &pri
     bool ret = GetPrivilegeBriefDef(privilege, def);
     if (!ret) {
         ACCOUNT_LOGE("Fail to check privilege, privilege:%{public}s", privilege.c_str());
-        REPORT_OS_ACCOUNT_FAIL(localId, Constants::ACQUIRE_AUTH, ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
+        REPORT_OS_ACCOUNT_FAIL(localId, PRIVILEGE_OPT_ACQUIRE_AUTH, ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
             "Fail to check privilege");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
     if (!options.isReuseNeeded && !options.isInteractionAllowed) {
-        REPORT_OS_ACCOUNT_FAIL(localId, Constants::ACQUIRE_AUTH, ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
-            "heck isReuseNeeded = false and isInteractionAllowed = false");
+        REPORT_OS_ACCOUNT_FAIL(localId, PRIVILEGE_OPT_ACQUIRE_AUTH,
+            static_cast<int32_t>(AUTHORIZATION_INTERACTION_NOT_ALLOWED),
+            "Check isReuseNeeded = false and isInteractionAllowed = false");
         authorizationResult.resultCode = AuthorizationResultCode::AUTHORIZATION_INTERACTION_NOT_ALLOWED;
         callback->OnResult(ERR_OK, authorizationResult);
         return ERR_OK;
@@ -176,7 +182,7 @@ ErrCode AuthorizationManagerService::AcquireAuthorization(const std::string &pri
         uint32_t code;
         ret = TransferPrivilegeToCode(privilege, code);
         if (!ret) {
-            REPORT_OS_ACCOUNT_FAIL(localId, Constants::ACQUIRE_AUTH, ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
+            REPORT_OS_ACCOUNT_FAIL(localId, PRIVILEGE_OPT_ACQUIRE_AUTH, ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
                 "Fail to check privilege");
             ACCOUNT_LOGE("Fail to check privilege, privilege:%{public}s", privilege.c_str());
             return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
@@ -193,7 +199,8 @@ ErrCode AuthorizationManagerService::AcquireAuthorization(const std::string &pri
         }
         if (!options.isInteractionAllowed) {
             authorizationResult.resultCode = AuthorizationResultCode::AUTHORIZATION_INTERACTION_NOT_ALLOWED;
-            REPORT_OS_ACCOUNT_FAIL(localId, Constants::ACQUIRE_AUTH, result, "Fail to check privilege");
+            REPORT_OS_ACCOUNT_FAIL(localId, PRIVILEGE_OPT_ACQUIRE_AUTH,
+                static_cast<int32_t>(AUTHORIZATION_INTERACTION_NOT_ALLOWED), "Fail to check privilege");
             ACCOUNT_LOGE("Fail to check privilege=%{public}s approved, errCode:%{public}d", privilege.c_str(), result);
             callback->OnResult(ERR_OK, authorizationResult);
             return ERR_OK;

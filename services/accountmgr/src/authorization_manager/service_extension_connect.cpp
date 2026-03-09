@@ -28,6 +28,7 @@
 #include "account_log_wrapper.h"
 #include "app_mgr_client.h"
 #include "extension_manager_client.h"
+#include "privilege_hisysevent_utils.h"
 #include "ipc_skeleton.h"
 #include "json_utils.h"
 #include "singleton.h"
@@ -63,8 +64,7 @@ bool SessionAbilityConnection::SessionAbilityConnectionStub::ValidateConnectionR
 {
     if (resultCode != ERR_OK) {
         ACCOUNT_LOGE("ability connect failed, error code:%{public}d", resultCode);
-        REPORT_OS_ACCOUNT_FAIL(localId_, Constants::ACQUIRE_AUTH, resultCode,
-            "ability connect failed");
+        REPORT_OS_ACCOUNT_FAIL(localId_, PRIVILEGE_OPT_ACQUIRE_AUTH, resultCode, "Ability connect failed");
         SessionAbilityConnection::GetInstance().CallbackOnResult(ERR_AUTHORIZATION_CREATE_SYS_EXTENSION_ERROR);
         return false;
     }
@@ -76,8 +76,8 @@ ErrCode SessionAbilityConnection::SessionAbilityConnectionStub::SendConnectionRe
 {
     if (remoteObject == nullptr) {
         ACCOUNT_LOGE("Get remoteObject failed");
-        REPORT_OS_ACCOUNT_FAIL(localId_, Constants::ACQUIRE_AUTH, ERR_AUTHORIZATION_CREATE_SYS_EXTENSION_ERROR,
-            "Get proxy is nullptr");
+        REPORT_OS_ACCOUNT_FAIL(localId_, PRIVILEGE_OPT_ACQUIRE_AUTH, ERR_AUTHORIZATION_CREATE_SYS_EXTENSION_ERROR,
+            "Get remoteObject is nullptr");
         SessionAbilityConnection::GetInstance().CallbackOnResult(ERR_AUTHORIZATION_CREATE_SYS_EXTENSION_ERROR);
         return ERR_AUTHORIZATION_CREATE_SYS_EXTENSION_ERROR;
     }
@@ -95,7 +95,7 @@ ErrCode SessionAbilityConnection::SessionAbilityConnectionStub::SendConnectionRe
     std::string parameters = "";
     if (!GenerateParameters(parameters)) {
         ACCOUNT_LOGE("GenerateParameters failed");
-        REPORT_OS_ACCOUNT_FAIL(localId_, Constants::ACQUIRE_AUTH, ERR_AUTHORIZATION_GET_PROXY_ERROR,
+        REPORT_OS_ACCOUNT_FAIL(localId_, PRIVILEGE_OPT_ACQUIRE_AUTH, ERR_AUTHORIZATION_GET_PROXY_ERROR,
             "GenerateParameters fails.");
         SessionAbilityConnection::GetInstance().CallbackOnResult(ERR_AUTHORIZATION_CREATE_SYS_EXTENSION_ERROR);
         return ERR_AUTHORIZATION_GET_PROXY_ERROR;
@@ -105,7 +105,7 @@ ErrCode SessionAbilityConnection::SessionAbilityConnectionStub::SendConnectionRe
     int32_t errCode = remoteObject->SendRequest(CONNECT_CODE, data, reply, option);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Fail to sendRequest, errCode:%{public}d", errCode);
-        REPORT_OS_ACCOUNT_FAIL(localId_, Constants::ACQUIRE_AUTH, errCode, "Fail to sendRequest");
+        REPORT_OS_ACCOUNT_FAIL(localId_, PRIVILEGE_OPT_ACQUIRE_AUTH, errCode, "Fail to sendRequest");
         SessionAbilityConnection::GetInstance().CallbackOnResult(ERR_AUTHORIZATION_CREATE_SYS_EXTENSION_ERROR);
         return errCode;
     }
@@ -172,7 +172,7 @@ ErrCode SessionAbilityConnection::SessionConnectExtension(const ConnectAbilityIn
 
     if (abilityConnectionStub_ != nullptr) {
         ACCOUNT_LOGI("Session ability extension is already connected");
-        REPORT_OS_ACCOUNT_FAIL(localId_, Constants::ACQUIRE_AUTH,
+        REPORT_OS_ACCOUNT_FAIL(localId_, PRIVILEGE_OPT_ACQUIRE_AUTH,
             ERR_AUTHORIZATION_ALREADY_HAS_ERROR, "Session ability extension is already connected");
         authorizationResult.resultCode = AuthorizationResultCode::AUTHORIZATION_SERVICE_BUSY;
         callback->OnResult(ERR_OK, authorizationResult);
@@ -192,7 +192,7 @@ ErrCode SessionAbilityConnection::CallbackOnResult(int32_t errCode, Authorizatio
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (callback_ == nullptr) {
         ACCOUNT_LOGE("Callback_ is nullptr.");
-        REPORT_OS_ACCOUNT_FAIL(localId_, Constants::ACQUIRE_AUTH, ERR_AUTHORIZATION_GET_STUB_ERROR,
+        REPORT_OS_ACCOUNT_FAIL(localId_, PRIVILEGE_OPT_ACQUIRE_AUTH, ERR_AUTHORIZATION_GET_STUB_ERROR,
             "Callback_ is nullptr");
         return ERR_AUTHORIZATION_GET_STUB_ERROR;
     }
@@ -208,7 +208,7 @@ ErrCode SessionAbilityConnection::SaveAuthorizationResult(ErrCode errCode, Autho
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (abilityConnectionStub_ == nullptr) {
         ACCOUNT_LOGE("AbilityConnectionStub_ is nullptr");
-        REPORT_OS_ACCOUNT_FAIL(localId_, Constants::ACQUIRE_AUTH, ERR_AUTHORIZATION_GET_STUB_ERROR,
+        REPORT_OS_ACCOUNT_FAIL(localId_, PRIVILEGE_OPT_ACQUIRE_AUTH, ERR_AUTHORIZATION_GET_STUB_ERROR,
             "AbilityConnectionStub is nullptr");
         return ERR_AUTHORIZATION_GET_STUB_ERROR;
     }
@@ -234,6 +234,7 @@ bool SessionAbilityConnection::GetConnectInfo(int32_t callingPid, ConnectAbility
         return true;
     }
     ACCOUNT_LOGE("Fail to getConnectInfo callingpid=%{public}d, authpid=%{public}d", callingPid, authAppPid_);
+    REPORT_OS_ACCOUNT_FAIL(localId_, PRIVILEGE_OPT_ACQUIRE_AUTH, -1, "Fail to getConnectInfo");
     return false;
 }
 
@@ -243,26 +244,26 @@ ErrCode SessionAbilityConnection::RegisterAuthAppRemoteObject(int32_t callingPid
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (abilityConnectionStub_ == nullptr) {
         ACCOUNT_LOGE("AbilityConnectionStub_ is nullptr");
-        REPORT_OS_ACCOUNT_FAIL(localId_, Constants::ACQUIRE_AUTH, ERR_AUTHORIZATION_GET_STUB_ERROR,
+        REPORT_OS_ACCOUNT_FAIL(localId_, PRIVILEGE_OPT_ACQUIRE_AUTH, ERR_AUTHORIZATION_GET_STUB_ERROR,
             "AbilityConnectionStub is nullptr");
         return ERR_AUTHORIZATION_GET_STUB_ERROR;
     }
     if (authAppRemoteObj == nullptr) {
         ACCOUNT_LOGE("AuthAppRemoteObj is nullptr");
-        REPORT_OS_ACCOUNT_FAIL(localId_, Constants::ACQUIRE_AUTH, ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
+        REPORT_OS_ACCOUNT_FAIL(localId_, PRIVILEGE_OPT_ACQUIRE_AUTH, ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
             "AuthAppRemoteObj is nullptr");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     authDeathRecipient_ = new (std::nothrow) AuthAppDeathRecipient();
     if (authDeathRecipient_ == nullptr) {
         ACCOUNT_LOGE("DeathRecipient is nullptr");
-        REPORT_OS_ACCOUNT_FAIL(localId_, Constants::ACQUIRE_AUTH, ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT,
+        REPORT_OS_ACCOUNT_FAIL(localId_, PRIVILEGE_OPT_ACQUIRE_AUTH, ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT,
             "DeathRecipient is nullptr");
         return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
     }
     if (!authAppRemoteObj->AddDeathRecipient(authDeathRecipient_)) {
         ACCOUNT_LOGE("Fail to AddDeathRecipient");
-        REPORT_OS_ACCOUNT_FAIL(localId_, Constants::ACQUIRE_AUTH, ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT,
+        REPORT_OS_ACCOUNT_FAIL(localId_, PRIVILEGE_OPT_ACQUIRE_AUTH, ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT,
             "Fail to AddDeathRecipient");
         return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
     }
@@ -276,7 +277,7 @@ ErrCode SessionAbilityConnection::UnRegisterAuthAppRemoteObject(int32_t callingP
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (authAppPid_ != callingPid) {
         ACCOUNT_LOGE("CallingPid not equal callingPid=%{public}d, authpid=%{public}d.", callingPid, authAppPid_);
-        REPORT_OS_ACCOUNT_FAIL(localId_, Constants::ACQUIRE_AUTH, ERR_AUTHORIZATION_NOT_SUPPORT,
+        REPORT_OS_ACCOUNT_FAIL(localId_, PRIVILEGE_OPT_ACQUIRE_AUTH, ERR_AUTHORIZATION_NOT_SUPPORT,
             "CallingPid not equal");
         return ERR_AUTHORIZATION_NOT_SUPPORT;
     }
@@ -290,7 +291,7 @@ void SessionAbilityConnection::SessionDisconnectExtension()
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (abilityConnectionStub_ == nullptr) {
         ACCOUNT_LOGE("AbilityConnectionStub is nullptr");
-        REPORT_OS_ACCOUNT_FAIL(localId_, Constants::ACQUIRE_AUTH, ERR_AUTHORIZATION_GET_STUB_ERROR,
+        REPORT_OS_ACCOUNT_FAIL(localId_, PRIVILEGE_OPT_ACQUIRE_AUTH, ERR_AUTHORIZATION_GET_STUB_ERROR,
             "AbilityConnectionStub is nullptr");
         return;
     }
@@ -320,6 +321,7 @@ void SessionAbilityConnection::OnAuthAppRemoteDeath(const wptr<IRemoteObject> &r
     sptr<IRemoteObject> object = remote.promote();
     if (object == nullptr) {
         ACCOUNT_LOGE("object is nullptr");
+        REPORT_OS_ACCOUNT_FAIL(localId_, PRIVILEGE_OPT_ACQUIRE_AUTH, -1, "OnAuthAppRemoteDeath object is nullptr");
         return;
     }
     std::lock_guard<std::recursive_mutex> lock(mutex_);
@@ -334,7 +336,7 @@ void SessionAbilityConnection::AuthAppDeathRecipient::OnRemoteDied(const wptr<IR
     if (remote == nullptr) {
         ACCOUNT_LOGE("Remote is nullptr");
         REPORT_OS_ACCOUNT_FAIL(IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR,
-            Constants::ACQUIRE_AUTH, ERR_AUTHORIZATION_GET_STUB_ERROR, "Remote is nullptr");
+            PRIVILEGE_OPT_ACQUIRE_AUTH, ERR_AUTHORIZATION_GET_STUB_ERROR, "Remote is nullptr");
         return;
     }
     SessionAbilityConnection::GetInstance().OnAuthAppRemoteDeath(remote);
@@ -345,7 +347,7 @@ void SessionAbilityConnection::AppDeathRecipient::OnRemoteDied(const wptr<IRemot
     if (remote == nullptr) {
         ACCOUNT_LOGE("Remote is nullptr");
         REPORT_OS_ACCOUNT_FAIL(IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR,
-            Constants::ACQUIRE_AUTH, ERR_AUTHORIZATION_GET_STUB_ERROR, "Remote is nullptr");
+            PRIVILEGE_OPT_ACQUIRE_AUTH, ERR_AUTHORIZATION_GET_STUB_ERROR, "Remote is nullptr");
         return;
     }
     SessionAbilityConnection::GetInstance().SessionDisconnectExtension();
@@ -357,7 +359,7 @@ ErrCode SessionAbilityConnection::CreateCallbackDeathRecipient(const sptr<IAutho
 {
     auto deathRecipient = new (std::nothrow) AppDeathRecipient(info_.bundleName);
     if (deathRecipient == nullptr) {
-        REPORT_OS_ACCOUNT_FAIL(localId_, Constants::ACQUIRE_AUTH,
+        REPORT_OS_ACCOUNT_FAIL(localId_, PRIVILEGE_OPT_ACQUIRE_AUTH,
             ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT, "DeathRecipient is nullptr");
         ACCOUNT_LOGE("DeathRecipient is nullptr");
         return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
@@ -365,7 +367,7 @@ ErrCode SessionAbilityConnection::CreateCallbackDeathRecipient(const sptr<IAutho
 
     if (!callback->AsObject()->AddDeathRecipient(deathRecipient)) {
         ACCOUNT_LOGE("Fail to AddDeathRecipient");
-        REPORT_OS_ACCOUNT_FAIL(localId_, Constants::ACQUIRE_AUTH,
+        REPORT_OS_ACCOUNT_FAIL(localId_, PRIVILEGE_OPT_ACQUIRE_AUTH,
             ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT, "Fail to AddDeathRecipient");
         return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
     }
@@ -379,7 +381,7 @@ ErrCode SessionAbilityConnection::CreateStubAndConnect(const ConnectAbilityInfo 
         sptr<SessionAbilityConnectionStub>(new (std::nothrow) SessionAbilityConnectionStub(info));
     if (abilityConnectionStub_ == nullptr) {
         ACCOUNT_LOGE("Get session aibility connection is nullptr");
-        REPORT_OS_ACCOUNT_FAIL(localId_, Constants::ACQUIRE_AUTH, ERR_AUTHORIZATION_GET_STUB_ERROR,
+        REPORT_OS_ACCOUNT_FAIL(localId_, PRIVILEGE_OPT_ACQUIRE_AUTH, ERR_AUTHORIZATION_GET_STUB_ERROR,
             "Get session aibility connection is nullptr");
         return ERR_AUTHORIZATION_GET_STUB_ERROR;
     }
@@ -398,7 +400,7 @@ ErrCode SessionAbilityConnection::CreateStubAndConnect(const ConnectAbilityInfo 
 
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("ConnectServiceExtensionAbility failed, result: %{public}d", ret);
-        REPORT_OS_ACCOUNT_FAIL(localId_, Constants::ACQUIRE_AUTH, ret,
+        REPORT_OS_ACCOUNT_FAIL(localId_, PRIVILEGE_OPT_ACQUIRE_AUTH, ret,
             "ConnectServiceExtensionAbility failed");
         abilityConnectionStub_ = nullptr;
         return ERR_AUTHORIZATION_CREATE_SYS_EXTENSION_ERROR;
