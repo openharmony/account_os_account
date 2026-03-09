@@ -53,21 +53,7 @@ public:
         callingBundleName = other.callingBundleName;
     }
 
-    ConnectAbilityInfo& operator=(const ConnectAbilityInfo& other)
-    {
-        if (this != &other) {
-            privilege = other.privilege;
-            description = other.description;
-            bundleName = other.bundleName;
-            abilityName = other.abilityName;
-            callingUid = other.callingUid;
-            callingPid = other.callingPid;
-            challenge = other.challenge;
-            timeout = other.timeout;
-            callingBundleName = other.callingBundleName;
-        }
-        return *this;
-    }
+    ConnectAbilityInfo& operator=(const ConnectAbilityInfo& other);
 
     /// The privilege to authorize
     std::string privilege = "";
@@ -129,17 +115,7 @@ public:
         resultCode = other.resultCode;
     }
 
-    AuthorizationResult& operator=(const AuthorizationResult& other)
-    {
-        if (this != &other) {
-            token = other.token;
-            privilege = other.privilege;
-            isReused = other.isReused;
-            validityPeriod = other.validityPeriod;
-            resultCode = other.resultCode;
-        }
-        return *this;
-    }
+    AuthorizationResult& operator=(const AuthorizationResult& other);
 
     ~AuthorizationResult()
     {

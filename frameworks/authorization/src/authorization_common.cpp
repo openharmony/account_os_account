@@ -137,6 +137,22 @@ bool ConnectAbilityInfo::Marshalling(Parcel &parcel) const
     return true;
 }
 
+ConnectAbilityInfo& ConnectAbilityInfo::operator=(const ConnectAbilityInfo& other)
+{
+    if (this != &other) {
+        privilege = other.privilege;
+        description = other.description;
+        bundleName = other.bundleName;
+        abilityName = other.abilityName;
+        callingUid = other.callingUid;
+        callingPid = other.callingPid;
+        challenge = other.challenge;
+        timeout = other.timeout;
+        callingBundleName = other.callingBundleName;
+    }
+    return *this;
+}
+
 ConnectAbilityInfo *ConnectAbilityInfo::Unmarshalling(Parcel &parcel)
 {
     ConnectAbilityInfo *info = new (std::nothrow) ConnectAbilityInfo();
@@ -146,6 +162,18 @@ ConnectAbilityInfo *ConnectAbilityInfo::Unmarshalling(Parcel &parcel)
         info = nullptr;
     }
     return info;
+}
+
+AuthorizationResult& AuthorizationResult::operator=(const AuthorizationResult& other)
+{
+    if (this != &other) {
+        token = other.token;
+        privilege = other.privilege;
+        isReused = other.isReused;
+        validityPeriod = other.validityPeriod;
+        resultCode = other.resultCode;
+    }
+    return *this;
 }
 
 bool AuthorizationResult::ReadFromParcel(Parcel &parcel)

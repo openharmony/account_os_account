@@ -625,7 +625,9 @@ HWTEST_F(AuthorizationClientModuleCovTest, ConnectAbilityInfo001, TestSize.Level
     connectAbilityInfo.challenge = challenge;
     connectAbilityInfo.timeout = 0;
     connectAbilityInfo.callingBundleName = PRIVILEGE_NAME_TEST;
-    ConnectAbilityInfo connectAbilityInfo2 = connectAbilityInfo;
+    ConnectAbilityInfo connectAbilityInfo3 = connectAbilityInfo;
+    ConnectAbilityInfo connectAbilityInfo2;
+    connectAbilityInfo2 = connectAbilityInfo3;
     Parcel parcel;
     connectAbilityInfo2.Marshalling(parcel);
     ConnectAbilityInfo* result = connectAbilityInfo2.Unmarshalling(parcel);
@@ -795,7 +797,9 @@ HWTEST_F(AuthorizationClientModuleCovTest, AuthorizationResult001, TestSize.Leve
     AuthorizationResult result1;
     result1.privilege = "test";
     result1.token = {0xFF, 0x00, 0xAA, 0x55};
-    AuthorizationResult result2 = result1;
+    AuthorizationResult result3 = result1;
+    AuthorizationResult result2;
+    result2 = result3;
 
     Parcel parcel;
     bool ret = result2.Marshalling(parcel);
