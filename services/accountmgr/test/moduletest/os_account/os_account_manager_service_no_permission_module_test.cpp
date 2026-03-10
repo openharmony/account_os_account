@@ -605,5 +605,26 @@ HWTEST_F(OsAccountManagerServiceNoPermissionModuleTest, SubscribeConstraints_No_
     EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
         osAccountManagerService_->UnsubscribeOsAccountConstraints(info, nullptr));
 }
+
+/**
+ * @tc.name: SubscribeConstraints_No_Permission002
+ * @tc.desc: Test SubscribeOsAccountConstraints SYSTEM_APP check failed.
+ * @tc.type: FUNC
+ * @tc.require: issueI6AQUQ
+ */
+HWTEST_F(OsAccountManagerServiceNoPermissionModuleTest, SubscribeConstraints_No_Permission002, TestSize.Level1)
+{
+    std::set<std::string> constraints;
+    OsAccountConstraintSubscribeInfo info(constraints);
+    info.enableAcross = false;
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    uint64_t tokenID;
+    ASSERT_TRUE(AllocPermission(ALL_ACCOUNT_PERMISSION_LIST, tokenID, false));
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR,
+        osAccountManagerService_->SubscribeOsAccountConstraints(info, nullptr));
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR,
+        osAccountManagerService_->UnsubscribeOsAccountConstraints(info, nullptr));
+    ASSERT_TRUE(RecoveryPermission(tokenID, selfTokenId));
+}
 }  // namespace AccountSA
 }  // namespace OHOS

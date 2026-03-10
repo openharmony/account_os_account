@@ -2542,5 +2542,58 @@ HWTEST_F(OsAccountManagerServiceModuleTest, GetForegroundOsAccountDisplayIdTest0
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
+/**
+ * @tc.name: CreateOsAccountTokenNotSupported001
+ * @tc.desc: Test CreateOsAccount with token when SUPPORT_AUTHORIZATION is not defined
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, CreateOsAccountTokenNotSupported001, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    CreateOsAccountOptions options;
+    options.token = std::vector<uint8_t>();
+    ErrCode errCode = osAccountManagerService_->CreateOsAccount(
+        STRING_TEST_NAME, "shortName", OsAccountType::NORMAL, osAccountInfo, options);
+    EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: CreateOsAccountForDomainTokenNotSupported001
+ * @tc.desc: Test CreateOsAccountForDomain with token when SUPPORT_AUTHORIZATION is not defined
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, CreateOsAccountForDomainTokenNotSupported001, TestSize.Level1)
+{
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = "testAccount";
+    domainInfo.domain_ = "testDomain";
+    CreateOsAccountForDomainOptions options;
+    options.hasToken = true;
+    options.token = std::vector<uint8_t>();
+    ErrCode errCode = osAccountManagerService_->CreateOsAccountForDomain(
+        OsAccountType::NORMAL, domainInfo, nullptr, options);
+    EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: RemoveOsAccountTokenNotSupported001
+ * @tc.desc: Test RemoveOsAccount with token when SUPPORT_AUTHORIZATION is not defined
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, RemoveOsAccountTokenNotSupported001, TestSize.Level1)
+{
+    RemoveOsAccountOptions options;
+    options.token = std::vector<uint8_t>();
+    OsAccountInfo osAccountInfoOne;
+    ErrCode errCode = osAccountManagerService_->CreateOsAccount(STRING_NAME, OsAccountType::ADMIN,
+        osAccountInfoOne);
+    EXPECT_EQ(errCode, ERR_OK);
+    errCode = osAccountManagerService_->RemoveOsAccount(osAccountInfoOne.GetLocalId(), options);
+    EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
 }  // namespace AccountSA
 }  // namespace OHOS
