@@ -69,7 +69,7 @@ struct QueryOAByIdAsyncContext : public CommonAsyncContext {
 
 struct RemoveOAAsyncContext : public CommonAsyncContext {
     int id = 0;
-    std::optional<RemoveOsAccountOptions> options = std::nullopt;
+    RemoveOsAccountOptions options;
 };
 
 struct SetOANameAsyncContext : public CommonAsyncContext {

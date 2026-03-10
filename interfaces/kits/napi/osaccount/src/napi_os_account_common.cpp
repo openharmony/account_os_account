@@ -319,34 +319,31 @@ void MakeArrayToJs(napi_env env, const std::vector<std::string> &constraints, na
     }
 }
 
-bool ParseRemoveOsAccountOptions(napi_env env, napi_value optionObj, std::optional<RemoveOsAccountOptions> &options)
+bool ParseRemoveOsAccountOptions(napi_env env, napi_value optionObj, RemoveOsAccountOptions &options)
 {
     bool hasToken = false;
     NAPI_CALL_BASE(env, napi_has_named_property(env, optionObj, "token", &hasToken), false);
-    bool hasOption = false;
-    RemoveOsAccountOptions tmpOption;
-    options = std::nullopt;
     if (hasToken) {
         napi_value tokenValue = nullptr;
         NAPI_CALL_BASE(env, napi_get_named_property(env, optionObj, "token", &tokenValue), false);
         napi_valuetype tokenValueType = napi_undefined;
         NAPI_CALL_BASE(env, napi_typeof(env, tokenValue, &tokenValueType), false);
-        // Handle undefined token value
         if (tokenValueType == napi_undefined) {
-            return true;
-        }
-        std::vector<uint8_t> tokenData;
-        if (ParseUint8TypedArrayToVector(env, tokenValue, tokenData) != napi_ok) {
-            ACCOUNT_LOGE("Get token failed");
-            std::string errMsg = "Parameter error. The type of \"token\" must be Uint8Array";
-            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+            options.token = std::nullopt;
+        } else if (tokenValueType == napi_null) {
+            ACCOUNT_LOGE("token is null");
             return false;
+        } else {
+            bool isTypedArray = false;
+            NAPI_CALL_BASE(env, napi_is_typedarray(env, tokenValue, &isTypedArray), false);
+            if (!isTypedArray) {
+                ACCOUNT_LOGE("value is not a typed array");
+                return false;
+            }
+            std::vector<uint8_t> tokenData;
+            ParseUint8TypedArrayToVector(env, tokenValue, tokenData);
+            options.token = std::make_optional<std::vector<uint8_t>>(tokenData);
         }
-        tmpOption.token = std::move(tokenData);
-        hasOption = true;
-    }
-    if (hasOption) {
-        options = std::move(tmpOption);
     }
     return true;
 }
@@ -359,6 +356,8 @@ bool ParseCallbackOrRemoveAccountOpt(napi_env env, napi_value obj, RemoveOAAsync
         // parse as option
         if (!ParseRemoveOsAccountOptions(env, obj, asyncContext->options)) {
             ACCOUNT_LOGE("Parse remove os account option failed.");
+            std::string errMsg = "Parameter error. The type of \"token\" must be Uint8Array";
+            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
             return false;
         }
     } else {
@@ -395,8 +394,8 @@ bool ParseParaRemoveOACB(napi_env env, napi_callback_info cbInfo, RemoveOAAsyncC
 void RemoveOAExecuteCB(napi_env env, void *data)
 {
     RemoveOAAsyncContext *asyncContext = reinterpret_cast<RemoveOAAsyncContext *>(data);
-    if (asyncContext->options.has_value()) {
-        asyncContext->errCode = OsAccountManager::RemoveOsAccount(asyncContext->id, asyncContext->options.value());
+    if (asyncContext->options.token.has_value()) {
+        asyncContext->errCode = OsAccountManager::RemoveOsAccount(asyncContext->id, asyncContext->options);
     } else {
         asyncContext->errCode = OsAccountManager::RemoveOsAccount(asyncContext->id);
     }
@@ -631,6 +630,12 @@ static bool ParseToken(napi_env env, napi_value object, CreateOAAsyncContext *as
         ACCOUNT_LOGE("token is null");
         return false;
     } else {
+        bool isTypedArray = false;
+        NAPI_CALL_BASE(env, napi_is_typedarray(env, tokenValue, &isTypedArray), false);
+        if (!isTypedArray) {
+            ACCOUNT_LOGE("value is not a typed array");
+            return false;
+        }
         std::vector<uint8_t> tokenData;
         ParseUint8TypedArrayToVector(env, tokenValue, tokenData);
         asyncContext->token = std::make_optional<std::vector<uint8_t>>(tokenData);
@@ -747,6 +752,12 @@ static bool ParseDomainOptionInfo(napi_env env, napi_value object, CreateOsAccou
         ACCOUNT_LOGE("token is null");
         return false;
     } else {
+        bool isTypedArray = false;
+        NAPI_CALL_BASE(env, napi_is_typedarray(env, tokenValue, &isTypedArray), false);
+        if (!isTypedArray) {
+            ACCOUNT_LOGE("value is not a typed array");
+            return false;
+        }
         ParseUint8TypedArrayToVector(env, tokenValue, domainOptions.token);
         domainOptions.hasToken = true;
     }
