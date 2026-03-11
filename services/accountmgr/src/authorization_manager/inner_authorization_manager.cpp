@@ -50,7 +50,7 @@ namespace {
 std::mutex g_mutex;
 static std::map<int32_t, sptr<IAuthorizationCallback>> g_callbackMap;
 static std::map<int32_t, sptr<IRemoteObject>> g_requestRemoteObjectMap;
-static std::map<int32_t, std::shared_ptr<ConnectAbilityCallback>> g_connectbackMap;
+static std::map<int32_t, sptr<ConnectAbilityCallback>> g_connectbackMap;
 static std::map<int32_t, int32_t> g_pidToUidMap;
 static const std::int32_t GRANT_VALIDITY_PERIOD = 300;
 }
@@ -159,11 +159,10 @@ void InnerAuthorizationManager::AppDeathRecipient::OnRemoteDied(const wptr<IRemo
         if (object == it->second->AsObject()) {
             ACCOUNT_LOGI("remove remote.");
             int32_t callingPid = it->first;
-            it->second = nullptr;
-            g_callbackMap.erase(it);
             g_connectbackMap.erase(callingPid);
             g_requestRemoteObjectMap.erase(callingPid);
             g_pidToUidMap.erase(callingPid);
+            g_callbackMap.erase(it);
             break;
         }
     }
@@ -357,9 +356,7 @@ ErrCode InnerAuthorizationManager::StartUIExtensionConnection(const ConnectAbili
     ConnectAbilityInfo uiInfo = info;
     uiInfo.abilityName = uiAbilityName;
 
-    auto connectCallback = std::make_shared<ConnectAbilityCallback>(
-        uiInfo, acquireAuthorizationOnResultfunc(), result);
-
+    auto connectCallback = sptr<ConnectAbilityCallback>::MakeSptr(uiInfo, acquireAuthorizationOnResultfunc(), result);
     // Use sptr directly to keep objects alive during async operation
     auto task = [uiInfo, connectCallback, callback, requestRemoteObj]() {
         // Verify callback is still valid before calling
