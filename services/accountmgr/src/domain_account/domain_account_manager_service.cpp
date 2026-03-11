@@ -363,5 +363,11 @@ ErrCode DomainAccountManagerService::CheckPermission(IDomainAccountIpcCode code)
     }
     return ERR_OK;
 }
+
+ErrCode DomainAccountManagerService::IsDomainAccountSupported(bool &isSupported)
+{
+    isSupported = InnerDomainAccountManager::GetInstance().IsPluginAvailable();
+    return ERR_OK;
+}
 }  // namespace AccountSA
 }  // namespace OHOS

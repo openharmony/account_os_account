@@ -48,6 +48,8 @@ bool GetAccountPolicyFuzzTest(const uint8_t* data, size_t size)
     info.status_ = static_cast<DomainAccountStatus>(typeNumber);
     std::string policy;
     result = DomainAccountClient::GetInstance().GetAccountPolicy(info, policy);
+    bool isSupported = false;
+    DomainAccountClient::GetInstance().IsDomainAccountSupported(isSupported);
     return result == ERR_OK;
 }
 }

@@ -1716,6 +1716,18 @@ public:
     InputerManagerImpl() {}
 };
 
+bool IsDomainAccountSupportedSync()
+{
+    bool isSupported = false;
+    ErrCode errCode = AccountSA::DomainAccountClient::GetInstance().IsDomainAccountSupported(isSupported);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to call isDomainAccountSupported, errCode=%{public}d", errCode);
+        int32_t jsErrCode = GenerateBusinessErrorCode(errCode);
+        taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+    }
+    return isSupported;
+}
+
 bool IsAuthenticationExpiredSync(const DomainAccountInfo &domainAccountInfo)
 {
     AccountSA::DomainAccountInfo domainAccountInfoInner = ConvertToDomainAccountInfoInner(domainAccountInfo);
@@ -2275,6 +2287,7 @@ TH_EXPORT_CPP_API_AuthWithOption(AuthWithOption);
 TH_EXPORT_CPP_API_AuthWithPopup(AuthWithPopup);
 TH_EXPORT_CPP_API_AuthWithPopupWithId(AuthWithPopupWithId);
 TH_EXPORT_CPP_API_HasAccountSync(HasAccountSync);
+TH_EXPORT_CPP_API_IsDomainAccountSupportedSync(IsDomainAccountSupportedSync);
 TH_EXPORT_CPP_API_UpdateAccountTokenSync(UpdateAccountTokenSync);
 TH_EXPORT_CPP_API_GetAccessTokenSync(GetAccessTokenSync);
 TH_EXPORT_CPP_API_GetAccountInfoSync(GetAccountInfoSync);

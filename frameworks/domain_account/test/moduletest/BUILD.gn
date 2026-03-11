@@ -135,7 +135,9 @@ ohos_moduletest("domain_account_frameworks_module_mock_test") {
       cflags_cc += [ "-DHAS_HUKS_PART" ]
     }
   }
-
+  if (os_account_support_authorization) {
+    cflags_cc += [ "-DHAS_DOMAIN_PLUGIN" ]
+  }
   if (use_libfuzzer) {
     cflags_cc += [ "-DFUZZ_TEST" ]
   }

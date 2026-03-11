@@ -2650,3 +2650,49 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountAuthDeathRecipient001, Test
     ASSERT_EQ(rawCallback->errCode, ERR_JS_AUTH_CANCELLED);
     EXPECT_EQ(0, InnerDomainAccountManager::GetInstance().authContextIdMap_.size());
 }
+
+#ifndef HAS_DOMAIN_PLUGIN
+/**
+ * @tc.name: IsDomainAccountSupported001
+ * @tc.desc: test IsDomainAccountSupported when no plugin is registered
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientModuleTest, IsDomainAccountSupported001, TestSize.Level3)
+{
+    DomainAccountClient::GetInstance().UnregisterPlugin();
+    bool isSupported = true;
+    EXPECT_EQ(ERR_OK, DomainAccountClient::GetInstance().IsDomainAccountSupported(isSupported));
+    EXPECT_FALSE(isSupported);
+    ASSERT_EQ(DomainAccountClient::GetInstance().RegisterPlugin(g_plugin), ERR_OK);
+}
+
+/**
+ * @tc.name: IsDomainAccountSupported002
+ * @tc.desc: test IsDomainAccountSupported after plugin is registered
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientModuleTest, IsDomainAccountSupported002, TestSize.Level3)
+{
+    DomainAccountClient::GetInstance().UnregisterPlugin();
+    ASSERT_EQ(DomainAccountClient::GetInstance().RegisterPlugin(g_plugin), ERR_OK);
+    bool isSupported = false;
+    EXPECT_EQ(ERR_OK, DomainAccountClient::GetInstance().IsDomainAccountSupported(isSupported));
+    EXPECT_TRUE(isSupported);
+}
+
+#else
+/**
+ * @tc.name: IsDomainAccountSupported003
+ * @tc.desc: test IsDomainAccountSupported when no plugin is registered
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientModuleTest, IsDomainAccountSupported003, TestSize.Level3)
+{
+    bool isSupported = true;
+    EXPECT_EQ(ERR_OK, DomainAccountClient::GetInstance().IsDomainAccountSupported(isSupported));
+    EXPECT_TRUE(isSupported);
+}
+#endif // HAS_DOMAIN_PLUGIN

@@ -159,6 +159,8 @@ public:
     ErrCode SetAccountPolicy(const DomainAccountInfo &info, const std::string &policy);
     ErrCode GetAccountPolicy(const DomainAccountInfo &info, std::string &policy);
 
+    ErrCode IsDomainAccountSupported(bool &isSupported);
+
 private:
     DomainAccountClient();
     ~DomainAccountClient() = default;

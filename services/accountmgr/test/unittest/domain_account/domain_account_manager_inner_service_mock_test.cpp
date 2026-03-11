@@ -174,5 +174,22 @@ HWTEST_F(DomainAccountManagerInnerServiceMockTest, InnerAuth001, TestSize.Level3
     ASSERT_EQ(instance->InnerAuth(100, authData, innerCallback, AuthMode::AUTH_WITH_TOKEN_MODE), ERR_OK);
     ASSERT_EQ(instance->InnerAuth(100, authData, innerCallback, AuthMode::AUTH_INVALID_MODE), ERR_OK);
 }
+
+/**
+ * @tc.name: IsDomainAccountSupported001
+ * @tc.desc: test IsDomainAccountSupported when plugin is available
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountManagerInnerServiceMockTest, IsDomainAccountSupported001, TestSize.Level3)
+{
+    InnerDomainAccountManager *instance = new (std::nothrow) InnerDomainAccountManager();
+    std::string rightPath = "/rightPath/";
+    std::string rightSoName = "right.z.so";
+    EXPECT_FALSE(instance->IsPluginAvailable());
+    // LoadLib success
+    instance->LoaderLib(rightPath, rightSoName);
+    EXPECT_TRUE(instance->IsPluginAvailable());
+}
 } // AccountSA
 } // OHOS
