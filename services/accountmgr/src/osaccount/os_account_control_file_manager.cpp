@@ -383,12 +383,12 @@ void OsAccountControlFileManager::Init()
 void OsAccountControlFileManager::FileInit()
 {
     if (!accountFileOperator_->IsJsonFileReady(Constants::ACCOUNT_LIST_FILE_JSON_PATH)) {
-        ACCOUNT_LOGI("OsAccountControlFileManager there is not have valid account list, create!");
+        ACCOUNT_LOGI("OsAccountControlFileManager there is no valid account list, create!");
         RecoverAccountListJsonFile();
     }
 #ifdef ENABLE_FILE_WATCHER
     if (!accountFileOperator_->IsJsonFileReady(Constants::ACCOUNT_INFO_DIGEST_FILE_PATH)) {
-        ACCOUNT_LOGI("OsAccountControlFileManager there is not have valid account info digest file, create!");
+        ACCOUNT_LOGI("OsAccountControlFileManager there is no valid account info digest file, create!");
         RecoverAccountInfoDigestJsonFile();
     }
 #endif // ENABLE_FILE_WATCHER
@@ -397,28 +397,28 @@ void OsAccountControlFileManager::FileInit()
     accountFileWatcherMgr_.AddFileWatcher(-1, eventCallbackFunc_, Constants::ACCOUNT_LIST_FILE_JSON_PATH);
 #endif // ENABLE_FILE_WATCHER
     if (!accountFileOperator_->IsJsonFileReady(Constants::ACCOUNT_INDEX_JSON_PATH)) {
-        ACCOUNT_LOGI("OsAccountControlFileManager there is not have valid account index file, create!");
+        ACCOUNT_LOGI("OsAccountControlFileManager there is no valid account index file, create!");
         BuildAndSaveOsAccountIndexJsonFile();
     }
 #ifdef ENABLE_FILE_WATCHER
     accountFileWatcherMgr_.AddFileWatcher(-1, eventCallbackFunc_, Constants::ACCOUNT_INDEX_JSON_PATH);
 #endif // ENABLE_FILE_WATCHER
     if (!accountFileOperator_->IsJsonFileReady(Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH)) {
-        ACCOUNT_LOGI("OsAccountControlFileManager there is not have valid account list, create!");
+        ACCOUNT_LOGI("OsAccountControlFileManager there is no valid account list, create!");
         BuildAndSaveBaseOAConstraintsJsonFile();
     }
 #ifdef ENABLE_FILE_WATCHER
     accountFileWatcherMgr_.AddFileWatcher(-1, eventCallbackFunc_, Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH);
 #endif // ENABLE_FILE_WATCHER
     if (!accountFileOperator_->IsJsonFileReady(Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH)) {
-        ACCOUNT_LOGI("OsAccountControlFileManager there is not have valid account list, create!");
+        ACCOUNT_LOGI("OsAccountControlFileManager there is no valid account list, create!");
         BuildAndSaveGlobalOAConstraintsJsonFile();
     }
 #ifdef ENABLE_FILE_WATCHER
     accountFileWatcherMgr_.AddFileWatcher(-1, eventCallbackFunc_, Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH);
 #endif // ENABLE_FILE_WATCHER
     if (!accountFileOperator_->IsJsonFileReady(Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH)) {
-        ACCOUNT_LOGI("OsAccountControlFileManager there is not have valid account list, create!");
+        ACCOUNT_LOGI("OsAccountControlFileManager there is no valid account list, create!");
         BuildAndSaveSpecificOAConstraintsJsonFile();
     }
 #ifdef ENABLE_FILE_WATCHER

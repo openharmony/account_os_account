@@ -355,8 +355,8 @@ bool ParseCallbackOrRemoveAccountOpt(napi_env env, napi_value obj, RemoveOAAsync
     if (valueType == napi_object) {
         // parse as option
         if (!ParseRemoveOsAccountOptions(env, obj, asyncContext->options)) {
-            ACCOUNT_LOGE("Parse remove os account option failed.");
-            std::string errMsg = "Parameter error. The type of \"token\" must be Uint8Array";
+            ACCOUNT_LOGE("get RemoveOsAccountOptions's token failed");
+            std::string errMsg = "Parameter error. The type of arg 2 must be RemoveOsAccountOptions";
             AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
             return false;
         }
