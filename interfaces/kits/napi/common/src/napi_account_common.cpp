@@ -423,7 +423,7 @@ napi_value CreateUint8Array(napi_env env, const uint8_t *srcData, size_t length)
     return result;
 }
 
-napi_status ParseUint8TypedArray(napi_env env, napi_value value, uint8_t **data, size_t *length)
+napi_status ParseUint8TypedArray(napi_env env, napi_value value, uint8_t **data, size_t *length, bool isStrict)
 {
     *data = nullptr;
     *length = 0;
@@ -431,7 +431,7 @@ napi_status ParseUint8TypedArray(napi_env env, napi_value value, uint8_t **data,
     napi_is_typedarray(env, value, &isTypedArray);
     if (!isTypedArray) {
         ACCOUNT_LOGE("invalid uint8 array");
-        return napi_ok;
+        return isStrict ? napi_invalid_arg : napi_ok;
     }
     napi_typedarray_type arrayType = static_cast<napi_typedarray_type>(-1);  // -1 indicates invalid type
     napi_value buffer = nullptr;
@@ -441,6 +441,7 @@ napi_status ParseUint8TypedArray(napi_env env, napi_value value, uint8_t **data,
         ACCOUNT_LOGE("invalid uint8 array");
         *data = nullptr;
         *length = 0;
+        return isStrict ? napi_invalid_arg : napi_ok;
     }
     return napi_ok;
 }
@@ -468,11 +469,11 @@ bool GetOptionalUint8TypedArrayToVector(napi_env env, napi_value obj, const std:
     return true;
 }
 
-napi_status ParseUint8TypedArrayToVector(napi_env env, napi_value value, std::vector<uint8_t> &vec)
+napi_status ParseUint8TypedArrayToVector(napi_env env, napi_value value, std::vector<uint8_t> &vec, bool isStrict)
 {
     uint8_t *data = nullptr;
     size_t length = 0;
-    napi_status status = ParseUint8TypedArray(env, value, &data, &length);
+    napi_status status = ParseUint8TypedArray(env, value, &data, &length, isStrict);
     if (status != napi_ok) {
         ACCOUNT_LOGE("failed to ParseUint8TypedArray");
         return status;

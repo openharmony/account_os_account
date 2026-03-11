@@ -2252,6 +2252,9 @@ ErrCode IInnerOsAccountManager::VerifyAndSetOsAccountTypeInTEE(
     const std::vector<uint8_t>& tokenData = token.value();
     std::vector<uint8_t> unusedResult(sizeof(VerifyUserTokenResult), 0);
     ErrCode errCode = teeAdapter_.VerifyToken(tokenData, unusedResult);
+    if (!unusedResult.empty()) {
+        (void)memset_s(unusedResult.data(), unusedResult.size(), 0, unusedResult.size());
+    }
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("VerifyToken failed, id: %{public}d, errCode: %{public}d", id, errCode);
         ReportOsAccountOperationFail(id, OPERATION_SET_TYPE, errCode, "VerifyToken failed!");
