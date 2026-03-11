@@ -461,6 +461,7 @@ ErrCode InnerAuthorizationManager::VerifyToken(const std::vector<uint8_t> &token
 
     VerifyUserTokenResult tokenRet;
     errno_t err = memcpy_s(&tokenRet, sizeof(VerifyUserTokenResult), outToken.data(), sizeof(VerifyUserTokenResult));
+    std::fill(outToken.begin(), outToken.end(), 0);
     if (err != 0) {
         ACCOUNT_LOGI("Failed to memcpy outToken, err: %{public}d", err);
         REPORT_OS_ACCOUNT_FAIL(-1, PRIVILEGE_OPT_VERIFY_TOKEN, err, "Failed to memcpy_s outToken");

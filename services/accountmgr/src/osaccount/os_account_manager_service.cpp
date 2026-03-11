@@ -2650,6 +2650,10 @@ ErrCode OsAccountManagerService::PrivilegeCheck(const std::optional<std::vector<
     std::vector<uint8_t> iamToken;
     ErrCode errCode = InnerAuthorizationManager::GetInstance().VerifyToken(
         token.value(), privilegeName, IPCSkeleton::GetCallingPid(), challenge, iamToken);
+    auto tokenInfo = const_cast<std::vector<uint8_t>&>(token.value());
+    std::fill(tokenInfo.begin(), tokenInfo.end(), 0);
+    std::fill(challenge.begin(), challenge.end(), 0);
+    std::fill(iamToken.begin(), iamToken.end(), 0);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("VerifyToken failed, errCode=%{public}d", errCode);
     }

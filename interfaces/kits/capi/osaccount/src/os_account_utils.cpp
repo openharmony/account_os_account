@@ -63,7 +63,7 @@ int32_t SetOsAccountId(const int32_t osAccountId)
 int32_t GetOsAccountId()
 {
     int32_t osAccountId = -1;
-    int32_t fdIoctl = open(HDAC_DEV, O_WRONLY);
+    int32_t fdIoctl = open(HDAC_DEV, O_RDONLY);
     if (fdIoctl < 0) {
         return -1;
     }

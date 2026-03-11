@@ -71,6 +71,7 @@ group("account_build_fuzztest") {
     "${os_account_path}/test/fuzztest/osaccount:fuzztest",
   ]
   deps += [
+    "${os_account_path}/test/fuzztest/authorization_stub:fuzztest",
     "${os_account_path}/test/fuzztest/domainaccount:fuzztest",
     "${os_account_path}/test/fuzztest/domainaccount_stub:fuzztest",
     "${os_account_path}/test/fuzztest/iamaccount_stub:fuzztest",
