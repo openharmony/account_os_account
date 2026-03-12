@@ -156,6 +156,9 @@ ohos_moduletest("AccountInnerSdkModuleMockTest") {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
     deps += [ "${domain_account_framework_path}:domain_account_plugin_proxy" ]
   }
+  if (has_hiviewdfx_hisysevent_part) {
+    cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
+  }
   part_name = "os_account"
 }
 

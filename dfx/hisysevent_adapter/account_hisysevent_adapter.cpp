@@ -26,7 +26,7 @@ namespace {
 using namespace OHOS::HiviewDFX;
 #endif // HAS_HISYSEVENT_PART
 }
-
+#ifdef HAS_HISYSEVENT_PART
 std::string AnonymizeName(const std::string& nameStr)
 {
     if (nameStr == DEFAULT_OHOS_ACCOUNT_NAME || nameStr.empty()) {
@@ -38,7 +38,6 @@ std::string AnonymizeName(const std::string& nameStr)
 
 void ReportServiceStartFail(int32_t errCode, const std::string& errMsg)
 {
-#ifdef HAS_HISYSEVENT_PART
     int ret = HiSysEventWrite(HiSysEvent::Domain::ACCOUNT, "SERVICE_START_FAILED",
         HiSysEvent::EventType::FAULT,
         "ERROR_TYPE", errCode,
@@ -46,14 +45,10 @@ void ReportServiceStartFail(int32_t errCode, const std::string& errMsg)
     if (ret != 0) {
         ACCOUNT_LOGE("hisysevent write failed! ret %{public}d. errCode %{public}d", ret, errCode);
     }
-#else // HAS_HISYSEVENT_PART
-    (void)errCode;
-#endif // HAS_HISYSEVENT_PART
 }
 
 void ReportPermissionFail(int32_t callerUid, int32_t callerPid, const std::string& permName)
 {
-#ifdef HAS_HISYSEVENT_PART
     int ret = HiSysEventWrite(HiSysEvent::Domain::ACCOUNT, "PERMISSION_EXCEPTION",
         HiSysEvent::EventType::SECURITY,
         "CALLER_UID", callerUid,
@@ -63,17 +58,11 @@ void ReportPermissionFail(int32_t callerUid, int32_t callerPid, const std::strin
         ACCOUNT_LOGE("hisysevent write failed! ret %{public}d. uid %{public}d, pid %{public}d permName %{public}s.",
             ret, callerUid, callerPid, permName.c_str());
     }
-#else // HAS_HISYSEVENT_PART
-    (void)callerUid;
-    (void)callerPid;
-    (void)permName;
-#endif // HAS_HISYSEVENT_PART
 }
 
 void ReportOsAccountOperationFail(
     int32_t id, const std::string& operationStr, int32_t errCode, const std::string& errMsg)
 {
-#ifdef HAS_HISYSEVENT_PART
     int ret = HiSysEventWrite(HiSysEvent::Domain::ACCOUNT, "OS_ACCOUNT_FAILED",
         HiSysEvent::EventType::FAULT,
         "ID", id,
@@ -84,18 +73,11 @@ void ReportOsAccountOperationFail(
         ACCOUNT_LOGE("ret %{public}d, id %{public}d, opStr %{public}s, errCode %{public}d errMsg %{public}s.",
             ret, id, operationStr.c_str(), errCode, errMsg.c_str());
     }
-#else // HAS_HISYSEVENT_PART
-    (void)id;
-    (void)errCode;
-    (void)operationStr;
-    (void)errMsg;
-#endif // HAS_HISYSEVENT_PART
 }
 
 void ReportDomainAccountOperationFail(const DomainHisysEventInfo &info, const int32_t errCode,
     const std::string& errMsg)
 {
-#ifdef HAS_HISYSEVENT_PART
     int ret = HiSysEventWrite(HiSysEvent::Domain::ACCOUNT, "DOMAIN_ACCOUNT_FAILED",
         HiSysEvent::EventType::FAULT,
         "OS_ACCOUNT_ID", info.domainBindLocalId,
@@ -107,17 +89,11 @@ void ReportDomainAccountOperationFail(const DomainHisysEventInfo &info, const in
         ACCOUNT_LOGE("ReportDomainAccountOperationFail, ret=%{public}d, id=%{public}d, opStr=%{public}s",
             ret, info.domainBindLocalId, info.operationStr.c_str());
     }
-#else // HAS_HISYSEVENT_PART
-    (void)info;
-    (void)errCode;
-    (void)errMsg;
-#endif // HAS_HISYSEVENT_PART
 }
 
 void ReportOhosAccountOperationFail(
     int32_t userId, const std::string& operationStr, int32_t errCode, const std::string& errMsg)
 {
-#ifdef HAS_HISYSEVENT_PART
     int ret = HiSysEventWrite(HiSysEvent::Domain::ACCOUNT, "DISTRIBUTED_ACCOUNT_FAILED",
         HiSysEvent::EventType::FAULT,
         "USER_ID", userId,
@@ -128,19 +104,12 @@ void ReportOhosAccountOperationFail(
         ACCOUNT_LOGE("ret %{public}d, userId %{public}d, opStr %{public}s, errCode %{public}d errMsg %{public}s.",
             ret, userId, operationStr.c_str(), errCode, errMsg.c_str());
     }
-#else // HAS_HISYSEVENT_PART
-    (void)userId;
-    (void)operationStr;
-    (void)errCode;
-    (void)errMsg;
-#endif // HAS_HISYSEVENT_PART
 }
 
 void ReportAppAccountOperationFail(const std::string &name, const std::string &owner, const std::string& operationStr,
     int32_t errCode, const std::string& errMsg)
 {
     std::string anonymousName = AnonymizeName(name);
-#ifdef HAS_HISYSEVENT_PART
     int ret = HiSysEventWrite(HiSysEvent::Domain::ACCOUNT, "APP_ACCOUNT_FAILED",
         HiSysEvent::EventType::FAULT,
         "NAME", anonymousName,
@@ -154,18 +123,10 @@ void ReportAppAccountOperationFail(const std::string &name, const std::string &o
             "errCode %{public}d, errMsg %{public}s.",
             ret, name.c_str(), owner.c_str(), operationStr.c_str(), errCode, errMsg.c_str());
     }
-#else // HAS_HISYSEVENT_PART
-    (void)anonymousName;
-    (void)owner;
-    (void)errCode;
-    (void)operationStr;
-    (void)errMsg;
-#endif // HAS_HISYSEVENT_PART
 }
 
 void ReportOsAccountLifeCycle(int32_t id, const std::string& operationStr)
 {
-#ifdef HAS_HISYSEVENT_PART
     int ret = HiSysEventWrite(HiSysEvent::Domain::ACCOUNT, "OS_ACCOUNT_LIFE_CYCLE",
         HiSysEvent::EventType::BEHAVIOR,
         "ID", id,
@@ -174,15 +135,10 @@ void ReportOsAccountLifeCycle(int32_t id, const std::string& operationStr)
         ACCOUNT_LOGE("ret %{public}d, operationStr %{public}s, id %{public}d.",
             ret, operationStr.c_str(), id);
     }
-#else // HAS_HISYSEVENT_PART
-    (void)id;
-    (void)operationStr;
-#endif // HAS_HISYSEVENT_PART
 }
 
 void ReportOsAccountSwitch(int32_t currentId, int32_t oldId)
 {
-#ifdef HAS_HISYSEVENT_PART
     int ret = HiSysEventWrite(HiSysEvent::Domain::ACCOUNT, "OS_ACCOUNT_SWITCH",
         HiSysEvent::EventType::BEHAVIOR,
         "CURRENT_ID", currentId,
@@ -191,15 +147,10 @@ void ReportOsAccountSwitch(int32_t currentId, int32_t oldId)
         ACCOUNT_LOGE("ret %{public}d, currentId %{public}d, oldId %{public}d.",
             ret, currentId, oldId);
     }
-#else // HAS_HISYSEVENT_PART
-    (void)currentId;
-    (void)oldId;
-#endif // HAS_HISYSEVENT_PART
 }
 
 void ReportDomainAccountOperationStatistic(const DomainHisysEventInfo &info)
 {
-#ifdef HAS_HISYSEVENT_PART
     int ret = HiSysEventWrite(HiSysEvent::Domain::ACCOUNT, "DOMAIN_ACCOUNT_STATISTIC",
         HiSysEvent::EventType::STATISTIC,
         "OS_ACCOUNT_ID", info.domainBindLocalId,
@@ -212,14 +163,10 @@ void ReportDomainAccountOperationStatistic(const DomainHisysEventInfo &info)
         ACCOUNT_LOGE("ReportDomainAccountOperationStatistic failed, ret=%{public}d, id=%{public}d, oper=%{public}s",
             ret, info.domainBindLocalId, info.operationStr.c_str());
     }
-#else // HAS_HISYSEVENT_PART
-    (void)info;
-#endif // HAS_HISYSEVENT_PART
 }
 
 void ReportOhosAccountStateChange(int32_t userId, int32_t operateType, int32_t oldStat, int32_t newStat)
 {
-#ifdef HAS_HISYSEVENT_PART
     int ret = HiSysEventWrite(HiSysEvent::Domain::ACCOUNT, "DISTRIBUTED_ACCOUNT_CHANGE",
         HiSysEvent::EventType::BEHAVIOR,
         "USER_ID", userId,
@@ -230,17 +177,10 @@ void ReportOhosAccountStateChange(int32_t userId, int32_t operateType, int32_t o
         ACCOUNT_LOGE("ret %{public}d, [%{public}d, %{public}d, %{public}d, %{public}d]",
             ret, userId, operateType, oldStat, newStat);
     }
-#else // HAS_HISYSEVENT_PART
-    (void)userId;
-    (void)operateType;
-    (void)oldStat;
-    (void)newStat;
-#endif // HAS_HISYSEVENT_PART
 }
 
 void ReportOsAccountDataTampered(int32_t id, const std::string& dataPath, const std::string& dataLabel)
 {
-#ifdef HAS_HISYSEVENT_PART
     int ret = HiSysEventWrite(HiSysEvent::Domain::ACCOUNT, "DATA_TAMPERED",
         HiSysEvent::EventType::SECURITY,
         "ID", id,
@@ -250,11 +190,7 @@ void ReportOsAccountDataTampered(int32_t id, const std::string& dataPath, const 
         ACCOUNT_LOGE("sysevent write failed, ret %{public}d, id %{public}d, dataPath %{public}s, dataLabel %{public}s.",
             ret, id, dataPath.c_str(), dataLabel.c_str());
     }
-#else // HAS_HISYSEVENT_PART
-    (void)id;
-    (void)dataPath;
-    (void)dataLabel;
-#endif // HAS_HISYSEVENT_PART
 }
+#endif // HAS_HISYSEVENT_PART
 } // AccountSA
 } // OHOS

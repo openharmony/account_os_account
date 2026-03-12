@@ -30,7 +30,9 @@
 #include "account_log_wrapper.h"
 #include "directory_ex.h"
 #include "account_hisysevent_adapter.h"
+#ifndef INCLUDE_FILE_OPT_ONLY
 #include "json_utils.h"
+#endif // INCLUDE_FILE_OPT_ONLY
 namespace OHOS {
 namespace AccountSA {
 namespace {
@@ -165,7 +167,7 @@ ErrCode FileTransaction::EndTransaction()
     return ERR_OK;
 }
 
-static ErrCode WriteFile(const std::string &path, const std::string &content)
+static ErrCode WriteFile(const std::string &path, const std::string &content, const mode_t mode = S_IRUSR | S_IWUSR)
 {
     FILE *fp = fopen(path.c_str(), "wb");
     if (fp == nullptr) {
@@ -191,7 +193,7 @@ static ErrCode WriteFile(const std::string &path, const std::string &content)
         flock(fd, LOCK_UN);
         (void)fclose(fp);
         // change mode
-        if (!ChangeModeFile(path, S_IRUSR | S_IWUSR)) {
+        if (!ChangeModeFile(path, mode)) {
             ACCOUNT_LOGW("Failed to change mode for file %{public}s, errno = %{public}d.", path.c_str(), errno);
             return ERR_OHOSACCOUNT_SERVICE_FILE_CHANGE_DIR_MODE_ERROR;
         }
@@ -209,7 +211,7 @@ ErrCode FileTransaction::WriteFile(const std::string &content)
         return ERR_ACCOUNT_COMMON_FILE_WRITE_FAILED;
     }
     std::string tempFilePath = GetTempFilePath();
-    ErrCode err = AccountSA::WriteFile(tempFilePath, content);
+    ErrCode err = AccountSA::WriteFile(tempFilePath, content, mode_);
     if (err != ERR_OK) {
         ACCOUNT_LOGE("Write file failed.");
         return ERR_ACCOUNT_COMMON_FILE_WRITE_FAILED;
@@ -314,7 +316,7 @@ ErrCode FileTransaction::SwapFileNames()
     bool isTargetFileExist = FileExists(path_);
     uint32_t mode = RENAME_NOREPLACE;
     if (isTargetFileExist) {
-        if (!ChangeModeFile(path_, S_IRUSR | S_IWUSR)) {
+        if (!ChangeModeFile(path_, mode_)) {
             int32_t ret = errno;
             ACCOUNT_LOGW("Failed to change mode for file %{public}s, errno = %{public}d.", path_.c_str(), errno);
             REPORT_OS_ACCOUNT_FAIL(-1, OPERATION_FILE, ret, "Chmod for " + path_ + " failed");
@@ -527,13 +529,13 @@ bool AccountFileOperator::SetDirDelFlags(const std::string &dirpath)
 }
 
 ErrCode AccountFileOperator::InputFileByPathAndContentWithTransaction(
-    const std::string &path, const std::string &content)
+    const std::string &path, const std::string &content, const mode_t mode)
 {
     if (!IsDataStorageSufficient(content.length())) {
         return ERR_ACCOUNT_COMMON_DATA_NO_SPACE;
     }
     std::unique_lock<std::shared_timed_mutex> lock(fileLock_);
-    auto transaction = GetFileTransaction(path);
+    auto transaction = GetFileTransaction(path, mode);
     if (transaction == nullptr) {
         ACCOUNT_LOGE("GetFileTransaction failed, get nullptr.");
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
@@ -639,6 +641,7 @@ ErrCode AccountFileOperator::CheckFileExistence(const std::string &path)
     return ERR_ACCOUNT_COMMON_FILE_OTHER_ERROR;
 }
 
+#ifndef INCLUDE_FILE_OPT_ONLY
 bool AccountFileOperator::IsJsonFormat(const std::string &path)
 {
     std::string content;
@@ -658,6 +661,7 @@ bool AccountFileOperator::IsJsonFileReady(const std::string &path)
 {
     return IsExistFile(path) && IsJsonFormat(path);
 }
+#endif // INCLUDE_FILE_OPT_ONLY
 
 bool AccountFileOperator::IsExistDir(const std::string &path)
 {
@@ -674,10 +678,10 @@ bool AccountFileOperator::IsExistDir(const std::string &path)
     return S_ISDIR(buf.st_mode);
 }
 
-TransactionShared AccountFileOperator::GetFileTransaction(const std::string &path)
+TransactionShared AccountFileOperator::GetFileTransaction(const std::string &path, const mode_t mode)
 {
     auto shared_lock = GetRWLock(path);
-    auto ret = std::make_shared<FileTransaction>(path, shared_lock);
+    auto ret = std::make_shared<FileTransaction>(path, shared_lock, mode);
     return ret;
 }
 

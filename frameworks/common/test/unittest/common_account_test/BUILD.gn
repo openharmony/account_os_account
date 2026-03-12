@@ -53,7 +53,11 @@ ohos_unittest("AccountCommonTest") {
   sources += [ "account_log_test.cpp" ]
   sources += [ "account_perf_stat_test.cpp" ]
   sources += [ "json_utils_test.cpp" ]
-
+  sources += [
+    "account_posix_adapter_test.cpp",
+    "${common_path}/account_posix_adapter/src/account_posix_adapter.cpp",
+    "${common_path}/account_posix_adapter/src/account_posix_tools.cpp",
+  ]
   configs = [
     "${common_path}:account_common_config",
     "${common_path}/test:common_test_config",
@@ -68,6 +72,7 @@ ohos_unittest("AccountCommonTest") {
     "hilog:libhilog",
     "ipc:ipc_single",
   ]
+  cflags_cc = [ "-DACCOUNT_TEST" ]
   part_name = "os_account"
 }
 

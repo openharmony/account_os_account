@@ -16,10 +16,14 @@ import("../../os_account.gni")
 
 group("common_target") {
   deps = [ ":libaccount_common" ]
+  if (os_account_support_posix_adapter) {
+    deps += [ "./account_posix_adapter:account_posix_adapter" ]
+  }
 }
 
 config("account_common_config") {
   include_dirs = [
+    "account_posix_adapter/include",
     "include",
     "file_operator/include",
     "log/include",

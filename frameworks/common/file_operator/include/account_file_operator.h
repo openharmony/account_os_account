@@ -39,7 +39,8 @@ public:
      * @param path file path, should be absolute path.
      * @param rwlock rwlock for this certain file.
      */
-    FileTransaction(std::string path, std::shared_ptr<Utils::RWLock> &rwlock) : path_(path), rwlock_(rwlock) {};
+    FileTransaction(std::string path, std::shared_ptr<Utils::RWLock> &rwlock, const mode_t mode = S_IRUSR | S_IWUSR)
+        : path_(path), rwlock_(rwlock), mode_(mode) {};
     virtual ~FileTransaction();
 
     ErrCode BeginWriteTransaction();
@@ -66,6 +67,7 @@ private:
 
     bool isOpenTransaction_ = false;
     bool isWriteSuccessOnce_ = false;
+    const mode_t mode_;
 };
 
 typedef std::shared_ptr<FileTransaction> TransactionShared;
@@ -81,10 +83,13 @@ public:
     ErrCode DeleteFile(const std::string &path);
     ErrCode InputFileByPathAndContent(const std::string &path, const std::string &content);
     ErrCode GetFileContentByPath(const std::string &path, std::string &content);
-    ErrCode InputFileByPathAndContentWithTransaction(const std::string &path, const std::string &content);
+    ErrCode InputFileByPathAndContentWithTransaction(
+        const std::string &path, const std::string &content, const mode_t mode = S_IRUSR | S_IWUSR);
     bool IsExistFile(const std::string &path);
+#ifndef INCLUDE_FILE_OPT_ONLY
     bool IsJsonFormat(const std::string &path);
     bool IsJsonFileReady(const std::string &path);
+#endif // INCLUDE_FILE_OPT_ONLY
     bool IsExistDir(const std::string &path);
     ErrCode CheckFileExistence(const std::string &path);
 #ifdef ENABLE_FILE_WATCHER
@@ -95,7 +100,7 @@ public:
 #endif // ENABLE_FILE_WATCHER
     bool SetDirDelFlags(const std::string &dirpath);
 
-    TransactionShared GetFileTransaction(const std::string &path);
+    TransactionShared GetFileTransaction(const std::string &path, const mode_t mode = S_IRUSR | S_IWUSR);
     std::shared_ptr<Utils::RWLock> GetRWLock(const std::string &path);
 public:
     mutable std::shared_timed_mutex fileLock_;

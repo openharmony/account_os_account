@@ -171,6 +171,9 @@ ohos_fuzztest("CheckAuthorizationStubFuzzTest") {
     cflags += [ "-DHAS_HUKS_PART" ]
   }
   cflags += [ "-DSUPPORT_AUTHORIZATION" ]
+  if (has_hiviewdfx_hisysevent_part) {
+    cflags += [ "-DHAS_HISYSEVENT_PART" ]
+  }
   defines = [
     "ACCOUNT_LOG_TAG = \"AuthorizationFuzzTest\"",
     "LOG_DOMAIN = 0xD001B00",

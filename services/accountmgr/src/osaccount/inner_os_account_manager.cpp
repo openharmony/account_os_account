@@ -34,6 +34,7 @@
 #include "data_size_report_adapter.h"
 #include "account_permission_manager.h"
 #include "app_account_control_manager.h"
+#include "ipc_skeleton.h"
 #include "ohos_account_kits.h"
 #include "os_account_constants.h"
 #ifdef SUPPORT_DOMAIN_ACCOUNTS

@@ -21,7 +21,9 @@
 #include <sys/types.h>
 #include <thread>
 #include <unistd.h>
-
+#ifdef SUPPORT_POSIX_ADAPTER
+#include "account_posix_tools.h"
+#endif // SUPPORT_POSIX_ADAPTER
 #include "account_log_wrapper.h"
 #include "account_hisysevent_adapter.h"
 #ifdef HAS_CONFIG_POLICY_PART
@@ -76,6 +78,10 @@ const char AUTH_APP_UI_ABILITY_NAME[] = "modalAppAbilityName";
 const char AUTH_APP_SYS_ABILITY_NAME[] = "modalSystemAbilityName";
 const char AUTH_CONFIG_KEY[] = "authorizationWidget";
 #endif // SUPPORT_AUTHORIZATION
+#ifdef SUPPORT_POSIX_ADAPTER
+constexpr int32_t MAX_POSIX_RETRY_TIMES = 3;
+constexpr int32_t MAX_POSIX_RETRY_INTERVAL_MS = 100;
+#endif // SUPPORT_POSIX_ADAPTER
 }
 
 bool GetValidAccountID(const std::string& dirName, std::int32_t& accountID)
@@ -377,6 +383,10 @@ void OsAccountControlFileManager::Init()
         InitFileWatcherInfo(accountIdList);
     }
 #endif // ENABLE_FILE_WATCHER
+#ifdef SUPPORT_POSIX_ADAPTER
+    osAccountPosixFileManager_ = std::make_shared<OsAccountPosixFileManager>(weak_from_this());
+    CheckAndFlushPosixFile();
+#endif // SUPPORT_POSIX_ADAPTER
     ACCOUNT_LOGI("OsAccountControlFileManager Init end");
 }
 
@@ -1335,6 +1345,9 @@ ErrCode OsAccountControlFileManager::UpdateOsAccount(OsAccountInfo &osAccountInf
         ACCOUNT_LOGE("Add digest for account info failed, result = %{public}d", result);
     }
 #endif // ENABLE_FILE_WATCHER
+#ifdef SUPPORT_POSIX_ADAPTER
+    (void)osAccountPosixFileManager_->TryUpdatePosixFileByAccountInfo(osAccountInfo);
+#endif // SUPPORT_POSIX_ADAPTER
     ACCOUNT_LOGD("End");
     return ERR_OK;
 }
@@ -2112,5 +2125,189 @@ ErrCode OsAccountControlFileManager::GetDomainBoundFlag(
     FromJson(jsonObj.get(), domainInfo);
     return ERR_OK;
 }
+
+#ifdef SUPPORT_POSIX_ADAPTER
+void OsAccountControlFileManager::CheckAndFlushPosixFile()
+{
+    bool isFaultExist = false;
+    ErrCode ret = PosixTools::IsFaultFlagFileExist(isFaultExist);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Check posix fault flag file failed, ret = %{public}d.", ret);
+        return;
+    }
+    bool isMapExist = false;
+    ret = PosixTools::IsPosixMapFileExist(isMapExist);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Check posix map file exist failed, ret = %{public}d.", ret);
+        return;
+    }
+    if (isFaultExist || !isMapExist) {
+        ACCOUNT_LOGW("Posix file is in fault state or posix map file does not exist, need flush posix file.");
+        osAccountPosixFileManager_->FlushPosixFile(true);
+    }
+}
+
+ErrCode OsAccountPosixFileManager::DeletePosixInfo(const int32_t &localId)
+{
+    std::string content = "";
+    ErrCode ret = PosixTools::ReadPosixMapFile(content);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Read posix map file failed, ret = %{public}d.", ret);
+        REPORT_OS_ACCOUNT_FAIL(0, Constants::OPERATION_POSIX_FILE, ret, "Read posix map file failed");
+        return ret;
+    }
+    PosixDataMap posixDataMap;
+    ret = posixDataMap.FromString(content);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Convert posix map file data, ret = %{public}d.", ret);
+        REPORT_OS_ACCOUNT_FAIL(0, Constants::OPERATION_POSIX_FILE, ret, "Convert posix map file data failed");
+        return ret;
+    }
+    posixDataMap.DeleteByLocalId(localId);
+    std::string newContent = posixDataMap.ToString();
+    ret = PosixTools::WritePosixMapFile(newContent);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Write posix map file failed, ret = %{public}d.", ret);
+        REPORT_OS_ACCOUNT_FAIL(0, Constants::OPERATION_POSIX_FILE, ret, "Write posix map file failed");
+    }
+    return ERR_OK;
+}
+
+ErrCode OsAccountPosixFileManager::ModifyPosixInfo(const int32_t &localId, const std::string &accountName)
+{
+    std::string content = "";
+    ErrCode ret = PosixTools::ReadPosixMapFile(content);
+    if (ret != ERR_OK && ret != ERR_OSACCOUNT_SERVICE_FILE_FIND_FILE_ERROR) {
+        ACCOUNT_LOGE("Read posix map file failed, ret = %{public}d.", ret);
+        REPORT_OS_ACCOUNT_FAIL(0, Constants::OPERATION_POSIX_FILE, ret, "Read posix map file failed");
+        return ret;
+    }
+    PosixDataMap posixDataMap;
+    ret = posixDataMap.FromString(content);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Convert posix map file data, ret = %{public}d.", ret);
+        REPORT_OS_ACCOUNT_FAIL(0, Constants::OPERATION_POSIX_FILE, ret, "Convert posix map file data failed");
+        return ret;
+    }
+    std::string oldAccountName = "";
+    bool needUpdate = false;
+    ret = posixDataMap.GetAccountNameByLocalId(localId, oldAccountName);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGW("Get account name not found, need update.");
+        needUpdate = true;
+    }
+    if (accountName == oldAccountName && !needUpdate) {
+        ACCOUNT_LOGI("Account name not changed, no need update.");
+        return ERR_OK;
+    }
+    posixDataMap.ModifyByLocalId(localId, accountName);
+    std::string newContent = posixDataMap.ToString();
+    ret = PosixTools::WritePosixMapFile(newContent);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Write posix map file failed, ret = %{public}d.", ret);
+        REPORT_OS_ACCOUNT_FAIL(0, Constants::OPERATION_POSIX_FILE, ret, "Write posix map file failed");
+    }
+    return ret;
+}
+
+ErrCode OsAccountPosixFileManager::FlushPosixFileSync()
+{
+    std::vector<OsAccountInfo> osAccountInfos;
+    auto shared = weakPtr_.lock();
+    if (shared == nullptr) {
+        ACCOUNT_LOGE("Upgrade weakptr failed.");
+        return ERR_OK;
+    }
+    ErrCode ret = shared->GetOsAccountList(osAccountInfos);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Get all account info failed, ret = %{public}d.", ret);
+        return ret;
+    }
+    PosixDataMap posixDataMap;
+    for (const auto &accountInfo : osAccountInfos) {
+        if (!accountInfo.GetToBeRemoved() && accountInfo.GetIsCreateCompleted()) {
+            posixDataMap.ModifyByLocalId(accountInfo.GetLocalId(), accountInfo.GetLocalName());
+        }
+    }
+    std::string newContent = posixDataMap.ToString();
+    ret = PosixTools::WritePosixMapFile(newContent);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Write posix map file failed, ret = %{public}d.", ret);
+    }
+    return ret;
+}
+
+void OsAccountPosixFileManager::FlushPosixFile(bool isAsync)
+{
+    auto runTask = [sharedThis = shared_from_this()]() {
+        int32_t retryTimes = 0;
+        ErrCode ret = ERR_OK;
+        while (retryTimes < MAX_POSIX_RETRY_TIMES) {
+            std::lock_guard<std::mutex> lock(sharedThis->posixFileLock_);
+            ret = sharedThis->FlushPosixFileSync();
+            if (ret == ERR_OK) {
+                ACCOUNT_LOGI("Flush posix file success");
+                (void)PosixTools::RemoveFaultFlagFile();
+                return;
+            }
+            ACCOUNT_LOGE("Flush posix file failed, ret = %{public}d. retry times: %{public}d", ret, retryTimes);
+            std::this_thread::sleep_for(std::chrono::milliseconds(MAX_POSIX_RETRY_INTERVAL_MS));
+            retryTimes++;
+        }
+        REPORT_OS_ACCOUNT_FAIL(0, Constants::OPERATION_POSIX_FILE, ret, "Flush posix file failed after retrying");
+    };
+#ifdef FUZZ_TEST
+    // For fuzz testing, execute the flush task synchronously to make the result more deterministic.
+    isAsync = false;
+#endif // FUZZ_TEST
+    if (isAsync) {
+        std::thread flushThread(runTask);
+        flushThread.detach();
+    } else {
+        runTask();
+    }
+}
+
+ErrCode OsAccountPosixFileManager::TryUpdatePosixFileByAccountInfo(const OsAccountInfo &osAccountInfo)
+{
+    int32_t localId = osAccountInfo.GetLocalId();
+    std::string accountName = osAccountInfo.GetLocalName();
+    bool isExist = false;
+    ErrCode ret = PosixTools::IsFaultFlagFileExist(isExist);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Check posix fault flag file failed, ret = %{public}d.", ret);
+        REPORT_OS_ACCOUNT_FAIL(0, Constants::OPERATION_POSIX_FILE, ret, "Check posix fault flag file failed");
+        return ret;
+    }
+    if (isExist) {
+        ACCOUNT_LOGE("Posix file is in fault state, cannot update posix file.");
+        FlushPosixFile(false);
+        return ERR_OK;
+    }
+    if (!osAccountInfo.GetIsCreateCompleted()) {
+        ACCOUNT_LOGI("Account is not in completed state, no need update posix file.");
+        return ERR_OK;
+    }
+    std::lock_guard<std::mutex> lock(posixFileLock_);
+    ret = PosixTools::CreateFaultFlagFile();
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Create posix fault flag file failed, ret = %{public}d.", ret);
+        REPORT_OS_ACCOUNT_FAIL(0, Constants::OPERATION_POSIX_FILE, ret, "Create posix fault flag file failed");
+        return ret;
+    }
+    if (!osAccountInfo.GetToBeRemoved()) {
+        ret = ModifyPosixInfo(localId, accountName);
+    } else {
+        ret = DeletePosixInfo(localId);
+    }
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Update posix file failed, ret = %{public}d.", ret);
+        FlushPosixFile();
+        return ret;
+    }
+    (void) PosixTools::RemoveFaultFlagFile();
+    return ERR_OK;
+}
+#endif // SUPPORT_POSIX_ADAPTER
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -62,6 +62,12 @@ if (os_account_support_domain_accounts) {
   ]
 }
 
+if (os_account_support_posix_adapter) {
+  account_service_sources += [
+    "${common_path}/account_posix_adapter/src/account_posix_tools.cpp",
+  ]
+}
+
 app_account_sources_mock = [
   "${app_account_innerkits_native_path}/src/app_account_common.cpp",
   "${app_account_innerkits_native_path}/src/app_account_info.cpp",

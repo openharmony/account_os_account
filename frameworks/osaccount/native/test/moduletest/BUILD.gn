@@ -250,6 +250,9 @@ ohos_moduletest("os_account_frameworks_module_mock_test") {
   if (os_account_support_lock_os_account) {
     cflags_cc += [ "-DSUPPORT_LOCK_OS_ACCOUNT" ]
   }
+  if (has_hiviewdfx_hisysevent_part) {
+    cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
+  }
   part_name = "os_account"
 }
 

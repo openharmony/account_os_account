@@ -41,7 +41,26 @@ struct RemoveConstraintInfo {
     std::string idStr;
 };
 
-class OsAccountControlFileManager : public IOsAccountControl {
+#ifdef SUPPORT_POSIX_ADAPTER
+class OsAccountControlFileManager;
+
+class OsAccountPosixFileManager : public std::enable_shared_from_this<OsAccountPosixFileManager> {
+public:
+    OsAccountPosixFileManager(const std::weak_ptr<OsAccountControlFileManager> &weakPtr) : weakPtr_(weakPtr) {};
+    ~OsAccountPosixFileManager() = default;
+    ErrCode TryUpdatePosixFileByAccountInfo(const OsAccountInfo &osAccountInfo);
+    void FlushPosixFile(bool isAsync = true);
+private:
+    ErrCode DeletePosixInfo(const int32_t &localId);
+    ErrCode ModifyPosixInfo(const int32_t &localId, const std::string &accountName);
+    ErrCode FlushPosixFileSync();
+    std::mutex posixFileLock_;
+    std::weak_ptr<OsAccountControlFileManager> weakPtr_;
+};
+#endif // SUPPORT_POSIX_ADAPTER
+
+class OsAccountControlFileManager : public IOsAccountControl,
+    public std::enable_shared_from_this<OsAccountControlFileManager> {
 public:
     OsAccountControlFileManager();
     virtual ~OsAccountControlFileManager();
@@ -152,6 +171,9 @@ private:
 #ifdef SUPPORT_AUTHORIZATION
     void GetAuthAppConfig(const CJsonUnique &configJson, OsAccountConfig &config);
 #endif // SUPPORT_AUTHORIZATION
+#ifdef SUPPORT_POSIX_ADAPTER
+    void CheckAndFlushPosixFile();
+#endif // SUPPORT_POSIX_ADAPTER
 private:
     std::shared_ptr<AccountFileOperator> accountFileOperator_;
 #if defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
@@ -161,6 +183,9 @@ private:
     AccountFileWatcherMgr &accountFileWatcherMgr_;
     CheckNotifyEventCallbackFunc eventCallbackFunc_;
 #endif // ENABLE_FILE_WATCHER
+#ifdef SUPPORT_POSIX_ADAPTER
+    std::shared_ptr<OsAccountPosixFileManager> osAccountPosixFileManager_ = nullptr;
+#endif // SUPPORT_POSIX_ADAPTER
     std::shared_ptr<OsAccountFileOperator> osAccountFileOperator_;
     std::shared_ptr<OsAccountPhotoOperator> osAccountPhotoOperator_;
     std::mutex accountListFileLock_;
