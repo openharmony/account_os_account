@@ -341,7 +341,12 @@ bool ParseRemoveOsAccountOptions(napi_env env, napi_value optionObj, RemoveOsAcc
                 return false;
             }
             std::vector<uint8_t> tokenData;
-            ParseUint8TypedArrayToVector(env, tokenValue, tokenData);
+            if (ParseUint8TypedArrayToVector(env, tokenValue, tokenData, true) != napi_ok) {
+                ACCOUNT_LOGE("Get token failed");
+                std::string errMsg = "Parameter error. The type of \"token\" must be Uint8Array";
+                AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+                return false;
+            }
             options.token = std::make_optional<std::vector<uint8_t>>(tokenData);
         }
     }
@@ -637,7 +642,12 @@ static bool ParseToken(napi_env env, napi_value object, CreateOAAsyncContext *as
             return false;
         }
         std::vector<uint8_t> tokenData;
-        ParseUint8TypedArrayToVector(env, tokenValue, tokenData);
+        if (ParseUint8TypedArrayToVector(env, tokenValue, tokenData, true) != napi_ok) {
+            ACCOUNT_LOGE("Get token failed");
+            std::string errMsg = "Parameter error. The type of \"token\" must be Uint8Array";
+            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+            return false;
+        }
         asyncContext->token = std::make_optional<std::vector<uint8_t>>(tokenData);
     }
     return true;
@@ -758,7 +768,12 @@ static bool ParseDomainOptionInfo(napi_env env, napi_value object, CreateOsAccou
             ACCOUNT_LOGE("value is not a typed array");
             return false;
         }
-        ParseUint8TypedArrayToVector(env, tokenValue, domainOptions.token);
+        if (ParseUint8TypedArrayToVector(env, tokenValue, domainOptions.token, true) != napi_ok) {
+            ACCOUNT_LOGE("Get token failed");
+            std::string errMsg = "Parameter error. The type of \"token\" must be Uint8Array";
+            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+            return false;
+        }
         domainOptions.hasToken = true;
     }
     return true;
@@ -1851,7 +1866,7 @@ static bool ParseParaSetTypeOptions(napi_env env, napi_value object, SetTypeAsyn
     }
 
     std::vector<uint8_t> token;
-    if (ParseUint8TypedArrayToVector(env, tokenValue, token) != napi_ok) {
+    if (ParseUint8TypedArrayToVector(env, tokenValue, token, true) != napi_ok) {
         ACCOUNT_LOGE("Get token failed");
         std::string errMsg = "Parameter error. The type of \"token\" in options must be Uint8Array";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
