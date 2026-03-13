@@ -670,9 +670,9 @@ bool IInnerOsAccountManager::CheckAndCleanOsAccounts()
         return true;
     }
 
-    ACCOUNT_LOGI("The number of OS accounts has oversize, attempting to clean garbage accounts.");
+    ACCOUNT_LOGI("The number of OS accounts has exceeded the limit, attempting to clean garbage accounts.");
     if (CleanGarbageOsAccounts() <= 0) {
-        ACCOUNT_LOGE("The number of OS accounts still oversize after cleaning, max num: %{public}d",
+        ACCOUNT_LOGE("The number of OS accounts is still too large after cleaning, max num: %{public}d",
             config_.maxOsAccountNum);
         return false;
     }
