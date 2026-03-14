@@ -26,11 +26,6 @@
 using namespace std;
 using namespace OHOS::AccountSA;
 
-namespace {
-    // Maximum token size for fuzzing (matches MAX_TOKEN_SIZE in tee_auth_adapter.h)
-    constexpr size_t MAX_FUZZ_TOKEN_SIZE = 1024;  // 1KB, matching tee_auth_adapter.h
-}
-
 namespace OHOS {
     bool SetOsAccountTypeFuzzTest(const uint8_t* data, size_t size)
     {
@@ -48,21 +43,8 @@ namespace OHOS {
         constexpr int32_t maxType = static_cast<int32_t>(OsAccountType::END) - 1;
         OsAccountType type = static_cast<OsAccountType>(typeInt % (maxType + 1));
 
-        // Prepare token from remaining data
+        // Token is not required for this fuzz case.
         SetOsAccountTypeOptions options;
-        if (fuzzData.pos_ < size) {
-            size_t tokenSize = size - fuzzData.pos_;
-            // Limit token size to prevent performance issues
-            if (tokenSize > MAX_FUZZ_TOKEN_SIZE) {
-                tokenSize = MAX_FUZZ_TOKEN_SIZE;
-            }
-
-            options.token = std::vector<uint8_t>();
-            options.token->reserve(tokenSize);
-            for (size_t i = 0; i < tokenSize; ++i) {
-                options.token->push_back(fuzzData.GetData<uint8_t>());
-            }
-        }
 
         // Call API and ignore result - focus on crash detection
         (void)OsAccountManager::SetOsAccountType(testId, type, options);
