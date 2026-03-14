@@ -445,5 +445,42 @@ HWTEST_F(OsAccountServiceTest, SetOsAccountType005, TestSize.Level1)
     osAccountService_->innerManager_.osAccountControl_->DelOsAccount(localId);
 }
 #endif
+
+/**
+ * @tc.name: RemoveOsAccount001
+ * @tc.desc: RemoveOsAccount with options coverage
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountServiceTest, RemoveOsAccount001, TestSize.Level1)
+{
+    RemoveOsAccountOptions options;
+    options.token = {0};
+
+    // non_system app
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    uint64_t tokenId = 0;
+    ASSERT_TRUE(AllocPermission({}, tokenId, false));
+    ErrCode result = osAccountService_->RemoveOsAccount(TEST_USER_ID, options);
+    EXPECT_NE(result, ERR_OK);
+    ASSERT_TRUE(RecoveryPermission(tokenId, selfTokenId));
+
+
+    // system app
+    selfTokenId = IPCSkeleton::GetSelfTokenID();
+    tokenId = 0;
+    ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenId, true));
+    OsAccountInfo osAccountInfo(110, "RemoveWithOptionTest", OsAccountType::NORMAL, 0);
+    CreateOsAccountForTest(osAccountInfo);
+    int32_t localId = osAccountInfo.GetLocalId();
+    EXPECT_EQ(osAccountService_->RemoveOsAccount(-1, options), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    EXPECT_EQ(osAccountService_->RemoveOsAccount(0, options), ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+    EXPECT_EQ(osAccountService_->RemoveOsAccount(TEST_USER_ID, options), ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+    EXPECT_EQ(osAccountService_->RemoveOsAccount(localId, options), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    osAccountService_->innerManager_.osAccountControl_->DelOsAccount(localId);
+    setuid(0);
+    ASSERT_TRUE(RecoveryPermission(tokenId, selfTokenId));
+}
+
 }  // namespace AccountSA
 }  // namespace OHOS

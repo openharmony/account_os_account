@@ -655,6 +655,26 @@ HWTEST_F(OsAccountTest, OsAccountTest025, TestSize.Level1)
 }
 
 /**
+ * @tc.name: OsAccountTest26
+ * @tc.desc: Test RemoveOsAccount with option: Id error
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountTest, OsAccountTest26, TestSize.Level1)
+{
+    RemoveOsAccountOptions options;
+    options.token = {0};
+    ErrCode errCode = g_osAccount->RemoveOsAccount(ILLEGAL_LOCAL_ID, options);
+    EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    errCode = g_osAccount->RemoveOsAccount(0, options);
+    EXPECT_EQ(errCode, ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+    errCode = g_osAccount->RemoveOsAccount(MAIN_ACCOUNT_ID, options);
+    EXPECT_EQ(errCode, ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+    errCode = g_osAccount->RemoveOsAccount(NOT_EXSIT_ID, options);
+    EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+/**
  * @tc.name: InsertSubscriberRecord001
  * @tc.desc: Test OsAccountConstraintSubscriberManager InsertSubscriberRecord
  * @tc.type: FUNC

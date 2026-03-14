@@ -380,7 +380,7 @@ bool ParseParaRemoveOACB(napi_env env, napi_callback_info cbInfo, RemoveOAAsyncC
 {
     size_t argc = ARGS_SIZE_TWO;
     napi_value argv[ARGS_SIZE_TWO] = {0};
-    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+    NAPI_CALL_BASE(env, napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr), false);
     if (!GetIntProperty(env, argv[PARAMZERO], asyncContext->id)) {
         ACCOUNT_LOGE("Get id failed");
         std::string errMsg = "Parameter error. The type of \"localId\" must be number";
