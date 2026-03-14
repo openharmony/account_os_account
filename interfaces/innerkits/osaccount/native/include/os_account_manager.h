@@ -262,6 +262,15 @@ public:
     static ErrCode QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos);
 
     /**
+     * @brief Queries the list of OS account IDs that have been created in the system and have ID >= 100.
+     * @selinux The caller needs to configure selinux permissions: allow Caller_SA_Name accountmgr:fd {use}.
+     * @permission ohos.permission.GET_LOCAL_ACCOUNT_IDENTIFIERS
+     * @param ids - Indicates a list of OS account IDs.
+     * @return error code, see account_error_no.h
+     */
+    static ErrCode GetOsAccountLocalIds(std::vector<int32_t> &ids);
+
+    /**
      * @brief Gets information about the current OS account.
      * @selinux The caller needs to configure selinux permissions: allow Caller_SA_Name accountmgr:fd {use}.
      * @permission ohos.permission.MANAGE_LOCAL_ACCOUNTS

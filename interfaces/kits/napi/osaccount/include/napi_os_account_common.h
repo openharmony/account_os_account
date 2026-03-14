@@ -146,6 +146,10 @@ void QueryActiveIdsExecuteCB(napi_env env, void *data);
 
 void QueryCreateOACallbackCompletedCB(napi_env env, napi_status status, void *data);
 
+void GetOsAccountLocalIdsExecuteCB(napi_env env, void *data);
+
+void GetOsAccountLocalIdsCallbackCompletedCB(napi_env env, napi_status status, void *data);
+
 void QueryActiveIdsCallbackCompletedCB(napi_env env, napi_status status, void *data);
 
 bool ParseParaGetForegroundOALocalId(napi_env env, napi_callback_info cbInfo,

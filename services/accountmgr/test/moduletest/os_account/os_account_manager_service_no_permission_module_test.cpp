@@ -626,5 +626,19 @@ HWTEST_F(OsAccountManagerServiceNoPermissionModuleTest, SubscribeConstraints_No_
         osAccountManagerService_->UnsubscribeOsAccountConstraints(info, nullptr));
     ASSERT_TRUE(RecoveryPermission(tokenID, selfTokenId));
 }
+
+/**
+ * @tc.name: GetOsAccountLocalIdsPermissionTest001
+ * @tc.desc: Test GetOsAccountLocalIds PermissionCheck failed.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceNoPermissionModuleTest, GetOsAccountLocalIdsPermissionTest001, TestSize.Level1)
+{
+    setuid(TEST_UID);
+    std::vector<int32_t> ids;
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
+        osAccountManagerService_->GetOsAccountLocalIds(ids));
+}
 }  // namespace AccountSA
 }  // namespace OHOS

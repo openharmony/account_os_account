@@ -2064,6 +2064,25 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest034, TestSize
 }
 
 /*
+ * @tc.name: OsAccountInnerAccmgrMockTest035
+ * @tc.desc: coverage test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest035, TestSize.Level1)
+{
+    auto ptr = std::make_shared<MockOsAccountControlFileManager>();
+    innerMgrService_->osAccountControl_ = ptr;
+    std::vector<int32_t> accountIds;
+
+    EXPECT_CALL(*ptr, GetOsAccountIdList(_))
+        .WillRepeatedly(testing::Return(-1));
+
+    ErrCode ret = innerMgrService_->GetOsAccountLocalIds(accountIds);
+    EXPECT_EQ(ret, -1);
+}
+
+/*
  * @tc.name: OsAccountInnerAccmgrMockTest036
  * @tc.desc: coverage test
  * @tc.type: FUNC

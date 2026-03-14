@@ -3567,3 +3567,17 @@ HWTEST_F(OsAccountManagerModuleTest, SetOsAccountType001, TestSize.Level1)
     EXPECT_EQ(OsAccountManager::SetOsAccountType(
         -1, OsAccountType::ADMIN, options), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
+
+/**
+ * @tc.name: GetOsAccountLocalIds001
+ * @tc.desc: Test GetOsAccountLocalIds.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, GetOsAccountLocalIds001, TestSize.Level1)
+{
+    setuid(ROOT_UID);
+    std::vector<int32_t> ids;
+    ErrCode result = OsAccountManager::GetOsAccountLocalIds(ids);
+    EXPECT_EQ(result, ERR_OK);
+}

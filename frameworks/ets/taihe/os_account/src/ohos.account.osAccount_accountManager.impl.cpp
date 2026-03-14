@@ -776,6 +776,17 @@ public:
         return taihe::array<OsAccountInfo>(taihe::copy_data_t{}, convertedInfos.data(), convertedInfos.size());
     }
 
+    array<int32_t> GetOsAccountLocalIdsSync()
+    {
+        std::vector<int32_t> ids;
+        ErrCode errCode = AccountSA::OsAccountManager::GetOsAccountLocalIds(ids);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("GetOsAccountLocalIds failed with errCode: %{public}d", errCode);
+            SetTaiheBusinessErrorFromNativeCode(errCode);
+        }
+        return taihe::array<int32_t>(taihe::copy_data_t{}, ids.data(), ids.size());
+    }
+
     int32_t QueryMaxLoggedInOsAccountNumberSync()
     {
         uint32_t maxLoggedInNumber = 0;

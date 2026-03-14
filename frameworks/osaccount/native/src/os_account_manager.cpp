@@ -165,6 +165,11 @@ ErrCode OsAccountManager::QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &
     return OsAccount::GetInstance().QueryAllCreatedOsAccounts(osAccountInfos);
 }
 
+ErrCode OsAccountManager::GetOsAccountLocalIds(std::vector<int32_t> &ids)
+{
+    return OsAccount::GetInstance().GetOsAccountLocalIds(ids);
+}
+
 ErrCode OsAccountManager::QueryCurrentOsAccount(OsAccountInfo &osAccountInfo)
 {
     return OsAccount::GetInstance().QueryCurrentOsAccount(osAccountInfo);

@@ -78,6 +78,7 @@ public:
     ErrCode GetOsAccountAllConstraints(int32_t id, std::vector<std::string> &constraints) override;
     ErrCode QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos);
     ErrCode QueryAllCreatedOsAccounts(StringRawData& osAccountInfos) override;
+    ErrCode GetOsAccountLocalIds(std::vector<int32_t> &ids) override;
 
     ErrCode QueryCurrentOsAccount(OsAccountInfo &osAccountInfo);
     ErrCode QueryCurrentOsAccount(StringRawData& stringRawData) override;

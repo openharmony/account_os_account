@@ -50,6 +50,7 @@ public:
     ErrCode QueryMaxLoggedInOsAccountNumber(uint32_t &maxNum);
     ErrCode GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints);
     ErrCode QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos);
+    ErrCode GetOsAccountLocalIds(std::vector<int32_t> &ids);
     ErrCode QueryCurrentOsAccount(OsAccountInfo &osAccountInfo);
     ErrCode QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo);
     ErrCode GetOsAccountTypeFromProcess(OsAccountType &type);

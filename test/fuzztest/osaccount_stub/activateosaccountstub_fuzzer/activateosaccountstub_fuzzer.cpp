@@ -114,6 +114,7 @@ void CheckOsAccountStatus()
     SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_GET_OS_ACCOUNT_TYPE_FROM_PROCESS));
     SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_QUERY_ACTIVE_OS_ACCOUNT_IDS));
     SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_QUERY_ALL_CREATED_OS_ACCOUNTS));
+    SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_GET_OS_ACCOUNT_LOCAL_IDS));
     SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_QUERY_CURRENT_OS_ACCOUNT));
     SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_QUERY_MAX_LOGGED_IN_OS_ACCOUNT_NUMBER));
     SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_QUERY_MAX_OS_ACCOUNT_NUMBER));

@@ -1207,6 +1207,37 @@ void QueryCreateOACallbackCompletedCB(napi_env env, napi_status status, void *da
     delete asyncContext;
 }
 
+void GetOsAccountLocalIdsExecuteCB(napi_env env, void *data)
+{
+    GetOsAccountLocalIdsAsyncContext *asyncContext =
+        reinterpret_cast<GetOsAccountLocalIdsAsyncContext *>(data);
+    asyncContext->errCode = OsAccountManager::GetOsAccountLocalIds(asyncContext->osAccountIds);
+}
+
+void GetOsAccountLocalIdsCallbackCompletedCB(napi_env env, napi_status status, void *data)
+{
+    GetOsAccountLocalIdsAsyncContext *asyncContext =
+        reinterpret_cast<GetOsAccountLocalIdsAsyncContext *>(data);
+    napi_value errJs = nullptr;
+    napi_value dataJs = nullptr;
+    if (asyncContext->errCode == ERR_OK) {
+        NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &errJs));
+        NAPI_CALL_RETURN_VOID(env, napi_create_array(env, &dataJs));
+        uint32_t index = 0;
+        for (auto id : asyncContext->osAccountIds) {
+            napi_value jsId = nullptr;
+            NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, id, &jsId));
+            NAPI_CALL_RETURN_VOID(env, napi_set_element(env, dataJs, index, jsId));
+            index++;
+        }
+    } else {
+        errJs = GenerateBusinessError(env, asyncContext->errCode, asyncContext->throwErr);
+        NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &dataJs));
+    }
+    ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
+    delete asyncContext;
+}
+
 bool ParseParaGetForegroundOALocalId(napi_env env, napi_callback_info cbInfo,
     GetForegroundOALocalIdAsyncContext *asyncContext)
 {

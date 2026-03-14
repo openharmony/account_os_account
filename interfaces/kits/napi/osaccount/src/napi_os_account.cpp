@@ -65,6 +65,7 @@ static napi_property_descriptor g_osAccountProperties[] = {
     DECLARE_NAPI_FUNCTION("queryOsAccountLocalIdFromProcess", QueryOsAccountLocalIdFromProcess),
     DECLARE_NAPI_FUNCTION("getOsAccountLocalId", QueryOsAccountLocalIdFromProcess),
     DECLARE_NAPI_FUNCTION("queryAllCreatedOsAccounts", QueryAllCreatedOsAccounts),
+    DECLARE_NAPI_FUNCTION("getOsAccountLocalIds", GetOsAccountLocalIds),
     DECLARE_NAPI_FUNCTION("queryOsAccountConstraintSourceTypes", QueryOsAccountConstraintSourceTypes),
     DECLARE_NAPI_FUNCTION("getOsAccountConstraintSourceTypes", QueryOsAccountConstraintSourceTypes),
     DECLARE_NAPI_FUNCTION("queryActivatedOsAccountIds", QueryActivatedOsAccountIds),
@@ -669,6 +670,31 @@ napi_value QueryAllCreatedOsAccounts(napi_env env, napi_callback_info cbInfo)
 
     napi_queue_async_work_with_qos(env, queryAllOA->work, napi_qos_user_initiated);
     queryAllOA.release();
+    return result;
+}
+
+napi_value GetOsAccountLocalIds(napi_env env, napi_callback_info cbInfo)
+{
+    auto queryIdsCtx = std::make_unique<GetOsAccountLocalIdsAsyncContext>();
+    queryIdsCtx->env = env;
+    queryIdsCtx->throwErr = true;
+
+    napi_value result = nullptr;
+    NAPI_CALL(env, napi_create_promise(env, &queryIdsCtx->deferred, &result));
+
+    napi_value resource = nullptr;
+    NAPI_CALL(env, napi_create_string_utf8(env, "GetOsAccountLocalIds", NAPI_AUTO_LENGTH, &resource));
+
+    NAPI_CALL(env, napi_create_async_work(env,
+        nullptr,
+        resource,
+        GetOsAccountLocalIdsExecuteCB,
+        GetOsAccountLocalIdsCallbackCompletedCB,
+        reinterpret_cast<void *>(queryIdsCtx.get()),
+        &queryIdsCtx->work));
+
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, queryIdsCtx->work, napi_qos_user_initiated));
+    queryIdsCtx.release();
     return result;
 }
 

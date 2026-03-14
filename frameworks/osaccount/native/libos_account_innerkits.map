@@ -67,6 +67,7 @@
         "OHOS::AccountSA::OsAccount::QueryMaxOsAccountNumber(int&)";
         "OHOS::AccountSA::OsAccount::GetOsAccountAllConstraints(int, std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>>&)";
         "OHOS::AccountSA::OsAccount::QueryAllCreatedOsAccounts(std::__h::vector<OHOS::AccountSA::OsAccountInfo, std::__h::allocator<OHOS::AccountSA::OsAccountInfo>>&)";
+        "OHOS::AccountSA::OsAccount::GetOsAccountLocalIds(std::__h::vector<int, std::__h::allocator<int>>&)";
         "OHOS::AccountSA::OsAccount::QueryCurrentOsAccount(OHOS::AccountSA::OsAccountInfo&)";
         "OHOS::AccountSA::OsAccount::QueryOsAccountById(int, OHOS::AccountSA::OsAccountInfo&)";
         "OHOS::AccountSA::OsAccount::GetOsAccountTypeFromProcess(OHOS::AccountSA::OsAccountType&)";
@@ -164,6 +165,7 @@
         "OHOS::AccountSA::OsAccountManager::GetOsAccountAllConstraints(int, std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>>&)";
         "OHOS::AccountSA::OsAccountManager::QueryOsAccountConstraintSourceTypes(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::vector<OHOS::AccountSA::ConstraintSourceTypeInfo, std::__h::allocator<OHOS::AccountSA::ConstraintSourceTypeInfo>>&)";
         "OHOS::AccountSA::OsAccountManager::QueryAllCreatedOsAccounts(std::__h::vector<OHOS::AccountSA::OsAccountInfo, std::__h::allocator<OHOS::AccountSA::OsAccountInfo>>&)";
+        "OHOS::AccountSA::OsAccountManager::GetOsAccountLocalIds(std::__h::vector<int, std::__h::allocator<int>>&)";
         "OHOS::AccountSA::OsAccountManager::GetOsAccountProfilePhoto(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&)";
         "OHOS::AccountSA::OsAccountManager::QueryCurrentOsAccount(OHOS::AccountSA::OsAccountInfo&)";
         "OHOS::AccountSA::OsAccountManager::GetBundleIdFromUid(int, int&)";

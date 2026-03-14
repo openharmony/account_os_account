@@ -61,6 +61,7 @@ const size_t INTERCEPT_HEAD_PART_LEN_FOR_NAME = 1;
 
 const char MANAGE_LOCAL_ACCOUNTS[] = "ohos.permission.MANAGE_LOCAL_ACCOUNTS";
 const char GET_LOCAL_ACCOUNTS[] = "ohos.permission.GET_LOCAL_ACCOUNTS";
+const char GET_LOCAL_ACCOUNTS_IDENTIFIERS[] = "ohos.permission.GET_LOCAL_ACCOUNT_IDENTIFIERS";
 const char INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION[] =
     "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION";
 const char INTERACT_ACROSS_LOCAL_ACCOUNTS[] = "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS";
@@ -976,6 +977,15 @@ ErrCode OsAccountManagerService::QueryAllCreatedOsAccounts(StringRawData& osAcco
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
     return errCode;
+}
+
+ErrCode OsAccountManagerService::GetOsAccountLocalIds(std::vector<int32_t> &ids)
+{
+    if (!PermissionCheck(GET_LOCAL_ACCOUNTS_IDENTIFIERS, "")) {
+        ACCOUNT_LOGE("Account manager service, permission denied!");
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+    return innerManager_.GetOsAccountLocalIds(ids);
 }
 
 ErrCode OsAccountManagerService::QueryCurrentOsAccount(OsAccountInfo &osAccountInfo)
