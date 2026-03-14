@@ -52,4 +52,5 @@ interface OHOS.AccountSA.IDomainAccount {
     void GetAccountPolicy([in] DomainAccountInfo info, [out] String policy);
     void AuthWithParameters([in] DomainAccountInfo info, [in] unsigned char[] password,
         [in] DomainAccountAuthOptions authOptions, [in] IDomainAccountCallback domainAccountCallback);
+    void IsDomainAccountSupported([out] boolean isSupported);
 }

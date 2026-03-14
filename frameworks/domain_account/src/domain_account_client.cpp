@@ -628,6 +628,21 @@ ErrCode DomainAccountClient::GetAccountPolicy(const DomainAccountInfo &info, std
 #endif // SUPPORT_DOMAIN_ACCOUNTS
 }
 
+ErrCode DomainAccountClient::IsDomainAccountSupported(bool &isSupported)
+{
+#ifndef SUPPORT_DOMAIN_ACCOUNTS
+    isSupported = false;
+    return ERR_OK;
+#else
+    auto proxy = GetDomainAccountProxy();
+    if (proxy == (nullptr)) {
+        ACCOUNT_LOGE("Failed to get domain account proxy.");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->IsDomainAccountSupported(isSupported);
+#endif // SUPPORT_DOMAIN_ACCOUNTS
+}
+
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
 bool DomainAccountClient::GenerateCallbackAndContextId(const std::shared_ptr<DomainAccountCallback> &callback,
     sptr<DomainAccountCallbackService> &callbackService, uint64_t &contextId)

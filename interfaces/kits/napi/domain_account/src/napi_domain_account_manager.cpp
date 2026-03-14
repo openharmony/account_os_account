@@ -885,6 +885,12 @@ void NapiDomainAccountPlugin::GetAccessToken(const AccountSA::DomainAccountInfo 
 
 napi_value NapiDomainAccountManager::Init(napi_env env, napi_value exports)
 {
+    napi_property_descriptor descriptor[] = {
+        DECLARE_NAPI_FUNCTION("isDomainAccountSupported", IsDomainAccountSupported)
+    };
+    NAPI_CALL(
+        env, napi_define_properties(env, exports, sizeof(descriptor) / sizeof(napi_property_descriptor), descriptor));
+
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_STATIC_FUNCTION("registerPlugin", RegisterPlugin),
         DECLARE_NAPI_STATIC_FUNCTION("unregisterPlugin", UnregisterPlugin),
@@ -922,6 +928,52 @@ napi_value NapiDomainAccountManager::JsConstructor(napi_env env, napi_callback_i
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, cbInfo, nullptr, nullptr, &thisVar, nullptr));
     return thisVar;
+}
+
+void IsDomainAccountSupportedCompletedCB(napi_env env, napi_status status, void *data)
+{
+    ACCOUNT_LOGD("napi_create_async_work complete");
+    IsDomainAccountSupportContext *asyncContext = reinterpret_cast<IsDomainAccountSupportContext *>(data);
+    napi_value errJs = nullptr;
+    napi_value dataJs = nullptr;
+    if (asyncContext->errCode == ERR_OK) {
+        NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &errJs));
+        NAPI_CALL_RETURN_VOID(env, napi_get_boolean(env, asyncContext->isDomainAccountSupport, &dataJs));
+    } else {
+        errJs = GenerateBusinessError(env, asyncContext->errCode);
+        NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &dataJs));
+    }
+    ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
+    delete asyncContext;
+}
+
+static void IsDomainAccountSupportedExecuteCB(napi_env env, void *data)
+{
+    IsDomainAccountSupportContext *asyncContext = reinterpret_cast<IsDomainAccountSupportContext *>(data);
+    asyncContext->errCode =
+        DomainAccountClient::GetInstance().IsDomainAccountSupported(asyncContext->isDomainAccountSupport);
+}
+
+napi_value NapiDomainAccountManager::IsDomainAccountSupported(napi_env env, napi_callback_info cbInfo)
+{
+    auto context = std::make_unique<IsDomainAccountSupportContext>(env);
+    context->env = env;
+    context->throwErr = true;
+    napi_value result = nullptr;
+    NAPI_CALL(env, napi_create_promise(env, &context->deferred, &result));
+    napi_value resource = nullptr;
+    NAPI_CALL(env, napi_create_string_utf8(env, "IsDomainAccountSupported", NAPI_AUTO_LENGTH, &resource));
+    NAPI_CALL(env, napi_create_async_work(env,
+        nullptr,
+        resource,
+        IsDomainAccountSupportedExecuteCB,
+        IsDomainAccountSupportedCompletedCB,
+        reinterpret_cast<void *>(context.get()),
+        &context->work));
+
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_user_initiated));
+    context.release();
+    return result;
 }
 
 static bool ParseContextForRegisterPlugin(napi_env env, napi_callback_info cbInfo, JsDomainPlugin &jsPlugin)

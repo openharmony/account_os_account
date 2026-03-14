@@ -60,7 +60,11 @@ bool ProcGetAccountPolicyStubFuzzTest(const uint8_t* data, size_t size)
     auto domainAccountService = std::make_shared<DomainAccountManagerService>();
     domainAccountService->OnRemoteRequest(code, dataTemp, reply, option);
     domainAccountService->OnRemoteRequest(TEST_CODE, dataTemp, reply, option);
-
+    MessageParcel data2;
+    MessageParcel reply2;
+    domainAccountService->OnRemoteRequest(
+        static_cast<uint32_t>(IDomainAccountIpcCode::COMMAND_IS_DOMAIN_ACCOUNT_SUPPORTED),
+        data2, reply2, option);
     return true;
 }
 }

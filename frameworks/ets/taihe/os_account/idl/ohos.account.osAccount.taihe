@@ -41,6 +41,9 @@ interface AuthorizationManager {
 @overload("getAccountManager")
 function GetAccountManager(): AccountManager;
 
+@gen_promise("isDomainAccountSupported")
+function IsDomainAccountSupportedSync(): bool;
+
 interface AccountManager {
     @gen_async("isMainOsAccount")
     @gen_promise("isMainOsAccount")

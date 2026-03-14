@@ -41,6 +41,11 @@ struct JsDomainPlugin {
     napi_ref getAccessToken = nullptr;
 };
 
+struct IsDomainAccountSupportContext : public CommonAsyncContext {
+    IsDomainAccountSupportContext(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
+    bool isDomainAccountSupport = false;
+};
+
 struct HasDomainAccountAsyncContext : public CommonAsyncContext {
     HasDomainAccountAsyncContext(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
     AccountSA::DomainAccountInfo domainInfo;
@@ -181,6 +186,7 @@ private:
     static napi_value GetAccessToken(napi_env env, napi_callback_info cbInfo);
     static napi_value GetDomainAccountInfo(napi_env env, napi_callback_info cbInfo);
     static napi_value UpdateAccountInfo(napi_env env, napi_callback_info cbInfo);
+    static napi_value IsDomainAccountSupported(napi_env env, napi_callback_info cbInfo);
 };
 }  // namespace AccountJsKit
 }  // namespace OHOS

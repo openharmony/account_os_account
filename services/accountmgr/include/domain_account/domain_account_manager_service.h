@@ -57,6 +57,7 @@ public:
     ErrCode UpdateAccountInfo(
         const DomainAccountInfo &oldAccountInfo, const DomainAccountInfo &newAccountInfo) override;
     ErrCode GetAccountPolicy(const DomainAccountInfo &info, std::string &policy) override;
+    ErrCode IsDomainAccountSupported(bool &isSupported) override;
 
 private:
     std::mutex mutex_;
