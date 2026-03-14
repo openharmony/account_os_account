@@ -3183,9 +3183,13 @@ void IInnerOsAccountManager::CleanGarbageOsAccountsAsync()
         InnerDomainAccountManager::GetInstance().CleanUnbindDomainAccount();
     #endif // SUPPORT_DOMAIN_ACCOUNTS
     };
+#ifdef FUZZ_TEST
+    task();
+#else
     std::thread cleanThread(task);
     pthread_setname_np(cleanThread.native_handle(), "CleanGarbage");
     cleanThread.detach();
+#endif
 }
 
 ErrCode IInnerOsAccountManager::SetOsAccountIsVerified(const int id, const bool isVerified)
