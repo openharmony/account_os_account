@@ -341,7 +341,9 @@ ohos_unittest("account_mgr_test") {
   if (os_account_enable_multiple_foreground_os_accounts){
     cflags += [ "-DENABLE_MULTI_FOREGROUND_OS_ACCOUNTS" ]
   }
-
+  if (has_hiviewdfx_hisysevent_part) {
+    cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
+  }
   part_name = "os_account"
 }
 

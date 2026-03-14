@@ -185,7 +185,7 @@ ohos_shared_library("accountmgr") {
     ":accountmgr_public_config",
     ":domain_account_config",
   ]
-
+  include_dirs = []
   if (use_libfuzzer) {
     cflags_cc += [ "-DFUZZ_TEST" ]
   }
@@ -428,6 +428,11 @@ ohos_shared_library("accountmgr") {
     cflags_cc += [ "-DHAS_CONFIG_POLICY_PART" ]
   }
 
+  if (os_account_support_posix_adapter) {
+    cflags_cc += [ "-DSUPPORT_POSIX_ADAPTER" ]
+    include_dirs += [ "${common_path}/account_posix_adapter/include" ]
+  }
+
   if (build_variant == "user") {
     cflags_cc += [ "-DIS_RELEASE_VERSION" ]
   }
@@ -438,6 +443,9 @@ ohos_shared_library("accountmgr") {
 
   if (!use_clang_coverage) {
     shlib_type = "sa"
+  }
+  if (has_hiviewdfx_hitrace_part) {
+    cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
   }
   subsystem_name = "account"
   part_name = "os_account"

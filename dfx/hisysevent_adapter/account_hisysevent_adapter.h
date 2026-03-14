@@ -18,7 +18,9 @@
 
 #include <string>
 #include "account_log_wrapper.h"
+#ifdef HAS_HISYSEVENT_PART
 #include "ipc_skeleton.h"
+#endif // HAS_HISYSEVENT_PART
 
 namespace OHOS {
 namespace AccountSA {
@@ -95,7 +97,7 @@ struct DomainHisysEventInfo {
 
     DomainHisysEventInfo(int32_t id, std::string optStr, int32_t uid, std::string accountName)
         : domainBindLocalId(id), operationStr(optStr), callingUid(uid), domainAccountName(accountName) {}
-
+#ifdef HAS_HISYSEVENT_PART
     std::string GetCallingInfo()
     {
         if (callingUid == -1) {
@@ -103,8 +105,10 @@ struct DomainHisysEventInfo {
         }
         return "uid=" + std::to_string(callingUid);
     }
+#endif // HAS_HISYSEVENT_PART
 };
 
+#ifdef HAS_HISYSEVENT_PART
 std::string AnonymizeName(const std::string& nameStr);
 
 void ReportServiceStartFail(int32_t errCode, const std::string& errMsg);
@@ -122,6 +126,24 @@ void ReportOsAccountLifeCycle(int32_t id, const std::string& operationStr);
 void ReportOsAccountSwitch(int32_t currentId, int32_t oldId);
 void ReportOhosAccountStateChange(int32_t userId, int32_t operateType, int32_t oldStat, int32_t newStat);
 void ReportOsAccountDataTampered(int32_t id, const std::string& dataPath, const std::string& dataLabel);
+#else
+std::string AnonymizeName(const std::string& nameStr) { return ""; };
+void ReportServiceStartFail(int32_t errCode, const std::string& errMsg) {};
+void ReportPermissionFail(int32_t callerUid, int32_t callerPid, const std::string& permName) {};
+void ReportOsAccountOperationFail(
+    int32_t id, const std::string& operationStr, int32_t errCode, const std::string& errMsg) {};
+void ReportDomainAccountOperationFail(const DomainHisysEventInfo &info, const int32_t errCode,
+    const std::string& errMsg) {};
+void ReportDomainAccountOperationStatistic(const DomainHisysEventInfo &info) {};
+void ReportOhosAccountOperationFail(
+    int32_t userId, const std::string& operationStr, int32_t errCode, const std::string& errMsg) {};
+void ReportAppAccountOperationFail(const std::string &name, const std::string &owner, const std::string& operationStr,
+    int32_t errCode, const std::string& errMsg) {};
+void ReportOsAccountLifeCycle(int32_t id, const std::string& operationStr) {};
+void ReportOsAccountSwitch(int32_t currentId, int32_t oldId) {};
+void ReportOhosAccountStateChange(int32_t userId, int32_t operateType, int32_t oldStat, int32_t newStat) {};
+void ReportOsAccountDataTampered(int32_t id, const std::string& dataPath, const std::string& dataLabel) {};
+#endif // HAS_HISYSEVENT_PART
 
 #define ASSEMBLE_ERRMSG(str) \
     ("[" + std::string(__FUNCTION__) + "@" + std::string(LOG_FILE_NAME) + ":" + std::to_string(__LINE__) + "] " + (str))

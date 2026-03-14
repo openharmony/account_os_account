@@ -88,6 +88,14 @@ ohos_unittest("OsAccountControlFileManagerUnitTest") {
     external_deps += [ "hitrace:hitrace_meter" ]
     cflags_cc += [ "-DHAS_HITRACE_PART" ]
   }
+  if (has_hiviewdfx_hisysevent_part) {
+    cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
+  }
+  # build SUPPORT_POSIX_ADAPTER in default
+  cflags_cc += [ "-DSUPPORT_POSIX_ADAPTER" ]
+  include_dirs += [ "${common_path}/account_posix_adapter/include" ]
+  sources += [ "${common_path}/account_posix_adapter/src/account_posix_tools.cpp" ]
+  
   part_name = "os_account"
 }
 
@@ -155,6 +163,9 @@ ohos_unittest("OsAccountControlFileManagerMockUnitTest") {
   if (has_hiviewdfx_hitrace_part) {
     external_deps += [ "hitrace:hitrace_meter" ]
     cflags_cc += [ "-DHAS_HITRACE_PART" ]
+  }
+  if (has_hiviewdfx_hisysevent_part) {
+    cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
   }
   part_name = "os_account"
 }
@@ -293,6 +304,9 @@ ohos_unittest("OsAccountFileManagerMultipleThreadTest") {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
     deps += [ "${domain_account_framework_path}:domain_account_plugin_proxy" ]
   }
+  if (has_hiviewdfx_hisysevent_part) {
+    cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
+  }
   part_name = "os_account"
 }
 
@@ -403,6 +417,9 @@ ohos_unittest("os_account_domain_account_callback_test") {
   }
   if (os_account_support_domain_accounts) {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+  }
+  if (has_hiviewdfx_hisysevent_part) {
+    cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
   }
   part_name = "os_account"
 }
@@ -701,6 +718,9 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
     deps += [ "${domain_account_framework_path}:domain_account_plugin_proxy" ]
   }
+  if (has_hiviewdfx_hisysevent_part) {
+    cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
+  }
   part_name = "os_account"
 }
 
@@ -849,6 +869,9 @@ ohos_unittest("OsAccountInnerAccmgrPluginMockTest") {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
     deps += [ "${domain_account_framework_path}:domain_account_plugin_proxy" ]
   }
+  if (has_hiviewdfx_hisysevent_part) {
+    cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
+  }
   part_name = "os_account"
 }
 
@@ -989,6 +1012,9 @@ ohos_unittest("OsAccountInnerAccmgrMockCovTest") {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
     deps += [ "${domain_account_framework_path}:domain_account_plugin_proxy" ]
   }
+  if (has_hiviewdfx_hisysevent_part) {
+    cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
+  }
   part_name = "os_account"
 }
 
@@ -1122,6 +1148,9 @@ ohos_unittest("OsAccountEventManagerMultipleThreadTest") {
   if (os_account_support_domain_accounts) {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
     deps += [ "${domain_account_framework_path}:domain_account_plugin_proxy" ]
+  }
+  if (has_hiviewdfx_hisysevent_part) {
+    cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
   }
   part_name = "os_account"
 }

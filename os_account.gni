@@ -201,3 +201,9 @@ if (!defined(global_parts_info) ||
 } else {
   has_config_policy_part = false
 }
+
+if (os_account_support_authorization) {
+  os_account_support_posix_adapter = true
+} else {
+  os_account_support_posix_adapter = false
+}

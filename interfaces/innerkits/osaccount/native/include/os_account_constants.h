@@ -72,6 +72,7 @@ const char OPERATION_LOG_ERROR[] = "errLog";
 const char OPERATION_UPDATE_SERVER_CONFIG[] = "updateServerConfig";
 const char OPERATION_CONSTRAINT[] = "constraintManagement";
 const char OPERATION_SECOND_MOUNT[] = "secondMount";
+const char OPERATION_POSIX_FILE[] = "posixFileOperate";
 
 // Domain account DFX flag
 const char OPERATION_BIND_DOMAIN_ACCOUNT[] = "bindDomainAccount";

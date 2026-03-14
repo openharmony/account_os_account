@@ -26,6 +26,7 @@
 #include <vector>
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
+#include "account_posix_tools.h"
 #include "os_account_constants.h"
 #define private public
 #include "os_account_control_file_manager.h"
@@ -87,7 +88,7 @@ const std::string STRING_ERR_PHOTO =
     "xFpssN5bwwXwPilDIZ0klLxSq2vWLAIWACMjBeilQNo6j9ni50R9U8U6lF400m18Q30sTMLnxC1758CxqrO8EesXXzBgiiV5SQPlCgHnNSfI5f"
     "1+"
     "av33Q5L3rdP68nb7mfWlFFFaCP//Z";
-    OsAccountControlFileManager *g_controlManager = new (std::nothrow) OsAccountControlFileManager();
+std::shared_ptr<OsAccountControlFileManager> g_controlManager = std::make_shared<OsAccountControlFileManager>();
 }  // namespace
 class OsAccountControlFileManagerUnitTest : public testing::Test {
 public:
@@ -1004,6 +1005,403 @@ HWTEST_F(OsAccountControlFileManagerUnitTest, OTACompatibilityTest002_UpgradeOld
     
     // Clean up
     fileOperator->DeleteDirOrFile(Constants::ACCOUNT_LIST_FILE_JSON_PATH);
+}
+
+/**
+ * @tc.name: CheckAndFlushPosixFile001
+ * @tc.desc: Test CheckAndFlushPosixFile when fault flag exists
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountControlFileManagerUnitTest, CheckAndFlushPosixFile001, TestSize.Level1)
+{
+    g_controlManager->Init();
+    g_controlManager->accountFileOperator_->CreateDir(Constants::USER_INFO_BASE);
+    
+    PosixTools::CreateFaultFlagFile();
+    g_controlManager->CheckAndFlushPosixFile();
+    sleep(1);
+    bool isExist = false;
+    ErrCode ret = PosixTools::IsPosixMapFileExist(isExist);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_TRUE(isExist);
+    PosixTools::RemoveFaultFlagFile();
+    g_controlManager->accountFileOperator_->DeleteDirOrFile(Constants::USER_INFO_BASE);
+}
+
+/**
+ * @tc.name: CheckAndFlushPosixFile002
+ * @tc.desc: Test CheckAndFlushPosixFile when posix map file does not exist
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountControlFileManagerUnitTest, CheckAndFlushPosixFile002, TestSize.Level1)
+{
+    g_controlManager->Init();
+    g_controlManager->accountFileOperator_->CreateDir(Constants::USER_INFO_BASE);
+    
+    bool isExist = false;
+    ErrCode ret = PosixTools::IsPosixMapFileExist(isExist);
+    ASSERT_EQ(ret, ERR_OK);
+    ASSERT_FALSE(isExist);
+    g_controlManager->CheckAndFlushPosixFile();
+    sleep(1);
+    ret = PosixTools::IsPosixMapFileExist(isExist);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_TRUE(isExist);
+}
+
+/**
+ * @tc.name: DeletePosixInfo001
+ * @tc.desc: Test DeletePosixInfo with valid localId
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountControlFileManagerUnitTest, DeletePosixInfo001, TestSize.Level1)
+{
+    int32_t testLocalId = 100;
+    std::string testAccountName = "test_account";
+    
+    PosixDataMap posixDataMap;
+    posixDataMap.ModifyByLocalId(testLocalId, testAccountName);
+    std::string content = posixDataMap.ToString();
+    PosixTools::WritePosixMapFile(content);
+    
+    ErrCode ret = g_controlManager->osAccountPosixFileManager_->DeletePosixInfo(testLocalId);
+    EXPECT_EQ(ret, ERR_OK);
+    
+    std::string readContent;
+    PosixTools::ReadPosixMapFile(readContent);
+    PosixDataMap readMap;
+    readMap.FromString(readContent);
+    std::string accountName;
+    ret = readMap.GetAccountNameByLocalId(testLocalId, accountName);
+    EXPECT_NE(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: DeletePosixInfo002
+ * @tc.desc: Test DeletePosixInfo with non-existent localId
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountControlFileManagerUnitTest, DeletePosixInfo002, TestSize.Level1)
+{
+    int32_t testLocalId = 999;
+    std::string testAccountName = "test_account";
+    
+    PosixDataMap posixDataMap;
+    posixDataMap.ModifyByLocalId(100, testAccountName);
+    std::string content = posixDataMap.ToString();
+    PosixTools::WritePosixMapFile(content);
+    
+    ErrCode ret = g_controlManager->osAccountPosixFileManager_->DeletePosixInfo(testLocalId);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: ModifyPosixInfo001
+ * @tc.desc: Test ModifyPosixInfo with new account
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountControlFileManagerUnitTest, ModifyPosixInfo001, TestSize.Level1)
+{
+    int32_t testLocalId = 100;
+    std::string testAccountName = "test_account";
+    
+    ErrCode ret = g_controlManager->osAccountPosixFileManager_->ModifyPosixInfo(testLocalId, testAccountName);
+    EXPECT_EQ(ret, ERR_OK);
+    
+    std::string readContent;
+    PosixTools::ReadPosixMapFile(readContent);
+    PosixDataMap readMap;
+    readMap.FromString(readContent);
+    std::string accountName;
+    ret = readMap.GetAccountNameByLocalId(testLocalId, accountName);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(accountName, testAccountName);
+}
+
+/**
+ * @tc.name: ModifyPosixInfo002
+ * @tc.desc: Test ModifyPosixInfo with existing account name unchanged
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountControlFileManagerUnitTest, ModifyPosixInfo002, TestSize.Level1)
+{
+    int32_t testLocalId = 100;
+    std::string testAccountName = "test_account";
+    
+    PosixDataMap posixDataMap;
+    posixDataMap.ModifyByLocalId(testLocalId, testAccountName);
+    std::string content = posixDataMap.ToString();
+    PosixTools::WritePosixMapFile(content);
+    
+    ErrCode ret = g_controlManager->osAccountPosixFileManager_->ModifyPosixInfo(testLocalId, testAccountName);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: ModifyPosixInfo003
+ * @tc.desc: Test ModifyPosixInfo with existing account name changed
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountControlFileManagerUnitTest, ModifyPosixInfo003, TestSize.Level1)
+{
+    int32_t testLocalId = 100;
+    std::string oldAccountName = "test_account";
+    std::string newAccountName = "new_account";
+    
+    PosixDataMap posixDataMap;
+    posixDataMap.ModifyByLocalId(testLocalId, oldAccountName);
+    std::string content = posixDataMap.ToString();
+    PosixTools::WritePosixMapFile(content);
+    
+    ErrCode ret = g_controlManager->osAccountPosixFileManager_->ModifyPosixInfo(testLocalId, newAccountName);
+    EXPECT_EQ(ret, ERR_OK);
+    
+    std::string readContent;
+    PosixTools::ReadPosixMapFile(readContent);
+    PosixDataMap readMap;
+    readMap.FromString(readContent);
+    std::string accountName;
+    ret = readMap.GetAccountNameByLocalId(testLocalId, accountName);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(accountName, newAccountName);
+}
+
+/**
+ * @tc.name: FlushPosixFileSync001
+ * @tc.desc: Test FlushPosixFileSync with valid accounts
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountControlFileManagerUnitTest, FlushPosixFileSync001, TestSize.Level1)
+{
+    int id = 0;
+    g_controlManager->GetAllowCreateId(id);
+    OsAccountInfo osAccountInfo(id, STRING_TEST_USER_NAME, OS_ACCOUNT_TYPE, STRING_TEST_USER_SHELLNUMBER);
+    osAccountInfo.SetIsCreateCompleted(true);
+    g_controlManager->InsertOsAccount(osAccountInfo);
+    
+    ErrCode ret = g_controlManager->osAccountPosixFileManager_->FlushPosixFileSync();
+    EXPECT_EQ(ret, ERR_OK);
+    
+    std::string readContent;
+    PosixTools::ReadPosixMapFile(readContent);
+    PosixDataMap readMap;
+    readMap.FromString(readContent);
+    std::string accountName;
+    ret = readMap.GetAccountNameByLocalId(id, accountName);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(accountName, STRING_TEST_USER_NAME);
+
+    osAccountInfo.SetToBeRemoved(true);
+    g_controlManager->UpdateOsAccount(osAccountInfo);
+    g_controlManager->DelOsAccount(id);
+}
+
+/**
+ * @tc.name: FlushPosixFileSync002
+ * @tc.desc: Test FlushPosixFileSync with toBeRemoved account
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountControlFileManagerUnitTest, FlushPosixFileSync002, TestSize.Level1)
+{
+    int id = 0;
+    g_controlManager->GetAllowCreateId(id);
+    OsAccountInfo osAccountInfo(id, STRING_TEST_USER_NAME, OS_ACCOUNT_TYPE, STRING_TEST_USER_SHELLNUMBER);
+    osAccountInfo.SetIsCreateCompleted(true);
+    osAccountInfo.SetToBeRemoved(true);
+    g_controlManager->InsertOsAccount(osAccountInfo);
+    
+    ErrCode ret = g_controlManager->osAccountPosixFileManager_->FlushPosixFileSync();
+    EXPECT_EQ(ret, ERR_OK);
+    
+    std::string readContent;
+    PosixTools::ReadPosixMapFile(readContent);
+    PosixDataMap readMap;
+    readMap.FromString(readContent);
+    std::string accountName;
+    ret = readMap.GetAccountNameByLocalId(id, accountName);
+    EXPECT_NE(ret, ERR_OK);
+
+    osAccountInfo.SetToBeRemoved(true);
+    g_controlManager->UpdateOsAccount(osAccountInfo);
+    g_controlManager->DelOsAccount(id);
+}
+
+/**
+ * @tc.name: FlushPosixFile001
+ * @tc.desc: Test FlushPosixFile with sync mode
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountControlFileManagerUnitTest, FlushPosixFile001, TestSize.Level1)
+{
+    int id = 0;
+    g_controlManager->GetAllowCreateId(id);
+    OsAccountInfo osAccountInfo(id, STRING_TEST_USER_NAME, OS_ACCOUNT_TYPE, STRING_TEST_USER_SHELLNUMBER);
+    osAccountInfo.SetIsCreateCompleted(true);
+    g_controlManager->InsertOsAccount(osAccountInfo);
+    
+    g_controlManager->osAccountPosixFileManager_->FlushPosixFile(false);
+    
+    std::string readContent;
+    PosixTools::ReadPosixMapFile(readContent);
+    PosixDataMap readMap;
+    readMap.FromString(readContent);
+    std::string accountName;
+    ErrCode ret = readMap.GetAccountNameByLocalId(id, accountName);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(accountName, STRING_TEST_USER_NAME);
+
+    osAccountInfo.SetToBeRemoved(true);
+    g_controlManager->UpdateOsAccount(osAccountInfo);
+    g_controlManager->DelOsAccount(id);
+}
+
+/**
+ * @tc.name: FlushPosixFile002
+ * @tc.desc: Test FlushPosixFile with async mode
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountControlFileManagerUnitTest, FlushPosixFile002, TestSize.Level1)
+{
+    int id = 0;
+    g_controlManager->GetAllowCreateId(id);
+    OsAccountInfo osAccountInfo(id, STRING_TEST_USER_NAME, OS_ACCOUNT_TYPE, STRING_TEST_USER_SHELLNUMBER);
+    osAccountInfo.SetIsCreateCompleted(true);
+    g_controlManager->InsertOsAccount(osAccountInfo);
+    
+    g_controlManager->osAccountPosixFileManager_->FlushPosixFile(true);
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    
+    std::string readContent;
+    PosixTools::ReadPosixMapFile(readContent);
+    PosixDataMap readMap;
+    readMap.FromString(readContent);
+    std::string accountName;
+    ErrCode ret = readMap.GetAccountNameByLocalId(id, accountName);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(accountName, STRING_TEST_USER_NAME);
+
+    osAccountInfo.SetToBeRemoved(true);
+    g_controlManager->UpdateOsAccount(osAccountInfo);
+    g_controlManager->DelOsAccount(id);
+}
+
+/**
+ * @tc.name: TryUpdatePosixFileByAccountInfo001
+ * @tc.desc: Test TryUpdatePosixFileByAccountInfo with create completed account
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountControlFileManagerUnitTest, TryUpdatePosixFileByAccountInfo001, TestSize.Level1)
+{
+    int id = 0;
+    g_controlManager->GetAllowCreateId(id);
+    OsAccountInfo osAccountInfo(id, STRING_TEST_USER_NAME, OS_ACCOUNT_TYPE, STRING_TEST_USER_SHELLNUMBER);
+    osAccountInfo.SetIsCreateCompleted(true);
+    g_controlManager->InsertOsAccount(osAccountInfo);
+    
+    ErrCode ret = g_controlManager->osAccountPosixFileManager_->TryUpdatePosixFileByAccountInfo(osAccountInfo);
+    EXPECT_EQ(ret, ERR_OK);
+    
+    std::string readContent;
+    PosixTools::ReadPosixMapFile(readContent);
+    PosixDataMap readMap;
+    readMap.FromString(readContent);
+    std::string accountName;
+    ret = readMap.GetAccountNameByLocalId(id, accountName);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(accountName, STRING_TEST_USER_NAME);
+
+    osAccountInfo.SetToBeRemoved(true);
+    g_controlManager->UpdateOsAccount(osAccountInfo);
+    g_controlManager->DelOsAccount(id);
+}
+
+/**
+ * @tc.name: TryUpdatePosixFileByAccountInfo002
+ * @tc.desc: Test TryUpdatePosixFileByAccountInfo with toBeRemoved account
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountControlFileManagerUnitTest, TryUpdatePosixFileByAccountInfo002, TestSize.Level1)
+{
+    int id = 0;
+    g_controlManager->GetAllowCreateId(id);
+    OsAccountInfo osAccountInfo(id, STRING_TEST_USER_NAME, OS_ACCOUNT_TYPE, STRING_TEST_USER_SHELLNUMBER);
+    osAccountInfo.SetIsCreateCompleted(true);
+    g_controlManager->InsertOsAccount(osAccountInfo);
+    
+    osAccountInfo.SetToBeRemoved(true);
+    ErrCode ret = g_controlManager->osAccountPosixFileManager_->TryUpdatePosixFileByAccountInfo(osAccountInfo);
+    EXPECT_EQ(ret, ERR_OK);
+    
+    std::string readContent;
+    PosixTools::ReadPosixMapFile(readContent);
+    PosixDataMap readMap;
+    readMap.FromString(readContent);
+    std::string accountName;
+    ret = readMap.GetAccountNameByLocalId(id, accountName);
+    EXPECT_NE(ret, ERR_OK);
+
+    osAccountInfo.SetToBeRemoved(true);
+    g_controlManager->UpdateOsAccount(osAccountInfo);
+    g_controlManager->DelOsAccount(id);
+}
+
+/**
+ * @tc.name: TryUpdatePosixFileByAccountInfo003
+ * @tc.desc: Test TryUpdatePosixFileByAccountInfo when fault flag exists
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountControlFileManagerUnitTest, TryUpdatePosixFileByAccountInfo003, TestSize.Level1)
+{
+    int id = 0;
+    g_controlManager->GetAllowCreateId(id);
+    OsAccountInfo osAccountInfo(id, STRING_TEST_USER_NAME, OS_ACCOUNT_TYPE, STRING_TEST_USER_SHELLNUMBER);
+    osAccountInfo.SetIsCreateCompleted(true);
+    g_controlManager->InsertOsAccount(osAccountInfo);
+    
+    PosixTools::CreateFaultFlagFile();
+    
+    ErrCode ret = g_controlManager->osAccountPosixFileManager_->TryUpdatePosixFileByAccountInfo(osAccountInfo);
+    EXPECT_EQ(ret, ERR_OK);
+    
+    PosixTools::RemoveFaultFlagFile();
+    osAccountInfo.SetToBeRemoved(true);
+    g_controlManager->UpdateOsAccount(osAccountInfo);
+    g_controlManager->DelOsAccount(id);
+}
+
+/**
+ * @tc.name: TryUpdatePosixFileByAccountInfo004
+ * @tc.desc: Test TryUpdatePosixFileByAccountInfo with not create completed account
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountControlFileManagerUnitTest, TryUpdatePosixFileByAccountInfo004, TestSize.Level1)
+{
+    int id = 0;
+    g_controlManager->GetAllowCreateId(id);
+    OsAccountInfo osAccountInfo(id, STRING_TEST_USER_NAME, OS_ACCOUNT_TYPE, STRING_TEST_USER_SHELLNUMBER);
+    osAccountInfo.SetIsCreateCompleted(false);
+    g_controlManager->InsertOsAccount(osAccountInfo);
+    
+    ErrCode ret = g_controlManager->osAccountPosixFileManager_->TryUpdatePosixFileByAccountInfo(osAccountInfo);
+    EXPECT_EQ(ret, ERR_OK);
+    osAccountInfo.SetToBeRemoved(true);
+    g_controlManager->UpdateOsAccount(osAccountInfo);
+    g_controlManager->DelOsAccount(id);
 }
 }  // namespace AccountSA
 }  // namespace OHOS
