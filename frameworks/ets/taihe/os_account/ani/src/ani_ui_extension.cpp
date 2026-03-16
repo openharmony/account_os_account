@@ -135,12 +135,15 @@ void UIExtensionCallback::OnResult(int32_t resultCode, const OHOS::AAFwk::Want &
     ACCOUNT_LOGI("ResultCode is %{public}d", resultCode);
     std::vector<int> iamToken = result.GetIntArrayParam(TOKEN_KEY);
     std::vector<uint8_t> tokenVec(iamToken.begin(), iamToken.end());
+    std::fill(iamToken.begin(), iamToken.end(), 0);
     int32_t accountId = result.GetIntParam(ACCOUNTID_KEY, -1);
     if (accountId == -1) {
         ACCOUNT_LOGI("AccountId is %{public}d, return error", accountId);
+        std::fill(tokenVec.begin(), tokenVec.end(), 0);
         return ReleaseHandler(ERR_AUTHORIZATION_CREATE_UI_EXTENSION_ERROR);
     }
-    return ReleaseHandler(ERR_OK, AUTHORIZATION_SUCCESS, tokenVec, accountId);
+    ReleaseHandler(ERR_OK, AUTHORIZATION_SUCCESS, tokenVec, accountId);
+    std::fill(tokenVec.begin(), tokenVec.end(), 0);
 }
 
 /**
@@ -328,6 +331,7 @@ ErrCode CreateUIExtension(std::shared_ptr<TaiheAcquireAuthorizationContext> &asy
     std::string challengeStr;
     TransVectorU8ToString(info.challenge, challengeStr);
     want.SetParam("challenge", challengeStr);
+    std::fill(challengeStr.begin(), challengeStr.end(), 0);
     want.SetParam("privilege", info.privilege);
     want.SetParam("description", info.description);
 

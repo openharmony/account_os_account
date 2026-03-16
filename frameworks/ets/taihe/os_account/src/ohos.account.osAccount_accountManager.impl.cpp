@@ -1452,6 +1452,7 @@ static bool ParseChallengeOption(
     auto taiheChallenge = taiheOptions.value().challenge.value();
     std::vector<uint8_t> challenge(taiheChallenge.data(), taiheChallenge.data() + taiheChallenge.size());
     options.challenge = challenge;
+    std::fill(challenge.begin(), challenge.end(), 0);
 
     return true;
 }

@@ -326,6 +326,21 @@ ErrCode InnerAuthorizationManager::StartUIExtensionConnection(const ConnectAbili
     const std::string &uiAbilityName, const sptr<IAuthorizationCallback> &callback,
     const AuthorizationResult &result, const sptr<IRemoteObject> &requestRemoteObj)
 {
+    ErrCode errCode = ValidateUIExtensionParams(info, callback, requestRemoteObj);
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
+
+    ConnectAbilityInfo uiInfo = info;
+    uiInfo.abilityName = uiAbilityName;
+
+    auto connectCallback = sptr<ConnectAbilityCallback>::MakeSptr(uiInfo, acquireAuthorizationOnResultfunc(), result);
+    return StartUIExtensionTask(uiInfo, connectCallback, callback, requestRemoteObj);
+}
+
+ErrCode InnerAuthorizationManager::ValidateUIExtensionParams(const ConnectAbilityInfo &info,
+    const sptr<IAuthorizationCallback> &callback, const sptr<IRemoteObject> &requestRemoteObj)
+{
     if (callback == nullptr) {
         ACCOUNT_LOGE("Callback is nullptr.");
         REPORT_OS_ACCOUNT_FAIL(info.callingUid / UID_TRANSFORM_DIVISOR, PRIVILEGE_OPT_ACQUIRE_AUTH,
@@ -339,6 +354,7 @@ ErrCode InnerAuthorizationManager::StartUIExtensionConnection(const ConnectAbili
             ERR_AUTHORIZATION_GET_PROXY_ERROR, "Request remote object is nullptr");
         return ERR_AUTHORIZATION_GET_PROXY_ERROR;
     }
+
     auto deathRecipient = new (std::nothrow) AppDeathRecipient();
     if (deathRecipient == nullptr) {
         ACCOUNT_LOGE("DeathRecipient is nullptr");
@@ -346,6 +362,7 @@ ErrCode InnerAuthorizationManager::StartUIExtensionConnection(const ConnectAbili
             ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT, "DeathRecipient is nullptr");
         return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
     }
+
     if (callback->AsObject() == nullptr || !callback->AsObject()->AddDeathRecipient(deathRecipient)) {
         ACCOUNT_LOGE("Fail to AddDeathRecipient");
         REPORT_OS_ACCOUNT_FAIL(info.callingUid / UID_TRANSFORM_DIVISOR, PRIVILEGE_OPT_ACQUIRE_AUTH,
@@ -353,55 +370,67 @@ ErrCode InnerAuthorizationManager::StartUIExtensionConnection(const ConnectAbili
         deathRecipient = nullptr;
         return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
     }
-    ConnectAbilityInfo uiInfo = info;
-    uiInfo.abilityName = uiAbilityName;
 
-    auto connectCallback = sptr<ConnectAbilityCallback>::MakeSptr(uiInfo, acquireAuthorizationOnResultfunc(), result);
-    // Use sptr directly to keep objects alive during async operation
-    auto task = [uiInfo, connectCallback, callback, requestRemoteObj]() {
-        // Verify callback is still valid before calling
-        if (callback == nullptr) {
-            ACCOUNT_LOGE("Callback is nullptr in task thread");
-            return;
-        }
+    return ERR_OK;
+}
 
-        ErrCode errCode = callback->OnConnectAbility(uiInfo, connectCallback->AsObject());
-        if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("OnConnectAbility failed, errCode:%{public}d", errCode);
-            return;
-        }
-
-        // Verify requestRemoteObj is still valid before storing
-        if (requestRemoteObj == nullptr) {
-            ACCOUNT_LOGE("Request remote object is nullptr");
-            return;
-        }
-
-        // Store in global maps, keeping strong references
-        {
-            std::lock_guard<std::mutex> lock(g_mutex);
-
-            // Clean up any existing entries for this UID first
-            auto it = g_callbackMap.find(uiInfo.callingPid);
-            if (it != g_callbackMap.end()) {
-                ACCOUNT_LOGI("Removing old callback for uid:%{public}d", uiInfo.callingPid);
-                g_callbackMap.erase(it);
-                g_connectbackMap.erase(uiInfo.callingPid);
-                g_requestRemoteObjectMap.erase(uiInfo.callingPid);
-                g_pidToUidMap.erase(uiInfo.callingPid);
-            }
-            g_pidToUidMap[uiInfo.callingPid] = uiInfo.callingUid;
-            g_callbackMap[uiInfo.callingPid] = callback;
-            g_connectbackMap[uiInfo.callingPid] = connectCallback;
-            g_requestRemoteObjectMap[uiInfo.callingPid] = requestRemoteObj;
-            ACCOUNT_LOGI("Successfully stored callback maps for uid:%{public}d", uiInfo.callingPid);
-        }
+ErrCode InnerAuthorizationManager::StartUIExtensionTask(const ConnectAbilityInfo &uiInfo,
+    const sptr<ConnectAbilityCallback> &connectCallback, const sptr<IAuthorizationCallback> &callback,
+    const sptr<IRemoteObject> &requestRemoteObj)
+{
+    auto task = [this, uiInfo, connectCallback, callback, requestRemoteObj]() {
+        this->ExecuteUIExtensionTask(uiInfo, connectCallback, callback, requestRemoteObj);
     };
 
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), "OnConnectAbility");
     taskThread.detach();
     return ERR_OK;
+}
+
+void InnerAuthorizationManager::ExecuteUIExtensionTask(const ConnectAbilityInfo &uiInfo,
+    const sptr<ConnectAbilityCallback> &connectCallback, const sptr<IAuthorizationCallback> &callback,
+    const sptr<IRemoteObject> &requestRemoteObj)
+{
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("Callback is nullptr in task thread");
+        return;
+    }
+
+    ErrCode errCode = callback->OnConnectAbility(uiInfo, connectCallback->AsObject());
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("OnConnectAbility failed, errCode:%{public}d", errCode);
+        return;
+    }
+
+    if (requestRemoteObj == nullptr) {
+        ACCOUNT_LOGE("Request remote object is nullptr");
+        return;
+    }
+
+    StoreCallbackMaps(uiInfo, callback, connectCallback, requestRemoteObj);
+}
+
+void InnerAuthorizationManager::StoreCallbackMaps(const ConnectAbilityInfo &uiInfo,
+    const sptr<IAuthorizationCallback> &callback, const sptr<ConnectAbilityCallback> &connectCallback,
+    const sptr<IRemoteObject> &requestRemoteObj)
+{
+    std::lock_guard<std::mutex> lock(g_mutex);
+
+    auto it = g_callbackMap.find(uiInfo.callingPid);
+    if (it != g_callbackMap.end()) {
+        ACCOUNT_LOGI("Removing old callback for uid:%{public}d", uiInfo.callingPid);
+        g_callbackMap.erase(it);
+        g_connectbackMap.erase(uiInfo.callingPid);
+        g_requestRemoteObjectMap.erase(uiInfo.callingPid);
+        g_pidToUidMap.erase(uiInfo.callingPid);
+    }
+
+    g_pidToUidMap[uiInfo.callingPid] = uiInfo.callingUid;
+    g_callbackMap[uiInfo.callingPid] = callback;
+    g_connectbackMap[uiInfo.callingPid] = connectCallback;
+    g_requestRemoteObjectMap[uiInfo.callingPid] = requestRemoteObj;
+    ACCOUNT_LOGI("Successfully stored callback maps for uid:%{public}d", uiInfo.callingPid);
 }
 
 ErrCode InnerAuthorizationManager::StartServiceExtensionConnection(ConnectAbilityInfo &info,
@@ -541,7 +570,7 @@ ErrCode InnerAuthorizationManager::CallUserIAMForAuthentication(int32_t accountI
     authParam.authTrustLevel = AuthTrustLevel::ATL4;
     authParam.userId = accountId;
     authParam.challenge = challenge;
-    
+
     if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;

@@ -427,7 +427,8 @@ void AuthorizationAuthCallback::OnResult(int32_t result, const Attributes &extra
         ACCOUNT_LOGE("Get account id from auth result failed");
         authedAccountId = static_cast<int32_t>(userId_);
     }
-    ACCOUNT_LOGW("Auth ret: type=%{public}d, ret=%{public}d, id=%{public}d", authType_, result, authedAccountId);
+    ACCOUNT_LOGW("AuthorizationAuth ret: type=%{public}d, ret=%{public}d, id=%{public}d",
+        authType_, result, authedAccountId);
     if (innerCallback_ == nullptr) {
         ACCOUNT_LOGE("innerCallback_ is nullptr");
         return;

@@ -52,7 +52,7 @@ public:
         timeout = other.timeout;
         callingBundleName = other.callingBundleName;
     }
-
+    ~ConnectAbilityInfo();
     ConnectAbilityInfo& operator=(const ConnectAbilityInfo& other);
 
     /// The privilege to authorize
@@ -117,10 +117,7 @@ public:
 
     AuthorizationResult& operator=(const AuthorizationResult& other);
 
-    ~AuthorizationResult()
-    {
-        std::fill(token.begin(), token.end(), 0);
-    }
+    ~AuthorizationResult();
 
     /// The privilege that was authorized
     std::string privilege = "";
@@ -149,6 +146,7 @@ public:
     AcquireAuthorizationOptions() = default;
     AcquireAuthorizationOptions(const AcquireAuthorizationOptions&) = delete;
     AcquireAuthorizationOptions& operator=(const AcquireAuthorizationOptions&) = delete;
+    ~AcquireAuthorizationOptions();
 
     /// Whether interaction context is provided
     bool hasContext = false;
