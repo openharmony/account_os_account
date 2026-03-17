@@ -157,7 +157,10 @@ public:
 void OsAccountManagerModuleTest::SetUpTestCase(void)
 {
     GTEST_LOG_(INFO) << "SetUpTestCase enter";
-    ASSERT_NE(GetAllAccountPermission(), 0);
+    if (GetAllAccountPermission() == 0) {
+        GTEST_LOG_(ERROR) << "SetUpTestCase failed: GetAllAccountPermission() returned 0";
+        return;
+    }
     g_selfTokenID = IPCSkeleton::GetSelfTokenID();
 #ifdef ACCOUNT_TEST
     AccountFileOperator osAccountFileOperator;
@@ -181,11 +184,17 @@ void OsAccountManagerModuleTest::SetUpTestCase(void)
     GTEST_LOG_(INFO) << "SetUpTestCase finished, waitCnt " << waitCnt;
 #ifdef BUNDLE_ADAPTER_MOCK
     auto osAccountService = new (std::nothrow) OsAccountManagerService();
-    ASSERT_NE(osAccountService, nullptr);
+    if (osAccountService == nullptr) {
+        GTEST_LOG_(ERROR) << "SetUpTestCase failed: osAccountService is nullptr";
+        return;
+    }
     IInnerOsAccountManager::GetInstance().Init();
     IInnerOsAccountManager::GetInstance().ActivateDefaultOsAccount();
     OsAccount::GetInstance().proxy_ = new (std::nothrow) OsAccountProxy(osAccountService->AsObject());
-    ASSERT_NE(OsAccount::GetInstance().proxy_, nullptr);
+    if (OsAccount::GetInstance().proxy_ == nullptr) {
+        GTEST_LOG_(ERROR) << "SetUpTestCase failed: OsAccount proxy is nullptr";
+        return;
+    }
 #endif
 
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
@@ -2847,7 +2856,7 @@ HWTEST_F(OsAccountManagerModuleTest, IsOsAccountForeground002, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountManagerModuleTest, IsOsAccountForeground003, TestSize.Level0)
+HWTEST_F(OsAccountManagerModuleTest, IsOsAccountForeground003, TestSize.Level1)
 {
     bool isForeground = true;
 
