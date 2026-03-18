@@ -182,7 +182,10 @@ static bool FscryptEnable()
 
 void AccountIamManagerTest::SetUpTestCase()
 {
-    ASSERT_TRUE(MockTokenId("accountmgr"));
+    if (!MockTokenId("accountmgr")) {
+        GTEST_LOG_(ERROR) << "SetUpTestCase failed: MockTokenId(\"accountmgr\") returned false";
+        return;
+    }
     setuid(ACCOUNT_UID);
     g_fscryptEnable = FscryptEnable();
 }

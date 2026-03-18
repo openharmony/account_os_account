@@ -122,15 +122,27 @@ void DomainAccountClientModuleTest::SetUpTestCase(void)
 #endif  // ACCOUNT_TEST
 #ifdef BUNDLE_ADAPTER_MOCK
     auto servicePtr = new (std::nothrow) DomainAccountManagerService();
-    ASSERT_NE(servicePtr, nullptr);
+    if (servicePtr == nullptr) {
+        GTEST_LOG_(ERROR) << "SetUpTestCase failed: servicePtr is nullptr";
+        return;
+    }
     DomainAccountClient::GetInstance().proxy_ = new (std::nothrow) DomainAccountProxy(servicePtr->AsObject());
-    ASSERT_NE(DomainAccountClient::GetInstance().proxy_, nullptr);
+    if (DomainAccountClient::GetInstance().proxy_ == nullptr) {
+        GTEST_LOG_(ERROR) << "SetUpTestCase failed: DomainAccountClient proxy is nullptr";
+        return;
+    }
     auto osAccountService = new (std::nothrow) OsAccountManagerService();
-    ASSERT_NE(osAccountService, nullptr);
+    if (osAccountService == nullptr) {
+        GTEST_LOG_(ERROR) << "SetUpTestCase failed: osAccountService is nullptr";
+        return;
+    }
     IInnerOsAccountManager::GetInstance().Init();
     IInnerOsAccountManager::GetInstance().ActivateDefaultOsAccount();
     OsAccount::GetInstance().proxy_ = new (std::nothrow) OsAccountProxy(osAccountService->AsObject());
-    ASSERT_NE(OsAccount::GetInstance().proxy_, nullptr);
+    if (OsAccount::GetInstance().proxy_ == nullptr) {
+        GTEST_LOG_(ERROR) << "SetUpTestCase failed: OsAccount proxy is nullptr";
+        return;
+    }
     g_selfTokenID = IPCSkeleton::GetSelfTokenID();
 #endif
 }

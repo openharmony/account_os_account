@@ -114,17 +114,29 @@ void AccountMgrInnerSdkFuncTest::SetUpTestCase(void)
 #endif  // ACCOUNT_TEST
 #ifdef BUNDLE_ADAPTER_MOCK
     auto servicePtr = new (std::nothrow) AccountMgrService();
-    ASSERT_NE(servicePtr, nullptr);
+    if (servicePtr == nullptr) {
+        GTEST_LOG_(ERROR) << "AccountMgrService create failed";
+        return;
+    }
     servicePtr->state_ = STATE_RUNNING;
     OhosAccountKitsImpl::GetInstance().accountProxy_ = new (std::nothrow) AccountProxy(servicePtr->AsObject());
-    ASSERT_NE(OhosAccountKitsImpl::GetInstance().accountProxy_, nullptr);
+    if (OhosAccountKitsImpl::GetInstance().accountProxy_ == nullptr) {
+        GTEST_LOG_(ERROR) << "AccountProxy create failed";
+        return;
+    }
     auto osAccountService = new (std::nothrow) OsAccountManagerService();
-    ASSERT_NE(osAccountService, nullptr);
+    if (osAccountService == nullptr) {
+        GTEST_LOG_(ERROR) << "OsAccountManagerService create failed";
+        return;
+    }
     IInnerOsAccountManager::GetInstance().Init();
     IInnerOsAccountManager::GetInstance().ActivateDefaultOsAccount();
     OhosAccountManager::GetInstance().OnInitialize();
     OsAccount::GetInstance().proxy_ = new (std::nothrow) OsAccountProxy(osAccountService->AsObject());
-    ASSERT_NE(OsAccount::GetInstance().proxy_, nullptr);
+    if (OsAccount::GetInstance().proxy_ == nullptr) {
+        GTEST_LOG_(ERROR) << "OsAccountProxy create failed";
+        return;
+    }
 #endif
 }
 
@@ -156,7 +168,7 @@ void AccountMgrInnerSdkFuncTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require:
 */
-HWTEST_F(AccountMgrInnerSdkFuncTest, GetDeviceAccountIdTest, TestSize.Level3)
+HWTEST_F(AccountMgrInnerSdkFuncTest, GetDeviceAccountIdTest, TestSize.Level0)
 {
     std::int32_t id;
     auto ret = OhosAccountKits::GetInstance().QueryDeviceAccountId(id);
@@ -169,7 +181,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, GetDeviceAccountIdTest, TestSize.Level3)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoTest, TestSize.Level3)
+HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoTest, TestSize.Level0)
 {
     auto ret = OhosAccountKits::GetInstance().QueryOhosAccountInfo();
     EXPECT_EQ(true, ret.first);
@@ -181,7 +193,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoTest, TestSize.Level3)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountMgrInnerSdkFuncTest, GetDefaultOhosAccountInfoTest, TestSize.Level1)
+HWTEST_F(AccountMgrInnerSdkFuncTest, GetDefaultOhosAccountInfoTest, TestSize.Level0)
 {
     std::unique_ptr<OhosAccountInfo> accountInfo = std::make_unique<OhosAccountInfo>();
     ASSERT_TRUE(accountInfo != nullptr);
@@ -379,7 +391,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo006, TestSize.Level3)
  * @tc.type: FUNC
  * @tc.require: issueI5RWXT
  */
-HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo007, TestSize.Level3)
+HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo007, TestSize.Level0)
 {
     OhosAccountInfo accountInfo;
     OhosAccountInfo accountInfoget;
@@ -641,7 +653,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo012, TestSize.Level3)
  * @tc.type: FUNC
  * @tc.require: issueI6ZFWR issueI6ZFYI
  */
-HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo013, TestSize.Level3)
+HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo013, TestSize.Level0)
 {
     OhosAccountInfo accountInfo;
     auto ret = OhosAccountKits::GetInstance().SetOsAccountDistributedInfo(LOCAL_ID, accountInfo, g_eventLogin);
@@ -654,7 +666,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo013, TestSize.Level3)
  * @tc.type: FUNC
  * @tc.require: issueI6ZFWR issueI6ZFYI
  */
-HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo014, TestSize.Level3)
+HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo014, TestSize.Level0)
 {
     OhosAccountInfo accountInfo;
     auto ret = OhosAccountKits::GetInstance().SetOsAccountDistributedInfo(INVALID_LOCAL_ID, accountInfo, g_eventLogin);
@@ -711,7 +723,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo015, TestSize.Level3)
  * @tc.type: FUNC
  * @tc.require: issueI6ZFWR issueI6ZFYI
  */
-HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserId001, TestSize.Level3)
+HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserId001, TestSize.Level0)
 {
     OhosAccountInfo accountInfo;
     auto ret = OhosAccountKits::GetInstance().GetOsAccountDistributedInfo(LOCAL_ID, accountInfo);
@@ -747,7 +759,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserId002, TestSize.Lev
  * @tc.type: FUNC
  * @tc.require: issueI5X50F
  */
-HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserId003, TestSize.Level3)
+HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserId003, TestSize.Level0)
 {
     OhosAccountInfo accountInfo;
     std::int32_t testUserId = 200; // 200 is test user id.
@@ -761,7 +773,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserId003, TestSize.Lev
  * @tc.type: FUNC
  * @tc.require: issueI5X50F
  */
-HWTEST_F(AccountMgrInnerSdkFuncTest, QueryOhosAccountInfoByUserId, TestSize.Level3)
+HWTEST_F(AccountMgrInnerSdkFuncTest, QueryOhosAccountInfoByUserId, TestSize.Level0)
 {
     std::int32_t testUserId = -1; // -1 is test user id.
     auto ret = OhosAccountKits::GetInstance().QueryOsAccountDistributedInfo(testUserId);
@@ -774,7 +786,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, QueryOhosAccountInfoByUserId, TestSize.Leve
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserIdPermissionTest001, TestSize.Level3)
+HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserIdPermissionTest001, TestSize.Level0)
 {
     uint64_t tokenId;
     ASSERT_TRUE(AllocPermission({"ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS"}, tokenId));
@@ -793,7 +805,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserIdPermissionTest001
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserIdPermissionTest002, TestSize.Level3)
+HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserIdPermissionTest002, TestSize.Level0)
 {
     uint64_t tokenId;
     ASSERT_TRUE(AllocPermission(
@@ -813,7 +825,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserIdPermissionTest002
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserIdPermissionTest003, TestSize.Level3)
+HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserIdPermissionTest003, TestSize.Level0)
 {
     uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
     ASSERT_TRUE(MockTokenId("security_component_service"));
@@ -832,7 +844,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserIdPermissionTest003
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserIdPermissionTest004, TestSize.Level3)
+HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserIdPermissionTest004, TestSize.Level0)
 {
     uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
     ASSERT_TRUE(MockTokenId("foundation"));

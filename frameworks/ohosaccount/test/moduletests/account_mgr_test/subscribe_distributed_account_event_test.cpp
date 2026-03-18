@@ -94,7 +94,7 @@ public:
  * @tc.require:
 */
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
-HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest001, TestSize.Level0)
+HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest001, TestSize.Level1)
 {
     // login
     auto loginSubscribeCallback = std::make_shared<MockDistributedAccountSubscribeCallback>();
@@ -132,7 +132,7 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest0
  * @tc.type: FUNC
  * @tc.require:
 */
-HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest002, TestSize.Level0)
+HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest002, TestSize.Level1)
 {
     // login
     auto loginSubscribeCallback = std::make_shared<MockDistributedAccountSubscribeCallback>();
@@ -177,7 +177,7 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest0
  * @tc.type: FUNC
  * @tc.require:
 */
-HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest003, TestSize.Level0)
+HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest003, TestSize.Level1)
 {
     // login
     auto loginSubscribeCallback = std::make_shared<MockDistributedAccountSubscribeCallback>();
