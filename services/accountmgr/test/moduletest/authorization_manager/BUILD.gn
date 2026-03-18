@@ -1,0 +1,280 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//build/test.gni")
+import("../../../../../os_account.gni")
+import("../../../os_account_service.gni")
+
+module_output_path = "os_account/authorization"
+
+config("service_extension_connect_test_config") {
+  include_dirs = [
+    "${services_path}/accountmgr/include",
+    "${services_path}/accountmgr/test/mock/authorization_manager",
+    "${services_path}/accountmgr/include/authorization_manager",
+    "${authorization_interfaces_native_path}/include",
+    "${common_path}/log/include",
+    "${common_path}/perf_stat/include",
+    "${innerkits_common}/include",
+    "${innerkits_path}/include",
+  ]
+}
+
+config("inner_authorization_manager_test_config") {
+  include_dirs = [
+    "${services_path}/accountmgr/test/mock/authorization_manager",
+    "${services_path}/accountmgr/test/mock/authorization_manager/tee",
+    "${services_path}/accountmgr/test/mock/common",
+    "${services_path}/accountmgr/include/authorization_manager",
+    "${authorization_interfaces_native_path}/include",
+    "${common_path}/log/include",
+    "${common_path}/perf_stat/include",
+    "${innerkits_common}/include",
+    "${os_account_interfaces_native_path}/include",
+    "${innerkits_path}/include",
+    "${os_account_path}/frameworks/common/privileges/include",
+  ]
+}
+
+config("authorization_manager_service_test_config") {
+  include_dirs = [
+    "${services_path}/accountmgr/test/mock/authorization_manager/tee",
+    "${services_path}/accountmgr/test/mock/authorization_manager/iam",
+    "${services_path}/accountmgr/test/mock/authorization_manager/",
+    "${services_path}/accountmgr/test/mock/common",
+    "${services_path}/accountmgr/include/authorization_manager",
+    "${authorization_interfaces_native_path}/include",
+    "${common_path}/log/include",
+    "${common_path}/perf_stat/include",
+  ]
+}
+
+ohos_moduletest("service_extension_connect_module_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+    blocklist = "${os_account_path}/cfi_blocklist.txt"
+  }
+
+  module_out_path = module_output_path
+
+  sources = [
+    "service_extension_connect_module_test.cpp",
+    "${services_path}/accountmgr/src/authorization_manager/service_extension_connect.cpp",
+    "${services_path}/accountmgr/test/mock/authorization_manager/extension_manager_client.cpp",
+  ]
+
+  configs = [
+    ":service_extension_connect_test_config",
+    "${services_path}/accountmgr/test:accountmgr_test_config",
+  ]
+
+  deps = [
+    "${common_path}:libaccount_common",
+    "${authorization_framework_path}:authorization_innerkits",
+    "${services_path}/accountmgr:accountmgr",
+  ]
+
+  external_deps = [
+    "ability_base:want",
+    "ability_runtime:ability_manager",
+    "ability_runtime:app_manager",
+    "cJSON:cjson",
+    "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+    "ability_runtime:ability_connect_callback_stub",
+    "ability_runtime:wantagent_innerkits",
+    "ability_runtime:extension_manager",
+  ]
+
+  part_name = "os_account"
+}
+
+ohos_moduletest("inner_authorization_manager_module_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+    blocklist = "${os_account_path}/cfi_blocklist.txt"
+  }
+
+  module_out_path = module_output_path
+
+  sources = [
+    "inner_authorization_manager_module_test.cpp",
+    "${services_path}/accountmgr/src/authorization_manager/inner_authorization_manager.cpp",
+    "${services_path}/accountmgr/test/mock/authorization_manager/extension_manager_client.cpp",
+    "${services_path}/accountmgr/test/mock/common/bundle_manager_adapter.cpp",
+  ]
+
+  configs = [
+    ":inner_authorization_manager_test_config",
+    "${services_path}/accountmgr/test:accountmgr_test_config",
+  ]
+
+  deps = [
+    "${account_iam_framework_path}:account_iam_innerkits",
+    "${common_path}:libaccount_common",
+    "${authorization_framework_path}:authorization_innerkits",
+    "${services_path}/accountmgr:accountmgr",
+    "${authorization_framework_path}:connect_ability_callback_stub",
+  ]
+
+  external_deps = [
+    "ability_base:want",
+    "ability_runtime:ability_manager",
+    "ability_runtime:app_manager",
+    "cJSON:cjson",
+    "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
+
+
+  cflags_cc = [
+    "-DACCOUNT_TEST",
+   "-DSUPPORT_AUTHORIZATION"
+  ]
+  if (hicollie_enable == true) {
+    external_deps += [ "hicollie:libhicollie" ]
+    cflags_cc += [ "-DHICOLLIE_ENABLE" ]
+  }
+  if (has_user_auth_part) {
+    cflags_cc += [
+      "-DHAS_USER_AUTH_PART",
+      "-DHAS_USER_IDM_PART",
+    ]
+    external_deps += [
+      "access_token:libaccesstoken_sdk",
+      "access_token:libtokensetproc_shared",
+      "access_token:libtokenid_sdk",
+      "user_auth_framework:userauth_client",
+    ]
+  }
+  part_name = "os_account"
+}
+
+ohos_moduletest("authorization_manager_service_module_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+    blocklist = "${os_account_path}/cfi_blocklist.txt"
+  }
+
+  module_out_path = module_output_path
+
+  sources = [
+    "authorization_manager_service_module_test.cpp",
+    "${services_path}/accountmgr/src/authorization_manager/authorization_manager_service.cpp",
+    "${services_path}/accountmgr/test/mock/common/bundle_manager_adapter.cpp",
+  ]
+
+  configs = [
+    ":authorization_manager_service_test_config",
+    "${services_path}/accountmgr/test:accountmgr_test_config",
+  ]
+
+  deps = [
+    "${account_iam_framework_path}:account_iam_innerkits",
+    "${common_path}:libaccount_common",
+    "${authorization_framework_path}:authorization_innerkits",
+    "${authorization_framework_path}:authorization_stub",
+    "${authorization_framework_path}:connect_ability_callback_stub",
+    "${os_account_innerkits_native_path}:os_account_event_stub",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
+  ]
+  version_script = "${services_path}/accountmgr/libaccountmgr.map"
+  external_deps = [
+    "ability_base:want",
+    "ability_runtime:ability_manager",
+    "ability_runtime:app_manager",
+    "cJSON:cjson",
+    "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+    "access_token:libaccesstoken_sdk",
+    "access_token:libtokenid_sdk",
+  ]
+
+  cflags_cc = [
+    "-DACCOUNT_TEST",
+    "-DSUPPORT_AUTHORIZATION"
+  ]
+
+  if (hicollie_enable == true) {
+    external_deps += [ "hicollie:libhicollie" ]
+    cflags_cc += [ "-DHICOLLIE_ENABLE" ]
+  }
+  if (os_account_support_domain_accounts) {
+    cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+
+    deps += [
+      "${domain_account_framework_path}:domain_account_callback_stub",
+    ]
+  }
+  if (has_kv_store_part) {
+    deps += [
+          "${app_account_innerkits_native_path}:app_account_authenticator_callback_stub",
+    ]
+  }
+  if (has_kv_store_part && os_account_distributed_feature) {
+    external_deps += [ "kv_store:distributeddata_inner" ]
+    cflags_cc += [ "-DHAS_KV_STORE_PART" ]
+  } else {
+    cflags_cc += [ "-DSQLITE_DLCLOSE_ENABLE" ]
+  }
+  if (has_ces_part) {
+    cflags_cc += [ "-DHAS_CES_PART" ]
+    external_deps += [ "common_event_service:cesfwk_innerkits" ]
+  }
+  if (has_user_auth_part) {
+    cflags_cc += [
+      "-DHAS_USER_AUTH_PART",
+      "-DHAS_USER_IDM_PART",
+    ]
+
+    external_deps += [
+      "access_token:libtokensetproc_shared",
+      "user_auth_framework:userauth_client",
+    ]
+  }
+  part_name = "os_account"
+}
+
+group("moduletest") {
+  testonly = true
+  deps = []
+  if (os_account_support_authorization) {
+    deps = [
+      ":service_extension_connect_module_test",
+      ":inner_authorization_manager_module_test",
+      ":authorization_manager_service_module_test",
+    ]
+  }
+}

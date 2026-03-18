@@ -66,7 +66,7 @@ ErrCode BundleManagerAdapter::GetNameForUid(const int uid, std::string &bundleNa
     ACCOUNT_LOGI("mock enter, uid = %{public}d", uid);
     bundleName = STRING_OWNER;
     ACCOUNT_LOGI("mock bundleName = %{public}s", bundleName.c_str());
-    return ERR_OK;
+    return g_resultCode;
 }
 
 ErrCode BundleManagerAdapter::CreateNewBundleDir(int32_t userId)

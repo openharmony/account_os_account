@@ -49,6 +49,7 @@ public:
         const int32_t &userId, std::vector<AppExecFwk::ExtensionAbilityInfo> &extensionInfos);
     bool QueryExtensionAbilityInfos(const AAFwk::Want &want, const AppExecFwk::ExtensionAbilityType &extensionType,
         const int32_t &flag, const int32_t &userId, std::vector<AppExecFwk::ExtensionAbilityInfo> &extensionInfos);
+    ErrCode g_resultCode = ERR_OK;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
