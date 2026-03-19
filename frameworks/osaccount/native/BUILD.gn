@@ -50,6 +50,13 @@ config("osaccountinterface_config") {
   cflags += [ "-pipe" ]
 }
 
+config("os_account_manager_lite_public_config") {
+  include_dirs = [
+    "${innerkits_common}/include",
+    "${os_account_interfaces_native_path}/include",
+  ]
+}
+
 ohos_shared_library("os_account_innerkits") {
   branch_protector_ret = "pac_ret"
 
@@ -132,6 +139,41 @@ ohos_shared_library("os_account_innerkits") {
     "ability_base:want",
     "c_utils:utils",
     "ipc:ipc_single",
+  ]
+
+  innerapi_tags = [
+    "platformsdk",
+    "sasdk",
+  ]
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+ohos_shared_library("os_account_innerkits_lite") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  sources = [ "src/os_account_manager_lite.cpp" ]
+
+  defines = [
+    "ACCOUNT_LOG_TAG = \"OsAccountLiteFwk\"",
+    "LOG_DOMAIN = 0xD001B00",
+  ]
+
+  public_configs = [ ":os_account_manager_lite_public_config" ]
+
+  if (!use_clang_coverage) {
+    version_script = "libos_account_innerkits_lite.map"
+  }
+  external_deps = [
+    "c_utils:utils",
+    "ipc:ipc_single",
+    "samgr:samgr_proxy",
   ]
 
   innerapi_tags = [
