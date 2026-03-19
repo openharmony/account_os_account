@@ -112,6 +112,19 @@ public:
     void TearDown(void) override;
 };
 
+class MockOsAccountConstraintSubscriber : public OsAccountConstraintSubscriber {
+public:
+    explicit MockOsAccountConstraintSubscriber(const std::set<std::string> &constraintSet)
+        : OsAccountConstraintSubscriber(constraintSet) {}
+
+    ~MockOsAccountConstraintSubscriber() {}
+
+    void OnConstraintChanged(const OsAccountConstraintStateData &constraintData) override
+    {
+        return;
+    }
+};
+
 void OsAccountInfoTest::SetUpTestCase(void)
 {
     ASSERT_TRUE(MockTokenId("accountmgr"));
@@ -176,19 +189,6 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfoParcel_ForegroundOsAccount_0100, TestSi
 }
 
 /**
- * @tc.name: OsAccountInfo_OsAccountInfo_0100
- * @tc.desc: Create a OsAccountInfo object with no parameter.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountInfoTest, OsAccountInfo_OsAccountInfo_0100, TestSize.Level3)
-{
-    OsAccountInfo *osAccountInfo = new (std::nothrow) OsAccountInfo();
-    EXPECT_NE(osAccountInfo, nullptr);
-    delete (osAccountInfo);
-}
-
-/**
  * @tc.name: OsAccountInfo_OsAccountInfo_0200
  * @tc.desc: Create a OsAccountInfo object with four parameters.
  * @tc.type: FUNC
@@ -196,10 +196,8 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_OsAccountInfo_0100, TestSize.Level3)
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_OsAccountInfo_0200, TestSize.Level1)
 {
-    OsAccountInfo *osAccountInfo =
-        new (std::nothrow) OsAccountInfo(INT_ID, STRING_NAME, INT_TYPE, STRING_SERIAL_NUMBER);
-    EXPECT_NE(osAccountInfo, nullptr);
-    delete (osAccountInfo);
+    OsAccountInfo osAccountInfo(INT_ID, STRING_NAME, INT_TYPE, STRING_SERIAL_NUMBER);
+    EXPECT_EQ(STRING_NAME, osAccountInfo.GetLocalName());
 }
 
 /**
@@ -1339,3 +1337,349 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfoParcel_SetOsAccountTypeOptions_0200, Te
     EXPECT_TRUE(options.ReadFromParcel(parcel));
 }
 
+/**
+ * @tc.name: OsAccountInfo_OsAccountInfo_0300
+ * @tc.desc: Create a OsAccountInfo object with four parameters.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_OsAccountInfo_0300, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo(INT_ID, STRING_NAME, "shortName", INT_TYPE, STRING_SERIAL_NUMBER);
+    EXPECT_EQ(osAccountInfo.GetLocalId(), INT_ID);
+    EXPECT_EQ(osAccountInfo.GetLocalName(), STRING_NAME);
+    EXPECT_EQ(osAccountInfo.GetShortName(), "shortName");
+    EXPECT_EQ(osAccountInfo.GetType(), INT_TYPE);
+    EXPECT_EQ(osAccountInfo.GetSerialNumber(), STRING_SERIAL_NUMBER);
+}
+
+/**
+ * @tcname: OsAccountInfo_GetPrimeKey_0100
+ * @tc.desc: Test GetPrimeKey method.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetPrimeKey_0100, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    osAccountInfo.localId_ = INT_ID;
+    std::string primeKey = osAccountInfo.GetPrimeKey();
+    EXPECT_FALSE(primeKey.empty());
+}
+
+/**
+ * @tc.name: OsAccountInfo_SetDomainInfo_0100
+ * @tc.desc: Test SetDomainInfo and GetDomainInfo methods.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetDomainInfo_0100, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = "testAccount";
+    domainInfo.domain_ = "testDomain";
+    EXPECT_TRUE(osAccountInfo.SetDomainInfo(domainInfo));
+
+    DomainAccountInfo retrievedInfo;
+    osAccountInfo.GetDomainInfo(retrievedInfo);
+    EXPECT_EQ(retrievedInfo.accountName_, "testAccount");
+    EXPECT_EQ(retrievedInfo.domain_, "testDomain");
+}
+
+/**
+ * @tc.name: OsAccountInfo_GetToBeRemoved_0100
+ * @tc.desc: Test GetToBeRemoved and SetToBeRemoved methods.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetToBeRemoved_0100, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    osAccountInfo.SetToBeRemoved(true);
+    EXPECT_TRUE(osAccountInfo.GetToBeRemoved());
+
+    osAccountInfo.SetToBeRemoved(false);
+    EXPECT_FALSE(osAccountInfo.GetToBeRemoved());
+}
+
+/**
+ * @tc.name: OsAccountInfo_GetDisplayId_0100
+ * @tc.desc: Test GetDisplayId and SetDisplayId methods.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetDisplayId_0100, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    uint64_t displayId = 12345678;
+    osAccountInfo.SetDisplayId(displayId);
+    EXPECT_EQ(osAccountInfo.GetDisplayId(), displayId);
+}
+
+/**
+ * @tc.name: OsAccountInfo_GetIsForeground_0100
+ * @tc.desc: Test GetIsForeground and SetIsForeground methods.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetIsForeground_0100, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    osAccountInfo.SetIsForeground(true);
+    EXPECT_TRUE(osAccountInfo.GetIsForeground());
+
+    osAccountInfo.SetIsForeground(false);
+    EXPECT_FALSE(osAccountInfo.GetIsForeground());
+}
+
+/**
+ * @tc.name: OsAccountInfo_GetIsLoggedIn_0100
+ * @tc.desc: Test GetIsLoggedIn and SetIsLoggedIn methods.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetIsLoggedIn_0100, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    osAccountInfo.SetIsLoggedIn(true);
+    EXPECT_TRUE(osAccountInfo.GetIsLoggedIn());
+
+    osAccountInfo.SetIsLoggedIn(false);
+    EXPECT_FALSE(osAccountInfo.GetIsLoggedIn());
+}
+
+/**
+ * @tc.name: OsAccountInfo_GetIsDataRemovable_0100
+ * @tc.desc: Test GetIsDataRemovable and SetIsDataRemovable methods.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetIsDataRemovable_0100, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    osAccountInfo.SetIsDataRemovable(true);
+    EXPECT_TRUE(osAccountInfo.GetIsDataRemovable());
+
+    osAccountInfo.SetIsDataRemovable(false);
+    EXPECT_FALSE(osAccountInfo.GetIsDataRemovable());
+}
+
+/**
+ * @tc.name: OsAccountInfo_GetCreatorType_0100
+ * @tc.desc: Test GetCreatorType and SetCreatorType methods.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetCreatorType_0100, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    int32_t creatorType = 123;
+    osAccountInfo.SetCreatorType(creatorType);
+    EXPECT_EQ(osAccountInfo.GetCreatorType(), creatorType);
+}
+
+/**
+ * @tc.name: OsAccountInfo_ParamCheck_0100
+ * @tc.desc: Test ParamCheck method.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_ParamCheck_0100, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    osAccountInfo.localId_ = INT_ID;
+    osAccountInfo.localName_ = STRING_NAME;
+    EXPECT_NE(osAccountInfo.ParamCheck(), ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountInfo_IsTypeOutOfRange_0100
+ * @tc.desc: Test IsTypeOutOfRange method.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_IsTypeOutOfRange_0100, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    osAccountInfo.type_ = OsAccountType::ADMIN;
+    EXPECT_FALSE(osAccountInfo.IsTypeOutOfRange());
+
+    osAccountInfo.type_ = OsAccountType::NORMAL;
+    EXPECT_FALSE(osAccountInfo.IsTypeOutOfRange());
+
+    osAccountInfo.type_ = OsAccountType::GUEST;
+    EXPECT_FALSE(osAccountInfo.IsTypeOutOfRange());
+
+    osAccountInfo.type_ = OsAccountType::MAINTENANCE;
+    EXPECT_TRUE(osAccountInfo.IsTypeOutOfRange());
+
+    osAccountInfo.type_ = OsAccountType::PRIVATE;
+    EXPECT_FALSE(osAccountInfo.IsTypeOutOfRange());
+
+    osAccountInfo.type_ = OsAccountType::END;
+    EXPECT_TRUE(osAccountInfo.IsTypeOutOfRange());
+}
+
+/**
+ * @tc.name: OsAccountConstraintSubscriber_OsAccountConstraintSubscriber_0100
+ * @tc.desc: Test OsAccountConstraintSubscriber constructor and methods.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInfoTest, OsAccountConstraintSubscriber_OsAccountConstraintSubscriber_0100, TestSize.Level1)
+{
+    std::set<std::string> constraintSet = {"constraint1", "constraint2"};
+    MockOsAccountConstraintSubscriber subscriber(constraintSet);
+
+    std::set<std::string> retrievedSet;
+    subscriber.GetConstraintSet(retrievedSet);
+    EXPECT_EQ(retrievedSet.size(), 2);
+
+    std::set<std::string> newSet = {"constraint3"};
+    subscriber.SetConstraintSet(newSet);
+    subscriber.GetConstraintSet(retrievedSet);
+    EXPECT_EQ(retrievedSet.size(), 1);
+}
+
+/**
+ * @tc.name: OsAccountConstraintSubscribeInfo_OsAccountConstraintSubscribeInfo_0100
+ * @tc.desc: Test OsAccountConstraintSubscribeInfo constructor and methods.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInfoTest, OsAccountConstraintSubscribeInfo_OsAccountConstraintSubscribeInfo_0100, TestSize.Level1)
+{
+    OsAccountConstraintSubscribeInfo subscribeInfo;
+    std::set<std::string> constraints = {"constraint1", "constraint2"};
+    subscribeInfo.SetConstraints(constraints);
+
+    std::set<std::string> retrievedConstraints;
+    subscribeInfo.GetConstraints(retrievedConstraints);
+    EXPECT_EQ(retrievedConstraints.size(), 2);
+
+    Parcel parcel;
+    EXPECT_TRUE(subscribeInfo.Marshalling(parcel));
+
+    OsAccountConstraintSubscribeInfo *unmarshalledInfo = OsAccountConstraintSubscribeInfo::Unmarshalling(parcel);
+    EXPECT_NE(unmarshalledInfo, nullptr);
+    delete unmarshalledInfo;
+}
+
+/**
+ * @tc.name: OsAccountConstraintSubscribeInfo_OsAccountConstraintSubscribeInfo_0200
+ * @tc.desc: Test OsAccountConstraintSubscribeInfo constructor with parameters.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInfoTest, OsAccountConstraintSubscribeInfo_OsAccountConstraintSubscribeInfo_0200, TestSize.Level1)
+{
+    std::set<std::string> constraints = {"constraint1", "constraint2"};
+    OsAccountConstraintSubscribeInfo subscribeInfo(constraints);
+
+    std::set<std::string> retrievedConstraints;
+    subscribeInfo.GetConstraints(retrievedConstraints);
+    EXPECT_EQ(retrievedConstraints.size(), 2);
+}
+
+/**
+ * @tc.name: OsAccountSubscriber_OsAccountSubscriber_0100
+ * @tc.desc: Test OsAccountSubscriber constructor and methods.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInfoTest, OsAccountSubscriber_OsAccountSubscriber_0100, TestSize.Level1)
+{
+    OsAccountSubscriber subscriber;
+
+    OsAccountSubscribeInfo subscribeInfo;
+    subscriber.GetSubscribeInfo(subscribeInfo);
+}
+
+/**
+ * @tc.name: OsAccountSubscriber_OsAccountSubscriber_0200
+ * @tc.desc: Test OsAccountSubscriber constructor with parameters.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInfoTest, OsAccountSubscriber_OsAccountSubscriber_0200, TestSize.Level1)
+{
+    std::set<OsAccountState> states = {OsAccountState::ACTIVATED, OsAccountState::CREATED};
+    OsAccountSubscribeInfo subscribeInfo(states);
+    OsAccountSubscriber subscriber(subscribeInfo);
+
+    OsAccountSubscribeInfo retrievedInfo;
+    subscriber.GetSubscribeInfo(retrievedInfo);
+}
+
+/**
+ * @tc.name: OsAccountSubscribeInfo_OsAccountSubscribeInfo_0100
+ * @tc.desc: Test OsAccountSubscribeInfo constructor and methods.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInfoTest, OsAccountSubscribeInfo_OsAccountSubscribeInfo_0100, TestSize.Level1)
+{
+    OsAccountSubscribeInfo subscribeInfo;
+
+    OS_ACCOUNT_SUBSCRIBE_TYPE type = OsAccountState::ACTIVATED;
+    subscribeInfo.SetOsAccountSubscribeType(type);
+
+    OS_ACCOUNT_SUBSCRIBE_TYPE retrievedType;
+    subscribeInfo.GetOsAccountSubscribeType(retrievedType);
+    EXPECT_EQ(retrievedType, type);
+
+    std::string name = "testName";
+    subscribeInfo.SetName(name);
+
+    std::string retrievedName;
+    subscribeInfo.GetName(retrievedName);
+    EXPECT_EQ(retrievedName, name);
+
+    std::set<OsAccountState> states = {OsAccountState::ACTIVATED, OsAccountState::CREATED};
+    subscribeInfo.GetStates(states);
+
+    EXPECT_FALSE(subscribeInfo.IsWithHandshake());
+}
+
+/**
+ * @tc.name: OsAccountSubscribeInfo_OsAccountSubscribeInfo_0200
+ * @tc.desc: Test OsAccountSubscribeInfo constructor with states parameter.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInfoTest, OsAccountSubscribeInfo_OsAccountSubscribeInfo_0200, TestSize.Level1)
+{
+    std::set<OsAccountState> states = {OsAccountState::ACTIVATED, OsAccountState::CREATED};
+    OsAccountSubscribeInfo subscribeInfo(states, true);
+
+    EXPECT_TRUE(subscribeInfo.IsWithHandshake());
+
+    Parcel parcel;
+    EXPECT_TRUE(subscribeInfo.Marshalling(parcel));
+
+    OsAccountSubscribeInfo *unmarshalledInfo = OsAccountSubscribeInfo::Unmarshalling(parcel);
+    EXPECT_NE(unmarshalledInfo, nullptr);
+    delete unmarshalledInfo;
+}
+
+/**
+ * @tc.name: OsAccountSubscribeInfo_OsAccountSubscribeInfo_0300
+ * @tc.desc: Test OsAccountSubscribeInfo constructor with type and name parameters.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInfoTest, OsAccountSubscribeInfo_OsAccountSubscribeInfo_0300, TestSize.Level1)
+{
+    OS_ACCOUNT_SUBSCRIBE_TYPE type = OsAccountState::ACTIVATED;
+    std::string name = "testName";
+    OsAccountSubscribeInfo subscribeInfo(type, name);
+
+    OS_ACCOUNT_SUBSCRIBE_TYPE retrievedType;
+    subscribeInfo.GetOsAccountSubscribeType(retrievedType);
+    EXPECT_EQ(retrievedType, type);
+
+    std::string retrievedName;
+    subscribeInfo.GetName(retrievedName);
+    EXPECT_EQ(retrievedName, name);
+}
