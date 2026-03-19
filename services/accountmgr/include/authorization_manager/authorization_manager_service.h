@@ -24,7 +24,9 @@
 #include "authorization_common.h"
 #include "authorization_stub.h"
 #include "iadmin_authorization_callback.h"
+#include "iauthorization_callback.h"
 #include "ios_account_control.h"
+#include "privileges_map.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -61,7 +63,7 @@ public:
      */
     ErrCode AcquireAuthorization(const std::string &privilege, const AcquireAuthorizationOptions &options,
         const sptr<IRemoteObject> &authorizationResultCallback, const sptr<IRemoteObject> &requestRemoteObj) override;
-    
+
     /**
      * @brief Releases authorization for a specific privilege.
      *
@@ -136,6 +138,14 @@ private:
         sptr<IAdminAuthorizationCallback> &callbackProxy);
     ErrCode VerifyAdminAuthPermission();
     ErrCode FindAccountIdByName(const std::string &adminNameName, int32_t &accountId);
+
+    ErrCode CheckSystemAppAndPermission(int32_t localId);
+    ErrCode ValidateChallengeAndContext(const AcquireAuthorizationOptions &options, int32_t localId);
+    ErrCode CheckCallbackAndConnections(const sptr<IAuthorizationCallback> &callback,
+        const AcquireAuthorizationOptions &options, int32_t localId, AuthorizationResult &authorizationResult);
+    ErrCode GetPrivilegeDefinition(AuthorizationResult &authorizationResult, PrivilegeBriefDef &def, int32_t localId);
+    ErrCode HandleWhenReuse(AuthorizationResult &authorizationResult, const AcquireAuthorizationOptions &options,
+        const sptr<IAuthorizationCallback> &callback, int32_t localId);
 
     /// OS account configuration
     OsAccountConfig config_;

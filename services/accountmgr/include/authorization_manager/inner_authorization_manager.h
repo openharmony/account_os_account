@@ -307,6 +307,18 @@ private:
     ErrCode StartUIExtensionConnection(const ConnectAbilityInfo &info, const std::string &uiAbilityName,
         const sptr<IAuthorizationCallback> &callback, const AuthorizationResult &result,
         const sptr<IRemoteObject> &requestRemoteObj);
+    
+    ErrCode ValidateUIExtensionParams(const ConnectAbilityInfo &info,
+        const sptr<IAuthorizationCallback> &callback, const sptr<IRemoteObject> &requestRemoteObj);
+    ErrCode StartUIExtensionTask(const ConnectAbilityInfo &uiInfo,
+        const sptr<ConnectAbilityCallback> &connectCallback, const sptr<IAuthorizationCallback> &callback,
+        const sptr<IRemoteObject> &requestRemoteObj);
+    void ExecuteUIExtensionTask(const ConnectAbilityInfo &uiInfo,
+        const sptr<ConnectAbilityCallback> &connectCallback, const sptr<IAuthorizationCallback> &callback,
+        const sptr<IRemoteObject> &requestRemoteObj);
+    void StoreCallbackMaps(const ConnectAbilityInfo &uiInfo,
+        const sptr<IAuthorizationCallback> &callback, const sptr<ConnectAbilityCallback> &connectCallback,
+        const sptr<IRemoteObject> &requestRemoteObj);
 
     /**
      * @brief Starts service extension connection.

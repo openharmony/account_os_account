@@ -104,6 +104,11 @@ bool ConnectAbilityInfo::ReadFromParcel(Parcel &parcel)
     return true;
 }
 
+ConnectAbilityInfo::~ConnectAbilityInfo()
+{
+    std::fill(challenge.begin(), challenge.end(), 0);
+}
+
 bool ConnectAbilityInfo::Marshalling(Parcel &parcel) const
 {
     if (!parcel.WriteString(privilege)) {
@@ -162,6 +167,11 @@ ConnectAbilityInfo *ConnectAbilityInfo::Unmarshalling(Parcel &parcel)
         info = nullptr;
     }
     return info;
+}
+
+AuthorizationResult::~AuthorizationResult()
+{
+    std::fill(token.begin(), token.end(), 0);
 }
 
 AuthorizationResult& AuthorizationResult::operator=(const AuthorizationResult& other)
@@ -237,6 +247,11 @@ AuthorizationResult *AuthorizationResult::Unmarshalling(Parcel &parcel)
         info = nullptr;
     }
     return info;
+}
+
+AcquireAuthorizationOptions::~AcquireAuthorizationOptions()
+{
+    std::fill(challenge.begin(), challenge.end(), 0);
 }
 
 bool AcquireAuthorizationOptions::ReadFromParcel(Parcel &parcel)
