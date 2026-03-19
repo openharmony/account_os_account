@@ -56,8 +56,10 @@ namespace {
 constexpr char THREAD_AUTH[] = "auth";
 constexpr char THREAD_AUTH_WITH_PARAM[] = "authWithParam";
 constexpr char THREAD_INNER_AUTH[] = "innerAuth";
+#ifndef FUZZ_TEST
 constexpr char THREAD_HAS_ACCOUNT[] = "hasAccount";
 constexpr char THREAD_GET_ACCOUNT[] = "getAccount";
+#endif
 constexpr char THREAD_BIND_ACCOUNT[] = "bindAccount";
 constexpr char THREAD_UNBIND_ACCOUNT[] = "unbindAccount";
 constexpr char THREAD_GET_ACCESS_TOKEN[] = "getAccessToken";
@@ -2137,9 +2139,13 @@ ErrCode InnerDomainAccountManager::HasDomainAccount(
     } else {
         task = [this, options, callback] { this->StartPluginHasDomainAccount(options, callback); };
     }
+#ifdef FUZZ_TEST
+    task();
+#else
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), THREAD_HAS_ACCOUNT);
     taskThread.detach();
+#endif
     return ERR_OK;
 }
 
@@ -2409,9 +2415,13 @@ ErrCode InnerDomainAccountManager::GetDomainAccountInfo(
             this->StartGetDomainAccountInfo(plugin, options, callbackService);
         };
     }
+#ifdef FUZZ_TEST
+    task();
+#else
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), THREAD_GET_ACCOUNT);
     taskThread.detach();
+#endif
     return ERR_OK;
 }
 
