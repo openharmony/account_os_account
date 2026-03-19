@@ -47,7 +47,15 @@ ohos_unittest("os_account_info_test") {
 
   module_out_path = module_output_path
 
-  sources = [ "os_account_info_test.cpp" ]
+  sources = [
+    "os_account_info_test.cpp",
+    "${os_account_innerkits_native_path}/src/os_account_constraint_subscribe_info.cpp",
+    "${os_account_innerkits_native_path}/src/os_account_constraint_subscriber.cpp",
+    "${os_account_innerkits_native_path}/src/os_account_info_parcel.cpp",
+    "${os_account_innerkits_native_path}/src/os_account_info.cpp",
+    "${os_account_innerkits_native_path}/src/os_account_subscribe_info.cpp",
+    "${os_account_innerkits_native_path}/src/os_account_subscriber.cpp",
+  ]
 
   configs = [ ":os_account_service_config_unittest" ]
 
