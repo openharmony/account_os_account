@@ -1500,11 +1500,13 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest125
 
     setuid(ROOT_UID);
     ASSERT_TRUE(RecoveryPermission(tokenID, selfTokenId));
+#ifndef SUPPORT_AUTHORIZATION
     setuid(3057);
     EXPECT_EQ(ERR_OK,
         osAccountManagerService_->CreateOsAccount("Test125", INT_TEST_TYPE, osAccountInfo));
     setuid(ROOT_UID);
     EXPECT_EQ(ERR_OK, osAccountManagerService_->RemoveOsAccount(osAccountInfo.GetLocalId()));
+#endif // SUPPORT_AUTHORIZATION
 }
 
 /**
@@ -2542,6 +2544,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, GetForegroundOsAccountDisplayIdTest0
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
+#ifndef SUPPORT_AUTHORIZATION
 /**
  * @tc.name: CreateOsAccountTokenNotSupported001
  * @tc.desc: Test CreateOsAccount with token when SUPPORT_AUTHORIZATION is not defined
@@ -2594,6 +2597,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, RemoveOsAccountTokenNotSupported001,
     errCode = osAccountManagerService_->RemoveOsAccount(osAccountInfoOne.GetLocalId(), options);
     EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
+#endif // SUPPORT_AUTHORIZATION
 
 /**
  * @tc.name: GetOsAccountLocalIdsTest001

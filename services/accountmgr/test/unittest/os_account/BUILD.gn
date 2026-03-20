@@ -487,6 +487,10 @@ config("os_account_amgr_test_config") {
     "${services_path}/accountmgr/include",
     "${services_path}/accountmgr/include/osaccount",
     "${services_path}/accountmgr/include/ability_manager_adapter",
+    "${services_path}/accountmgr/include/common/tee",
+    "${services_path}/accountmgr/include/authorization_manager",
+    "${services_path}/accountmgr/include/common/tee",
+    "${services_path}/accountmgr/include/authorization_manager",
     "${common_path}/log/include",
     "${common_path}/perf_stat/include",
     "${innerkits_common}/include",
@@ -494,6 +498,7 @@ config("os_account_amgr_test_config") {
     "${services_path}/accountmgr/test/unittest/os_account/mock",
     "${services_path}/accountmgr/include/common/database",
     "${services_path}/accountmgr/include/common/database/kvstore",
+    "${services_path}/accountmgr/include/bundle_manager_adapter",
   ]
 }
 
@@ -520,6 +525,8 @@ ohos_unittest("OsAccountInnerAccmgrCovTest") {
   ]
 
   deps = [
+    "${account_iam_framework_path}:account_iam_innerkits",
+    "${account_iam_framework_path}:account_iam_stub",
     "${account_test_common}:account_test_common_source_set",
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
@@ -529,6 +536,7 @@ ohos_unittest("OsAccountInnerAccmgrCovTest") {
   external_deps = [
     "ability_base:want",
     "ability_runtime:ability_manager",
+    "ability_runtime:app_manager",
     "ability_runtime:wantagent_innerkits",
     "access_token:libaccesstoken_sdk",
     "access_token:libtokensetproc_shared",
@@ -542,6 +550,22 @@ ohos_unittest("OsAccountInnerAccmgrCovTest") {
     "samgr:samgr_proxy",
     "user_auth_framework:userauth_client",
   ]
+
+  if (has_hiviewdfx_hitrace_part) {
+    cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
+  }
+
+  if (hicollie_enable == true) {
+    external_deps += [ "hicollie:libhicollie" ]
+  }
+
+  if (security_guard_enabled) {
+    external_deps += [
+      "security_guard:libsg_collect_sdk",
+      "time_service:time_client",
+    ]
+  }
+
   if (has_ces_part) {
     cflags_cc += [ "-DHAS_CES_PART" ]
     external_deps += [ "common_event_service:cesfwk_innerkits" ]
@@ -557,6 +581,33 @@ ohos_unittest("OsAccountInnerAccmgrCovTest") {
   if (os_account_support_domain_accounts) {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
   }
+
+  if (os_account_support_authorization) {
+    if (!defined(cflags_cc)) {
+      cflags_cc = []
+    }
+    cflags_cc += [ "-DSUPPORT_AUTHORIZATION" ]
+    configs += [ "${services_path}/accountmgr:authorization_config" ]
+    sources += [
+      "${authorization_framework_path}/src/authorization_common.cpp",
+      "${services_path}/accountmgr/src/authorization_manager/authorization_manager_service.cpp",
+      "${services_path}/accountmgr/src/authorization_manager/inner_authorization_manager.cpp",
+      "${services_path}/accountmgr/src/authorization_manager/privilege_cache_manager.cpp",
+      "${services_path}/accountmgr/src/authorization_manager/privilege_utils.cpp",
+      "${services_path}/accountmgr/src/authorization_manager/service_extension_connect.cpp",
+      "${services_path}/accountmgr/src/common/tee/tee_auth_adapter.cpp",
+    ]
+    deps += [
+      "${authorization_framework_path}:authorization_callback_proxy",
+      "${authorization_framework_path}:authorization_stub",
+      "${authorization_framework_path}:connect_ability_callback_stub",
+    ]
+    external_deps += [
+      "ability_runtime:extension_manager",
+      "tee_client:libteec",
+    ]
+  }
+
   part_name = "os_account"
 }
 
