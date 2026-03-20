@@ -120,7 +120,7 @@ ohos_moduletest("AccountInnerSdkModuleMockTest") {
   if (use_libfuzzer) {
     cflags_cc += [ "-DFUZZ_TEST" ]
   }
-  
+
   if (os_account_distributed_feature && !use_libfuzzer) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
     sources +=
@@ -173,16 +173,22 @@ ohos_moduletest("DeviceAccountInfoModuleTest") {
 
   module_out_path = module_output_path
 
-  sources = [ "device_account_info_test.cpp" ]
+  sources = [
+    "device_account_info_test.cpp",
+    "${innerkits_native_path}/src/account_info.cpp",
+    "${innerkits_native_path}/src/distributed_account_subscribe_callback.cpp",
+  ]
 
   include_dirs = [
     "${os_account_path}/interfaces/innerkits/ohosaccount/native/include/",
     "${common_path}/log/include",
+    "${innerkits_common}/include",
   ]
 
   configs = [ "${services_path}/accountmgr/test:accountmgr_test_config" ]
 
   external_deps = [
+    "ability_base:want",
     "c_utils:utils",
     "googletest:gmock_main",
     "googletest:gtest_main",
