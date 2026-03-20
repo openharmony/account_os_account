@@ -73,6 +73,7 @@
         "constraint.preview.openFileBoost",
         "constraint.sudo",
         "constraint.font.set",
-        "constraint.enterprise.bundles.local.install.disallow"
+        "constraint.enterprise.bundles.local.install.disallow",
+        "constraint.multiWindow"
     ]
 }
