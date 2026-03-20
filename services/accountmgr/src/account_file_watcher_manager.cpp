@@ -155,6 +155,11 @@ static int32_t InitEncryptionKey()
             ACCOUNT_LOGE("InitParamSet genParamSet err = %{public}d", ret);
             break;
         }
+        ret = HksKeyExist(&g_keyAlias, genParamSet);
+        if (ret == 0) {
+            ACCOUNT_LOGI("Encryption key already exists");
+            break;
+        }
         ret = HksGenerateKey(&g_keyAlias, genParamSet, nullptr);
         if (ret != 0) {
             ACCOUNT_LOGE("HksGenerateKey err = %{public}d", ret);

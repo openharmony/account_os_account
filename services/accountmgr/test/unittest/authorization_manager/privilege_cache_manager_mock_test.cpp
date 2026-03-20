@@ -765,9 +765,9 @@ HWTEST_F(PrivilegeCacheManagerTest, ProcessPrivilegeRecordCovTest013, TestSize.L
     auto jsonObj = CreateJson();
     ASSERT_NE(nullptr, jsonObj);
     EXPECT_TRUE(AddInt64ToJson(jsonObj, "updateTime", updateTime));
-
+    int64_t updateTimeFromJson = 0;
     EXPECT_EQ(ERR_AUTHORIZATION_CHECK_TIME_FAILED,
-        PrivilegeCacheManager::GetInstance().CheckUpdateTimeValid(jsonObj, currTime));
+        PrivilegeCacheManager::GetInstance().CheckUpdateTimeValid(jsonObj, currTime, updateTimeFromJson));
 }
 
 /**
@@ -784,9 +784,9 @@ HWTEST_F(PrivilegeCacheManagerTest, ProcessPrivilegeRecordCovTest014, TestSize.L
     auto jsonObj = CreateJson();
     ASSERT_NE(nullptr, jsonObj);
     EXPECT_TRUE(AddInt64ToJson(jsonObj, "updateTime", updateTime));
-
+    int64_t updateTimeFromJson = 0;
     EXPECT_EQ(ERR_AUTHORIZATION_CHECK_TIME_FAILED,
-        PrivilegeCacheManager::GetInstance().CheckUpdateTimeValid(jsonObj, currTime));
+        PrivilegeCacheManager::GetInstance().CheckUpdateTimeValid(jsonObj, currTime, updateTimeFromJson));
 }
 
 /**
@@ -802,9 +802,9 @@ HWTEST_F(PrivilegeCacheManagerTest, ProcessPrivilegeRecordCovTest015, TestSize.L
     auto jsonObj = CreateJson();
     ASSERT_NE(nullptr, jsonObj);
     // Don't add updateTime field
-
+    int64_t updateTimeFromJson = 0;
     EXPECT_EQ(ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR,
-        PrivilegeCacheManager::GetInstance().CheckUpdateTimeValid(jsonObj, currTime));
+        PrivilegeCacheManager::GetInstance().CheckUpdateTimeValid(jsonObj, currTime, updateTimeFromJson));
 }
 
 /**

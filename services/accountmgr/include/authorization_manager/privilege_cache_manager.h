@@ -104,10 +104,11 @@ private:
     PrivilegeCacheManager() = default;
     ~PrivilegeCacheManager() = default;
     ErrCode ToPersistFile(const int64_t currTime);
-    ErrCode GenerateDigestFromHuks(const std::string &jsonStr, std::vector<uint8_t> &digest);
+    ErrCode GenerateDigestFromHuks(const int64_t updateTime, const std::string &jsonStr, std::vector<uint8_t> &digest);
     void ReadAndCheckPersistRecordValid(const int64_t currTime, std::string &recordStr, bool &needSkipLoading);
-    bool CheckPersistDigestValid(const std::string &processRecordsStr, const std::vector<uint8_t> &storedDigest);
-    ErrCode CheckUpdateTimeValid(const CJsonUnique &jsonObj, const int64_t currTime);
+    bool CheckPersistDigestValid(const int64_t updateTime,
+        const std::string &processRecordsStr, const std::vector<uint8_t> &storedDigest);
+    ErrCode CheckUpdateTimeValid(const CJsonUnique &jsonObj, const int64_t currTime, int64_t &updateTime);
     bool MapToJsonString(std::string &output);
     ErrCode ToJsonString(const int64_t currTime, const std::string &recordStr,
         const std::vector<uint8_t> &digest, std::string &output);
