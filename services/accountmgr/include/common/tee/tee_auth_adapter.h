@@ -152,7 +152,7 @@ public:
      *     The length of the token should be checked before calling this function.
      * @return error code, see account_error_no.h
      */
-    ErrCode DelOsAccountType(int32_t id, const std::vector<uint8_t>& token);
+    ErrCode DelOsAccountType(int32_t id, const std::vector<uint8_t>& token = {});
 
     /**
      * @brief Gets OS account type from TA.
