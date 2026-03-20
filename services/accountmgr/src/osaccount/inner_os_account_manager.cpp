@@ -2137,10 +2137,10 @@ ErrCode IInnerOsAccountManager::GetOsAccountName(const int id, std::string &name
     if (errCode != ERR_OK) {
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
-#ifndef ENABLE_ACCOUNT_NAME_PRIVACY_CONTROL
+#ifdef ENABLE_ACCOUNT_NAME_PRIVACY_CONTROL
     OsAccountType type = osAccountInfo.GetType();
     if (type != OsAccountType::PRIVATE && id != Constants::MAINTENANCE_MODE_ID &&
-        AccountPermissionManager::CheckSystemApp() != ERR_OK) {
+        id != Constants::START_USER_ID && AccountPermissionManager::CheckSystemApp() != ERR_OK) {
 #ifdef ENABLE_DEFAULT_ADMIN_NAME
         name = STANDARD_LOCAL_NAME;
 #endif // ENABLE_DEFAULT_ADMIN_NAME
