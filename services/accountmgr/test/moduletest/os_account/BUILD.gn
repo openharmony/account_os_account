@@ -305,6 +305,32 @@ ohos_moduletest("os_account_manager_service_module_test") {
       "time_service:time_client",
     ]
   }
+
+  if (os_account_support_authorization) {
+    if (!defined(cflags_cc)) {
+      cflags_cc = []
+    }
+    cflags_cc += [ "-DSUPPORT_AUTHORIZATION" ]
+    configs += [ "${services_path}/accountmgr:authorization_config" ]
+    sources += [
+      "${authorization_framework_path}/src/authorization_common.cpp",
+      "${services_path}/accountmgr/src/common/tee/tee_auth_adapter.cpp",
+      "${services_path}/accountmgr/src/authorization_manager/authorization_manager_service.cpp",
+      "${services_path}/accountmgr/src/authorization_manager/inner_authorization_manager.cpp",
+      "${services_path}/accountmgr/src/authorization_manager/privilege_cache_manager.cpp",
+      "${services_path}/accountmgr/src/authorization_manager/privilege_utils.cpp",
+      "${services_path}/accountmgr/src/authorization_manager/service_extension_connect.cpp",
+    ]
+    deps += [
+      "${authorization_framework_path}:authorization_callback_proxy",
+      "${authorization_framework_path}:authorization_stub",
+      "${authorization_framework_path}:connect_ability_callback_stub",
+    ]
+    external_deps += [
+      "ability_runtime:extension_manager",
+      "tee_client:libteec",
+    ]
+  }
 }
 
 config("os_account_manager_service_subscribe_test_config") {
