@@ -205,6 +205,7 @@ void OsAccountConstraintSubscribeManager::PublishToSubscriber(const OsAccountCon
             recordPtr->callingUid_);
         return;
     }
+    std::lock_guard<std::mutex> lock(mutex_);
     auto it = userListenerMap_.find(recordPtr->eventListener_);
     if ((it != userListenerMap_.end()) && (userListenerMap_[recordPtr->eventListener_]) != localId) {
             ACCOUNT_LOGE("LocalId does not match, subscriber localId=%{public}d, constraint change localId=%{public}d.",
