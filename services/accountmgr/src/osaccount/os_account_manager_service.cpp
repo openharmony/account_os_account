@@ -251,15 +251,11 @@ ErrCode OsAccountManagerService::CreateOsAccount(
     CreateOsAccountOptions edmOption;
     errCode = PrivilegeCheck(std::nullopt, MANAGE_LOCAL_ACCOUNT_PRIVILEGE_NAME,
         {{EDM_UID, GenerateEdmStrategy(edmOption)}, {SPACE_MGR_UID, GenerateEdmStrategy(edmOption)}});
-    // do not react to check privilege error, just log it
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Privilege check failed, ret=%{public}d.", errCode);
+        return errCode;
     }
-    if (edmOption.isEdmCalling) {
-        return innerManager_.CreateOsAccount(name, "", type, osAccountInfo, edmOption);
-    } else {
-        return innerManager_.CreateOsAccount(name, type, osAccountInfo);
-    }
+    return innerManager_.CreateOsAccount(name, "", type, osAccountInfo, edmOption);
 #else
     return innerManager_.CreateOsAccount(name, type, osAccountInfo);
 #endif // SUPPORT_AUTHORIZATION
@@ -342,13 +338,11 @@ ErrCode OsAccountManagerService::CreateOsAccount(const std::string &localName, c
     }
 #ifdef SUPPORT_AUTHORIZATION
     CreateOsAccountOptions dupOption = options;
-    if (options.token.has_value()) {
-        errCode = PrivilegeCheck(options.token, MANAGE_LOCAL_ACCOUNT_PRIVILEGE_NAME,
-            {{EDM_UID, GenerateEdmStrategy(dupOption)}, {SPACE_MGR_UID, GenerateEdmStrategy(dupOption)}});
-        if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("Privilege check failed, ret=%{public}d.", errCode);
-            return errCode;
-        }
+    errCode = PrivilegeCheck(options.token, MANAGE_LOCAL_ACCOUNT_PRIVILEGE_NAME,
+        {{EDM_UID, GenerateEdmStrategy(dupOption)}, {SPACE_MGR_UID, GenerateEdmStrategy(dupOption)}});
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Privilege check failed, ret=%{public}d.", errCode);
+        return errCode;
     }
     return innerManager_.CreateOsAccount(localName, shortName, type, osAccountInfo, dupOption);
 #else
@@ -473,13 +467,16 @@ ErrCode OsAccountManagerService::CreateOsAccountWithFullInfo(const OsAccountInfo
         return ERR_OSACCOUNT_SERVICE_MANAGER_CREATE_OSACCOUNT_TYPE_ERROR;
     }
 #ifdef SUPPORT_AUTHORIZATION
+    errCode = PrivilegeCheck(options.token, MANAGE_LOCAL_ACCOUNT_PRIVILEGE_NAME,
+        {{MAINTENANCE_UID, GenMaintenaceStrategy(osAccountInfo.GetLocalId())}});
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Privilege check failed, ret=%{public}d.", errCode);
+        return errCode;
+    }
+#else
     if (options.token.has_value()) {
-        errCode = PrivilegeCheck(options.token, MANAGE_LOCAL_ACCOUNT_PRIVILEGE_NAME,
-            {{MAINTENANCE_UID, GenMaintenaceStrategy(osAccountInfo.GetLocalId())}});
-        if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("Privilege check failed, ret=%{public}d.", errCode);
-            return errCode;
-        }
+        ACCOUNT_LOGE("CreateOsAccountWithFullInfo failed, token is not supported.");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 #endif // SUPPORT_AUTHORIZATION
     auto convertOsAccountInfo = osAccountInfo;
@@ -581,6 +578,19 @@ ErrCode OsAccountManagerService::CreateOsAccountForDomain(const OsAccountType &t
             ACCOUNT_LOGE("Privilege check failed, ret=%{public}d.", errCode);
             return errCode;
         }
+    } else {
+        std::vector<OsAccountInfo> osAccountInfos;
+        errCode = QueryAllCreatedOsAccounts(osAccountInfos);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("Query all created osAccount failed, errCode:%{public}d", errCode);
+            return errCode;
+        }
+        if ((osAccountInfos.size() != 1) || (osAccountInfos[0].GetLocalId() != Constants::START_USER_ID)) {
+            return ERR_AUTHORIZATION_PRIVILEGE_DENIED;
+        }
+        if (!osAccountInfos[0].GetLocalName().empty()) {
+            return ERR_AUTHORIZATION_PRIVILEGE_DENIED;
+        }
     }
 #else
     if (options.hasToken) {
@@ -611,7 +621,7 @@ ErrCode OsAccountManagerService::CreateOsAccountForDomain(int32_t typeValue,
     return CreateOsAccountForDomain(type, domainInfo, callback, options);
 }
 
-ErrCode OsAccountManagerService::RemoveOsAccount(int32_t id)
+ErrCode OsAccountManagerService::RemoveOsAccountCommon(int32_t id)
 {
     ErrCode result = AccountPermissionManager::CheckSystemApp();
     if (result != ERR_OK) {
@@ -637,6 +647,17 @@ ErrCode OsAccountManagerService::RemoveOsAccount(int32_t id)
         ACCOUNT_LOGE("Account manager service, permission denied!");
         REPORT_PERMISSION_FAIL();
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+    return ERR_OK;
+}
+
+
+ErrCode OsAccountManagerService::RemoveOsAccount(int32_t id)
+{
+    ErrCode res = OsAccountManagerService::RemoveOsAccountCommon(id);
+    if (res != ERR_OK) {
+        ACCOUNT_LOGE("RemoveOsAccountCommon failed, result = %{public}u.", res);
+        return res;
     }
 #ifdef SUPPORT_AUTHORIZATION
     RemoveOsAccountOptions options;
@@ -645,47 +666,18 @@ ErrCode OsAccountManagerService::RemoveOsAccount(int32_t id)
         {MAINTENANCE_UID, GenMaintenaceStrategy(id)}});
     if (res != ERR_OK) {
         ACCOUNT_LOGE("Privilege check failed, ret=%{public}d.", res);
+        return res;
     }
-    if (options.isEdmCalling || id == Constants::MAINTENANCE_MODE_ID) {
-        return innerManager_.RemoveOsAccount(id, options);
-    } else {
-        return innerManager_.RemoveOsAccount(id);
-    }
-#else
-    return innerManager_.RemoveOsAccount(id);
 #endif // SUPPORT_AUTHORIZATION
+    return innerManager_.RemoveOsAccount(id);
 }
 
 ErrCode OsAccountManagerService::RemoveOsAccount(int32_t id, const RemoveOsAccountOptions &options)
 {
-    ErrCode result = AccountPermissionManager::CheckSystemApp();
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("Is not system application, result = %{public}u.", result);
-        return result;
-    }
-    if (!options.token.has_value() || options.token.value().empty()) {
-        ACCOUNT_LOGE("Token is invalid!");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
-    // parameters check
-    ErrCode res = CheckLocalId(id);
+    ErrCode res = OsAccountManagerService::RemoveOsAccountCommon(id);
     if (res != ERR_OK) {
+        ACCOUNT_LOGE("RemoveOsAccountCommon failed, result = %{public}u.", res);
         return res;
-    }
-    if (id == Constants::START_USER_ID) {
-        ACCOUNT_LOGE("Cannot remove system preinstalled user");
-        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
-    }
-    res = CheckLocalIdRestricted(id);
-    if (res != ERR_OK) {
-        ACCOUNT_LOGW("Check local id restricted, result = %{public}d, localId = %{public}d.", res, id);
-        return res;
-    }
-    // permission check
-    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, CONSTANT_REMOVE)) {
-        ACCOUNT_LOGE("Account manager service, permission denied!");
-        REPORT_PERMISSION_FAIL();
-        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
 #ifdef SUPPORT_AUTHORIZATION
     RemoveOsAccountOptions dupOption = options;
@@ -702,7 +694,7 @@ ErrCode OsAccountManagerService::RemoveOsAccount(int32_t id, const RemoveOsAccou
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 #endif // SUPPORT_AUTHORIZATION
-    return innerManager_.RemoveOsAccount(id, options);
+    return innerManager_.RemoveOsAccount(id);
 }
 
 ErrCode OsAccountManagerService::IsOsAccountExists(int32_t id, bool &isOsAccountExists)
@@ -2447,6 +2439,14 @@ ErrCode OsAccountManagerService::SetOsAccountToBeRemoved(int32_t localId, bool t
         REPORT_PERMISSION_FAIL();
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
+#ifdef SUPPORT_AUTHORIZATION
+    res = PrivilegeCheck(std::nullopt, MANAGE_LOCAL_ACCOUNT_PRIVILEGE_NAME,
+        {{MAINTENANCE_UID, GenMaintenaceStrategy(localId)}});
+    if (res != ERR_OK) {
+        ACCOUNT_LOGE("Privilege check failed, ret=%{public}d.", res);
+        return res;
+    }
+#endif // SUPPORT_AUTHORIZATION
     return innerManager_.SetOsAccountToBeRemoved(localId, toBeRemoved);
 }
 
