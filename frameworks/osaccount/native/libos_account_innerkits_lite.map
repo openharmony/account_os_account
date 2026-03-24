@@ -1,0 +1,8 @@
+1.0 {
+  global:
+    extern "C++" {
+        "OHOS::AccountSA::OsAccountManagerLite::GetForegroundOsAccountLocalId(int&)";
+    };
+  local:
+    *;
+};

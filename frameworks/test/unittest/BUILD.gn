@@ -19,7 +19,11 @@ module_output_path = "os_account/os_account"
 config("account_proxy_mock_config_unittest") {
   visibility = [ ":*" ]
 
-  include_dirs = [ "include" ]
+  include_dirs = [
+    "include",
+    "${os_account_innerkits_native_path}/include",
+    "${os_account_innerkits_native_path}/src",
+  ]
 
   cflags = []
   if (target_cpu == "arm") {
@@ -59,10 +63,12 @@ ohos_unittest("account_proxy_mock_test") {
     "${os_account_core_path}/src/os_account_state_parcel.cpp",
     "${os_account_innerkits_native_path}/src/os_account_constraint_subscribe_info.cpp",
     "${os_account_innerkits_native_path}/src/os_account_constraint_subscriber.cpp",
+    "${os_account_innerkits_native_path}/src/os_account_manager_lite.cpp",
     "${os_account_innerkits_native_path}/src/os_account_manager.cpp",
     "${os_account_innerkits_native_path}/src/os_account_subscriber.cpp",
     "${os_account_core_path}/src/os_account_state_reply_callback.cpp",
     "account_iam_proxy_mock_test.cpp",
+    "account_os_account_manager_lite_proxy_mock_test.cpp",
     "account_ohosaccount_proxy_mock_test.cpp",
     "mock/iservice_registry.cpp",
   ]
@@ -103,7 +109,6 @@ ohos_unittest("account_proxy_mock_test") {
     "samgr:samgr_proxy",
   ]
 
-  cflags_cc = []
   if (has_pin_auth_part) {
     cflags_cc += [ "-DHAS_PIN_AUTH_PART" ]
     external_deps += [ "pin_auth:pinauth_framework" ]
