@@ -71,7 +71,9 @@ ohos_fuzztest("ProcHasDomainAccountStubFuzzTest") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
-
+  if (use_libfuzzer) {
+    cflags += [ "-DFUZZ_TEST" ]
+  }
   defines = [
     "ACCOUNT_LOG_TAG = \"AppAccountFuzzTest\"",
     "LOG_DOMAIN = 0xD001B00",
