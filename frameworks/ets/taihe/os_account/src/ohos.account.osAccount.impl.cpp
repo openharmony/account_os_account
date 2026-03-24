@@ -919,6 +919,42 @@ std::string ConvertMapViewToStringInner(uintptr_t parameters)
     return parametersInnerString;
 }
 
+/**
+ * @brief Generate an empty Record object for domain server config parameters.
+ * @param domainServerConfig Reference to DomainServerConfig to store the generated Record object.
+ * @note This function creates an ANI Record object and stores it as a uintptr_t.
+ * @note If the function fails, domainServerConfig.parameters will remain 0.
+ * @note Caller is responsible for managing the ANI object lifecycle.
+ */
+void GenerateEmptyRecord(DomainServerConfig &domainServerConfig)
+{
+    ani_env *env = get_env();
+    if (env == nullptr) {
+        ACCOUNT_LOGE("Env is nullptr.");
+        return;
+    }
+    ani_class cls;
+    ani_status status = env->FindClass("std.core.Record", &cls);
+    if (status != ANI_OK) {
+        ACCOUNT_LOGE("Record not found, ret:%{public}d.", status);
+        return;
+    }
+    ani_method ctorMethod = nullptr;
+    status = env->Class_FindMethod(cls, "<ctor>", ":", &ctorMethod);
+    if (status != ANI_OK) {
+        ACCOUNT_LOGE("Ctor not found, ret: %{public}d.", status);
+        return;
+    }
+    ani_object obj = nullptr;
+    status = env->Object_New(cls, ctorMethod, &obj);
+    if (status != ANI_OK) {
+        ACCOUNT_LOGE("Create object failed, ret: %{public}d.", status);
+        return;
+    }
+    domainServerConfig.parameters = reinterpret_cast<uintptr_t>(obj);
+    return;
+}
+
 DomainServerConfig ConvertToDomainServerConfigTH(const std::string& id, const std::string& domain,
     const std::string& parameters)
 {
@@ -928,7 +964,7 @@ DomainServerConfig ConvertToDomainServerConfigTH(const std::string& id, const st
         .domain = domain,
     };
     if (parameters.empty()) {
-        ACCOUNT_LOGE("Parameters is invalid.");
+        GenerateEmptyRecord(domainServerConfig);
         return domainServerConfig;
     }
     auto parametersJson = nlohmann::json::parse(parameters, nullptr, false);
