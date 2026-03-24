@@ -579,18 +579,18 @@ ErrCode OsAccountManagerService::CreateOsAccountForDomain(const OsAccountType &t
             return errCode;
         }
     } else {
-        std::vector<OsAccountInfo> osAccountInfos;
-        errCode = QueryAllCreatedOsAccounts(osAccountInfos);
-        if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("Query all created osAccount failed, errCode:%{public}d", errCode);
-            return errCode;
-        }
-        if ((osAccountInfos.size() != 1) || (osAccountInfos[0].GetLocalId() != Constants::START_USER_ID)) {
-            return ERR_AUTHORIZATION_PRIVILEGE_DENIED;
-        }
-        if (!osAccountInfos[0].GetLocalName().empty()) {
-            return ERR_AUTHORIZATION_PRIVILEGE_DENIED;
-        }
+#ifdef ENABLE_ACCOUNT_SHORT_NAME
+    OsAccountInfo accountInfoOld;
+    ErrCode code = innerManager_.GetRealOsAccountInfoById(Constants::START_USER_ID, accountInfoOld);
+    if (code != ERR_OK) {
+        ACCOUNT_LOGE("Failed to get real os account info, errCode=%{public}d.", code);
+        return code;
+    }
+    if (!accountInfoOld.GetShortName().empty()) {
+        ACCOUNT_LOGE("Create os account for domain without token and short name is not empty.");
+        return ERR_AUTHORIZATION_PRIVILEGE_DENIED;
+    }
+#endif // ENABLE_ACCOUNT_SHORT_NAME
     }
 #else
     if (options.hasToken) {
