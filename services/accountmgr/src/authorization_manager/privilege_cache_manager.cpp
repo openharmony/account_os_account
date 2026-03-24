@@ -659,7 +659,7 @@ ErrCode PrivilegeCacheManager::ToPersistFile(const int64_t currTime)
     };
     int32_t timerId = HiviewDFX::XCollie::GetInstance().SetTimer(PRIVILEGE_OPT_PERSIST_CACHE, HUKS_TIMEOUT,
         callback, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
-    ErrCode ret = GenerateDigestFromHuks(jsonStr, digest);
+    ErrCode ret = GenerateDigestFromHuks(currTime, jsonStr, digest);
     HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("Generate digest failed, ret=%{public}d", ret);
@@ -683,24 +683,26 @@ ErrCode PrivilegeCacheManager::ToPersistFile(const int64_t currTime)
     return ERR_OK;
 }
 
-ErrCode PrivilegeCacheManager::CheckUpdateTimeValid(const CJsonUnique &jsonObj, const int64_t currTime)
+ErrCode PrivilegeCacheManager::CheckUpdateTimeValid(const CJsonUnique &jsonObj,
+    const int64_t currTime, int64_t &updateTime)
 {
-    int64_t updateTime;
+    AccountFileOperator fileOperator;
     if (!GetDataByType<int64_t>(jsonObj, CACHE_MANAGER_UPDATE_TIME, updateTime)) {
         ACCOUNT_LOGE("Get update time from json failed");
+        updateTime = -1;
+        (void) fileOperator.DeleteFile(PRIVILEGE_CACHE_FILE_PATH);
         return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
     }
     if (updateTime >= currTime) {
         ACCOUNT_LOGE(
             "Update time is invalid, updateTime=%{public}" PRIi64 ", current=%{public}" PRIi64, updateTime, currTime);
-        AccountFileOperator fileOperator;
         (void) fileOperator.DeleteFile(PRIVILEGE_CACHE_FILE_PATH);
         return ERR_AUTHORIZATION_CHECK_TIME_FAILED;
     }
     return ERR_OK;
 }
 
-bool PrivilegeCacheManager::CheckPersistDigestValid(
+bool PrivilegeCacheManager::CheckPersistDigestValid(const int64_t updateTime,
     const std::string &processRecordsStr, const std::vector<uint8_t> &storedDigest)
 {
     XCollieCallback callback = [](void *) {
@@ -713,7 +715,7 @@ bool PrivilegeCacheManager::CheckPersistDigestValid(
 
     AccountFileOperator fileOperator;
     std::vector<uint8_t> calculatedDigest;
-    ErrCode ret = GenerateDigestFromHuks(processRecordsStr, calculatedDigest);
+    ErrCode ret = GenerateDigestFromHuks(updateTime, processRecordsStr, calculatedDigest);
     HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("Generate digest from huks failed, ret=%{public}d", ret);
@@ -750,10 +752,10 @@ void PrivilegeCacheManager::ReadAndCheckPersistRecordValid(
         ACCOUNT_LOGE("Parse file content to json failed");
         return;
     }
-    ret = CheckUpdateTimeValid(jsonObj, currTime);
+    int64_t updateTime = -1;
+    ret = CheckUpdateTimeValid(jsonObj, currTime, updateTime);
     if (ret == ERR_AUTHORIZATION_CHECK_TIME_FAILED) {
         ACCOUNT_LOGE("Update time check failed");
-        (void) fileOperator.DeleteFile(PRIVILEGE_CACHE_FILE_PATH);
         return;
     }
     if (ret != ERR_OK) {
@@ -766,7 +768,7 @@ void PrivilegeCacheManager::ReadAndCheckPersistRecordValid(
         ACCOUNT_LOGE("Get process records from json failed");
         return;
     }
-    if (!CheckPersistDigestValid(processRecordsStr, storedDigest)) {
+    if (!CheckPersistDigestValid(updateTime, processRecordsStr, storedDigest)) {
         ACCOUNT_LOGE("Persist digest check failed");
         return;
     }
@@ -775,12 +777,14 @@ void PrivilegeCacheManager::ReadAndCheckPersistRecordValid(
     return;
 }
 
-ErrCode PrivilegeCacheManager::GenerateDigestFromHuks(const std::string &jsonStr, std::vector<uint8_t> &digest)
+ErrCode PrivilegeCacheManager::GenerateDigestFromHuks(const int64_t updateTime,
+    const std::string &jsonStr, std::vector<uint8_t> &digest)
 {
     digest.clear();
 #ifdef HAS_HUKS_PART
     uint8_t buf[DIGEST_LENGTH] = {0};
-    ErrCode ret = GenerateAccountInfoDigest(jsonStr, buf, DIGEST_LENGTH);
+    std::string input = std::to_string(updateTime) + ':' + jsonStr;
+    ErrCode ret = GenerateAccountInfoDigest(input, buf, DIGEST_LENGTH);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("Generate account info digest failed, ret=%{public}d", ret);
         return ret;
