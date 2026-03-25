@@ -23,6 +23,11 @@
 
 namespace OHOS {
 namespace AccountSA {
+namespace {
+#ifdef SECURITY_GUARDE_ENABLE
+static constexpr int NANO_TO_MILLI = 1000000LL;
+#endif
+}
 std::string TransformIntoJson(const std::string &user, int32_t id, ReportEvent event, int32_t result)
 {
     auto jsonResult = CreateJson();
@@ -58,6 +63,49 @@ void AccountInfoReport::ReportSecurityInfo(const std::string &user, int32_t id, 
     }
     int64_t eventId = 1011015001; // 1011015001: report event id
     std::string content = TransformIntoJson(userName, id, event, result);
+    std::shared_ptr<EventInfo> eventInfo = std::make_shared<EventInfo>(eventId, "1.0", content);
+    NativeDataCollectKit::ReportSecurityInfoAsync(eventInfo);
+#endif
+}
+
+std::string TransformIntoAccountOperationJson(
+    const AccountOperationInfo &accountOperationInfo, AccountOperationType operationType)
+{
+#ifdef SECURITY_GUARDE_ENABLE
+    auto jsonResult = CreateJson();
+    AddIntToJson(jsonResult, "operationType", static_cast<int32_t>(operationType));
+    auto sourceJson = CreateJson();
+    AddIntToJson(sourceJson, "sourcePid", accountOperationInfo.pid);
+    AddIntToJson(sourceJson, "sourceUid", accountOperationInfo.uid);
+    AddStringToJson(sourceJson, "sourceUserName", accountOperationInfo.sourceUserName);
+    AddIntToJson(sourceJson, "sourceUserId", accountOperationInfo.sourceUserId);
+
+    auto targetJson = CreateJson();
+    AddStringToJson(targetJson, "targetUserName", accountOperationInfo.targetUserName);
+    AddIntToJson(targetJson, "targetUserId", accountOperationInfo.targetUserId);
+
+    AddObjToJson(jsonResult, "source", sourceJson);
+    AddObjToJson(jsonResult, "target", targetJson);
+    int64_t bootTime = MiscServices::TimeServiceClient::GetInstance()->GetBootTimeNs();
+    int64_t wallTimeNS = MiscServices::TimeServiceClient::GetInstance()->GetWallTimeNs();
+    int64_t happenTime = wallTimeNS / NANO_TO_MILLI;
+    int64_t happenTimeNS = wallTimeNS % NANO_TO_MILLI;
+    AddStringToJson(jsonResult, "bootTime", std::to_string(bootTime));
+    AddStringToJson(jsonResult, "happenTime", std::to_string(happenTime));
+    AddStringToJson(jsonResult, "happenTimeNS", std::to_string(happenTimeNS));
+    return PackJsonToString(jsonResult);
+#else
+    return "";
+#endif
+}
+
+void AccountInfoReport::ReportAccountOperation(
+    const AccountOperationInfo &accountOperationInfo, AccountOperationType operationType)
+{
+#ifdef SECURITY_GUARDE_ENABLE
+    using namespace Security::SecurityGuard;
+    int64_t eventId = 0x010000103;
+    std::string content = TransformIntoAccountOperationJson(accountOperationInfo, operationType);
     std::shared_ptr<EventInfo> eventInfo = std::make_shared<EventInfo>(eventId, "1.0", content);
     NativeDataCollectKit::ReportSecurityInfoAsync(eventInfo);
 #endif

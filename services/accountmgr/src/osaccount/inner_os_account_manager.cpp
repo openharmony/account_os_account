@@ -156,6 +156,21 @@ static ErrCode GetDomainAccountStatus(OsAccountInfo &osAccountInfo)
 }
 #endif // SUPPORT_DOMAIN_ACCOUNTS
 
+static void ReportAccountOperationEvent(AccountOperationType operationType, const std::string &targetUserName,
+    int32_t targetUserId)
+{
+    AccountOperationInfo accountOperationInfo;
+    accountOperationInfo.pid = IPCSkeleton::GetCallingPid();
+    accountOperationInfo.uid = IPCSkeleton::GetCallingUid();
+    accountOperationInfo.sourceUserId = accountOperationInfo.uid / UID_TRANSFORM_DIVISOR;
+    (void)IInnerOsAccountManager::GetInstance().GetOsAccountName(
+        accountOperationInfo.sourceUserId, accountOperationInfo.sourceUserName);
+
+    accountOperationInfo.targetUserName = targetUserName;
+    accountOperationInfo.targetUserId = targetUserId;
+    AccountInfoReport::ReportAccountOperation(accountOperationInfo, operationType);
+}
+
 IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManager_(OsAccountSubscribeManager::GetInstance()),
 #ifdef SUPPORT_LOCK_OS_ACCOUNT
     lockOsAccountPluginManager_(OsAccountLockOsAccountPluginManager::GetInstance()),
@@ -781,6 +796,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
     ACCOUNT_LOGI("OsAccountAccountMgr send to storage and bm for start success");
     // report data size when account created
     ReportUserDataSize(GetVerifiedAccountIds(verifiedAccounts_));
+    ReportAccountOperationEvent(ACCOUNT_OPERATION_TYPE_CREATE, osAccountInfo.GetLocalName(), localId);
     return ERR_OK;
 }
 
@@ -1504,6 +1520,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountRemove(OsAccountInfo &osAccount
     ReportOsAccountLifeCycle(localId, Constants::OPERATION_REMOVE);
     // report data size when account removed
     ReportUserDataSize(GetVerifiedAccountIds(verifiedAccounts_));
+    ReportAccountOperationEvent(ACCOUNT_OPERATION_TYPE_REMOVE, osAccountInfo.GetLocalName(), localId);
     return errCode;
 }
 
@@ -2227,6 +2244,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountType(const int id,
 #endif // SUPPORT_AUTHORIZATION
     }
 
+    ReportAccountOperationEvent(ACCOUNT_OPERATION_TYPE_UPDATE_TYPE, osAccountInfo.GetLocalName(), id);
     OsAccountInterface::PublishCommonEvent(osAccountInfo,
         OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, OPERATION_SET_TYPE);
     RemoveLocalIdToOperating(id);
@@ -2389,6 +2407,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountName(const int id, const std::string
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Update account index failed, errCode = %{public}d", errCode);
     }
+    ReportAccountOperationEvent(ACCOUNT_OPERATION_TYPE_UPDATE_NAME, name, id);
     OsAccountInterface::PublishCommonEvent(
         osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, OPERATION_UPDATE);
     return ERR_OK;
@@ -2474,6 +2493,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountProfilePhoto(const int id, const std
     }
     // report data size when profile photo updated
     ReportUserDataSize(GetVerifiedAccountIds(verifiedAccounts_));
+    ReportAccountOperationEvent(ACCOUNT_OPERATION_TYPE_UPDATE_PHOTO, osAccountInfo.GetLocalName(), id);
     OsAccountInterface::PublishCommonEvent(
         osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, OPERATION_UPDATE);
     return ERR_OK;
@@ -3685,7 +3705,6 @@ ErrCode IInnerOsAccountManager::SetOsAccountToBeRemoved(int32_t localId, bool to
             "Update ToBeRemoved flag failed");
         ACCOUNT_LOGE("Update ToBeRemoved flag failed, err=%{public}d", errCode);
     }
-
     RemoveLocalIdToOperating(localId);
     ReportOsAccountLifeCycle(localId, OPERATION_SET_TO_BE_REMOVED);
     return errCode;
