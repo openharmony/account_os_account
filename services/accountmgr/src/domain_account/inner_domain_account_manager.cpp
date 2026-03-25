@@ -620,6 +620,8 @@ static void GetAndCleanPluginDomainAccountInfo(DomainAccountInfo &info, PluginDo
     GetAndCleanPluginString((*pDomainAccountInfo)->domain, info.domain_);
     GetAndCleanPluginString((*pDomainAccountInfo)->accountName, info.accountName_);
     GetAndCleanPluginString((*pDomainAccountInfo)->accountId, info.accountId_);
+    std::string extraAttributes;
+    GetAndCleanPluginString((*pDomainAccountInfo)->extraAttributes, extraAttributes);
     info.isAuthenticated = (*pDomainAccountInfo)->isAuthenticated == 1;
     free((*pDomainAccountInfo));
     (*pDomainAccountInfo) = nullptr;

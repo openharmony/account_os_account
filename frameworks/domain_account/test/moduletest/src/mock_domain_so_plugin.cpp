@@ -90,7 +90,7 @@ PluginBussnessError *Auth(const PluginDomainAccountInfo *domainAccountInfo, cons
         *contextId = g_contextId;
         g_contextId++;
     }
-    
+
     auto delayCallback = [callback, contextId = *contextId]() {
         std::this_thread::sleep_for(std::chrono::seconds(1));
         ACCOUNT_LOGI("Mock Auth begin");
@@ -112,7 +112,7 @@ PluginBussnessError *Auth(const PluginDomainAccountInfo *domainAccountInfo, cons
     std::thread thread(delayCallback);
     pthread_setname_np(thread.native_handle(), "AuthCallbackTest");
     thread.detach();
-    
+
     return error;
 }
 
@@ -178,6 +178,7 @@ PluginBussnessError *GetAccountInfo(const PluginGetDomainAccountInfoOptions *opt
     SetPluginString(options->domainAccountInfo.domain.data, (*domainAccountInfo)->domain);
     SetPluginString(options->domainAccountInfo.accountName.data, (*domainAccountInfo)->accountName);
     SetPluginString(options->domainAccountInfo.accountId.data, (*domainAccountInfo)->accountId);
+    SetPluginString("test", (*domainAccountInfo)->extraAttributes);
 
     if (options->domainAccountInfo.serverConfigId.data != nullptr) {
         SetPluginString(options->domainAccountInfo.serverConfigId.data,
@@ -396,7 +397,7 @@ PluginBussnessError *AuthBlocking(const PluginDomainAccountInfo *domainAccountIn
     std::thread thread(delayCallback);
     pthread_setname_np(thread.native_handle(), "AuthBlocking");
     thread.detach();
-    
+
     return error;
 }
 

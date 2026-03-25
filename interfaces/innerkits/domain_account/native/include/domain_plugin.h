@@ -47,6 +47,7 @@ typedef struct {
     PluginString accountName;
     PluginString accountId;
     int32_t isAuthenticated;
+    PluginString extraAttributes;
 } PluginDomainAccountInfo;
 
 typedef struct {
