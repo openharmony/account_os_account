@@ -1583,36 +1583,6 @@ HWTEST_F(OsAccountInfoTest, OsAccountConstraintSubscribeInfo_OsAccountConstraint
 }
 
 /**
- * @tc.name: OsAccountSubscriber_OsAccountSubscriber_0100
- * @tc.desc: Test OsAccountSubscriber constructor and methods.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountInfoTest, OsAccountSubscriber_OsAccountSubscriber_0100, TestSize.Level1)
-{
-    OsAccountSubscriber subscriber;
-
-    OsAccountSubscribeInfo subscribeInfo;
-    subscriber.GetSubscribeInfo(subscribeInfo);
-}
-
-/**
- * @tc.name: OsAccountSubscriber_OsAccountSubscriber_0200
- * @tc.desc: Test OsAccountSubscriber constructor with parameters.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountInfoTest, OsAccountSubscriber_OsAccountSubscriber_0200, TestSize.Level1)
-{
-    std::set<OsAccountState> states = {OsAccountState::ACTIVATED, OsAccountState::CREATED};
-    OsAccountSubscribeInfo subscribeInfo(states);
-    OsAccountSubscriber subscriber(subscribeInfo);
-
-    OsAccountSubscribeInfo retrievedInfo;
-    subscriber.GetSubscribeInfo(retrievedInfo);
-}
-
-/**
  * @tc.name: OsAccountSubscribeInfo_OsAccountSubscribeInfo_0100
  * @tc.desc: Test OsAccountSubscribeInfo constructor and methods.
  * @tc.type: FUNC
@@ -1640,6 +1610,15 @@ HWTEST_F(OsAccountInfoTest, OsAccountSubscribeInfo_OsAccountSubscribeInfo_0100, 
     subscribeInfo.GetStates(states);
 
     EXPECT_FALSE(subscribeInfo.IsWithHandshake());
+    OsAccountSubscriber subscriber;
+
+    OsAccountSubscribeInfo subscribeInfo2;
+    subscriber.GetSubscribeInfo(subscribeInfo2);
+
+    OsAccountSubscriber subscriber2(subscribeInfo2);
+    OsAccountSubscribeInfo subscribeInfo3;
+    subscriber2.GetSubscribeInfo(subscribeInfo3);
+    EXPECT_FALSE(subscribeInfo3.IsWithHandshake());
 }
 
 /**
