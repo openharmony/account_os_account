@@ -148,8 +148,12 @@ ErrCode GetAcl(const int32_t pid, int32_t &aclLevel)
 {
     aclLevel = -1;
     int32_t fd = open("/dev/encaps", O_RDWR);
+    int32_t err = errno;
+    if ((fd < 0) && (err == ENOENT)) {
+        ACCOUNT_LOGW("Encaps device not found, ACL check not supported");
+        return ERR_OK;
+    }
     if (fd < 0) {
-        int32_t err = errno;
         ACCOUNT_LOGE("Open encaps failed, err=%{public}d", err);
         return err;
     }

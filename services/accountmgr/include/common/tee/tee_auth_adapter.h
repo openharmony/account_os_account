@@ -19,10 +19,10 @@
 #include <functional>
 #include <stdint.h>
 #include <vector>
-#include <mutex>
+#include <memory>
+#include <securec.h>
 #include "errors.h"
 #include "account_error_no.h"
-#include "tee_client_api.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -62,13 +62,6 @@ typedef struct {
 } __attribute__((__packed__)) UserTokenDataCipher;
 
 typedef struct {
-    uint32_t version;
-    UserTokenDataPlain userTokenDataPlain;
-    UserTokenDataCipher userTokenDataCipher;
-    uint8_t sign[TOKEN_CRYPTO_SIGN_SIZE];
-} __attribute__((__packed__)) UserTokenCrypto;
-
-typedef struct {
     UserTokenPlain userTokenPlain;
     int32_t remainValidityTime;
 } __attribute__((__packed__)) VerifyUserTokenResult;
@@ -87,7 +80,11 @@ typedef struct ApplyUserTokenParam {
     uint8_t authToken[AUTH_TOKEN_LEN];
     size_t authTokenSize;
     uint8_t challenge[CHALLENGE_LEN];
-    ~ApplyUserTokenParam();
+    ~ApplyUserTokenParam()
+    {
+        (void)memset_s(&authToken, authTokenSize * sizeof(uint8_t), 0, authTokenSize * sizeof(uint8_t));
+        (void)memset_s(&challenge, CHALLENGE_LEN * sizeof(uint8_t), 0, CHALLENGE_LEN * sizeof(uint8_t));
+    }
 } __attribute__((__packed__)) ApplyUserTokenParam;
 
 typedef struct ApplyUserTokenResult {
@@ -95,7 +92,10 @@ typedef struct ApplyUserTokenResult {
     size_t userTokenSize;
     int32_t remainValidityTime;
     uint32_t grantTime;
-    ~ApplyUserTokenResult();
+    ~ApplyUserTokenResult()
+    {
+        (void)memset_s(&userToken, userTokenSize * sizeof(uint8_t), 0, userTokenSize * sizeof(uint8_t));
+    }
 } __attribute__((__packed__)) ApplyUserTokenResult;
 
 /**
@@ -103,11 +103,14 @@ typedef struct ApplyUserTokenResult {
  *
  * This class provides a unified interface for interacting with TEE to perform various
  * OS account operations such as setting account type, creating accounts, deleting accounts, etc.
+ *
+ * Implementation details are hidden using pImpl pattern to support both TEE hardware
+ * and software fallback implementations without exposing TEE client symbols.
  */
 class OsAccountTeeAdapter {
 public:
-    OsAccountTeeAdapter() = default;
-    ~OsAccountTeeAdapter() = default;
+    OsAccountTeeAdapter();
+    ~OsAccountTeeAdapter();
 
     // Disable copy and move
     OsAccountTeeAdapter(const OsAccountTeeAdapter&) = delete;
@@ -221,71 +224,11 @@ public:
      * @return ERR_OK on success, error code on failure
      */
     ErrCode GetEdmBinAndCert(std::vector<uint8_t> &binData, std::vector<uint8_t> &certData);
+
 private:
-    /**
-     * @brief A RAII wrapper class for TEEC_Context.
-     */
-    class TeecContextGuard {
-    public:
-        TeecContextGuard() = default;
-        ~TeecContextGuard();
-
-        // Disable copy and move
-        TeecContextGuard(const TeecContextGuard&) = delete;
-        TeecContextGuard& operator=(const TeecContextGuard&) = delete;
-        TeecContextGuard(TeecContextGuard&&) = delete;
-        TeecContextGuard& operator=(TeecContextGuard&&) = delete;
-
-        TEEC_Result Initialize();
-        TEEC_Context* Get() { return &context_; }
-        bool IsInitialized() const { return initResult_ == TEEC_SUCCESS; }
-
-    private:
-        TEEC_Context context_;
-        std::once_flag initFlag_;
-        TEEC_Result initResult_ = TEEC_ERROR_GENERIC;
-    };
-
-    /**
-     * @brief A RAII wrapper class for TEEC_Session.
-     */
-    class TeecSessionGuard {
-    public:
-        TeecSessionGuard() = default;
-        ~TeecSessionGuard();
-
-        // Disable copy and move
-        TeecSessionGuard(const TeecSessionGuard&) = delete;
-        TeecSessionGuard& operator=(const TeecSessionGuard&) = delete;
-        TeecSessionGuard(TeecSessionGuard&&) = delete;
-        TeecSessionGuard& operator=(TeecSessionGuard&&) = delete;
-
-        TEEC_Result Open(TEEC_Context* context, const TEEC_UUID* uuid);
-        TEEC_Session* Get() { return &session_; }
-        bool IsOpened() const { return openResult_ == TEEC_SUCCESS; }
-
-    private:
-        TEEC_Session session_;
-        std::once_flag openFlag_;
-        TEEC_Result openResult_ = TEEC_ERROR_GENERIC;
-    };
-
-    /**
-     * @brief Executes TA command with given parameters.
-     * @param command - Indicates the TA command ID.
-     * @param setParams - A function to set parameters for the TEEC_Operation.
-     * @param processResult - A function to process results from the TEEC_Operation.
-     * @return error code, see account_error_no.h
-     */
-    ErrCode ExecuteCommand(uint32_t command, const std::function<ErrCode(TEEC_Operation&)>& setParams,
-        const std::function<ErrCode(TEEC_Operation&)>& processResult = nullptr);
-
-    /**
-     * @brief Converts TEEC error code to account error code.
-     * @param teeResult - Indicates the TEEC_Result from TEE operation.
-     * @return error code, see account_error_no.h
-     */
-    static ErrCode ConvertTeecErrCode(TEEC_Result teeResult);
+    // pImpl pattern - hide all implementation details including TEE types
+    class Impl;
+    std::unique_ptr<Impl> impl_;
 };
 } // namespace AccountSA
 } // namespace OHOS

@@ -292,7 +292,6 @@ ohos_shared_library("accountmgr") {
     configs += [ ":authorization_config" ]
     sources += [
       "${authorization_framework_path}/src/authorization_common.cpp",
-      "./src/common/tee/tee_auth_adapter.cpp",
       "src/authorization_manager/authorization_manager_service.cpp",
       "src/authorization_manager/inner_authorization_manager.cpp",
       "src/authorization_manager/privilege_cache_manager.cpp",
@@ -306,8 +305,17 @@ ohos_shared_library("accountmgr") {
     ]
     external_deps += [
       "ability_runtime:extension_manager",
-      "tee_client:libteec",
     ]
+
+    # Conditionally compile TEE or software implementation
+    if (!is_emulator) {
+      # Real device with TEE hardware - use TEE implementation
+      sources += [ "./src/common/tee/tee_auth_adapter.cpp" ]
+      external_deps += [ "tee_client:libteec" ]
+    } else {
+      # Emulator without TEE hardware - use software implementation
+      sources += [ "./src/common/tee/tee_auth_adapter_soft.cpp" ]
+    }
   }
 
   if (os_account_enable_multiple_foreground_os_accounts) {
