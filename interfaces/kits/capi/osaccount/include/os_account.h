@@ -16,6 +16,9 @@
 #ifndef OS_ACCOUNT_H
 #define OS_ACCOUNT_H
 
+#include <stdint.h>
+#include <stddef.h>
+
 /**
  * @addtogroup OsAccount
  * @{
@@ -52,6 +55,25 @@ extern "C" {
  * @since 12
  */
 OsAccount_ErrCode OH_OsAccount_GetName(char *buffer, size_t buffer_size);
+
+/**
+ * @brief Gets the name of the target OS account by its local ID.
+ *
+ * @permission ohos.permission.GET_LOCAL_ACCOUNT_IDENTIFIERS
+ * @param localId The local ID of the target OS account.
+ * @param name The name character array, which should have space for the name and the terminating character ('\0').
+ * The maximum size of the name is LOGIN_NAME_MAX.
+ * @param name_size The size of the name character array.
+ * @return {@link OS_ACCOUNT_ERR_OK} Indicates success;<br>
+ *         {@link OS_ACCOUNT_ERR_PERMISSION_DENIED} Indicates that permission is denied;<br>
+ *         {@link OS_ACCOUNT_ERR_INTERNAL_ERROR} Indicates the internal error.<br>
+ *         {@link OS_ACCOUNT_ERR_INVALID_PARAMETER} Indicates the <i>buffer</i> is a NULL pointer or the size of
+ *         the name, including the terminating character ('\0'), is larger than <i>buffer_size</i>;<br>
+ *         {@link OS_ACCOUNT_ERR_ACCOUNT_NOT_FOUND} Indicates the account not found;<br>
+ *         {@link OS_ACCOUNT_ERR_RESTRICTED_ACCOUNT} Indicates the account is restricted and cannot be queried;
+ * @since 26.0.0
+ */
+OsAccount_ErrCode OH_OsAccount_GetNameByLocalId(int32_t localId, char *name, size_t name_size);
 
 #ifdef __cplusplus
 };

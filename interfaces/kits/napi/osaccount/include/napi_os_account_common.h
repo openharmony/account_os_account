@@ -53,6 +53,8 @@ private:
 
 napi_value WrapVoidToJS(napi_env env);
 
+bool ParseCallbackAndId(napi_env env, napi_callback_info cbInfo, napi_ref &callbackRef, int &id, bool throwErr);
+
 bool ParseParaQueryOAByIdCB(napi_env env, napi_callback_info cbInfo, QueryOAByIdAsyncContext *asyncContext);
 
 void QueryOAByIdExecuteCB(napi_env env, void *data);
@@ -173,6 +175,10 @@ bool ParseParaGetPhoto(napi_env env, napi_callback_info cbInfo, GetOAPhotoAsyncC
 void GetOsAccountNameExecuteCB(napi_env env, void *data);
 
 void GetOsAccountNameCallbackCompletedCB(napi_env env, napi_status status, void *data);
+
+void GetOsAccountNameByIdExecuteCB(napi_env env, void *data);
+
+void GetOsAccountNameByIdCallbackCompletedCB(napi_env env, napi_status status, void *data);
 
 void GetOAPhotoExecuteCB(napi_env env, void *data);
 
