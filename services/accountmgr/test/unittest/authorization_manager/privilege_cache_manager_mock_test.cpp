@@ -69,6 +69,14 @@ public:
         (const uint32_t grantTime, const int32_t period, int32_t &remainTimeSec, bool &isValid));
 };
 
+class OsAccountTeeAdapter::Impl {
+public:
+    Impl() = default;
+    ~Impl() = default;
+};
+OsAccountTeeAdapter::OsAccountTeeAdapter() : impl_(std::make_unique<Impl>()) {};
+OsAccountTeeAdapter::~OsAccountTeeAdapter() = default;
+
 ErrCode OsAccountTeeAdapter::CheckTimestampExpired(
     const uint32_t grantTime, const int32_t period, int32_t &remainTimeSec, bool &isValid)
 {
