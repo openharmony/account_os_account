@@ -205,14 +205,6 @@ void OsAccountConstraintSubscribeManager::PublishToSubscriber(const OsAccountCon
             recordPtr->callingUid_);
         return;
     }
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto it = userListenerMap_.find(recordPtr->eventListener_);
-    if ((it != userListenerMap_.end()) && (userListenerMap_[recordPtr->eventListener_]) != localId) {
-            ACCOUNT_LOGE("LocalId does not match, subscriber localId=%{public}d, constraint change localId=%{public}d.",
-                userListenerMap_[recordPtr->eventListener_], localId);
-            return;
-    }
-    
     auto eventProxy = iface_cast<IOsAccountConstraintEvent>(recordPtr->eventListener_);
     if (eventProxy == nullptr) {
         ACCOUNT_LOGE("Event proxy is nullptr");
@@ -251,6 +243,11 @@ void OsAccountConstraintSubscribeManager::Publish(int32_t localId, const std::se
         }
     }
     for (auto const &item : recordPtrSet) {
+        auto it = userListenerMap_.find(item->eventListener_);
+        if ((it != userListenerMap_.end()) && (it->second) != localId) {
+            ACCOUNT_LOGE("LocalId mismatch, subscriber=%{public}d, changer=%{public}d.", it->second, localId);
+            continue;
+        }
         auto task = [item, localId, constraints, isEnabled, this] {
             ACCOUNT_LOGI("Publish start, to uid=%{public}d asynch, accountId=%{public}d, enable=%{public}d",
                 item->callingUid_, localId, isEnabled);
