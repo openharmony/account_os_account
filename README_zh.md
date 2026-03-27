@@ -80,7 +80,7 @@
 
 ### 接口说明<a name="section1551164914237"></a>
 
-#### 1，分布式帐号
+#### 1. 分布式帐号
 
 分布式帐号的功能主要包括查询和更新帐号登录状态，仅支持系统应用。
 
@@ -97,7 +97,7 @@
 <tbody>
 <tr id="row0506185417614"><td class="cellrowborder" valign="top" width="51.53%" headers="mcps1.2.3.1.1 "><p id="p1561112131788"><a name="p1561112131788"></a><a name="p1561112131788"></a>distributedAccount</p>
 </td>
-<td class="cellrowborder" valign="top" width="48.47%" headers="mcps1.2.3.1.2 "><p id="p1954531161115"><a name="p1954531161115"></a><a name="p1954531161115"></a>提供分布式帐号模块管理方法</p>
+<td class="cellrowborder" valign="top" width="48.47%" headers="mcps1.2.3.1.2 "><p id="p1954531161115"><a name="p1954531161115"></a><a name="p1954531161115"></a>提供分布式帐号模块管理方法。</p>
 </td>
 </tr>
 </tbody>
@@ -181,7 +181,7 @@
 </table>
 
 
-#### 2，应用帐号
+#### 2. 应用帐号
 
 应用帐号的主要功能包括应用帐号的添加、删除，查询，修改，授权等功能，提供帐号数据落盘和数据同步的能力。
 
@@ -554,7 +554,7 @@
 </table>
 
 
-#### 3，系统帐号
+#### 3. 系统帐号
 
 系统帐号的主要功能包括系统帐号的添加、删除，查询，设置，订阅，启动等功能，提供系统帐号数据落盘的能力。
 
@@ -1301,7 +1301,10 @@
 
 ## 相关仓<a name="section1371113476307"></a>
 
-帐号子系统
+**[bundlemanager\_bundle\_framework](https://gitcode.com/openharmony/bundlemanager_bundle_framework/blob/master/README_zh.md)**
 
-**account\_os\_account**
+**[ability\_ability\_runtime](https://gitcode.com/openharmony/ability_ability_runtime/blob/master/README_zh.md)**
 
+**[filemanagement\_storage\_service](https://gitcode.com/openharmony/filemanagement_storage_service/blob/master/README_zh.md)**
+
+**[useriam\_user\_auth\_framework](https://gitcode.com/openharmony/useriam_user_auth_framework/blob/master/README_ZH.md)**
