@@ -1614,7 +1614,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, BindDomainAccount010, TestSi
     domainInfo.domain_ = "test.example.com";
     domainInfo.accountId_ = "testid";
     auto service = std::make_shared<OsAccountManagerService>();
-    std::string overlengthStr(Constants::LOCAL_NAME_MAX_SIZE + 1, '0');
+    std::string overlengthStr(Constants::LOCAL_NAME_MAX_SIZE, '0');
 
     domainInfo.accountName_ = overlengthStr;
     ErrCode ret = OsAccountManager::BindDomainAccount(100, domainInfo, callback);

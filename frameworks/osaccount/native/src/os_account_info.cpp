@@ -170,7 +170,7 @@ void OsAccountInfo::SetCreatorType(int32_t creatorType)
 
 bool OsAccountInfo::SetDomainInfo(const DomainAccountInfo &domainInfo)
 {
-    if (domainInfo.accountName_.size() > Constants::LOCAL_NAME_MAX_SIZE) {
+    if (domainInfo.accountName_.size() >= Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("domain account name too long! %{public}zu.", domainInfo.accountName_.size());
         return false;
     }
@@ -304,7 +304,7 @@ ErrCode OsAccountInfo::ParamCheck()
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
-    if (localName_.size() > Constants::LOCAL_NAME_MAX_SIZE) {
+    if (localName_.size() >= Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("local name length %{public}zu is too long!", localName_.size());
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }

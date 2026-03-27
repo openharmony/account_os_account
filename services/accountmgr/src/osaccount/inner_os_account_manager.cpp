@@ -193,7 +193,7 @@ IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManager_(OsAccountSu
         defaultActivatedIds_.EnsureInsert(displayId, localId);
     }
     osAccountControl_->GetOsAccountConfig(config_);
-    SetParameter(PARAM_LOGIN_NAME_MAX, std::to_string(Constants::LOCAL_NAME_MAX_SIZE).c_str());
+    SetParameter(PARAM_LOGIN_NAME_MAX, std::to_string(Constants::LOCAL_NAME_MAX_SIZE - 1).c_str());
 #ifdef SUPPORT_AUTHORIZATION
     osAccountCacheManager_ = std::make_unique<OsAccountCacheManager>();
 #endif // SUPPORT_AUTHORIZATION
@@ -2165,7 +2165,7 @@ ErrCode IInnerOsAccountManager::GetOsAccountLocalIdFromDomain(const DomainAccoun
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
-    if (domainInfo.accountName_.size() > Constants::LOCAL_NAME_MAX_SIZE) {
+    if (domainInfo.accountName_.size() >= Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("Invalid domain account name length %{public}zu.", domainInfo.accountName_.size());
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
