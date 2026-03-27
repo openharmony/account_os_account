@@ -520,7 +520,9 @@ ErrCode OsAccountManagerService::UpdateOsAccountWithFullInfo(const OsAccountInfo
         ACCOUNT_LOGE("Cannot update admin account error");
         return ERR_OSACCOUNT_SERVICE_MANAGER_CREATE_OSACCOUNT_TYPE_ERROR;
     }
-
+#ifdef SUPPORT_AUTHORIZATION
+    return ERR_AUTHORIZATION_PRIVILEGE_DENIED;
+#endif // SUPPORT_AUTHORIZATION
     auto convertOsAccountInfo = osAccountInfo;
     return innerManager_.UpdateOsAccountWithFullInfo(convertOsAccountInfo);
 }
