@@ -142,7 +142,8 @@ public:
         return ERR_OK;
     }
 
-    ErrCode VerifyToken(const std::vector<uint8_t>& token, std::vector<uint8_t>& tokenResult)
+    ErrCode VerifyToken(const std::vector<uint8_t>& token,
+        const std::string &privilege, std::vector<uint8_t>& tokenResult)
     {
         if (token.empty()) {
             ACCOUNT_LOGE("Token is empty, tokenSize=%{public}zu (must>0)", token.size());
@@ -476,9 +477,10 @@ ErrCode OsAccountTeeAdapter::MigrateOsAccountTypesToTee(
     return impl_->MigrateOsAccountTypesToTee(ids, types);
 }
 
-ErrCode OsAccountTeeAdapter::VerifyToken(const std::vector<uint8_t>& token, std::vector<uint8_t>& tokenResult)
+ErrCode OsAccountTeeAdapter::VerifyToken(
+    const std::vector<uint8_t>& token, const std::string &privilege, std::vector<uint8_t>& tokenResult)
 {
-    return impl_->VerifyToken(token, tokenResult);
+    return impl_->VerifyToken(token, privilege, tokenResult);
 }
 
 ErrCode OsAccountTeeAdapter::CheckTimestampExpired(const uint32_t grantTime, const int32_t period,

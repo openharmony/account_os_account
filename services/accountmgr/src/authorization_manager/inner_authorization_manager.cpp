@@ -474,7 +474,7 @@ ErrCode InnerAuthorizationManager::VerifyToken(const std::vector<uint8_t> &token
 {
     OsAccountTeeAdapter adapter;
     std::vector<uint8_t> outToken(sizeof(VerifyUserTokenResult), 0);
-    ErrCode errCode = adapter.VerifyToken(token, outToken);
+    ErrCode errCode = adapter.VerifyToken(token, privilege, outToken);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Failed to verify token, errCode:%{public}d", errCode);
         REPORT_OS_ACCOUNT_FAIL(-1, PRIVILEGE_OPT_VERIFY_TOKEN, errCode, "Failed to verify token");
@@ -497,10 +497,9 @@ ErrCode InnerAuthorizationManager::VerifyToken(const std::vector<uint8_t> &token
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     uint32_t pidFromToken = tokenRet.userTokenPlain.userTokenDataPlain.pid;
-    uint32_t privilegeIdFromToken = tokenRet.userTokenPlain.userTokenDataPlain.privilege;
-    if (pid != pidFromToken || privilege != TransferCodeToPrivilege(privilegeIdFromToken)) {
-        ACCOUNT_LOGI("Failed to compare pid or privilegeId, VerifyToken operation failed");
-        return ERR_OK;
+    if (pid != pidFromToken) {
+        ACCOUNT_LOGI("Failed to compare pid, VerifyToken operation failed");
+        return ERR_AUTHORIZATION_PRIVILEGE_DENIED;
     }
     auto &challengeData = tokenRet.userTokenPlain.userTokenDataPlain.challenge;
     challenge = std::vector<uint8_t>(challengeData, challengeData + sizeof(challengeData));

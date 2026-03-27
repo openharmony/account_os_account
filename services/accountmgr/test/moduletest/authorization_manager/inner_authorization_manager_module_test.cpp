@@ -180,7 +180,8 @@ ErrCode OsAccountTeeAdapter::TaAcquireAuthorization(const ApplyUserTokenParam& p
     return MockOsAccountTeeAdapter::GetInstance().TaAcquireAuthorization(param, result);
 }
 
-ErrCode OsAccountTeeAdapter::VerifyToken(const std::vector<uint8_t>& token, std::vector<uint8_t>& tokenResult)
+ErrCode OsAccountTeeAdapter::VerifyToken(
+    const std::vector<uint8_t>& token, const std::string &privilege, std::vector<uint8_t>& tokenResult)
 {
     return MockOsAccountTeeAdapter::GetInstance().VerifyToken(token, tokenResult);
 }
