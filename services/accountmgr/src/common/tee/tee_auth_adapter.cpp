@@ -17,9 +17,9 @@
 
 #include <fstream>
 #include <mutex>
+#include <securec.h>
 #include "account_file_operator.h"
 #include "account_log_wrapper.h"
-#include "tee_client_api.h"  // TEE API only included in .cpp file
 
 namespace OHOS {
 namespace AccountSA {
@@ -50,102 +50,24 @@ namespace {
     };
 }
 
-// pImpl implementation class - contains all TEE-specific implementation details
-class OsAccountTeeAdapter::Impl {
-public:
-    Impl() = default;
-    ~Impl() = default;
+ApplyUserTokenParam::~ApplyUserTokenParam()
+{
+    (void)memset_s(&authToken, authTokenSize * sizeof(uint8_t), 0, authTokenSize * sizeof(uint8_t));
+}
 
-    // Disable copy and move
-    Impl(const Impl&) = delete;
-    Impl& operator=(const Impl&) = delete;
-    Impl(Impl&&) = delete;
-    Impl& operator=(Impl&&) = delete;
+ApplyUserTokenResult::~ApplyUserTokenResult()
+{
+    (void)memset_s(&userToken, userTokenSize * sizeof(uint8_t), 0, userTokenSize * sizeof(uint8_t));
+}
 
-    ErrCode GetOsAccountType(int32_t id, int32_t &type);
-    ErrCode SetOsAccountType(int32_t id, int32_t type, const std::vector<uint8_t>& token);
-    ErrCode SetOsAccountType(int32_t id, int32_t type, const std::vector<uint8_t>& edaToken,
-        const std::vector<uint8_t>& certToken);
-    ErrCode DelOsAccountType(int32_t id, const std::vector<uint8_t>& token);
-    ErrCode MigrateOsAccountTypesToTee(const std::vector<int32_t> &ids, const std::vector<int32_t> &types);
-    ErrCode VerifyToken(const std::vector<uint8_t>& token, std::vector<uint8_t>& tokenResult);
-    ErrCode CheckTimestampExpired(const uint32_t grantTime, const int32_t period,
-        int32_t &remainTimeSec, bool &isValid);
-    ErrCode TaAcquireAuthorization(const ApplyUserTokenParam &param, ApplyUserTokenResult &result);
-    ErrCode GetEdmBinAndCert(std::vector<uint8_t> &binData, std::vector<uint8_t> &certData);
-
-private:
-    /**
-     * @brief A RAII wrapper class for TEEC_Context.
-     * Moved to pImpl implementation to hide TEE types.
-     */
-    class TeecContextGuard {
-    public:
-        TeecContextGuard() = default;
-        ~TeecContextGuard();
-
-        // Disable copy and move
-        TeecContextGuard(const TeecContextGuard&) = delete;
-        TeecContextGuard& operator=(const TeecContextGuard&) = delete;
-        TeecContextGuard(TeecContextGuard&&) = delete;
-        TeecContextGuard& operator=(TeecContextGuard&&) = delete;
-
-        TEEC_Result Initialize();
-        TEEC_Context* Get() { return &context_; }
-        bool IsInitialized() const { return initResult_ == TEEC_SUCCESS; }
-
-    private:
-        TEEC_Context context_;
-        std::once_flag initFlag_;
-        TEEC_Result initResult_ = TEEC_ERROR_GENERIC;
-    };
-
-    /**
-     * @brief A RAII wrapper class for TEEC_Session.
-     * Moved to pImpl implementation to hide TEE types.
-     */
-    class TeecSessionGuard {
-    public:
-        TeecSessionGuard() = default;
-        ~TeecSessionGuard();
-
-        // Disable copy and move
-        TeecSessionGuard(const TeecSessionGuard&) = delete;
-        TeecSessionGuard& operator=(const TeecSessionGuard&) = delete;
-        TeecSessionGuard(TeecSessionGuard&&) = delete;
-        TeecSessionGuard& operator=(TeecSessionGuard&&) = delete;
-
-        TEEC_Result Open(TEEC_Context* context, const TEEC_UUID* uuid);
-        TEEC_Session* Get() { return &session_; }
-        bool IsOpened() const { return openResult_ == TEEC_SUCCESS; }
-
-    private:
-        TEEC_Session session_;
-        std::once_flag openFlag_;
-        TEEC_Result openResult_ = TEEC_ERROR_GENERIC;
-    };
-
-    /**
-     * @brief Executes TA command with given parameters.
-     */
-    ErrCode ExecuteCommand(uint32_t command, const std::function<ErrCode(TEEC_Operation&)>& setParams,
-        const std::function<ErrCode(TEEC_Operation&)>& processResult = nullptr);
-
-    /**
-     * @brief Converts TEEC error code to account error code.
-     */
-    static ErrCode ConvertTeecErrCode(TEEC_Result teeResult);
-};
-
-// TeecContextGuard implementation
-OsAccountTeeAdapter::Impl::TeecContextGuard::~TeecContextGuard()
+OsAccountTeeAdapter::TeecContextGuard::~TeecContextGuard()
 {
     if (initResult_ == TEEC_SUCCESS) {
         TEEC_FinalizeContext(&context_);
     }
 }
 
-TEEC_Result OsAccountTeeAdapter::Impl::TeecContextGuard::Initialize()
+TEEC_Result OsAccountTeeAdapter::TeecContextGuard::Initialize()
 {
     std::call_once(initFlag_, [&]() {
         initResult_ = TEEC_InitializeContext(nullptr, &context_);
@@ -156,8 +78,7 @@ TEEC_Result OsAccountTeeAdapter::Impl::TeecContextGuard::Initialize()
     return initResult_;
 }
 
-// TeecSessionGuard implementation
-TEEC_Result OsAccountTeeAdapter::Impl::TeecSessionGuard::Open(TEEC_Context* context, const TEEC_UUID* uuid)
+TEEC_Result OsAccountTeeAdapter::TeecSessionGuard::Open(TEEC_Context* context, const TEEC_UUID* uuid)
 {
     std::call_once(openFlag_, [&]() {
         uint32_t origin = 0;
@@ -171,14 +92,14 @@ TEEC_Result OsAccountTeeAdapter::Impl::TeecSessionGuard::Open(TEEC_Context* cont
     return openResult_;
 }
 
-OsAccountTeeAdapter::Impl::TeecSessionGuard::~TeecSessionGuard()
+OsAccountTeeAdapter::TeecSessionGuard::~TeecSessionGuard()
 {
     if (openResult_ == TEEC_SUCCESS) {
         TEEC_CloseSession(&session_);
     }
 }
 
-ErrCode OsAccountTeeAdapter::Impl::ConvertTeecErrCode(TEEC_Result teeResult)
+ErrCode OsAccountTeeAdapter::ConvertTeecErrCode(TEEC_Result teeResult)
 {
     switch (teeResult) {
         case TEEC_ERROR_ACCESS_DENIED:
@@ -194,19 +115,19 @@ ErrCode OsAccountTeeAdapter::Impl::ConvertTeecErrCode(TEEC_Result teeResult)
     }
 }
 
-ErrCode OsAccountTeeAdapter::Impl::ExecuteCommand(
+ErrCode OsAccountTeeAdapter::ExecuteCommand(
     uint32_t command, const std::function<ErrCode(TEEC_Operation &)> &setParams,
     const std::function<ErrCode(TEEC_Operation &)> &processResult)
 {
     // Initialize TEE context
-    TeecContextGuard contextGuard;
+    OsAccountTeeAdapter::TeecContextGuard contextGuard;
     TEEC_Result result = contextGuard.Initialize();
     if (result != TEEC_SUCCESS) {
         ACCOUNT_LOGE("TEEC_InitializeContext failed, result: %{public}u", result);
         return ERR_ACCOUNT_COMMON_OPERATION_FAIL;
     }
     // Open TEE session
-    TeecSessionGuard sessionGuard;
+    OsAccountTeeAdapter::TeecSessionGuard sessionGuard;
     result = sessionGuard.Open(contextGuard.Get(), &ACCOUNT_TA_UUID);
     if (result != TEEC_SUCCESS) {
         ACCOUNT_LOGE("TEEC_OpenSession failed, result: %{public}u", result);
@@ -221,7 +142,7 @@ ErrCode OsAccountTeeAdapter::Impl::ExecuteCommand(
     uint32_t origin = 0;
     result = TEEC_InvokeCommand(sessionGuard.Get(), command, &operation, &origin);
     if (result != TEEC_SUCCESS) {
-        ACCOUNT_LOGE("TEEC_InvokeCommand failed, command: %{public}u, result: 0x%{public}x, origin: %{public}u",
+        ACCOUNT_LOGE("TEEC_InvokeCommand failed, command: %{public}u, result: %{public}u, origin: %{public}u",
             command, result, origin);
         return ConvertTeecErrCode(result);
     }
@@ -231,7 +152,7 @@ ErrCode OsAccountTeeAdapter::Impl::ExecuteCommand(
     return ERR_OK;
 }
 
-ErrCode OsAccountTeeAdapter::Impl::GetOsAccountType(int32_t id, int32_t &type)
+ErrCode OsAccountTeeAdapter::GetOsAccountType(int32_t id, int32_t &type)
 {
     std::function<ErrCode(TEEC_Operation &)> setParamTask = [id](TEEC_Operation &operation) {
         operation.started = 1;
@@ -250,7 +171,7 @@ ErrCode OsAccountTeeAdapter::Impl::GetOsAccountType(int32_t id, int32_t &type)
     return ret;
 }
 
-ErrCode OsAccountTeeAdapter::Impl::SetOsAccountType(int32_t id, int32_t type, const std::vector<uint8_t>& token)
+ErrCode OsAccountTeeAdapter::SetOsAccountType(int32_t id, int32_t type, const std::vector<uint8_t>& token)
 {
     std::function<ErrCode(TEEC_Operation &)> setParamTask = [id, type, &token](TEEC_Operation &operation) {
         operation.started = 1;
@@ -270,7 +191,7 @@ ErrCode OsAccountTeeAdapter::Impl::SetOsAccountType(int32_t id, int32_t type, co
     return ret;
 }
 
-ErrCode OsAccountTeeAdapter::Impl::SetOsAccountType(int32_t id, int32_t type,
+ErrCode OsAccountTeeAdapter::SetOsAccountType(int32_t id, int32_t type,
     const std::vector<uint8_t>& edaToken, const std::vector<uint8_t>& certToken)
 {
     std::function<ErrCode(TEEC_Operation &)> setParamTask;
@@ -306,7 +227,7 @@ ErrCode OsAccountTeeAdapter::Impl::SetOsAccountType(int32_t id, int32_t type,
     return ret;
 }
 
-ErrCode OsAccountTeeAdapter::Impl::MigrateOsAccountTypesToTee(
+ErrCode OsAccountTeeAdapter::MigrateOsAccountTypesToTee(
     const std::vector<int32_t> &ids, const std::vector<int32_t> &types)
 {
     if (ids.empty() || types.empty()) {
@@ -354,7 +275,7 @@ ErrCode OsAccountTeeAdapter::Impl::MigrateOsAccountTypesToTee(
     return ret;
 }
 
-ErrCode OsAccountTeeAdapter::Impl::DelOsAccountType(int32_t id, const std::vector<uint8_t>& token)
+ErrCode OsAccountTeeAdapter::DelOsAccountType(int32_t id, const std::vector<uint8_t>& token)
 {
     std::function<ErrCode(TEEC_Operation &)> setParamTask = [id, &token](TEEC_Operation &operation) {
         operation.started = 1;
@@ -372,7 +293,7 @@ ErrCode OsAccountTeeAdapter::Impl::DelOsAccountType(int32_t id, const std::vecto
     return ret;
 }
 
-ErrCode OsAccountTeeAdapter::Impl::VerifyToken(const std::vector<uint8_t>& token, std::vector<uint8_t>& tokenResult)
+ErrCode OsAccountTeeAdapter::VerifyToken(const std::vector<uint8_t>& token, std::vector<uint8_t>& tokenResult)
 {
     std::function<ErrCode(TEEC_Operation &)> setParamTask = [&token, &tokenResult] (TEEC_Operation &operation) {
         operation.started = 1;
@@ -391,7 +312,7 @@ ErrCode OsAccountTeeAdapter::Impl::VerifyToken(const std::vector<uint8_t>& token
     return ret;
 }
 
-ErrCode OsAccountTeeAdapter::Impl::CheckTimestampExpired(
+ErrCode OsAccountTeeAdapter::CheckTimestampExpired(
     const uint32_t grantTime, const int32_t period, int32_t &remainTimeSec, bool &isValid)
 {
     VerifyGrantTimeResult result;
@@ -414,8 +335,7 @@ ErrCode OsAccountTeeAdapter::Impl::CheckTimestampExpired(
     return ERR_OK;
 }
 
-ErrCode OsAccountTeeAdapter::Impl::TaAcquireAuthorization(
-    const ApplyUserTokenParam &param, ApplyUserTokenResult &tokenResult)
+ErrCode OsAccountTeeAdapter::TaAcquireAuthorization(const ApplyUserTokenParam &param, ApplyUserTokenResult &tokenResult)
 {
     std::function<ErrCode(TEEC_Operation &)> setParamTask = [&param, &tokenResult](TEEC_Operation &operation) {
         (void)memset_s(&operation, sizeof(TEEC_Operation), 0, sizeof(TEEC_Operation));
@@ -455,7 +375,7 @@ static ErrCode GetFileContextWithNoLock(const std::string &path, std::vector<uin
     return ERR_OK;
 }
 
-ErrCode OsAccountTeeAdapter::Impl::GetEdmBinAndCert(std::vector<uint8_t> &binData, std::vector<uint8_t> &certData)
+ErrCode OsAccountTeeAdapter::GetEdmBinAndCert(std::vector<uint8_t> &binData, std::vector<uint8_t> &certData)
 {
     std::string binPath = "/data/service/el1/public/cust/enterprise/eda.bin";
     std::string certPath = "/etc/edm/cacert.pem";
@@ -469,58 +389,6 @@ ErrCode OsAccountTeeAdapter::Impl::GetEdmBinAndCert(std::vector<uint8_t> &binDat
         ACCOUNT_LOGE("Failed to get cacert.pem, errCode: %{public}d", errCode);
     }
     return errCode;
-}
-
-// Public interface implementation - delegates to pImpl
-OsAccountTeeAdapter::OsAccountTeeAdapter() : impl_(std::make_unique<Impl>()) {}
-OsAccountTeeAdapter::~OsAccountTeeAdapter() = default;
-
-ErrCode OsAccountTeeAdapter::GetOsAccountType(int32_t id, int32_t &type)
-{
-    return impl_->GetOsAccountType(id, type);
-}
-
-ErrCode OsAccountTeeAdapter::SetOsAccountType(int32_t id, int32_t type, const std::vector<uint8_t>& token)
-{
-    return impl_->SetOsAccountType(id, type, token);
-}
-
-ErrCode OsAccountTeeAdapter::SetOsAccountType(int32_t id, int32_t type,
-    const std::vector<uint8_t>& edaToken, const std::vector<uint8_t>& certToken)
-{
-    return impl_->SetOsAccountType(id, type, edaToken, certToken);
-}
-
-ErrCode OsAccountTeeAdapter::DelOsAccountType(int32_t id, const std::vector<uint8_t>& token)
-{
-    return impl_->DelOsAccountType(id, token);
-}
-
-ErrCode OsAccountTeeAdapter::MigrateOsAccountTypesToTee(
-    const std::vector<int32_t> &ids, const std::vector<int32_t> &types)
-{
-    return impl_->MigrateOsAccountTypesToTee(ids, types);
-}
-
-ErrCode OsAccountTeeAdapter::VerifyToken(const std::vector<uint8_t>& token, std::vector<uint8_t>& tokenResult)
-{
-    return impl_->VerifyToken(token, tokenResult);
-}
-
-ErrCode OsAccountTeeAdapter::CheckTimestampExpired(const uint32_t grantTime, const int32_t period,
-    int32_t &remainTimeSec, bool &isValid)
-{
-    return impl_->CheckTimestampExpired(grantTime, period, remainTimeSec, isValid);
-}
-
-ErrCode OsAccountTeeAdapter::TaAcquireAuthorization(const ApplyUserTokenParam &param, ApplyUserTokenResult &result)
-{
-    return impl_->TaAcquireAuthorization(param, result);
-}
-
-ErrCode OsAccountTeeAdapter::GetEdmBinAndCert(std::vector<uint8_t> &binData, std::vector<uint8_t> &certData)
-{
-    return impl_->GetEdmBinAndCert(binData, certData);
 }
 } // namespace AccountSA
 } // namespace OHOS
