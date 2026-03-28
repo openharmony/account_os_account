@@ -380,6 +380,10 @@ bool DomainAuthResult::ReadFromParcel(Parcel &parcel)
         return false;
     }
     authStatusInfo = *infoPtr;
+    if (!parcel.ReadInt32(accountId)) {
+        ACCOUNT_LOGE("Failed to read accountId");
+        return false;
+    }
     return true;
 }
 
@@ -391,6 +395,10 @@ bool DomainAuthResult::Marshalling(Parcel &parcel) const
     }
     if (!parcel.WriteParcelable(&authStatusInfo)) {
         ACCOUNT_LOGE("Failed to write authStatusInfo");
+        return false;
+    }
+    if (!parcel.WriteInt32(accountId)) {
+        ACCOUNT_LOGE("Failed to write accountId");
         return false;
     }
     return true;

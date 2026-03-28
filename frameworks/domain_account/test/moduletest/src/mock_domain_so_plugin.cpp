@@ -98,6 +98,7 @@ PluginBussnessError *Auth(const PluginDomainAccountInfo *domainAccountInfo, cons
         SetPluginUint8Vector({1, 2}, authResultInfo->accountToken);
         authResultInfo->remainTimes = 1;
         authResultInfo->freezingTime = 1;
+        authResultInfo->localId = -1;
 
         PluginBussnessError *error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
         if (error != nullptr) {
@@ -382,6 +383,7 @@ PluginBussnessError *AuthBlocking(const PluginDomainAccountInfo *domainAccountIn
         SetPluginUint8Vector({1, 2}, authResultInfo->accountToken);
         authResultInfo->remainTimes = 1;
         authResultInfo->freezingTime = 1;
+        authResultInfo->localId = -1;
 
         PluginBussnessError *error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
         if (error != nullptr) {
@@ -419,6 +421,7 @@ PluginBussnessError *CancelAuth(const uint64_t contextId)
         SetPluginUint8Vector({1, 2}, authResultInfo->accountToken);
         authResultInfo->remainTimes = 1;
         authResultInfo->freezingTime = 1;
+        authResultInfo->localId = -1;
 
         PluginBussnessError *errorCallback = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
         if (errorCallback != nullptr) {

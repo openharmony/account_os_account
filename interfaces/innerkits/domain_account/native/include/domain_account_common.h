@@ -159,6 +159,7 @@ struct AuthStatusInfo : public Parcelable {
 struct DomainAuthResult : public Parcelable {
     std::vector<uint8_t> token;
     AuthStatusInfo authStatusInfo;
+    int32_t accountId = -1;
 
     ~DomainAuthResult()
     {

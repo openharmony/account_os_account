@@ -321,7 +321,6 @@ napi_status ParseGetPropKeys(napi_env env, napi_value napiKeys, std::vector<Attr
 napi_status ParseGetPropRequest(napi_env env, napi_value object, GetPropertyContext &context);
 napi_status ParseSetPropRequest(napi_env env, napi_value object, AccountSA::SetPropertyRequest &request);
 napi_value CreateCredInfoArray(napi_env env, const std::vector<AccountSA::CredentialInfo> &info);
-napi_value CreateAuthResult(napi_env env, const std::vector<uint8_t> &token, int32_t remainTimes, int32_t freezingTime);
 bool IsAccountIdValid(int32_t accountId);
 napi_status ConvertGetPropertyTypeToAttributeKey(GetPropertyType in, Attributes::AttributeKey &out);
 bool ParseParaOnCredChange(const napi_env &env, napi_callback_info cbInfo,
