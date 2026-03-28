@@ -344,14 +344,16 @@ ErrCode ProcessPrivilegeRecord::AddOrUpdatePrivilege(uint32_t privilegeIdx, uint
     return ERR_OK;
 }
 
-ErrCode ProcessPrivilegeRecord::RemovePrivilege(uint32_t privilegeIdx)
+ErrCode ProcessPrivilegeRecord::RemovePrivilege(uint32_t privilegeIdx, std::shared_ptr<PrivilegeRecord> &removedRecord)
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
+    removedRecord = nullptr;
     auto iter = privilegeRecordMap_.find(privilegeIdx);
     if (iter == privilegeRecordMap_.end()) {
         ACCOUNT_LOGW("Privilege not exist, idx = %{public}d", privilegeIdx);
         return ERR_OK;
     }
+    removedRecord = iter->second;
     privilegeRecordMap_.erase(iter);
     return ERR_OK;
 }
@@ -415,6 +417,16 @@ void ProcessPrivilegeRecord::PrivilegeDeathRecipient::OnRemoteDied(
     (void) PrivilegeCacheManager::GetInstance().RemoveProcess(pid_);
 }
 
+void ProcessPrivilegeRecord::RollbackPrivilege(const std::shared_ptr<PrivilegeRecord> &removedRecord)
+{
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    if (removedRecord == nullptr) {
+        ACCOUNT_LOGI("Removed record is null");
+        return;
+    }
+    privilegeRecordMap_[removedRecord->privilegeIdx_] = removedRecord;
+}
+
 PrivilegeCacheManager &PrivilegeCacheManager::GetInstance()
 {
     static PrivilegeCacheManager instance;
@@ -461,13 +473,19 @@ ErrCode PrivilegeCacheManager::RemoveSingle(const AuthenCallerInfo &callerInfo)
         ACCOUNT_LOGW("Process privilege record not found, pid=%{public}d", callerInfo.pid);
         return ERR_OK;
     }
-    (void) iter->second->RemovePrivilege(callerInfo.privilegeIdx);
-    if (iter->second->GetPrivilegeNum() == 0) {
+    std::shared_ptr<PrivilegeRecord> removedRecord = nullptr;
+    std::shared_ptr<ProcessPrivilegeRecord> processRecord = iter->second;
+    (void) processRecord->RemovePrivilege(callerInfo.privilegeIdx, removedRecord);
+    if (processRecord->GetPrivilegeNum() == 0) {
         processPrivilegeMap_.erase(iter);
     }
     // write persist file
-    (void) CleanExpiredPrivilegesAndSaveToFile();
-    return ERR_OK;
+    ErrCode ret = CleanExpiredPrivilegesAndSaveToFile();
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("CleanExpiredPrivilegesAndSaveToFile failed, ret=%{public}d", ret);
+        RollbackDelSingleRecord(processRecord, removedRecord);
+    }
+    return ret;
 }
 
 ErrCode PrivilegeCacheManager::AddCache(const AuthenCallerInfo &callerInfo, uint32_t safeStartTime)
@@ -475,7 +493,7 @@ ErrCode PrivilegeCacheManager::AddCache(const AuthenCallerInfo &callerInfo, uint
     std::lock_guard<std::recursive_mutex> lock(mapMutex_);
     auto iter = processPrivilegeMap_.find(callerInfo.pid);
     if (iter == processPrivilegeMap_.end()) {
-        // Process already exists, add or update privilege
+        // Process not exists, create new record and add to map
         return AddNewProcessCacheInner(callerInfo, safeStartTime);
     }
     ErrCode ret = iter->second->AddOrUpdatePrivilege(callerInfo.privilegeIdx, safeStartTime);
@@ -828,6 +846,22 @@ void PrivilegeCacheManager::StartCleanTask()
     std::thread thread(task);
     pthread_setname_np(thread.native_handle(), "StartCleanTask");
     thread.detach();
+}
+
+void PrivilegeCacheManager::RollbackDelSingleRecord(
+    const std::shared_ptr<ProcessPrivilegeRecord> &processRecord, const std::shared_ptr<PrivilegeRecord> &removedRecord)
+{
+    if (removedRecord == nullptr) {
+        ACCOUNT_LOGI("Removed record is null, no need to rollback");
+        return;
+    }
+    std::lock_guard<std::recursive_mutex> lock(mapMutex_);
+    auto iter = processPrivilegeMap_.find(processRecord->GetPid());
+    if (iter == processPrivilegeMap_.end()) {
+        // recover all process record
+        processPrivilegeMap_[processRecord->GetPid()] = processRecord;
+    }
+    processRecord->RollbackPrivilege(removedRecord);
 }
 } // namespace AccountSA
 } // namespace OHOS

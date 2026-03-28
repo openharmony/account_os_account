@@ -985,5 +985,393 @@ HWTEST_F(PrivilegeCacheManagerTest, ProcessPrivilegeRecordCovTest021, TestSize.L
     EXPECT_EQ(TEST_ERR_CODE,
         tmpMgr.CleanExpiredPrivilegesAndSaveToFile()); // test CleanExpiredPrivilegesAndSaveToFile file fail
 }
+
+/**
+ * @tc.name: RemoveSingleRollbackTest001
+ * @tc.desc: Verify RemoveSingle correctly rolls back when CleanExpiredPrivilegesAndSaveToFile fails
+ *           (mocked by GetUptimeMs failure), and the process still has other privileges (not empty).
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, RemoveSingleRollbackTest001, TestSize.Level1)
+{
+    // Setup: Add process with two privileges
+    AuthenCallerInfo info = {.pid = getpid(), .uid = getuid(), .privilegeIdx = 0};
+    int32_t safeStartTime = MOCK_BOOT_TIME_ONE;
+    EXPECT_EQ(ERR_OK, PrivilegeCacheManager::GetInstance().AddCache(info, safeStartTime));
+
+    info.privilegeIdx = 1;
+    EXPECT_EQ(ERR_OK, PrivilegeCacheManager::GetInstance().AddCache(info, safeStartTime));
+
+    ASSERT_EQ(1, PrivilegeCacheManager::GetInstance().processPrivilegeMap_.size());
+    ASSERT_EQ(2, PrivilegeCacheManager::GetInstance().processPrivilegeMap_.begin()->second->GetPrivilegeNum());
+
+    size_t initialPrivCount = PrivilegeCacheManager::GetInstance()
+        .processPrivilegeMap_.begin()->second->GetPrivilegeNum();
+
+    // Mock GetUptimeMs to fail, which will cause CleanExpiredPrivilegesAndSaveToFile to fail
+    EXPECT_CALL(MockUtils::GetInstance(), GetUptimeMs(_))
+        .WillOnce(DoAll(Return(TEST_ERR_CODE)));
+
+    // Remove one privilege (should rollback on failure)
+    info.privilegeIdx = 0;
+    ErrCode ret = PrivilegeCacheManager::GetInstance().RemoveSingle(info);
+
+    // Verify rollback occurred: privilege count should be restored
+    EXPECT_NE(ERR_OK, ret) << "RemoveSingle should fail when file write fails";
+    EXPECT_EQ(initialPrivCount, PrivilegeCacheManager::GetInstance()
+        .processPrivilegeMap_.begin()->second->GetPrivilegeNum())
+        << "Both privileges should be restored after rollback";
+
+    // Restore normal mock behavior for other tests
+    EXPECT_CALL(MockUtils::GetInstance(), GetUptimeMs(_))
+        .WillRepeatedly(DoAll(SetArgReferee<0>(MOCK_BOOT_TIME_ONE), Return(ERR_OK)));
+    PrivilegeCacheManager::GetInstance().processPrivilegeMap_.clear();
+}
+
+/**
+ * @tc.name: RemoveSingleRollbackTest002
+ * @tc.desc: Verify RemoveSingle correctly rolls back when CleanExpiredPrivilegesAndSaveToFile fails
+ *           (mocked by GetUptimeMs failure) and removing the last privilege causes the process record to be deleted.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, RemoveSingleRollbackTest002, TestSize.Level1)
+{
+    // Setup: Add process with one privilege
+    AuthenCallerInfo info = {.pid = getpid(), .uid = getuid(), .privilegeIdx = 0};
+    int32_t safeStartTime = MOCK_BOOT_TIME_ONE;
+    EXPECT_EQ(ERR_OK, PrivilegeCacheManager::GetInstance().AddCache(info, safeStartTime));
+
+    ASSERT_EQ(1, PrivilegeCacheManager::GetInstance().processPrivilegeMap_.size());
+    ASSERT_EQ(1, PrivilegeCacheManager::GetInstance().processPrivilegeMap_.begin()->second->GetPrivilegeNum());
+
+    // Mock GetUptimeMs to fail, which will cause CleanExpiredPrivilegesAndSaveToFile to fail
+    EXPECT_CALL(MockUtils::GetInstance(), GetUptimeMs(_))
+        .WillOnce(DoAll(Return(TEST_ERR_CODE)));
+
+    // Remove the only privilege (process will be deleted, then rolled back)
+    ErrCode ret = PrivilegeCacheManager::GetInstance().RemoveSingle(info);
+
+    // Verify rollback occurred
+    EXPECT_NE(ERR_OK, ret) << "RemoveSingle should fail when file write fails";
+    EXPECT_EQ(1, PrivilegeCacheManager::GetInstance().processPrivilegeMap_.size())
+        << "Process record should be restored";
+    EXPECT_EQ(1, PrivilegeCacheManager::GetInstance().processPrivilegeMap_.begin()->second->GetPrivilegeNum())
+        << "Privilege should be restored";
+
+    // Restore normal mock behavior for other tests
+    EXPECT_CALL(MockUtils::GetInstance(), GetUptimeMs(_))
+        .WillRepeatedly(DoAll(SetArgReferee<0>(MOCK_BOOT_TIME_ONE), Return(ERR_OK)));
+    PrivilegeCacheManager::GetInstance().processPrivilegeMap_.clear();
+}
+
+/**
+ * @tc.name: AddCacheRollbackTest001
+ * @tc.desc: Verify AddCache fails when CleanExpiredPrivilegesAndSaveToFile fails
+ *           (mocked by GetUptimeMs failure) when adding a new privilege to an existing process.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, AddCacheRollbackTest001, TestSize.Level1)
+{
+    // Setup: Add process with one privilege
+    AuthenCallerInfo info = {.pid = getpid(), .uid = getuid(), .privilegeIdx = 0};
+    int32_t safeStartTime = MOCK_BOOT_TIME_ONE;
+    EXPECT_EQ(ERR_OK, PrivilegeCacheManager::GetInstance().AddCache(info, safeStartTime));
+
+    ASSERT_EQ(1, PrivilegeCacheManager::GetInstance().processPrivilegeMap_.size());
+    size_t initialPrivCount = PrivilegeCacheManager::GetInstance()
+        .processPrivilegeMap_.begin()->second->GetPrivilegeNum();
+
+    // Mock GetUptimeMs to fail, which will cause CleanExpiredPrivilegesAndSaveToFile to fail
+    EXPECT_CALL(MockUtils::GetInstance(), GetUptimeMs(_))
+        .WillOnce(DoAll(Return(TEST_ERR_CODE)));
+
+    // Add another privilege (should fail on file write)
+    info.privilegeIdx = 1;
+    ErrCode ret = PrivilegeCacheManager::GetInstance().AddCache(info, safeStartTime);
+
+    // Verify failure occurred
+    EXPECT_NE(ERR_OK, ret) << "AddCache should fail when file write fails";
+    EXPECT_EQ(initialPrivCount, PrivilegeCacheManager::GetInstance()
+        .processPrivilegeMap_.begin()->second->GetPrivilegeNum())
+        << "Only original privilege should exist after failure";
+
+    // Restore normal mock behavior for other tests
+    EXPECT_CALL(MockUtils::GetInstance(), GetUptimeMs(_))
+        .WillRepeatedly(DoAll(SetArgReferee<0>(MOCK_BOOT_TIME_ONE), Return(ERR_OK)));
+    PrivilegeCacheManager::GetInstance().processPrivilegeMap_.clear();
+}
+
+/**
+ * @tc.name: AddCacheRollbackTest002
+ * @tc.desc: Verify AddCache fails when CleanExpiredPrivilegesAndSaveToFile fails
+ *           (mocked by GetUptimeMs failure) when updating an existing privilege.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, AddCacheRollbackTest002, TestSize.Level1)
+{
+    // Setup: Add process with a privilege
+    AuthenCallerInfo info = {.pid = getpid(), .uid = getuid(), .privilegeIdx = 0};
+    int32_t safeStartTime = MOCK_BOOT_TIME_ONE;
+    EXPECT_EQ(ERR_OK, PrivilegeCacheManager::GetInstance().AddCache(info, safeStartTime));
+
+    ASSERT_EQ(1, PrivilegeCacheManager::GetInstance().processPrivilegeMap_.size());
+
+    // Get the old privilege record for comparison
+    auto &processRecord = PrivilegeCacheManager::GetInstance().processPrivilegeMap_[getpid()];
+    auto oldPrivCount = processRecord->GetPrivilegeNum();
+
+    // Mock GetUptimeMs to fail, which will cause CleanExpiredPrivilegesAndSaveToFile to fail
+    EXPECT_CALL(MockUtils::GetInstance(), GetUptimeMs(_))
+        .WillOnce(DoAll(Return(TEST_ERR_CODE)));
+
+    // Update the same privilege with new safeStartTime (should fail on file write)
+    int32_t newSafeStartTime = MOCK_BOOT_TIME_TWO;
+    ErrCode ret = PrivilegeCacheManager::GetInstance().AddCache(info, newSafeStartTime);
+
+    // Verify failure occurred
+    EXPECT_NE(ERR_OK, ret) << "AddCache should fail when file write fails";
+    EXPECT_EQ(oldPrivCount, processRecord->GetPrivilegeNum())
+        << "Privilege count should remain the same after failure";
+
+    // Restore normal mock behavior for other tests
+    EXPECT_CALL(MockUtils::GetInstance(), GetUptimeMs(_))
+        .WillRepeatedly(DoAll(SetArgReferee<0>(MOCK_BOOT_TIME_ONE), Return(ERR_OK)));
+    PrivilegeCacheManager::GetInstance().processPrivilegeMap_.clear();
+}
+
+/**
+ * @tc.name: AddCacheRollbackTest003
+ * @tc.desc: Verify AddCache fails when CleanExpiredPrivilegesAndSaveToFile fails
+ *           (mocked by GetUptimeMs failure) when creating a new process.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, AddCacheRollbackTest003, TestSize.Level1)
+{
+    // Setup: Start with empty cache
+    ASSERT_EQ(0, PrivilegeCacheManager::GetInstance().processPrivilegeMap_.size());
+
+    // Mock GetUptimeMs to fail, which will cause CleanExpiredPrivilegesAndSaveToFile to fail
+    EXPECT_CALL(MockUtils::GetInstance(), GetUptimeMs(_))
+        .WillOnce(DoAll(Return(TEST_ERR_CODE)));
+
+    // Add new process (should fail on file write)
+    AuthenCallerInfo info = {.pid = getpid(), .uid = getuid(), .privilegeIdx = 0};
+    int32_t safeStartTime = MOCK_BOOT_TIME_ONE;
+    ErrCode ret = PrivilegeCacheManager::GetInstance().AddCache(info, safeStartTime);
+
+    // Verify failure occurred
+    EXPECT_NE(ERR_OK, ret) << "AddCache should fail when file write fails";
+    EXPECT_EQ(0, PrivilegeCacheManager::GetInstance().processPrivilegeMap_.size())
+        << "New process should be removed from map after failure";
+
+    // Restore normal mock behavior for other tests
+    EXPECT_CALL(MockUtils::GetInstance(), GetUptimeMs(_))
+        .WillRepeatedly(DoAll(SetArgReferee<0>(MOCK_BOOT_TIME_ONE), Return(ERR_OK)));
+    PrivilegeCacheManager::GetInstance().processPrivilegeMap_.clear();
+}
+
+/**
+ * @tc.name: RollbackDelSingleRecordTest001
+ * @tc.desc: Verify RollbackDelSingleRecord correctly restores a deleted privilege when process exists.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, RollbackDelSingleRecordTest001, TestSize.Level1)
+{
+    // Setup: Create a process record with privileges
+    std::shared_ptr<ProcessPrivilegeRecord> processRecord = std::make_shared<ProcessPrivilegeRecord>();
+    processRecord->pid_ = 1000;
+    processRecord->uid_ = 0;
+    processRecord->processStartTime_ = MOCK_BOOT_TIME_ONE;
+
+    // Create a privilege record to be "removed"
+    auto removedPrivilege = std::make_shared<PrivilegeRecord>(0, MOCK_BOOT_TIME_ONE + 300000, MOCK_BOOT_TIME_ONE);
+
+    // Add the process to cache with one privilege
+    processRecord->privilegeRecordMap_[1] = std::make_shared<PrivilegeRecord>(
+        1, MOCK_BOOT_TIME_ONE + 300000, MOCK_BOOT_TIME_ONE);
+
+    PrivilegeCacheManager::GetInstance().processPrivilegeMap_[1000] = processRecord;
+
+    ASSERT_EQ(1, processRecord->GetPrivilegeNum()) << "Process should start with 1 privilege";
+
+    // Call RollbackDelSingleRecord to restore the removed privilege
+    PrivilegeCacheManager::GetInstance().RollbackDelSingleRecord(processRecord, removedPrivilege);
+
+    // Verify the removed privilege was restored
+    EXPECT_EQ(2, processRecord->GetPrivilegeNum()) << "Process should have 2 privileges after rollback";
+    EXPECT_TRUE(processRecord->privilegeRecordMap_.find(0) != processRecord->privilegeRecordMap_.end())
+        << "Removed privilege (idx=0) should be restored";
+
+    // Cleanup
+    PrivilegeCacheManager::GetInstance().processPrivilegeMap_.clear();
+}
+
+/**
+ * @tc.name: RollbackDelRecordTest002
+ * @tc.desc: Verify RollbackDelRecord correctly restores entire process when process doesn't exist.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, RollbackDelRecordTest002, TestSize.Level1)
+{
+    // Setup: Create a process record (simulating it was deleted)
+    std::shared_ptr<ProcessPrivilegeRecord> processRecord = std::make_shared<ProcessPrivilegeRecord>();
+    processRecord->pid_ = 1000;
+    processRecord->uid_ = 0;
+    processRecord->processStartTime_ = MOCK_BOOT_TIME_ONE;
+
+    // Add two privileges
+    auto priv0 = std::make_shared<PrivilegeRecord>(0, MOCK_BOOT_TIME_ONE + 300000, MOCK_BOOT_TIME_ONE);
+    auto priv1 = std::make_shared<PrivilegeRecord>(1, MOCK_BOOT_TIME_ONE + 300000, MOCK_BOOT_TIME_ONE);
+    processRecord->privilegeRecordMap_[0] = priv0;
+    processRecord->privilegeRecordMap_[1] = priv1;
+
+    // Ensure process is NOT in cache (simulating deletion)
+    ASSERT_EQ(0, PrivilegeCacheManager::GetInstance().processPrivilegeMap_.count(1000));
+
+    // Call RollbackDelRecord with removedRecord = nullptr (entire process was deleted)
+    PrivilegeCacheManager::GetInstance().RollbackDelSingleRecord(processRecord, nullptr);
+
+    // Verify the entire process was restored
+    EXPECT_EQ(0, PrivilegeCacheManager::GetInstance().processPrivilegeMap_.size());
+    auto it = PrivilegeCacheManager::GetInstance().processPrivilegeMap_.find(1000);
+    ASSERT_TRUE(it == PrivilegeCacheManager::GetInstance().processPrivilegeMap_.end());
+
+    // Cleanup
+    PrivilegeCacheManager::GetInstance().processPrivilegeMap_.clear();
+}
+
+/**
+ * @tc.name: RollbackDelRecordTest003
+ * @tc.desc: Verify RollbackDelRecord handles nullptr removedRecord when process exists.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, RollbackDelRecordTest003, TestSize.Level1)
+{
+    // Setup: Create a process in cache
+    std::shared_ptr<ProcessPrivilegeRecord> processRecord = std::make_shared<ProcessPrivilegeRecord>();
+    processRecord->pid_ = 1000;
+    processRecord->uid_ = 0;
+    processRecord->processStartTime_ = MOCK_BOOT_TIME_ONE;
+
+    auto priv0 = std::make_shared<PrivilegeRecord>(0, MOCK_BOOT_TIME_ONE + 300000, MOCK_BOOT_TIME_ONE);
+    processRecord->privilegeRecordMap_[0] = priv0;
+
+    PrivilegeCacheManager::GetInstance().processPrivilegeMap_[1000] = processRecord;
+
+    auto initialPrivCount = processRecord->GetPrivilegeNum();
+
+    // Call RollbackDelRecord with removedRecord = nullptr (no specific privilege to restore)
+    PrivilegeCacheManager::GetInstance().RollbackDelSingleRecord(processRecord, nullptr);
+
+    // Verify state is unchanged
+    EXPECT_EQ(initialPrivCount, processRecord->GetPrivilegeNum())
+        << "Privilege count should remain the same";
+
+    // Cleanup
+    PrivilegeCacheManager::GetInstance().processPrivilegeMap_.clear();
+}
+
+
+/**
+ * @tc.name: RollbackEdgeCaseTest001
+ * @tc.desc: Verify RemoveSingle correctly rolls back when CleanExpiredPrivilegesAndSaveToFile fails
+ *           (mocked by GetUptimeMs failure) and the process record becomes empty after removal.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, RollbackEdgeCaseTest001, TestSize.Level1)
+{
+    // Setup: Create a process with one privilege
+    AuthenCallerInfo info = {.pid = getpid(), .uid = getuid(), .privilegeIdx = 0};
+    int32_t safeStartTime = MOCK_BOOT_TIME_ONE;
+    EXPECT_EQ(ERR_OK, PrivilegeCacheManager::GetInstance().AddCache(info, safeStartTime));
+
+    ASSERT_EQ(1, PrivilegeCacheManager::GetInstance().processPrivilegeMap_.size());
+
+    // Get the process record before removal
+    auto &processRecord = PrivilegeCacheManager::GetInstance().processPrivilegeMap_[getpid()];
+    ASSERT_EQ(1, processRecord->GetPrivilegeNum());
+
+    // Mock GetUptimeMs to fail, which will cause CleanExpiredPrivilegesAndSaveToFile to fail
+    EXPECT_CALL(MockUtils::GetInstance(), GetUptimeMs(_))
+        .WillOnce(DoAll(Return(TEST_ERR_CODE)));
+
+    // Remove the only privilege (process becomes empty and is deleted)
+    ErrCode ret = PrivilegeCacheManager::GetInstance().RemoveSingle(info);
+
+    // Verify rollback: process and privilege should be restored
+    EXPECT_NE(ERR_OK, ret);
+    EXPECT_EQ(1, PrivilegeCacheManager::GetInstance().processPrivilegeMap_.size())
+        << "Process should be restored";
+    EXPECT_EQ(1, PrivilegeCacheManager::GetInstance().processPrivilegeMap_.begin()->second->GetPrivilegeNum())
+        << "Privilege should be restored";
+
+    // Restore normal mock behavior for other tests
+    EXPECT_CALL(MockUtils::GetInstance(), GetUptimeMs(_))
+        .WillRepeatedly(DoAll(SetArgReferee<0>(MOCK_BOOT_TIME_ONE), Return(ERR_OK)));
+    PrivilegeCacheManager::GetInstance().processPrivilegeMap_.clear();
+}
+
+/**
+ * @tc.name: RollbackConsistencyTest001
+ * @tc.desc: Verify multiple consecutive operations with failures (mocked by GetUptimeMs failure)
+ *           maintain data consistency without proper rollback implementation.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, RollbackConsistencyTest001, TestSize.Level1)
+{
+    // Setup: Add two processes with multiple privileges
+    AuthenCallerInfo info1 = {.pid = 1000, .uid = 0, .privilegeIdx = 0};
+    int32_t safeStartTime = MOCK_BOOT_TIME_ONE;
+    EXPECT_EQ(ERR_OK, PrivilegeCacheManager::GetInstance().AddCache(info1, safeStartTime));
+
+    info1.privilegeIdx = 1;
+    EXPECT_EQ(ERR_OK, PrivilegeCacheManager::GetInstance().AddCache(info1, safeStartTime));
+
+    AuthenCallerInfo info2 = {.pid = 1001, .uid = 0, .privilegeIdx = 0};
+    EXPECT_EQ(ERR_OK, PrivilegeCacheManager::GetInstance().AddCache(info2, safeStartTime));
+
+    ASSERT_EQ(2, PrivilegeCacheManager::GetInstance().processPrivilegeMap_.size());
+    ASSERT_EQ(3, PrivilegeCacheManager::GetInstance().processPrivilegeMap_[1000]->GetPrivilegeNum() +
+                 PrivilegeCacheManager::GetInstance().processPrivilegeMap_[1001]->GetPrivilegeNum());
+
+    size_t totalPrivileges = PrivilegeCacheManager::GetInstance().processPrivilegeMap_[1000]->GetPrivilegeNum() +
+                               PrivilegeCacheManager::GetInstance().processPrivilegeMap_[1001]->GetPrivilegeNum();
+
+    // Mock GetUptimeMs to fail twice, which will cause CleanExpiredPrivilegesAndSaveToFile to fail
+    EXPECT_CALL(MockUtils::GetInstance(), GetUptimeMs(_))
+        .WillRepeatedly(DoAll(Return(TEST_ERR_CODE)));
+
+    // First rollback attempt
+    info1.privilegeIdx = 0;
+    ErrCode ret1 = PrivilegeCacheManager::GetInstance().RemoveSingle(info1);
+    EXPECT_NE(ERR_OK, ret1);
+
+    // Second rollback attempt (different operation)
+    info2.privilegeIdx = 1;
+    ErrCode ret2 = PrivilegeCacheManager::GetInstance().AddCache(info2, safeStartTime);
+    EXPECT_NE(ERR_OK, ret2);
+
+    // Verify cache is still in a consistent state
+    EXPECT_EQ(2, PrivilegeCacheManager::GetInstance().processPrivilegeMap_.size());
+    size_t currentTotalPrivileges = PrivilegeCacheManager::GetInstance().processPrivilegeMap_[1000]->GetPrivilegeNum() +
+                                     PrivilegeCacheManager::GetInstance().processPrivilegeMap_[1001]->GetPrivilegeNum();
+    EXPECT_EQ(totalPrivileges, currentTotalPrivileges);
+
+    // Restore normal mock behavior for other tests
+    EXPECT_CALL(MockUtils::GetInstance(), GetUptimeMs(_))
+        .WillRepeatedly(DoAll(SetArgReferee<0>(MOCK_BOOT_TIME_ONE), Return(ERR_OK)));
+    PrivilegeCacheManager::GetInstance().processPrivilegeMap_.clear();
+}
+
 } // namespace AccountSA
 } // namespace OHOS
