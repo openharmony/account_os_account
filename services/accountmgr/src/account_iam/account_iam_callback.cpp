@@ -1028,6 +1028,7 @@ void GetDomainAuthStatusInfoCallback::OnResult(int32_t result, Parcel &parcel)
     attributes.SetInt32Value(Attributes::ATTR_PIN_SUB_TYPE, static_cast<int32_t>(IAMAuthSubType::DOMAIN_MIXED));
     attributes.SetInt32Value(Attributes::ATTR_REMAIN_TIMES, infoPtr->remainingTimes);
     attributes.SetInt32Value(Attributes::ATTR_FREEZING_TIME, infoPtr->freezingTime);
+    attributes.SetInt32Value(Attributes::AttributeKey::ATTR_NEXT_FAIL_LOCKOUT_DURATION, infoPtr->nextPhaseFreezingTime);
     innerCallback_->OnResult(result, attributes.Serialize());
 }
 #endif // SUPPORT_DOMAIN_ACCOUNTS

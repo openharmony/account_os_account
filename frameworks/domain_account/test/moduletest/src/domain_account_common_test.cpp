@@ -122,6 +122,21 @@ HWTEST_F(DomainAccountCommonModuleTest, DomainAccountCommonModuleTest_AuthStatus
 }
 
 /**
+ * @tc.name: DomainAccountCommonModuleTest_AuthStatusInfo_002
+ * @tc.desc: AuthStatusInfo Marshalling successfully.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountCommonModuleTest, DomainAccountCommonModuleTest_AuthStatusInfo_002, TestSize.Level3)
+{
+    Parcel parcel;
+    parcel.WriteInt32(10);
+    parcel.WriteInt32(20);
+    AuthStatusInfo authStatusInfo;
+    EXPECT_EQ(authStatusInfo.ReadFromParcel(parcel), false);
+}
+
+/**
  * @tc.name: DomainAccountCommonModuleTest_DomainServerConfig_001
  * @tc.desc: DomainServerConfig Marshalling successfully.
  * @tc.type: FUNC

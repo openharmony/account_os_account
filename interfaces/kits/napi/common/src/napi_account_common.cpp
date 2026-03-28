@@ -582,6 +582,21 @@ void SetInt32ToJsProperty(napi_env env, int32_t number, const std::string &prope
     NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, dataJs, propertyName.c_str(), napiNum));
 }
 
+napi_value CreateAuthResultForDomain(napi_env env, const AuthResultContext &context)
+{
+    napi_value object = CreateAuthResult(env, context.token, context.remainingTimes, context.freezingTime,
+        context.accountId);
+    if (object == nullptr) {
+        return object;
+    }
+    if (context.nextPhaseFreezingTime >= 0) {
+        napi_value napiNextPhaseFreezingTime = 0;
+        NAPI_CALL(env, napi_create_uint32(env, context.nextPhaseFreezingTime, &napiNextPhaseFreezingTime));
+        NAPI_CALL(env, napi_set_named_property(env, object, "nextPhaseFreezingTime", napiNextPhaseFreezingTime));
+    }
+    return object;
+}
+
 napi_value CreateAuthResult(
     napi_env env, const std::vector<uint8_t> &token, int32_t remainTimes, int32_t freezingTime, int32_t accountId)
 {

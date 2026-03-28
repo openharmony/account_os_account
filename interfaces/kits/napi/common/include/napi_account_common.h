@@ -58,6 +58,14 @@ struct NapiRefArrayContext {
     std::vector<napi_ref> napiRefVec;
 };
 
+struct AuthResultContext {
+    std::vector<uint8_t> token;
+    int32_t remainingTimes = -1;  // -1 indicates invalid value
+    int32_t freezingTime = -1;  // -1 indicates invalid value
+    int32_t nextPhaseFreezingTime = 0;  // 0 indicates not frozen, max 86400 (24h)
+    int32_t accountId = -1;
+};
+
 struct NapiCallbackRef {
     NapiCallbackRef(napi_env env, napi_ref callbackRef) : env(env), callbackRef(callbackRef) {}
     ~NapiCallbackRef();
@@ -141,6 +149,7 @@ napi_status ParseUint8TypedArrayToUint64(napi_env env, napi_value value, uint64_
 void NapiCallVoidFunction(napi_env env, napi_value *argv, size_t argc, napi_ref funcRef);
 napi_value CreateAuthResult(napi_env env, const std::vector<uint8_t> &authData, int32_t remainTimes,
     int32_t freezingTime, int32_t accountId = -1);
+napi_value CreateAuthResultForDomain(napi_env env, const AuthResultContext &context);
 void ReleaseNapiRefAsync(napi_env env, napi_ref napiRef);
 void ReleaseNapiRefArray(napi_env env, const std::vector<napi_ref> &napiRefVec);
 bool JsObjectToNativeString(napi_env env, napi_value jsData, std::string &nativeData);

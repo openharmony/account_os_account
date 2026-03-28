@@ -629,30 +629,30 @@ static void GetAndCleanPluginDomainAccountInfo(DomainAccountInfo &info, PluginDo
     (*pDomainAccountInfo) = nullptr;
 }
 
-static void GetAndCleanPluginAuthResultInfo(PluginAuthResultInfo **authResultInfo,
-    std::vector<uint8_t> &token, int32_t &remainTimes, int32_t &freezingTime, int32_t &localId)
+static void GetAndCleanPluginAuthResultInfo(PluginAuthResultInfo **authResultInfo, DomainAuthResult &result)
 {
     if (authResultInfo == nullptr || *authResultInfo == nullptr) {
         ACCOUNT_LOGD("PluginAuthResultInfo is null");
         return;
     }
-    freezingTime = (*authResultInfo)->freezingTime;
-    remainTimes = (*authResultInfo)->remainTimes;
-    localId = (*authResultInfo)->localId;
-    GetAndCleanPluginUint8Vector((*authResultInfo)->accountToken, token);
+    result.authStatusInfo.freezingTime = (*authResultInfo)->freezingTime;
+    result.authStatusInfo.remainingTimes = (*authResultInfo)->remainTimes;
+    result.authStatusInfo.nextPhaseFreezingTime = (*authResultInfo)->nextPhaseFreezingTime;
+    result.accountId = (*authResultInfo)->localId;
+    GetAndCleanPluginUint8Vector((*authResultInfo)->accountToken, result.token);
     free((*authResultInfo));
     (*authResultInfo) = nullptr;
 }
 
-static void GetAndCleanPluginAuthStatusInfo(PluginAuthStatusInfo **statusInfo,
-    int32_t &remainTimes, int32_t &freezingTime)
+static void GetAndCleanPluginAuthStatusInfo(PluginAuthStatusInfo **statusInfo, AuthStatusInfo &result)
 {
     if (statusInfo == nullptr || *statusInfo == nullptr) {
         ACCOUNT_LOGD("PluginAuthStatusInfo is null.");
         return;
     }
-    remainTimes = (*statusInfo)->remainTimes;
-    freezingTime = (*statusInfo)->freezingTime;
+    result.freezingTime = (*statusInfo)->freezingTime;
+    result.remainingTimes = (*statusInfo)->remainTimes;
+    result.nextPhaseFreezingTime = (*statusInfo)->nextPhaseFreezingTime;
     free((*statusInfo));
     (*statusInfo) = nullptr;
 }
@@ -956,9 +956,7 @@ void InnerDomainAccountManager::AuthResultInfoCallback(
     auto callback = it->second;
     DomainAuthResult result;
     Parcel resultParcel;
-    GetAndCleanPluginAuthResultInfo(
-        &authResultInfo, result.token, result.authStatusInfo.remainingTimes, result.authStatusInfo.freezingTime,
-        result.accountId);
+    GetAndCleanPluginAuthResultInfo(&authResultInfo, result);
     ErrCode errCode = GetAndCleanPluginBussnessError(&error, PluginMethodEnum::AUTH, -1);
     if (!result.Marshalling(resultParcel)) {
         ACCOUNT_LOGE("DomainAuthResult marshalling failed.");
@@ -1248,8 +1246,7 @@ ErrCode InnerDomainAccountManager::PluginAuthWithPopup(
     PluginAuthResultInfo *authResultInfo = nullptr;
     PluginBussnessError* error = (*reinterpret_cast<AuthWithPopupFunc>(iter->second))(&domainAccountInfo,
         &authResultInfo);
-    GetAndCleanPluginAuthResultInfo(&authResultInfo, resultParcel.token,
-        resultParcel.authStatusInfo.remainingTimes, resultParcel.authStatusInfo.freezingTime, resultParcel.accountId);
+    GetAndCleanPluginAuthResultInfo(&authResultInfo, resultParcel);
     CleanPluginString(&(domainAccountInfo.domain.data), domainAccountInfo.domain.length);
     CleanPluginString(&(domainAccountInfo.serverConfigId.data), domainAccountInfo.serverConfigId.length);
     CleanPluginString(&(domainAccountInfo.accountName.data), domainAccountInfo.accountName.length);
@@ -1274,8 +1271,7 @@ ErrCode InnerDomainAccountManager::PluginAuthToken(const DomainAccountInfo &info
     PluginAuthResultInfo *authResultInfo = nullptr;
     PluginBussnessError* error = (*reinterpret_cast<AuthWithTokenFunc>(iter->second))(&domainAccountInfo, &token,
         &authResultInfo);
-    GetAndCleanPluginAuthResultInfo(&authResultInfo, resultParcel.token,
-        resultParcel.authStatusInfo.remainingTimes, resultParcel.authStatusInfo.freezingTime, resultParcel.accountId);
+    GetAndCleanPluginAuthResultInfo(&authResultInfo, resultParcel);
     CleanPluginString(&(domainAccountInfo.domain.data), domainAccountInfo.domain.length);
     CleanPluginString(&(domainAccountInfo.serverConfigId.data), domainAccountInfo.serverConfigId.length);
     CleanPluginString(&(domainAccountInfo.accountName.data), domainAccountInfo.accountName.length);
@@ -1298,7 +1294,7 @@ ErrCode InnerDomainAccountManager::PluginGetAuthStatusInfo(const DomainAccountIn
     PluginAuthStatusInfo *authStatusInfo = nullptr;
     PluginBussnessError* error =
         (*reinterpret_cast<GetAuthStatusInfoFunc>(iter->second))(&domainAccountInfo, &authStatusInfo);
-    GetAndCleanPluginAuthStatusInfo(&authStatusInfo, authInfo.remainingTimes, authInfo.freezingTime);
+    GetAndCleanPluginAuthStatusInfo(&authStatusInfo, authInfo);
     CleanPluginString(&(domainAccountInfo.domain.data), domainAccountInfo.domain.length);
     CleanPluginString(&(domainAccountInfo.serverConfigId.data), domainAccountInfo.serverConfigId.length);
     CleanPluginString(&(domainAccountInfo.accountName.data), domainAccountInfo.accountName.length);
@@ -1419,11 +1415,9 @@ ErrCode InnerDomainAccountManager::InnerAuth(int32_t userId, const std::vector<u
         std::thread taskThread(task);
         pthread_setname_np(taskThread.native_handle(), THREAD_INNER_AUTH);
         taskThread.detach();
-    } else {
-        StartPluginAuth(userId, authData, domainInfo, innerCallback, authMode);
+        return ERR_OK;
     }
-    
-    return ERR_OK;
+    return StartPluginAuth(userId, authData, domainInfo, innerCallback, authMode);
 }
 
 ErrCode InnerDomainAccountManager::AuthUser(int32_t userId, const std::vector<uint8_t> &password,
