@@ -62,7 +62,8 @@ public:
 
     ErrCode CheckPrivilege(const uint32_t privilegeIdx, int32_t &remainTime);
     ErrCode AddOrUpdatePrivilege(uint32_t privilegeIdx, uint32_t safeStartTime);
-    ErrCode RemovePrivilege(uint32_t privilegeIdx);
+    ErrCode RemovePrivilege(uint32_t privilegeIdx, std::shared_ptr<PrivilegeRecord> &removedRecord);
+    void RollbackPrivilege(const std::shared_ptr<PrivilegeRecord> &removedRecord);
     ErrCode CleanCurrentExpiredPrivileges(const int64_t currentTimeStamp);
     size_t GetPrivilegeNum();
     int32_t GetProcessLocalId();
@@ -114,6 +115,8 @@ private:
         const std::vector<uint8_t> &digest, std::string &output);
     ErrCode AddNewProcessCacheInner(const AuthenCallerInfo &callerInfo, uint32_t safeStartTime);
     void StartCleanTask();
+    void RollbackDelSingleRecord(const std::shared_ptr<ProcessPrivilegeRecord> &processRecord,
+        const std::shared_ptr<PrivilegeRecord> &removedRecord);
     std::recursive_mutex mapMutex_;
     std::map<int32_t, std::shared_ptr<ProcessPrivilegeRecord>> processPrivilegeMap_;
 };
