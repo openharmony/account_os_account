@@ -2830,6 +2830,14 @@ void IInnerOsAccountManager::LaunchDeactivationAnimation(const OsAccountInfo &os
                 "Failed to launch deactivation animation, wait msg error");
         }
         FDSAN_CLOSE(pipeFd[PIPE_READ_END]);
+#ifdef FUZZ_TEST
+        int32_t status = 0;
+        while ((waitpid(pid, &status, 0) == -1) && (errno == EINTR)) {}
+#else
+        std::thread reaper([pid]() { waitpid(pid, nullptr, 0); });
+        pthread_setname_np(reaper.native_handle(), "AnimReaper");
+        reaper.detach();
+#endif // FUZZ_TEST
     } else {
         int32_t err = errno;
         ACCOUNT_LOGE("Failed to fork deactivation animation process: %{public}s", strerror(err));
