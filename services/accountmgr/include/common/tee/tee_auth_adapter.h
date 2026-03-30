@@ -37,6 +37,11 @@ constexpr size_t TOKEN_DATA_IV_SIZE = 12;
 constexpr size_t TOKEN_CRYPTO_SIGN_SIZE = 32;
 
 typedef struct {
+    uint8_t permission[PERMISSION_MAX_LEN + 1];
+    uint8_t permissionSize;
+} __attribute__((__packed__)) VerifyTokenParam;
+
+typedef struct {
     uint32_t pid;
     uint32_t privilege;
     uint32_t grantTime;
@@ -180,7 +185,8 @@ public:
      * @param tokenResult - Indicates the result of token verification.
      * @return error code, see account_error_no.h
      */
-    ErrCode VerifyToken(const std::vector<uint8_t>& token, std::vector<uint8_t>& tokenResult);
+    ErrCode VerifyToken(const std::vector<uint8_t>& token,
+        const std::string &privilege, std::vector<uint8_t>& tokenResult);
 
     /**
      * @brief Checks whether the timestamp is expired.

@@ -99,7 +99,8 @@ public:
     ~OsAccountTeeAdapter() = default;
 
     ErrCode TaAcquireAuthorization(const ApplyUserTokenParam &param, ApplyUserTokenResult &result);
-    ErrCode VerifyToken(const std::vector<uint8_t>& token, std::vector<uint8_t>& tokenResult);
+    ErrCode VerifyToken(const std::vector<uint8_t>& token,
+        const std::string &privilege, std::vector<uint8_t>& tokenResult);
 };
 } // namespace AccountSA
 } // namespace OHOS

@@ -2240,7 +2240,7 @@ ErrCode IInnerOsAccountManager::VerifyAndSetOsAccountTypeInTEE(
     // token is guaranteed to have value by the caller
     const std::vector<uint8_t>& tokenData = token.value();
     std::vector<uint8_t> unusedResult(sizeof(VerifyUserTokenResult), 0);
-    ErrCode errCode = teeAdapter_.VerifyToken(tokenData, unusedResult);
+    ErrCode errCode = teeAdapter_.VerifyToken(tokenData, "", unusedResult);
     if (!unusedResult.empty()) {
         (void)memset_s(unusedResult.data(), unusedResult.size(), 0, unusedResult.size());
     }

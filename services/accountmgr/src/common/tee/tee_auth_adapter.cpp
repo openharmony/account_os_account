@@ -68,7 +68,8 @@ public:
         const std::vector<uint8_t>& certToken);
     ErrCode DelOsAccountType(int32_t id, const std::vector<uint8_t>& token);
     ErrCode MigrateOsAccountTypesToTee(const std::vector<int32_t> &ids, const std::vector<int32_t> &types);
-    ErrCode VerifyToken(const std::vector<uint8_t>& token, std::vector<uint8_t>& tokenResult);
+    ErrCode VerifyToken(const std::vector<uint8_t>& token,
+        const std::string &privilege, std::vector<uint8_t>& tokenResult);
     ErrCode CheckTimestampExpired(const uint32_t grantTime, const int32_t period,
         int32_t &remainTimeSec, bool &isValid);
     ErrCode TaAcquireAuthorization(const ApplyUserTokenParam &param, ApplyUserTokenResult &result);
@@ -372,18 +373,34 @@ ErrCode OsAccountTeeAdapter::Impl::DelOsAccountType(int32_t id, const std::vecto
     return ret;
 }
 
-ErrCode OsAccountTeeAdapter::Impl::VerifyToken(const std::vector<uint8_t>& token, std::vector<uint8_t>& tokenResult)
+ErrCode OsAccountTeeAdapter::Impl::VerifyToken(
+    const std::vector<uint8_t>& token, const std::string &privilege, std::vector<uint8_t>& tokenResult)
 {
-    std::function<ErrCode(TEEC_Operation &)> setParamTask = [&token, &tokenResult] (TEEC_Operation &operation) {
-        operation.started = 1;
-        operation.paramTypes = TEEC_PARAM_TYPES(TEEC_MEMREF_TEMP_INPUT, TEEC_MEMREF_TEMP_OUTPUT,
-            TEEC_NONE, TEEC_NONE);
-        operation.params[INDEX_ZERO].tmpref.buffer = const_cast<uint8_t*>(token.data());
-        operation.params[INDEX_ZERO].tmpref.size = static_cast<uint32_t>(token.size());
-        operation.params[INDEX_ONE].tmpref.buffer = const_cast<uint8_t*>(tokenResult.data());
-        operation.params[INDEX_ONE].tmpref.size = static_cast<uint32_t>(tokenResult.size());
-        return ERR_OK;
-    };
+    VerifyTokenParam param;
+    param.permissionSize = static_cast<uint8_t>(privilege.size());
+    errno_t err = memset_s(param.permission, PERMISSION_MAX_LEN + 1, 0, privilege.size());
+    if (err != 0) {
+        ACCOUNT_LOGI("Failed to memset privilege, err: %{public}d", err);
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    err = memcpy_s(param.permission, PERMISSION_MAX_LEN, privilege.c_str(), privilege.size());
+    if (err != 0) {
+        ACCOUNT_LOGI("Failed to memcpy privilege, err: %{public}d", err);
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    std::function<ErrCode(TEEC_Operation &)> setParamTask =
+        [&token, &param, &tokenResult] (TEEC_Operation &operation) {
+            operation.started = 1;
+            operation.paramTypes = TEEC_PARAM_TYPES(TEEC_MEMREF_TEMP_INPUT, TEEC_MEMREF_TEMP_INPUT,
+                TEEC_MEMREF_TEMP_OUTPUT, TEEC_NONE);
+            operation.params[INDEX_ZERO].tmpref.buffer = const_cast<uint8_t*>(token.data());
+            operation.params[INDEX_ZERO].tmpref.size = static_cast<uint32_t>(token.size());
+            operation.params[INDEX_ONE].tmpref.buffer = reinterpret_cast<uint8_t*>(&param);
+            operation.params[INDEX_ONE].tmpref.size = sizeof(param);
+            operation.params[INDEX_TWO].tmpref.buffer = const_cast<uint8_t*>(tokenResult.data());
+            operation.params[INDEX_TWO].tmpref.size = static_cast<uint32_t>(tokenResult.size());
+            return ERR_OK;
+        };
     ErrCode ret = ExecuteCommand(USER_TOKEN_VERIFY_CMD_ID, setParamTask);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("VerifyToken failed, ret = %{public}d", ret);
@@ -502,9 +519,10 @@ ErrCode OsAccountTeeAdapter::MigrateOsAccountTypesToTee(
     return impl_->MigrateOsAccountTypesToTee(ids, types);
 }
 
-ErrCode OsAccountTeeAdapter::VerifyToken(const std::vector<uint8_t>& token, std::vector<uint8_t>& tokenResult)
+ErrCode OsAccountTeeAdapter::VerifyToken(
+    const std::vector<uint8_t>& token, const std::string &privilege, std::vector<uint8_t>& tokenResult)
 {
-    return impl_->VerifyToken(token, tokenResult);
+    return impl_->VerifyToken(token, privilege, tokenResult);
 }
 
 ErrCode OsAccountTeeAdapter::CheckTimestampExpired(const uint32_t grantTime, const int32_t period,

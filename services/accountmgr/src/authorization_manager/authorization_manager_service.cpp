@@ -413,11 +413,11 @@ ErrCode AuthorizationManagerService::CheckAuthorizationToken(const std::vector<u
         token, privilege, newPid, result.challenge, result.iamToken);
     auto tokenInfo = const_cast<std::vector<uint8_t>*>(&token);
     std::fill(tokenInfo->begin(), tokenInfo->end(), 0);
-    if (errCode != ERR_OK) {
+    if (errCode != ERR_OK && errCode != ERR_AUTHORIZATION_PRIVILEGE_DENIED) {
         ACCOUNT_LOGE("Failed to verify token, errCode: %{public}d", errCode);
         return errCode;
     }
-    result.isAuthorized = isAuthorized;
+    result.isAuthorized = errCode == ERR_OK;
     ACCOUNT_LOGI("Check authorization successed, privilege: %{public}s, pid: %{public}d",
         privilege.c_str(), pid);
     return ERR_OK;
