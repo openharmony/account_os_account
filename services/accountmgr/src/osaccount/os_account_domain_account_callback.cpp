@@ -79,16 +79,6 @@ ErrCode CheckAndCreateDomainAccountCallback::OnResult(int32_t errCode, const Dom
     if (errCode != ERR_OK) {
         return HandleErrorWithEmptyResult(errCode, resultParcel);
     }
-#ifdef SUPPORT_AUTHORIZATION
-    if (osAccountInfo.GetLocalId() != Constants::START_USER_ID && accountOptions_.hasToken) {
-        OsAccountTeeAdapter teeAdapter;
-        errCode = teeAdapter.SetOsAccountType(osAccountInfo.GetLocalId(), type_, accountOptions_.token);
-        if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("Set account type failed, errCode:%{public}d", errCode);
-            return HandleErrorWithEmptyResult(errCode, resultParcel);
-        }
-    }
-#endif // SUPPORT_AUTHORIZATION
     auto callbackWrapper = std::make_shared<BindDomainAccountCallback>(
         osAccountControl_, osAccountInfo, innerCallback_, accountOptions_);
     if (callbackWrapper == nullptr) {
@@ -131,6 +121,19 @@ void BindDomainAccountCallback::OnResult(int32_t errCode, Parcel &parcel)
         CreateOsAccountOptions options;
         options.disallowedHapList = accountOptions_.disallowedHapList;
         options.allowedHapList = accountOptions_.allowedHapList;
+#ifdef SUPPORT_AUTHORIZATION
+        OsAccountTeeAdapter teeAdapter;
+        errCode = teeAdapter.SetOsAccountType(osAccountInfo_.GetLocalId(),
+            osAccountInfo_.GetType(), accountOptions_.token);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("Set account type failed, errCode:%{public}d", errCode);
+            (void)osAccountControl_->DelOsAccount(osAccountInfo_.GetLocalId());
+            DomainAccountParcel domainAccountResultParcel;
+            domainAccountResultParcel.SetParcelData(resultParcel);
+            innerCallback_->OnResult(errCode, domainAccountResultParcel);
+            return;
+        }
+#endif // SUPPORT_AUTHORIZATION
         errCode = IInnerOsAccountManager::GetInstance().SendMsgForAccountCreate(osAccountInfo_, options);
         if (errCode != ERR_OK) {
             DomainAccountInfo curDomainInfo;

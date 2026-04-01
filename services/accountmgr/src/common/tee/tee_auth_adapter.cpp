@@ -33,6 +33,7 @@ namespace {
     constexpr uint32_t NO_TOKEN_TYPE = 2;
     constexpr TEEC_Result TEEC_ERROR_USER_TOKEN_INVALID = static_cast<TEEC_Result>(0x10000004);
     constexpr TEEC_Result TEEC_ERROR_USER_TOKEN_EXPIRED = static_cast<TEEC_Result>(0x10000005);
+    constexpr TEEC_Result TEEC_ERROR_REACH_LIMIT = static_cast<TEEC_Result>(0xFFFF7108);
     uint8_t g_taPATH[] = "/vendor/bin/edab8b4f-3bfd-486d-863c-ca04744e49d0.sec";
     const TEEC_UUID ACCOUNT_TA_UUID = {
         0xedab8b4f, 0x3bfd, 0x486d,
@@ -190,6 +191,8 @@ ErrCode OsAccountTeeAdapter::Impl::ConvertTeecErrCode(TEEC_Result teeResult)
             return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
         case TEEC_ERROR_USER_TOKEN_EXPIRED:
             return ERR_JS_AUTHORIZATION_DENIED;
+        case TEEC_ERROR_REACH_LIMIT:
+            return ERR_ACCOUNT_COMMON_TEE_REACH_LIMIT;
         default:
             return ERR_ACCOUNT_COMMON_OPERATION_FAIL;
     }
