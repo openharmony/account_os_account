@@ -589,12 +589,8 @@ ErrCode OsAccountManagerService::CreateOsAccountForDomain(const OsAccountType &t
         ACCOUNT_LOGE("Failed to get real os account info, errCode=%{public}d.", code);
         return code;
     }
-    DomainAccountInfo domainAccountInfo;
-    accountInfoOld.GetDomainInfo(domainAccountInfo);
-    if (!(accountInfoOld.GetShortName().empty() && domainAccountInfo.accountName_.empty())) {
-        ACCOUNT_LOGE("Create os account for domain without token and not in start user scenario.");
-        ReportOsAccountOperationFail(accountInfoOld.GetLocalId(), Constants::OPERATION_CREATE,
-            ERR_AUTHORIZATION_PRIVILEGE_DENIED, "Failed to create for domain");
+    if (!accountInfoOld.GetShortName().empty()) {
+        ACCOUNT_LOGE("Create os account for domain without token and short name is not empty.");
         return ERR_AUTHORIZATION_PRIVILEGE_DENIED;
     }
 #endif // ENABLE_ACCOUNT_SHORT_NAME
