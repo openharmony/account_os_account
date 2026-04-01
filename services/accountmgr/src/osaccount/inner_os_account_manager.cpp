@@ -2076,7 +2076,7 @@ ErrCode IInnerOsAccountManager::GetOsAccountLocalIdFromDomain(const DomainAccoun
     }
     return ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT;
 #else
-    return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
+    return ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT;
 #endif // SUPPORT_DOMAIN_ACCOUNTS
 }
 
