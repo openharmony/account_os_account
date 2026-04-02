@@ -79,16 +79,6 @@ ErrCode CheckAndCreateDomainAccountCallback::OnResult(int32_t errCode, const Dom
     if (errCode != ERR_OK) {
         return HandleErrorWithEmptyResult(errCode, resultParcel);
     }
-#ifdef SUPPORT_AUTHORIZATION
-    if (osAccountInfo.GetLocalId() != Constants::START_USER_ID && accountOptions_.hasToken) {
-        OsAccountTeeAdapter teeAdapter;
-        errCode = teeAdapter.SetOsAccountType(osAccountInfo.GetLocalId(), type_, accountOptions_.token);
-        if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("Set account type failed, errCode:%{public}d", errCode);
-            return HandleErrorWithEmptyResult(errCode, resultParcel);
-        }
-    }
-#endif // SUPPORT_AUTHORIZATION
     auto callbackWrapper = std::make_shared<BindDomainAccountCallback>(
         osAccountControl_, osAccountInfo, innerCallback_, accountOptions_);
     if (callbackWrapper == nullptr) {
@@ -109,6 +99,26 @@ BindDomainAccountCallback::BindDomainAccountCallback(
     : osAccountControl_(osAccountControl), osAccountInfo_(osAccountInfo), innerCallback_(callback),
     accountOptions_(accountOptions)
 {}
+
+void BindDomainAccountCallback::HandleUnbindDomainAccountFailed()
+{
+    DomainAccountInfo curDomainInfo;
+    osAccountInfo_.GetDomainInfo(curDomainInfo);
+    if (InnerDomainAccountManager::GetInstance().OnAccountUnBound(curDomainInfo, nullptr,
+        osAccountInfo_.GetLocalId()) == ERR_OK) {
+        (void)osAccountControl_->DelOsAccount(osAccountInfo_.GetLocalId());
+    } else {
+        ACCOUNT_LOGE("Failed to unbound domain account");
+    }
+}
+
+void BindDomainAccountCallback::ReplyWithOsAccountInfo(int32_t errCode, Parcel &resultParcel)
+{
+    osAccountInfo_.Marshalling(resultParcel);
+    DomainAccountParcel domainAccountResultParcel;
+    domainAccountResultParcel.SetParcelData(resultParcel);
+    innerCallback_->OnResult(errCode, domainAccountResultParcel);
+}
 
 void BindDomainAccountCallback::OnResult(int32_t errCode, Parcel &parcel)
 {
@@ -131,21 +141,22 @@ void BindDomainAccountCallback::OnResult(int32_t errCode, Parcel &parcel)
         CreateOsAccountOptions options;
         options.disallowedHapList = accountOptions_.disallowedHapList;
         options.allowedHapList = accountOptions_.allowedHapList;
+#ifdef SUPPORT_AUTHORIZATION
+        OsAccountTeeAdapter teeAdapter;
+        errCode = teeAdapter.SetOsAccountType(osAccountInfo_.GetLocalId(),
+            osAccountInfo_.GetType(), accountOptions_.token);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("Failed to set account type to TEE, errCode:%{public}d", errCode);
+            HandleUnbindDomainAccountFailed();
+            ReplyWithOsAccountInfo(errCode, resultParcel);
+            return;
+        }
+#endif // SUPPORT_AUTHORIZATION
         errCode = IInnerOsAccountManager::GetInstance().SendMsgForAccountCreate(osAccountInfo_, options);
         if (errCode != ERR_OK) {
-            DomainAccountInfo curDomainInfo;
-            osAccountInfo_.GetDomainInfo(curDomainInfo);
-            if (InnerDomainAccountManager::GetInstance().OnAccountUnBound(curDomainInfo, nullptr,
-                osAccountInfo_.GetLocalId()) == ERR_OK) {
-                (void)osAccountControl_->DelOsAccount(osAccountInfo_.GetLocalId());
-            } else {
-                ACCOUNT_LOGE("Failed to unbound domain account");
-            }
+            HandleUnbindDomainAccountFailed();
         }
-        osAccountInfo_.Marshalling(resultParcel);
-        DomainAccountParcel domainAccountResultParcel;
-        domainAccountResultParcel.SetParcelData(resultParcel);
-        innerCallback_->OnResult(errCode, domainAccountResultParcel);
+        ReplyWithOsAccountInfo(errCode, resultParcel);
         return;
     }
     if ((osAccountInfo_.GetLocalId() == Constants::START_USER_ID) && (errCode == ERR_OK)) {
@@ -156,10 +167,7 @@ void BindDomainAccountCallback::OnResult(int32_t errCode, Parcel &parcel)
     ACCOUNT_LOGI("No common event part! Publish nothing!");
 #endif // HAS_CES_PART
     }
-    osAccountInfo_.Marshalling(resultParcel);
-    DomainAccountParcel domainAccountResultParcel;
-    domainAccountResultParcel.SetParcelData(resultParcel);
-    innerCallback_->OnResult(errCode, domainAccountResultParcel);
+    ReplyWithOsAccountInfo(errCode, resultParcel);
 }
 } // namespace AccountSA
 } // namespace OHOS

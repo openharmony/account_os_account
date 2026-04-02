@@ -47,6 +47,9 @@ public:
     void OnResult(const int32_t errCode, Parcel &parcel) override;
 
 private:
+    void HandleUnbindDomainAccountFailed();
+    void ReplyWithOsAccountInfo(int32_t errCode, Parcel &resultParcel);
+
     std::shared_ptr<IOsAccountControl> osAccountControl_;
     OsAccountInfo osAccountInfo_;
     sptr<IDomainAccountCallback> innerCallback_ = nullptr;
