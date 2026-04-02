@@ -193,9 +193,10 @@ static std::function<void()> DomainAuthResultWork(std::shared_ptr<DomainAccountA
         }
         napi_value argv[ARGS_SIZE_TWO] = { nullptr };
         napi_create_int32(param->env, param->errCode, &argv[0]);
-        argv[1] = CreateAuthResult(param->env, param->authResult.token,
-            param->authResult.authStatusInfo.remainingTimes, param->authResult.authStatusInfo.freezingTime,
-            param->authResult.accountId);
+        AuthResultContext context{param->authResult.token, param->authResult.authStatusInfo.remainingTimes,
+            param->authResult.authStatusInfo.freezingTime, param->authResult.authStatusInfo.nextPhaseFreezingTime,
+            param->authResult.accountId};
+        argv[1] = CreateAuthResultForDomain(param->env, context);
         NapiCallVoidFunction(param->env, argv, ARGS_SIZE_TWO, param->callback->onResult);
         napi_close_handle_scope(param->env, scope);
     };

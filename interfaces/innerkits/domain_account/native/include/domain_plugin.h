@@ -60,6 +60,7 @@ typedef struct {
     int32_t remainTimes;
     int32_t freezingTime;
     int32_t localId;
+    int32_t nextPhaseFreezingTime;
 } PluginAuthResultInfo;
 
 typedef struct {
@@ -70,6 +71,7 @@ typedef struct {
 typedef struct {
     int32_t remainTimes;
     int32_t freezingTime;
+    int32_t nextPhaseFreezingTime;
 } PluginAuthStatusInfo;
 
 typedef struct {

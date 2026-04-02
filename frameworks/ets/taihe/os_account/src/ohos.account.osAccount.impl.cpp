@@ -791,6 +791,10 @@ public:
             authResultTH.token = optional<array<uint8_t>>(std::in_place_t{}, taihe::copy_data_t{},
                                                           authResult->token.data(), authResult->token.size());
         }
+        if (authResult->authStatusInfo.nextPhaseFreezingTime >= 0) {
+            authResultTH.nextPhaseFreezingTime = optional<int32_t>(std::in_place_t{},
+                authResult->authStatusInfo.nextPhaseFreezingTime);
+        }
         callback_.onResult(errCode, authResultTH);
     }
 

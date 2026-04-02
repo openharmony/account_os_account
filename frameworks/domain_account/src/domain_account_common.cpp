@@ -337,6 +337,10 @@ bool AuthStatusInfo::ReadFromParcel(Parcel &parcel)
         ACCOUNT_LOGE("Failed to read freezingTime");
         return false;
     }
+    if (!parcel.ReadInt32(nextPhaseFreezingTime)) {
+        ACCOUNT_LOGE("Failed to read nextPhaseFreezingTime");
+        return false;
+    }
     return true;
 }
 
@@ -348,6 +352,10 @@ bool AuthStatusInfo::Marshalling(Parcel &parcel) const
     }
     if (!parcel.WriteInt32(freezingTime)) {
         ACCOUNT_LOGE("Failed to write freezingTime");
+        return false;
+    }
+    if (!parcel.WriteInt32(nextPhaseFreezingTime)) {
+        ACCOUNT_LOGE("Failed to write nextPhaseFreezingTime");
         return false;
     }
     return true;

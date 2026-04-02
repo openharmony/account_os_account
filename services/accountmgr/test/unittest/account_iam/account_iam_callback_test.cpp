@@ -1061,6 +1061,7 @@ HWTEST_F(AccountIamCallbackTest, GetDomainAuthStatusInfoCallback_OnResult_0100, 
 
     parcel.WriteInt32(10);
     parcel.WriteInt32(20);
+    parcel.WriteInt32(20);
     EXPECT_CALL(*callback, OnResult(0, _)).Times(1);
     getDomainAuthStatusInfoCallback->OnResult(0, parcel);
 }
