@@ -591,6 +591,8 @@ ErrCode OsAccountManagerService::CreateOsAccountForDomain(const OsAccountType &t
     }
     if (!accountInfoOld.GetShortName().empty()) {
         ACCOUNT_LOGE("Create os account for domain without token and short name is not empty.");
+        REPORT_OS_ACCOUNT_FAIL(accountInfoOld.GetLocalId(), Constants::OPERATION_CREATE,
+            ERR_AUTHORIZATION_PRIVILEGE_DENIED, "Failed to create for domain");
         return ERR_AUTHORIZATION_PRIVILEGE_DENIED;
     }
 #endif // ENABLE_ACCOUNT_SHORT_NAME

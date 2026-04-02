@@ -686,6 +686,18 @@ void IInnerOsAccountManager::RollbackOsAccount(OsAccountInfo &osAccountInfo, boo
         (void)osAccountControl_->DelOsAccount(osAccountInfo.GetLocalId());
         return;
     }
+#ifdef SUPPORT_AUTHORIZATION
+    if (osAccountInfo.GetLocalId() != Constants::MAINTENANCE_MODE_ID) {
+        OsAccountTeeAdapter teeAdapter;
+        ErrCode res = teeAdapter.DelOsAccountType(osAccountInfo.GetLocalId());
+        if (res != ERR_OK) {
+            ACCOUNT_LOGE("Failed to delete account type from TEE, errCode=%{public}d", res);
+            REPORT_OS_ACCOUNT_FAIL(osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE,
+                res, "Failed to rollback type from TEE");
+            return;
+        }
+    }
+#endif // SUPPORT_AUTHORIZATION
 
     if (needDelBms) {
         ErrCode errCode = OsAccountInterface::SendToBMSAccountDelete(osAccountInfo);
@@ -825,6 +837,21 @@ ErrCode IInnerOsAccountManager::UpdateFirstOsAccountInfo(OsAccountInfo& accountI
     return ERR_OK;
 }
 
+#ifdef SUPPORT_AUTHORIZATION
+static ErrCode TeeSetOsAccountType(const int32_t localId, const OsAccountType &type,
+    const CreateOsAccountOptions &options)
+{
+    ErrCode errCode = ERR_OK;
+    OsAccountTeeAdapter teeAdapter;
+    if (options.isEdmCalling) {
+        errCode = teeAdapter.SetOsAccountType(localId, type, options.binData, options.certData);
+    } else {
+        errCode = teeAdapter.SetOsAccountType(localId, type, options.token.value());
+    }
+    return errCode;
+}
+#endif // SUPPORT_AUTHORIZATION
+
 ErrCode IInnerOsAccountManager::CreateOsAccount(const std::string &localName, const std::string &shortName,
     const OsAccountType &type, OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options)
 {
@@ -847,16 +874,23 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(const std::string &localName, co
         return errCode;
     }
 #ifdef SUPPORT_AUTHORIZATION
-    OsAccountTeeAdapter teeAdapter;
-    if (options.isEdmCalling) {
-        errCode = teeAdapter.SetOsAccountType(osAccountInfo.GetLocalId(), type, options.binData, options.certData);
-    } else {
-        errCode = teeAdapter.SetOsAccountType(osAccountInfo.GetLocalId(), type, options.token.value());
+    errCode = TeeSetOsAccountType(osAccountInfo.GetLocalId(), type, options);
+    if (errCode == ERR_ACCOUNT_COMMON_TEE_REACH_LIMIT) {
+        ACCOUNT_LOGE("Failed to set account type to TEE, try to clean garbage accounts and retry");
+        REPORT_OS_ACCOUNT_FAIL(osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE,
+            errCode, "Failed to set type since TEE reach limit");
+        if (CleanGarbageOsAccounts() > 0) {
+            errCode = TeeSetOsAccountType(osAccountInfo.GetLocalId(), type, options);
+        } else {
+            ACCOUNT_LOGE("The number of OS accounts is still too large after cleaning");
+        }
     }
     if (errCode != ERR_OK) {
         RemoveLocalIdToOperating(osAccountInfo.GetLocalId());
-        ACCOUNT_LOGE("Set account type failed, errCode:%{public}d, isEdmCalling:%{public}d",
+        ACCOUNT_LOGE("Failed to set account type to TEE, errCode:%{public}d, isEdmCalling:%{public}d",
             errCode, options.isEdmCalling);
+        REPORT_OS_ACCOUNT_FAIL(osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE,
+            errCode, "Failed to set type to TEE");
         return errCode;
     }
 #endif // SUPPORT_AUTHORIZATION
@@ -913,7 +947,7 @@ ErrCode IInnerOsAccountManager::CreateOsAccountWithFullInfo(OsAccountInfo &osAcc
         errCode = teeAdap.SetOsAccountType(osAccountInfo.GetLocalId(), osAccountInfo.GetType(), options.token.value());
         if (errCode != ERR_OK) {
             RemoveLocalIdToOperating(osAccountInfo.GetLocalId());
-            ACCOUNT_LOGE("Set account type failed, errCode:%{public}d", errCode);
+            ACCOUNT_LOGE("Failed to set account type to TEE, errCode:%{public}d", errCode);
             return errCode;
         }
     }
@@ -1248,7 +1282,8 @@ ErrCode IInnerOsAccountManager::RemoveOsAccountOperate(const int id, OsAccountIn
         OsAccountTeeAdapter teeAdapter;
         ErrCode res = teeAdapter.DelOsAccountType(id);
         if (res != ERR_OK) {
-            ACCOUNT_LOGE("Delete account type failed, errCode=%{public}d", res);
+            ACCOUNT_LOGE("Failed to delete account type from TEE, errCode=%{public}d", res);
+            REPORT_OS_ACCOUNT_FAIL(id, Constants::OPERATION_REMOVE, res, "Failed to delete type from TEE");
             return res;
         }
     }
