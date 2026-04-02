@@ -533,7 +533,7 @@ ErrCode OsAccountManagerService::CreateOsAccountForDomain(const OsAccountType &t
 {
     ACCOUNT_LOGI("Start");
     // permission check
-    if (!CheckCreateOsAccountForDomainPermission()) {
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, CONSTANT_CREATE)) {
         ACCOUNT_LOGE("Account manager service, permission denied!");
         REPORT_PERMISSION_FAIL();
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
@@ -2275,33 +2275,6 @@ bool OsAccountManagerService::PermissionCheck(const std::string& permissionName,
         return true;
     }
 
-    return false;
-}
-
-bool OsAccountManagerService::CheckCreateOsAccountForDomainPermission()
-{
-    // 1. check MANAGE_LOCAL_ACCOUNTS permission
-    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
-        return false;
-    }
-    // 2. check CONSTANT_CREATE constraint
-    if (PermissionCheck("", CONSTANT_CREATE)) {
-        return true;
-    }
-    // 3. permission passed but constraint failed, go into short name logic
-#ifdef ENABLE_ACCOUNT_SHORT_NAME
-    std::vector<OsAccountInfo> osAccountInfos;
-    ErrCode errCode = QueryAllCreatedOsAccounts(osAccountInfos);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Query all created osAccount failed, errCode: %{public}d", errCode);
-        return false;
-    }
-    if (osAccountInfos.size() == 1 && osAccountInfos[0].GetLocalId() == Constants::START_USER_ID) {
-        std::string startUserShortName = osAccountInfos[0].GetShortName();
-        std::string startUserLocalName = osAccountInfos[0].GetLocalName();
-        return (startUserShortName.empty() || startUserLocalName.empty());
-    }
-#endif // ENABLE_ACCOUNT_SHORT_NAME
     return false;
 }
 

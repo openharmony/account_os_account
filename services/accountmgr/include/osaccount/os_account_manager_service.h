@@ -181,7 +181,6 @@ private:
     virtual ErrCode DumpStateByAccounts(const std::vector<OsAccountInfo> &osAccountInfos,
         std::vector<std::string> &state, bool dumpSensitiveInfo = true);
     bool PermissionCheck(const std::string& permissionName, const std::string& constraintName);
-    bool CheckCreateOsAccountForDomainPermission();
     bool CheckCreateOsAccountWhiteList();
     ErrCode ValidateShortName(const std::string &shortName);
     void GetCurrentLocalId(int32_t &localId);
