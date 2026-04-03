@@ -17,11 +17,14 @@
 #include <unistd.h>
 #include "account_log_wrapper.h"
 #include "account_hisysevent_adapter.h"
+#include "app_account_info_error.h"
 #include "app_account_info_json_parser.h"
 #include "json_utils.h"
 
 namespace OHOS {
 namespace AccountSA {
+
+int g_accountDataStorageErrType = 0;
 
 AccountDataStorage::AccountDataStorage(const std::string &appId, const std::string &storeId,
     const DbAdapterOptions &options)
@@ -66,6 +69,9 @@ ErrCode AccountDataStorage::AddAccountInfo(const IAccountInfo &iAccountInfo)
 ErrCode AccountDataStorage::SaveAccountInfo(const IAccountInfo &iAccountInfo)
 {
     ACCOUNT_LOGI("mock enter");
+    if (g_accountDataStorageErrType == ERR_ACCOUNTDATASTORAGE_SAVEINFO) {
+        return ERR_ACCOUNTDATASTORAGE_FAILED;
+    }
     return ERR_OK;
 }
 
@@ -249,6 +255,9 @@ ErrCode AccountDataStorage::LoadDataByLocalFuzzyQuery(
     std::string subId, std::map<std::string, std::shared_ptr<IAccountInfo>> &infos)
 {
     ACCOUNT_LOGI("mock enter");
+    if (g_accountDataStorageErrType == ERR_ACCOUNTDATASTORAGE_LOADDATA) {
+        return ERR_ACCOUNTDATASTORAGE_FAILED;
+    }
     if (subId == "com.example.ownermax#0") {
         for (int i = 0; i < 1002; ++i) { // 1002 is the maximum number created
             std::string accountKey = "Account" + std::to_string(i);
@@ -263,6 +272,9 @@ ErrCode AccountDataStorage::LoadDataByLocalFuzzyQuery(
 ErrCode AccountDataStorage::PutValueToKvStore(const std::string &keyStr, const std::string &valueStr)
 {
     ACCOUNT_LOGI("mock enter");
+    if (g_accountDataStorageErrType == ERR_ACCOUNTDATASTORAGE_PUTVALUEKVSTORE) {
+        return ERR_ACCOUNTDATASTORAGE_FAILED;
+    }
     return ERR_OK;
 }
 
@@ -270,6 +282,9 @@ ErrCode AccountDataStorage::GetValueFromKvStore(const std::string &keyStr, std::
 {
     ACCOUNT_LOGI("mock enter");
     valueStr = "{\"name\":[\"com.example.ownermax#0#name#\", \"bbbbb\"]}";
+    if (g_accountDataStorageErrType == ERR_ACCOUNTDATASTORAGE_GETVALUEKVSTORE) {
+        return ERR_ACCOUNTDATASTORAGE_FAILED;
+    }
     return ERR_OK;
 }
 
@@ -288,12 +303,18 @@ ErrCode AccountDataStorage::MoveData(const std::shared_ptr<AccountDataStorage> &
 ErrCode StartDbTransaction(
     const std::shared_ptr<AccountDataStorage> &dataStoragePtr, DatabaseTransaction &dbtransaction)
 {
+    if (g_accountDataStorageErrType == ERR_ACCOUNTDATASTORAGE_STARTDB) {
+        return ERR_ACCOUNTDATASTORAGE_FAILED;
+    }
     return ERR_OK;
 }
 
 ErrCode CommitDbTransaction(
     const std::shared_ptr<AccountDataStorage> &dataStoragePtr, DatabaseTransaction &dbtransaction)
 {
+    if (g_accountDataStorageErrType == ERR_ACCOUNTDATASTORAGE_COMMITDB) {
+        return ERR_ACCOUNTDATASTORAGE_FAILED;
+    }
     return ERR_OK;
 }
 }  // namespace AccountSA
