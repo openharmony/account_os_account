@@ -15,6 +15,7 @@
 
 #ifndef OS_ACCOUNT_SERVICES_INFO_REPORT_H
 #define OS_ACCOUNT_SERVICES_INFO_REPORT_H
+#include <cstdint>
 #include <string>
 
 namespace OHOS {
@@ -24,9 +25,28 @@ typedef enum {
     EVENT_LOGOUT = 1,
 } ReportEvent;
 
+typedef enum {
+    ACCOUNT_OPERATION_TYPE_CREATE = 0,
+    ACCOUNT_OPERATION_TYPE_REMOVE = 1,
+    ACCOUNT_OPERATION_TYPE_UPDATE_NAME = 2,
+    ACCOUNT_OPERATION_TYPE_UPDATE_TYPE = 3,
+    ACCOUNT_OPERATION_TYPE_UPDATE_PHOTO = 4,
+} AccountOperationType;
+
+struct AccountOperationInfo {
+    int32_t pid;
+    int32_t uid;
+    std::string sourceUserName;
+    int32_t sourceUserId;
+    std::string targetUserName;
+    int32_t targetUserId;
+};
+
 class AccountInfoReport {
 public:
     static void ReportSecurityInfo(const std::string &user, int32_t id, ReportEvent event, int32_t result);
+    static void ReportAccountOperation(
+        const AccountOperationInfo &accountOperationInfo, AccountOperationType operationType);
 };
 }  // namespace AccountSA
 }  // namespace OHOS
