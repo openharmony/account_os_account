@@ -682,10 +682,6 @@ bool IInnerOsAccountManager::CheckAndCleanOsAccounts()
 
 void IInnerOsAccountManager::RollbackOsAccount(OsAccountInfo &osAccountInfo, bool needDelStorage, bool needDelBms)
 {
-    if (!osAccountInfo.GetIsDataRemovable()) {
-        (void)osAccountControl_->DelOsAccount(osAccountInfo.GetLocalId());
-        return;
-    }
 #ifdef SUPPORT_AUTHORIZATION
     if (osAccountInfo.GetLocalId() != Constants::MAINTENANCE_MODE_ID) {
         OsAccountTeeAdapter teeAdapter;
@@ -698,6 +694,10 @@ void IInnerOsAccountManager::RollbackOsAccount(OsAccountInfo &osAccountInfo, boo
         }
     }
 #endif // SUPPORT_AUTHORIZATION
+    if (!osAccountInfo.GetIsDataRemovable()) {
+        (void)osAccountControl_->DelOsAccount(osAccountInfo.GetLocalId());
+        return;
+    }
 
     if (needDelBms) {
         ErrCode errCode = OsAccountInterface::SendToBMSAccountDelete(osAccountInfo);
