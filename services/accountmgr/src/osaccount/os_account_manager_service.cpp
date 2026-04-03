@@ -1142,7 +1142,7 @@ ErrCode OsAccountManagerService::SetOsAccountType(int32_t id, int32_t typeValue,
         return res;
     }
 
-    if (id == Constants::START_USER_ID) {
+    if (id == Constants::START_USER_ID || id == Constants::MAINTENANCE_MODE_ID) {
         ACCOUNT_LOGE("SetOsAccountType failed, current user is restricted");
         return ERR_ACCOUNT_COMMON_ACCOUNT_IS_RESTRICTED;
     }

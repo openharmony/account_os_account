@@ -320,6 +320,7 @@ ohos_moduletest("os_account_manager_service_module_test") {
       "${services_path}/accountmgr/src/authorization_manager/privilege_cache_manager.cpp",
       "${services_path}/accountmgr/src/authorization_manager/privilege_utils.cpp",
       "${services_path}/accountmgr/src/authorization_manager/service_extension_connect.cpp",
+      "${services_path}/accountmgr/src/osaccount/os_account_cache_manager.cpp",
     ]
     deps += [
       "${authorization_framework_path}:authorization_callback_proxy",
