@@ -930,7 +930,8 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, SetOsAccountTypeMockTest003, TestSize.Lev
     OsAccountInfo osAccountInfo;
     osAccountInfo.SetType(OsAccountType::GUEST);
     EXPECT_CALL(*ptr, GetOsAccountInfoById(::testing::_, ::testing::_))
-        .WillOnce(DoAll(SetArgReferee<1>(osAccountInfo), Return(ERR_OK)));
+        .Times(testing::AtLeast(1))
+        .WillRepeatedly(DoAll(SetArgReferee<1>(osAccountInfo), Return(ERR_OK)));
 
     SetOsAccountTypeOptions options;
     EXPECT_EQ(ERR_OK, innerMgrService_->SetOsAccountType(TEST_USER_ID108, OsAccountType::GUEST, options));
@@ -1008,7 +1009,8 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, SetOsAccountTypeMockTest006, TestSize.Lev
     OsAccountInfo osAccountInfo;
     osAccountInfo.SetType(OsAccountType::NORMAL);
     EXPECT_CALL(*ptr, GetOsAccountInfoById(::testing::_, ::testing::_))
-        .WillOnce(DoAll(SetArgReferee<1>(osAccountInfo), Return(ERR_OK)));
+        .Times(testing::AtLeast(1))
+        .WillRepeatedly(DoAll(SetArgReferee<1>(osAccountInfo), Return(ERR_OK)));
 
     EXPECT_CALL(*ptr, UpdateOsAccount(::testing::_))
         .WillOnce(Return(ERR_OK));

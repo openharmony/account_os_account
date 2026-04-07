@@ -85,7 +85,7 @@ group("unittest") {
   testonly = true
 
   deps = [ ":os_account_ndk_test" ]
-  if (os_account_support_set_os_account_id) {
+  if (os_account_support_lock_os_account) {
     deps += [ ":os_account_utils_test" ]
   }
 }
