@@ -100,6 +100,7 @@ account_service_sources_mock = [
   "${services_path}/accountmgr/src/ohos_account_manager.cpp",
   "${services_path}/accountmgr/src/osaccount/inner_os_account_manager.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_activate_lock_plugin_manager.cpp",
+  "${services_path}/accountmgr/src/osaccount/os_account_cache_manager.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_constraint_subscribe_death_recipient.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_constraint_manager.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_constraint_subscribe_manager.cpp",

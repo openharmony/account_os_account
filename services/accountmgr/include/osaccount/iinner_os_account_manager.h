@@ -37,6 +37,7 @@
 #include "singleton.h"
 #ifdef SUPPORT_AUTHORIZATION
 #include "tee_auth_adapter.h"
+#include "os_account_cache_manager.h"
 #endif // SUPPORT_AUTHORIZATION
 namespace OHOS {
 namespace AccountSA {
@@ -131,6 +132,8 @@ public:
     ErrCode CheckTypeNumber(const OsAccountType& type) override;
     ErrCode ActivateDefaultOsAccount() override;
     ErrCode MigrateOsAccountTypesToTEE();  // Migrate account types to TEE for upgrade compatibility
+    // Preload given account types from TEE to cache
+    ErrCode PreloadAccountTypesFromTee(const std::vector<int32_t> &ids);
 
     int32_t CleanGarbageOsAccounts(int32_t excludeId = -1) override;
     void ResetAccountStatus() override;
@@ -212,6 +215,7 @@ private:
     std::shared_ptr<std::mutex> GetOrInsertUpdateLock(int32_t id);
     ErrCode VerifyAndSetOsAccountTypeInTEE(int32_t id, OsAccountType type,
         const std::optional<std::vector<uint8_t>>& token);
+    void UpdateAccountTypeCache(int32_t id, OsAccountType type);
     ErrCode UpdateAccountToBackground(int32_t oldId);
     ErrCode IsValidOsAccount(const OsAccountInfo &osAccountInfo);
     ErrCode GetNonSACreatedOACount(unsigned int &nonSACreatedOACount) const;
@@ -246,6 +250,7 @@ private:
     mutable std::mutex createOsAccountMutex_;
     SafeMap<uint64_t, int32_t> foregroundAccountMap_;
 #ifdef SUPPORT_AUTHORIZATION
+    std::unique_ptr<OsAccountCacheManager> osAccountCacheManager_;  // Cache for OS account types
     OsAccountTeeAdapter teeAdapter_;  // TEE adapter for secure account operations
 #endif // SUPPORT_AUTHORIZATION
 #ifdef SUPPORT_LOCK_OS_ACCOUNT
