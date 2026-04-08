@@ -205,6 +205,10 @@ void CreateJsDomainInfo(napi_env env, const DomainAccountInfo &info, napi_value 
     //serverConfigId
     napi_create_string_utf8(env, info.serverConfigId_.c_str(), info.serverConfigId_.size(), &value);
     napi_set_named_property(env, result, "serverConfigId", value);
+
+    //additionalInfo
+    napi_value additionInfoJs = NativeStringToJsObject(env, info.additionInfo_);
+    napi_set_named_property(env, result, "additionalInfo", additionInfoJs);
 }
 
 void CreateJsDistributedInfo(napi_env env, const OhosAccountInfo &info, napi_value &result)
@@ -567,7 +571,7 @@ bool ParseParaActiveOA(napi_env env, napi_callback_info cbInfo, ActivateOAAsyncC
     // argv[1]: callback or displayId
     napi_valuetype valueType = napi_undefined;
     NAPI_CALL_BASE(env, napi_typeof(env, argv[PARAMONE], &valueType), false);
-    
+
     if ((valueType == napi_undefined) || (valueType == napi_null)) {
         return true;
     } else if (valueType == napi_function) {
@@ -1295,7 +1299,7 @@ bool ParseParaGetForegroundOADisplayId(napi_env env, napi_callback_info cbInfo,
     size_t argc = ARGS_SIZE_ONE;
     napi_value argv[ARGS_SIZE_ONE] = {0};
     NAPI_CALL_BASE(env, napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr), false);
-    
+
     if (argc == ARGS_SIZE_ZERO) {
         ACCOUNT_LOGE("GetForegroundOADisplayId failed, no parameters");
         std::string errMsg = "Parameter error. The number of parameters should be 1.";
@@ -1912,7 +1916,7 @@ static bool ParseParaSetTypeOptions(napi_env env, napi_value object, SetTypeAsyn
         asyncContext->options.token = std::nullopt;
         return true;
     }
-    
+
     if (tokenValueType == napi_null) {
         ACCOUNT_LOGE("Get token failed, token is null");
         std::string errMsg = "Parameter error. The type of \"token\" in options must be Uint8Array";

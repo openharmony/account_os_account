@@ -92,6 +92,10 @@ bool DomainAccountInfo::ReadFromParcel(Parcel &parcel)
         ACCOUNT_LOGE("Failed to read domain serverConfigId.");
         return false;
     }
+    if (!parcel.ReadString(additionInfo_)) {
+        ACCOUNT_LOGE("Failed to read domain additionalInfo.");
+        return false;
+    }
     return true;
 }
 
@@ -117,6 +121,10 @@ bool DomainAccountInfo::Marshalling(Parcel &parcel) const
         ACCOUNT_LOGE("Failed to write serverConfigId.");
         return false;
     }
+    if (!parcel.WriteString(additionInfo_)) {
+        ACCOUNT_LOGE("Failed to write additionalInfo.");
+        return false;
+    }
     return true;
 }
 
@@ -138,7 +146,7 @@ DomainAccountInfo *DomainAccountInfo::Unmarshalling(Parcel &parcel)
 
 DomainAccountAuthOptions::DomainAccountAuthOptions()
 {}
- 
+
 bool DomainAccountAuthOptions::ReadFromParcel(Parcel &parcel)
 {
     if (!parcel.ReadString(serverParams_)) {

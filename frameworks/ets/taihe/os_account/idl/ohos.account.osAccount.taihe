@@ -61,12 +61,12 @@ interface AccountManager {
 
     @gen_promise("setOsAccountType")
     SetOsAccountTypeSync(localId: i32, type: OsAccountType, options: Optional<SetOsAccountTypeOptions>): void;
-    
+
     @rename("onActivate")
     OnActivate(name: String, callback: (id:i32) => void): void;
     @rename("offActivate")
     OffActivate(name: String, callback: Optional<(id:i32) => void>): void;
-    
+
     @rename("onActivating")
     OnActivating(name: String, callback: (id:i32) => void): void;
     @rename("offActivating")
@@ -87,7 +87,7 @@ interface AccountManager {
 
     @rename("offConstraintChanged")
     offConstraintChanged(callback: Optional<(data: ConstraintChangeInfo) => void>): void;
-    
+
     @gen_async("activateOsAccount")
     @gen_promise("activateOsAccount")
     ActivateOsAccountSync(localId: i32): void;
@@ -365,6 +365,7 @@ struct DomainAccountInfo {
     accountId: Optional<String>;
     isAuthenticated: Optional<bool>;
     serverConfigId: Optional<String>;
+    additionalInfo: Optional<@sts_type("Record<string, RecordData>")Opaque>;
 }
 
 struct DomainAccountAuthOptions {

@@ -33,6 +33,7 @@ static const int32_t ERROR_CODE = 12300001;
 namespace {
 static int32_t g_callingLocalId = -1;
 static bool g_needWaitCancel = false;
+static bool g_isCheckError = false;
 static std::mutex g_needWaitCancelMutex;
 static std::mutex g_mutex;
 const int32_t WAIT_TIME = 5;
@@ -70,6 +71,38 @@ static bool SetPluginUint8Vector(const std::vector<uint8_t> &vector, PluginUint8
     pVector.capcity = vector.size();
     pVector.size = vector.size();
     return true;
+}
+
+void SetIsCheckError(bool isCheckError)
+{
+    g_isCheckError = isCheckError;
+}
+
+PluginBussnessError *GetAccountServerConfig(const PluginDomainAccountInfo *domainAccountInfo,
+    PluginServerConfigInfo **serverConfigInfo)
+{
+    ACCOUNT_LOGI("Mock GetAccountServerConfig enter.");
+    PluginBussnessError *error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    if (error == nullptr) {
+        return nullptr;
+    }
+    if (strcmp(domainAccountInfo->serverConfigId.data, "passserver") != 0) {
+        error->code = g_testErrCode;
+        error->msg.data = nullptr;
+        return error;
+    }
+    error->code = 0;
+    error->msg.data = nullptr;
+    *serverConfigInfo = (PluginServerConfigInfo *)malloc(sizeof(PluginServerConfigInfo));
+    if (*serverConfigInfo == NULL) {
+        free(error);
+        return nullptr;
+    }
+
+    (*serverConfigInfo)->parameters.data = nullptr;
+    SetPluginString(UPDATE_CONFIG_ID, (*serverConfigInfo)->id);
+    SetPluginString(DOMAIN, (*serverConfigInfo)->domain);
+    return error;
 }
 
 PluginBussnessError *Auth(const PluginDomainAccountInfo *domainAccountInfo, const PluginUint8Vector *credential,
@@ -163,6 +196,11 @@ PluginBussnessError *GetAccountInfo(const PluginGetDomainAccountInfoOptions *opt
         return nullptr;
     }
     if (strcmp(options->domainAccountInfo.accountName.data, "testNewAccountInvalid") == 0) {
+        error->code = 12300003; // 12300003 is ERR_JS_ACCOUNT_NOT_FOUND
+        error->msg.data = nullptr;
+        return error;
+    }
+    if (g_isCheckError && strcmp(options->domainAccountInfo.accountId.data, "testNewAccountInvalid") == 0) {
         error->code = 12300003; // 12300003 is ERR_JS_ACCOUNT_NOT_FOUND
         error->msg.data = nullptr;
         return error;

@@ -70,6 +70,7 @@ ErrCode CheckAndCreateDomainAccountCallback::OnResult(int32_t errCode, const Dom
     domainAccountInfo.domain_ = parameters->GetStringParam("domain");
     domainAccountInfo.accountId_ = parameters->GetStringParam("accountId");
     domainAccountInfo.serverConfigId_ = parameters->GetStringParam("serverConfigId");
+    domainAccountInfo.additionInfo_ = parameters->GetStringParam("additionalInfo");
     if ((domainAccountInfo.accountName_.empty()) || (domainAccountInfo.domain_.empty())) {
         ACCOUNT_LOGE("Domain account not found");
         return HandleErrorWithEmptyResult(ERR_JS_ACCOUNT_NOT_FOUND, resultParcel);

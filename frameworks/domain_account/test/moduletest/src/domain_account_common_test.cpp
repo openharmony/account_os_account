@@ -122,6 +122,32 @@ HWTEST_F(DomainAccountCommonModuleTest, DomainAccountCommonModuleTest_AuthStatus
 }
 
 /**
+ * @tc.name: DomainAccountInfo_ReadFromParcel_0100
+ * @tc.desc: DomainAccountInfo ReadFromParcel additioninfo false.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountCommonModuleTest, DomainAccountInfo_ReadFromParcel_0100, TestSize.Level3)
+{
+    Parcel parcel;
+    std::string test = "test";
+    parcel.WriteString(test);
+    parcel.WriteString(test);
+    parcel.WriteString(test);
+    parcel.WriteBool(true);
+    parcel.WriteString(test);
+    DomainAccountInfo info;
+    EXPECT_FALSE(info.ReadFromParcel(parcel));
+    parcel.WriteString(test);
+    parcel.WriteString(test);
+    parcel.WriteString(test);
+    parcel.WriteBool(true);
+    parcel.WriteString(test);
+    parcel.WriteString(test);
+    EXPECT_TRUE(info.ReadFromParcel(parcel));
+}
+
+/**
  * @tc.name: DomainAccountCommonModuleTest_AuthStatusInfo_002
  * @tc.desc: AuthStatusInfo Marshalling successfully.
  * @tc.type: FUNC
