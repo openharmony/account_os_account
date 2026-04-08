@@ -74,6 +74,7 @@
         "constraint.sudo",
         "constraint.font.set",
         "constraint.enterprise.bundles.local.install.disallow",
-        "constraint.multiWindow"
+        "constraint.multiWindow",
+        "constraint.distributed.transmission"
     ]
 }
