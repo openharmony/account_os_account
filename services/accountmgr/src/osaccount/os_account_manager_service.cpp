@@ -2283,6 +2283,9 @@ bool OsAccountManagerService::CheckCreateOsAccountWhiteList()
     return uidWhiteListForCreation.find(GetCallingUid()) != uidWhiteListForCreation.end();
 }
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode OsAccountManagerService::IsOsAccountForeground(int32_t localId, const uint64_t displayId,
                                                        bool &isForeground)
 {
