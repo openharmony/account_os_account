@@ -18,6 +18,7 @@
 
 #include <condition_variable>
 #include <mutex>
+#include <stdint.h>
 #include "domain_account_auth_death_recipient.h"
 #include "domain_account_common.h"
 #include "domain_account_plugin_death_recipient.h"
@@ -56,7 +57,7 @@ public:
     ErrCode SetAccountPolicy(const DomainAccountInfo &info, const std::string &policy);
     ErrCode GetAccessToken(const DomainAccountInfo &info, const AAFwk::WantParams &parameters,
         const sptr<IDomainAccountCallback> &callback);
-    ErrCode GetDomainAccountInfo(const DomainAccountInfo &info, DomainAccountInfo &result);
+    ErrCode GetDomainAccountInfo(const DomainAccountInfo &info, DomainAccountInfo &result, int32_t localId = -1);
     ErrCode GetDomainAccountInfo(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback);
     ErrCode OnAccountBound(const DomainAccountInfo &info, const int32_t localId,
         const std::shared_ptr<DomainAccountCallback> &callback);
@@ -129,7 +130,7 @@ private:
     ErrCode PluginAuthWithParameters(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
         const std::string &serverParams);
     ErrCode PluginGetDomainAccountInfo(const GetDomainAccountInfoOptions &options,
-        DomainAccountInfo &resultParcel);
+        DomainAccountInfo &resultParcel, int32_t localId = -1);
     ErrCode PluginAuthWithPopup(const DomainAccountInfo &info, DomainAuthResult &resultParcel);
     ErrCode PluginAuthToken(const DomainAccountInfo &info,  const std::vector<uint8_t> &authData,
         DomainAuthResult &resultParcel);

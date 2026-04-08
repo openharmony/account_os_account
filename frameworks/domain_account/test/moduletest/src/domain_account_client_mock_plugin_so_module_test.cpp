@@ -84,6 +84,7 @@ std::map<PluginMethodEnum, void *> PLUGIN_METHOD_MAP = {
     {PluginMethodEnum::UPDATE_SERVER_CONFIG, reinterpret_cast<void *>(UpdateServerConfig)},
     {PluginMethodEnum::UNBIND_ACCOUNT, reinterpret_cast<void *>(UnBindAccount)},
     {PluginMethodEnum::CANCEL_AUTH, reinterpret_cast<void *>(CancelAuth)},
+    {PluginMethodEnum::GET_ACCOUNT_SERVER_CONFIG, reinterpret_cast<void *>(GetAccountServerConfig)},
     {PluginMethodEnum::AUTH_WITH_SERVER_CONFIG, reinterpret_cast<void *>(AuthWithServerConfig)},
 };
 }
@@ -1113,6 +1114,63 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, UpdateServerConfig001, TestS
     EXPECT_EQ(OsAccountManager::QueryOsAccountById(userId2, accountInfo), ERR_OK);
     accountInfo.GetDomainInfo(domainInfo);
     EXPECT_NE(domainInfo.serverConfigId_, config.id_);
+    EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId1), ERR_OK);
+    EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId2), ERR_OK);
+    UnloadPluginMethods();
+}
+
+/**
+ * @tc.name: GetDomainInfo001
+ * @tc.desc: Test GetDomainInfo success update local info.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, GetDomainInfo001, TestSize.Level1)
+{
+    std::string configId = "passserver";
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = "passserver";
+    domainInfo.domain_ = "test.example.com";
+    domainInfo.accountId_ = "testid";
+    domainInfo.serverConfigId_ = configId;
+    CreateOsAccountForDomainOptions options;
+    LoadPluginMethods();
+    auto callback = std::make_shared<MockPluginSoDomainCreateDomainAccountCallback>();
+    ASSERT_NE(callback, nullptr);
+    auto testCallback = std::make_shared<TestPluginSoCreateDomainAccountCallback>(callback);
+    ASSERT_NE(testCallback, nullptr);
+    ErrCode code = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo,
+        testCallback, options);
+    std::unique_lock<std::mutex> lock(testCallback->mutex);
+    testCallback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
+                              [lockCallback = testCallback]() { return lockCallback->isReady; });
+    ASSERT_EQ(code, ERR_OK);
+    int32_t userId1 = -1;
+    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId1), ERR_OK);
+    ASSERT_NE(userId1, -1);
+    domainInfo.accountName_ = "passserver2";
+    domainInfo.accountId_ = "testNewAccountInvalid";
+    domainInfo.serverConfigId_ = "passserver";
+    auto testCallback2 = std::make_shared<TestPluginSoCreateDomainAccountCallback>(callback);
+    ASSERT_NE(testCallback2, nullptr);
+    code = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo,
+        testCallback2, options);
+    std::unique_lock<std::mutex> lock2(testCallback2->mutex);
+    testCallback2->cv.wait_for(lock2, std::chrono::seconds(WAIT_TIME),
+                              [lockCallback = testCallback2]() { return lockCallback->isReady; });
+    EXPECT_EQ(code, ERR_OK);
+    int32_t userId2 = -1;
+    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId2), ERR_OK);
+    ASSERT_NE(userId2, -1);
+    std::vector<OsAccountInfo> osAccountInfos;
+    EXPECT_EQ(OsAccountManager::QueryAllCreatedOsAccounts(osAccountInfos), ERR_OK);
+    SetIsCheckError(true);
+    EXPECT_EQ(OsAccountManager::QueryAllCreatedOsAccounts(osAccountInfos), ERR_OK);
+    DomainAccountInfo resultDomainInfo;
+    EXPECT_NE(OsAccountManager::GetOsAccountDomainInfo(100, resultDomainInfo), ERR_OK);
+    EXPECT_EQ(OsAccountManager::GetOsAccountDomainInfo(userId1, resultDomainInfo), ERR_OK);
+    EXPECT_EQ(OsAccountManager::GetOsAccountDomainInfo(userId2, resultDomainInfo), ERR_OK);
+    SetIsCheckError(false);
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId1), ERR_OK);
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId2), ERR_OK);
     UnloadPluginMethods();

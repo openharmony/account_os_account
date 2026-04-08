@@ -188,41 +188,42 @@ HWTEST_F(OsAccountServiceTest, IsOsAccountVerified001, TestSize.Level1)
 
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
 /*
- * @tc.name: GetServerConfigInfo001
- * @tc.desc: Test GetServerConfigInfo with valid userid.
+ * @tc.name: GetDomainInfo001
+ * @tc.desc: Test GetDomainInfo with valid userid.
  * @tc.type: FUNC
  * @tc.require: #I6JV5X
  */
-HWTEST_F(OsAccountServiceTest, GetServerConfigInfo001, TestSize.Level1)
+HWTEST_F(OsAccountServiceTest, GetDomainInfo001, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
     osAccountInfo.SetIsCreateCompleted(false);
-    ErrCode errCode = osAccountService_->GetServerConfigInfo(osAccountInfo);
+    ErrCode errCode = osAccountService_->GetDomainInfo(osAccountInfo, false);
     EXPECT_EQ(errCode, ERR_OK);
     osAccountInfo.SetIsCreateCompleted(true);
     osAccountInfo.SetToBeRemoved(true);
-    errCode = osAccountService_->GetServerConfigInfo(osAccountInfo);
+    errCode = osAccountService_->GetDomainInfo(osAccountInfo, false);
     EXPECT_EQ(errCode, ERR_OK);
     osAccountInfo.SetToBeRemoved(false);
-    errCode = osAccountService_->GetServerConfigInfo(osAccountInfo);
+    errCode = osAccountService_->GetDomainInfo(osAccountInfo, false);
     EXPECT_EQ(errCode, ERR_OK);
     DomainAccountInfo info;
     info.accountName_ = "test";
     osAccountInfo.SetDomainInfo(info);
-    errCode = osAccountService_->GetServerConfigInfo(osAccountInfo);
+    errCode = osAccountService_->GetDomainInfo(osAccountInfo, false);
     EXPECT_EQ(errCode, ERR_OK);
+    errCode = osAccountService_->GetDomainInfo(osAccountInfo, true);
     info.serverConfigId_ = "test";
     osAccountInfo.SetDomainInfo(info);
     EXPECT_EQ(errCode, ERR_OK);
 }
 
 /*
- * @tc.name: GetServerConfigInfo001
- * @tc.desc: Test GetServerConfigInfo with valid userid.
+ * @tc.name: GetDomainInfo001
+ * @tc.desc: Test GetDomainInfo with valid userid.
  * @tc.type: FUNC
  * @tc.require: #I6JV5X
  */
-HWTEST_F(OsAccountServiceTest, GetServerConfigInfo002, TestSize.Level1)
+HWTEST_F(OsAccountServiceTest, GetDomainInfo002, TestSize.Level1)
 {
     OsAccountInfo accountInfo(TEST_ACCOUNT_ID, "QueryOsAccountInfo001", OsAccountType::NORMAL, 0);
     DomainAccountInfo domainInfo;
@@ -351,7 +352,7 @@ HWTEST_F(OsAccountServiceTest, SetOsAccountType003, TestSize.Level1)
     oldToken = IPCSkeleton::GetCallingTokenID();
     newToken = 0;
     ASSERT_TRUE(AllocPermission({"ohos.permission.GET_LOCAL_ACCOUNTS"}, newToken, true));
-    
+
     // Simulate non-root UID to bypass root check in PermissionCheck
     setuid(TEST_USER_ID * UID_TRANSFORM_DIVISOR);
     result = osAccountService_->SetOsAccountType(localId,

@@ -51,6 +51,7 @@ CJsonUnique ToJson(const OsAccountInfo &accountInfo)
     AddStringToJson(domainInfoObject, DOMAIN_ACCOUNT_ID, accountInfo.domainInfo_.accountId_);
     AddIntToJson(domainInfoObject, DOMAIN_ACCOUNT_STATUS, static_cast<int>(accountInfo.domainInfo_.status_));
     AddStringToJson(domainInfoObject, DOMAIN_ACCOUNT_CONFIG, accountInfo.domainInfo_.serverConfigId_);
+    AddStringToJson(domainInfoObject, DOMAIN_ACCOUNT_ADDITION, accountInfo.domainInfo_.additionInfo_);
     AddObjToJson(jsonObject, DOMAIN_INFO, domainInfoObject);
 
     return jsonObject;
@@ -90,6 +91,7 @@ bool FromJson(cJSON *jsonObject, OsAccountInfo &accountInfo)
         GetDataByType<std::string>(typeJson, DOMAIN_ACCOUNT_ID, accountInfo.domainInfo_.accountId_);
         GetDataByType<DomainAccountStatus>(typeJson, DOMAIN_ACCOUNT_STATUS, accountInfo.domainInfo_.status_);
         GetDataByType<std::string>(typeJson, DOMAIN_ACCOUNT_CONFIG, accountInfo.domainInfo_.serverConfigId_);
+        GetDataByType<std::string>(typeJson, DOMAIN_ACCOUNT_ADDITION, accountInfo.domainInfo_.additionInfo_);
     }
     return parseSuccess;
 }
@@ -102,6 +104,7 @@ CJsonUnique ToJson(const DomainAccountInfo &domainInfo)
     AddStringToJson(domainInfoObject, DOMAIN_ACCOUNT_ID, domainInfo.accountId_);
     AddIntToJson(domainInfoObject, DOMAIN_ACCOUNT_STATUS, static_cast<int>(domainInfo.status_));
     AddStringToJson(domainInfoObject, DOMAIN_ACCOUNT_CONFIG, domainInfo.serverConfigId_);
+    AddStringToJson(domainInfoObject, DOMAIN_ACCOUNT_ADDITION, domainInfo.additionInfo_);
     return domainInfoObject;
 }
 
@@ -116,6 +119,7 @@ bool FromJson(cJSON *jsonObject, DomainAccountInfo &domainInfo)
     result &= GetDataByType<std::string>(jsonObject, DOMAIN_ACCOUNT_ID, domainInfo.accountId_);
     result &= GetDataByType<DomainAccountStatus>(jsonObject, DOMAIN_ACCOUNT_STATUS, domainInfo.status_);
     result &= GetDataByType<std::string>(jsonObject, DOMAIN_ACCOUNT_CONFIG, domainInfo.serverConfigId_);
+    result &= GetDataByType<std::string>(jsonObject, DOMAIN_ACCOUNT_ADDITION, domainInfo.additionInfo_);
     return result;
 }
 } // namespace AccountSA

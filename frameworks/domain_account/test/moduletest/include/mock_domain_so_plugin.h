@@ -31,6 +31,8 @@ PluginBussnessError *BindAccount(const PluginDomainAccountInfo *domainAccountInf
 PluginBussnessError *BindAccountError(const PluginDomainAccountInfo *domainAccountInfo, const int32_t localId);
 PluginBussnessError *GetAccountInfo(const PluginGetDomainAccountInfoOptions *options, const int32_t callerLocalId,
                                     PluginDomainAccountInfo **domainAccountInfo);
+PluginBussnessError *GetAccountServerConfig(const PluginDomainAccountInfo *domainAccountInfo,
+    PluginServerConfigInfo **serverConfigInfo);
 PluginBussnessError *GetAccountInfoError(const PluginGetDomainAccountInfoOptions *options, const int32_t callerLocalId,
     PluginDomainAccountInfo **domainAccountInfo);
 PluginBussnessError *IsAuthenticationExpired(const PluginDomainAccountInfo *domainAccountInfo,
@@ -53,6 +55,7 @@ PluginBussnessError *AuthWithServerConfig(const PluginString *parameters,
 
 int32_t GetCallingLocalId();
 void ResetCallingLocalId();
+void SetIsCheckError(bool isCheckError);
 #ifdef __cplusplus
 }
 #endif

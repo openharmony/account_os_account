@@ -144,6 +144,7 @@ static ErrCode GetDomainAccountStatus(OsAccountInfo &osAccountInfo)
     if (errCode != ERR_OK) {
         return errCode;
     }
+    domainAccountInfo.additionInfo_ = resultInfo.additionInfo_;
     if (!resultInfo.isAuthenticated) {
         domainAccountInfo.status_ = DomainAccountStatus::LOGOUT;
     } else {
@@ -444,13 +445,13 @@ ErrCode IInnerOsAccountManager::ActivateU1Account()
     if (!config_.isU1Enable) {
         return ERR_OK;
     }
-    
+
     ErrCode errCode = ActivateOsAccountInBackground(Constants::U1_ID);
     if (errCode == ERR_OK) {
         ReportOsAccountLifeCycle(Constants::U1_ID, Constants::OPERATION_BOOT_ACTIVATED);
         return ERR_OK;
     }
-    
+
     REPORT_OS_ACCOUNT_FAIL(Constants::U1_ID, Constants::OPERATION_BOOT_ACTIVATING, errCode,
         "ActivateOsAccountInBackground fail isBlockBoot:" + std::to_string(config_.isBlockBoot));
     if (config_.isBlockBoot && (errCode != ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR)) {
@@ -505,7 +506,7 @@ ErrCode IInnerOsAccountManager::ActivateDefaultOsAccount()
     // Validate and prepare default account
     OsAccountInfo osAccountInfo;
     PrepareForDefaultAccount(activatedId, osAccountInfo);
-    
+
     // Activate account and set parameters
     errCode = SendMsgForAccountActivate(osAccountInfo, true, Constants::DEFAULT_DISPLAY_ID, true);
     if (errCode == ERR_OK) {
@@ -2632,10 +2633,10 @@ void IInnerOsAccountManager::CleanForegroundAccountMap(const OsAccountInfo &osAc
     if (!osAccountInfo.GetIsForeground()) {
         return;
     }
-    
+
     int32_t localId = osAccountInfo.GetLocalId();
     uint64_t displayId = osAccountInfo.GetDisplayId();
-    
+
     int32_t currentForegroundId = -1;
     if (foregroundAccountMap_.Find(displayId, currentForegroundId) && currentForegroundId == localId) {
         ACCOUNT_LOGI("Removing foreground account id=%{public}d from display %{public}llu",
@@ -2792,7 +2793,7 @@ ErrCode IInnerOsAccountManager::PrepareActivateOsAccount(
         ACCOUNT_LOGE("Cannot find os account info by id:%{public}d, errCode %{public}d.", id, errCode);
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
-    
+
     // Validate display ID for activation
 #ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
     errCode = ValidateDisplayForActivation(id, displayId);
@@ -2808,27 +2809,27 @@ ErrCode IInnerOsAccountManager::PrepareActivateOsAccount(
         return ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR;
     }
 #endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
-    
+
     foregroundId = -1;
     if (foregroundAccountMap_.Find(displayId, foregroundId) && (foregroundId == id) && osAccountInfo.GetIsVerified()) {
         ACCOUNT_LOGI("Account %{public}d already is foreground", id);
         RemoveLocalIdToOperating(id);
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_ALREADY_ACTIVE_ERROR;
     }
-    
+
     errCode = IsValidOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
         RemoveLocalIdToOperating(id);
         return errCode;
     }
-    
+
     if (!osAccountInfo.GetIsActived() && IsLoggedInAccountsOversize()) {
         RemoveLocalIdToOperating(id);
         ACCOUNT_LOGE("The number of logged in account reaches the upper limit, maxLoggedInNum: %{public}d",
             config_.maxLoggedInOsAccountNum);
         return ERR_OSACCOUNT_SERVICE_LOGGED_IN_ACCOUNTS_OVERSIZE;
     }
-    
+
     return ERR_OK;
 }
 
@@ -2843,7 +2844,7 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount
 
     // acquire the exclusive lock
     std::lock_guard<std::mutex> lock(*GetOrInsertUpdateLock(id));
-    
+
     // prepare to activate the account
     OsAccountInfo osAccountInfo;
     int32_t foregroundId = -1;
@@ -2854,32 +2855,32 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount
     if (errCode != ERR_OK) {
         return errCode;
     }
-    
+
     // publish activating event
     if (foregroundId != id) {
         subscribeManager_.Publish(id, OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING);
     }
-    
+
     // set the account as active
     int32_t activatedId;
     if (defaultActivatedIds_.Find(displayId, activatedId)) {
         SetAppRecovery(isAppRecovery, activeAccountId_, id, activatedId);
     }
-    
+
     // main func to send message for account activation
     errCode = SendMsgForAccountActivate(osAccountInfo, startStorage, displayId, isAppRecovery);
     RemoveLocalIdToOperating(id);
     if (errCode != ERR_OK) {
         return errCode;
     }
-    
+
     //domain account
     DomainAccountInfo domainInfo;
     osAccountInfo.GetDomainInfo(domainInfo);
     if (domainInfo.accountId_.empty() && (osAccountInfo.GetCredentialId() == 0)) {
         AccountInfoReport::ReportSecurityInfo(osAccountInfo.GetLocalName(), id, ReportEvent::EVENT_LOGIN, 0);
     }
-    
+
     ACCOUNT_LOGI("Activate end");
     return ERR_OK;
 }
@@ -3862,7 +3863,7 @@ ErrCode IInnerOsAccountManager::ResetDefaultActivatedAccount(int32_t localId)
         defaultActivatedIds_.EnsureInsert(Constants::DEFAULT_DISPLAY_ID, Constants::START_USER_ID);
         ACCOUNT_LOGI("Successfully updated default activated account for default display");
     }
-    
+
     return ERR_OK;
 }
 
@@ -3880,9 +3881,6 @@ ErrCode IInnerOsAccountManager::IsValidOsAccount(const OsAccountInfo &osAccountI
 
 ErrCode IInnerOsAccountManager::GetOsAccountDomainInfo(const int32_t localId, DomainAccountInfo &domainInfo)
 {
-#ifdef SUPPORT_DOMAIN_ACCOUNTS
-    return InnerDomainAccountManager::GetInstance().GetDomainAccountInfoByUserId(localId, domainInfo);
-#else
     OsAccountInfo accountInfo;
     ErrCode errCode = GetRealOsAccountInfoById(localId, accountInfo);
     if (errCode != ERR_OK) {
@@ -3892,8 +3890,12 @@ ErrCode IInnerOsAccountManager::GetOsAccountDomainInfo(const int32_t localId, Do
     if (domainInfo.accountName_.empty()) {
         return ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT;
     }
-    return ERR_OK;
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+    DomainAccountInfo localInfo;
+    accountInfo.GetDomainInfo(localInfo);
+    InnerDomainAccountManager::GetInstance().GetDomainAccountInfo(localInfo, domainInfo, localId);
 #endif // SUPPORT_DOMAIN_ACCOUNTS
+    return ERR_OK;
 }
 
 ErrCode IInnerOsAccountManager::UpdateServerConfig(const std::string &configId,
