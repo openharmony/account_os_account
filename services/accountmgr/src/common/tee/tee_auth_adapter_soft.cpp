@@ -324,6 +324,7 @@ private:
 
         uint32_t grantTime = tokenPlain.userTokenDataPlain.grantTime;
         int32_t period = tokenPlain.userTokenDataPlain.grantValidityPeriod;
+        result.userTokenPlain.userTokenDataPlain.pid = tokenPlain.userTokenDataPlain.pid;
 
         // Validate period parameter
         if (period <= 0) {
