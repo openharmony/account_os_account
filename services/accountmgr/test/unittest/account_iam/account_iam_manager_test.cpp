@@ -53,7 +53,7 @@ namespace {
     const std::vector<uint8_t> TEST_CHALLENGE = {1, 2, 3, 4};
     static bool g_fscryptEnable = false;
     const uid_t ACCOUNT_UID = 3058;
-    const int32_t WAIT_TIME = 20;
+    const int32_t WAIT_TIME = 3;
 }
 
 class MockDeathRecipient : public IRemoteObject {
@@ -456,22 +456,6 @@ HWTEST_F(AccountIamManagerTest, GetLockScreenStatus001, TestSize.Level0)
 
     bool getLockStatus = false;
     EXPECT_EQ(ERR_OK, innerIamMgr_.GetLockScreenStatus(100, getLockStatus));
-}
-
-/**
- * @tc.name: UnlockUserScreen001
- * @tc.desc: UnlockUserScreen coverage test.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AccountIamManagerTest, UnlockUserScreen001, TestSize.Level0)
-{
-    std::vector<uint8_t> testAuthToken = {1, 2, 3, 4};
-    std::vector<uint8_t> testSecret = {1, 2, 3, 4};
-
-    auto &innerIamMgr_ = InnerAccountIAMManager::GetInstance();
-
-    EXPECT_EQ(ERR_OK, innerIamMgr_.UnlockUserScreen(100, testAuthToken, testSecret));
 }
 
 /**

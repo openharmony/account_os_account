@@ -82,7 +82,8 @@ private:
 class AdminAuthCallback : public AuthenticationCallback {
 public:
     explicit AdminAuthCallback(const std::vector<uint8_t> &challenge,
-        const sptr<IAdminAuthorizationCallback> &callback, int32_t userId);
+        const sptr<IAdminAuthorizationCallback> &callback, int32_t userId, int32_t callingPid,
+        const std::string &privilege = "");
     virtual ~AdminAuthCallback() = default;
 
     void SetDeathRecipient(const sptr<AuthCallbackDeathRecipient> &deathRecipient);
@@ -91,12 +92,13 @@ public:
 
 private:
     int32_t userId_ = -1;
+    int32_t callingPid_ = -1;
     sptr<IAdminAuthorizationCallback> innerCallback_ = nullptr;
     sptr<AuthCallbackDeathRecipient> deathRecipient_ = nullptr;
     const std::vector<uint8_t> challenge_;
+    const std::string privilege_;
 
-    ErrCode CallTAForToken(int32_t accountId, const std::vector<uint8_t> &challenge,
-        const std::vector<uint8_t> &iamToken, std::vector<uint8_t> &token);
+    ErrCode CallTAForToken(int32_t accountId, const std::vector<uint8_t> &iamToken, std::vector<uint8_t> &token);
 };
 
 /**
@@ -192,7 +194,8 @@ public:
      * @return ERR_OK if request is successfully processed, error code on failure
      */
     ErrCode AcquireAdminAuthorization(int32_t accountId, const std::vector<uint8_t> &challenge,
-        const sptr<IAdminAuthorizationCallback> &callback);
+        const sptr<IAdminAuthorizationCallback> &callback, const std::string &privilege = "",
+        int32_t callingPid = -1);
 
     /**
      * @brief Calls UserIAM for user authentication.
@@ -207,23 +210,8 @@ public:
      * @return ERR_OK if call is successful, error code on failure
      */
     ErrCode CallUserIAMForAuthentication(int32_t accountId, const std::vector<uint8_t> &challenge,
-        const sptr<IAdminAuthorizationCallback> &callback);
-
-    /**
-     * @brief Calls TA to issue authorization token.
-     *
-     * This method calls the Trusted Execution Environment (TA) interface
-     * to issue an authorization token. The token is used for subsequent
-     * permission verification operations.
-     *
-     * @param accountId The admin account ID
-     * @param challenge The challenge value
-     * @param iamToken The IAM authentication token
-     * @param token Output parameter, the authorization token
-     * @return ERR_OK if call is successful, error code on failure
-     */
-    ErrCode CallTAForToken(int32_t accountId, const std::vector<uint8_t> &challenge,
-        const std::vector<uint8_t> &iamToken, std::vector<uint8_t> &token);
+        const sptr<IAdminAuthorizationCallback> &callback, const std::string &privilege = "",
+        int32_t callingPid = -1);
 
     void CopyAuthParam(const AuthParam &authParam, UserIam::UserAuth::AuthParam &iamAuthParam);
 

@@ -56,14 +56,14 @@ public:
 void SubscribeDistributedAccountModuleTest::SetUpTestCase(void)
 {
     ASSERT_NE(GetAllAccountPermission(), 0);
-    ASSERT_EQ(OsAccountManager::CreateOsAccount("SubDistributed003", OsAccountType::NORMAL, g_subDistributedAccount),
+    ASSERT_EQ(CreateOsAccountForTest("SubDistributed003", OsAccountType::NORMAL, g_subDistributedAccount),
         ERR_OK);
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(g_subDistributedAccount.GetLocalId()), ERR_OK);
 }
 
 void SubscribeDistributedAccountModuleTest::TearDownTestCase(void)
 {
-    EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(g_subDistributedAccount.GetLocalId()));
+    EXPECT_EQ(ERR_OK, RemoveOsAccountForTest(g_subDistributedAccount.GetLocalId()));
 }
 
 void SubscribeDistributedAccountModuleTest::SetUp(void) __attribute__((no_sanitize("cfi")))

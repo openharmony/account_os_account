@@ -511,7 +511,8 @@ ErrCode InnerAuthorizationManager::VerifyToken(const std::vector<uint8_t> &token
 }
 
 ErrCode InnerAuthorizationManager::AcquireAdminAuthorization(int32_t accountId,
-    const std::vector<uint8_t> &challenge, const sptr<IAdminAuthorizationCallback> &callback)
+    const std::vector<uint8_t> &challenge, const sptr<IAdminAuthorizationCallback> &callback,
+    const std::string &privilege, int32_t callingPid)
 {
     ACCOUNT_LOGI("AcquireAdminAuthorization accountId: %{public}d", accountId);
 
@@ -520,7 +521,7 @@ ErrCode InnerAuthorizationManager::AcquireAdminAuthorization(int32_t accountId,
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
-    ErrCode errCode = CallUserIAMForAuthentication(accountId, challenge, callback);
+    ErrCode errCode = CallUserIAMForAuthentication(accountId, challenge, callback, privilege, callingPid);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Failed to call UserIAM for authentication, errCode: %{public}d", errCode);
         return errCode;
@@ -558,7 +559,8 @@ void InnerAuthorizationManager::CopyAuthParam(const AuthParam &authParam, UserIa
 }
 
 ErrCode InnerAuthorizationManager::CallUserIAMForAuthentication(int32_t accountId,
-    const std::vector<uint8_t> &challenge, const sptr<IAdminAuthorizationCallback> &callback)
+    const std::vector<uint8_t> &challenge, const sptr<IAdminAuthorizationCallback> &callback,
+    const std::string &privilege, int32_t callingPid)
 {
     uint64_t contextId = 0;
     ACCOUNT_LOGI("CallUserIAMForAuthentication accountId: %{public}d", accountId);
@@ -601,7 +603,7 @@ ErrCode InnerAuthorizationManager::CallUserIAMForAuthentication(int32_t accountI
         return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
     }
 
-    auto callbackWrapper = std::make_shared<AdminAuthCallback>(challenge, callback, accountId);
+    auto callbackWrapper = std::make_shared<AdminAuthCallback>(challenge, callback, accountId, callingPid, privilege);
     callbackWrapper->SetDeathRecipient(deathRecipient);
 
     UserIam::UserAuth::AuthParam iamAuthParam;
@@ -613,20 +615,27 @@ ErrCode InnerAuthorizationManager::CallUserIAMForAuthentication(int32_t accountI
     return ERR_OK;
 }
 
-ErrCode AdminAuthCallback::CallTAForToken(int32_t accountId,
-    const std::vector<uint8_t> &challenge, const std::vector<uint8_t> &iamToken, std::vector<uint8_t> &token)
+ErrCode AdminAuthCallback::CallTAForToken(int32_t accountId, const std::vector<uint8_t> &iamToken,
+    std::vector<uint8_t> &token)
 {
     ACCOUNT_LOGI("CallTAForToken accountId: %{public}d", accountId);
     token.clear();
 
     OsAccountTeeAdapter teeAdapter;
     ApplyUserTokenParam param;
-    param.pid = static_cast<uint32_t>(IPCSkeleton::GetCallingPid());
+    param.pid = static_cast<uint32_t>(callingPid_);
     param.grantUserId = accountId;
     param.permissionSize = 0;
     param.grantValidityPeriod = GRANT_VALIDITY_PERIOD;
-    errno_t err = memcpy_s(param.challenge, sizeof(param.challenge), challenge.data(),
-        challenge.size());
+    if (!privilege_.empty()) {
+        errno_t copyRet = memcpy_s(param.permission, sizeof(param.permission), privilege_.data(), privilege_.size());
+        if (copyRet != 0) {
+            ACCOUNT_LOGE("Failed to copy privilege, err:%{public}d", copyRet);
+            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+        }
+        param.permissionSize = static_cast<uint8_t>(privilege_.size());
+    }
+    errno_t err = memcpy_s(param.challenge, sizeof(param.challenge), challenge_.data(), challenge_.size());
     if (err != 0) {
         ACCOUNT_LOGE("Failed to copy challenge, err:%{public}d", err);
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
@@ -654,8 +663,10 @@ ErrCode AdminAuthCallback::CallTAForToken(int32_t accountId,
 }
 
 AdminAuthCallback::AdminAuthCallback(
-    const std::vector<uint8_t> &challenge, const sptr<IAdminAuthorizationCallback> &callback, int32_t userId)
-    : userId_(userId), innerCallback_(callback), challenge_(challenge)
+    const std::vector<uint8_t> &challenge, const sptr<IAdminAuthorizationCallback> &callback, int32_t userId,
+    int32_t callingPid,
+    const std::string &privilege)
+    : userId_(userId), callingPid_(callingPid), innerCallback_(callback), challenge_(challenge), privilege_(privilege)
 {
 }
 
@@ -696,7 +707,7 @@ void AdminAuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         accountId = userId_;
     }
     std::vector<uint8_t> taToken;
-    ErrCode errCode = AdminAuthCallback::CallTAForToken(accountId, challenge_, iamToken, taToken);
+    ErrCode errCode = AdminAuthCallback::CallTAForToken(accountId, iamToken, taToken);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Failed to call TA for token, errCode: %{public}d", errCode);
         adminAuthResult.resultCode = errCode;

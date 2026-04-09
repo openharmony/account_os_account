@@ -102,7 +102,7 @@ HWTEST_F(OsAccountManagerLiteTest, GetForegroundOsAccountLocalId003, TestSize.Le
 {
     OsAccountInfo osAccountInfo;
     int32_t createdLocalId = -1;
-    ASSERT_EQ(OsAccountManager::CreateOsAccount(
+    ASSERT_EQ(CreateOsAccountForTest(
         "GetForegroundOsAccountLocalId003", "GetForegroundOsAccountLocalId003", OsAccountType::NORMAL, osAccountInfo),
         ERR_OK);
     createdLocalId = osAccountInfo.GetLocalId();
@@ -128,7 +128,7 @@ HWTEST_F(OsAccountManagerLiteTest, GetForegroundOsAccountLocalId003, TestSize.Le
     if (createdLocalId >= 0) {
         EXPECT_EQ(OsAccountManager::ActivateOsAccount(MAIN_ACCOUNT_ID), ERR_OK);
         EXPECT_EQ(OsAccountManager::DeactivateOsAccount(createdLocalId), ERR_OK);
-        EXPECT_EQ(OsAccountManager::RemoveOsAccount(createdLocalId), ERR_OK);
+        EXPECT_EQ(RemoveOsAccountForTest(createdLocalId), ERR_OK);
     }
 }
 #endif

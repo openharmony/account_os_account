@@ -657,7 +657,7 @@ HWTEST_F(OsAccountInfoTest, GetOsAccountName02, TestSize.Level1)
     OsAccountInfo osAccountInfo;
     CreateOsAccountOptions options;
     options.allowedHapList = std::make_optional<std::vector<std::string>>({});
-    EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccount("GetOsAccountName02", "GetOsAccountName02",
+    EXPECT_EQ(ERR_OK, CreateOsAccountForTest("GetOsAccountName02", "GetOsAccountName02",
         OsAccountType::NORMAL, options, osAccountInfo));
     uint32_t localId = osAccountInfo.GetLocalId();
     setuid(localId * UID_TRANSFORM_DIVISOR);
@@ -670,7 +670,7 @@ HWTEST_F(OsAccountInfoTest, GetOsAccountName02, TestSize.Level1)
     EXPECT_EQ(ERR_OK, OsAccountManager::GetOsAccountName(name));
     EXPECT_EQ(name, "updateName");
     setuid(ROOT_UID);
-    EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(localId));
+    EXPECT_EQ(ERR_OK, RemoveOsAccountForTest(localId));
     setuid(localId * UID_TRANSFORM_DIVISOR);
     EXPECT_NE(ERR_OK, OsAccountManager::GetOsAccountName(name));
     setuid(ROOT_UID);
@@ -687,7 +687,7 @@ HWTEST_F(OsAccountInfoTest, GetOsAccountNameById02, TestSize.Level1)
     OsAccountInfo osAccountInfo;
     CreateOsAccountOptions options;
     options.allowedHapList = std::make_optional<std::vector<std::string>>({});
-    EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccount("testName", "testName", OsAccountType::NORMAL, options,
+    EXPECT_EQ(ERR_OK, CreateOsAccountForTest("testName", "testName", OsAccountType::NORMAL, options,
         osAccountInfo));
     uint32_t localId = osAccountInfo.GetLocalId();
     std::string name;
@@ -696,7 +696,7 @@ HWTEST_F(OsAccountInfoTest, GetOsAccountNameById02, TestSize.Level1)
     EXPECT_EQ(ERR_OK, OsAccountManager::SetOsAccountName(localId, "updateName"));
     EXPECT_EQ(ERR_OK, OsAccountManager::GetOsAccountNameById(localId, name));
     EXPECT_EQ(name, "updateName");
-    EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(localId));
+    EXPECT_EQ(ERR_OK, RemoveOsAccountForTest(localId));
     EXPECT_EQ(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR, OsAccountManager::GetOsAccountNameById(localId, name));
 }
 
@@ -731,11 +731,11 @@ HWTEST_F(OsAccountInfoTest, GetOsAccountNameById03, TestSize.Level1)
 HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0100, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, OsAccountManager::CreateOsAccountWithFullInfo(osAccountInfo));
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, CreateOsAccountWithFullInfoForTest(osAccountInfo));
     EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfo));
 
     osAccountInfo.SetLocalName("test114");
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, OsAccountManager::CreateOsAccountWithFullInfo(osAccountInfo));
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, CreateOsAccountWithFullInfoForTest(osAccountInfo));
     EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfo));
 }
 
@@ -751,9 +751,9 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0101, TestSize.Level1)
     osAccountInfo.SetLocalName("test115");
     osAccountInfo.SetLocalId(CREATE_LOCAL_ID);
 
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, OsAccountManager::CreateOsAccountWithFullInfo(osAccountInfo));
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, CreateOsAccountWithFullInfoForTest(osAccountInfo));
     EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfo));
-    OsAccountManager::RemoveOsAccount(CREATE_LOCAL_ID);
+    RemoveOsAccountForTest(CREATE_LOCAL_ID);
 }
 
 /**
@@ -768,10 +768,10 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0102, TestSize.Level1)
     osAccountInfo.SetLocalName("test116");
     osAccountInfo.SetLocalId(CREATE_LOCAL_ID);
     osAccountInfo.SetSerialNumber(2023023100000033);
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, OsAccountManager::CreateOsAccountWithFullInfo(osAccountInfo));
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, CreateOsAccountWithFullInfoForTest(osAccountInfo));
 
     EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfo));
-    OsAccountManager::RemoveOsAccount(CREATE_LOCAL_ID);
+    RemoveOsAccountForTest(CREATE_LOCAL_ID);
 }
 
 /**
@@ -790,11 +790,15 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0103, TestSize.Level1)
     osAccountInfo.SetLastLoginTime(1695863215000);
     CreateOsAccountOptions options;
     options.allowedHapList = std::make_optional<std::vector<std::string>>({});
-    EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccountWithFullInfo(osAccountInfo, options));
+    EXPECT_EQ(ERR_OK, CreateOsAccountWithFullInfoForTest(osAccountInfo, options));
 
     osAccountInfo.SetLocalName("update117");
+#ifdef SUPPORT_AUTHORIZATION
+    EXPECT_EQ(ERR_AUTHORIZATION_PRIVILEGE_DENIED, OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfo));
+#else
     EXPECT_EQ(ERR_OK, OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfo));
-    OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId());
+#endif // SUPPORT_AUTHORIZATION
+    RemoveOsAccountForTest(osAccountInfo.GetLocalId());
 }
 
 /**
@@ -813,11 +817,15 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0104, TestSize.Level1)
     osAccountInfo.SetCreateTime(1695883215000);
     CreateOsAccountOptions options;
     options.allowedHapList = std::make_optional<std::vector<std::string>>({});
-    EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccountWithFullInfo(osAccountInfo, options));
+    EXPECT_EQ(ERR_OK, CreateOsAccountWithFullInfoForTest(osAccountInfo, options));
 
     osAccountInfo.SetLastLoginTime(1695863290000);
+#ifdef SUPPORT_AUTHORIZATION
+    EXPECT_EQ(ERR_AUTHORIZATION_PRIVILEGE_DENIED, OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfo));
+#else
     EXPECT_EQ(ERR_OK, OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfo));
-    OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId());
+#endif // SUPPORT_AUTHORIZATION
+    RemoveOsAccountForTest(osAccountInfo.GetLocalId());
 }
 
 /**
@@ -836,11 +844,15 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0105, TestSize.Level1)
     osAccountInfo.SetCreateTime(1695883215000);
     CreateOsAccountOptions options;
     options.allowedHapList = std::make_optional<std::vector<std::string>>({});
-    EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccountWithFullInfo(osAccountInfo, options));
+    EXPECT_EQ(ERR_OK, CreateOsAccountWithFullInfoForTest(osAccountInfo, options));
 
     osAccountInfo.SetLastLoginTime(1695863290000);
+#ifdef SUPPORT_AUTHORIZATION
+    EXPECT_EQ(ERR_AUTHORIZATION_PRIVILEGE_DENIED, OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfo));
+#else
     EXPECT_EQ(ERR_OK, OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfo));
-    OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId());
+#endif // SUPPORT_AUTHORIZATION
+    RemoveOsAccountForTest(osAccountInfo.GetLocalId());
 }
 
 /**
@@ -858,8 +870,12 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0106, TestSize.Level1)
     osAccountInfo.SetSerialNumber(1100);
     osAccountInfo.SetCreateTime(1695883215000);
     osAccountInfo.SetLastLoginTime(1695863290000);
+#ifdef SUPPORT_AUTHORIZATION
+    EXPECT_EQ(ERR_AUTHORIZATION_PRIVILEGE_DENIED, OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfo));
+#else
     EXPECT_EQ(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR,
         OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfo));
+#endif // SUPPORT_AUTHORIZATION
 }
 
 /**
@@ -878,11 +894,20 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0107, TestSize.Level1)
     osAccountInfo.SetLastLoginTime(1695863290000);
     osAccountInfo.SetConstraints(VECTOR_CONSTRAINTS);
 
+#ifdef SUPPORT_AUTHORIZATION
+    EXPECT_EQ(ERR_AUTHORIZATION_PRIVILEGE_DENIED, OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfo));
+#else
     EXPECT_EQ(ERR_OK, OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfo));
+#endif // SUPPORT_AUTHORIZATION
+
     osAccountInfo.SetType(OsAccountType::GUEST);
     EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfo));
 
+#ifdef SUPPORT_AUTHORIZATION
+    EXPECT_EQ(ERR_AUTHORIZATION_PRIVILEGE_DENIED, OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfoBak));
+#else
     EXPECT_EQ(ERR_OK, OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfoBak));
+#endif // SUPPORT_AUTHORIZATION
 }
 
 /**
@@ -923,12 +948,12 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccount00, TestSize.Level1)
     CreateOsAccountOptions options;
     options.allowedHapList = std::make_optional<std::vector<std::string>>({});
     EXPECT_EQ(ERR_OK,
-        OsAccountManager::CreateOsAccount(STRING_NAME, "shortName", OsAccountType::NORMAL, options, osAccountInfoOne));
+        CreateOsAccountForTest(STRING_NAME, "shortName", OsAccountType::NORMAL, options, osAccountInfoOne));
     EXPECT_EQ(ERR_ACCOUNT_COMMON_NAME_HAD_EXISTED,
-        OsAccountManager::CreateOsAccount(STRING_NAME, STRING_NAME, OsAccountType::NORMAL, osAccountInfoTwo));
-    OsAccountManager::RemoveOsAccount(osAccountInfoTwo.GetLocalId());
+        CreateOsAccountForTest(STRING_NAME, STRING_NAME, OsAccountType::NORMAL, osAccountInfoTwo));
+    RemoveOsAccountForTest(osAccountInfoTwo.GetLocalId());
     EXPECT_EQ(ERR_OK, OsAccountManager::SetOsAccountName(osAccountInfoOne.GetLocalId(), "updateName"));
-    OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
+    RemoveOsAccountForTest(osAccountInfoOne.GetLocalId());
 }
 
 /**
@@ -944,15 +969,15 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccount01, TestSize.Level1)
     CreateOsAccountOptions options;
     options.allowedHapList = std::make_optional<std::vector<std::string>>({});
     EXPECT_EQ(ERR_OK,
-        OsAccountManager::CreateOsAccount(STRING_NAME, "shortName", OsAccountType::NORMAL, options, osAccountInfoOne));
+        CreateOsAccountForTest(STRING_NAME, "shortName", OsAccountType::NORMAL, options, osAccountInfoOne));
     EXPECT_EQ(ERR_ACCOUNT_COMMON_NAME_HAD_EXISTED,
-        OsAccountManager::CreateOsAccount(STRING_NAME, STRING_NAME, OsAccountType::NORMAL, osAccountInfoTwo));
+        CreateOsAccountForTest(STRING_NAME, STRING_NAME, OsAccountType::NORMAL, osAccountInfoTwo));
     EXPECT_EQ(ERR_ACCOUNT_COMMON_SHORT_NAME_HAD_EXISTED,
-        OsAccountManager::CreateOsAccount("CreateOsAccount01", "shortName", OsAccountType::NORMAL, osAccountInfoTwo));
+        CreateOsAccountForTest("CreateOsAccount01", "shortName", OsAccountType::NORMAL, osAccountInfoTwo));
     EXPECT_EQ(ERR_OK, OsAccountManager::SetOsAccountName(osAccountInfoOne.GetLocalId(), "updateName"));
     osAccountInfoOne.SetShortName(STRING_NAME);
     osAccountInfoOne.SetCredentialId(123);
-    OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
+    RemoveOsAccountForTest(osAccountInfoOne.GetLocalId());
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
@@ -981,7 +1006,7 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccount02, TestSize.Level1)
     OsAccountInfo accountInfo;
     CreateOsAccountOptions options;
     options.allowedHapList = std::make_optional<std::vector<std::string>>({});
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, OsAccountManager::CreateOsAccount("CreateOsAccount02", "..",
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, CreateOsAccountForTest("CreateOsAccount02", "..",
         OsAccountType::NORMAL, accountInfo));
 }
 
@@ -994,7 +1019,7 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccount02, TestSize.Level1)
 HWTEST_F(OsAccountInfoTest, CreateOsAccount03, TestSize.Level1)
 {
     OsAccountInfo accountInfo;
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, OsAccountManager::CreateOsAccount("CreateOsAccount03",
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, CreateOsAccountForTest("CreateOsAccount03",
         "zsm<<zd?s>|:23\"1/bc\\d", OsAccountType::NORMAL, accountInfo));
 }
 
@@ -1008,9 +1033,9 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccount04, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
-        OsAccountManager::CreateOsAccount("CreateOsAccount04", OVER_LENGTH_NAME,
+        CreateOsAccountForTest("CreateOsAccount04", OVER_LENGTH_NAME,
             OsAccountType::NORMAL, osAccountInfoOne));
-    OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
+    RemoveOsAccountForTest(osAccountInfoOne.GetLocalId());
 }
 
 /**
@@ -1023,9 +1048,9 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccount05, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
-              OsAccountManager::CreateOsAccount(OVER_LENGTH_NAME + OVER_LENGTH_NAME,
+              CreateOsAccountForTest(OVER_LENGTH_NAME + OVER_LENGTH_NAME,
               OsAccountType::NORMAL, osAccountInfoOne));
-    OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
+    RemoveOsAccountForTest(osAccountInfoOne.GetLocalId());
 }
 
 /**
@@ -1037,9 +1062,9 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccount05, TestSize.Level1)
 HWTEST_F(OsAccountInfoTest, CreateOsAccount06, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
-    EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_NAME, "shortName*", OsAccountType::NORMAL, osAccountInfoOne),
+    EXPECT_EQ(CreateOsAccountForTest(STRING_NAME, "shortName*", OsAccountType::NORMAL, osAccountInfoOne),
               ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-    OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
+    RemoveOsAccountForTest(osAccountInfoOne.GetLocalId());
 }
 
 /**
@@ -1051,18 +1076,18 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccount06, TestSize.Level1)
 HWTEST_F(OsAccountInfoTest, CreateOsAccount07, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
-    EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_NAME, "123|", OsAccountType::NORMAL, osAccountInfoOne),
+    EXPECT_EQ(CreateOsAccountForTest(STRING_NAME, "123|", OsAccountType::NORMAL, osAccountInfoOne),
               ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-    OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
-    EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_NAME, "12*3", OsAccountType::NORMAL, osAccountInfoOne),
+    RemoveOsAccountForTest(osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(CreateOsAccountForTest(STRING_NAME, "12*3", OsAccountType::NORMAL, osAccountInfoOne),
               ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-    OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
-    EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_NAME, "12?3", OsAccountType::NORMAL, osAccountInfoOne),
+    RemoveOsAccountForTest(osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(CreateOsAccountForTest(STRING_NAME, "12?3", OsAccountType::NORMAL, osAccountInfoOne),
               ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-    OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
-    EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_NAME, "12\"3", OsAccountType::NORMAL, osAccountInfoOne),
+    RemoveOsAccountForTest(osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(CreateOsAccountForTest(STRING_NAME, "12\"3", OsAccountType::NORMAL, osAccountInfoOne),
               ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-    OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
+    RemoveOsAccountForTest(osAccountInfoOne.GetLocalId());
 }
 
 /**
@@ -1074,15 +1099,15 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccount07, TestSize.Level1)
 HWTEST_F(OsAccountInfoTest, CreateOsAccount08, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
-    EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_NAME, "", OsAccountType::NORMAL, osAccountInfoOne),
+    EXPECT_EQ(CreateOsAccountForTest(STRING_NAME, "", OsAccountType::NORMAL, osAccountInfoOne),
               ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-    OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
-    EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_NAME, ".", OsAccountType::NORMAL, osAccountInfoOne),
+    RemoveOsAccountForTest(osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(CreateOsAccountForTest(STRING_NAME, ".", OsAccountType::NORMAL, osAccountInfoOne),
               ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-    OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
-    EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_NAME, "..", OsAccountType::NORMAL, osAccountInfoOne),
+    RemoveOsAccountForTest(osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(CreateOsAccountForTest(STRING_NAME, "..", OsAccountType::NORMAL, osAccountInfoOne),
               ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-    OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
+    RemoveOsAccountForTest(osAccountInfoOne.GetLocalId());
 }
 
 /**
@@ -1094,34 +1119,34 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccount08, TestSize.Level1)
 HWTEST_F(OsAccountInfoTest, CreateOsAccount09, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
-    EXPECT_EQ(OsAccountManager::CreateOsAccount("name1", "???", OsAccountType::NORMAL, osAccountInfoOne),
+    EXPECT_EQ(CreateOsAccountForTest("name1", "???", OsAccountType::NORMAL, osAccountInfoOne),
               ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-    OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
-    EXPECT_EQ(OsAccountManager::CreateOsAccount("name2", "***", OsAccountType::NORMAL, osAccountInfoOne),
+    RemoveOsAccountForTest(osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(CreateOsAccountForTest("name2", "***", OsAccountType::NORMAL, osAccountInfoOne),
               ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-    OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
+    RemoveOsAccountForTest(osAccountInfoOne.GetLocalId());
     CreateOsAccountOptions options;
     options.allowedHapList = std::make_optional<std::vector<std::string>>({});
-    EXPECT_EQ(OsAccountManager::CreateOsAccount("name3", "？", OsAccountType::NORMAL, options, osAccountInfoOne),
+    EXPECT_EQ(CreateOsAccountForTest("name3", "？", OsAccountType::NORMAL, options, osAccountInfoOne),
               ERR_OK);
-    OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
-    EXPECT_EQ(OsAccountManager::CreateOsAccount("name4", "：", OsAccountType::NORMAL, options, osAccountInfoOne),
+    RemoveOsAccountForTest(osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(CreateOsAccountForTest("name4", "：", OsAccountType::NORMAL, options, osAccountInfoOne),
             ERR_OK);
-    OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
+    RemoveOsAccountForTest(osAccountInfoOne.GetLocalId());
 }
 
 HWTEST_F(OsAccountInfoTest, CreateOsAccount10, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
-    EXPECT_NE(OsAccountManager::CreateOsAccount(OVER_LENGTH_ACCOUNT_NAME, OsAccountType::NORMAL, osAccountInfoOne),
+    EXPECT_NE(CreateOsAccountForTest(OVER_LENGTH_ACCOUNT_NAME, OsAccountType::NORMAL, osAccountInfoOne),
               ERR_OK);
-    OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
+    RemoveOsAccountForTest(osAccountInfoOne.GetLocalId());
     OsAccountInfo osAccountInfoTwo;
     CreateOsAccountOptions options;
     options.allowedHapList = std::make_optional<std::vector<std::string>>({});
-    EXPECT_NE(OsAccountManager::CreateOsAccount(OVER_LENGTH_ACCOUNT_NAME, "sn",
+    EXPECT_NE(CreateOsAccountForTest(OVER_LENGTH_ACCOUNT_NAME, "sn",
         OsAccountType::NORMAL, options, osAccountInfoTwo), ERR_OK);
-    OsAccountManager::RemoveOsAccount(osAccountInfoTwo.GetLocalId());
+    RemoveOsAccountForTest(osAccountInfoTwo.GetLocalId());
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
@@ -1136,7 +1161,7 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccount11, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
     EXPECT_EQ(ERR_OSACCOUNT_SERVICE_MANAGER_NOT_ENABLE_MULTI_ERROR,
-        OsAccountManager::CreateOsAccount(STRING_NAME, "shortName", OsAccountType::NORMAL, osAccountInfo));
+        CreateOsAccountForTest(STRING_NAME, "shortName", OsAccountType::NORMAL, osAccountInfo));
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
@@ -1150,11 +1175,17 @@ HWTEST_F(OsAccountInfoTest, SetOsAccountToBeRemoved_UpdateDefaultActivated_001, 
 {
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
     // Step 1: Create test account
-    OsAccountInfo osAccountInfo;
     CreateOsAccountOptions options;
-    options.allowedHapList = std::make_optional<std::vector<std::string>>({});
-    EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccount("TestDefaultActivatedAccount", "testShort",
-              OsAccountType::NORMAL, options, osAccountInfo));
+    std::vector<std::string> allowList = {"com.ohos.sceneboard"};
+    options.allowedHapList = std::make_optional<std::vector<std::string>>(allowList);
+
+    OsAccountInfo osAccountInfo;
+    osAccountInfo.SetLocalName("UpdateDefaultActivated_001");
+    osAccountInfo.SetLocalId(Constants::MAINTENANCE_MODE_ID);
+    osAccountInfo.SetSerialNumber(2023023100000033); // test random input
+    osAccountInfo.SetCreateTime(1695883215000);      // test random input
+    osAccountInfo.SetLastLoginTime(1695863215000);   // test random input
+    EXPECT_EQ(ERR_OK, CreateOsAccountWithFullInfoForTest(osAccountInfo, options));
 
     int32_t testAccountId = osAccountInfo.GetLocalId();
     EXPECT_GT(testAccountId, 0);
@@ -1163,7 +1194,7 @@ HWTEST_F(OsAccountInfoTest, SetOsAccountToBeRemoved_UpdateDefaultActivated_001, 
     EXPECT_EQ(ERR_OK, OsAccountManager::SetDefaultActivatedOsAccount(testAccountId));
 
     // Step 3: Call SetOsAccountToBeRemoved to mark the target account for removal
-    EXPECT_EQ(ERR_OK, OsAccountManager::SetOsAccountToBeRemoved(testAccountId, true));
+    EXPECT_EQ(ERR_OK, SetOsAccountToBeRemovedForTest(testAccountId, true));
 
     // Step 4: Verify default activated account is automatically updated to START_USER_ID
     int32_t newDefaultActivatedId = 0;
@@ -1171,7 +1202,7 @@ HWTEST_F(OsAccountInfoTest, SetOsAccountToBeRemoved_UpdateDefaultActivated_001, 
     EXPECT_EQ(newDefaultActivatedId, Constants::START_USER_ID);
 
     // Clean up test account
-    EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(testAccountId));
+    EXPECT_EQ(ERR_OK, RemoveOsAccountForTest(testAccountId));
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 }
 
@@ -1186,11 +1217,17 @@ HWTEST_F(OsAccountInfoTest, SetOsAccountToBeRemoved_NonDefaultAccount_002, TestS
     ACCOUNT_LOGI("SetOsAccountToBeRemoved_NonDefaultAccount_002 start");
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
     // Step 1: Create test account
-    OsAccountInfo testAccountInfo;
     CreateOsAccountOptions options;
-    options.allowedHapList = std::make_optional<std::vector<std::string>>({});
-    EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccount("TestDefaultActivatedAccount2", "testShort2",
-              OsAccountType::NORMAL, options, testAccountInfo));
+    std::vector<std::string> allowList = {"com.ohos.sceneboard"};
+    options.allowedHapList = std::make_optional<std::vector<std::string>>(allowList);
+
+    OsAccountInfo testAccountInfo;
+    testAccountInfo.SetLocalName("NonDefaultAccount_002");
+    testAccountInfo.SetLocalId(Constants::MAINTENANCE_MODE_ID);
+    testAccountInfo.SetSerialNumber(2023023100000033); // test random input
+    testAccountInfo.SetCreateTime(1695883215000);      // test random input
+    testAccountInfo.SetLastLoginTime(1695863215000);   // test random input
+    EXPECT_EQ(ERR_OK, CreateOsAccountWithFullInfoForTest(testAccountInfo, options));
 
     int32_t testAccountId = testAccountInfo.GetLocalId();
 
@@ -1202,7 +1239,7 @@ HWTEST_F(OsAccountInfoTest, SetOsAccountToBeRemoved_NonDefaultAccount_002, TestS
     EXPECT_NE(testAccountId, originalDefaultId);
 
     // Step 4: Call SetOsAccountToBeRemoved to mark the test account for removal
-    EXPECT_EQ(ERR_OK, OsAccountManager::SetOsAccountToBeRemoved(testAccountId, true));
+    EXPECT_EQ(ERR_OK, SetOsAccountToBeRemovedForTest(testAccountId, true));
 
     // Step 5: Verify default activated account remains unchanged
     int32_t currentDefaultId = 1;
@@ -1210,7 +1247,7 @@ HWTEST_F(OsAccountInfoTest, SetOsAccountToBeRemoved_NonDefaultAccount_002, TestS
     EXPECT_EQ(currentDefaultId, originalDefaultId);
 
     // Clean up test account
-    EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(testAccountId));
+    EXPECT_EQ(ERR_OK, RemoveOsAccountForTest(testAccountId));
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 }
 
@@ -1224,22 +1261,28 @@ HWTEST_F(OsAccountInfoTest, SetOsAccountToBeRemoved_CancelRemoval_003, TestSize.
 {
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
     // Step 1: Create test account
-    OsAccountInfo testAccountInfo;
     CreateOsAccountOptions options;
-    options.allowedHapList = std::make_optional<std::vector<std::string>>({});
-    EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccount("TestDefaultActivatedAccount3", "testShort3",
-              OsAccountType::NORMAL, options, testAccountInfo));
+    std::vector<std::string> allowList = {"com.ohos.sceneboard"};
+    options.allowedHapList = std::make_optional<std::vector<std::string>>(allowList);
+
+    OsAccountInfo testAccountInfo;
+    testAccountInfo.SetLocalName("CancelRemoval_003");
+    testAccountInfo.SetLocalId(Constants::MAINTENANCE_MODE_ID);
+    testAccountInfo.SetSerialNumber(2023023100000033); // test random input
+    testAccountInfo.SetCreateTime(1695883215000);      // test random input
+    testAccountInfo.SetLastLoginTime(1695863215000);   // test random input
+    EXPECT_EQ(ERR_OK, CreateOsAccountWithFullInfoForTest(testAccountInfo, options));
 
     int32_t testAccountId = testAccountInfo.GetLocalId();
 
     // Step 2: First set to be removed
-    EXPECT_EQ(ERR_OK, OsAccountManager::SetOsAccountToBeRemoved(testAccountId, true));
+    EXPECT_EQ(ERR_OK, SetOsAccountToBeRemovedForTest(testAccountId, true));
 
     // Step 3: Cancel removal status
-    EXPECT_EQ(ERR_OK, OsAccountManager::SetOsAccountToBeRemoved(testAccountId, false));
+    EXPECT_EQ(ERR_OK, SetOsAccountToBeRemovedForTest(testAccountId, false));
 
     // Clean up test account
-    EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(testAccountId));
+    EXPECT_EQ(ERR_OK, RemoveOsAccountForTest(testAccountId));
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 }
 /**
@@ -1254,11 +1297,17 @@ HWTEST_F(OsAccountInfoTest, SetOsAccountToBeRemoved_UpdateDefaultActivatedError_
 
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
     // Step 1: Create test account
+        CreateOsAccountOptions options;
+    std::vector<std::string> allowList = {"com.ohos.sceneboard"};
+    options.allowedHapList = std::make_optional<std::vector<std::string>>(allowList);
+
     OsAccountInfo osAccountInfo;
-    CreateOsAccountOptions options;
-    options.allowedHapList = std::make_optional<std::vector<std::string>>({});
-    EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccount("TestDefaultActivatedAccountError", "testError",
-              OsAccountType::NORMAL, options, osAccountInfo));
+    osAccountInfo.SetLocalName("UpdateDefaultActivatedError_008");
+    osAccountInfo.SetLocalId(Constants::MAINTENANCE_MODE_ID);
+    osAccountInfo.SetSerialNumber(2023023100000033); // test random input
+    osAccountInfo.SetCreateTime(1695883215000);      // test random input
+    osAccountInfo.SetLastLoginTime(1695863215000);   // test random input
+    EXPECT_EQ(ERR_OK, CreateOsAccountWithFullInfoForTest(osAccountInfo, options));
 
     int32_t testAccountId = osAccountInfo.GetLocalId();
     EXPECT_GT(testAccountId, 0);
@@ -1273,7 +1322,7 @@ HWTEST_F(OsAccountInfoTest, SetOsAccountToBeRemoved_UpdateDefaultActivatedError_
 
     // Step 3: Simulate error condition by setting an invalid START_USER_ID scenario
     OsAccountInfo tempAccountInfo;
-    EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccount("TempAccount", "temp",
+    EXPECT_EQ(ERR_OK, CreateOsAccountForTest("TempAccount", "temp",
               OsAccountType::NORMAL, options, tempAccountInfo));
     int32_t tempAccountId = tempAccountInfo.GetLocalId();
 
@@ -1284,7 +1333,7 @@ HWTEST_F(OsAccountInfoTest, SetOsAccountToBeRemoved_UpdateDefaultActivatedError_
     EXPECT_EQ(ERR_OK, OsAccountManager::SetDefaultActivatedOsAccount(testAccountId));
 
     // Step 4: Call SetOsAccountToBeRemoved - this should attempt to update default activated account
-    ErrCode ret = OsAccountManager::SetOsAccountToBeRemoved(testAccountId, true);
+    ErrCode ret = SetOsAccountToBeRemovedForTest(testAccountId, true);
     EXPECT_EQ(ret, ERR_OK);
 
     // Step 5: Verify that despite potential internal errors, the operation completes
@@ -1292,8 +1341,8 @@ HWTEST_F(OsAccountInfoTest, SetOsAccountToBeRemoved_UpdateDefaultActivatedError_
     int32_t finalDefaultId = 0;
     EXPECT_EQ(ERR_OK, OsAccountManager::GetDefaultActivatedOsAccount(finalDefaultId));
     EXPECT_EQ(finalDefaultId, Constants::START_USER_ID);
-    EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(testAccountId));
-    EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(tempAccountId));
+    EXPECT_EQ(ERR_OK, RemoveOsAccountForTest(testAccountId));
+    EXPECT_EQ(ERR_OK, RemoveOsAccountForTest(tempAccountId));
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 }
 

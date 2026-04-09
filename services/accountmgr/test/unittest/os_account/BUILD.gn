@@ -91,11 +91,13 @@ ohos_unittest("OsAccountControlFileManagerUnitTest") {
   if (has_hiviewdfx_hisysevent_part) {
     cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
   }
+
   # build SUPPORT_POSIX_ADAPTER in default
   cflags_cc += [ "-DSUPPORT_POSIX_ADAPTER" ]
   include_dirs += [ "${common_path}/account_posix_adapter/include" ]
-  sources += [ "${common_path}/account_posix_adapter/src/account_posix_tools.cpp" ]
-  
+  sources +=
+      [ "${common_path}/account_posix_adapter/src/account_posix_tools.cpp" ]
+
   part_name = "os_account"
 }
 
@@ -110,9 +112,9 @@ ohos_unittest("OsAccountControlFileManagerMockUnitTest") {
 
   module_out_path = module_output_path
   use_exceptions = true
-  sources = [ 
+  sources = [
+    "${services_path}/accountmgr/test/unittest/os_account/mock/mock_json_util.cpp",
     "os_account_control_file_manager_mock_test.cpp",
-    "${services_path}/accountmgr/test/unittest/os_account/mock/mock_json_util.cpp"
   ]
   configs = [
     ":os_account_control_file_manager_test_config",
@@ -123,7 +125,7 @@ ohos_unittest("OsAccountControlFileManagerMockUnitTest") {
     "${os_account_innerkits_native_path}:os_account_innerkits",
   ]
 
-  include_dirs = [ 
+  include_dirs = [
     "${os_account_dfx_path}/hitrace_adapter",
     "${services_path}/accountmgr/test/unittest/os_account/mock/",
   ]
@@ -197,22 +199,21 @@ ohos_unittest("OsAccountFileManagerMultipleThreadTest") {
     "${services_path}/accountmgr/include/common/database",
   ]
   sources = [
-    "${account_test_common}/src/account_test_common.cpp",
     "${app_account_services_path}/test/mock/common/ability_manager_adapter_mock.cpp",
     "${app_account_services_path}/test/mock/common/bundle_manager_adapter.cpp",
     "${common_path}/log/src/account_log_wrapper.cpp",
     "${innerkits_native_path}/src/ohos_account_kits.cpp",
     "${innerkits_native_path}/src/ohos_account_kits_impl.cpp",
     "${os_account_core_path}/src/os_account_constraint_subscriber_manager.cpp",
-    "${os_account_innerkits_native_path}/src/os_account_constraint_subscriber.cpp",
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
+    "${os_account_innerkits_native_path}/src/os_account_constraint_subscriber.cpp",
     "${services_path}/accountmgr/src/account_iam/account_iam_callback.cpp",
     "${services_path}/accountmgr/src/account_iam/account_iam_service.cpp",
     "${services_path}/accountmgr/src/account_iam/inner_account_iam_manager.cpp",
     "${services_path}/accountmgr/src/appaccount/app_account_control_manager.cpp",
     "${services_path}/accountmgr/src/common/database/kvstore/kvstore_adapter_impl.cpp",
-    "os_account_file_manager_multiple_thread_test.cpp"
+    "os_account_file_manager_multiple_thread_test.cpp",
   ]
   sources += account_service_sources
   configs = [
@@ -222,19 +223,20 @@ ohos_unittest("OsAccountFileManagerMultipleThreadTest") {
   ]
 
   deps = [
-    "${account_iam_framework_path}:account_iam_stub",
     "${account_iam_framework_path}:account_iam_innerkits",
+    "${account_iam_framework_path}:account_iam_stub",
+    "${account_test_common}:account_test_common_source_set",
     "${common_path}:libaccount_common",
     "${domain_account_framework_path}:domain_account_innerkits",
     "${domain_account_framework_path}:domain_account_stub",
     "${innerkits_native_path}:account_stub",
     "${innerkits_native_path}:libaccountkits",
+    "${os_account_innerkits_native_path}:os_account_constraint_event_stub",
     "${os_account_innerkits_native_path}:os_account_event_proxy",
     "${os_account_innerkits_native_path}:os_account_innerkits",
-    "${os_account_innerkits_native_path}:os_account_constraint_event_stub",
+    "${os_account_innerkits_native_path}:os_account_proxy",
     "${os_account_innerkits_native_path}:os_account_state_reply_callback_proxy",
     "${os_account_innerkits_native_path}:os_account_state_reply_callback_stub",
-    "${os_account_innerkits_native_path}:os_account_proxy",
     "${os_account_innerkits_native_path}:os_account_stub",
   ]
 
@@ -513,11 +515,41 @@ ohos_unittest("OsAccountInnerAccmgrCovTest") {
 
   cflags_cc = []
   module_out_path = module_output_path
-
+  include_dirs = [
+    "${account_test_common}/include",
+    "${app_account_innerkits_native_path}/include",
+    "${os_account_dfx_path}/hidumper_adapter",
+    "${services_path}/accountmgr/include/bundle_manager_adapter",
+    "${services_path}/accountmgr/include/ability_manager_adapter",
+    "${services_path}/accountmgr/include",
+    "${os_account_dfx_path}/hitrace_adapter",
+    "${services_path}/accountmgr/include/account_iam",
+    "${services_path}/accountmgr/include/appaccount",
+    "${services_path}/accountmgr/include/domain_account",
+    "${services_path}/accountmgr/include/osaccount",
+    "${os_account_path}/interfaces/innerkits/ohosaccount/native/include/",
+    "${services_path}/accountmgr/include/common/database/kvstore",
+    "${services_path}/accountmgr/include/common/database",
+  ]
   sources = [
+    "${app_account_services_path}/test/mock/common/ability_manager_adapter_mock.cpp",
+    "${app_account_services_path}/test/mock/common/bundle_manager_adapter.cpp",
+    "${common_path}/log/src/account_log_wrapper.cpp",
+    "${innerkits_native_path}/src/ohos_account_kits.cpp",
+    "${innerkits_native_path}/src/ohos_account_kits_impl.cpp",
+    "${os_account_core_path}/src/os_account_constraint_subscriber_manager.cpp",
+    "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
+    "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
+    "${os_account_innerkits_native_path}/src/os_account_constraint_subscriber.cpp",
+    "${services_path}/accountmgr/src/account_iam/account_iam_callback.cpp",
+    "${services_path}/accountmgr/src/account_iam/account_iam_service.cpp",
+    "${services_path}/accountmgr/src/account_iam/inner_account_iam_manager.cpp",
+    "${services_path}/accountmgr/src/appaccount/app_account_control_manager.cpp",
+    "${services_path}/accountmgr/src/common/database/kvstore/kvstore_adapter_impl.cpp",
     "os_account_inner_account_mgr_cov.cpp",
     "os_account_service_test.cpp",
   ]
+  sources += account_service_sources
   configs = [
     ":os_account_amgr_test_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
@@ -529,83 +561,87 @@ ohos_unittest("OsAccountInnerAccmgrCovTest") {
     "${account_iam_framework_path}:account_iam_stub",
     "${account_test_common}:account_test_common_source_set",
     "${common_path}:libaccount_common",
+    "${domain_account_framework_path}:domain_account_innerkits",
+    "${domain_account_framework_path}:domain_account_stub",
+    "${innerkits_native_path}:account_stub",
+    "${innerkits_native_path}:libaccountkits",
+    "${os_account_innerkits_native_path}:os_account_constraint_event_stub",
+    "${os_account_innerkits_native_path}:os_account_event_proxy",
     "${os_account_innerkits_native_path}:os_account_innerkits",
-    "${services_path}/accountmgr:accountmgr",
+    "${os_account_innerkits_native_path}:os_account_proxy",
+    "${os_account_innerkits_native_path}:os_account_state_reply_callback_proxy",
+    "${os_account_innerkits_native_path}:os_account_state_reply_callback_stub",
+    "${os_account_innerkits_native_path}:os_account_stub",
   ]
 
+  use_exceptions = true
+
   external_deps = [
+    "ability_base:base",
     "ability_base:want",
     "ability_runtime:ability_manager",
     "ability_runtime:app_manager",
     "ability_runtime:wantagent_innerkits",
     "access_token:libaccesstoken_sdk",
+    "access_token:libtokenid_sdk",
     "access_token:libtokensetproc_shared",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
     "cJSON:cjson",
     "c_utils:utils",
+    "config_policy:configpolicy_util",
     "googletest:gmock_main",
     "googletest:gtest_main",
     "hilog:libhilog",
+    "init:libbegetutil",
     "ipc:ipc_single",
-    "kv_store:distributeddata_inner",
+    "openssl:libcrypto_shared",
+    "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
-    "user_auth_framework:userauth_client",
   ]
-
-  if (has_hiviewdfx_hitrace_part) {
-    cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
+  cflags_cc = []
+  if (use_libfuzzer) {
+    cflags_cc += [ "-DFUZZ_TEST" ]
   }
 
-  if (hicollie_enable == true) {
-    external_deps += [ "hicollie:libhicollie" ]
+  if (has_storage_service_part) {
+    external_deps += [ "storage_service:storage_manager_sa_proxy" ]
   }
-
-  if (security_guard_enabled) {
-    external_deps += [
-      "security_guard:libsg_collect_sdk",
-      "time_service:time_client",
-    ]
+  if (os_account_distributed_feature && !use_libfuzzer) {
+    cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
+    cflags_cc += [ "-DDISTRIBUTED_FEATURE_ENABLED" ]
+    sources +=
+        [ "${services_path}/accountmgr/src/account_file_watcher_manager.cpp" ]
+    if (has_huks_part) {
+      external_deps += [ "huks:libhukssdk" ]
+      cflags_cc += [ "-DHAS_HUKS_PART" ]
+    }
   }
-
+  if (has_user_auth_part) {
+    cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
+    external_deps += [ "user_auth_framework:userauth_client" ]
+  }
   if (has_ces_part) {
     cflags_cc += [ "-DHAS_CES_PART" ]
     external_deps += [ "common_event_service:cesfwk_innerkits" ]
   }
-  if (os_account_distributed_feature) {
-    cflags_cc += [
-      "-DDISTRIBUTED_FEATURE_ENABLED"
-    ]
-  }
-  if (has_kv_store_part && os_account_distributed_feature) {
+  if (has_kv_store_part) {
+    external_deps += [ "kv_store:distributeddata_inner" ]
+    sources += account_data_storage_source
     cflags_cc += [ "-DHAS_KV_STORE_PART" ]
   }
+  if (os_account_support_lock_os_account) {
+    cflags_cc += [ "-DSUPPORT_LOCK_OS_ACCOUNT" ]
+  }
+  cflags_cc += [ "-DACCOUNT_TEST" ]
+  cflags_cc += [ "-DBUNDLE_ADAPTER_MOCK" ]
+  cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNTS" ]
   if (os_account_support_domain_accounts) {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+    deps += [ "${domain_account_framework_path}:domain_account_plugin_proxy" ]
   }
-
-  if (os_account_support_authorization) {
-    if (!defined(cflags_cc)) {
-      cflags_cc = []
-    }
-    cflags_cc += [ "-DSUPPORT_AUTHORIZATION" ]
-    configs += [ "${services_path}/accountmgr:authorization_config" ]
-    sources += [
-      "${authorization_framework_path}/src/authorization_common.cpp",
-      "${services_path}/accountmgr/src/authorization_manager/authorization_manager_service.cpp",
-      "${services_path}/accountmgr/src/authorization_manager/inner_authorization_manager.cpp",
-      "${services_path}/accountmgr/src/authorization_manager/privilege_cache_manager.cpp",
-      "${services_path}/accountmgr/src/authorization_manager/privilege_utils.cpp",
-      "${services_path}/accountmgr/src/authorization_manager/service_extension_connect.cpp",
-      "${services_path}/accountmgr/src/common/tee/tee_auth_adapter.cpp",
-    ]
-    deps += [
-      "${authorization_framework_path}:authorization_callback_proxy",
-      "${authorization_framework_path}:authorization_stub",
-      "${authorization_framework_path}:connect_ability_callback_stub",
-    ]
-    external_deps += [
-      "ability_runtime:extension_manager",
-      "tee_client:libteec",
-    ]
+  if (has_hiviewdfx_hisysevent_part) {
+    cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
   }
 
   part_name = "os_account"
@@ -664,10 +700,10 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
     "${services_path}/accountmgr/src/account_iam/account_iam_service.cpp",
     "${services_path}/accountmgr/src/account_iam/inner_account_iam_manager.cpp",
     "${services_path}/accountmgr/src/appaccount/app_account_control_manager.cpp",
+    "${services_path}/accountmgr/src/common/database/kvstore/kvstore_adapter_impl.cpp",
     "${services_path}/accountmgr/test/mock/os_account/os_account_interface.cpp",
     "${services_path}/accountmgr/test/unittest/os_account/mock/mock_os_account_musl.cpp",
     "os_account_inner_account_mgr_mock.cpp",
-    "${services_path}/accountmgr/src/common/database/kvstore/kvstore_adapter_impl.cpp",
   ]
   sources += account_service_sources
   sources -=
@@ -679,8 +715,8 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
   ]
 
   deps = [
-    "${account_iam_framework_path}:account_iam_stub",
     "${account_iam_framework_path}:account_iam_innerkits",
+    "${account_iam_framework_path}:account_iam_stub",
     "${common_path}:libaccount_common",
     "${domain_account_framework_path}:domain_account_innerkits",
     "${domain_account_framework_path}:domain_account_stub",
@@ -688,9 +724,9 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
     "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_event_proxy",
     "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${os_account_innerkits_native_path}:os_account_proxy",
     "${os_account_innerkits_native_path}:os_account_state_reply_callback_proxy",
     "${os_account_innerkits_native_path}:os_account_state_reply_callback_stub",
-    "${os_account_innerkits_native_path}:os_account_proxy",
     "${os_account_innerkits_native_path}:os_account_stub",
   ]
 
@@ -838,8 +874,8 @@ ohos_unittest("OsAccountInnerAccmgrPluginMockTest") {
   ]
 
   deps = [
-    "${account_iam_framework_path}:account_iam_stub",
     "${account_iam_framework_path}:account_iam_innerkits",
+    "${account_iam_framework_path}:account_iam_stub",
     "${common_path}:libaccount_common",
     "${domain_account_framework_path}:domain_account_innerkits",
     "${domain_account_framework_path}:domain_account_stub",
@@ -970,9 +1006,8 @@ ohos_unittest("OsAccountInnerAccmgrMockCovTest") {
   ]
 
   sources += account_service_sources
-  sources -= [
-    "${services_path}/accountmgr/src/osaccount/os_account_interface.cpp",
-  ]
+  sources -=
+      [ "${services_path}/accountmgr/src/osaccount/os_account_interface.cpp" ]
 
   configs = [
     ":os_account_amgr_test_config",
@@ -981,8 +1016,8 @@ ohos_unittest("OsAccountInnerAccmgrMockCovTest") {
   ]
 
   deps = [
-    "${account_iam_framework_path}:account_iam_stub",
     "${account_iam_framework_path}:account_iam_innerkits",
+    "${account_iam_framework_path}:account_iam_stub",
     "${common_path}:libaccount_common",
     "${domain_account_framework_path}:domain_account_innerkits",
     "${domain_account_framework_path}:domain_account_stub",
@@ -1097,16 +1132,15 @@ ohos_unittest("OsAccountEventManagerMultipleThreadTest") {
     "${services_path}/accountmgr/include/common/database",
   ]
   sources = [
-    "${account_test_common}/src/account_test_common.cpp",
     "${app_account_services_path}/test/mock/common/ability_manager_adapter_mock.cpp",
     "${app_account_services_path}/test/mock/common/bundle_manager_adapter.cpp",
     "${common_path}/log/src/account_log_wrapper.cpp",
     "${innerkits_native_path}/src/ohos_account_kits.cpp",
     "${innerkits_native_path}/src/ohos_account_kits_impl.cpp",
     "${os_account_core_path}/src/os_account_constraint_subscriber_manager.cpp",
-    "${os_account_innerkits_native_path}/src/os_account_constraint_subscriber.cpp",
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
+    "${os_account_innerkits_native_path}/src/os_account_constraint_subscriber.cpp",
     "${services_path}/accountmgr/src/account_iam/account_iam_callback.cpp",
     "${services_path}/accountmgr/src/account_iam/account_iam_service.cpp",
     "${services_path}/accountmgr/src/account_iam/inner_account_iam_manager.cpp",
@@ -1121,19 +1155,20 @@ ohos_unittest("OsAccountEventManagerMultipleThreadTest") {
   ]
 
   deps = [
-    "${account_iam_framework_path}:account_iam_stub",
     "${account_iam_framework_path}:account_iam_innerkits",
+    "${account_iam_framework_path}:account_iam_stub",
+    "${account_test_common}:account_test_common_source_set",
     "${common_path}:libaccount_common",
     "${domain_account_framework_path}:domain_account_innerkits",
     "${domain_account_framework_path}:domain_account_stub",
     "${innerkits_native_path}:account_stub",
     "${innerkits_native_path}:libaccountkits",
+    "${os_account_innerkits_native_path}:os_account_constraint_event_stub",
     "${os_account_innerkits_native_path}:os_account_event_proxy",
     "${os_account_innerkits_native_path}:os_account_innerkits",
-    "${os_account_innerkits_native_path}:os_account_constraint_event_stub",
+    "${os_account_innerkits_native_path}:os_account_proxy",
     "${os_account_innerkits_native_path}:os_account_state_reply_callback_proxy",
     "${os_account_innerkits_native_path}:os_account_state_reply_callback_stub",
-    "${os_account_innerkits_native_path}:os_account_proxy",
     "${os_account_innerkits_native_path}:os_account_stub",
   ]
 
@@ -1374,8 +1409,8 @@ ohos_unittest("os_account_static_subscriber_manager_test") {
     "${services_path}/accountmgr/test/unittest/domain_account/mock",
   ]
   sources = [
-    "os_account_static_subscriber_manager_test.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_static_subscriber_manager.cpp",
+    "os_account_static_subscriber_manager_test.cpp",
   ]
 
   deps = [
@@ -1403,9 +1438,7 @@ ohos_unittest("os_account_activate_lock_plugin_manager_test") {
   }
 
   module_out_path = module_output_path
-  sources = [
-    "os_account_activate_lock_plugin_manager_test.cpp",
-  ]
+  sources = [ "os_account_activate_lock_plugin_manager_test.cpp" ]
   configs = [ "${services_path}/accountmgr/test:accountmgr_test_config" ]
 
   deps = [
@@ -1442,21 +1475,19 @@ ohos_unittest("os_account_state_reply_callback_service_test") {
 
   module_out_path = module_output_path
   sources = [
-    "mock/hisysevent_adapter/account_hisysevent_adapter_mock.cpp",
-    "${common_path}/log/src/account_log_wrapper.cpp",
     "${common_path}/account_error/src/account_error_no.cpp",
+    "${common_path}/log/src/account_log_wrapper.cpp",
+    "mock/hisysevent_adapter/account_hisysevent_adapter_mock.cpp",
     "os_account_state_reply_callback_service_test.cpp",
   ]
-  configs = [
-    "${services_path}/accountmgr/test:accountmgr_test_config",
-  ]
+  configs = [ "${services_path}/accountmgr/test:accountmgr_test_config" ]
 
   deps = [
-    "${services_path}/accountmgr:accountmgr",
     "${os_account_innerkits_native_path}:os_account_event_proxy",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${os_account_innerkits_native_path}:os_account_state_reply_callback_proxy",
     "${os_account_innerkits_native_path}:os_account_state_reply_callback_stub",
+    "${services_path}/accountmgr:accountmgr",
   ]
 
   external_deps = [
@@ -1471,11 +1502,11 @@ ohos_unittest("os_account_state_reply_callback_service_test") {
 
 group("unittest") {
   testonly = true
-  deps =[]
+  deps = []
 
   deps += [
-    ":OsAccountControlFileManagerUnitTest",
     ":OsAccountControlFileManagerMockUnitTest",
+    ":OsAccountControlFileManagerUnitTest",
     ":OsAccountEventManagerMultipleThreadTest",
     ":OsAccountFileManagerMultipleThreadTest",
     ":OsAccountInnerAccmgrBundleAdapterMockTest",

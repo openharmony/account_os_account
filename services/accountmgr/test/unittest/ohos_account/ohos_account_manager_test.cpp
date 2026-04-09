@@ -194,7 +194,7 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest004, TestSize.Level3)
 HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest005, TestSize.Level3)
 {
     OsAccountInfo osAccountInfoOne;
-    EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
+    EXPECT_EQ(CreateOsAccountForTest(STRING_TEST_NAME, OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
     // create common event subscribe
     EventFwk::MatchingSkills matchingSkills;
@@ -223,7 +223,7 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest005, TestSize.Level3)
     ret = OhosAccountManager::GetInstance().LogoutOhosAccount(
         osAccountInfoOne.GetLocalId(), curAccountInfo.ohosAccountInfo_, g_eventLogout);
     EXPECT_EQ(true, ret);
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+    EXPECT_EQ(RemoveOsAccountForTest(osAccountInfoOne.GetLocalId()), ERR_OK);
     EXPECT_EQ(EventFwk::CommonEventManager::UnSubscribeCommonEvent(subscriberPtr), true);
 }
 
@@ -236,7 +236,7 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest005, TestSize.Level3)
 HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest006, TestSize.Level3)
 {
     OsAccountInfo osAccountInfoOne;
-    EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
+    EXPECT_EQ(CreateOsAccountForTest(STRING_TEST_NAME, OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
     // create common event subscribe
     EventFwk::MatchingSkills matchingSkills;
@@ -263,7 +263,7 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest006, TestSize.Level3)
     subscriberPtr->cv.wait_for(
         lock, std::chrono::seconds(WAIT_TIME), [lockCallback = subscriberPtr]() { return lockCallback->isReady; });
     EXPECT_EQ(true, ret);
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+    EXPECT_EQ(RemoveOsAccountForTest(osAccountInfoOne.GetLocalId()), ERR_OK);
     result = EventFwk::CommonEventManager::UnSubscribeCommonEvent(subscriberPtr);
     EXPECT_EQ(result, true);
 }

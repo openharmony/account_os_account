@@ -219,7 +219,8 @@ std::pair<ErrCode, AuthorizationResultCode> InnerAuthorizationManager::VerifyAdm
 }
 
 ErrCode InnerAuthorizationManager::AcquireAdminAuthorization(int32_t accountId,
-    const std::vector<uint8_t> &challenge, const sptr<IAdminAuthorizationCallback> &callback)
+    const std::vector<uint8_t> &challenge, const sptr<IAdminAuthorizationCallback> &callback,
+    const std::string &privilege, int32_t callingPid)
 {
     return ERR_OK;
 }

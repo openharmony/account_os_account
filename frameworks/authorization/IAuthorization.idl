@@ -31,5 +31,5 @@ interface OHOS.AccountSA.IAuthorization {
     void CheckAuthorizationToken([in] unsigned char[] token, [in] String privilege, [in] int pid,
         [out] CheckAuthorizationResult authResult);
     void AcquireAdminAuthorization([in] String adminName, [in] unsigned char[] challenge,
-        [in] IRemoteObject adminAuthorizationCallback);
+        [in] IRemoteObject adminAuthorizationCallback, [in] String privilege);
 }

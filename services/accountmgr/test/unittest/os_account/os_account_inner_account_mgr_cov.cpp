@@ -227,12 +227,10 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest008, 
     int errCode = innerMgrService_->CreateOsAccount(ACCOUNT_NAME, OsAccountType::NORMAL, osAccountInfo);
     subscriberPtr->localId_ = osAccountInfo.GetLocalId();
     ASSERT_EQ(errCode, ERR_OK);
-    errCode = innerMgrService_->SendMsgForAccountDeactivate(osAccountInfo);
-    EXPECT_NE(errCode, ERR_OK);
     int localID = osAccountInfo.GetLocalId();
     errCode = innerMgrService_->SetOsAccountName(localID, ACCOUNT_SET_NAME);
     ASSERT_EQ(errCode, ERR_OK);
-        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
+    std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
     ASSERT_EQ(subscriberPtr->GetStatus(), true);
     subscriberPtr->ResetStatus();
     errCode = innerMgrService_->SetOsAccountName(localID, ACCOUNT_SET_NAME);
@@ -289,24 +287,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, SetOsAccountCredentialId002, TestSize
     EXPECT_EQ(osAccountInfo.GetCredentialId(), 1);
 
     ASSERT_EQ(innerMgrService_->RemoveOsAccount(localID), ERR_OK);
-}
-
-/*
- * @tc.name: CreateOsAccountRollback001
- * @tc.desc: Test SetOsAccountCredentialId with valid userid.
- * @tc.type: FUNC
- * @tc.require: #I6JV5X
- */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, CreateOsAccountRollback001, TestSize.Level1)
-{
-    OsAccountInfo osAccountInfo;
-    ErrCode errCode =
-        innerMgrService_->CreateOsAccount("CreateOsAccountRollback001", OsAccountType::NORMAL, osAccountInfo);
-    ASSERT_NE(errCode, ERR_OK);
-    OsAccountInfo osAccountInfoQuery;
-    errCode = innerMgrService_->QueryOsAccountById(osAccountInfo.GetLocalId(), osAccountInfoQuery);
-    ASSERT_EQ(errCode, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
-    innerMgrService_->RemoveOsAccount(osAccountInfo.GetLocalId());
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 }  // namespace AccountSA

@@ -116,7 +116,7 @@ public:
      * @return ERR_OK if request is successfully initiated, error code on failure
      */
     ErrCode AcquireAdminAuthorization(const std::string &adminName, std::vector<uint8_t> &challenge,
-        const std::shared_ptr<AdminAuthorizationCallback> &callback);
+        const std::shared_ptr<AdminAuthorizationCallback> &callback, const std::string &privilege = "");
 
 private:
     AuthorizationClient();

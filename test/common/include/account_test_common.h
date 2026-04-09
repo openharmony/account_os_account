@@ -17,6 +17,10 @@
 #define OS_ACCOUNT_TEST_COMMON_INCLUDE_ACCOUNT_TEST_COMMON_H
 
 #include <string>
+#include "account_error_no.h"
+#include "domain_account_callback.h"
+#include "domain_account_common.h"
+#include "os_account_info.h"
 
 const std::vector<std::string> ALL_ACCOUNT_PERMISSION_LIST {
     "ohos.permission.MANAGE_LOCAL_ACCOUNTS",
@@ -37,6 +41,25 @@ namespace AccountSA {
     bool AllocPermission(std::vector<std::string> permissions, uint64_t &tokenID, bool isSystemApp = true);
     bool RecoveryPermission(uint64_t tokenID, uint64_t oldTokenID);
     uint64_t GetAllAccountPermission();
+    ErrCode CreateOsAccountForTest(const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo);
+    ErrCode CreateOsAccountForTest(const std::string &localName, const std::string &shortName,
+        const OsAccountType &type, OsAccountInfo &osAccountInfo);
+    ErrCode CreateOsAccountForTest(const std::string &localName, const std::string &shortName,
+        const OsAccountType &type, const CreateOsAccountOptions &options, OsAccountInfo &osAccountInfo);
+    ErrCode CreateOsAccountWithFullInfoForTest(OsAccountInfo &osAccountInfo,
+        const CreateOsAccountOptions &options = {});
+    ErrCode CreateOsAccountForDomainForTest(const OsAccountType &type, const DomainAccountInfo &domainInfo,
+        const std::shared_ptr<DomainAccountCallback> &callback,
+        const CreateOsAccountForDomainOptions &options = {});
+    ErrCode SetOsAccountToBeRemovedForTest(int32_t localId, bool toBeRemoved);
+    ErrCode RemoveOsAccountForTest(int id);
+    ErrCode RemoveOsAccountForTest(int id, const RemoveOsAccountOptions &options);
+    ErrCode CreateOsAccountByProxyForTest(const std::string &name, const OsAccountType &type,
+        OsAccountInfo &osAccountInfo);
+    ErrCode CreateOsAccountByProxyForTest(const std::string &localName, const std::string &shortName,
+        const OsAccountType &type, OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options = {});
+    ErrCode RemoveOsAccountByProxyForTest(int id);
+    ErrCode RemoveOsAccountByProxyForTest(int id, const RemoveOsAccountOptions &options);
 } // namespace AccountSA
 } // namespace OHOS
 

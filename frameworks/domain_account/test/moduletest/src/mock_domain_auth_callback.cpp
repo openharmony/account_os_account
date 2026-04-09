@@ -15,6 +15,7 @@
 
 #include "mock_domain_auth_callback.h"
 
+#include "account_test_common.h"
 #include "account_log_wrapper.h"
 #include "os_account_manager.h"
 
@@ -40,7 +41,7 @@ void TestDomainAuthCallback::OnResult(const int32_t errCode, Parcel &parcel)
     }
     int32_t localId = accountInfo_.GetLocalId();
     if (localId > START_USER_ID) {
-        ErrCode errCode = OsAccountManager::RemoveOsAccount(localId);
+        ErrCode errCode = RemoveOsAccountForTest(localId);
         if (errCode != ERR_OK) {
             DomainAuthResult emptyResult = {};
             callback_->OnResult(errCode, emptyResult);

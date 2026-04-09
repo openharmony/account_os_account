@@ -205,7 +205,7 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     osAccountEventListener->OnAccountsChanged(0);
 
     OsAccountInfo osAccountInfo;
-    ErrCode result = OsAccount::GetInstance().CreateOsAccount(
+    ErrCode result = CreateOsAccountByProxyForTest(
         "OsAccountManagerServiceSubscribeModuleTest_0001", OsAccountType::GUEST, osAccountInfo);
     EXPECT_EQ(result, ERR_OK);
     subscriberTestPtr->id_ = osAccountInfo.GetLocalId();
@@ -231,7 +231,7 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     result = OsAccount::GetInstance().UnsubscribeOsAccount(subscriberTestPtr);
     EXPECT_EQ(result, ERR_OK);
     // unlock the mutex
-    result = OsAccount::GetInstance().RemoveOsAccount(osAccountInfo.GetLocalId());
+    result = RemoveOsAccountByProxyForTest(osAccountInfo.GetLocalId());
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -252,7 +252,7 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     auto subscriberTestPtr = std::make_shared<TestOsAccountSubscriber>(subscriberMockPtr, osAccountSubscribeInfo);
     // create a osAccount
     OsAccountInfo osAccountInfo;
-    ErrCode result = OsAccount::GetInstance().CreateOsAccount(
+    ErrCode result = CreateOsAccountByProxyForTest(
         "OsAccountManagerServiceSubscribeModuleTest_0002", OsAccountType::GUEST, osAccountInfo);
     const int id = osAccountInfo.GetLocalId();
     EXPECT_CALL(*subscriberMockPtr, OnAccountsChanged(id)).Times(Exactly(1));
@@ -267,7 +267,7 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     EXPECT_EQ(result, ERR_OK);
     OsAccount::GetInstance().UnsubscribeOsAccount(subscriberTestPtr);
     EXPECT_EQ(result, ERR_OK);
-    result = OsAccount::GetInstance().RemoveOsAccount(id);
+    result = RemoveOsAccountByProxyForTest(id);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -306,7 +306,7 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
 
     // Test real account switching with displayId
     OsAccountInfo osAccountInfo;
-    ErrCode result = OsAccount::GetInstance().CreateOsAccount(
+    ErrCode result = CreateOsAccountByProxyForTest(
         "OsAccountManagerServiceSubscribeModuleTest_0003", OsAccountType::GUEST, osAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 
@@ -332,7 +332,7 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     
     // Clean up
     OsAccount::GetInstance().UnsubscribeOsAccount(subscriberTestPtr);
-    OsAccount::GetInstance().RemoveOsAccount(osAccountInfo.GetLocalId());
+    RemoveOsAccountByProxyForTest(osAccountInfo.GetLocalId());
 }
 }
 }

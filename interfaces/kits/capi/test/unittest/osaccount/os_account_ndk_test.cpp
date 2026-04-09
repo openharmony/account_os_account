@@ -43,23 +43,14 @@ public:
     static void TearDownTestCase(void);
     void SetUp(void) override;
     void TearDown(void) override;
-    static uint64_t tokenID_;
-    static uint64_t oldTokenID_;
 };
-
-uint64_t OsAccountNDKTest::tokenID_ = 0;
-uint64_t OsAccountNDKTest::oldTokenID_ = 0;
 
 void OsAccountNDKTest::SetUpTestCase(void)
 {
-    oldTokenID_ = IPCSkeleton::GetSelfTokenID();
-    AccountSA::AllocPermission(ALL_ACCOUNT_PERMISSION_LIST, tokenID_, true);
+    ASSERT_NE(GetAllAccountPermission(), 0);
 }
 
-void OsAccountNDKTest::TearDownTestCase(void)
-{
-    AccountSA::RecoveryPermission(tokenID_, oldTokenID_);
-}
+void OsAccountNDKTest::TearDownTestCase(void) {}
 
 void OsAccountNDKTest::SetUp(void) __attribute__((no_sanitize("cfi")))
 {
@@ -98,8 +89,10 @@ HWTEST_F(OsAccountNDKTest, GetOsAccountNameByIdTest001, TestSize.Level1)
 {
     char str[MAX_NAME_LENGTH] = { 0 };
     OsAccountInfo osAccountInfo;
-    ErrCode ret1 = AccountSA::OsAccountManager::CreateOsAccount(
-        "NDKTestAccount1", OsAccountType::NORMAL, osAccountInfo);
+    CreateOsAccountOptions options;
+    options.allowedHapList = std::make_optional<std::vector<std::string>>({});
+    ErrCode ret1 = CreateOsAccountForTest("NDKTestAccount1", "NDKTestAccount1", OsAccountType::NORMAL, options,
+        osAccountInfo);
     int id = osAccountInfo.GetLocalId();
 
     EXPECT_EQ(OH_OsAccount_GetNameByLocalId(id, nullptr, MAX_NAME_LENGTH),
@@ -111,7 +104,7 @@ HWTEST_F(OsAccountNDKTest, GetOsAccountNameByIdTest001, TestSize.Level1)
     EXPECT_TRUE(ret == OsAccount_ErrCode::OS_ACCOUNT_ERR_OK || ret == OsAccount_ErrCode::OS_ACCOUNT_ERR_INTERNAL_ERROR);
 
     if (ret1 == ERR_OK) {
-        AccountSA::OsAccountManager::RemoveOsAccount(id);
+        RemoveOsAccountForTest(id);
     }
 }
 
@@ -138,8 +131,10 @@ HWTEST_F(OsAccountNDKTest, GetOsAccountNameByIdTest003, TestSize.Level1)
 {
     char str[MAX_NAME_LENGTH] = { 0 };
     OsAccountInfo osAccountInfo;
-    ErrCode ret1 = AccountSA::OsAccountManager::CreateOsAccount(
-        "NDKTestAccount3", OsAccountType::NORMAL, osAccountInfo);
+    CreateOsAccountOptions options;
+    options.allowedHapList = std::make_optional<std::vector<std::string>>({});
+    ErrCode ret1 = CreateOsAccountForTest("NDKTestAccount3", "NDKTestAccount3", OsAccountType::NORMAL, options,
+        osAccountInfo);
     int id = osAccountInfo.GetLocalId();
 
     OsAccount_ErrCode ret = OH_OsAccount_GetNameByLocalId(id, str, MAX_NAME_LENGTH);
@@ -150,7 +145,7 @@ HWTEST_F(OsAccountNDKTest, GetOsAccountNameByIdTest003, TestSize.Level1)
     }
 
     if (ret1 == ERR_OK) {
-        AccountSA::OsAccountManager::RemoveOsAccount(id);
+        RemoveOsAccountForTest(id);
     }
 }
 
@@ -190,8 +185,10 @@ HWTEST_F(OsAccountNDKTest, GetOsAccountNameByIdTest007, TestSize.Level1)
 {
     char str[MAX_NAME_LENGTH] = { 0 };
     OsAccountInfo osAccountInfo;
-    ErrCode ret1 = AccountSA::OsAccountManager::CreateOsAccount(
-        "NDKTestAccountBufferSize", OsAccountType::NORMAL, osAccountInfo);
+    CreateOsAccountOptions options;
+    options.allowedHapList = std::make_optional<std::vector<std::string>>({});
+    ErrCode ret1 = CreateOsAccountForTest("NDKTestAccountBufferSize", "NDKTestAccountBufferSize",
+        OsAccountType::NORMAL, options, osAccountInfo);
     int id = osAccountInfo.GetLocalId();
 
     OsAccount_ErrCode ret = OH_OsAccount_GetNameByLocalId(id, str, MAX_NAME_LENGTH);
@@ -208,7 +205,7 @@ HWTEST_F(OsAccountNDKTest, GetOsAccountNameByIdTest007, TestSize.Level1)
     }
 
     if (ret1 == ERR_OK) {
-        AccountSA::OsAccountManager::RemoveOsAccount(id);
+        RemoveOsAccountForTest(id);
     }
 }
 }  // namespace AccountTest

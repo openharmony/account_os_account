@@ -17,6 +17,7 @@
 #include "mock_domain_plugin.h"
 
 #include "account_log_wrapper.h"
+#include "account_test_common.h"
 #include "condition_variable"
 #include "os_account_manager.h"
 #include "parcel.h"
@@ -62,7 +63,7 @@ void TestCreateDomainAccountCallback::OnResult(const int32_t errCode, Parcel &pa
         cv.notify_one();
         return;
     }
-    OsAccountManager::RemoveOsAccount(osAccountInfo->GetLocalId());
+    RemoveOsAccountForTest(osAccountInfo->GetLocalId());
     std::unique_lock<std::mutex> lock(mutex);
     isReady = true;
     cv.notify_one();
