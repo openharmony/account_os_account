@@ -62,7 +62,11 @@ OsAccount_ErrCode OH_OsAccount_GetNameByLocalId(int32_t localId, char *name, siz
         return OsAccount_ErrCode::OS_ACCOUNT_ERR_PERMISSION_DENIED;
     } else if (err == ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR) {
         return OsAccount_ErrCode::OS_ACCOUNT_ERR_ACCOUNT_NOT_FOUND;
-    } else if (err == ERR_ACCOUNT_COMMON_ACCOUNT_IS_RESTRICTED) {
+    } else if (err == ERR_ACCOUNT_COMMON_ACCOUNT_IS_RESTRICTED
+        || err == ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR
+        || err == ERR_OSACCOUNT_SERVICE_CONTROL_CANNOT_DELETE_ID_ERROR
+        || err == ERR_OSACCOUNT_SERVICE_CONTROL_ID_CANNOT_CREATE_ERROR
+        || err == ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_STOP_ACTIVE_ERROR) {
         return OsAccount_ErrCode::OS_ACCOUNT_ERR_RESTRICTED_ACCOUNT;
     } else if (err != ERR_OK) {
         ACCOUNT_LOGE("Internal error(%{public}d).", err);
