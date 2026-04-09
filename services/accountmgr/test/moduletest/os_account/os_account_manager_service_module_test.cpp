@@ -99,7 +99,7 @@ const std::string STRING_DOMAIN_VALID = "TestDomainMT";
 const std::string STRING_DOMAIN_ACCOUNT_NAME_VALID = "TestDomainAccountNameMT";
 const std::string TEST_LOCAL_PHOTO_MAX_SIZE((1024 * 1024 + 1), '1');
 const std::int32_t MAIN_ACCOUNT_ID = 100;
-const std::int32_t INVALID_ACCOUNT_ID = 200;
+const std::int32_t INVALID_ACCOUNT_ID = 9999;
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 const std::uint32_t MAX_OS_ACCOUNT_NUM = 5;
 const std::uint32_t MAX_LOGGED_IN_OS_ACCOUNT_NUM = 3;

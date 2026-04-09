@@ -56,13 +56,9 @@ public:
     }
 };
 
-void OsAccountServiceTest::SetUpTestCase(void)
-{
-    ASSERT_TRUE(MockTokenId("accountmgr"));
-}
+void OsAccountServiceTest::SetUpTestCase(void) {}
 
-void OsAccountServiceTest::TearDownTestCase(void)
-{}
+void OsAccountServiceTest::TearDownTestCase(void) {}
 
 void OsAccountServiceTest::SetUp(void) __attribute__((no_sanitize("cfi")))
 {
@@ -82,17 +78,6 @@ void OsAccountServiceTest::TearDown(void)
         osAccountService_ = nullptr;
     }
 }
-
-#ifdef SUPPORT_DOMAIN_ACCOUNTS
-ErrCode InnerDomainAccountManager::GetAccountServerConfig(const std::string &accountName,
-    const std::string &configId, DomainServerConfig &config)
-{
-    if (accountName == "fail") {
-        return false;
-    }
-    return true;
-}
-#endif // SUPPORT_DOMAIN_ACCOUNTS
 
 /**
  * @tc.name: OnUserCmdDone001
@@ -423,7 +408,6 @@ HWTEST_F(OsAccountServiceTest, SetOsAccountType005, TestSize.Level1)
     // Clean up: remove the test account
     osAccountService_->innerManager_.osAccountControl_->DelOsAccount(localId);
 }
-#endif
 
 /**
  * @tc.name: RemoveOsAccount001
@@ -460,6 +444,6 @@ HWTEST_F(OsAccountServiceTest, RemoveOsAccount001, TestSize.Level1)
     setuid(0);
     ASSERT_TRUE(RecoveryPermission(tokenId, selfTokenId));
 }
-
+#endif
 }  // namespace AccountSA
 }  // namespace OHOS

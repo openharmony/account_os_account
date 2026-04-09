@@ -131,7 +131,7 @@ public:
      * @return ERR_OK if request is successfully processed, error code on failure
      */
     ErrCode AcquireAdminAuthorization(const std::string &adminName, const std::vector<uint8_t> &challenge,
-        const sptr<IRemoteObject> &callback) override;
+        const sptr<IRemoteObject> &callback, const std::string &privilege) override;
 
 private:
     ErrCode ValidateAdminAuthParams(const std::string &adminName, const sptr<IRemoteObject> &callback,

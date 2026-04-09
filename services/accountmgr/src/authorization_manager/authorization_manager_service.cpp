@@ -424,9 +424,10 @@ ErrCode AuthorizationManagerService::CheckAuthorizationToken(const std::vector<u
 }
 
 ErrCode AuthorizationManagerService::AcquireAdminAuthorization(const std::string &adminName,
-    const std::vector<uint8_t> &challenge, const sptr<IRemoteObject> &callback)
+    const std::vector<uint8_t> &challenge, const sptr<IRemoteObject> &callback, const std::string &privilege)
 {
 #ifdef SUPPORT_AUTHORIZATION
+    int32_t callingPid = IPCSkeleton::GetCallingPid();
     sptr<IAdminAuthorizationCallback> callbackProxy;
     ErrCode errCode = ValidateAdminAuthParams(adminName, callback, callbackProxy);
     if (errCode != ERR_OK) {
@@ -455,7 +456,7 @@ ErrCode AuthorizationManagerService::AcquireAdminAuthorization(const std::string
     }
 
     errCode = InnerAuthorizationManager::GetInstance().AcquireAdminAuthorization(
-        targetAccountId, challenge, callbackProxy);
+        targetAccountId, challenge, callbackProxy, privilege, callingPid);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Failed to acquire admin authorization, errCode: %{public}d", errCode);
         return errCode;

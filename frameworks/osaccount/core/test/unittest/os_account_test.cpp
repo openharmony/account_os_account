@@ -238,7 +238,7 @@ HWTEST_F(OsAccountTest, OsAccountTest003, TestSize.Level1)
     EXPECT_EQ(errCode, ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
     errCode = g_osAccount->RemoveOsAccount(100);
     EXPECT_EQ(errCode, ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
-    errCode = g_osAccount->RemoveOsAccount(1100);
+    errCode = RemoveOsAccountForTest(1100);
     EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
@@ -624,7 +624,10 @@ HWTEST_F(OsAccountTest, OsAccountTest025, TestSize.Level1)
     std::vector<std::string> constraints;
     constraints = {CONSTRAINT_BOOT};
     OsAccountInfo newInfo;
-    ErrCode errCode = g_osAccount->CreateOsAccount("test", OsAccountType::GUEST, newInfo);
+    CreateOsAccountOptions options;
+    options.allowedHapList = std::make_optional<std::vector<std::string>>({});
+    ErrCode errCode = CreateOsAccountForTest("OsAccountTest025", "OsAccountTest025", OsAccountType::GUEST, options,
+        newInfo);
     EXPECT_EQ(errCode, ERR_OK);
     bool isEnabled = false;
     EXPECT_EQ(g_osAccount->IsOsAccountConstraintEnable(Constants::START_USER_ID, CONSTRAINT_BOOT, isEnabled), ERR_OK);
@@ -650,7 +653,7 @@ HWTEST_F(OsAccountTest, OsAccountTest025, TestSize.Level1)
     EXPECT_EQ(g_osAccount->SetGlobalOsAccountConstraints(constraints, false, MAIN_ACCOUNT_ID, false), ERR_OK);
     listener->WaitForCallBack();
     EXPECT_EQ(listener->count_, COUNT_SIZE_TWO);
-    EXPECT_EQ(g_osAccount->RemoveOsAccount(newInfo.GetLocalId()), ERR_OK);
+    EXPECT_EQ(RemoveOsAccountForTest(newInfo.GetLocalId()), ERR_OK);
     ASSERT_TRUE(SetSelfTokenID(selfTokenId) == 0);
 }
 

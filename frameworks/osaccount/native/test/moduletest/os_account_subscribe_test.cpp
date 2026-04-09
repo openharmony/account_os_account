@@ -186,7 +186,7 @@ void TestStateMachine(bool withHandshake, bool isBlock)
     EXPECT_EQ(OsAccountManager::SubscribeOsAccount(subscriber), ERR_OK);
     EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::CREATED, _, _)).Times(Exactly(1));
     OsAccountInfo info;
-    EXPECT_EQ(OsAccountManager::CreateOsAccount(ACCOUNT_NAME, OsAccountType::NORMAL, info), ERR_OK);
+    EXPECT_EQ(CreateOsAccountForTest(ACCOUNT_NAME, OsAccountType::NORMAL, info), ERR_OK);
     int32_t localId = info.GetLocalId();
     int32_t currentId = -1;
     int32_t fgRet = OsAccountManager::GetForegroundOsAccountLocalId(currentId);
@@ -208,7 +208,7 @@ void TestStateMachine(bool withHandshake, bool isBlock)
     EXPECT_EQ(OsAccountManager::DeactivateOsAccount(localId), ERR_OK);
     EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::REMOVED, localId, localId)).Times(Exactly(1));
     // RemoveOsAccount will Activate 100, when localId is foreground.
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(localId), ERR_OK);
+    EXPECT_EQ(RemoveOsAccountForTest(localId), ERR_OK);
     std::unique_lock<std::mutex> lock(subscriber->mutex_);
     if (!subscriber->isRemoved_) {
         subscriber->condVar_.wait(lock, [subscriber] { return subscriber->isRemoved_; });
@@ -307,7 +307,7 @@ HWTEST_F(OsAccountSubscribeTest, OsAccountSubscribeTestWithDisplayId, TestSize.L
     EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::CREATED, _, _)).Times(Exactly(1));
     
     OsAccountInfo info;
-    EXPECT_EQ(OsAccountManager::CreateOsAccount(ACCOUNT_NAME, OsAccountType::NORMAL, info), ERR_OK);
+    EXPECT_EQ(CreateOsAccountForTest(ACCOUNT_NAME, OsAccountType::NORMAL, info), ERR_OK);
     int32_t localId = info.GetLocalId();
     int32_t currentId = -1;
     int32_t fgRet = OsAccountManager::GetForegroundOsAccountLocalId(currentId);
@@ -326,7 +326,7 @@ HWTEST_F(OsAccountSubscribeTest, OsAccountSubscribeTestWithDisplayId, TestSize.L
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(Constants::START_USER_ID), ERR_OK);
     EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::REMOVED, localId, localId)).Times(Exactly(1));
     // RemoveOsAccount will Activate 100, when localId is foreground.
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(localId), ERR_OK);
+    EXPECT_EQ(RemoveOsAccountForTest(localId), ERR_OK);
     std::unique_lock<std::mutex> lock(subscriber->mutex_);
     if (!subscriber->isRemoved_) {
         subscriber->condVar_.wait(lock, [subscriber] { return subscriber->isRemoved_; });

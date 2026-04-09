@@ -29,6 +29,7 @@ using namespace OHOS::AccountSA;
 namespace {
 const std::string ADMIN_NAME = "admin";
 const std::string EMPTY_STRING = "";
+const std::string TEST_PRIVILEGE = "ohos.privilege.MANAGE_LOCAL_ACCOUNTS";
 }
 
 class MockAdminAuthorizationCallback : public AdminAuthorizationCallback {
@@ -204,6 +205,31 @@ HWTEST_F(AcquireAdminAuthorizationTest, AcquireAdminAuthorization006, TestSize.L
 
     ErrCode errCode = AuthorizationClient::GetInstance().AcquireAdminAuthorization(
         adminName, challenge, callback);
+    EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    ASSERT_TRUE(RecoveryPermission(tokenID, selfTokenId));
+}
+
+/**
+ * @tc.name: AcquireAdminAuthorization007
+ * @tc.desc: Acquire admin authorization with explicit privilege
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AcquireAdminAuthorizationTest, AcquireAdminAuthorization007, TestSize.Level0)
+{
+    std::string adminName = ADMIN_NAME;
+    std::vector<uint8_t> challenge = {1, 2, 3, 4};
+    auto callback = std::make_shared<MockAdminAuthorizationCallback>();
+
+    std::vector<std::string> permissionList {
+        "ohos.permission.ACCESS_USER_AUTH_INTERNAL"
+    };
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    uint64_t tokenID;
+    ASSERT_TRUE(AllocPermission(permissionList, tokenID, false));
+
+    ErrCode errCode = AuthorizationClient::GetInstance().AcquireAdminAuthorization(
+        adminName, challenge, callback, TEST_PRIVILEGE);
     EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     ASSERT_TRUE(RecoveryPermission(tokenID, selfTokenId));
 }

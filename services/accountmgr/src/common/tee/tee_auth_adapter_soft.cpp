@@ -209,11 +209,6 @@ public:
 
     ErrCode TaAcquireAuthorization(const ApplyUserTokenParam& param, ApplyUserTokenResult& result)
     {
-        if (param.permissionSize == 0) {
-            ACCOUNT_LOGE("Invalid parameters, permissionSize=%{public}u (must>0), userId=%{public}d",
-                         param.permissionSize, param.grantUserId);
-            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-        }
         int32_t accountType = -1;
         ErrCode ret = GetOsAccountType(param.grantUserId, accountType);
         if (ret != ERR_OK) {
@@ -266,14 +261,19 @@ private:
     {
         tokenPlain.userTokenDataPlain.pid = param.pid;
 
-        // Convert permission string to privilege code using TransferPrivilegeToCode
-        std::string permissionStr(reinterpret_cast<const char*>(param.permission), param.permissionSize);
-        uint32_t privilegeCode = -1;
-        if (!TransferPrivilegeToCode(permissionStr, privilegeCode)) {
-            ACCOUNT_LOGE("Failed to map permission to privilege code, permissionStr=%{public}s", permissionStr.c_str());
-            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+        // Keep parity with the TEE path: admin tokens may be issued without a specific privilege.
+        if (param.permissionSize == 0) {
+            tokenPlain.userTokenDataPlain.privilege = 0;
+        } else {
+            std::string permissionStr(reinterpret_cast<const char*>(param.permission), param.permissionSize);
+            uint32_t privilegeCode = 0;
+            if (!TransferPrivilegeToCode(permissionStr, privilegeCode)) {
+                ACCOUNT_LOGE("Failed to map permission to privilege code, permissionStr=%{public}s",
+                    permissionStr.c_str());
+                return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+            }
+            tokenPlain.userTokenDataPlain.privilege = privilegeCode;
         }
-        tokenPlain.userTokenDataPlain.privilege = privilegeCode;
 
         // Get current time in seconds using GetUptimeMs
         int64_t currentTimeMs = 0;

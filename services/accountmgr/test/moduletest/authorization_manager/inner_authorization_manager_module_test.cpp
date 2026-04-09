@@ -497,6 +497,39 @@ HWTEST_F(InnerAuthorizationManagerModuleTest, CallTaAuthorizationTest_0200, Test
 }
 
 /**
+ * @tc.name: AdminAuthCallbackCallTaForTokenTest_0100
+ * @tc.desc: test admin auth callback passes privilege to TEE.
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(InnerAuthorizationManagerModuleTest, AdminAuthCallbackCallTaForTokenTest_0100, TestSize.Level0)
+{
+    ACCOUNT_LOGI("AdminAuthCallbackCallTaForTokenTest_0100");
+
+    std::vector<uint8_t> challenge = {1, 2, 3, 4};
+    std::vector<uint8_t> iamToken = {5, 6, 7, 8};
+    std::vector<uint8_t> token;
+    AdminAuthCallback callback(challenge, nullptr, TEST_USER_ID, TEST_CALLING_PID, TEST_PRIVILEGE);
+
+    EXPECT_CALL(MockOsAccountTeeAdapter::GetInstance(), TaAcquireAuthorization(_, _))
+        .WillOnce(Invoke([](const ApplyUserTokenParam &param, ApplyUserTokenResult &result) {
+            EXPECT_EQ(param.pid, static_cast<uint32_t>(TEST_CALLING_PID));
+            EXPECT_EQ(param.permissionSize, TEST_PRIVILEGE.size());
+            std::string privilege(reinterpret_cast<const char *>(param.permission), param.permissionSize);
+            EXPECT_EQ(privilege, TEST_PRIVILEGE);
+            result.userTokenSize = 2;
+            result.userToken[0] = 0x12;
+            result.userToken[1] = 0x34;
+            return ERR_OK;
+        }));
+
+    ErrCode ret = callback.CallTAForToken(TEST_USER_ID, iamToken, token);
+
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(token, std::vector<uint8_t>({0x12, 0x34}));
+}
+
+/**
  * @tc.name: UpdatePrivilegeCacheTest_0100
  * @tc.desc: test UpdatePrivilegeCache success.
  * @tc.type: FUNC

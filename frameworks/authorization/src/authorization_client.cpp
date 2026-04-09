@@ -308,7 +308,8 @@ ErrCode AuthorizationClient::CheckAuthorizationToken(const std::vector<uint8_t> 
 }
 
 ErrCode AuthorizationClient::AcquireAdminAuthorization(const std::string &adminName,
-    std::vector<uint8_t> &challenge, const std::shared_ptr<AdminAuthorizationCallback> &callback)
+    std::vector<uint8_t> &challenge, const std::shared_ptr<AdminAuthorizationCallback> &callback,
+    const std::string &privilege)
 {
 #ifdef SUPPORT_AUTHORIZATION
     if (callback == nullptr) {
@@ -333,7 +334,7 @@ ErrCode AuthorizationClient::AcquireAdminAuthorization(const std::string &adminN
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
 
-    return proxy->AcquireAdminAuthorization(adminName, challenge, callbackService->AsObject());
+    return proxy->AcquireAdminAuthorization(adminName, challenge, callbackService->AsObject(), privilege);
 #else
     return ERR_AUTHORIZATION_NOT_SUPPORT;
 #endif // SUPPORT_AUTHORIZATION
