@@ -599,7 +599,7 @@ HWTEST_F(OsAccountManagerServiceNoPermissionModuleTest, SubscribeConstraints_No_
         osAccountManagerService_->SubscribeOsAccountConstraints(info, nullptr));
     EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
         osAccountManagerService_->UnsubscribeOsAccountConstraints(info, nullptr));
-    info.enableAcross = false;
+    info.needAcross = false;
     EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
         osAccountManagerService_->SubscribeOsAccountConstraints(info, nullptr));
     EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
@@ -616,7 +616,7 @@ HWTEST_F(OsAccountManagerServiceNoPermissionModuleTest, SubscribeConstraints_No_
 {
     std::set<std::string> constraints;
     OsAccountConstraintSubscribeInfo info(constraints);
-    info.enableAcross = false;
+    info.needAcross = false;
     uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
     uint64_t tokenID;
     ASSERT_TRUE(AllocPermission(ALL_ACCOUNT_PERMISSION_LIST, tokenID, false));

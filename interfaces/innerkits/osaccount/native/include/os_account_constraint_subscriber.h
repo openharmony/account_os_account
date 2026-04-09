@@ -39,7 +39,7 @@ public:
     virtual void OnConstraintChanged(const OsAccountConstraintStateData &constraintData) = 0;
     void GetConstraintSet(std::set<std::string> &constraintSet) const;
     void SetConstraintSet(const std::set<std::string> &constraintSet);
-    bool enableAcross = true;
+    bool needAcross = true;
     int32_t localId = -1;
 private:
     std::set<std::string> constraintSet_;

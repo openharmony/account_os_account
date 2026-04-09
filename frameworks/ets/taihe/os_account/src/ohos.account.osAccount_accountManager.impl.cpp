@@ -50,7 +50,6 @@ namespace {
 using OHOS::AccountSA::ACCOUNT_LABEL;
 const std::string DEFAULT_STR = "";
 const bool DEFAULT_BOOL = false;
-const int UID_TRANSFORM_DIVISOR = 200000;
 const AccountSA::OsAccountType DEFAULT_ACCOUNT_TYPE = AccountSA::OsAccountType::END;
 constexpr std::int32_t MAX_SUBSCRIBER_NAME_LEN = 1024;
 constexpr std::int32_t MAX_CHALLENGE_LEN = 32;
@@ -532,8 +531,7 @@ public:
         std::set<std::string> historyConstraintSet;
         constraintSet = std::set<std::string>(inputConstraints.begin(), inputConstraints.end());
         auto subscriber = std::make_shared<AccountSA::TaiheConstraintSubscriberPtr>(constraintSet, call);
-        subscriber->localId = static_cast<int32_t>(getuid()) / UID_TRANSFORM_DIVISOR;
-        subscriber->enableAcross = false;
+        subscriber->needAcross = false;
         std::lock_guard<std::mutex> lock(g_lockForConstraintChangeSubscribers);
         auto subscriberWithFindRet = FindAndGetConstraintSubscriber(subscriber);
         ErrCode errCode = AccountSA::OsAccountManager::SubscribeOsAccountConstraints(subscriberWithFindRet.second);
