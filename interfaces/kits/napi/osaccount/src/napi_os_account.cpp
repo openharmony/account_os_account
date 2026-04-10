@@ -39,7 +39,6 @@ const int DOMAIN_ACCOUNT_STATUS_LOGGED_IN = 1;
 const int CREDENTIAL_CHANGE_TYPE_ADD = 1;
 const int CREDENTIAL_CHANGE_TYPE_UPDATE = 2;
 const int CREDENTIAL_CHANGE_TYPE_DELETE = 3;
-const int UID_TRANSFORM_DIVISOR = 200000;
 static std::unordered_set<napi_env> g_registeredEnvs;
 static std::mutex g_envRegistrationLock;
 std::mutex g_lockForOsAccountSubscribers;
@@ -2146,8 +2145,7 @@ napi_value OnConstraintChanged(napi_env env, napi_callback_info cbInfo)
     }
     auto subscriber = std::make_shared<ConstraintSubscriber>(env, tempRef, inputConstraints);
     tempRef = nullptr;
-    subscriber->localId = static_cast<int32_t>(getuid()) / UID_TRANSFORM_DIVISOR;
-    subscriber->enableAcross = false;
+    subscriber->needAcross = false;
     std::lock_guard<std::mutex> lock(g_lockForConstraintChangeSubscribers);
     auto subscriberWithFindRet = FindAndGetSubscriber(subscriber);
     ErrCode errCode = OsAccountManager::SubscribeOsAccountConstraints(subscriberWithFindRet.second);

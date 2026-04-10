@@ -49,8 +49,8 @@ bool OsAccountConstraintSubscribeInfo::Marshalling(Parcel &parcel) const
             return false;
         }
     }
-    if (!parcel.WriteBool(enableAcross)) {
-        ACCOUNT_LOGE("Write enableAcross failed.");
+    if (!parcel.WriteBool(needAcross)) {
+        ACCOUNT_LOGE("Write needAcross failed.");
         return false;
     }
     if (!parcel.WriteInt32(localId)) {
@@ -90,8 +90,8 @@ bool OsAccountConstraintSubscribeInfo::ReadFromParcel(Parcel &parcel)
         }
         constraintSet_.emplace(constraint);
     }
-    if (!parcel.ReadBool(enableAcross)) {
-        ACCOUNT_LOGE("Read enableAcross failed.");
+    if (!parcel.ReadBool(needAcross)) {
+        ACCOUNT_LOGE("Read needAcross failed.");
         return false;
     }
     if (!parcel.ReadInt32(localId)) {

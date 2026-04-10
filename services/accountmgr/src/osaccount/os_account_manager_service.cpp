@@ -2038,8 +2038,9 @@ ErrCode OsAccountManagerService::SetSpecificOsAccountConstraints(const std::vect
 ErrCode OsAccountManagerService::SubscribeOsAccountConstraints(const OsAccountConstraintSubscribeInfo &subscribeInfo,
     const sptr<IRemoteObject> &eventListener)
 {
+    OsAccountConstraintSubscribeInfo validSubscribeInfo = subscribeInfo;
     // permission check
-    if (subscribeInfo.enableAcross) {
+    if (validSubscribeInfo.needAcross) {
         if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")) {
             ACCOUNT_LOGE("Account manager service, permission denied!");
             REPORT_PERMISSION_FAIL();
@@ -2051,6 +2052,7 @@ ErrCode OsAccountManagerService::SubscribeOsAccountConstraints(const OsAccountCo
             ACCOUNT_LOGE("Is not system application, result = %{public}u.", checkResult);
             return checkResult;
         }
+        validSubscribeInfo.localId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
     }
 #ifdef HICOLLIE_ENABLE
     unsigned int flag = HiviewDFX::XCOLLIE_FLAG_LOG;
@@ -2063,7 +2065,7 @@ ErrCode OsAccountManagerService::SubscribeOsAccountConstraints(const OsAccountCo
     int timerId = HiviewDFX::XCollie::GetInstance().SetTimer(
         TIMER_NAME, TIMEOUT, callbackFunc, nullptr, flag);
 #endif // HICOLLIE_ENABLE
-    ErrCode result = constraintManger_.SubscribeOsAccountConstraints(subscribeInfo, eventListener);
+    ErrCode result = constraintManger_.SubscribeOsAccountConstraints(validSubscribeInfo, eventListener);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Subscribe constraint failed, callingUid: %{public}d, code: %{public}d.",
             IPCSkeleton::GetCallingUid(), result);
@@ -2079,8 +2081,9 @@ ErrCode OsAccountManagerService::SubscribeOsAccountConstraints(const OsAccountCo
 ErrCode OsAccountManagerService::UnsubscribeOsAccountConstraints(const OsAccountConstraintSubscribeInfo &subscribeInfo,
     const sptr<IRemoteObject> &eventListener)
 {
+    OsAccountConstraintSubscribeInfo validSubscribeInfo = subscribeInfo;
     // permission check
-    if (subscribeInfo.enableAcross) {
+    if (validSubscribeInfo.needAcross) {
         if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")) {
             ACCOUNT_LOGE("Account manager service, permission denied!");
             REPORT_PERMISSION_FAIL();
@@ -2092,8 +2095,9 @@ ErrCode OsAccountManagerService::UnsubscribeOsAccountConstraints(const OsAccount
             ACCOUNT_LOGE("Is not system application, result = %{public}u.", checkResult);
             return checkResult;
         }
+        validSubscribeInfo.localId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
     }
-    ErrCode result = constraintManger_.UnsubscribeOsAccountConstraints(subscribeInfo, eventListener);
+    ErrCode result = constraintManger_.UnsubscribeOsAccountConstraints(validSubscribeInfo, eventListener);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Unsubscribe constraint failed, callingUid: %{public}d, code: %{public}d.",
             IPCSkeleton::GetCallingUid(), result);

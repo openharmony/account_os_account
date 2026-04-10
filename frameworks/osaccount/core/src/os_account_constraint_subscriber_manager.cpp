@@ -119,13 +119,13 @@ ErrCode OsAccountConstraintSubscriberManager::SubscribeOsAccountConstraints(
         ACCOUNT_LOGE("Proxy is nullptr.");
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    if (subscriber->enableAcross) {
+    if (subscriber->needAcross) {
         if (HasSubscribed(subscriber)) {
             ACCOUNT_LOGE("Already subscribed.");
             return ERR_ACCOUNT_COMMON_ACCOUNT_AREADY_SUBSCRIBE_ERROR;
         }
     }
-    enableAcross = subscriber->enableAcross;
+    needAcross = subscriber->needAcross;
     localId = subscriber->localId;
     constraintSet.insert(constraintSet_.begin(), constraintSet_.end());
     if (constraintSet.size() == constraintSet_.size()) {
@@ -134,7 +134,7 @@ ErrCode OsAccountConstraintSubscriberManager::SubscribeOsAccountConstraints(
         return ERR_OK;
     }
     OsAccountConstraintSubscribeInfo subscribeInfo(constraintSet);
-    subscribeInfo.enableAcross = subscriber->enableAcross;
+    subscribeInfo.needAcross = subscriber->needAcross;
     subscribeInfo.localId = subscriber->localId;
     ErrCode errCode = proxy->SubscribeOsAccountConstraints(subscribeInfo, GetInstance()->AsObject());
     errCode = ConvertToAccountErrCode(errCode);
@@ -176,7 +176,7 @@ ErrCode OsAccountConstraintSubscriberManager::UnsubscribeOsAccountConstraints(
         return ERR_OK;
     }
     OsAccountConstraintSubscribeInfo info(syncData);
-    info.enableAcross = subscriber->enableAcross;
+    info.needAcross = subscriber->needAcross;
     info.localId = subscriber->localId;
     ErrCode errCode =  proxy->UnsubscribeOsAccountConstraints(info, GetInstance()->AsObject());
     errCode = ConvertToAccountErrCode(errCode);
@@ -200,7 +200,7 @@ void OsAccountConstraintSubscriberManager::RestoreConstraintSubscriberRecords(sp
         return;
     }
     OsAccountConstraintSubscribeInfo subscribeInfo(constraintSet_);
-    subscribeInfo.enableAcross = enableAcross;
+    subscribeInfo.needAcross = needAcross;
     subscribeInfo.localId = localId;
     ErrCode errCode = proxy->SubscribeOsAccountConstraints(subscribeInfo, GetInstance()->AsObject());
     errCode = ConvertToAccountErrCode(errCode);

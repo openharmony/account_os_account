@@ -523,7 +523,7 @@ HWTEST_F(OsAccountCoverageTest, SubscribeConstraints_004, TestSize.Level1)
 
 /**
  * @tc.name: SubscribeConstraints_005
- * @tc.desc: Test SubscribeOsAccountConstraints success with enableAcross = false
+ * @tc.desc: Test SubscribeOsAccountConstraints success with needAcross = false
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -532,7 +532,7 @@ HWTEST_F(OsAccountCoverageTest, SubscribeConstraints_005, TestSize.Level1)
     std::set<std::string> constraints;
     constraints = {"constraint.wifi"};
     OsAccountConstraintSubscribeInfo info(constraints);
-    info.enableAcross = false;
+    info.needAcross = false;
     info.localId = 100;
     sptr<MockAccountMgrService> listener = new (std::nothrow) MockAccountMgrService();
     ASSERT_NE(nullptr, listener);
@@ -554,9 +554,9 @@ HWTEST_F(OsAccountCoverageTest, SubscribeConstraints_006, TestSize.Level1)
     constraints = {"constraint.wifi"};
     OsAccountConstraintSubscribeInfo info(constraints);
     OsAccountConstraintSubscribeInfo info1(constraints);
-    info1.enableAcross = true;
+    info1.needAcross = true;
     info1.localId = 100;
-    info1.enableAcross = false;
+    info1.needAcross = false;
     info1.localId = 101;
     sptr<MockAccountMgrService> listener = new (std::nothrow) MockAccountMgrService();
     ASSERT_NE(nullptr, listener);
