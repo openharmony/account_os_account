@@ -2207,11 +2207,6 @@ ErrCode OsAccountManagerService::GetOsAccountName(std::string &name)
 
 ErrCode OsAccountManagerService::GetOsAccountNameById(int32_t id, std::string &name)
 {
-    ErrCode result = AccountPermissionManager::CheckSystemApp();
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("Is not system application, result = %{public}u.", result);
-        return result;
-    }
     if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "") && !PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")
         && !PermissionCheck(GET_LOCAL_ACCOUNT_IDENTIFIERS, "")) {
         ACCOUNT_LOGE("Check permission failed.");
@@ -2219,14 +2214,15 @@ ErrCode OsAccountManagerService::GetOsAccountNameById(int32_t id, std::string &n
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
 
-    if (id < Constants::ADMIN_LOCAL_ID) {
-        ACCOUNT_LOGE("LocalId %{public}d not exist.", id);
-        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    ErrCode res = CheckLocalId(id);
+    if (res != ERR_OK) {
+        return res;
     }
 
-    if (id >= Constants::ADMIN_LOCAL_ID && id < Constants::START_USER_ID) {
-        ACCOUNT_LOGE("LocalId %{public}d is restricted.", id);
-        return ERR_ACCOUNT_COMMON_ACCOUNT_IS_RESTRICTED;
+    res = CheckLocalIdRestricted(id);
+    if (res != ERR_OK) {
+        ACCOUNT_LOGW("Check local id restricted, result = %{public}d, localId = %{public}d.", res, id);
+        return res;
     }
 
     ErrCode errCode = innerManager_.GetOsAccountName(id, name);
