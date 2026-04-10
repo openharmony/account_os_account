@@ -216,6 +216,9 @@ private:
     ErrCode VerifyAndSetOsAccountTypeInTEE(int32_t id, OsAccountType type,
         const std::optional<std::vector<uint8_t>>& token);
     void UpdateAccountTypeCache(int32_t id, OsAccountType type);
+#ifdef SUPPORT_AUTHORIZATION
+    ErrCode RefreshAccountTypeInCache(int32_t id, OsAccountType localType, OsAccountType &outType);
+#endif // SUPPORT_AUTHORIZATION
     ErrCode UpdateAccountToBackground(int32_t oldId);
     ErrCode IsValidOsAccount(const OsAccountInfo &osAccountInfo);
     ErrCode GetNonSACreatedOACount(unsigned int &nonSACreatedOACount) const;
@@ -252,6 +255,7 @@ private:
 #ifdef SUPPORT_AUTHORIZATION
     std::unique_ptr<OsAccountCacheManager> osAccountCacheManager_;  // Cache for OS account types
     OsAccountTeeAdapter teeAdapter_;  // TEE adapter for secure account operations
+    std::mutex refreshTypeCacheLock_;
 #endif // SUPPORT_AUTHORIZATION
 #ifdef SUPPORT_LOCK_OS_ACCOUNT
     OsAccountLockOsAccountPluginManager &lockOsAccountPluginManager_;

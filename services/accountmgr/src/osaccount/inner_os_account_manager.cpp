@@ -67,8 +67,12 @@
 
 namespace OHOS {
 namespace AccountSA {
+
 namespace {
 const char OPERATION_UPDATE[] = "update";
+#ifdef SUPPORT_AUTHORIZATION
+const char OPERATION_GET_TYPE[] = "getType";
+#endif // SUPPORT_AUTHORIZATION
 const char OPERATION_SET_TYPE[] = "setType";
 const char OPERATION_SET_TO_BE_REMOVED[] = "setToBeRemoved";
 const char ADMIN_LOCAL_NAME[] = "admin";
@@ -201,6 +205,34 @@ IInnerOsAccountManager &IInnerOsAccountManager::GetInstance()
     static IInnerOsAccountManager *instance = new (std::nothrow) IInnerOsAccountManager();
     return *instance;
 }
+
+#ifdef SUPPORT_AUTHORIZATION
+ErrCode IInnerOsAccountManager::RefreshAccountTypeInCache(int32_t id, OsAccountType localType, OsAccountType &outType)
+{
+    std::lock_guard<std::mutex> refreshLock(refreshTypeCacheLock_);
+    auto cachedType = osAccountCacheManager_->GetAccountTypeFromCache(id);
+    if (cachedType.has_value()) {
+        outType = cachedType.value();
+        return ERR_OK;
+    }
+    int32_t typeTee = 0;
+    ErrCode errCode = teeAdapter_.GetOsAccountType(id, typeTee);
+    if (errCode == ERR_OK) {
+        OsAccountType realType = static_cast<OsAccountType>(typeTee);
+        osAccountCacheManager_->SetAccountTypeInCache(id, realType);
+        outType = realType;
+        return ERR_OK;
+    }
+    if (errCode == ERR_ACCOUNT_COMMON_TEE_ACCOUNT_NOT_EXIST) {
+        osAccountCacheManager_->SetAccountTypeInCache(id, localType);
+        outType = localType;
+        ReportOsAccountOperationFail(id, OPERATION_GET_TYPE, errCode, "TEE account does not exist");
+        return ERR_OK;
+    }
+    ACCOUNT_LOGE("GetOsAccountType from TEE failed, id=%{public}d, err=%{public}d", id, errCode);
+    return errCode;
+}
+#endif // SUPPORT_AUTHORIZATION
 
 #ifdef FUZZ_TEST
 // LCOV_EXCL_START
@@ -395,14 +427,11 @@ ErrCode IInnerOsAccountManager::GetRealOsAccountInfoById(const int id, OsAccount
         if (cachedType.has_value()) {
             osAccountInfo.SetType(cachedType.value());
         } else {
-            // Cache miss, try to get from TEE and update cache
-            int32_t typeTee = 0;
-            if (teeAdapter_.GetOsAccountType(id, typeTee) == ERR_OK) {
-                OsAccountType realType = static_cast<OsAccountType>(typeTee);
-                osAccountInfo.SetType(realType);
-                osAccountCacheManager_->SetAccountTypeInCache(id, realType);
+            OsAccountType teeType = osAccountInfo.GetType();
+            errCode = RefreshAccountTypeInCache(id, osAccountInfo.GetType(), teeType);
+            if (errCode == ERR_OK) {
+                osAccountInfo.SetType(teeType);
             }
-            // If TEE query fails, osAccountInfo.GetType() already has the local value
         }
     }
 #endif // SUPPORT_AUTHORIZATION
@@ -2219,37 +2248,26 @@ ErrCode IInnerOsAccountManager::QueryOsAccountById(const int id, OsAccountInfo &
 
 ErrCode IInnerOsAccountManager::GetOsAccountType(const int id, OsAccountType &type)
 {
-#if defined(SUPPORT_AUTHORIZATION) && !defined(IS_EMULATOR)
-    // Guard clause: cache manager not available, fall through to local file read
-    if (osAccountCacheManager_ != nullptr) {
-        // Step 1: Try to get from cache first
-        auto cachedType = osAccountCacheManager_->GetAccountTypeFromCache(id);
-        if (cachedType.has_value()) {
-            type = cachedType.value();
-            return ERR_OK;
-        }
-
-        // Step 2: Cache miss, get from TEE
-        int32_t typeTee = 0;
-        ErrCode errCode = teeAdapter_.GetOsAccountType(id, typeTee);
-        if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("GetOsAccountType from TEE failed, id=%{public}d, err=%{public}d", id, errCode);
-        } else {
-            // Step 3: Update cache and return
-            OsAccountType realType = static_cast<OsAccountType>(typeTee);
-            osAccountCacheManager_->SetAccountTypeInCache(id, realType);
-            type = realType;
-            return ERR_OK;
-        }
-    }
-#endif // SUPPORT_AUTHORIZATION
-
-    // Fallback: read from local file (when cache unavailable or TEE query failed)
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
+#if defined(SUPPORT_AUTHORIZATION) && !defined(IS_EMULATOR)
+    if (osAccountCacheManager_ != nullptr) {
+        auto cachedType = osAccountCacheManager_->GetAccountTypeFromCache(id);
+        if (cachedType.has_value()) {
+            type = cachedType.value();
+            return ERR_OK;
+        }
+        OsAccountType teeType = osAccountInfo.GetType();
+        errCode = RefreshAccountTypeInCache(id, osAccountInfo.GetType(), teeType);
+        if (errCode == ERR_OK) {
+            type = teeType;
+            return ERR_OK;
+        }
+    }
+#endif // SUPPORT_AUTHORIZATION
     type = osAccountInfo.GetType();
     return ERR_OK;
 }

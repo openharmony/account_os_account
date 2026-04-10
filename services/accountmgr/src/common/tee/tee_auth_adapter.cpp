@@ -31,6 +31,7 @@ namespace {
     constexpr uint32_t ADMIN_TOKEN_TYPE = 0;
     constexpr uint32_t ENT_DEVICE_TYPE = 1;
     constexpr uint32_t NO_TOKEN_TYPE = 2;
+    constexpr TEEC_Result TEEC_ERROR_USER_NOT_FOUND = static_cast<TEEC_Result>(0x10000001);
     constexpr TEEC_Result TEEC_ERROR_USER_TOKEN_INVALID = static_cast<TEEC_Result>(0x10000004);
     constexpr TEEC_Result TEEC_ERROR_USER_TOKEN_EXPIRED = static_cast<TEEC_Result>(0x10000005);
     constexpr TEEC_Result TEEC_ERROR_REACH_LIMIT = static_cast<TEEC_Result>(0xFFFF7108);
@@ -193,6 +194,8 @@ ErrCode OsAccountTeeAdapter::Impl::ConvertTeecErrCode(TEEC_Result teeResult)
             return ERR_JS_AUTHORIZATION_DENIED;
         case TEEC_ERROR_REACH_LIMIT:
             return ERR_ACCOUNT_COMMON_TEE_REACH_LIMIT;
+        case TEEC_ERROR_USER_NOT_FOUND:
+            return ERR_ACCOUNT_COMMON_TEE_ACCOUNT_NOT_EXIST;
         default:
             return ERR_ACCOUNT_COMMON_OPERATION_FAIL;
     }
