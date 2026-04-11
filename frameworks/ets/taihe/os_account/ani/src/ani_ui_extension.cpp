@@ -14,6 +14,8 @@
  */
 
 #include "ani_ui_extension.h"
+#include <thread>
+#include "account_constants.h"
 #include "ability_context.h"
 #include "ani_base_context.h"
 #include "account_error_no.h"
@@ -35,6 +37,7 @@ const std::string CODE_KEY = "authResultCode";
 const int32_t CANCEL_ERROR = 1;
 const int32_t DENIED_ERROR = 2;
 const int32_t BACKGROUNT_ERROR = 1011;
+const int32_t MAX_RETRY_TIME = 3;
 }
 
 /**
@@ -210,7 +213,19 @@ void UIExtensionCallback::ReleaseHandler(int32_t errCode, AuthorizationResultCod
         return;
     }
     int32_t resultCodeInt = static_cast<int32_t>(resultCode);
-    ErrCode ret = callbackProxy->OnResult(errCode, iamToken, accountId, resultCodeInt);
+    ErrCode ret = ERR_OK;
+    int retryTimes = 0;
+    while (retryTimes < MAX_RETRY_TIME) {
+        ret = callbackProxy->OnResult(errCode, iamToken, accountId, resultCodeInt);
+        if (ret == ERR_OK || (ret != Constants::E_IPC_ERROR &&
+            ret != Constants::E_IPC_SA_DIED)) {
+            break;
+        }
+        retryTimes++;
+        ACCOUNT_LOGE("UIExtensionCallback send result failed, code=%{public}d, retryTimes=%{public}d",
+            ret, retryTimes);
+        std::this_thread::sleep_for(std::chrono::milliseconds(Constants::DELAY_FOR_EXCEPTION));
+    }
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("Failed to call iConnectAbilityCallback onResult, errCode:%{public}d", ret);
     }
@@ -249,7 +264,7 @@ bool TaiheAcquireAuthorizationContext::FillInfoFromContext(const ani_object& ani
  * @param stageContext The stage context
  * @return UIContent pointer, or nullptr if failed
  */
-static OHOS::Ace::UIContent* GetUIContent(const std::shared_ptr<OHOS::AbilityRuntime::Context> stageContext)
+static OHOS::Ace::UIContent* GetUIContent(const std::shared_ptr<OHOS::AbilityRuntime::Context>& stageContext)
 {
     OHOS::Ace::UIContent* uiContent = nullptr;
     auto abilityContext = OHOS::AbilityRuntime::Context::ConvertTo<OHOS::AbilityRuntime::AbilityContext>(

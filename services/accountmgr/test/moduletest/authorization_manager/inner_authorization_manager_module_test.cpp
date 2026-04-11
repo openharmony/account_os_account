@@ -596,7 +596,7 @@ HWTEST_F(InnerAuthorizationManagerModuleTest, UpdatePrivilegeCacheTest_0300, Tes
 
     g_transferPrivilegeToCode = false;
     ErrCode ret = manager_.UpdatePrivilegeCache(info, tokenResult);
-    EXPECT_EQ(ret, false);
+    EXPECT_EQ(ret, ERR_AUTHORIZATION_CACHE_ERROR);
     g_transferPrivilegeToCode = true;
 }
 

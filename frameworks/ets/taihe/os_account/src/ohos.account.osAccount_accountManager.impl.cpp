@@ -41,6 +41,7 @@
 #include <optional>
 #include <stdexcept>
 #include <vector>
+#include <thread>
 
 using namespace taihe;
 using namespace OHOS;
@@ -53,6 +54,10 @@ const bool DEFAULT_BOOL = false;
 const AccountSA::OsAccountType DEFAULT_ACCOUNT_TYPE = AccountSA::OsAccountType::END;
 constexpr std::int32_t MAX_SUBSCRIBER_NAME_LEN = 1024;
 constexpr std::int32_t MAX_CHALLENGE_LEN = 32;
+const int E_IPC_ERROR = 29189;
+const int E_IPC_SA_DIED = 32;
+const int MAX_RETRY_TIMES = 3;
+const int DELAY_FOR_EXCEPTION = 100;
 std::mutex g_lockForOsAccountSubscribers;
 std::mutex g_lockForConstraintChangeSubscribers;
 std::vector<std::shared_ptr<AccountSA::TaiheConstraintSubscriberPtr>> g_osAccountConstraintChangeSubscribers;
@@ -1401,10 +1406,17 @@ ErrCode TaiheAuthorizationResultCallback::OnConnectAbility(const AccountSA::Conn
         return ERR_OK;
     }
     std::vector<uint8_t> iamToken;
-
-    ErrCode callbackRet = connectCallback->OnResult(errCode, iamToken, -1, -1);
-    if (callbackRet != ERR_OK) {
-        ACCOUNT_LOGW("Failed to call OnResult, errCode: %{public}d", callbackRet);
+    ErrCode ret = ERR_OK;
+    int retryTimes = 0;
+    while (retryTimes < MAX_RETRY_TIMES) {
+        ret = connectCallback->OnResult(errCode, iamToken, -1, -1);
+        if (ret == ERR_OK || (ret != E_IPC_ERROR && ret != E_IPC_SA_DIED)) {
+            break;
+        }
+        retryTimes++;
+        ACCOUNT_LOGE("Send iConnectAbilityCallback onResult failed, code=%{public}d, retryTimes=%{public}d",
+            ret, retryTimes);
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_EXCEPTION));
     }
     ACCOUNT_LOGI("Post authorizationCallback OnConnectAbility finish.");
     return ERR_OK;

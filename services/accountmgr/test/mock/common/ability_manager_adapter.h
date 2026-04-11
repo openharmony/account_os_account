@@ -19,6 +19,9 @@
 #include <mutex>
 
 #include "ability_connect_callback_interface.h"
+#ifdef SUPPORT_AUTHORIZATION
+#include "extension_running_info.h"
+#endif
 #include "user_callback.h"
 #include "want.h"
 
@@ -97,7 +100,21 @@ public:
      */
     bool IsAllAppDied(int32_t accountId);
 
+#ifdef SUPPORT_AUTHORIZATION
+    /**
+     * @brief Get extension running infos.
+     * @param infos The vector to store extension running infos.
+     * @param upperLimit The upper limit for the number of infos to retrieve.
+     *
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode GetExtensionRunningInfos(std::vector<ExtensionRunningInfo> &infos, int upperLimit = 1000);
+#endif
 private:
+#ifdef SUPPORT_AUTHORIZATION
+    template <typename T>
+    int GetParcelableInfos(MessageParcel &reply, std::vector<T> &parcelableInfos);
+#endif
     void Connect();
     ErrCode DoConnectAbility(
         const sptr<IRemoteObject> proxy,

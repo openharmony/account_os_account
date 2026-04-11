@@ -175,6 +175,39 @@ HWTEST_F(ServiceExtensionConnectModuleTest, ServiceExtensionConnectTest_HasServi
 }
 
 /**
+ * @tc.name: ServiceExtensionConnectTest_HasServiceConnect_0200
+ * @tc.desc: test HasServiceConnect with active connection.
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(ServiceExtensionConnectModuleTest, ServiceExtensionConnectTest_HasServiceConnect_0200, TestSize.Level0)
+{
+    ACCOUNT_LOGI("ServiceExtensionConnectTest_HasServiceConnect_0200");
+
+    ConnectAbilityInfo info;
+    info.bundleName = "test";
+    info.abilityName = TEST_ABILITY_NAME;
+    info.callingUid = TEST_CALLING_PID;
+    info.privilege = TEST_PRIVILEGE;
+    info.description = TEST_DESCRIPTION;
+
+    sptr<MockAuthorizationCallbackStub> mockCallback = new (std::nothrow) MockAuthorizationCallbackStub();
+    ASSERT_NE(mockCallback, nullptr);
+    sptr<IAuthorizationCallback> callback = iface_cast<IAuthorizationCallback>(mockCallback);
+    AuthorizationResult result;
+
+    ErrCode ret = connection_.SessionConnectExtension(info, callback, result);
+    EXPECT_EQ(ret, ERR_OK);
+
+    // Verify connection state with HasServiceConnect
+    bool hasConnect = connection_.HasServiceConnect();
+    EXPECT_FALSE(hasConnect);
+
+    // Clean up
+    connection_.SessionDisconnectExtension();
+}
+
+/**
  * @tc.name: ServiceExtensionConnectTest_SessionConnectExtension_0100
  * @tc.desc: test SessionConnectExtension success.
  * @tc.type: FUNC

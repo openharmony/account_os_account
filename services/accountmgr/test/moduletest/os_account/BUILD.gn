@@ -130,8 +130,10 @@ ohos_moduletest("inner_os_account_manager_test") {
   if (os_account_support_authorization) {
     cflags_cc += [ "-DSUPPORT_AUTHORIZATION" ]
     configs += [ "${services_path}/accountmgr:authorization_config" ]
-    include_dirs +=
-        [ "${services_path}/accountmgr/include/bundle_manager_adapter" ]
+    include_dirs += [
+      "${services_path}/accountmgr/include/bundle_manager_adapter",
+      "${services_path}/accountmgr/test/mock/common",
+    ]
     sources += [
       "${authorization_framework_path}/src/authorization_common.cpp",
       "${services_path}/accountmgr/src/authorization_manager/authorization_manager_service.cpp",
@@ -140,6 +142,7 @@ ohos_moduletest("inner_os_account_manager_test") {
       "${services_path}/accountmgr/src/authorization_manager/privilege_utils.cpp",
       "${services_path}/accountmgr/src/authorization_manager/service_extension_connect.cpp",
       "${services_path}/accountmgr/src/common/tee/tee_auth_adapter.cpp",
+      "${services_path}/accountmgr/test/mock/common/ability_manager_adapter_mock.cpp",
     ]
     deps += [
       "${authorization_framework_path}:authorization_callback_proxy",
