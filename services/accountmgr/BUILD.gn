@@ -305,6 +305,7 @@ ohos_shared_library("accountmgr") {
       "${authorization_framework_path}:connect_ability_callback_stub",
     ]
     external_deps += [
+      "ability_runtime:ability_manager",
       "ability_runtime:extension_manager",
     ]
 

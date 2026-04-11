@@ -155,7 +155,7 @@ void ReportDomainAccountOperationStatistic(const DomainHisysEventInfo &info)
         HiSysEvent::EventType::STATISTIC,
         "OS_ACCOUNT_ID", info.domainBindLocalId,
         "DOMAIN_ACCOUNT", "",
-        "OPERATION_TYPE", info.operationStr,
+        "OPERATE_TYPE", info.operationStr,
         "OLD_STATE", "",
         "NEW_STATE", "",
         "CALLER_INFO", "");
