@@ -116,23 +116,11 @@ DistributedInfo ConvertDistributedInfo(int32_t localId)
     return AccountSA::ConvertToDistributedInfoTH(dbAccountInfo.second);
 }
 
-DomainAccountInfo ConvertDomainInfo(const OHOS::AccountSA::OsAccountInfo &innerInfo)
-{
-    AccountSA::DomainAccountInfo sourceInfo;
-    innerInfo.GetDomainInfo(sourceInfo);
-
-    return DomainAccountInfo{
-        .domain = taihe::string(sourceInfo.domain_.c_str()),
-        .accountName = taihe::string(sourceInfo.accountName_.c_str()),
-        .accountId = taihe::optional<taihe::string>(std::in_place_t{}, sourceInfo.accountId_.c_str()),
-        .isAuthenticated = taihe::optional<bool>(std::in_place_t{},
-            (sourceInfo.status_ != AccountSA::DomainAccountStatus::LOGOUT) &&
-            (sourceInfo.status_ < AccountSA::DomainAccountStatus::LOG_END)),
-        .serverConfigId = taihe::optional<taihe::string>(std::in_place_t{}, sourceInfo.serverConfigId_.c_str())};
-}
-
 OsAccountInfo ConvertOsAccountInfo(const AccountSA::OsAccountInfo &innerInfo)
 {
+    AccountSA::DomainAccountInfo domainInfo;
+    innerInfo.GetDomainInfo(domainInfo);
+
     return OsAccountInfo{
         .localId = innerInfo.GetLocalId(),
         .localName = taihe::string(innerInfo.GetLocalName().c_str()),
@@ -149,7 +137,7 @@ OsAccountInfo ConvertOsAccountInfo(const AccountSA::OsAccountInfo &innerInfo)
         .isLoggedIn = taihe::optional<bool>(std::in_place_t{}, innerInfo.GetIsLoggedIn()),
         .isCreateCompleted = innerInfo.GetIsCreateCompleted(),
         .distributedInfo = ConvertDistributedInfo(innerInfo.GetLocalId()),
-        .domainInfo = ConvertDomainInfo(innerInfo)
+        .domainInfo = ConvertDomainInfo(domainInfo)
     };
 }
 
@@ -579,7 +567,7 @@ public:
             }
         }
     }
-    
+
     void ActivateOsAccountSync(int32_t localId)
     {
         ErrCode errCode = AccountSA::OsAccountManager::ActivateOsAccount(localId);
@@ -1254,12 +1242,15 @@ public:
             }
             SetTaiheBusinessErrorFromNativeCode(errCode);
         }
+        taihe::optional<uintptr_t> additional = taihe::optional<uintptr_t>();
+        AccountSA::GetAdditionalInfo(innerDomainInfo.additionInfo_, additional);
         DomainAccountInfo domainAccountInfo = DomainAccountInfo {
             .domain = innerDomainInfo.domain_,
             .accountName = innerDomainInfo.accountName_,
             .accountId = optional<string>(std::in_place, innerDomainInfo.accountId_),
             .isAuthenticated = optional<bool>(std::in_place, innerDomainInfo.isAuthenticated),
             .serverConfigId = optional<string>(std::in_place, innerDomainInfo.serverConfigId_),
+            .additionalInfo = additional,
         };
         return DomainAccountInfoOrNull::make_infoData(domainAccountInfo);
     }

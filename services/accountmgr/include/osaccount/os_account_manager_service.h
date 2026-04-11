@@ -172,7 +172,7 @@ public:
     ErrCode BindDomainAccount(const int32_t localId, const DomainAccountInfo &domainInfo,
         const sptr<IDomainAccountCallback> &callback) override;
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
-    ErrCode GetServerConfigInfo(OsAccountInfo &osAccountInfo);
+    ErrCode GetDomainInfo(OsAccountInfo &osAccountInfo, bool isQueryAdditionalInfo);
 #endif // SUPPORT_DOMAIN_ACCOUNTS
     ErrCode CallbackEnter([[maybe_unused]] uint32_t code) override;
     ErrCode CallbackExit([[maybe_unused]] uint32_t code, [[maybe_unused]] int32_t result) override;

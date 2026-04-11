@@ -622,8 +622,7 @@ static void GetAndCleanPluginDomainAccountInfo(DomainAccountInfo &info, PluginDo
     GetAndCleanPluginString((*pDomainAccountInfo)->domain, info.domain_);
     GetAndCleanPluginString((*pDomainAccountInfo)->accountName, info.accountName_);
     GetAndCleanPluginString((*pDomainAccountInfo)->accountId, info.accountId_);
-    std::string extraAttributes;
-    GetAndCleanPluginString((*pDomainAccountInfo)->extraAttributes, extraAttributes);
+    GetAndCleanPluginString((*pDomainAccountInfo)->extraAttributes, info.additionInfo_);
     info.isAuthenticated = (*pDomainAccountInfo)->isAuthenticated == 1;
     free((*pDomainAccountInfo));
     (*pDomainAccountInfo) = nullptr;
@@ -2301,7 +2300,7 @@ void InnerDomainAccountManager::StartPluginHasDomainAccount(const GetDomainAccou
 }
 
 ErrCode InnerDomainAccountManager::PluginGetDomainAccountInfo(const GetDomainAccountInfoOptions &options,
-    DomainAccountInfo &info) __attribute__((no_sanitize("cfi")))
+    DomainAccountInfo &info, int32_t localId) __attribute__((no_sanitize("cfi")))
 {
     auto iter = methodMap_.find(PluginMethodEnum::GET_ACCOUNT_INFO);
     if (iter == methodMap_.end() || iter->second == nullptr) {
@@ -2310,12 +2309,15 @@ ErrCode InnerDomainAccountManager::PluginGetDomainAccountInfo(const GetDomainAcc
             "Method GetDomainAccountInfo not exsit", Constants::DOMAIN_OPT_GET_INFO, -1, options);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
-    int32_t localId = GetCallingUserID(options.callingUid);
     if (localId == -1) {
-        REPORT_DOMAIN_ACCOUNT_FAIL(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR,
-            "Get userId is invalid", Constants::DOMAIN_OPT_GET_INFO, -1, options);
-        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+        localId = GetCallingUserID(options.callingUid);
+        if (localId == -1) {
+            REPORT_DOMAIN_ACCOUNT_FAIL(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR,
+                "Get userId is invalid", Constants::DOMAIN_OPT_GET_INFO, -1, options);
+            return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+        }
     }
+
     PluginGetDomainAccountInfoOptions pluginOptions;
     SetPluginDomainAccountInfo(options.accountInfo, pluginOptions.domainAccountInfo);
     pluginOptions.callerUid = options.callingUid;
@@ -2333,7 +2335,8 @@ ErrCode InnerDomainAccountManager::PluginGetDomainAccountInfo(const GetDomainAcc
     return GetAndCleanPluginBussnessError(&error, iter->first, -1, info);
 }
 
-ErrCode InnerDomainAccountManager::GetDomainAccountInfo(const DomainAccountInfo &info, DomainAccountInfo &result)
+ErrCode InnerDomainAccountManager::GetDomainAccountInfo(const DomainAccountInfo &info, DomainAccountInfo &result,
+    int32_t localId)
 {
     if (info.accountName_.empty()) {
         ACCOUNT_LOGW("Domain Account not bind");
@@ -2342,13 +2345,20 @@ ErrCode InnerDomainAccountManager::GetDomainAccountInfo(const DomainAccountInfo 
     {
         std::lock_guard<std::mutex> lock(mutex_);
         if (plugin_ != nullptr) {
+            result.domain_ = info.domain_;
+            result.accountName_ = info.accountName_;
+            result.accountId_ = info.accountId_;
+            result.serverConfigId_ = info.serverConfigId_;
+            result.isAuthenticated = info.isAuthenticated;
+            result.status_ = info.status_;
+            result.additionInfo_ = info.additionInfo_;
             return ERR_OK;
         }
     }
     GetDomainAccountInfoOptions options;
     options.accountInfo = info;
     options.callingUid = IPCSkeleton::GetCallingUid();
-    return PluginGetDomainAccountInfo(options, result);
+    return PluginGetDomainAccountInfo(options, result, localId);
 }
 
 void InnerDomainAccountManager::StartPluginGetDomainAccountInfo(GetDomainAccountInfoOptions options,
@@ -2364,6 +2374,7 @@ void InnerDomainAccountManager::StartPluginGetDomainAccountInfo(GetDomainAccount
     wParam.SetParam("serverConfigId", OHOS::AAFwk::String::Box(result.serverConfigId_));
     wParam.SetParam("isAuthenticated", OHOS::AAFwk::Boolean::Box(result.isAuthenticated));
     wParam.SetParam("status", OHOS::AAFwk::Integer::Box(result.status_));
+    wParam.SetParam("additionalInfo", OHOS::AAFwk::String::Box(result.additionInfo_));
     DomainAccountParcel domainAccountParcel;
     if (!wParam.Marshalling(emptyParcel)) {
         ACCOUNT_LOGE("DomainAccountInfo marshalling failed.");

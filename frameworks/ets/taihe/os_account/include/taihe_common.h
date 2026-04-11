@@ -25,6 +25,10 @@
 #include "ipc_skeleton.h"
 #include "tokenid_kit.h"
 #include "account_error_no.h"
+#include "domain_account_common.h"
+#include "nlohmann/json.hpp"
+#include "ani_common_want.h"
+#include "want_params_wrapper.h"
 
 
 using namespace taihe;
@@ -45,6 +49,9 @@ namespace AccountSA {
 bool IsAccountIdValid(int32_t accountId);
 bool IsSystemApp();
 bool CheckPermission(const std::string &permissionName);
+void GenerateEmptyAdditionRecord(taihe::optional<uintptr_t> &additional);
+ohos::account::osAccount::DomainAccountInfo ConvertDomainInfo(const AccountSA::DomainAccountInfo &sourceInfo);
+void GetAdditionalInfo(const std::string &additionInfo, taihe::optional<uintptr_t> &additional);
 }
 }
 #endif // ACCOUNT_TAIHE_COMMON_H

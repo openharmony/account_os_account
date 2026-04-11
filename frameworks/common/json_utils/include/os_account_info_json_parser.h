@@ -46,6 +46,7 @@ const char IS_DATA_REMOVABLE[] = "isDataRemovable";
 const char CREATOR_TYPE[] = "creatorType";
 const char DOMAIN_ACCOUNT_STATUS[] = "domainAccountStatus";
 const char DOMAIN_ACCOUNT_CONFIG[] = "domainServerConfigId";
+const char DOMAIN_ACCOUNT_ADDITION[] = "domainAdditionInfo";
 constexpr int32_t ALLOWED_HAP_LIST_MAX_SIZE = 1000;
 } // namespace
 CJsonUnique ToJson(const OsAccountInfo &accountInfo);
