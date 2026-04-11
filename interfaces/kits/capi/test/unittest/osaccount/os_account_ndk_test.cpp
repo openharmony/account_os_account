@@ -98,7 +98,7 @@ HWTEST_F(OsAccountNDKTest, GetOsAccountNameByIdTest001, TestSize.Level1)
     EXPECT_EQ(OH_OsAccount_GetNameByLocalId(id, nullptr, MAX_NAME_LENGTH),
         OsAccount_ErrCode::OS_ACCOUNT_ERR_INVALID_PARAMETER);
     EXPECT_EQ(OH_OsAccount_GetNameByLocalId(id, str, 0), OsAccount_ErrCode::OS_ACCOUNT_ERR_INVALID_PARAMETER);
-    
+
     // We expect OK or INTERNAL_ERROR depending on if ID exists, but we mainly test buffer safety here
     OsAccount_ErrCode ret = OH_OsAccount_GetNameByLocalId(id, str, MAX_NAME_LENGTH);
     EXPECT_TRUE(ret == OsAccount_ErrCode::OS_ACCOUNT_ERR_OK || ret == OsAccount_ErrCode::OS_ACCOUNT_ERR_INTERNAL_ERROR);
@@ -159,7 +159,7 @@ HWTEST_F(OsAccountNDKTest, GetOsAccountNameByIdTest005, TestSize.Level1)
 {
     char str[MAX_NAME_LENGTH] = { 0 };
     EXPECT_EQ(OH_OsAccount_GetNameByLocalId(99, str, MAX_NAME_LENGTH),
-        OsAccount_ErrCode::OS_ACCOUNT_ERR_RESTRICTED_ACCOUNT);
+        OsAccount_ErrCode::OS_ACCOUNT_ERR_ACCOUNT_NOT_FOUND);
 }
 
 /**
