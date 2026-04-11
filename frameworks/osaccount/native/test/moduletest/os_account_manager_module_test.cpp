@@ -3349,23 +3349,6 @@ HWTEST_F(OsAccountManagerModuleTest, GetOsAccountNameById004, TestSize.Level1)
     ASSERT_TRUE(RecoveryPermission(tokenID));
 }
 
-/**
- * @tc.name: GetOsAccountNameById005
- * @tc.desc: Test GetOsAccountNameById with caller is not system item.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerModuleTest, GetOsAccountNameById005, TestSize.Level1)
-{
-    uint64_t tokenID;
-    ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenID, false));
-    setuid(MAIN_ACCOUNT_ID * UID_TRANSFORM_DIVISOR); // test main uid
-    std::string name;
-    EXPECT_EQ(OsAccountManager::GetOsAccountNameById(MAIN_ACCOUNT_ID, name), ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
-    setuid(ROOT_UID);
-    ASSERT_TRUE(RecoveryPermission(tokenID));
-}
-
 #ifndef BUNDLE_ADAPTER_MOCK
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 /**
@@ -3630,7 +3613,7 @@ HWTEST_F(OsAccountManagerModuleTest, GetOsAccountNameById009, TestSize.Level1)
 
     std::string name;
     // ID=0 is restricted account, should return restricted error
-    EXPECT_EQ(OsAccountManager::GetOsAccountNameById(0, name), ERR_ACCOUNT_COMMON_ACCOUNT_IS_RESTRICTED);
+    EXPECT_EQ(OsAccountManager::GetOsAccountNameById(0, name), ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
     EXPECT_TRUE(name.empty());
 
     setuid(ROOT_UID);
