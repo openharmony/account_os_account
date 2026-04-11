@@ -95,6 +95,7 @@ public:
     DomainAccountStatus status_ = DomainAccountStatus::LOG_END;
     bool isAuthenticated = false;
     std::string serverConfigId_ = "";
+    std::string additionInfo_ = "";
     bool ReadFromParcel(Parcel &parcel);
     bool Marshalling(Parcel &parcel) const override;
     static DomainAccountInfo *Unmarshalling(Parcel &parcel);

@@ -133,42 +133,6 @@ DistributedInfo ConvertDistributedInfo()
     return AccountSA::ConvertToDistributedInfoTH(dbAccountInfo.second);
 }
 
-DomainAccountInfo ConvertDomainInfo(const OHOS::AccountSA::OsAccountInfo &innerInfo)
-{
-    AccountSA::DomainAccountInfo sourceInfo;
-    innerInfo.GetDomainInfo(sourceInfo);
-
-    return DomainAccountInfo{
-        .domain = taihe::string(sourceInfo.domain_.c_str()),
-        .accountName = taihe::string(sourceInfo.accountName_.c_str()),
-        .accountId = taihe::optional<taihe::string>(std::in_place_t{}, sourceInfo.accountId_.c_str()),
-        .isAuthenticated = taihe::optional<bool>(std::in_place_t{},
-            (sourceInfo.status_ != AccountSA::DomainAccountStatus::LOGOUT) &&
-            (sourceInfo.status_ < AccountSA::DomainAccountStatus::LOG_END)),
-        .serverConfigId = taihe::optional<taihe::string>(std::in_place_t{}, sourceInfo.serverConfigId_.c_str())};
-}
-
-OsAccountInfo ConvertOsAccountInfo(const AccountSA::OsAccountInfo &innerInfo)
-{
-    return OsAccountInfo{
-        .localId = innerInfo.GetLocalId(),
-        .localName = taihe::string(innerInfo.GetLocalName().c_str()),
-        .shortName =
-            taihe::optional<taihe::string>(std::in_place_t{}, innerInfo.GetShortName().c_str()),
-        .type = OsAccountType(ConvertToOsAccountTypeKey(innerInfo.GetType())),
-        .constraints = ConvertConstraints(innerInfo.GetConstraints()),
-        .isUnlocked = innerInfo.GetIsVerified(),
-        .photo = taihe::string(innerInfo.GetPhoto().c_str()),
-        .createTime = innerInfo.GetCreateTime(),
-        .lastLoginTime = innerInfo.GetLastLoginTime(),
-        .serialNumber = innerInfo.GetSerialNumber(),
-        .isActivated = innerInfo.GetIsActived(),
-        .isLoggedIn = taihe::optional<bool>(std::in_place_t{}, innerInfo.GetIsLoggedIn()),
-        .isCreateCompleted = innerInfo.GetIsCreateCompleted(),
-        .distributedInfo = ConvertDistributedInfo(),
-        .domainInfo = ConvertDomainInfo(innerInfo)
-    };
-}
 
 AccountSA::CreateOsAccountOptions ConvertToInnerOptions(optional_view<CreateOsAccountOptions> options)
 {
@@ -2040,12 +2004,15 @@ DomainAccountInfo GetAccountInfoSync(GetDomainAccountInfoOptions const& options)
     if (options.serverConfigId.has_value()) {
         innerDomainInfo.serverConfigId_ = options.serverConfigId.value();
     }
+    taihe::optional<uintptr_t> additional = taihe::optional<uintptr_t>();
+    AccountSA::GenerateEmptyAdditionRecord(additional);
     DomainAccountInfo emptyDomainAccountInfo = {
         .domain = string(""),
         .accountName = string(""),
         .accountId = optional<string>(std::in_place, string("")),
         .isAuthenticated = optional<bool>(std::in_place, false),
         .serverConfigId = optional<string>(std::in_place, string("")),
+        .additionalInfo = additional
     };
     std::shared_ptr<THGetAccountInfoCallback> getAccountInfoCallback = std::make_shared<THGetAccountInfoCallback>();
     ErrCode errCode = AccountSA::DomainAccountClient::GetInstance().GetDomainAccountInfo(innerDomainInfo,
@@ -2073,7 +2040,11 @@ DomainAccountInfo GetAccountInfoSync(GetDomainAccountInfoOptions const& options)
             getAccountInfoCallback->getAccountInfoParams_.GetIntParam("isAuthenticated", 0)),
         .serverConfigId = optional<string>(std::in_place,
             getAccountInfoCallback->getAccountInfoParams_.GetStringParam("serverConfigId").c_str()),
+        .additionalInfo = additional
     };
+    std::string additionalInfo = getAccountInfoCallback->getAccountInfoParams_.GetStringParam("additionalInfo");
+    AccountSA::GetAdditionalInfo(additionalInfo, additional);
+    domainAccountInfo.additionalInfo = additional;
     auto value = getAccountInfoCallback->getAccountInfoParams_.GetParam("isAuthenticated");
     OHOS::AAFwk::IBoolean *bo = OHOS::AAFwk::IBoolean::Query(value);
     if (bo != nullptr) {
