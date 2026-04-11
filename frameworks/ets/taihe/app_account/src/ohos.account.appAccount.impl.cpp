@@ -1288,11 +1288,12 @@ public:
     }
 };
 
-class THappAccountAuthenticatorCallback {
+class IRemoteObjectOnResultCallbackImpl {
 public:
-    explicit THappAccountAuthenticatorCallback(const sptr<IRemoteObject> &object): object_(object) {}
+    explicit IRemoteObjectOnResultCallbackImpl(const sptr<IRemoteObject> &object)
+        : object_(object) {}
 
-    ~THappAccountAuthenticatorCallback()
+    ~IRemoteObjectOnResultCallbackImpl()
     {
         object_ = nullptr;
     }
@@ -1313,6 +1314,25 @@ public:
         callbackProxy->OnResult(resultCode, wantResult);
     }
 
+private:
+    sptr<IRemoteObject> object_;
+};
+
+class IRemoteObjectOnRequestRedirectedCallbackImpl {
+public:
+    explicit IRemoteObjectOnRequestRedirectedCallbackImpl(const sptr<IRemoteObject> &object)
+        : object_(object) {}
+
+    ~IRemoteObjectOnRequestRedirectedCallbackImpl()
+    {
+        object_ = nullptr;
+    }
+
+    sptr<IRemoteObject> GetRemote()
+    {
+        return object_;
+    }
+
     void operator()(uintptr_t request)
     {
         AAFwk::Want wantResult;
@@ -1329,6 +1349,25 @@ public:
         }
     }
 
+private:
+    sptr<IRemoteObject> object_;
+};
+
+class IRemoteObjectOnRequestContinuedCallbackImpl {
+public:
+    explicit IRemoteObjectOnRequestContinuedCallbackImpl(const sptr<IRemoteObject> &object)
+        : object_(object) {}
+
+    ~IRemoteObjectOnRequestContinuedCallbackImpl()
+    {
+        object_ = nullptr;
+    }
+
+    sptr<IRemoteObject> GetRemote()
+    {
+        return object_;
+    }
+
     void operator()()
     {
         auto callbackProxy = iface_cast<AccountSA::IAppAccountAuthenticatorCallback>(object_);
@@ -1336,6 +1375,7 @@ public:
             callbackProxy->OnRequestContinued();
         }
     }
+
 private:
     sptr<IRemoteObject> object_;
 };
@@ -1344,12 +1384,12 @@ ohos::account::appAccount::AuthCallback ConvertToAppAccountAuthenticatorCallback
     const sptr<IRemoteObject> &callback)
 {
     ::taihe::callback<void(int32_t, ::taihe::optional_view<::ohos::account::appAccount::AuthResult>)>
-        onResultCallback = ::taihe::make_holder<THappAccountAuthenticatorCallback, ::taihe::callback<void(int32_t,
+        onResultCallback = ::taihe::make_holder<IRemoteObjectOnResultCallbackImpl, ::taihe::callback<void(int32_t,
             ::taihe::optional_view<::ohos::account::appAccount::AuthResult>)>>(callback);
     ::taihe::callback<void(uintptr_t request)>
-        onRequestRedirectedCallback = ::taihe::make_holder<THappAccountAuthenticatorCallback,
+        onRequestRedirectedCallback = ::taihe::make_holder<IRemoteObjectOnRequestRedirectedCallbackImpl,
             ::taihe::callback<void(uintptr_t request)>>(callback);
-    taihe::callback<void()> tempCallback = ::taihe::make_holder<THappAccountAuthenticatorCallback,
+    taihe::callback<void()> tempCallback = ::taihe::make_holder<IRemoteObjectOnRequestContinuedCallbackImpl,
         ::taihe::callback<void()>>(callback);
     taihe::optional<taihe::callback<void ()>> onRequestContinuedCallback =
         taihe::optional<taihe::callback<void ()>>(std::in_place_t{}, tempCallback);
