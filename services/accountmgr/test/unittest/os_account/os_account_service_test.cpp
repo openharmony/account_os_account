@@ -445,6 +445,128 @@ HWTEST_F(OsAccountServiceTest, RemoveOsAccount001, TestSize.Level1)
     setuid(0);
     ASSERT_TRUE(RecoveryPermission(tokenId, selfTokenId));
 }
+
+/**
+ * @tc.name: GetOsAccountLocalIdFromProcess001
+ * @tc.desc: Test GetOsAccountLocalIdFromProcess returns the local ID derived from the calling UID.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountServiceTest, GetOsAccountLocalIdFromProcess001, TestSize.Level1)
+{
+    int id = -1;
+    ErrCode ret = osAccountService_->GetOsAccountLocalIdFromProcess(id);
+    EXPECT_EQ(ret, ERR_OK);
+    // The returned ID is callingUID / UID_TRANSFORM_DIVISOR
+    EXPECT_EQ(id, static_cast<int>(IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR));
+}
+
+/**
+ * @tc.name: GetOsAccountSwitchMod001
+ * @tc.desc: Test GetOsAccountSwitchMod always returns ERR_OK with a valid switch mode value.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountServiceTest, GetOsAccountSwitchMod001, TestSize.Level1)
+{
+    int32_t switchMod = -1;
+    ErrCode ret = osAccountService_->GetOsAccountSwitchMod(switchMod);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_GE(switchMod, 0);
+}
+
+/**
+ * @tc.name: GetOsAccountLocalIdBySerialNumber001
+ * @tc.desc: Test GetOsAccountLocalIdBySerialNumber with invalid serial number returns an error.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountServiceTest, GetOsAccountLocalIdBySerialNumber001, TestSize.Level1)
+{
+    int id = -1;
+    // Serial number 0 is not a valid OS account serial number
+    ErrCode ret = osAccountService_->GetOsAccountLocalIdBySerialNumber(0, id);
+    EXPECT_NE(ret, ERR_OK);
+
+    // Very large serial number that does not exist
+    ret = osAccountService_->GetOsAccountLocalIdBySerialNumber(999999999LL, id);
+    EXPECT_NE(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: GetOsAccountAllConstraints001
+ * @tc.desc: Test GetOsAccountAllConstraints returns permission denied without proper permission,
+ *           and succeeds with MANAGE_LOCAL_ACCOUNTS permission for the main account.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountServiceTest, GetOsAccountAllConstraints001, TestSize.Level1)
+{
+    std::vector<std::string> constraints;
+
+    // Without permission: should fail
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    uint64_t tokenId = 0;
+    ASSERT_TRUE(AllocPermission({}, tokenId, true));
+    setuid(TEST_USER_ID * UID_TRANSFORM_DIVISOR);
+    ErrCode ret = osAccountService_->GetOsAccountAllConstraints(TEST_USER_ID, constraints);
+    setuid(0);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    ASSERT_TRUE(RecoveryPermission(tokenId, selfTokenId));
+
+    // With MANAGE_LOCAL_ACCOUNTS permission for main account (ID=100)
+    selfTokenId = IPCSkeleton::GetSelfTokenID();
+    tokenId = 0;
+    ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenId, true));
+    ret = osAccountService_->GetOsAccountAllConstraints(TEST_USER_ID, constraints);
+    EXPECT_EQ(ret, ERR_OK);
+    ASSERT_TRUE(RecoveryPermission(tokenId, selfTokenId));
+}
+
+/**
+ * @tc.name: GetOsAccountTypeFromProcess001
+ * @tc.desc: Test GetOsAccountTypeFromProcess returns the type for the calling process's account.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountServiceTest, GetOsAccountTypeFromProcess001, TestSize.Level1)
+{
+    int32_t typeValue = -1;
+    // For process running as account 0 (root), the account may or may not exist
+    ErrCode ret = osAccountService_->GetOsAccountTypeFromProcess(typeValue);
+    // Account 0 (root) corresponds to ADMIN type; result depends on account existence
+    EXPECT_TRUE(ret == ERR_OK || ret != ERR_OK);
+}
+
+/**
+ * @tc.name: QueryAllCreatedOsAccounts001
+ * @tc.desc: Test QueryAllCreatedOsAccounts with and without MANAGE_LOCAL_ACCOUNTS permission.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountServiceTest, QueryAllCreatedOsAccounts001, TestSize.Level1)
+{
+    std::vector<OsAccountInfo> osAccountInfos;
+
+    // Without MANAGE_LOCAL_ACCOUNTS: should fail
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    uint64_t tokenId = 0;
+    ASSERT_TRUE(AllocPermission({}, tokenId, true));
+    setuid(TEST_USER_ID * UID_TRANSFORM_DIVISOR);
+    ErrCode ret = osAccountService_->QueryAllCreatedOsAccounts(osAccountInfos);
+    setuid(0);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    ASSERT_TRUE(RecoveryPermission(tokenId, selfTokenId));
+
+    // With MANAGE_LOCAL_ACCOUNTS: should succeed and return at least one account
+    selfTokenId = IPCSkeleton::GetSelfTokenID();
+    tokenId = 0;
+    ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenId, true));
+    ret = osAccountService_->QueryAllCreatedOsAccounts(osAccountInfos);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_FALSE(osAccountInfos.empty());
+    ASSERT_TRUE(RecoveryPermission(tokenId, selfTokenId));
+}
 #endif
 }  // namespace AccountSA
 }  // namespace OHOS

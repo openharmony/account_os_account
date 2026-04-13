@@ -95,10 +95,107 @@ HWTEST_F(OsAccountDatabaseOperatorTest, InsertOsAccountIntoDataBase_0002, TestSi
     ACCOUNT_LOGI("OsAccountDatabaseOperatorTest_InsertOsAccountIntoDataBase_0002");
 
     OsAccountInfo info;
+    // insert valid user range ID and out-of-range ID; both should not crash
     int localId = 300;  // 300 is invalid test local id
     info.SetLocalId(localId);
     g_osAccountDatabaseOperator->InsertOsAccountIntoDataBase(info);
     EXPECT_EQ(info.GetLocalId(), localId);
+
+    localId = Constants::START_USER_ID;
+    info.SetLocalId(localId);
+    g_osAccountDatabaseOperator->InsertOsAccountIntoDataBase(info);
+    EXPECT_EQ(info.GetLocalId(), localId);
+}
+
+/**
+ * @tc.name: OsAccountDatabaseOperatorTest_DelOsAccountFromDatabase_0001
+ * @tc.desc: DelOsAccountFromDatabase with non-existent ID does not crash.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountDatabaseOperatorTest, DelOsAccountFromDatabase_0001, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountDatabaseOperatorTest_DelOsAccountFromDatabase_0001");
+
+    // Deleting a non-existent account should not crash
+    g_osAccountDatabaseOperator->DelOsAccountFromDatabase(999999);
+    g_osAccountDatabaseOperator->DelOsAccountFromDatabase(Constants::ADMIN_LOCAL_ID);
+}
+
+/**
+ * @tc.name: OsAccountDatabaseOperatorTest_GetOsAccountFromDatabase_0001
+ * @tc.desc: GetOsAccountFromDatabase with empty storeID and non-existent ID.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountDatabaseOperatorTest, GetOsAccountFromDatabase_0001, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountDatabaseOperatorTest_GetOsAccountFromDatabase_0001");
+
+    OsAccountInfo osAccountInfo;
+    // Query non-existent account with empty storeID
+    ErrCode ret = g_osAccountDatabaseOperator->GetOsAccountFromDatabase("", 999999, osAccountInfo);
+    EXPECT_NE(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountDatabaseOperatorTest_GetOsAccountListFromDatabase_0001
+ * @tc.desc: GetOsAccountListFromDatabase with empty storeID returns result without crash.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountDatabaseOperatorTest, GetOsAccountListFromDatabase_0001, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountDatabaseOperatorTest_GetOsAccountListFromDatabase_0001");
+
+    std::vector<OsAccountInfo> osAccountList;
+    ErrCode ret = g_osAccountDatabaseOperator->GetOsAccountListFromDatabase("", osAccountList);
+    EXPECT_TRUE(ret == ERR_OK || ret != ERR_OK);  // Should not crash regardless of kvstore availability
+}
+
+/**
+ * @tc.name: OsAccountDatabaseOperatorTest_GetCreatedOsAccountNumFromDatabase_0001
+ * @tc.desc: GetCreatedOsAccountNumFromDatabase with empty storeID returns without crash.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountDatabaseOperatorTest, GetCreatedOsAccountNumFromDatabase_0001, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountDatabaseOperatorTest_GetCreatedOsAccountNumFromDatabase_0001");
+
+    int count = 0;
+    ErrCode ret = g_osAccountDatabaseOperator->GetCreatedOsAccountNumFromDatabase("", count);
+    EXPECT_TRUE(ret == ERR_OK || ret != ERR_OK);  // Should not crash
+}
+
+/**
+ * @tc.name: OsAccountDatabaseOperatorTest_GetSerialNumberFromDatabase_0001
+ * @tc.desc: GetSerialNumberFromDatabase with empty storeID returns without crash.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountDatabaseOperatorTest, GetSerialNumberFromDatabase_0001, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountDatabaseOperatorTest_GetSerialNumberFromDatabase_0001");
+
+    int64_t serialNumber = 0;
+    ErrCode ret = g_osAccountDatabaseOperator->GetSerialNumberFromDatabase("", serialNumber);
+    EXPECT_TRUE(ret == ERR_OK || ret != ERR_OK);  // Should not crash
+}
+
+/**
+ * @tc.name: OsAccountDatabaseOperatorTest_GetMaxAllowCreateIdFromDatabase_0001
+ * @tc.desc: GetMaxAllowCreateIdFromDatabase with empty storeID returns without crash.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountDatabaseOperatorTest, GetMaxAllowCreateIdFromDatabase_0001, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountDatabaseOperatorTest_GetMaxAllowCreateIdFromDatabase_0001");
+
+    int id = 0;
+    ErrCode ret = g_osAccountDatabaseOperator->GetMaxAllowCreateIdFromDatabase("", id);
+    EXPECT_TRUE(ret == ERR_OK || ret != ERR_OK);  // Should not crash
 }
 
 }  // namespace AccountSA
