@@ -87,8 +87,98 @@ HWTEST_F(OsAccountFileOperatorTest, CheckConstraints_0002, TestSize.Level1)
 {
     ACCOUNT_LOGI("OsAccountFileOperator_CheckConstraintsList_0002");
 
-    std::vector<std::string> constraints = { "constraint.os.account.create" };
-    EXPECT_TRUE(g_osAccountFileOperator->CheckConstraints(constraints));
+    // valid constraint returns true; invalid constraint returns false
+    std::vector<std::string> valid = { "constraint.os.account.create" };
+    EXPECT_TRUE(g_osAccountFileOperator->CheckConstraints(valid));
+
+    std::vector<std::string> invalid = { "constraint.invalid.not.exist.xyz" };
+    EXPECT_FALSE(g_osAccountFileOperator->CheckConstraints(invalid));
+}
+
+/**
+ * @tc.name: OsAccountFileOperator_GetConstraintsByType_0001
+ * @tc.desc: Get constraints list for NORMAL and ADMIN account type.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountFileOperatorTest, GetConstraintsByType_0001, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountFileOperator_GetConstraintsByType_0001");
+
+    std::vector<std::string> constraints;
+    // Type 1 = ADMIN, type 2 = NORMAL; both should succeed
+    ErrCode ret = g_osAccountFileOperator->GetConstraintsByType(OsAccountType::NORMAL, constraints);
+    EXPECT_EQ(ret, ERR_OK);
+
+    constraints.clear();
+    ret = g_osAccountFileOperator->GetConstraintsByType(OsAccountType::ADMIN, constraints);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountFileOperator_GetIsMultiOsAccountEnable_0001
+ * @tc.desc: GetIsMultiOsAccountEnable returns ERR_OK and a valid bool.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountFileOperatorTest, GetIsMultiOsAccountEnable_0001, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountFileOperator_GetIsMultiOsAccountEnable_0001");
+
+    bool isMultiEnable = false;
+    ErrCode ret = g_osAccountFileOperator->GetIsMultiOsAccountEnable(isMultiEnable);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountFileOperator_IsAllowedCreateAdmin_0001
+ * @tc.desc: IsAllowedCreateAdmin returns ERR_OK and a valid bool.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountFileOperatorTest, IsAllowedCreateAdmin_0001, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountFileOperator_IsAllowedCreateAdmin_0001");
+
+    bool isAllowed = false;
+    ErrCode ret = g_osAccountFileOperator->IsAllowedCreateAdmin(isAllowed);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountFileOperator_GetGlobalOAConstraintsList_0001
+ * @tc.desc: GetGlobalOAConstraintsList returns without crash.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountFileOperatorTest, GetGlobalOAConstraintsList_0001, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountFileOperator_GetGlobalOAConstraintsList_0001");
+
+    std::vector<std::string> constraints;
+    ErrCode ret = g_osAccountFileOperator->GetGlobalOAConstraintsList(constraints);
+    EXPECT_TRUE(ret == ERR_OK || ret == ERR_OSACCOUNT_SERVICE_GET_DATA_FROM_GLOBAL_CONSTRAINTS_FILE_EMPTY);
+}
+
+/**
+ * @tc.name: OsAccountFileOperator_GetSpecificOAConstraintsList_0001
+ * @tc.desc: GetSpecificOAConstraintsList for admin and normal accounts.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountFileOperatorTest, GetSpecificOAConstraintsList_0001, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountFileOperator_GetSpecificOAConstraintsList_0001");
+
+    std::vector<std::string> constraints;
+    ErrCode ret = g_osAccountFileOperator->GetSpecificOAConstraintsList(
+        Constants::ADMIN_LOCAL_ID, constraints);
+    EXPECT_TRUE(ret == ERR_OK || ret == ERR_OSACCOUNT_SERVICE_GET_DATA_FROM_SPECIFIC_CONSTRAINTS_FILE_EMPTY);
+
+    constraints.clear();
+    ret = g_osAccountFileOperator->GetSpecificOAConstraintsList(
+        Constants::START_USER_ID, constraints);
+    EXPECT_TRUE(ret == ERR_OK || ret == ERR_OSACCOUNT_SERVICE_GET_DATA_FROM_SPECIFIC_CONSTRAINTS_FILE_EMPTY);
 }
 }  // namespace AccountSA
 }  // namespace OHOS
