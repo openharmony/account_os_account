@@ -438,6 +438,17 @@ ErrCode CreateOsAccountForTest(const std::string &localName, const std::string &
 #endif
 }
 
+ErrCode CreateOsAccountForTest(OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options)
+{
+#ifdef SUPPORT_AUTHORIZATION
+    return CreateOsAccountWithFullInfoForTest(osAccountInfo, options);
+#else
+    const std::string localName = osAccountInfo.GetLocalName();
+    const std::string shortName = osAccountInfo.GetShortName().empty() ? localName : osAccountInfo.GetShortName();
+    return CreateOsAccountForTest(localName, shortName, osAccountInfo.GetType(), options, osAccountInfo);
+#endif
+}
+
 ErrCode CreateOsAccountWithFullInfoForTest(OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options)
 {
 #ifdef SUPPORT_AUTHORIZATION
