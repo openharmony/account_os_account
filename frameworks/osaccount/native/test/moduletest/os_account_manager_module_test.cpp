@@ -434,7 +434,7 @@ HWTEST_F(OsAccountManagerModuleTest, CreateOsAccountWithFullInfo003, TestSize.Le
     fullOsAccountInfo.SetSerialNumber(2023023100000033); // test random input
     fullOsAccountInfo.SetCreateTime(1695883215000);      // test random input
     fullOsAccountInfo.SetLastLoginTime(1695863215000);   // test random input
-    EXPECT_EQ(ERR_OK, CreateOsAccountWithFullInfoForTest(fullOsAccountInfo, options));
+    EXPECT_EQ(ERR_OK, CreateOsAccountForTest(fullOsAccountInfo, options));
 
     osAccountInfos.clear();
     EXPECT_EQ(OsAccountManager::QueryAllCreatedOsAccounts(osAccountInfos), ERR_OK);
@@ -449,7 +449,7 @@ HWTEST_F(OsAccountManagerModuleTest, CreateOsAccountWithFullInfo003, TestSize.Le
     EXPECT_EQ(OsAccountManager::QueryAllCreatedOsAccounts(osAccountInfos), ERR_OK);
     EXPECT_EQ(osAccountInfos.size(), preSize);
 
-    EXPECT_EQ(ERR_OK, CreateOsAccountWithFullInfoForTest(fullOsAccountInfo, options));
+    EXPECT_EQ(ERR_OK, CreateOsAccountForTest(fullOsAccountInfo, options));
 
     EXPECT_EQ(ERR_OK, RemoveOsAccountForTest(fullOsAccountInfo.GetLocalId()));
 }

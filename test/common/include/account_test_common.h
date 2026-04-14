@@ -46,6 +46,7 @@ namespace AccountSA {
         const OsAccountType &type, OsAccountInfo &osAccountInfo);
     ErrCode CreateOsAccountForTest(const std::string &localName, const std::string &shortName,
         const OsAccountType &type, const CreateOsAccountOptions &options, OsAccountInfo &osAccountInfo);
+    ErrCode CreateOsAccountForTest(OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options = {});
     ErrCode CreateOsAccountWithFullInfoForTest(OsAccountInfo &osAccountInfo,
         const CreateOsAccountOptions &options = {});
     ErrCode CreateOsAccountForDomainForTest(const OsAccountType &type, const DomainAccountInfo &domainInfo,

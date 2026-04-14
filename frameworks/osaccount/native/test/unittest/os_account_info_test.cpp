@@ -1106,7 +1106,7 @@ HWTEST_F(OsAccountInfoTest, SetOsAccountToBeRemoved_UpdateDefaultActivated_001, 
     osAccountInfo.SetSerialNumber(2023023100000033); // test random input
     osAccountInfo.SetCreateTime(1695883215000);      // test random input
     osAccountInfo.SetLastLoginTime(1695863215000);   // test random input
-    EXPECT_EQ(ERR_OK, CreateOsAccountWithFullInfoForTest(osAccountInfo, options));
+    EXPECT_EQ(ERR_OK, CreateOsAccountForTest(osAccountInfo, options));
 
     int32_t testAccountId = osAccountInfo.GetLocalId();
     EXPECT_GT(testAccountId, 0);
@@ -1148,7 +1148,7 @@ HWTEST_F(OsAccountInfoTest, SetOsAccountToBeRemoved_NonDefaultAccount_002, TestS
     testAccountInfo.SetSerialNumber(2023023100000033); // test random input
     testAccountInfo.SetCreateTime(1695883215000);      // test random input
     testAccountInfo.SetLastLoginTime(1695863215000);   // test random input
-    EXPECT_EQ(ERR_OK, CreateOsAccountWithFullInfoForTest(testAccountInfo, options));
+    EXPECT_EQ(ERR_OK, CreateOsAccountForTest(testAccountInfo, options));
 
     int32_t testAccountId = testAccountInfo.GetLocalId();
 
@@ -1192,7 +1192,7 @@ HWTEST_F(OsAccountInfoTest, SetOsAccountToBeRemoved_CancelRemoval_003, TestSize.
     testAccountInfo.SetSerialNumber(2023023100000033); // test random input
     testAccountInfo.SetCreateTime(1695883215000);      // test random input
     testAccountInfo.SetLastLoginTime(1695863215000);   // test random input
-    EXPECT_EQ(ERR_OK, CreateOsAccountWithFullInfoForTest(testAccountInfo, options));
+    EXPECT_EQ(ERR_OK, CreateOsAccountForTest(testAccountInfo, options));
 
     int32_t testAccountId = testAccountInfo.GetLocalId();
 
@@ -1228,7 +1228,7 @@ HWTEST_F(OsAccountInfoTest, SetOsAccountToBeRemoved_UpdateDefaultActivatedError_
     osAccountInfo.SetSerialNumber(2023023100000033); // test random input
     osAccountInfo.SetCreateTime(1695883215000);      // test random input
     osAccountInfo.SetLastLoginTime(1695863215000);   // test random input
-    EXPECT_EQ(ERR_OK, CreateOsAccountWithFullInfoForTest(osAccountInfo, options));
+    EXPECT_EQ(ERR_OK, CreateOsAccountForTest(osAccountInfo, options));
 
     int32_t testAccountId = osAccountInfo.GetLocalId();
     EXPECT_GT(testAccountId, 0);
