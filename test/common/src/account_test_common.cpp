@@ -190,7 +190,7 @@ bool AllocPermission(std::vector<std::string> permissions, uint64_t &tokenID, bo
     };
 
     HapInfoParams hapInfoParams = {
-        .userID = 100,
+        .userID = 999,
         .bundleName = "com.ohos.sceneboard",
         .instIndex = 0,
         .appIDDesc = "account_test",
