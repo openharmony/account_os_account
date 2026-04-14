@@ -253,7 +253,7 @@ private:
     mutable std::mutex createOsAccountMutex_;
     SafeMap<uint64_t, int32_t> foregroundAccountMap_;
 #ifdef SUPPORT_AUTHORIZATION
-    std::unique_ptr<OsAccountCacheManager> osAccountCacheManager_;  // Cache for OS account types
+    OsAccountCacheManager osAccountCacheManager_;  // Cache for OS account types
     OsAccountTeeAdapter teeAdapter_;  // TEE adapter for secure account operations
     std::mutex refreshTypeCacheLock_;
 #endif // SUPPORT_AUTHORIZATION
