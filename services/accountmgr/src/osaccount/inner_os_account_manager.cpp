@@ -701,7 +701,9 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfoWithFullInfo(OsAccountInfo &
         ACCOUNT_LOGE("Insert os account info err, errCode %{public}d.", errCode);
         return errCode;
     }
-
+    if (osAccountInfo.GetLocalId() != Constants::MAINTENANCE_MODE_ID) {
+        UpdateAccountTypeCache(osAccountInfo.GetLocalId(), osAccountInfo.GetType());
+    }
     errCode = osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Update account index failed, errCode = %{public}d", errCode);
@@ -758,6 +760,9 @@ void IInnerOsAccountManager::RollbackOsAccount(OsAccountInfo &osAccountInfo, boo
             REPORT_OS_ACCOUNT_FAIL(osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE,
                 res, "Failed to rollback type from TEE");
             return;
+        }
+        if (osAccountCacheManager_ != nullptr) {
+            osAccountCacheManager_->ClearAccountCache(osAccountInfo.GetLocalId());
         }
     }
 #endif // SUPPORT_AUTHORIZATION
