@@ -56,7 +56,10 @@ ohos_unittest("PrivilegeCacheManagerMockTest") {
     "${services_path}/accountmgr/test:accountmgr_test_config",
   ]
 
-  deps = [ "${common_path}:libaccount_common" ]
+  deps = [
+    "${account_test_common}:account_test_common_source_set",
+    "${common_path}:libaccount_common",
+  ]
 
   external_deps = [
     "ability_base:want",
