@@ -16,6 +16,7 @@
 #include "getenrolledidstub_fuzzer.h"
 
 #include <string>
+#include <thread>
 #include <vector>
 #include "access_token.h"
 #include "access_token_error.h"
@@ -44,8 +45,24 @@ public:
 
     void OnEnrolledId(int32_t result, uint64_t enrolledId) override
     {
-        return;
+        std::unique_lock<std::mutex> lock(mutex_);
+        if (isCalled_) {
+            ACCOUNT_LOGE("Callback is called.");
+            return;
+        }
+        isCalled_ = true;
+        cv_.notify_one();
     }
+    void WaitForCallbackResult()
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        ACCOUNT_LOGI("WaitForCallbackResult.");
+        cv_.wait(lock, [this] { return isCalled_; });
+    }
+private:
+    std::mutex mutex_;
+    bool isCalled_ = false;
+    std::condition_variable cv_;
 };
 
 bool GetEnrolledIdStubFuzzTest(const uint8_t *data, size_t size)
@@ -77,9 +94,15 @@ bool GetEnrolledIdStubFuzzTest(const uint8_t *data, size_t size)
     MessageOption option;
     uint32_t code = static_cast<uint32_t>(IAccountIAMIpcCode::COMMAND_GET_ENROLLED_ID);
     auto iamAccountManagerService = std::make_shared<AccountIAMService>();
-    iamAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
+    int32_t errCode = iamAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
+    if (errCode != ERR_NONE) {
+        return true;
+    }
+    errCode = reply.ReadInt32();
+    if (callback != nullptr && errCode == ERR_OK) {
+        callback->WaitForCallbackResult();
+    }
     iamAccountManagerService->OnRemoteRequest(TEST_CODE, dataTemp, reply, option);
-
     return true;
 }
 } // namespace OHOS
