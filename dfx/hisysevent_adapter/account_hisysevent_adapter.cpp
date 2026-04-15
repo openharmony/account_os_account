@@ -47,18 +47,6 @@ void ReportServiceStartFail(int32_t errCode, const std::string& errMsg)
     }
 }
 
-void ReportPermissionFail(int32_t callerUid, int32_t callerPid, const std::string& permName)
-{
-    int ret = HiSysEventWrite(HiSysEvent::Domain::ACCOUNT, "PERMISSION_EXCEPTION",
-        HiSysEvent::EventType::SECURITY,
-        "CALLER_UID", callerUid,
-        "CALLER_PID", callerPid,
-        "PERMISSION_NAME", permName);
-    if (ret != 0) {
-        ACCOUNT_LOGE("hisysevent write failed! ret %{public}d. uid %{public}d, pid %{public}d permName %{public}s.",
-            ret, callerUid, callerPid, permName.c_str());
-    }
-}
 
 void ReportOsAccountOperationFail(
     int32_t id, const std::string& operationStr, int32_t errCode, const std::string& errMsg)
