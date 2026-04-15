@@ -16,6 +16,7 @@
 #include "updatecredentialstub_fuzzer.h"
 
 #include <string>
+#include <thread>
 #include <vector>
 #include "access_token.h"
 #include "access_token_error.h"
@@ -43,8 +44,24 @@ public:
     }
     void OnResult(int32_t result, const Attributes &extraInfo) override
     {
-        return;
+        std::unique_lock<std::mutex> lock(mutex_);
+        if (isCalled_) {
+            ACCOUNT_LOGE("Callback is called.");
+            return;
+        }
+        isCalled_ = true;
+        cv_.notify_one();
     }
+    void WaitForCallbackResult()
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        ACCOUNT_LOGI("WaitForCallbackResult.");
+        cv_.wait(lock, [this] { return isCalled_; });
+    }
+private:
+    std::mutex mutex_;
+    bool isCalled_ = false;
+    std::condition_variable cv_;
 };
 
 bool UpdateCredentialStubFuzzTest(const uint8_t *data, size_t size)
@@ -64,7 +81,7 @@ bool UpdateCredentialStubFuzzTest(const uint8_t *data, size_t size)
     };
     CredentialParametersIam credInfoIam;
     credInfoIam.credentialParameters = credentialParameters;
-    std::shared_ptr<IDMCallback> ptr = make_shared<MockIDMCallback>();
+    std::shared_ptr<MockIDMCallback> ptr = make_shared<MockIDMCallback>();
     sptr<IIDMCallback> callback = new (std::nothrow) IDMCallbackService(userId, ptr);
     MessageParcel dataTemp;
     if (!dataTemp.WriteInterfaceToken(IAMACCOUNT_TOKEN)) {
@@ -88,8 +105,14 @@ bool UpdateCredentialStubFuzzTest(const uint8_t *data, size_t size)
     MessageOption option;
     uint32_t code = static_cast<uint32_t>(IAccountIAMIpcCode::COMMAND_UPDATE_CREDENTIAL);
     auto iamAccountManagerService = std::make_shared<AccountIAMService>();
-    iamAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
-
+    int32_t errCode = iamAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
+    if (errCode != ERR_NONE) {
+        return true;
+    }
+    errCode = reply.ReadInt32();
+    if (ptr != nullptr && errCode == ERR_OK) {
+        ptr->WaitForCallbackResult();
+    }
     return true;
 }
 } // namespace OHOS
