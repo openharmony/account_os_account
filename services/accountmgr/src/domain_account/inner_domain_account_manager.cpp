@@ -54,9 +54,9 @@ namespace OHOS {
 namespace AccountSA {
 namespace {
 constexpr char THREAD_AUTH[] = "auth";
-constexpr char THREAD_AUTH_WITH_PARAM[] = "authWithParam";
 constexpr char THREAD_INNER_AUTH[] = "innerAuth";
 #ifndef FUZZ_TEST
+constexpr char THREAD_AUTH_WITH_PARAM[] = "authWithParam";
 constexpr char THREAD_HAS_ACCOUNT[] = "hasAccount";
 constexpr char THREAD_GET_ACCOUNT[] = "getAccount";
 #endif
@@ -1117,10 +1117,13 @@ ErrCode InnerDomainAccountManager::AuthWithParameters(const DomainAccountInfo &i
             innerCallback->OnResult(err, domainAccountParcel);
         }
     };
+#ifdef FUZZ_TEST
+    task();
+#else
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), THREAD_AUTH_WITH_PARAM);
     taskThread.detach();
-
+#endif
     return ERR_OK;
 }
 
