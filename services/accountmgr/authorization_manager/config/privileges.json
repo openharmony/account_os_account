@@ -26,7 +26,7 @@
         },
         {
             "name":"ohos.privilege.erase_device",
-            "description":"Erase device"
+            "description":"Erase device data and system partitions"
         }
     ]
 }
