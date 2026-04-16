@@ -161,9 +161,13 @@ ErrCode OsAccountStaticSubscriberManager::Publish(int32_t fromId, OsAccountState
                     ", displayId=" + std::to_string(displayId));
             }
         };
+#ifdef FUZZ_TEST
+        task();
+#else
         std::thread publishThread(task);
         pthread_setname_np(publishThread.native_handle(), "StaticPublish");
         publishThread.detach();
+#endif
     }
     return ERR_OK;
 }
