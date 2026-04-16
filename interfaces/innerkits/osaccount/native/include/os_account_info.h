@@ -22,6 +22,8 @@
 #include "parcel.h"
 namespace OHOS {
 namespace AccountSA {
+const int32_t OS_ACCOUNT_INFO_DEFAULT_VERSION = 0;
+const int32_t OS_ACCOUNT_INFO_LATEST_VERSION = 1;
 typedef enum {
     ADMIN = 0,
     NORMAL,
@@ -204,6 +206,10 @@ public:
 
     bool IsTypeOutOfRange() const;
 
+    int32_t GetVersion() const;
+
+    void SetVersion(int32_t version);
+
 public:
     int localId_ = -1;
     std::string localName_;
@@ -225,6 +231,7 @@ public:
     bool isLoggedIn_ = false;
     bool isDataRemovable_ = true;
     int32_t creatorType_ = 0;
+    int32_t version_ = OS_ACCOUNT_INFO_DEFAULT_VERSION;  // Track account info modification version
 };
 
 typedef enum {

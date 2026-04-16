@@ -338,6 +338,7 @@ bool IInnerOsAccountManager::CreateBaseStandardAccount(OsAccountInfo &osAccountI
     osAccountInfo.SetCreateTime(time);
     osAccountInfo.SetIsCreateCompleted(false);
     osAccountInfo.SetIsDataRemovable(false);
+    osAccountInfo.SetVersion(OS_ACCOUNT_INFO_LATEST_VERSION);
     errCode = RetryToInsertOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Fail to insert account %{public}d, errCode %{public}d.", osAccountInfo.GetLocalId(), errCode);
@@ -640,6 +641,7 @@ ErrCode IInnerOsAccountManager::FillOsAccountInfo(const std::string &localName, 
         osAccountInfo.SetCreatorType(TOKEN_NATIVE);
     }
     osAccountInfo.SetConstraints(constraints);
+    osAccountInfo.SetVersion(OS_ACCOUNT_INFO_LATEST_VERSION);
     int64_t time =
         std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     osAccountInfo.SetCreateTime(time);
@@ -661,6 +663,7 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfoWithFullInfo(OsAccountInfo &
     osAccountInfo.SetSerialNumber(serialNumber);
     osAccountInfo.SetIsCreateCompleted(false);
     osAccountInfo.SetIsDataRemovable(false);
+    osAccountInfo.SetVersion(OS_ACCOUNT_INFO_LATEST_VERSION);
     errCode = osAccountControl_->SetNextLocalId(osAccountInfo.GetLocalId() + 1);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Failed to SetNextLocalId, errCode %{public}d.", errCode);
@@ -2182,8 +2185,10 @@ ErrCode IInnerOsAccountManager::GetOsAccountName(const int id, std::string &name
     }
 #ifdef ENABLE_ACCOUNT_NAME_PRIVACY_CONTROL
     OsAccountType type = osAccountInfo.GetType();
+    bool isFirstOsAccountV0 =
+        (id == Constants::START_USER_ID) && (osAccountInfo.GetVersion() == OS_ACCOUNT_INFO_DEFAULT_VERSION);
     if (type != OsAccountType::PRIVATE && id != Constants::MAINTENANCE_MODE_ID &&
-        id != Constants::START_USER_ID && AccountPermissionManager::CheckSystemApp() != ERR_OK) {
+        !isFirstOsAccountV0 && AccountPermissionManager::CheckSystemApp() != ERR_OK) {
 #ifdef ENABLE_DEFAULT_ADMIN_NAME
         name = STANDARD_LOCAL_NAME;
 #endif // ENABLE_DEFAULT_ADMIN_NAME
@@ -2525,7 +2530,6 @@ ErrCode IInnerOsAccountManager::SetOsAccountName(const int id, const std::string
         ACCOUNT_LOGE("Account name already exist, errCode %{public}d.", errCode);
         return errCode;
     }
-
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Update osaccount info error %{public}d, id: %{public}d", errCode, osAccountInfo.GetLocalId());
