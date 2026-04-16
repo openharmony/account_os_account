@@ -574,9 +574,13 @@ void AccountMgrService::OnStop()
 void AccountMgrService::MoveAppAccountData()
 {
     auto task = [] { AppAccountControlManager::GetInstance().MoveData(); };
+#ifdef FUZZ_TEST
+    task();
+#else
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), "MoveData");
     taskThread.detach();
+#endif
     ACCOUNT_LOGI("Move app account data to encrypted store");
 }
 #endif // defined(HAS_APP_ACCOUNT_PART) && defined(ENABLE_MULTIPLE_OS_ACCOUNTS)

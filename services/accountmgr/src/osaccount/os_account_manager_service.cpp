@@ -2531,7 +2531,6 @@ ErrCode OsAccountManagerService::BindDomainAccount(
     }
     res = CheckLocalIdRestricted(localId);
     if (res != ERR_OK) {
-        ACCOUNT_LOGW("Check local id restricted, result = %{public}d, localId = %{public}d.", res, localId);
         return res;
     }
     if (domainInfo.accountName_.empty() || domainInfo.domain_.empty()) {
@@ -2554,9 +2553,13 @@ ErrCode OsAccountManagerService::BindDomainAccount(
             ACCOUNT_LOGE("Bind domain account failed, res = %{public}d.", res);
         }
     };
+#ifdef FUZZ_TEST
+    work();
+#else
     std::thread taskThread(work);
     pthread_setname_np(taskThread.native_handle(), "BindDomainAccount");
     taskThread.detach();
+#endif
     return ERR_OK;
 #else
     return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
@@ -2566,6 +2569,7 @@ ErrCode OsAccountManagerService::BindDomainAccount(
 ErrCode OsAccountManagerService::CheckLocalIdRestricted(int32_t localId)
 {
     if (localId == Constants::ADMIN_LOCAL_ID) {
+        ACCOUNT_LOGW("Os account is admin account");
         return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
     if (localId >= Constants::START_USER_ID) {

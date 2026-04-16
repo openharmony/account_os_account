@@ -24,7 +24,9 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
+#ifndef FUZZ_TEST
 const char THREAD_DISTRIBUTED_ACCOUNT_EVENT[] = "distributedAccountEvent";
+#endif
 }
 
 DistributedAccountSubscribeManager::DistributedAccountSubscribeManager()
@@ -165,9 +167,13 @@ ErrCode DistributedAccountSubscribeManager::Publish(const int id, DISTRIBUTED_AC
             auto task = [this, eventProxy, id, subscribeType] {
                 this->OnAccountsChanged(eventProxy, id, subscribeType);
             };
+#ifdef FUZZ_TEST
+            task();
+#else
             std::thread taskThread(task);
             pthread_setname_np(taskThread.native_handle(), THREAD_DISTRIBUTED_ACCOUNT_EVENT);
             taskThread.detach();
+#endif
             ++sendCnt;
         }
     }

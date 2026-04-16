@@ -1492,9 +1492,13 @@ void IInnerOsAccountManager::SendMsgForAccountUnlocked(OsAccountInfo &osAccountI
         OsAccountInterface::SendToBMSAccountUnlockedWithTimeout(osAccountInfo);
         OsAccountInterface::SendToStorageAccountUnlocked(osAccountInfo);
     };
+#ifdef FUZZ_TEST
+    task();
+#else
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), "SendMsgForAccountUnlocked");
     taskThread.detach();
+#endif
 }
 
 void IInnerOsAccountManager::SendMsgForAccountSwitched(OsAccountInfo &osAccountInfo)
@@ -1502,9 +1506,13 @@ void IInnerOsAccountManager::SendMsgForAccountSwitched(OsAccountInfo &osAccountI
     auto task = [osAccountInfo]() {
         OsAccountInterface::SendToStorageAccountSwitched(osAccountInfo);
     };
+#ifdef FUZZ_TEST
+    task();
+#else
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), "SendMsgForAccountSwitched");
     taskThread.detach();
+#endif
 }
 
 bool IInnerOsAccountManager::IsToBeRemoved(int32_t localId)

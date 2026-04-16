@@ -30,7 +30,9 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
+#ifndef FUZZ_TEST
 const char THREAD_CONSTRAINT_EVENT[] = "constraintEvent";
+#endif
 }
 OsAccountConstraintSubscribeManager::OsAccountConstraintSubscribeManager()
     : subscribeDeathRecipient_(sptr<IRemoteObject::DeathRecipient>(
@@ -254,9 +256,13 @@ void OsAccountConstraintSubscribeManager::Publish(int32_t localId, const std::se
             this->PublishToSubscriber(item, localId, constraints, isEnabled);
             ACCOUNT_LOGI("Publish end.");
         };
+#ifdef FUZZ_TEST
+        task();
+#else
         std::thread taskThread(task);
         pthread_setname_np(taskThread.native_handle(), THREAD_CONSTRAINT_EVENT);
         taskThread.detach();
+#endif
     }
 }
 } // AccountSA

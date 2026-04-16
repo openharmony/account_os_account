@@ -97,7 +97,9 @@ void ReportTask(const std::vector<int32_t> &accountIds)
 void ReportUserDataSize(const std::vector<int32_t> &accountIds)
 {
 #ifdef HAS_HISYSEVENT_PART
-#ifndef FUZZ_TEST
+#ifdef FUZZ_TEST
+    ReportTask(accountIds);
+#else
     std::thread task(ReportTask, accountIds);
     pthread_setname_np(task.native_handle(), "DataSizeReporter");
     task.detach();

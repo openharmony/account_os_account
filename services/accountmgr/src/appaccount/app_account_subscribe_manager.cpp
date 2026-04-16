@@ -29,7 +29,9 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
+#ifndef FUZZ_TEST
 const char THREAD_APP_ACCOUNT_EVENT[] = "appAccountEvent";
+#endif
 const std::string HYPHEN = "#";
 }
 
@@ -359,9 +361,13 @@ bool AppAccountSubscribeManager::PublishAccount(
 
     auto callback = [this, eventRecordPtr] { this->OnAccountsChanged(eventRecordPtr); };
 
+#ifdef FUZZ_TEST
+    callback();
+#else
     std::thread taskThread(callback);
     pthread_setname_np(taskThread.native_handle(), THREAD_APP_ACCOUNT_EVENT);
     taskThread.detach();
+#endif
     return true;
 }
 
