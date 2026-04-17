@@ -166,6 +166,7 @@ void InnerAccountIAMManager::UpdateCredential(
     if ((deathRecipient == nullptr) || object == nullptr ||
         ((object->IsProxyObject()) && (!object->AddDeathRecipient(deathRecipient)))) {
         ACCOUNT_LOGE("Failed to add death recipient for UpdateCred");
+        callback->OnResult(ResultCode::GENERAL_ERROR, emptyResult.Serialize());
         return;
     }
 

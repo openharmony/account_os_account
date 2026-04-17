@@ -190,7 +190,7 @@ bool AllocPermission(std::vector<std::string> permissions, uint64_t &tokenID, bo
     };
 
     HapInfoParams hapInfoParams = {
-        .userID = 100,
+        .userID = 999,
         .bundleName = "com.ohos.sceneboard",
         .instIndex = 0,
         .appIDDesc = "account_test",
@@ -435,6 +435,17 @@ ErrCode CreateOsAccountForTest(const std::string &localName, const std::string &
 #endif
 #else
     return OsAccountManager::CreateOsAccount(localName, shortName, type, options, osAccountInfo);
+#endif
+}
+
+ErrCode CreateOsAccountForTest(OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options)
+{
+#ifdef SUPPORT_AUTHORIZATION
+    return CreateOsAccountWithFullInfoForTest(osAccountInfo, options);
+#else
+    const std::string localName = osAccountInfo.GetLocalName();
+    const std::string shortName = osAccountInfo.GetShortName().empty() ? localName : osAccountInfo.GetShortName();
+    return CreateOsAccountForTest(localName, shortName, osAccountInfo.GetType(), options, osAccountInfo);
 #endif
 }
 

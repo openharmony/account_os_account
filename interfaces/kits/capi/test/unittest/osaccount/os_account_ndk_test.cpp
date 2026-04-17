@@ -81,7 +81,7 @@ HWTEST_F(OsAccountNDKTest, GetOsAccountNameTest001, TestSize.Level1)
 
 /**
  * @tc.name: GetOsAccountNameByIdTest001
- * @tc.desc: Test invalid parameter.
+ * @tc.desc: Test invalid parameters, success path, buffer size too small, and various buffer sizes.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -99,9 +99,22 @@ HWTEST_F(OsAccountNDKTest, GetOsAccountNameByIdTest001, TestSize.Level1)
         OsAccount_ErrCode::OS_ACCOUNT_ERR_INVALID_PARAMETER);
     EXPECT_EQ(OH_OsAccount_GetNameByLocalId(id, str, 0), OsAccount_ErrCode::OS_ACCOUNT_ERR_INVALID_PARAMETER);
 
-    // We expect OK or INTERNAL_ERROR depending on if ID exists, but we mainly test buffer safety here
     OsAccount_ErrCode ret = OH_OsAccount_GetNameByLocalId(id, str, MAX_NAME_LENGTH);
     EXPECT_TRUE(ret == OsAccount_ErrCode::OS_ACCOUNT_ERR_OK || ret == OsAccount_ErrCode::OS_ACCOUNT_ERR_INTERNAL_ERROR);
+
+    if (ret == OsAccount_ErrCode::OS_ACCOUNT_ERR_OK) {
+        EXPECT_EQ(OH_OsAccount_GetNameByLocalId(id, str, 1),
+            OsAccount_ErrCode::OS_ACCOUNT_ERR_INVALID_PARAMETER);
+
+        size_t nameLength = strlen(str);
+        char tinyBuffer[nameLength];
+        EXPECT_EQ(OH_OsAccount_GetNameByLocalId(id, tinyBuffer, sizeof(tinyBuffer)),
+            OsAccount_ErrCode::OS_ACCOUNT_ERR_INVALID_PARAMETER);
+
+        char exactBuffer[nameLength + 1];
+        EXPECT_EQ(OH_OsAccount_GetNameByLocalId(id, exactBuffer, sizeof(exactBuffer)),
+            OsAccount_ErrCode::OS_ACCOUNT_ERR_OK);
+    }
 
     if (ret1 == ERR_OK) {
         RemoveOsAccountForTest(id);
@@ -123,39 +136,11 @@ HWTEST_F(OsAccountNDKTest, GetOsAccountNameByIdTest002, TestSize.Level1)
 
 /**
  * @tc.name: GetOsAccountNameByIdTest003
- * @tc.desc: Test GetOsAccountNameById success and with buffer size too small.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountNDKTest, GetOsAccountNameByIdTest003, TestSize.Level1)
-{
-    char str[MAX_NAME_LENGTH] = { 0 };
-    OsAccountInfo osAccountInfo;
-    CreateOsAccountOptions options;
-    options.allowedHapList = std::make_optional<std::vector<std::string>>({});
-    ErrCode ret1 = CreateOsAccountForTest("NDKTestAccount3", "NDKTestAccount3", OsAccountType::NORMAL, options,
-        osAccountInfo);
-    int id = osAccountInfo.GetLocalId();
-
-    OsAccount_ErrCode ret = OH_OsAccount_GetNameByLocalId(id, str, MAX_NAME_LENGTH);
-    EXPECT_EQ(ret, OsAccount_ErrCode::OS_ACCOUNT_ERR_OK);
-    if (ret == OsAccount_ErrCode::OS_ACCOUNT_ERR_OK) {
-        EXPECT_EQ(OH_OsAccount_GetNameByLocalId(id, str, 1),
-            OsAccount_ErrCode::OS_ACCOUNT_ERR_INVALID_PARAMETER);
-    }
-
-    if (ret1 == ERR_OK) {
-        RemoveOsAccountForTest(id);
-    }
-}
-
-/**
- * @tc.name: GetOsAccountNameByIdTest004
  * @tc.desc: Test GetOsAccountNameById with restricted account ID.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountNDKTest, GetOsAccountNameByIdTest005, TestSize.Level1)
+HWTEST_F(OsAccountNDKTest, GetOsAccountNameByIdTest003, TestSize.Level1)
 {
     char str[MAX_NAME_LENGTH] = { 0 };
     EXPECT_EQ(OH_OsAccount_GetNameByLocalId(99, str, MAX_NAME_LENGTH),
@@ -163,50 +148,16 @@ HWTEST_F(OsAccountNDKTest, GetOsAccountNameByIdTest005, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetOsAccountNameByIdTest005
+ * @tc.name: GetOsAccountNameByIdTest004
  * @tc.desc: Test GetOsAccountNameById with ID boundary values.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountNDKTest, GetOsAccountNameByIdTest006, TestSize.Level1)
+HWTEST_F(OsAccountNDKTest, GetOsAccountNameByIdTest004, TestSize.Level1)
 {
     char str[MAX_NAME_LENGTH] = { 0 };
     EXPECT_EQ(OH_OsAccount_GetNameByLocalId(999, str, MAX_NAME_LENGTH),
         OsAccount_ErrCode::OS_ACCOUNT_ERR_ACCOUNT_NOT_FOUND);
-}
-
-/**
- * @tc.name: GetOsAccountNameByIdTest006
- * @tc.desc: Test GetOsAccountNameById with various buffer sizes.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountNDKTest, GetOsAccountNameByIdTest007, TestSize.Level1)
-{
-    char str[MAX_NAME_LENGTH] = { 0 };
-    OsAccountInfo osAccountInfo;
-    CreateOsAccountOptions options;
-    options.allowedHapList = std::make_optional<std::vector<std::string>>({});
-    ErrCode ret1 = CreateOsAccountForTest("NDKTestAccountBufferSize", "NDKTestAccountBufferSize",
-        OsAccountType::NORMAL, options, osAccountInfo);
-    int id = osAccountInfo.GetLocalId();
-
-    OsAccount_ErrCode ret = OH_OsAccount_GetNameByLocalId(id, str, MAX_NAME_LENGTH);
-    if (ret == OsAccount_ErrCode::OS_ACCOUNT_ERR_OK) {
-        size_t nameLength = strlen(str);
-
-        char tinyBuffer[nameLength];
-        EXPECT_EQ(OH_OsAccount_GetNameByLocalId(id, tinyBuffer, sizeof(tinyBuffer)),
-            OsAccount_ErrCode::OS_ACCOUNT_ERR_INVALID_PARAMETER);
-
-        char exactBuffer[nameLength + 1];
-        EXPECT_EQ(OH_OsAccount_GetNameByLocalId(id, exactBuffer, sizeof(exactBuffer)),
-            OsAccount_ErrCode::OS_ACCOUNT_ERR_OK);
-    }
-
-    if (ret1 == ERR_OK) {
-        RemoveOsAccountForTest(id);
-    }
 }
 }  // namespace AccountTest
 }  // namespace OHOS

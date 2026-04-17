@@ -112,7 +112,6 @@ struct DomainHisysEventInfo {
 std::string AnonymizeName(const std::string& nameStr);
 
 void ReportServiceStartFail(int32_t errCode, const std::string& errMsg);
-void ReportPermissionFail(int32_t callerUid, int32_t callerPid, const std::string& permName);
 void ReportOsAccountOperationFail(
     int32_t id, const std::string& operationStr, int32_t errCode, const std::string& errMsg);
 void ReportDomainAccountOperationFail(const DomainHisysEventInfo &info, const int32_t errCode,
@@ -129,7 +128,6 @@ void ReportOsAccountDataTampered(int32_t id, const std::string& dataPath, const 
 #else
 std::string AnonymizeName(const std::string& nameStr) { return ""; };
 void ReportServiceStartFail(int32_t errCode, const std::string& errMsg) {};
-void ReportPermissionFail(int32_t callerUid, int32_t callerPid, const std::string& permName) {};
 void ReportOsAccountOperationFail(
     int32_t id, const std::string& operationStr, int32_t errCode, const std::string& errMsg) {};
 void ReportDomainAccountOperationFail(const DomainHisysEventInfo &info, const int32_t errCode,
@@ -153,8 +151,6 @@ void ReportOsAccountDataTampered(int32_t id, const std::string& dataPath, const 
     ReportOhosAccountOperationFail(userId, operationStr, errCode, ASSEMBLE_ERRMSG(errMsg))
 #define REPORT_APP_ACCOUNT_FAIL(name, owner, operationStr, errCode, errMsg) \
     ReportAppAccountOperationFail(name, owner, operationStr, errCode, ASSEMBLE_ERRMSG(errMsg))
-#define REPORT_PERMISSION_FAIL() \
-    ReportPermissionFail(IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingRealPid(), __FUNCTION__)
 } // AccountSA
 } // OHOS
 #endif // OS_ACCOUNT_DFX_HISYSEVENT_ADAPTER_H

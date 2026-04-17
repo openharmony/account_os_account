@@ -91,3 +91,99 @@ HWTEST_F(DomainAccountCallbackTest, DomainAccountCallbackTest_OnResult_002, Test
     callbackPtr->OnResult(0, parcel);
     EXPECT_EQ(callbackPtr->innerCallback_, nullptr);
 }
+
+/**
+ * @tc.name: DomainAccountCallbackTest_OnResult_003
+ * @tc.desc: CheckAndCreateDomainAccountCallback::OnResult with non-zero errCode and null innerCallback
+ *           returns ERR_OK due to the null callback early-exit guard.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountCallbackTest, DomainAccountCallbackTest_OnResult_003, TestSize.Level3)
+{
+    CreateOsAccountForDomainOptions accountOptions;
+    std::shared_ptr<IOsAccountControl> testOsAccountControl = nullptr;
+    auto callbackPtr = std::make_shared<CheckAndCreateDomainAccountCallback>(testOsAccountControl,
+        OsAccountType::NORMAL, nullptr, accountOptions);
+    Parcel parcel;
+    DomainAccountParcel domainAccountParcel;
+    domainAccountParcel.SetParcelData(parcel);
+
+    // Non-zero errCode: null-check guard fires first, returns ERR_OK without calling HandleErrorWithEmptyResult
+    ErrCode ret = callbackPtr->OnResult(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, domainAccountParcel);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(callbackPtr->innerCallback_, nullptr);
+}
+
+/**
+ * @tc.name: DomainAccountCallbackTest_OnResult_004
+ * @tc.desc: BindDomainAccountCallback::OnResult with non-zero errCode and null innerCallback returns
+ *           without crashing due to the null callback early-exit guard.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountCallbackTest, DomainAccountCallbackTest_OnResult_004, TestSize.Level3)
+{
+    OsAccountInfo osAccountInfo;
+    std::shared_ptr<IOsAccountControl> testOsAccountControl = nullptr;
+    auto callbackPtr = std::make_shared<BindDomainAccountCallback>(testOsAccountControl, osAccountInfo, nullptr);
+    Parcel parcel;
+
+    // Non-zero errCode: null-check guard fires first, returns without accessing osAccountControl_ or innerCallback_
+    callbackPtr->OnResult(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, parcel);
+    EXPECT_EQ(callbackPtr->innerCallback_, nullptr);
+}
+
+/**
+ * @tc.name: DomainAccountCallbackTest_OnResult_005
+ * @tc.desc: CheckAndCreateDomainAccountCallback with ADMIN type and null innerCallback returns ERR_OK.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountCallbackTest, DomainAccountCallbackTest_OnResult_005, TestSize.Level3)
+{
+    CreateOsAccountForDomainOptions accountOptions;
+    std::shared_ptr<IOsAccountControl> testOsAccountControl = nullptr;
+
+    // Test with ADMIN type
+    auto callbackAdmin = std::make_shared<CheckAndCreateDomainAccountCallback>(testOsAccountControl,
+        OsAccountType::ADMIN, nullptr, accountOptions);
+    Parcel parcel;
+    DomainAccountParcel domainAccountParcel;
+    domainAccountParcel.SetParcelData(parcel);
+    ErrCode ret = callbackAdmin->OnResult(0, domainAccountParcel);
+    EXPECT_EQ(ret, ERR_OK);
+
+    // Test with GUEST type
+    auto callbackGuest = std::make_shared<CheckAndCreateDomainAccountCallback>(testOsAccountControl,
+        OsAccountType::GUEST, nullptr, accountOptions);
+    ret = callbackGuest->OnResult(0, domainAccountParcel);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: DomainAccountCallbackTest_OnResult_006
+ * @tc.desc: BindDomainAccountCallback with various OsAccountInfo and null innerCallback: verifies
+ *           that multiple consecutive OnResult calls with errCode=0 do not crash.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountCallbackTest, DomainAccountCallbackTest_OnResult_006, TestSize.Level3)
+{
+    std::shared_ptr<IOsAccountControl> testOsAccountControl = nullptr;
+
+    // OsAccountInfo with localId = START_USER_ID should trigger the special branch
+    OsAccountInfo startUserInfo;
+    startUserInfo.SetLocalId(Constants::START_USER_ID);
+    auto callbackStart = std::make_shared<BindDomainAccountCallback>(testOsAccountControl, startUserInfo, nullptr);
+    Parcel parcel;
+    callbackStart->OnResult(0, parcel);
+    EXPECT_EQ(callbackStart->innerCallback_, nullptr);
+
+    // OsAccountInfo with a regular localId
+    OsAccountInfo regularInfo;
+    regularInfo.SetLocalId(1001);
+    auto callbackRegular = std::make_shared<BindDomainAccountCallback>(testOsAccountControl, regularInfo, nullptr);
+    callbackRegular->OnResult(0, parcel);
+    EXPECT_EQ(callbackRegular->innerCallback_, nullptr);
+}

@@ -54,9 +54,9 @@ namespace OHOS {
 namespace AccountSA {
 namespace {
 constexpr char THREAD_AUTH[] = "auth";
-constexpr char THREAD_AUTH_WITH_PARAM[] = "authWithParam";
 constexpr char THREAD_INNER_AUTH[] = "innerAuth";
 #ifndef FUZZ_TEST
+constexpr char THREAD_AUTH_WITH_PARAM[] = "authWithParam";
 constexpr char THREAD_HAS_ACCOUNT[] = "hasAccount";
 constexpr char THREAD_GET_ACCOUNT[] = "getAccount";
 #endif
@@ -118,7 +118,7 @@ static bool IsSupportNetRequest()
         return true;
     }
     int32_t accountId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
-    if (accountId == 0) { // account 0 not limited by network policy
+    if (accountId == 0 || accountId == 1) { // account 0 or 1 not limited by network policy
         return true;
     }
     bool isForeground = false;
@@ -1117,10 +1117,13 @@ ErrCode InnerDomainAccountManager::AuthWithParameters(const DomainAccountInfo &i
             innerCallback->OnResult(err, domainAccountParcel);
         }
     };
+#ifdef FUZZ_TEST
+    task();
+#else
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), THREAD_AUTH_WITH_PARAM);
     taskThread.detach();
-
+#endif
     return ERR_OK;
 }
 

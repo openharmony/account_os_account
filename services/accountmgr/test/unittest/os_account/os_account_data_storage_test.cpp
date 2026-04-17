@@ -103,5 +103,115 @@ HWTEST_F(OsAccountDataStorageTest, OsAccountDataStorageTest002, TestSize.Level3)
         "os_account_mgr_service_test", "os_account_info_test", false);
     EXPECT_EQ(osAccountDataStorage_->MoveData(testOsAccountDataStorage), ERR_ACCOUNT_COMMON_CHECK_KVSTORE_ERROR);
 }
+
+/**
+ * @tc.name: OsAccountDataStorageTest003
+ * @tc.desc: Test LoadAllData when kvStore is unavailable.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountDataStorageTest, OsAccountDataStorageTest003, TestSize.Level1)
+{
+    std::map<std::string, std::shared_ptr<IAccountInfo>> infos;
+    ErrCode ret = osAccountDataStorage_->LoadAllData(infos);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR);
+    EXPECT_TRUE(infos.empty());
+}
+
+/**
+ * @tc.name: OsAccountDataStorageTest004
+ * @tc.desc: Test GetAccountInfoById for OsAccountInfo when kvStore is unavailable.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountDataStorageTest, OsAccountDataStorageTest004, TestSize.Level1)
+{
+    OsAccountInfo outInfo;
+
+    // Existing key (id=1 was added in SetUp, but kvStore is not connected)
+    ErrCode ret = osAccountDataStorage_->GetAccountInfoById(std::to_string(INT_ID), outInfo);
+    EXPECT_NE(ret, ERR_OK);
+
+    // Non-existent key also fails due to unavailable kvStore
+    ErrCode ret2 = osAccountDataStorage_->GetAccountInfoById("9999", outInfo);
+    EXPECT_NE(ret2, ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountDataStorageTest005
+ * @tc.desc: Test SaveAccountInfo when key does not exist in the unavailable kvStore.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountDataStorageTest, OsAccountDataStorageTest005, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo(INT_ID, STRING_NAME, INT_TYPE, INT_SHERIAL);
+    // IsKeyExists returns false when kvStore is unavailable, so SaveAccountInfo returns key-not-exists error
+    ErrCode ret = osAccountDataStorage_->SaveAccountInfo(osAccountInfo);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_DATA_STORAGE_KEY_NOT_EXISTS_ERROR);
+}
+
+/**
+ * @tc.name: OsAccountDataStorageTest006
+ * @tc.desc: Test RemoveValueFromKvStore and PutValueToKvStore when kvStore is unavailable.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountDataStorageTest, OsAccountDataStorageTest006, TestSize.Level1)
+{
+    // RemoveValueFromKvStore fails because CheckKvStore returns false
+    ErrCode removeRet = osAccountDataStorage_->RemoveValueFromKvStore(std::to_string(INT_ID));
+    EXPECT_EQ(removeRet, ERR_ACCOUNT_COMMON_CHECK_KVSTORE_ERROR);
+
+    // PutValueToKvStore fails because CheckKvStore returns false
+    ErrCode putRet = osAccountDataStorage_->PutValueToKvStore("testKey", "testValue");
+    EXPECT_EQ(putRet, ERR_ACCOUNT_COMMON_CHECK_KVSTORE_ERROR);
+}
+
+/**
+ * @tc.name: OsAccountDataStorageTest007
+ * @tc.desc: Test GetValueFromKvStore when kvStore is unavailable.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountDataStorageTest, OsAccountDataStorageTest007, TestSize.Level1)
+{
+    std::string value;
+    ErrCode ret = osAccountDataStorage_->GetValueFromKvStore(std::to_string(INT_ID), value);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_CHECK_KVSTORE_ERROR);
+    EXPECT_TRUE(value.empty());
+}
+
+/**
+ * @tc.name: OsAccountDataStorageTest008
+ * @tc.desc: Test LoadDataByLocalFuzzyQuery when kvStore is unavailable.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountDataStorageTest, OsAccountDataStorageTest008, TestSize.Level1)
+{
+    std::map<std::string, std::shared_ptr<IAccountInfo>> infos;
+    ErrCode ret = osAccountDataStorage_->LoadDataByLocalFuzzyQuery("", infos);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR);
+    EXPECT_TRUE(infos.empty());
+}
+
+/**
+ * @tc.name: OsAccountDataStorageTest009
+ * @tc.desc: Test AddAccountInfo returns key-already-exists error when key is found, and key-not-exists
+ *           when kvStore is unavailable, both using a different storage instance.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountDataStorageTest, OsAccountDataStorageTest009, TestSize.Level1)
+{
+    // A fresh storage without any data; AddAccountInfo will try PutValueToKvStore which fails
+    std::shared_ptr<OsAccountDataStorage> freshStorage =
+        std::make_shared<OsAccountDataStorage>("account_test_fresh", "account_test_fresh_store", false);
+    OsAccountInfo info(2, "freshAccount", OsAccountType::NORMAL, 456);
+    ErrCode ret = freshStorage->AddAccountInfo(info);
+    // Since kvStore is not available, IsKeyExists returns false, then PutValueToKvStore fails
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_CHECK_KVSTORE_ERROR);
+}
 }  // namespace AccountSA
 }  // namespace OHOS
