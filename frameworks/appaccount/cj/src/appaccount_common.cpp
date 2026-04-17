@@ -35,12 +35,12 @@ ErrCode AuthenticatorAsyncCallback::OnResult(int32_t resultCode, const AAFwk::Wa
             return ERR_OK;
         }
         isDone = true;
+        
+        this->errCode = resultCode;
+        this->onResultRetBool = result.GetBoolParam(Constants::KEY_BOOLEAN_RESULT, false);
+        this->onResultRetNames = result.GetStringArrayParam(Constants::KEY_ACCOUNT_NAMES);
+        this->onResultRetOwners = result.GetStringArrayParam(Constants::KEY_ACCOUNT_OWNERS);
     }
-    
-    this->errCode = resultCode;
-    this->onResultRetBool = result.GetBoolParam(Constants::KEY_BOOLEAN_RESULT, false);
-    this->onResultRetNames = result.GetStringArrayParam(Constants::KEY_ACCOUNT_NAMES);
-    this->onResultRetOwners = result.GetStringArrayParam(Constants::KEY_ACCOUNT_OWNERS);
     return ERR_OK;
 }
 
@@ -96,15 +96,13 @@ ErrCode AppAccountManagerCallback::OnResult(int32_t resultCode, const AAFwk::Wan
             return ERR_OK;
         }
         isDone = true;
+        
+        this->errCode = resultCode;
+        this->nameResult = result.GetStringParam(Constants::KEY_ACCOUNT_NAMES);
+        this->ownerResult = result.GetStringParam(Constants::KEY_ACCOUNT_OWNERS);
+        this->authTypeResult = result.GetStringParam(Constants::KEY_AUTH_TYPE);
+        this->tokenResult = result.GetStringParam(Constants::KEY_TOKEN);
     }
-    
-    this->errCode = resultCode;
-    // account: AppAccountInfo
-    this->nameResult = result.GetStringParam(Constants::KEY_ACCOUNT_NAMES);
-    this->ownerResult = result.GetStringParam(Constants::KEY_ACCOUNT_OWNERS);
-    //tokenInfo: AuthTokenInfo
-    this->authTypeResult = result.GetStringParam(Constants::KEY_AUTH_TYPE);
-    this->tokenResult = result.GetStringParam(Constants::KEY_TOKEN);
     return ERR_OK;
 }
 
@@ -146,6 +144,66 @@ ErrCode AppAccountManagerCallback::CallbackExit([[maybe_unused]] uint32_t code, 
             return ERR_NONE;
     }
     return ERR_NONE;
+}
+
+ErrCode AuthenticatorAsyncCallback::GetErrCode()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return errCode;
+}
+
+bool AuthenticatorAsyncCallback::GetOnResultRetBool()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return onResultRetBool;
+}
+
+std::vector<std::string> AuthenticatorAsyncCallback::GetOnResultRetNames()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return onResultRetNames;
+}
+
+std::vector<std::string> AuthenticatorAsyncCallback::GetOnResultRetOwners()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return onResultRetOwners;
+}
+
+void AuthenticatorAsyncCallback::SetErrCode(ErrCode code)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    errCode = code;
+}
+
+ErrCode AppAccountManagerCallback::GetErrCode()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return errCode;
+}
+
+std::string AppAccountManagerCallback::GetNameResult()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return nameResult;
+}
+
+std::string AppAccountManagerCallback::GetOwnerResult()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return ownerResult;
+}
+
+std::string AppAccountManagerCallback::GetAuthTypeResult()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return authTypeResult;
+}
+
+std::string AppAccountManagerCallback::GetTokenResult()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return tokenResult;
 }
 
 SubscribePtr::SubscribePtr(const AppAccountSubscribeInfo &subscribeInfo) : AppAccountSubscriber(subscribeInfo) {}

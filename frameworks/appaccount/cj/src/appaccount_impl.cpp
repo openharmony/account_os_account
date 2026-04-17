@@ -429,10 +429,10 @@ int32_t CJAppAccountImpl::checkAccountLabels(std::string name, std::string owner
     }
     int err =  ConvertToJSErrCode(
         AppAccountManager::CheckAccountLabels(name, owner, Convert2VecString(labels), callback));
-    if (callback->errCode == ERR_OK) {
-        ret.data = callback->onResultRetBool;
+    if (callback->GetErrCode() == ERR_OK) {
+        ret.data = callback->GetOnResultRetBool();
     } else {
-        ret.code = callback->errCode;
+        ret.code = callback->GetErrCode();
     }
     if (err != ERR_OK) {
         ACCOUNT_LOGE("CheckAccountLabels failed");
@@ -489,15 +489,15 @@ int32_t CJAppAccountImpl::selectAccountByOptions(
     }
     int err = ConvertToJSErrCode(
         AppAccountManager::SelectAccountsByOptions(context->options, callback));
-    std::vector<std::string> names = callback->onResultRetNames;
-    std::vector<std::string> owners = callback->onResultRetOwners;
+    std::vector<std::string> names = callback->GetOnResultRetNames();
+    std::vector<std::string> owners = callback->GetOnResultRetOwners();
     if (names.size() != owners.size()) {
-        callback->errCode = ERR_CJ_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION;
+        callback->SetErrCode(ERR_CJ_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION);
     }
-    if (callback->errCode == ERR_OK) {
+    if (callback->GetErrCode() == ERR_OK) {
         ret.cArrAppAccountInfo = Convert2CArrAppAccountInfo(names, owners);
     } else {
-        ret.err = callback->errCode;
+        ret.err = callback->GetErrCode();
     }
     if (err != ERR_OK) {
         ACCOUNT_LOGE("selectAccountByOptions failed");
@@ -555,11 +555,11 @@ int32_t CJAppAccountImpl::verifyCredential(
         return errCode;
     }
     // account: AppAccountInfo
-    std::string nameResult = appAccountMgrCb->nameResult;
-    std::string ownerResult = appAccountMgrCb->ownerResult;
+    std::string nameResult = appAccountMgrCb->GetNameResult();
+    std::string ownerResult = appAccountMgrCb->GetOwnerResult();
     //tokenInfo: AuthTokenInfo
-    std::string authTypeResult = appAccountMgrCb->authTypeResult;
-    std::string tokenResult = appAccountMgrCb->tokenResult;
+    std::string authTypeResult = appAccountMgrCb->GetAuthTypeResult();
+    std::string tokenResult = appAccountMgrCb->GetTokenResult();
     CAuthResult result = Convert2CAuthResult(nameResult, ownerResult, authTypeResult, tokenResult);
     callback.onResult(errCode, result);
     return errCode;
@@ -606,11 +606,11 @@ int32_t CJAppAccountImpl::setAuthenticatorProperties(
         return errCode;
     }
     // account: AppAccountInfo
-    std::string nameResult = appAccountMgrCb->nameResult;
-    std::string ownerResult = appAccountMgrCb->ownerResult;
+    std::string nameResult = appAccountMgrCb->GetNameResult();
+    std::string ownerResult = appAccountMgrCb->GetOwnerResult();
     //tokenInfo: AuthTokenInfo
-    std::string authTypeResult = appAccountMgrCb->authTypeResult;
-    std::string tokenResult = appAccountMgrCb->tokenResult;
+    std::string authTypeResult = appAccountMgrCb->GetAuthTypeResult();
+    std::string tokenResult = appAccountMgrCb->GetTokenResult();
     CAuthResult result = Convert2CAuthResult(nameResult, ownerResult, authTypeResult, tokenResult);
     callback.onResult(errCode, result);
     return errCode;
