@@ -553,9 +553,7 @@ int32_t CJAppAccountImpl::verifyCredential(
         AppAccountManager::VerifyCredential(name, owner, options, appAccountMgrCb));
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("verifyCredential failed");
-        AAFwk::Want result;
-        std::string value = std::string();
-        appAccountMgrCb->OnResult(ERR_CJ_SYSTEM_SERVICE_EXCEPTION, result);
+        std::string value;
         callback.onResult(ERR_CJ_SYSTEM_SERVICE_EXCEPTION, Convert2CAuthResult(value, value, value, value));
         return errCode;
     }
@@ -604,9 +602,7 @@ int32_t CJAppAccountImpl::setAuthenticatorProperties(
         AppAccountManager::SetAuthenticatorProperties(owner, options, appAccountMgrCb));
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("setAuthenticatorProperties failed");
-        AAFwk::Want result;
-        std::string value = std::string();
-        appAccountMgrCb->OnResult(ERR_CJ_SYSTEM_SERVICE_EXCEPTION, result);
+        std::string value;
         callback.onResult(ERR_CJ_SYSTEM_SERVICE_EXCEPTION, Convert2CAuthResult(value, value, value, value));
         return errCode;
     }
