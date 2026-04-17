@@ -377,7 +377,11 @@ int32_t CJAppAccountImpl::off(std::string type, void (*callback)(CArrAppAccountI
                 errCode = ret;
             }
         }
+        for (auto item : g_appAccountSubscribes) {
+            delete item;
+        }
         g_appAccountSubscribes.clear();
+        std::vector<AsyncContextForSubscribe *>().swap(g_appAccountSubscribes);
     } else {
         std::lock_guard<std::mutex> lock(mutex_);
         for (size_t idx = 0; idx < context->subscribers.size(); ++idx) {
@@ -389,6 +393,7 @@ int32_t CJAppAccountImpl::off(std::string type, void (*callback)(CArrAppAccountI
             if (ret != ERR_OK) {
                 errCode = ret;
             }
+            delete g_appAccountSubscribes[idx];
             g_appAccountSubscribes.erase(g_appAccountSubscribes.begin() + idx);
             break;
         }
