@@ -856,7 +856,6 @@ ErrCode AppAccountManagerService::GetAllAccounts(
     if ((owner != bundleName) &&
         (AccountPermissionManager::VerifyPermission(GET_ALL_APP_ACCOUNTS) != ERR_OK)) {
         ACCOUNT_LOGE("failed to verify permission for %{public}s", GET_ALL_APP_ACCOUNTS);
-        REPORT_PERMISSION_FAIL();
         funcResult = ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
         return ERR_OK;
     }
@@ -1150,7 +1149,6 @@ ErrCode AppAccountManagerService::GetBundleNameAndCheckPerm(int32_t &callingUid,
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to verify permission for %{public}s, result = %{public}d",
             permName.c_str(), result);
-        ReportPermissionFail(callingUid, IPCSkeleton::GetCallingRealPid(), permName);
         return result;
     }
     return ERR_OK;

@@ -163,7 +163,6 @@ ErrCode AccountMgrService::UpdateOhosAccountInfo(
     [[maybe_unused]] auto timerPtr = RequestTimer(eventStr);
     if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS)) {
         ACCOUNT_LOGE("Check permission failed");
-        REPORT_PERMISSION_FAIL();
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
 
@@ -190,7 +189,6 @@ ErrCode AccountMgrService::SetOhosAccountInfo(const OhosAccountInfo &ohosAccount
     [[maybe_unused]] auto timerPtr = RequestTimer(eventStr);
     if (!HasAccountRequestPermission(PERMISSION_MANAGE_DISTRIBUTED_ACCOUNTS)) {
         ACCOUNT_LOGE("Check permission failed");
-        REPORT_PERMISSION_FAIL();
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     if (!ohosAccountInfo.IsValid()) {
@@ -217,7 +215,6 @@ ErrCode AccountMgrService::SetOsAccountDistributedInfo(
     }
     if (!HasAccountRequestPermission(PERMISSION_MANAGE_DISTRIBUTED_ACCOUNTS)) {
         ACCOUNT_LOGE("Check permission failed");
-        REPORT_PERMISSION_FAIL();
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     ret = CheckUserIdValid(localId);
@@ -243,7 +240,6 @@ ErrCode AccountMgrService::QueryDistributedVirtualDeviceId(std::string &dvid)
     if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS) &&
         !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC)) {
         ACCOUNT_LOGE("Check permission failed");
-        REPORT_PERMISSION_FAIL();
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     return OhosAccountManager::GetInstance().QueryDistributedVirtualDeviceId(dvid);
@@ -262,7 +258,6 @@ ErrCode AccountMgrService::QueryDistributedVirtualDeviceId(const std::string &bu
         !HasAccountRequestPermission(PERMISSION_MANAGE_USERS) &&
         !HasAccountRequestPermission(PERMISSION_GET_DISTRIBUTED_ACCOUNTS)) {
         ACCOUNT_LOGE("Failed to check permission");
-        REPORT_PERMISSION_FAIL();
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     return OhosAccountManager::GetInstance().QueryDistributedVirtualDeviceId(bundleName, localId, dvid);
@@ -274,7 +269,6 @@ ErrCode AccountMgrService::QueryOhosAccountInfo(std::string& accountName, std::s
         !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC) &&
         !HasAccountRequestPermission(PERMISSION_GET_LOCAL_ACCOUNTS)) {
         ACCOUNT_LOGE("Check permission failed");
-        REPORT_PERMISSION_FAIL();
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
 #ifdef HICOLLIE_ENABLE
@@ -304,7 +298,6 @@ ErrCode AccountMgrService::GetOhosAccountInfo(OhosAccountInfo &info)
         !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC) &&
         !HasAccountRequestPermission(PERMISSION_GET_DISTRIBUTED_ACCOUNTS)) {
         ACCOUNT_LOGE("Check permission failed");
-        REPORT_PERMISSION_FAIL();
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     auto ret = GetOsAccountDistributedInfoInner(GetCallingUserID(), info);
@@ -327,7 +320,6 @@ ErrCode AccountMgrService::GetOsAccountDistributedInfo(int32_t localId, OhosAcco
             !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC) &&
             !HasAccountRequestPermission(PERMISSION_GET_DISTRIBUTED_ACCOUNTS)) {
             ACCOUNT_LOGE("Check permission for sa failed");
-            REPORT_PERMISSION_FAIL();
             return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
         }
     } else {
@@ -335,7 +327,6 @@ ErrCode AccountMgrService::GetOsAccountDistributedInfo(int32_t localId, OhosAcco
             !(HasAccountRequestPermission(INTERACT_ACROSS_LOCAL_ACCOUNTS) &&
             HasAccountRequestPermission(PERMISSION_GET_DISTRIBUTED_ACCOUNTS))) {
             ACCOUNT_LOGE("Check permission failed");
-            REPORT_PERMISSION_FAIL();
             return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
         }
     }
@@ -382,7 +373,6 @@ ErrCode AccountMgrService::QueryOsAccountDistributedInfo(
         (!HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC)) &&
         (IPCSkeleton::GetCallingUid() != DSOFTBUS_UID)) {
         ACCOUNT_LOGE("Check permission failed");
-        REPORT_PERMISSION_FAIL();
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     if (localId < 0) {
