@@ -728,7 +728,7 @@ CArrString CJAppAccountImpl::ConvertSet2CArrString(std::set<std::string> &in)
         return arrStr;
     }
     size_t i = 0;
-    for (auto idx = in.begin(); idx != in.end(); idx++) {
+    for (auto idx = in.begin(); idx != in.end(); idx++, i++) {
         retValue[i] =  MallocCString(*idx);
         if (retValue[i] == nullptr) {
             clearCharPointer(retValue, i);
