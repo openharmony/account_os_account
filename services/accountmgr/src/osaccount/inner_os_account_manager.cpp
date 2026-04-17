@@ -194,9 +194,7 @@ IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManager_(OsAccountSu
     }
     osAccountControl_->GetOsAccountConfig(config_);
     SetParameter(PARAM_LOGIN_NAME_MAX, std::to_string(Constants::LOCAL_NAME_MAX_SIZE - 1).c_str());
-#ifdef SUPPORT_AUTHORIZATION
-    osAccountCacheManager_ = std::make_unique<OsAccountCacheManager>();
-#endif // SUPPORT_AUTHORIZATION
+
     ACCOUNT_LOGI("Init end, maxOsAccountNum: %{public}d, maxLoggedInOsAccountNum: %{public}d",
         config_.maxOsAccountNum, config_.maxLoggedInOsAccountNum);
 }
@@ -211,21 +209,21 @@ IInnerOsAccountManager &IInnerOsAccountManager::GetInstance()
 ErrCode IInnerOsAccountManager::RefreshAccountTypeInCache(int32_t id, OsAccountType localType, OsAccountType &outType)
 {
     std::lock_guard<std::mutex> refreshLock(refreshTypeCacheLock_);
-    auto cachedType = osAccountCacheManager_->GetAccountTypeFromCache(id);
+    auto cachedType = osAccountCacheManager_.GetAccountTypeFromCache(id);
     if (cachedType.has_value()) {
-        outType = cachedType.value();
+        outType = cachedType.value().first;
         return ERR_OK;
     }
     int32_t typeTee = 0;
     ErrCode errCode = teeAdapter_.GetOsAccountType(id, typeTee);
     if (errCode == ERR_OK) {
         OsAccountType realType = static_cast<OsAccountType>(typeTee);
-        osAccountCacheManager_->SetAccountTypeInCache(id, realType);
+        osAccountCacheManager_.SetAccountTypeInCache(id, realType, 0);
         outType = realType;
         return ERR_OK;
     }
     if (errCode == ERR_ACCOUNT_COMMON_TEE_ACCOUNT_NOT_EXIST) {
-        osAccountCacheManager_->SetAccountTypeInCache(id, localType);
+        osAccountCacheManager_.SetAccountTypeInCache(id, localType, 1);
         outType = localType;
         ReportOsAccountOperationFail(id, OPERATION_GET_TYPE, errCode, "TEE account does not exist");
         return ERR_OK;
@@ -423,16 +421,14 @@ ErrCode IInnerOsAccountManager::GetRealOsAccountInfoById(const int id, OsAccount
 
 #if defined(SUPPORT_AUTHORIZATION) && !defined(IS_EMULATOR)
     // Try to get account type from cache for performance optimization
-    if (osAccountCacheManager_ != nullptr) {
-        auto cachedType = osAccountCacheManager_->GetAccountTypeFromCache(id);
-        if (cachedType.has_value()) {
-            osAccountInfo.SetType(cachedType.value());
-        } else {
-            OsAccountType teeType = osAccountInfo.GetType();
-            errCode = RefreshAccountTypeInCache(id, osAccountInfo.GetType(), teeType);
-            if (errCode == ERR_OK) {
-                osAccountInfo.SetType(teeType);
-            }
+    auto cachedType = osAccountCacheManager_.GetAccountTypeFromCache(id);
+    if (cachedType.has_value()) {
+        osAccountInfo.SetType(cachedType.value().first);
+    } else {
+        OsAccountType teeType = osAccountInfo.GetType();
+        errCode = RefreshAccountTypeInCache(id, osAccountInfo.GetType(), teeType);
+        if (errCode == ERR_OK) {
+            osAccountInfo.SetType(teeType);
         }
     }
 #endif // SUPPORT_AUTHORIZATION
@@ -624,6 +620,9 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfo(const std::string &localNam
         ACCOUNT_LOGE("Insert os account info err, errCode %{public}d.", errCode);
         return errCode;
     }
+    if (osAccountInfo.GetLocalId() != Constants::MAINTENANCE_MODE_ID) {
+        UpdateAccountTypeCache(osAccountInfo.GetLocalId(), osAccountInfo.GetType());
+    }
     errCode = osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Update account index failed, errCode = %{public}d", errCode);
@@ -701,7 +700,9 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfoWithFullInfo(OsAccountInfo &
         ACCOUNT_LOGE("Insert os account info err, errCode %{public}d.", errCode);
         return errCode;
     }
-
+    if (osAccountInfo.GetLocalId() != Constants::MAINTENANCE_MODE_ID) {
+        UpdateAccountTypeCache(osAccountInfo.GetLocalId(), osAccountInfo.GetType());
+    }
     errCode = osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Update account index failed, errCode = %{public}d", errCode);
@@ -759,6 +760,7 @@ void IInnerOsAccountManager::RollbackOsAccount(OsAccountInfo &osAccountInfo, boo
                 res, "Failed to rollback type from TEE");
             return;
         }
+        osAccountCacheManager_.ClearAccountCache(osAccountInfo.GetLocalId());
     }
 #endif // SUPPORT_AUTHORIZATION
     if (!osAccountInfo.GetIsDataRemovable()) {
@@ -1359,9 +1361,7 @@ ErrCode IInnerOsAccountManager::RemoveOsAccountOperate(const int id, OsAccountIn
             return res;
         }
         // Clear cache after successful TEE deletion
-        if (osAccountCacheManager_ != nullptr) {
-            osAccountCacheManager_->ClearAccountCache(id);
-        }
+        osAccountCacheManager_.ClearAccountCache(id);
     }
 #endif // SUPPORT_AUTHORIZATION
     ErrCode errCode = PrepareRemoveOsAccount(osAccountInfo, isCleanGarbage);
@@ -2255,18 +2255,16 @@ ErrCode IInnerOsAccountManager::GetOsAccountType(const int id, OsAccountType &ty
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
 #if defined(SUPPORT_AUTHORIZATION) && !defined(IS_EMULATOR)
-    if (osAccountCacheManager_ != nullptr) {
-        auto cachedType = osAccountCacheManager_->GetAccountTypeFromCache(id);
-        if (cachedType.has_value()) {
-            type = cachedType.value();
-            return ERR_OK;
-        }
-        OsAccountType teeType = osAccountInfo.GetType();
-        errCode = RefreshAccountTypeInCache(id, osAccountInfo.GetType(), teeType);
-        if (errCode == ERR_OK) {
-            type = teeType;
-            return ERR_OK;
-        }
+    auto cachedType = osAccountCacheManager_.GetAccountTypeFromCache(id);
+    if (cachedType.has_value()) {
+        type = cachedType.value().first;
+        return ERR_OK;
+    }
+    OsAccountType teeType = osAccountInfo.GetType();
+    errCode = RefreshAccountTypeInCache(id, osAccountInfo.GetType(), teeType);
+    if (errCode == ERR_OK) {
+        type = teeType;
+        return ERR_OK;
     }
 #endif // SUPPORT_AUTHORIZATION
     type = osAccountInfo.GetType();
@@ -2375,9 +2373,7 @@ void IInnerOsAccountManager::UpdateAccountTypeCache(int32_t id, OsAccountType ty
 {
 #ifdef SUPPORT_AUTHORIZATION
     // Cache + TEE is the source of truth when authorization is enabled.
-    if (osAccountCacheManager_ != nullptr) {
-        osAccountCacheManager_->SetAccountTypeInCache(id, type);
-    }
+    osAccountCacheManager_.SetAccountTypeInCache(id, type);
 #endif // SUPPORT_AUTHORIZATION
 }
 
@@ -2458,12 +2454,12 @@ ErrCode IInnerOsAccountManager::PreloadAccountTypesFromTee(const std::vector<int
 
     // Query each account type from TEE (as TEE is the single source of truth)
     // and preload into cache
-    std::map<int32_t, OsAccountType> typeMap;
+    std::map<int32_t, std::pair<OsAccountType, int32_t>> typeMap;
     for (int32_t id : ids) {
         int32_t typeTee = 0;
         if (teeAdapter_.GetOsAccountType(id, typeTee) == ERR_OK) {
             OsAccountType realType = static_cast<OsAccountType>(typeTee);
-            typeMap[id] = realType;
+            typeMap[id] = {realType, 0};
             ACCOUNT_LOGD("Preloaded account %{public}d type from TEE: %{public}d", id, typeTee);
         } else {
             // If TEE query fails for a specific account, log warning but continue with others
@@ -2473,10 +2469,8 @@ ErrCode IInnerOsAccountManager::PreloadAccountTypesFromTee(const std::vector<int
 
     // Batch update cache with all successfully queried types
     if (!typeMap.empty()) {
-        if (osAccountCacheManager_ != nullptr) {
-            osAccountCacheManager_->SetAccountTypesInCache(typeMap);
-            ACCOUNT_LOGI("Preloaded %{public}zu account types from TEE to cache", typeMap.size());
-        }
+        osAccountCacheManager_.SetAccountTypesInCache(typeMap);
+        ACCOUNT_LOGI("Preloaded %{public}zu account types from TEE to cache", typeMap.size());
     } else {
         ACCOUNT_LOGW("No account types were successfully preloaded from TEE");
     }

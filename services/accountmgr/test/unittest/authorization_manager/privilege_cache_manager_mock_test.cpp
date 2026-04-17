@@ -29,6 +29,7 @@
 #undef private
 #undef protected
 #include "tee_auth_adapter.h"
+#include "account_test_common.h"
 
 using namespace testing::ext;
 using namespace testing;
@@ -140,6 +141,7 @@ public:
 void PrivilegeCacheManagerTest::SetUpTestCase()
 {
     // init huks
+    ASSERT_TRUE(MockTokenId("accountmgr"));
     AccountFileWatcherMgr::GetInstance();
 }
 
