@@ -22,7 +22,7 @@ namespace OHOS {
 namespace AccountSA {
 const char PRIVILEGE_OPT_PERSIST_CACHE[] = "persistPrivilegeCache";
 const char PRIVILEGE_OPT_RECOVER_PERSIST_CACHE[] = "recoverPersistCache";
-const char PRIVILEGE_OPT_ACQUIRE_AUTH[] = "acquirePrivilegeAuth";
+const char PRIVILEGE_OPT_ACQUIRE_AUTH[] = "acquireAuth";
 const char PRIVILEGE_OPT_RELEASE_AUTH[] = "releasePrivilegeAuth";
 const char PRIVILEGE_OPT_VERIFY_TOKEN[] = "verifyPrivilegeToken";
 } // namespace AccountSA

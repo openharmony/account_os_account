@@ -261,6 +261,7 @@ private:
     ErrCode errCode_ = ERR_OK;
     /// The authorization callback to receive results
     sptr<IAuthorizationCallback> callback_;
+    sptr<IRemoteObject::DeathRecipient> appDeathRecipient_;
     /// The cached authorization result
     AuthorizationResult authResult_;
     /// The connection ability information

@@ -22,6 +22,7 @@ config("service_extension_connect_test_config") {
   include_dirs = [
     "${services_path}/accountmgr/include",
     "${services_path}/accountmgr/test/mock/authorization_manager",
+    "${services_path}/accountmgr/test/mock/common",
     "${services_path}/accountmgr/include/authorization_manager",
     "${authorization_interfaces_native_path}/include",
     "${common_path}/log/include",
@@ -76,6 +77,7 @@ ohos_moduletest("service_extension_connect_module_test") {
     "service_extension_connect_module_test.cpp",
     "${services_path}/accountmgr/src/authorization_manager/service_extension_connect.cpp",
     "${services_path}/accountmgr/test/mock/authorization_manager/extension_manager_client.cpp",
+    "${services_path}/accountmgr/test/mock/common/ability_manager_adapter_mock.cpp",
   ]
 
   configs = [
@@ -103,7 +105,10 @@ ohos_moduletest("service_extension_connect_module_test") {
     "ability_runtime:wantagent_innerkits",
     "ability_runtime:extension_manager",
   ]
-
+  cflags = []
+  if (os_account_support_authorization) {
+    cflags += [ "-DSUPPORT_AUTHORIZATION" ]
+  }
   part_name = "os_account"
 }
 

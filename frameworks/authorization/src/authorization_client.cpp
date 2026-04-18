@@ -118,23 +118,6 @@ void AuthorizationClient::EraseAuthCallBack()
 }
 
 #ifdef SUPPORT_AUTHORIZATION
-bool AuthorizationClient::CheckCallbackService(const std::string &privilege,
-    const std::shared_ptr<AuthorizationCallback> &callback)
-{
-    std::lock_guard<std::recursive_mutex> lock(callbackMutex_);
-    if (callbackService_ != nullptr) {
-        ACCOUNT_LOGE("Already has request");
-        AuthorizationResult result;
-        result.resultCode = AuthorizationResultCode::AUTHORIZATION_SERVICE_BUSY;
-        result.privilege = privilege;
-        callback->OnResult(ERR_OK, result);
-        return false;
-    }
-    return true;
-}
-#endif // SUPPORT_AUTHORIZATION
-
-#ifdef SUPPORT_AUTHORIZATION
 sptr<AuthRemoteObjectStub> AuthorizationClient::GetOrCreateRequestRemoteObject()
 {
     std::lock_guard<std::mutex> glock(g_mutex);
@@ -163,8 +146,9 @@ ErrCode AuthorizationClient::AcquireAuthorization(const std::string &privilege,
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
 
-    sptr<AuthorizationCallbackService> resultCallback = sptr<AuthorizationCallbackService>::MakeSptr(callback);
-
+    sptr<AuthorizationCallbackService> resultCallback =
+        sptr<AuthorizationCallbackService>::MakeSptr(callback,
+            []() { AuthorizationClient::GetInstance().EraseAuthCallBack(); });
     auto proxy = GetAuthorizationProxy();
     if (proxy == nullptr) {
         ACCOUNT_LOGE("Failed to get authorization proxy");
@@ -176,6 +160,10 @@ ErrCode AuthorizationClient::AcquireAuthorization(const std::string &privilege,
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Failed to acquire authorization, errCode:%{public}d", errCode);
         return errCode;
+    }
+    std::lock_guard<std::recursive_mutex> lock(callbackMutex_);
+    if (callbackService_ == nullptr) {
+        callbackService_ = resultCallback;
     }
     return ERR_OK;
 #else

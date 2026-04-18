@@ -78,5 +78,17 @@ bool AbilityManagerAdapter::IsAllAppDied(int32_t accountId)
 {
     return true;
 }
+
+#ifdef SUPPORT_AUTHORIZATION
+ErrCode AbilityManagerAdapter::GetExtensionRunningInfos(std::vector<ExtensionRunningInfo> &infos, int upperLimit)
+{
+    infos.clear();
+    ExtensionRunningInfo info;
+    info.extension.SetBundleName("com.test.bundle");
+    info.extension.SetAbilityName("com.test.bundle.MainAbility");
+    infos.emplace_back(info);
+    return ERR_OK;
+}
+#endif
 } // namespace AccountSA
 } // namespace OHOS

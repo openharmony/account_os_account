@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "authorization_common.h"
+#include <securec.h>
 #include <string>
 #include <string_ex.h>
 #include <vector>
@@ -106,7 +107,9 @@ bool ConnectAbilityInfo::ReadFromParcel(Parcel &parcel)
 
 ConnectAbilityInfo::~ConnectAbilityInfo()
 {
-    std::fill(challenge.begin(), challenge.end(), 0);
+    if (challenge.size() > 0) {
+        (void)memset_s(challenge.data(), challenge.size() * sizeof(uint8_t), 0, challenge.size() * sizeof(uint8_t));
+    }
 }
 
 bool ConnectAbilityInfo::Marshalling(Parcel &parcel) const
@@ -171,7 +174,9 @@ ConnectAbilityInfo *ConnectAbilityInfo::Unmarshalling(Parcel &parcel)
 
 AuthorizationResult::~AuthorizationResult()
 {
-    std::fill(token.begin(), token.end(), 0);
+    if (token.size() > 0) {
+        (void)memset_s(token.data(), token.size() * sizeof(uint8_t), 0, token.size() * sizeof(uint8_t));
+    }
 }
 
 AuthorizationResult& AuthorizationResult::operator=(const AuthorizationResult& other)
@@ -251,7 +256,9 @@ AuthorizationResult *AuthorizationResult::Unmarshalling(Parcel &parcel)
 
 AcquireAuthorizationOptions::~AcquireAuthorizationOptions()
 {
-    std::fill(challenge.begin(), challenge.end(), 0);
+    if (challenge.size() > 0) {
+        (void)memset_s(challenge.data(), challenge.size() * sizeof(uint8_t), 0, challenge.size() * sizeof(uint8_t));
+    }
 }
 
 bool AcquireAuthorizationOptions::ReadFromParcel(Parcel &parcel)
