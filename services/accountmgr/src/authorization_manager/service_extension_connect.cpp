@@ -23,6 +23,7 @@
 #include <want.h>
 
 #include "ability_connection.h"
+#include "ability_manager_adapter.h"
 #include "account_error_no.h"
 #include "account_hisysevent_adapter.h"
 #include "account_log_wrapper.h"
@@ -198,6 +199,10 @@ ErrCode SessionAbilityConnection::CallbackOnResult(int32_t errCode, Authorizatio
     }
     authResult_.resultCode = resultCode;
     ErrCode err = callback_->OnResult(errCode, authResult_);
+    if (err != ERR_OK) {
+        ACCOUNT_LOGE("Callback onResult error=%{public}d.", err);
+        REPORT_OS_ACCOUNT_FAIL(localId_, PRIVILEGE_OPT_ACQUIRE_AUTH, err, "Callback onResult error");
+    }
     SessionDisconnectExtension();
     return err;
 }
@@ -222,8 +227,29 @@ ErrCode SessionAbilityConnection::SaveAuthorizationResult(ErrCode errCode, Autho
 
 bool SessionAbilityConnection::HasServiceConnect()
 {
+    {
+        std::lock_guard<std::recursive_mutex> lock(mutex_);
+        if (abilityConnectionStub_ == nullptr) {
+            return false;
+        }
+    }
+    std::vector<ExtensionRunningInfo> infos;
+    ErrCode err = AbilityManagerAdapter::GetInstance()->GetExtensionRunningInfos(infos);
+
     std::lock_guard<std::recursive_mutex> lock(mutex_);
-    return abilityConnectionStub_ != nullptr;
+    if (abilityConnectionStub_ == nullptr) {
+        return false;
+    }
+    if (err != ERR_OK) {
+        return true;
+    }
+    for (auto info : infos) {
+        if (info.extension.GetBundleName() == info_.bundleName &&
+            info.extension.GetAbilityName() == info_.abilityName) {
+            return true;
+        }
+    }
+    return CallbackOnResult(ERR_AUTHORIZATION_CREATE_SYS_EXTENSION_ERROR) == ERR_OK ? false : true;
 }
 
 bool SessionAbilityConnection::GetConnectInfo(int32_t callingPid, ConnectAbilityInfo &info)
@@ -265,6 +291,7 @@ ErrCode SessionAbilityConnection::RegisterAuthAppRemoteObject(int32_t callingPid
         ACCOUNT_LOGE("Fail to AddDeathRecipient");
         REPORT_OS_ACCOUNT_FAIL(localId_, PRIVILEGE_OPT_ACQUIRE_AUTH, ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT,
             "Fail to AddDeathRecipient");
+        authDeathRecipient_ = nullptr;
         return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
     }
     authAppRemoteObj_ = authAppRemoteObj;
@@ -295,8 +322,11 @@ void SessionAbilityConnection::SessionDisconnectExtension()
             "AbilityConnectionStub is nullptr");
         return;
     }
+    if (authDeathRecipient_ != nullptr && authAppRemoteObj_ != nullptr) {
+        authAppRemoteObj_->RemoveDeathRecipient(authDeathRecipient_);
+        authDeathRecipient_ = nullptr;
+    }
     if (authAppRemoteObj_ != nullptr) {
-        authAppRemoteObj_.clear();
         authAppRemoteObj_ = nullptr;
     }
     auto ret = AAFwk::ExtensionManagerClient::GetInstance().DisconnectAbility(abilityConnectionStub_);
@@ -305,7 +335,9 @@ void SessionAbilityConnection::SessionDisconnectExtension()
         abilityConnectionStub_ = nullptr;
     }
     authAppPid_ = -1;
-    if (callback_ != nullptr) {
+    if (callback_ != nullptr && callback_->AsObject() != nullptr) {
+        callback_->AsObject()->RemoveDeathRecipient(appDeathRecipient_);
+        appDeathRecipient_ = nullptr;
         callback_ = nullptr;
     }
     if (authDeathRecipient_ != nullptr) {
@@ -357,18 +389,19 @@ void SessionAbilityConnection::AppDeathRecipient::OnRemoteDied(const wptr<IRemot
 
 ErrCode SessionAbilityConnection::CreateCallbackDeathRecipient(const sptr<IAuthorizationCallback> &callback)
 {
-    auto deathRecipient = new (std::nothrow) AppDeathRecipient(info_.bundleName);
-    if (deathRecipient == nullptr) {
+    appDeathRecipient_ = new (std::nothrow) AppDeathRecipient(info_.bundleName);
+    if (appDeathRecipient_ == nullptr || callback->AsObject() == nullptr) {
         REPORT_OS_ACCOUNT_FAIL(localId_, PRIVILEGE_OPT_ACQUIRE_AUTH,
             ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT, "DeathRecipient is nullptr");
         ACCOUNT_LOGE("DeathRecipient is nullptr");
+        appDeathRecipient_ = nullptr;
         return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
     }
-
-    if (!callback->AsObject()->AddDeathRecipient(deathRecipient)) {
+    if (!callback->AsObject()->AddDeathRecipient(appDeathRecipient_)) {
         ACCOUNT_LOGE("Fail to AddDeathRecipient");
         REPORT_OS_ACCOUNT_FAIL(localId_, PRIVILEGE_OPT_ACQUIRE_AUTH,
             ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT, "Fail to AddDeathRecipient");
+        appDeathRecipient_ = nullptr;
         return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
     }
     return ERR_OK;
@@ -383,6 +416,10 @@ ErrCode SessionAbilityConnection::CreateStubAndConnect(const ConnectAbilityInfo 
         ACCOUNT_LOGE("Get session aibility connection is nullptr");
         REPORT_OS_ACCOUNT_FAIL(localId_, PRIVILEGE_OPT_ACQUIRE_AUTH, ERR_AUTHORIZATION_GET_STUB_ERROR,
             "Get session aibility connection is nullptr");
+        if (callback->AsObject() != nullptr && appDeathRecipient_!= nullptr) {
+            callback->AsObject()->RemoveDeathRecipient(appDeathRecipient_);
+        }
+        appDeathRecipient_ = nullptr;
         return ERR_AUTHORIZATION_GET_STUB_ERROR;
     }
 

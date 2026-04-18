@@ -26,6 +26,7 @@ ohos_fuzztest("CheckAuthorizationStubFuzzTest") {
   fuzz_config_file = "."
   include_dirs = [
     "${authorization_interfaces_native_path}/include",
+    "${os_account_path}/services/accountmgr/include/ability_manager_adapter",
     "${os_account_path}/services/accountmgr/include/authorization_manager",
     "${os_account_path}/services/accountmgr/include/bundle_manager_adapter",
     "${os_account_path}/services/accountmgr/include/common/tee",
@@ -53,7 +54,7 @@ ohos_fuzztest("CheckAuthorizationStubFuzzTest") {
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
-  sources = [ 
+  sources = [
     "checkauthorizationstub_fuzzer.cpp",
     "${os_account_path}/services/accountmgr/src/authorization_manager/authorization_manager_service.cpp",
     "${os_account_path}/services/accountmgr/src/authorization_manager/inner_authorization_manager.cpp",
@@ -61,6 +62,7 @@ ohos_fuzztest("CheckAuthorizationStubFuzzTest") {
     "${os_account_path}/services/accountmgr/src/authorization_manager/privilege_utils.cpp",
     "${os_account_path}/services/accountmgr/src/authorization_manager/service_extension_connect.cpp",
     "${os_account_path}/services/accountmgr/src/common/tee/tee_auth_adapter.cpp",
+    "${os_account_path}/services/accountmgr/src/ability_manager_adapter/ability_manager_adapter.cpp",
     "${os_account_path}/services/accountmgr/src/bundle_manager_adapter/bundle_manager_adapter.cpp",
     "${domain_account_framework_path}/src/domain_account_common.cpp",
   ]
@@ -74,7 +76,7 @@ ohos_fuzztest("CheckAuthorizationStubFuzzTest") {
     "${os_account_innerkits_native_path}:os_account_event_stub",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${os_account_innerkits_native_path}:os_account_state_reply_callback_stub",
-    "${os_account_innerkits_native_path}:os_account_stub", 
+    "${os_account_innerkits_native_path}:os_account_stub",
     "${authorization_framework_path}:authorization_callback_stub",
     "${authorization_framework_path}:authorization_proxy",
     "${authorization_framework_path}:authorization_innerkits",
@@ -96,6 +98,7 @@ ohos_fuzztest("CheckAuthorizationStubFuzzTest") {
     "ability_base:base",
     "ability_base:want",
     "ability_runtime:ability_manager",
+    "ability_runtime:extension_manager",
     "ability_runtime:app_manager",
     "ability_runtime:wantagent_innerkits",
     "access_token:libaccesstoken_sdk",
@@ -154,7 +157,7 @@ ohos_fuzztest("CheckAuthorizationStubFuzzTest") {
     cflags += [ "-DHAS_CES_PART" ]
     external_deps += [ "common_event_service:cesfwk_innerkits" ]
   }
- 
+
   deps += [
     "${authorization_framework_path}:authorization_callback_proxy",
     "${authorization_framework_path}:authorization_stub",

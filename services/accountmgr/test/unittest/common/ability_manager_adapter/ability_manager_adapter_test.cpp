@@ -23,6 +23,9 @@
 #include "system_ability_definition.h"
 #include "ability_connect_callback_stub.h"
 #include "ability_manager_errors.h"
+#ifdef SUPPORT_AUTHORIZATION
+#include "extension_running_info.h"
+#endif
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -111,3 +114,32 @@ HWTEST_F(AbilityManagerAdapterTest, AbilityManagerAdapterTest003, TestSize.Level
     EXPECT_EQ(ERR_INVALID_VALUE,
         AbilityManagerAdapter::GetInstance()->DoConnectAbility(abms, want, nullptr, nullptr, USER_ID));
 }
+
+#ifdef SUPPORT_AUTHORIZATION
+/**
+ * @tc.name: AbilityManagerAdapterTest004
+ * @tc.desc: Test GetExtensionRunningInfos
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AbilityManagerAdapterTest, AbilityManagerAdapterTest004, TestSize.Level3)
+{
+    std::vector<ExtensionRunningInfo> infos;
+    ErrCode ret = AbilityManagerAdapter::GetInstance()->GetExtensionRunningInfos(infos);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: AbilityManagerAdapterTest005
+ * @tc.desc: Test GetExtensionRunningInfos with custom upperLimit
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AbilityManagerAdapterTest, AbilityManagerAdapterTest005, TestSize.Level3)
+{
+    std::vector<ExtensionRunningInfo> infos;
+    int32_t upperLimit = 100;
+    ErrCode ret = AbilityManagerAdapter::GetInstance()->GetExtensionRunningInfos(infos, upperLimit);
+    EXPECT_EQ(ret, ERR_OK);
+}
+#endif

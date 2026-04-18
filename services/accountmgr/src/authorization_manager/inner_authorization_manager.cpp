@@ -81,6 +81,11 @@ std::function<ErrCode(int32_t,  AuthorizationResult &, int32_t)> acquireAuthoriz
             return ERR_AUTHORIZATION_GET_PROXY_ERROR;
         }
         ErrCode errCode = it->second->OnResult(errorCode, result);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("OnResult failed, errCode:%{public}d", errCode);
+            REPORT_OS_ACCOUNT_FAIL(-1, PRIVILEGE_OPT_ACQUIRE_AUTH,
+                errCode, "Return uiextension result failed");
+        }
         g_callbackMap.erase(it);
         g_connectbackMap.erase(callingPid);
         g_requestRemoteObjectMap.erase(callingPid);
@@ -204,9 +209,21 @@ ErrCode InnerAuthorizationManager::CallTaAuthorization(const std::vector<uint8_t
     ApplyUserTokenParam param;
     param.pid = static_cast<uint32_t>(info.callingPid);
     param.grantUserId = accountId;
-    (void)memcpy_s(param.permission, sizeof(param.permission), info.privilege.data(), info.privilege.size());
+    int32_t ret = memcpy_s(param.permission, sizeof(param.permission), info.privilege.data(), info.privilege.size());
+    if (ret != EOK) {
+        ACCOUNT_LOGE("Get privilege failed duo to memcpy_s failed, %{public}d", ret);
+        REPORT_OS_ACCOUNT_FAIL(accountId, PRIVILEGE_OPT_ACQUIRE_AUTH, ret,
+            "Get privilege failed duo to memcpy_s failed");
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    }
     param.permissionSize = info.privilege.size();
-    (void)memcpy_s(param.authToken, sizeof(param.authToken), iamToken.data(), iamToken.size() * sizeof(uint8_t));
+    ret = memcpy_s(param.authToken, sizeof(param.authToken), iamToken.data(), iamToken.size() * sizeof(uint8_t));
+    if (ret != EOK) {
+        ACCOUNT_LOGE("Get tokem failed duo to memcpy_s failed, %{public}d", ret);
+        REPORT_OS_ACCOUNT_FAIL(accountId, PRIVILEGE_OPT_ACQUIRE_AUTH, ret,
+            "Get token failed duo to memcpy_s failed");
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    }
     param.authTokenSize = iamToken.size();
     param.grantValidityPeriod = info.timeout;
 
@@ -228,7 +245,7 @@ ErrCode InnerAuthorizationManager::UpdatePrivilegeCache(ConnectAbilityInfo &info
         ACCOUNT_LOGE("Fail to check privilege, privilege:%{public}s", info.privilege.c_str());
         REPORT_OS_ACCOUNT_FAIL(info.callingUid / UID_TRANSFORM_DIVISOR, PRIVILEGE_OPT_ACQUIRE_AUTH,
             ret, "Fail to check privilege");
-        return ret;
+        return ERR_AUTHORIZATION_CACHE_ERROR;
     }
 
     AuthenCallerInfo callerInfo;
@@ -394,17 +411,30 @@ void InnerAuthorizationManager::ExecuteUIExtensionTask(const ConnectAbilityInfo 
 {
     if (callback == nullptr) {
         ACCOUNT_LOGE("Callback is nullptr in task thread");
+        REPORT_OS_ACCOUNT_FAIL(uiInfo.callingUid / UID_TRANSFORM_DIVISOR, PRIVILEGE_OPT_ACQUIRE_AUTH,
+            ERR_ACCOUNT_COMMON_INVALID_PARAMETER, "Callback is null");
         return;
     }
 
     ErrCode errCode = callback->OnConnectAbility(uiInfo, connectCallback->AsObject());
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("OnConnectAbility failed, errCode:%{public}d", errCode);
+        REPORT_OS_ACCOUNT_FAIL(uiInfo.callingUid / UID_TRANSFORM_DIVISOR, PRIVILEGE_OPT_ACQUIRE_AUTH,
+            errCode, "OnConnectAbility failed");
+        AuthorizationResult result;
+        errCode = callback->OnResult(errCode, result);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("OnResult failed, errCode:%{public}d", errCode);
+            REPORT_OS_ACCOUNT_FAIL(uiInfo.callingUid / UID_TRANSFORM_DIVISOR, PRIVILEGE_OPT_ACQUIRE_AUTH,
+                errCode, "ExecuteUIExtensionTask call OnResult failed");
+        }
         return;
     }
 
     if (requestRemoteObj == nullptr) {
         ACCOUNT_LOGE("Request remote object is nullptr");
+        REPORT_OS_ACCOUNT_FAIL(uiInfo.callingUid / UID_TRANSFORM_DIVISOR, PRIVILEGE_OPT_ACQUIRE_AUTH,
+            ERR_ACCOUNT_COMMON_INVALID_PARAMETER, "Request remote object");
         return;
     }
 

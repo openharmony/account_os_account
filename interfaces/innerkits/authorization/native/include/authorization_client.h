@@ -125,8 +125,6 @@ private:
     void EraseAuthCallBack();
 
 #ifdef SUPPORT_AUTHORIZATION
-    bool CheckCallbackService(const std::string &privilege,
-        const std::shared_ptr<AuthorizationCallback> &callback);
     sptr<AuthRemoteObjectStub> GetOrCreateRequestRemoteObject();
     /**
      * @brief Death recipient for monitoring authorization service death.

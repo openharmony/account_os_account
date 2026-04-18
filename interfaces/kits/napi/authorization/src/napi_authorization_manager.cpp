@@ -18,6 +18,8 @@
 #include <uv.h>
 #include <memory>
 #include <mutex>
+#include <thread>
+#include "account_constants.h"
 #include "account_log_wrapper.h"
 #include "authorization_client.h"
 #include "iconnect_ability_callback.h"
@@ -46,6 +48,7 @@ const std::string TOKEN_KEY = "authResultToken";
 const std::string ACCOUNTID_KEY = "authResultAccountID";
 const std::string CODE_KEY = "authResultCode";
 const int32_t BACKGROUNT_ERROR = 1011;
+const int32_t MAX_RETRY_TIME = 3;
 }
 
 static Ace::UIContent* GetUIContent(const std::shared_ptr<AcquireAuthorizationContext> &context)
@@ -266,9 +269,18 @@ void UIExtensionCallback::ReleaseHandler(int32_t errCode, AuthorizationResultCod
         return;
     }
     int32_t resultCodeInt = static_cast<int32_t>(resultCode);
-    ErrCode ret = callbackProxy->OnResult(errCode, iamToken, accountId, resultCodeInt);
-    if (ret != ERR_OK) {
-        ACCOUNT_LOGE("Failed to call iConnectAbilityCallback onResult, errCode:%{public}d", ret);
+    ErrCode ret = ERR_OK;
+    int retryTimes = 0;
+    while (retryTimes < MAX_RETRY_TIME) {
+        ret = callbackProxy->OnResult(errCode, iamToken, accountId, resultCodeInt);
+        if (ret == ERR_OK || (ret != Constants::E_IPC_ERROR &&
+            ret != Constants::E_IPC_SA_DIED)) {
+            break;
+        }
+        retryTimes++;
+        ACCOUNT_LOGE("UIExtensionCallback send result failed, code=%{public}d, retryTimes=%{public}d",
+            ret, retryTimes);
+        std::this_thread::sleep_for(std::chrono::milliseconds(Constants::DELAY_FOR_EXCEPTION));
     }
     CloseUIExtension(context_, sessionId_);
     context_ = nullptr;
@@ -351,7 +363,19 @@ std::function<void()> OnConnectAbilityTask(const std::shared_ptr<AcquireAuthoriz
             return;
         }
         std::vector<uint8_t> iamToken;
-        connectCallback->OnResult(errCode, iamToken, -1, -1);
+        ErrCode ret = ERR_OK;
+        int retryTimes = 0;
+        while (retryTimes < MAX_RETRY_TIME) {
+            ret = connectCallback->OnResult(errCode, iamToken, -1, -1);
+            if (ret == ERR_OK || (ret != Constants::E_IPC_ERROR &&
+                ret != Constants::E_IPC_SA_DIED)) {
+                break;
+            }
+            retryTimes++;
+            ACCOUNT_LOGE("Send iConnectAbilityCallback onResult failed, code=%{public}d, retryTimes=%{public}d",
+                ret, retryTimes);
+            std::this_thread::sleep_for(std::chrono::milliseconds(Constants::DELAY_FOR_EXCEPTION));
+        }
     };
 }
 
