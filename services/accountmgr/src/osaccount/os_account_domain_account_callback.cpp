@@ -152,6 +152,8 @@ void BindDomainAccountCallback::OnResult(int32_t errCode, Parcel &parcel)
             ReplyWithOsAccountInfo(errCode, resultParcel);
             return;
         }
+        IInnerOsAccountManager::GetInstance()
+            .UpdateAccountTypeCache(osAccountInfo_.GetLocalId(), osAccountInfo_.GetType(), false);
 #endif // SUPPORT_AUTHORIZATION
         errCode = IInnerOsAccountManager::GetInstance().SendMsgForAccountCreate(osAccountInfo_, options);
         if (errCode != ERR_OK) {

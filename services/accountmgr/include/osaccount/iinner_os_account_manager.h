@@ -161,6 +161,7 @@ public:
     void RemoveLocalIdToOperating(int32_t localId);
     bool CheckAndAddLocalIdOperating(int32_t localId);
     OsAccountControlFileManager &GetFileController();
+    void UpdateAccountTypeCache(int32_t id, OsAccountType type, bool isRestricted);
 private:
     IInnerOsAccountManager();
     ~IInnerOsAccountManager() = default;
@@ -215,9 +216,10 @@ private:
     std::shared_ptr<std::mutex> GetOrInsertUpdateLock(int32_t id);
     ErrCode VerifyAndSetOsAccountTypeInTEE(int32_t id, OsAccountType type,
         const std::optional<std::vector<uint8_t>>& token);
-    void UpdateAccountTypeCache(int32_t id, OsAccountType type);
 #ifdef SUPPORT_AUTHORIZATION
-    ErrCode RefreshAccountTypeInCache(int32_t id, OsAccountType localType, OsAccountType &outType);
+    ErrCode InsertOsAccountTypeToTee(int32_t localId, const OsAccountType &type, const std::vector<uint8_t>& token);
+    ErrCode RefreshAccountTypeInCache(
+        int32_t id, OsAccountType localType, std::pair<OsAccountType, bool> &outType);
 #endif // SUPPORT_AUTHORIZATION
     ErrCode UpdateAccountToBackground(int32_t oldId);
     ErrCode IsValidOsAccount(const OsAccountInfo &osAccountInfo);

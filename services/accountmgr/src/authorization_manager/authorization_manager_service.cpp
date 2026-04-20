@@ -285,7 +285,10 @@ ErrCode AuthorizationManagerService::ReleaseAuthorization(const std::string &pri
     authenCallerInfo.privilegeIdx = privilegeId;
     res = PrivilegeCacheManager::GetInstance().RemoveSingle(authenCallerInfo);
     if (res != ERR_OK) {
-        ACCOUNT_LOGE("RemoveSingle failed, result = %{public}d.", res);
+        int32_t localId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
+        ACCOUNT_LOGE("Failed to remove single privilege cache, localId = %{public}d, result = %{public}d.",
+            localId, res);
+        REPORT_OS_ACCOUNT_FAIL(localId, PRIVILEGE_OPT_RELEASE_AUTH, res, "Failed to remove single privilege cache");
         return ERR_ACCOUNT_COMMON_OPERATION_FAIL;
     }
     return ERR_OK;
