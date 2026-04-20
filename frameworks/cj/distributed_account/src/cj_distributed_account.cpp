@@ -39,7 +39,7 @@ CJDistributedInfo convertToCJInfo(AccountSA::OhosAccountInfo ohosInfo)
     cjInfo.nickname = MallocCString(ohosInfo.nickname_);
     cjInfo.avatar = MallocCString(ohosInfo.avatar_);
     cjInfo.status = ohosInfo.status_;
-    cjInfo.scalableData = MallocCString(ohosInfo.scalableData_.ToString());
+    cjInfo.scalableData = MallocCString(ohosInfo.scalableData_);
     return cjInfo;
 }
 
@@ -62,10 +62,7 @@ AccountSA::OhosAccountInfo getOhosInfoFromCJInfo(CJDistributedInfo cjInfo)
     ohosInfo.status_ = cjInfo.status;
     if (cjInfo.scalableData != nullptr) {
         std::string scalableStr = std ::string(cjInfo.scalableData);
-        auto scalableWant = AAFwk::Want::FromString(scalableStr);
-        if (scalableWant != nullptr) {
-            ohosInfo.scalableData_ = *scalableWant;
-        }
+        ohosInfo.scalableData_ = scalableStr;
     }
     return ohosInfo;
 }

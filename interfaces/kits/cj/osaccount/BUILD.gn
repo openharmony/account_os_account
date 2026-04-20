@@ -58,6 +58,7 @@ ohos_shared_library("cj_osaccount_ffi") {
     "cJSON:cjson",
     "c_utils:utils",
     "hilog:libhilog",
+    "ipc:ipc_single",
     "napi:cj_bind_ffi",
     "napi:cj_bind_native",
     "samgr:samgr_proxy",

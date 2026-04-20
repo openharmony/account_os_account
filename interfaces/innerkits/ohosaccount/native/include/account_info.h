@@ -23,7 +23,6 @@
 #include "ohos_account_constants.h"
 #include "parcel.h"
 #include "string_ex.h"
-#include "want.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -88,14 +87,14 @@ public:
     std::int32_t callingUid_ = DEFAULT_CALLING_UID;
     std::string nickname_;
     std::string avatar_;
-    AAFwk::Want scalableData_;
+    std::string scalableData_;
 
     OhosAccountInfo(const std::string &name, const std::string &id, std::int32_t status)
         : name_(name), uid_(id), status_(status), rawUid_(id)
     {
         nickname_ = "";
         avatar_ = "";
-        scalableData_ = {};
+        scalableData_ = "";
     }
 
     OhosAccountInfo()
@@ -104,32 +103,16 @@ public:
         uid_ = "";
         nickname_ = "";
         avatar_ = "";
-        scalableData_ = {};
+        scalableData_ = "";
         status_ = ACCOUNT_STATE_UNBOUND;
     }
 
     ~OhosAccountInfo() {};
 
-    // filtering the input scalableData only
-    static std::string GetScalableDataString(const AAFwk::Want &scalableData)
-    {
-        std::string result = "";
-        AAFwk::WantParams wantParams = scalableData.GetParams();
-        for (auto it : wantParams.GetParams()) {
-            if (it.first != "moduleName") {
-                result += it.first;
-                int typeId = AAFwk::WantParams::GetDataType(it.second);
-                result += wantParams.GetStringByType(it.second, typeId);
-            }
-        }
-        return result;
-    }
-
     bool IsValid() const
     {
-        std::string str = GetScalableDataString(scalableData_);
         return (nickname_.size() <= Constants::NICKNAME_MAX_SIZE) && (avatar_.size() <= Constants::AVATAR_MAX_SIZE) &&
-            (str.size() <= Constants::SCALABLEDATA_MAX_SIZE);
+            (scalableData_.size() <= Constants::SCALABLEDATA_MAX_SIZE);
     }
 
     std::string GetRawUid() const
@@ -189,7 +172,7 @@ public:
         ohosAccountInfo_.status_ = clrStatus;
         ohosAccountInfo_.nickname_ = "";
         ohosAccountInfo_.avatar_ = "";
-        ohosAccountInfo_.scalableData_ = {};
+        ohosAccountInfo_.scalableData_ = "";
         ohosAccountInfo_.callingUid_ = DEFAULT_CALLING_UID;
         ohosAccountInfo_.SetRawUid("");
         digest_.clear();

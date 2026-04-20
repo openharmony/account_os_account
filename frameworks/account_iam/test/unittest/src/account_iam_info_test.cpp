@@ -513,7 +513,7 @@ HWTEST_F(AccountIAMInfoTest, AccountIAMInfo_Marshalling_0700, TestSize.Level3)
     ohosAccountInfo.status_ = TEST_ACCOUNT_STATUS;
     ohosAccountInfo.nickname_ = TEST_ACCOUNT_NICKNAME;
     ohosAccountInfo.avatar_ = TEST_AVATAR;
-    ohosAccountInfo.scalableData_.SetParam(KEY_ACCOUNT_INFO_SCALABLEDATA, 123);
+    ohosAccountInfo.scalableData_ = "";
     EXPECT_TRUE(ohosAccountInfo.Marshalling(parcel));
     AccountSA::OhosAccountInfo *ohosAccountInfo1 = ohosAccountInfo.Unmarshalling(parcel);
     EXPECT_NE(ohosAccountInfo1, nullptr);
@@ -524,8 +524,7 @@ HWTEST_F(AccountIAMInfoTest, AccountIAMInfo_Marshalling_0700, TestSize.Level3)
     EXPECT_EQ(ohosAccountInfo.status_, ohosAccountInfo1->status_);
     EXPECT_EQ(ohosAccountInfo.nickname_, ohosAccountInfo1->nickname_);
     EXPECT_EQ(ohosAccountInfo.avatar_, ohosAccountInfo1->avatar_);
-    EXPECT_EQ(ohosAccountInfo.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA),
-        ohosAccountInfo1->scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA));
+    EXPECT_EQ(ohosAccountInfo.scalableData_, ohosAccountInfo1->scalableData_);
 }
 }  // namespace AccountTest
 }  // namespace OHOS

@@ -138,7 +138,7 @@ static bool GetAccountInfo(napi_env env, napi_value object, DistributedAccountAs
             }
         }
     }
-    asyncContext->ohosAccountInfo.scalableData_.SetParams(params);
+    asyncContext->ohosAccountInfo.scalableData_ = params.ToString();
     return true;
 }
 
@@ -234,7 +234,12 @@ void ProcessSetNamedProperty(napi_env env, const DistributedAccountAsyncContext 
         napi_set_named_property(env, result[1], PROPERTY_KEY_STATUS.c_str(), value);
         napi_value scalable = nullptr;
         napi_create_object(env, &scalable);
-        scalable = AppExecFwk::WrapWantParams(env, (asyncContext->ohosAccountInfo.scalableData_).GetParams());
+        
+        AAFwk::WantParams params;
+        if (!asyncContext->ohosAccountInfo.scalableData_.empty()) {
+            params = AAFwk::WantParamWrapper::ParseWantParams(asyncContext->ohosAccountInfo.scalableData_);
+        }
+        scalable = AppExecFwk::WrapWantParams(env, params);
         napi_set_named_property(env, result[1], PROPERTY_KEY_SCALABLE.c_str(), scalable);
     } else {
         if (asyncContext->throwErr) {

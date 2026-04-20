@@ -232,7 +232,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo002, TestSize.Level3)
     accountInfo.uid_ = TEST_ACCOUNT_UID;
     accountInfo.nickname_ = TEST_NICKNAME;
     accountInfo.avatar_ = TEST_AVATAR;
-    accountInfo.scalableData_.SetParam(KEY_ACCOUNT_INFO_SCALABLEDATA, 123);
+    accountInfo.scalableData_ = "";
 
     auto ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogin);
     EXPECT_EQ(ret, ERR_OK);
@@ -243,8 +243,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo002, TestSize.Level3)
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_LOGIN);
     EXPECT_EQ(accountInfoget.nickname_, TEST_NICKNAME);
     EXPECT_EQ(accountInfoget.avatar_, TEST_AVATAR);
-    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA),
-        accountInfo.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA));
+    EXPECT_EQ(accountInfoget.scalableData_, accountInfo.scalableData_);
 
     ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogin);
     EXPECT_EQ(ret, ERR_OK);
@@ -282,23 +281,21 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo004, TestSize.Level3)
     accountInfo.uid_ = TEST_ACCOUNT_UID;
     accountInfo.nickname_ = TEST_NICKNAME;
     accountInfo.avatar_ = TEST_AVATAR;
-    accountInfo.scalableData_.SetParam(KEY_ACCOUNT_INFO_SCALABLEDATA, 123);
+    accountInfo.scalableData_ = "";
 
     EXPECT_EQ(OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogin), ERR_OK);
     EXPECT_EQ(OhosAccountKits::GetInstance().GetOhosAccountInfo(accountInfoget), ERR_OK);
     EXPECT_EQ(accountInfoget.uid_, TEST_EXPECTED_UID);
     EXPECT_EQ(accountInfoget.nickname_, TEST_NICKNAME);
     EXPECT_EQ(accountInfoget.avatar_, TEST_AVATAR);
-    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA),
-        accountInfo.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA));
+    EXPECT_EQ(accountInfoget.scalableData_, accountInfo.scalableData_);
 
     EXPECT_EQ(OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventTokenInvalid), ERR_OK);
     EXPECT_EQ(OhosAccountKits::GetInstance().GetOhosAccountInfo(accountInfoget), ERR_OK);
     EXPECT_EQ(accountInfoget.uid_, TEST_EXPECTED_UID);
     EXPECT_EQ(accountInfoget.nickname_, TEST_NICKNAME);
     EXPECT_EQ(accountInfoget.avatar_, TEST_AVATAR);
-    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA),
-        accountInfo.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA));
+    EXPECT_EQ(accountInfoget.scalableData_, accountInfo.scalableData_);
 
     EXPECT_EQ(OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogin), ERR_OK);
     EXPECT_EQ(OhosAccountKits::GetInstance().GetOhosAccountInfo(accountInfoget), ERR_OK);
@@ -307,15 +304,14 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo004, TestSize.Level3)
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_LOGIN);
     EXPECT_EQ(accountInfoget.nickname_, TEST_NICKNAME);
     EXPECT_EQ(accountInfoget.avatar_, TEST_AVATAR);
-    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA),
-        accountInfo.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA));
+    EXPECT_EQ(accountInfoget.scalableData_, accountInfo.scalableData_);
 
     EXPECT_EQ(OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogoff), ERR_OK);
     EXPECT_EQ(OhosAccountKits::GetInstance().GetOhosAccountInfo(accountInfoget), ERR_OK);
     EXPECT_EQ(accountInfoget.uid_, DEFAULT_OHOS_ACCOUNT_UID);
     EXPECT_EQ(accountInfoget.name_, DEFAULT_OHOS_ACCOUNT_NAME);
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_UNBOUND);
-    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA), TEST_EMPTY_STRING);
+    EXPECT_EQ(accountInfoget.scalableData_, TEST_EMPTY_STRING);
     RemoveOsAccountWithPermission(osAccountInfoOne.GetLocalId());
 }
 
@@ -336,7 +332,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo005, TestSize.Level3)
     accountInfo.status_ = ACCOUNT_STATE_UNBOUND;
     accountInfo.uid_ = TEST_ACCOUNT_UID;
     accountInfo.avatar_ = TEST_AVATAR;
-    accountInfo.scalableData_.SetParam(KEY_ACCOUNT_INFO_SCALABLEDATA, 123);
+    accountInfo.scalableData_ = "";
     accountInfo.nickname_ = "";
     for (std::size_t i = 0; i < Constants::NICKNAME_MAX_SIZE + 1; i++) {
         accountInfo.nickname_.push_back('a');
@@ -369,7 +365,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo006, TestSize.Level3)
     accountInfo.uid_ = TEST_ACCOUNT_UID;
     accountInfo.nickname_ = TEST_NICKNAME;
     accountInfo.avatar_ = ""; // 10*1024*1024
-    accountInfo.scalableData_.SetParam(KEY_ACCOUNT_INFO_SCALABLEDATA, 123);
+    accountInfo.scalableData_ = "";
     for (std::size_t i = 0; i < Constants::AVATAR_MAX_SIZE + 1; i++) {
         accountInfo.avatar_.push_back('a');
     }
@@ -400,7 +396,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo007, TestSize.Level0)
     accountInfo.uid_ = TEST_DIFF_ACCOUNT_UID;
     accountInfo.nickname_ = TEST_NICKNAME;
     accountInfo.avatar_ = TEST_AVATAR;
-    accountInfo.scalableData_.SetParam(KEY_ACCOUNT_INFO_SCALABLEDATA, 123);
+    accountInfo.scalableData_ = "";
 
     std::string eventStr = "invalid_test_event";
 
@@ -426,7 +422,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo008, TestSize.Level3)
     accountInfo.uid_ = TEST_ACCOUNT_UID;
     accountInfo.nickname_ = TEST_NICKNAME;
     accountInfo.avatar_ = TEST_AVATAR;
-    accountInfo.scalableData_.SetParam(KEY_ACCOUNT_INFO_SCALABLEDATA, 123);
+    accountInfo.scalableData_ = "";
 
     auto ret = OhosAccountKits::GetInstance().SetOsAccountDistributedInfo(
         osAccountInfoOne.GetLocalId(), accountInfo, g_eventLogin);
@@ -438,8 +434,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo008, TestSize.Level3)
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_LOGIN);
     EXPECT_EQ(accountInfoget.nickname_, TEST_NICKNAME);
     EXPECT_EQ(accountInfoget.avatar_, TEST_AVATAR);
-    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA),
-        accountInfo.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA));
+    EXPECT_EQ(accountInfoget.scalableData_, accountInfo.scalableData_);
 
     ret = OhosAccountKits::GetInstance().SetOsAccountDistributedInfo(
         osAccountInfoOne.GetLocalId(), accountInfo, g_eventLogoff);
@@ -452,7 +447,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo008, TestSize.Level3)
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_UNBOUND);
     EXPECT_EQ(accountInfoget.nickname_, TEST_EMPTY_STRING);
     EXPECT_EQ(accountInfoget.avatar_, TEST_EMPTY_STRING);
-    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA), TEST_EMPTY_STRING);
+    EXPECT_EQ(accountInfoget.scalableData_, TEST_EMPTY_STRING);
     RemoveOsAccountWithPermission(osAccountInfoOne.GetLocalId());
 }
 
@@ -473,7 +468,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo009, TestSize.Level3)
     accountInfo.uid_ = TEST_ACCOUNT_UID;
     accountInfo.nickname_ = TEST_NICKNAME;
     accountInfo.avatar_ = TEST_AVATAR;
-    accountInfo.scalableData_.SetParam(KEY_ACCOUNT_INFO_SCALABLEDATA, 123);
+    accountInfo.scalableData_ = "";
 
     auto ret = OhosAccountKits::GetInstance().SetOsAccountDistributedInfo(
         osAccountInfoOne.GetLocalId(), accountInfo, g_eventLogin);
@@ -485,8 +480,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo009, TestSize.Level3)
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_LOGIN);
     EXPECT_EQ(accountInfoget.nickname_, TEST_NICKNAME);
     EXPECT_EQ(accountInfoget.avatar_, TEST_AVATAR);
-    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA),
-        accountInfo.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA));
+    EXPECT_EQ(accountInfoget.scalableData_, accountInfo.scalableData_);
 
     ret = OhosAccountKits::GetInstance().SetOsAccountDistributedInfo(
         osAccountInfoOne.GetLocalId(), accountInfo, g_eventLogin);
@@ -509,7 +503,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo009, TestSize.Level3)
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_UNBOUND);
     EXPECT_EQ(accountInfoget.nickname_, TEST_EMPTY_STRING);
     EXPECT_EQ(accountInfoget.avatar_, TEST_EMPTY_STRING);
-    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA), TEST_EMPTY_STRING);
+    EXPECT_EQ(accountInfoget.scalableData_, TEST_EMPTY_STRING);
     RemoveOsAccountWithPermission(osAccountInfoOne.GetLocalId());
 }
 
@@ -530,7 +524,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo010, TestSize.Level3)
     accountInfo.uid_ = TEST_DIFF_ACCOUNT_UID;
     accountInfo.nickname_ = TEST_NICKNAME;
     accountInfo.avatar_ = TEST_AVATAR;
-    accountInfo.scalableData_.SetParam(KEY_ACCOUNT_INFO_SCALABLEDATA, 123);
+    accountInfo.scalableData_ = "";
 
     auto ret = OhosAccountKits::GetInstance().SetOsAccountDistributedInfo(
         osAccountInfoOne.GetLocalId(), accountInfo, g_eventLogin);
@@ -542,8 +536,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo010, TestSize.Level3)
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_LOGIN);
     EXPECT_EQ(accountInfoget.nickname_, TEST_NICKNAME);
     EXPECT_EQ(accountInfoget.avatar_, TEST_AVATAR);
-    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA),
-        accountInfo.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA));
+    EXPECT_EQ(accountInfoget.scalableData_, accountInfo.scalableData_);
 
     ret = OhosAccountKits::GetInstance().SetOsAccountDistributedInfo(
         osAccountInfoOne.GetLocalId(), accountInfo, g_eventLogoff);
@@ -555,7 +548,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo010, TestSize.Level3)
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_UNBOUND);
     EXPECT_EQ(accountInfoget.nickname_, TEST_EMPTY_STRING);
     EXPECT_EQ(accountInfoget.avatar_, TEST_EMPTY_STRING);
-    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA), TEST_EMPTY_STRING);
+    EXPECT_EQ(accountInfoget.scalableData_, TEST_EMPTY_STRING);
     RemoveOsAccountWithPermission(osAccountInfoOne.GetLocalId());
 }
 
@@ -577,15 +570,14 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo011, TestSize.Level3)
     accountInfo.uid_ = TEST_ACCOUNT_UID;
     accountInfo.nickname_ = TEST_NICKNAME;
     accountInfo.avatar_ = TEST_AVATAR;
-    accountInfo.scalableData_.SetParam(KEY_ACCOUNT_INFO_SCALABLEDATA, 123);
+    accountInfo.scalableData_ = "";
 
     EXPECT_EQ(OhosAccountKits::GetInstance().SetOsAccountDistributedInfo(localId, accountInfo, g_eventLogin), ERR_OK);
     EXPECT_EQ(OhosAccountKits::GetInstance().GetOsAccountDistributedInfo(localId, accountInfoget), ERR_OK);
     EXPECT_EQ(accountInfoget.uid_, TEST_EXPECTED_UID);
     EXPECT_EQ(accountInfoget.nickname_, TEST_NICKNAME);
     EXPECT_EQ(accountInfoget.avatar_, TEST_AVATAR);
-    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA),
-        accountInfo.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA));
+    EXPECT_EQ(accountInfoget.scalableData_, accountInfo.scalableData_);
 
     EXPECT_EQ(
         OhosAccountKits::GetInstance().SetOsAccountDistributedInfo(localId, accountInfo, g_eventTokenInvalid), ERR_OK);
@@ -594,8 +586,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo011, TestSize.Level3)
     EXPECT_EQ(accountInfoget.nickname_, TEST_NICKNAME);
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_UNBOUND);
     EXPECT_EQ(accountInfoget.avatar_, TEST_AVATAR);
-    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA),
-        accountInfo.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA));
+    EXPECT_EQ(accountInfoget.scalableData_, accountInfo.scalableData_);
 
     EXPECT_EQ(OhosAccountKits::GetInstance().SetOsAccountDistributedInfo(localId, accountInfo, g_eventLogin), ERR_OK);
     EXPECT_EQ(OhosAccountKits::GetInstance().GetOsAccountDistributedInfo(localId, accountInfoget), ERR_OK);
@@ -604,15 +595,14 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo011, TestSize.Level3)
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_LOGIN);
     EXPECT_EQ(accountInfoget.nickname_, TEST_NICKNAME);
     EXPECT_EQ(accountInfoget.avatar_, TEST_AVATAR);
-    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA),
-        accountInfo.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA));
+    EXPECT_EQ(accountInfoget.scalableData_, accountInfo.scalableData_);
 
     EXPECT_EQ(OhosAccountKits::GetInstance().SetOsAccountDistributedInfo(localId, accountInfo, g_eventLogoff), ERR_OK);
     EXPECT_EQ(OhosAccountKits::GetInstance().GetOsAccountDistributedInfo(localId, accountInfoget), ERR_OK);
     EXPECT_EQ(accountInfoget.uid_, DEFAULT_OHOS_ACCOUNT_UID);
     EXPECT_EQ(accountInfoget.name_, DEFAULT_OHOS_ACCOUNT_NAME);
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_UNBOUND);
-    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA), TEST_EMPTY_STRING);
+    EXPECT_EQ(accountInfoget.scalableData_, TEST_EMPTY_STRING);
     RemoveOsAccountWithPermission(localId);
 }
 
@@ -634,7 +624,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo012, TestSize.Level3)
     accountInfo.uid_ = TEST_ACCOUNT_UID;
     accountInfo.nickname_ = TEST_NICKNAME;
     accountInfo.avatar_ = ""; // 10*1024*1024
-    accountInfo.scalableData_.SetParam(KEY_ACCOUNT_INFO_SCALABLEDATA, 123);
+    accountInfo.scalableData_ = "";
     for (std::size_t i = 0; i < Constants::AVATAR_MAX_SIZE - 1; i++) {
         accountInfo.avatar_.push_back('a');
     }
@@ -695,7 +685,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo015, TestSize.Level3)
     accountInfo.uid_ = TEST_ACCOUNT_UID;
     accountInfo.nickname_ = TEST_NICKNAME;
     accountInfo.avatar_ = "";
-    accountInfo.scalableData_.SetParam(KEY_ACCOUNT_INFO_SCALABLEDATA, 123);
+    accountInfo.scalableData_ = "";
     auto ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogin);
     EXPECT_EQ(ret, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
 
@@ -748,7 +738,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserId002, TestSize.Lev
     EXPECT_EQ(accountInfo.status_, ACCOUNT_STATE_UNBOUND);
     EXPECT_EQ(accountInfo.nickname_, TEST_EMPTY_STRING);
     EXPECT_EQ(accountInfo.avatar_, TEST_EMPTY_STRING);
-    EXPECT_EQ(accountInfo.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA), TEST_EMPTY_STRING);
+    EXPECT_EQ(accountInfo.scalableData_, TEST_EMPTY_STRING);
     RemoveOsAccountWithPermission(osAccountInfoOne.GetLocalId());
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
