@@ -23,6 +23,7 @@
 namespace OHOS {
 namespace AccountSA {
 typedef enum {
+    RESTRICTED_ADMIN = -1, //external specification is not supported.
     ADMIN = 0,
     NORMAL,
     GUEST,

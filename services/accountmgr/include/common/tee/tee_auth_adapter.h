@@ -223,14 +223,6 @@ public:
      */
     ErrCode TaAcquireAuthorization(const ApplyUserTokenParam &param, ApplyUserTokenResult &result);
 
-    /**
-     * @brief Get bin and cert for EDM authentication.
-     * @param binData The bin file data for authentication
-     * @param certData The certificate data for authentication
-     * @return ERR_OK on success, error code on failure
-     */
-    ErrCode GetEdmBinAndCert(std::vector<uint8_t> &binData, std::vector<uint8_t> &certData);
-
 private:
     // pImpl pattern - hide all implementation details including TEE types
     class Impl;

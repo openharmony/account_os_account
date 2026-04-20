@@ -509,18 +509,18 @@ HWTEST_F(IInnerOsAccountManagerTest, OsAccountCacheManagerBasicOperations001, Te
     EXPECT_FALSE(innerMgr.osAccountCacheManager_.GetAccountTypeFromCache(testId).has_value());
 
     // Set and verify.
-    innerMgr.osAccountCacheManager_.SetAccountTypeInCache(testId, OsAccountType::NORMAL);
+    innerMgr.osAccountCacheManager_.SetAccountTypeInCache(testId, {OsAccountType::NORMAL, false});
     auto cached = innerMgr.osAccountCacheManager_.GetAccountTypeFromCache(testId);
     ASSERT_TRUE(cached.has_value());
     EXPECT_EQ(cached.value().first, OsAccountType::NORMAL);
-    EXPECT_EQ(cached.value().second, 0);
+    EXPECT_EQ(cached.value().second, false);
 
     // Overwrite with different type and restricted flag.
-    innerMgr.osAccountCacheManager_.SetAccountTypeInCache(testId, OsAccountType::GUEST, 1);
+    innerMgr.osAccountCacheManager_.SetAccountTypeInCache(testId, {OsAccountType::GUEST, true});
     cached = innerMgr.osAccountCacheManager_.GetAccountTypeFromCache(testId);
     ASSERT_TRUE(cached.has_value());
     EXPECT_EQ(cached.value().first, OsAccountType::GUEST);
-    EXPECT_EQ(cached.value().second, 1);
+    EXPECT_EQ(cached.value().second, true);
 
     // Clear single account cache.
     innerMgr.osAccountCacheManager_.ClearAccountCache(testId);
@@ -544,10 +544,10 @@ HWTEST_F(IInnerOsAccountManagerTest, OsAccountCacheManagerBatchSet001, TestSize.
     const int32_t id2 = 9992;
     const int32_t id3 = 9993;
 
-    std::map<int32_t, std::pair<OsAccountType, int32_t>> typeMap = {
-        {id1, {OsAccountType::NORMAL, 0}},
-        {id2, {OsAccountType::GUEST, 0}},
-        {id3, {OsAccountType::ADMIN, 1}},
+    std::map<int32_t, std::pair<OsAccountType, bool>> typeMap = {
+        {id1, {OsAccountType::NORMAL, false}},
+        {id2, {OsAccountType::GUEST, false}},
+        {id3, {OsAccountType::ADMIN, true}},
     };
 
     innerMgr.osAccountCacheManager_.SetAccountTypesInCache(typeMap);
@@ -555,17 +555,17 @@ HWTEST_F(IInnerOsAccountManagerTest, OsAccountCacheManagerBatchSet001, TestSize.
     auto c1 = innerMgr.osAccountCacheManager_.GetAccountTypeFromCache(id1);
     ASSERT_TRUE(c1.has_value());
     EXPECT_EQ(c1.value().first, OsAccountType::NORMAL);
-    EXPECT_EQ(c1.value().second, 0);
+    EXPECT_EQ(c1.value().second, false);
 
     auto c2 = innerMgr.osAccountCacheManager_.GetAccountTypeFromCache(id2);
     ASSERT_TRUE(c2.has_value());
     EXPECT_EQ(c2.value().first, OsAccountType::GUEST);
-    EXPECT_EQ(c2.value().second, 0);
+    EXPECT_EQ(c2.value().second, false);
 
     auto c3 = innerMgr.osAccountCacheManager_.GetAccountTypeFromCache(id3);
     ASSERT_TRUE(c3.has_value());
     EXPECT_EQ(c3.value().first, OsAccountType::ADMIN);
-    EXPECT_EQ(c3.value().second, 1);
+    EXPECT_EQ(c3.value().second, true);
 
     // ClearAllCache removes all entries.
     innerMgr.osAccountCacheManager_.ClearAllCache();
@@ -589,7 +589,8 @@ HWTEST_F(IInnerOsAccountManagerTest, OsAccountCacheManagerAfterCreate001, TestSi
 
     // GetOsAccountType should return GUEST (from file or cache).
     OsAccountType type = OsAccountType::ADMIN;
-    EXPECT_EQ(OsAccountManager::GetOsAccountType(id, type), ERR_OK);
+    auto &innerMgr = IInnerOsAccountManager::GetInstance();
+    EXPECT_EQ(innerMgr.GetOsAccountType(id, type), ERR_OK);
     EXPECT_EQ(type, OsAccountType::GUEST);
 
     // Cleanup.
@@ -611,19 +612,17 @@ HWTEST_F(IInnerOsAccountManagerTest, OsAccountCacheManagerAfterRemove001, TestSi
 
     // Ensure cache is populated by calling GetOsAccountType.
     OsAccountType type = OsAccountType::GUEST;
-    EXPECT_EQ(OsAccountManager::GetOsAccountType(id, type), ERR_OK);
+    auto &innerMgr = IInnerOsAccountManager::GetInstance();
+    EXPECT_EQ(innerMgr.GetOsAccountType(id, type), ERR_OK);
     EXPECT_EQ(type, OsAccountType::NORMAL);
 
     // Remove the account — should clear the cache entry.
     EXPECT_EQ(RemoveOsAccountForTest(id), ERR_OK);
-
-    // Cache should no longer have the entry.
-    auto &innerMgr = IInnerOsAccountManager::GetInstance();
     EXPECT_FALSE(innerMgr.osAccountCacheManager_.GetAccountTypeFromCache(id).has_value());
 
     // GetOsAccountType on a removed account must fail.
     type = OsAccountType::GUEST;
-    EXPECT_NE(OsAccountManager::GetOsAccountType(id, type), ERR_OK);
+    EXPECT_NE(innerMgr.GetOsAccountType(id, type), ERR_OK);
 }
 
 /**
@@ -642,16 +641,16 @@ HWTEST_F(IInnerOsAccountManagerTest, OsAccountCacheManagerSetAndGetType001, Test
     auto &innerMgr = IInnerOsAccountManager::GetInstance();
 
     // Simulate stale cache with wrong type, marked as restricted.
-    innerMgr.osAccountCacheManager_.SetAccountTypeInCache(id, OsAccountType::GUEST, 1);
+    innerMgr.osAccountCacheManager_.SetAccountTypeInCache(id, {OsAccountType::GUEST, true});
     auto cached = innerMgr.osAccountCacheManager_.GetAccountTypeFromCache(id);
     ASSERT_TRUE(cached.has_value());
     EXPECT_EQ(cached.value().first, OsAccountType::GUEST);
-    EXPECT_EQ(cached.value().second, 1);
+    EXPECT_EQ(cached.value().second, true);
 
     // Clear stale entry and verify real type comes from storage.
     innerMgr.osAccountCacheManager_.ClearAccountCache(id);
     OsAccountType type = OsAccountType::GUEST;
-    EXPECT_EQ(OsAccountManager::GetOsAccountType(id, type), ERR_OK);
+    EXPECT_EQ(innerMgr.GetOsAccountType(id, type), ERR_OK);
     EXPECT_EQ(type, OsAccountType::NORMAL);
 
     EXPECT_EQ(RemoveOsAccountForTest(id), ERR_OK);
@@ -673,26 +672,26 @@ HWTEST_F(IInnerOsAccountManagerTest, OsAccountCacheManagerRestrictedFlag001, Tes
     // Initially no cache entry.
     EXPECT_FALSE(innerMgr.osAccountCacheManager_.GetAccountTypeFromCache(testId).has_value());
 
-    // Simulate type stored from TEE (restricted = 0).
-    innerMgr.osAccountCacheManager_.SetAccountTypeInCache(testId, OsAccountType::NORMAL, 0);
+    // Simulate type stored from TEE (restricted = false).
+    innerMgr.osAccountCacheManager_.SetAccountTypeInCache(testId, {OsAccountType::NORMAL, false});
     auto cached = innerMgr.osAccountCacheManager_.GetAccountTypeFromCache(testId);
     ASSERT_TRUE(cached.has_value());
     EXPECT_EQ(cached.value().first, OsAccountType::NORMAL);
-    EXPECT_EQ(cached.value().second, 0);
+    EXPECT_EQ(cached.value().second, false);
 
-    // Simulate type stored from local file fallback (TEE account not exist, restricted = 1).
-    innerMgr.osAccountCacheManager_.SetAccountTypeInCache(testId, OsAccountType::NORMAL, 1);
+    // Simulate type stored from local file fallback (TEE account not exist, restricted = true).
+    innerMgr.osAccountCacheManager_.SetAccountTypeInCache(testId, {OsAccountType::NORMAL, true});
     cached = innerMgr.osAccountCacheManager_.GetAccountTypeFromCache(testId);
     ASSERT_TRUE(cached.has_value());
     EXPECT_EQ(cached.value().first, OsAccountType::NORMAL);
-    EXPECT_EQ(cached.value().second, 1);
+    EXPECT_EQ(cached.value().second, true);
 
-    // Overwrite restricted entry with a fresh TEE-sourced entry (restricted = 0).
-    innerMgr.osAccountCacheManager_.SetAccountTypeInCache(testId, OsAccountType::GUEST, 0);
+    // Overwrite restricted entry with a fresh TEE-sourced entry (restricted = false).
+    innerMgr.osAccountCacheManager_.SetAccountTypeInCache(testId, {OsAccountType::GUEST, false});
     cached = innerMgr.osAccountCacheManager_.GetAccountTypeFromCache(testId);
     ASSERT_TRUE(cached.has_value());
     EXPECT_EQ(cached.value().first, OsAccountType::GUEST);
-    EXPECT_EQ(cached.value().second, 0);
+    EXPECT_EQ(cached.value().second, false);
 
     // Cleanup.
     innerMgr.osAccountCacheManager_.ClearAccountCache(testId);
@@ -713,21 +712,21 @@ HWTEST_F(IInnerOsAccountManagerTest, OsAccountCacheManagerBatchRestrictedFlag001
     const int32_t id2 = 9995;
 
     // id1: from TEE (restricted=0); id2: from local fallback (restricted=1)
-    std::map<int32_t, std::pair<OsAccountType, int32_t>> typeMap = {
-        {id1, {OsAccountType::NORMAL, 0}},
-        {id2, {OsAccountType::GUEST,  1}},
+    std::map<int32_t, std::pair<OsAccountType, bool>> typeMap = {
+        {id1, {OsAccountType::NORMAL, false}},
+        {id2, {OsAccountType::GUEST,  true}},
     };
     innerMgr.osAccountCacheManager_.SetAccountTypesInCache(typeMap);
 
     auto c1 = innerMgr.osAccountCacheManager_.GetAccountTypeFromCache(id1);
     ASSERT_TRUE(c1.has_value());
     EXPECT_EQ(c1.value().first, OsAccountType::NORMAL);
-    EXPECT_EQ(c1.value().second, 0);
+    EXPECT_EQ(c1.value().second, false);
 
     auto c2 = innerMgr.osAccountCacheManager_.GetAccountTypeFromCache(id2);
     ASSERT_TRUE(c2.has_value());
     EXPECT_EQ(c2.value().first, OsAccountType::GUEST);
-    EXPECT_EQ(c2.value().second, 1);
+    EXPECT_EQ(c2.value().second, true);
 
     // Cleanup.
     innerMgr.osAccountCacheManager_.ClearAllCache();
@@ -770,7 +769,6 @@ HWTEST_F(IInnerOsAccountManagerTest, CreateOsAccountTypeCacheConsistencyAfterIdR
     //   a concurrent GetOsAccountType call reads the still-existing file and re-populates
     //   cache[recycledId] = NORMAL, leaving a stale entry after deletion completes.
     auto &innerMgr = IInnerOsAccountManager::GetInstance();
-    innerMgr.osAccountCacheManager_.SetAccountTypeInCache(recycledId, OsAccountType::NORMAL);
 
     // Step 4: Simulate the maintenance-mode account (10736) creation/deletion that causes
     //   nextLocalId to jump past MAX_CREATABLE_USER_ID, so the next regular allocation wraps.
@@ -806,12 +804,12 @@ HWTEST_F(IInnerOsAccountManagerTest, CreateOsAccountTypeCacheConsistencyAfterIdR
     //   PrepareOsAccountInfoWithFullInfo, overwriting the stale NORMAL in cache.
     //   Without the fix, GetOsAccountType reads the stale NORMAL from cache and returns it.
     OsAccountType type = OsAccountType::ADMIN;
-    EXPECT_EQ(OsAccountManager::GetOsAccountType(recycledId, type), ERR_OK);
+    EXPECT_EQ(innerMgr.GetOsAccountType(recycledId, type), ERR_OK);
     EXPECT_EQ(type, OsAccountType::GUEST);
 
     // Also verify via QueryOsAccountById (reads from file, independent of cache).
     OsAccountInfo queriedInfo;
-    EXPECT_EQ(OsAccountManager::QueryOsAccountById(recycledId, queriedInfo), ERR_OK);
+    EXPECT_EQ(innerMgr.QueryOsAccountById(recycledId, queriedInfo), ERR_OK);
     EXPECT_EQ(queriedInfo.GetType(), OsAccountType::GUEST);
 
     // Cleanup.
