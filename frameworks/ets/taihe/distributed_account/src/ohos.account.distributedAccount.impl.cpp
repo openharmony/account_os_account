@@ -53,7 +53,9 @@ AccountSA::OhosAccountInfo ConvertToOhosAccountInfoTH(const DistributedInfo &inf
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
             return ret;
         }
-        Paramret.scalableData_ = params.ToString();
+        AAFwk::Want want;
+        want.SetParams(params);
+        ret.scalableData_ = want.ToString();
     }
     return ret;
 }

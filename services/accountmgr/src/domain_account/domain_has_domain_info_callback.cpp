@@ -17,6 +17,7 @@
 #include "account_log_wrapper.h"
 #include "domain_account_common.h"
 #include "parcel.h"
+#include "want_params_wrapper.h"
 
 namespace OHOS {
 namespace AccountSA {

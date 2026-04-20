@@ -17,6 +17,7 @@
 #define OS_ACCOUNT_INTERFACES_INNERKITS_OS_ACCOUNT_INFO_H
 #include <optional>
 #include <vector>
+#include "account_error_no.h"
 #include "domain_account_common.h"
 #include "iaccount_info.h"
 #include "parcel.h"
