@@ -149,7 +149,7 @@ void OsAccountControlFileManager::GetU1Config(const CJsonUnique &configJson, OsA
         config.u1AccountType = static_cast<OsAccountType>(type);
     }
     GetDataByType<std::string>(u1Json, SYSTEM_ACCOUNT_NAME, config.u1AccountName);
-    if (config.u1AccountName.length() > Constants::LOCAL_NAME_MAX_SIZE) {
+    if (config.u1AccountName.length() >= Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("Fail to get name:%{public}s from config.", config.u1AccountName.c_str());
         config.u1AccountName = "";
     }

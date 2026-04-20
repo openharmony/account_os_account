@@ -399,7 +399,7 @@ ErrCode OsAccountManagerService::ValidateAccountCreateParamAndPermission(const s
     }
 
     size_t localNameSize = localName.size();
-    if ((localNameSize == 0) || (localNameSize > Constants::LOCAL_NAME_MAX_SIZE)) {
+    if ((localNameSize == 0) || (localNameSize >= Constants::LOCAL_NAME_MAX_SIZE)) {
         ACCOUNT_LOGE("CreateOsAccount local name length %{public}zu is invalid!", localNameSize);
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
@@ -544,7 +544,7 @@ ErrCode OsAccountManagerService::CreateOsAccountForDomain(const OsAccountType &t
         ACCOUNT_LOGE("Domain account name is empty or domain is empty");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
-    if (domainInfo.accountName_.size() > Constants::LOCAL_NAME_MAX_SIZE ||
+    if (domainInfo.accountName_.size() >= Constants::LOCAL_NAME_MAX_SIZE ||
         domainInfo.domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("Domain account name is overlength or domain is overlength");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
@@ -865,7 +865,7 @@ ErrCode OsAccountManagerService::GetOsAccountLocalIdFromDomain(const DomainAccou
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
-    if (domainInfo.accountName_.empty() || domainInfo.accountName_.size() > Constants::LOCAL_NAME_MAX_SIZE) {
+    if (domainInfo.accountName_.empty() || domainInfo.accountName_.size() >= Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("AccountName length invalid. length %{public}zu.", domainInfo.accountName_.size());
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
@@ -1206,7 +1206,7 @@ ErrCode OsAccountManagerService::SetOsAccountName(int32_t id, const std::string 
         ACCOUNT_LOGW("Check local id restricted, result = %{public}d, localId = %{public}d.", res, id);
         return res;
     }
-    if (name.size() > Constants::LOCAL_NAME_MAX_SIZE) {
+    if (name.size() >= Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("Set os account name is out of allowed size");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
@@ -2487,7 +2487,7 @@ ErrCode OsAccountManagerService::BindDomainAccount(
         ACCOUNT_LOGE("Domain account name is empty or domain is empty");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
-    if (domainInfo.accountName_.size() > Constants::LOCAL_NAME_MAX_SIZE ||
+    if (domainInfo.accountName_.size() >= Constants::LOCAL_NAME_MAX_SIZE ||
         domainInfo.domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("Domain account name is overlength or domain is overlength");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
