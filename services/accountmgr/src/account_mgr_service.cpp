@@ -92,6 +92,11 @@ const std::set<int32_t> INIT_ACCOUNT_ID_SET = {
 const bool REGISTER_RESULT =
     SystemAbility::MakeAndRegisterAbility(&DelayedRefSingleton<AccountMgrService>::GetInstance());
 const char DEVICE_OWNER_DIR[] = "/data/service/el1/public/account/0/";
+#ifdef SUPPORT_AUTHORIZATION
+const int32_t MAX_RETRY_TIMES = 3;
+const uint32_t RETRY_SLEEP_MS = 10;
+const char MIGRATE_OSACCOUNT_TYPE_TO_TEE[] = "migrateOSAccountTypeToTee";
+#endif // SUPPORT_AUTHORIZATION
 
 std::shared_ptr<void> RequestTimer(std::string eventStr)
 {
@@ -705,15 +710,27 @@ void AccountMgrService::StartOsAccountTypeMigrationAsync()
     // Start OS account type migration in a detached thread to avoid blocking service startup
     std::thread migrationTask([]() {
         ACCOUNT_LOGI("OS account type migration to TEE thread started");
-        ErrCode ret = IInnerOsAccountManager::GetInstance().MigrateOsAccountTypesToTEE();
-        if (ret != ERR_OK) {
-            ACCOUNT_LOGW("OS account type migration to TEE failed, ret=%{public}d", ret);
-        } else {
-            ACCOUNT_LOGI("OS account type migration to TEE completed successfully");
+        ErrCode ret = ERR_OK;
+        for (uint32_t retryCount = 0; retryCount <= MAX_RETRY_TIMES; ++retryCount) {
+            ret = IInnerOsAccountManager::GetInstance().MigrateOsAccountTypesToTEE();
+            if (ret == ERR_OK) {
+                ACCOUNT_LOGI("OS account type migration to TEE completed successfully");
+                ReportOsAccountLifeCycle(0, MIGRATE_OSACCOUNT_TYPE_TO_TEE);
+                return;
+            }
+            if (ret == ERR_ACCOUNT_COMMON_TEE_NOT_ALLOW_RECOVERY) {
+                ACCOUNT_LOGW("OS account type migration to TEE returned known code, ret=%{public}d", ret);
+                return;
+            }
+            ACCOUNT_LOGW("OS account type migration to TEE failed, ret=%{public}d, retry=%{public}u/%{public}u",
+                ret, retryCount, MAX_RETRY_TIMES);
+            std::this_thread::sleep_for(std::chrono::milliseconds(RETRY_SLEEP_MS));
         }
-        ACCOUNT_LOGI("OS account type migration thread finished");
+        // Still fail after retry
+        ACCOUNT_LOGE("Failed to migrate os account types to tee, ret=%{public}d", ret);
+        ReportOsAccountOperationFail(0, MIGRATE_OSACCOUNT_TYPE_TO_TEE, ret,
+            "Failed to migrate os account types to tee");
     });
-
     // Detach the thread to run independently
     // The thread will clean up itself when complete
     migrationTask.detach();

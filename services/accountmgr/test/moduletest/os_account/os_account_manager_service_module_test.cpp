@@ -1555,6 +1555,28 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest128
 }
 #endif
 
+#ifdef SUPPORT_AUTHORIZATION
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest129
+ * @tc.desc: Test EDM-created admin account is queried as restricted admin type.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest129, TestSize.Level1)
+{
+    OsAccountInfo createdInfo;
+    setuid(3057);
+    ASSERT_EQ(ERR_OK, osAccountManagerService_->CreateOsAccount("Test129EdmAdmin", OsAccountType::ADMIN, createdInfo));
+    setuid(ROOT_UID);
+
+    OsAccountInfo queriedInfo;
+    ASSERT_EQ(ERR_OK, osAccountManagerService_->QueryOsAccountById(createdInfo.GetLocalId(), queriedInfo));
+    EXPECT_EQ(static_cast<int32_t>(OsAccountType::RESTRICTED_ADMIN), static_cast<int32_t>(queriedInfo.GetType()));
+
+    EXPECT_EQ(ERR_OK, osAccountManagerService_->RemoveOsAccount(createdInfo.GetLocalId()));
+}
+#endif // SUPPORT_AUTHORIZATION
+
 /**
  * @tc.name: DeactivateAllOsAccountsModuleTest001
  * @tc.desc: Test DeactivateAllOsAccounts success.

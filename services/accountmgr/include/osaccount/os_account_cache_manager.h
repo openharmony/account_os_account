@@ -36,24 +36,25 @@ public:
     /**
      * Get account type and restricted flag from cache
      * @param id Account ID
-     * @return Optional pair of (type, restricted): restricted=1 means TEE has no entry and type
-     *         is sourced from local file; restricted=0 means type comes directly from TEE.
+     * @return Optional pair of (type, restricted): restricted=true means TEE has no entry and type
+     *         is sourced from local file; restricted=false means type comes directly from TEE.
      */
-    std::optional<std::pair<OsAccountType, int32_t>> GetAccountTypeFromCache(int32_t id);
+    std::optional<std::pair<OsAccountType, bool>> GetAccountTypeFromCache(int32_t id);
 
     /**
      * Set account type in cache
      * @param id Account ID
-     * @param type Account type
-     * @param restricted 0 = type from TEE (authoritative); 1 = TEE has no entry, type from local file
+     * @param typeAndRestricted Pair of account type and restricted flag.
+     *                          restricted=false: type from TEE (authoritative)
+     *                          restricted=true: TEE has no entry, type from local file
      */
-    void SetAccountTypeInCache(int32_t id, OsAccountType type, int32_t restricted = 0);
+    void SetAccountTypeInCache(int32_t id, const std::pair<OsAccountType, bool> &typeAndRestricted);
 
     /**
      * Batch set account types in cache (used for preloading)
      * @param typeMap Map of account ID to (type, restricted) pair
      */
-    void SetAccountTypesInCache(const std::map<int32_t, std::pair<OsAccountType, int32_t>> &typeMap);
+    void SetAccountTypesInCache(const std::map<int32_t, std::pair<OsAccountType, bool>> &typeMap);
 
     /**
      * Clear cache for a specific account
@@ -68,7 +69,7 @@ public:
 
 private:
     mutable std::mutex cacheLock_;
-    std::unordered_map<int32_t, std::pair<OsAccountType, int32_t>> accountTypeCache_;
+    std::unordered_map<int32_t, std::pair<OsAccountType, bool>> accountTypeCache_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
