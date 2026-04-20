@@ -27,7 +27,7 @@ OsAccountCacheManager::~OsAccountCacheManager()
     accountTypeCache_.clear();
 }
 
-std::optional<std::pair<OsAccountType, int32_t>> OsAccountCacheManager::GetAccountTypeFromCache(int32_t id)
+std::optional<std::pair<OsAccountType, bool>> OsAccountCacheManager::GetAccountTypeFromCache(int32_t id)
 {
     std::lock_guard<std::mutex> lock(cacheLock_);
     auto it = accountTypeCache_.find(id);
@@ -37,13 +37,14 @@ std::optional<std::pair<OsAccountType, int32_t>> OsAccountCacheManager::GetAccou
     return std::nullopt;
 }
 
-void OsAccountCacheManager::SetAccountTypeInCache(int32_t id, OsAccountType type, int32_t restricted)
+void OsAccountCacheManager::SetAccountTypeInCache(
+    int32_t id, const std::pair<OsAccountType, bool> &typeAndRestricted)
 {
     std::lock_guard<std::mutex> lock(cacheLock_);
-    accountTypeCache_[id] = {type, restricted};
+    accountTypeCache_[id] = typeAndRestricted;
 }
 
-void OsAccountCacheManager::SetAccountTypesInCache(const std::map<int32_t, std::pair<OsAccountType, int32_t>> &typeMap)
+void OsAccountCacheManager::SetAccountTypesInCache(const std::map<int32_t, std::pair<OsAccountType, bool>> &typeMap)
 {
     std::lock_guard<std::mutex> lock(cacheLock_);
     for (const auto &entry : typeMap) {

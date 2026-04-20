@@ -15,10 +15,8 @@
 
 #include "tee_auth_adapter.h"
 
-#include <fstream>
 #include <securec.h>
 #include <string>
-#include "account_file_operator.h"
 #include "account_log_wrapper.h"
 #include "authorization_manager/privilege_utils.h"  // For GetUptimeMs
 #include "iinner_os_account_manager.h"  // For GetOsAccountInfoById
@@ -232,30 +230,6 @@ public:
         return ERR_OK;
     }
 
-    ErrCode GetEdmBinAndCert(std::vector<uint8_t>& binData, std::vector<uint8_t>& certData)
-    {
-        std::string binPath = "/data/service/el1/public/cust/enterprise/eda.bin";
-        std::string certPath = "/etc/edm/cacert.pem";
-
-        ErrCode errCode = GetFileContextWithNoLock(binPath, binData);
-        if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("Failed to read EDM bin file, path=%{public}s, errCode=%{public}d",
-                         binPath.c_str(), errCode);
-            return errCode;
-        }
-
-        errCode = GetFileContextWithNoLock(certPath, certData);
-        if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("Failed to read EDM cert file, path=%{public}s, errCode=%{public}d",
-                         certPath.c_str(), errCode);
-            return errCode;
-        }
-
-        ACCOUNT_LOGI("Successfully loaded EDM bin and cert, binSize=%{public}zu, certSize=%{public}zu",
-                     binData.size(), certData.size());
-        return ERR_OK;
-    }
-
 private:
     ErrCode PrepareTokenPlainData(const ApplyUserTokenParam& param, UserTokenPlain& tokenPlain)
     {
@@ -423,28 +397,6 @@ private:
         // Check token validity
         return CheckTokenValidity(softwareToken->tokenData, result);
     }
-
-    static ErrCode GetFileContextWithNoLock(const std::string& path, std::vector<uint8_t>& byteData)
-    {
-        AccountFileOperator fileOperator;
-        ErrCode err = fileOperator.CheckFileExistence(path);
-        if (err != ERR_OK) {
-            return err;
-        }
-
-        byteData.clear();
-        std::ifstream file(path);
-        if (!file.is_open()) {
-            return ERR_ACCOUNT_COMMON_FILE_OPEN_FAILED;
-        }
-
-        std::copy(
-            std::istreambuf_iterator<char>(file),
-            std::istreambuf_iterator<char>(),
-            std::back_inserter(byteData));
-
-        return ERR_OK;
-    }
 };
 
 // Public interface implementation - delegates to pImpl
@@ -493,11 +445,6 @@ ErrCode OsAccountTeeAdapter::CheckTimestampExpired(const uint32_t grantTime, con
 ErrCode OsAccountTeeAdapter::TaAcquireAuthorization(const ApplyUserTokenParam& param, ApplyUserTokenResult& result)
 {
     return impl_->TaAcquireAuthorization(param, result);
-}
-
-ErrCode OsAccountTeeAdapter::GetEdmBinAndCert(std::vector<uint8_t>& binData, std::vector<uint8_t>& certData)
-{
-    return impl_->GetEdmBinAndCert(binData, certData);
 }
 
 } // namespace AccountSA

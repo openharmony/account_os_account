@@ -199,24 +199,6 @@ ErrCode ValidateToken(const SetOsAccountTypeOptions &options)
 std::function<ErrCode()> GenerateEdmStrategy(EdmAuthorizationOption &edmOption)
 {
     return [&edmOption]() -> ErrCode {
-        std::vector<uint8_t> binData;
-        std::vector<uint8_t> certData;
-        OsAccountTeeAdapter teeAdapter;
-        ErrCode errCode = teeAdapter.GetEdmBinAndCert(binData, certData);
-        if (errCode == ERR_ACCOUNT_COMMON_FILE_NOT_EXIST) {
-            std::fill(binData.begin(), binData.end(), 0);
-            std::fill(certData.begin(), certData.end(), 0);
-            edmOption.isEdmCalling = true;
-            return ERR_OK;
-        }
-        if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("Failed to get edm bin and cert, errCode: %{public}d", errCode);
-            std::fill(binData.begin(), binData.end(), 0);
-            std::fill(certData.begin(), certData.end(), 0);
-            return errCode;
-        }
-        edmOption.binData = std::move(binData);
-        edmOption.certData = std::move(certData);
         edmOption.isEdmCalling = true;
         return ERR_OK;
     };
@@ -662,8 +644,7 @@ ErrCode OsAccountManagerService::RemoveOsAccount(int32_t id)
 #ifdef SUPPORT_AUTHORIZATION
     RemoveOsAccountOptions options;
     res = PrivilegeCheck(std::nullopt, MANAGE_LOCAL_ACCOUNT_PRIVILEGE_NAME,
-        {{EDM_UID, GenerateEdmStrategy(options)}, {SPACE_MGR_UID, GenerateEdmStrategy(options)},
-        {MAINTENANCE_UID, GenMaintenaceStrategy(id)}});
+        {{SPACE_MGR_UID, GenerateEdmStrategy(options)}, {MAINTENANCE_UID, GenMaintenaceStrategy(id)}});
     if (res != ERR_OK) {
         ACCOUNT_LOGE("Privilege check failed, ret=%{public}d.", res);
         return res;
@@ -682,8 +663,7 @@ ErrCode OsAccountManagerService::RemoveOsAccount(int32_t id, const RemoveOsAccou
 #ifdef SUPPORT_AUTHORIZATION
     RemoveOsAccountOptions dupOption = options;
     res = PrivilegeCheck(options.token, MANAGE_LOCAL_ACCOUNT_PRIVILEGE_NAME,
-        {{EDM_UID, GenerateEdmStrategy(dupOption)}, {SPACE_MGR_UID, GenerateEdmStrategy(dupOption)},
-        {MAINTENANCE_UID, GenMaintenaceStrategy(id)}});
+        {{SPACE_MGR_UID, GenerateEdmStrategy(dupOption)}, {MAINTENANCE_UID, GenMaintenaceStrategy(id)}});
     if (res != ERR_OK) {
         ACCOUNT_LOGE("Privilege check failed, ret=%{public}d.", res);
         return res;
@@ -2597,13 +2577,13 @@ ErrCode OsAccountManagerService::GetDomainInfo(OsAccountInfo &osAccountInfo, boo
 ErrCode OsAccountManagerService::PrivilegeCheck(const std::optional<std::vector<uint8_t>> &token,
     const std::string &privilegeName, const std::map<int32_t, std::function<ErrCode()>> bypassStrategy)
 {
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
-    auto it = bypassStrategy.find(callerUid);
-    if (it != bypassStrategy.end()) {
-        ACCOUNT_LOGW("Caller is in white user list, skip privilege check, uid=%{public}d", callerUid);
-        return it->second();
-    }
     if (!token.has_value()) {
+        int32_t callerUid = IPCSkeleton::GetCallingUid();
+        auto it = bypassStrategy.find(callerUid);
+        if (it != bypassStrategy.end()) {
+            ACCOUNT_LOGW("Caller is in white user list, skip privilege check, uid=%{public}d", callerUid);
+            return it->second();
+        }
         ACCOUNT_LOGW("Token is empty, default deny caller operation.");
         return ERR_JS_AUTHORIZATION_DENIED;
     }
