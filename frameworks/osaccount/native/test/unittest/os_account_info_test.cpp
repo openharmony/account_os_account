@@ -31,7 +31,8 @@ using namespace OHOS::AccountSA;
 namespace {
 const int INT_ID = 12;
 const std::string STRING_NAME = "account";
-const std::string OVER_LENGTH_ACCOUNT_NAME(Constants::LOCAL_NAME_MAX_SIZE + 1, '1');
+const std::string MAX_LENGTH_ACCOUNT_NAME(Constants::LOCAL_NAME_MAX_SIZE - 1, '1');
+const std::string BOUNDARY_LENGTH_ACCOUNT_NAME(Constants::LOCAL_NAME_MAX_SIZE, '1');
 const OsAccountType INT_TYPE = OsAccountType::ADMIN;
 const int64_t STRING_SERIAL_NUMBER = 121012012;
 constexpr std::int32_t UID_TRANSFORM_DIVISOR = 200000;
@@ -1059,14 +1060,16 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccount03, TestSize.Level1)
 HWTEST_F(OsAccountInfoTest, CreateOsAccount04, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
-    EXPECT_NE(CreateOsAccountForTest(OVER_LENGTH_ACCOUNT_NAME, OsAccountType::NORMAL, osAccountInfoOne),
-              ERR_OK);
+    EXPECT_EQ(CreateOsAccountForTest(MAX_LENGTH_ACCOUNT_NAME, OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
+    RemoveOsAccountForTest(osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(CreateOsAccountForTest(BOUNDARY_LENGTH_ACCOUNT_NAME, OsAccountType::NORMAL, osAccountInfoOne),
+              ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     RemoveOsAccountForTest(osAccountInfoOne.GetLocalId());
     OsAccountInfo osAccountInfoTwo;
     CreateOsAccountOptions options;
     options.allowedHapList = std::make_optional<std::vector<std::string>>({});
-    EXPECT_NE(CreateOsAccountForTest(OVER_LENGTH_ACCOUNT_NAME, "sn",
-        OsAccountType::NORMAL, options, osAccountInfoTwo), ERR_OK);
+    EXPECT_EQ(CreateOsAccountForTest(BOUNDARY_LENGTH_ACCOUNT_NAME, "sn",
+        OsAccountType::NORMAL, options, osAccountInfoTwo), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     RemoveOsAccountForTest(osAccountInfoTwo.GetLocalId());
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
