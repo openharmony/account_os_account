@@ -46,6 +46,7 @@ ohos_fuzztest("CreateOsAccountWithFullInfoFuzzTest") {
     "cJSON:cjson",
     "c_utils:utils",
     "hilog:libhilog",
+    "ipc:ipc_single",
   ]
 
   defines = [

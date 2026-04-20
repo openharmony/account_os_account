@@ -246,7 +246,7 @@ HWTEST_F(DeviceAccountInfoTest, OhosAccountInfoTest_005, TestSize.Level3)
     ohosAccountInfoSrc.nickname_ = "test_nickname";
     ohosAccountInfoSrc.avatar_ = "test_avatar";
     ohosAccountInfoSrc.SetRawUid("test_raw_uid");
-    ohosAccountInfoSrc.scalableData_.SetParam("age", 123);
+    ohosAccountInfoSrc.scalableData_ = "";
 
     MessageParcel parcel;
     EXPECT_TRUE(ohosAccountInfoSrc.Marshalling(parcel));

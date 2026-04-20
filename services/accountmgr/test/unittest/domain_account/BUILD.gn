@@ -176,10 +176,12 @@ ohos_unittest("DomainAccountInnerServiceMockTest") {
     "ability_runtime:wantagent_innerkits",
     "access_token:libaccesstoken_sdk",
     "cJSON:cjson",
+    "c_utils:utils",
     "googletest:gmock_main",
     "googletest:gtest_main",
     "hilog:libhilog",
     "init:libbegetutil",
+    "ipc:ipc_single",
   ]
   if (has_ces_part) {
     cflags_cc += [ "-DHAS_CES_PART" ]
