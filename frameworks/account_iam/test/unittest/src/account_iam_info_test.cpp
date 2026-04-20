@@ -22,6 +22,8 @@
 #include "iam_common_defines.h"
 #include "message_parcel.h"
 #include "test_common.h"
+#include "want.h"
+#include "int_wrapper.h"
 
 namespace OHOS {
 namespace AccountTest {
@@ -513,7 +515,13 @@ HWTEST_F(AccountIAMInfoTest, AccountIAMInfo_Marshalling_0700, TestSize.Level3)
     ohosAccountInfo.status_ = TEST_ACCOUNT_STATUS;
     ohosAccountInfo.nickname_ = TEST_ACCOUNT_NICKNAME;
     ohosAccountInfo.avatar_ = TEST_AVATAR;
-    ohosAccountInfo.scalableData_ = "";
+    {
+        AAFwk::WantParams wantParams;
+        wantParams.SetParam(KEY_ACCOUNT_INFO_SCALABLEDATA, AAFwk::Integer::Box(123));
+        AAFwk::Want want;
+        want.SetParams(wantParams);
+        ohosAccountInfo.scalableData_ = want.ToString();
+    }
     EXPECT_TRUE(ohosAccountInfo.Marshalling(parcel));
     AccountSA::OhosAccountInfo *ohosAccountInfo1 = ohosAccountInfo.Unmarshalling(parcel);
     EXPECT_NE(ohosAccountInfo1, nullptr);

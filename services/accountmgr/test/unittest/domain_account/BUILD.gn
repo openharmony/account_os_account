@@ -173,6 +173,8 @@ ohos_unittest("DomainAccountInnerServiceMockTest") {
   ]
 
   external_deps = [
+    "ability_base:base",
+    "ability_base:want",
     "ability_runtime:wantagent_innerkits",
     "access_token:libaccesstoken_sdk",
     "cJSON:cjson",

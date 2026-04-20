@@ -15,7 +15,9 @@
 
 #ifndef OS_ACCOUNT_FRAMEWORKS_OSACCOUNT_CORE_INCLUDE_OS_ACCOUNT_EVENT_LISTENER_H
 #define OS_ACCOUNT_FRAMEWORKS_OSACCOUNT_CORE_INCLUDE_OS_ACCOUNT_EVENT_LISTENER_H
-
+#include <map>
+#include <set>
+#include "account_error_no.h"
 #include "os_account_event_stub.h"
 #include "os_account_subscriber.h"
 

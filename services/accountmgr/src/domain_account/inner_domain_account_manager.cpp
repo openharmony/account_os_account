@@ -675,10 +675,7 @@ static void SetPluginGetDomainAccessTokenOptions(const GetAccessTokenOptions &op
     PluginUint8Vector domainAccountToken;
     SetPluginUint8Vector(token, domainAccountToken);
     PluginString bussinessParams;
-    AAFwk::Want want;
-    want.SetParams(option.getTokenParams_);
-    std::string params = want.ToString();
-    SetPluginString(params, bussinessParams);
+    SetPluginString(option.getTokenParams_, bussinessParams);
     pluginOptions.domainAccountInfo = domainAccountInfo;
     pluginOptions.domainAccountToken = domainAccountToken;
     pluginOptions.bussinessParams = bussinessParams;
@@ -1737,7 +1734,11 @@ ErrCode InnerDomainAccountManager::GetAccessToken(
     if (!GetTokenFromMap(userId, accountToken)) {
         ACCOUNT_LOGI("The target domain account has not authenticated");
     }
-    GetAccessTokenOptions option(callingUid, parameters);
+    GetAccessTokenOptions option(callingUid, [&parameters] {
+        AAFwk::Want want;
+        want.SetParams(parameters);
+        return want.ToString();
+    }());
     std::function<void()> task;
     std::lock_guard<std::mutex> lock(mutex_);
     if (plugin_ == nullptr) {

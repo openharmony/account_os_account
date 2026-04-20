@@ -381,9 +381,18 @@ public:
         const std::shared_ptr<AccountSA::DomainAccountCallback> &callback)
     {
         taihe::array<uint8_t> taiheToken(taihe::copy_data_t{}, accountToken.data(), accountToken.size());
-        AAFwk::WantParams getTokenParams;
         ani_env *env = get_env();
-        auto parametersRef = AppExecFwk::WrapWantParams(env, option.getTokenParams_);
+        AAFwk::WantParams getTokenParams;
+        std::string paramsStr = option.getTokenParams_;
+        if (!paramsStr.empty()) {
+            std::unique_ptr<AAFwk::Want> wantFromParams(AAFwk::Want::FromString(paramsStr));
+            if (wantFromParams != nullptr) {
+                getTokenParams = wantFromParams->GetParams();
+            } else {
+                ACCOUNT_LOGW("Failed to deserialize getTokenParams, businessParams will be empty");
+            }
+        }
+        auto parametersRef = AppExecFwk::WrapWantParams(env, getTokenParams);
         GetDomainAccessTokenOptions domainAccessTokenOptions {
             .domainAccountInfo = ConvertToDomainAccountInfo(domainInfo),
             .domainAccountToken = taiheToken,

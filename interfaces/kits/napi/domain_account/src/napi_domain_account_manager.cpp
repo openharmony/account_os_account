@@ -111,7 +111,17 @@ static napi_value CreateNapiGetAccessTokenOptions(const JsDomainPluginParam *par
     NAPI_CALL(param->env, napi_set_named_property(param->env, napiOptions, "domainAccountInfo", napiDomainAccountInfo));
     napi_value napiAccountToken = CreateUint8Array(param->env, param->authData.data(), param->authData.size());
     NAPI_CALL(param->env, napi_set_named_property(param->env, napiOptions, "domainAccountToken", napiAccountToken));
-    napi_value napiParam = AppExecFwk::WrapWantParams(param->env, param->option.getTokenParams_);
+    std::string paramsStr = param->option.getTokenParams_;
+    AAFwk::WantParams wantParams;
+    if (!paramsStr.empty()) {
+        std::unique_ptr<AAFwk::Want> wantFromParams(AAFwk::Want::FromString(paramsStr));
+        if (wantFromParams != nullptr) {
+            wantParams = wantFromParams->GetParams();
+        } else {
+            ACCOUNT_LOGW("Failed to deserialize getTokenParams, businessParams will be empty");
+        }
+    }
+    napi_value napiParam = AppExecFwk::WrapWantParams(param->env, wantParams);
     NAPI_CALL(param->env, napi_set_named_property(param->env, napiOptions, "businessParams", napiParam));
     napi_value napiUid = nullptr;
     NAPI_CALL(param->env, napi_create_int32(param->env, param->option.callingUid_, &napiUid));
