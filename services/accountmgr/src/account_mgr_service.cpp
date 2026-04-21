@@ -719,7 +719,7 @@ void AccountMgrService::StartOsAccountTypeMigrationAsync()
                 return;
             }
             if (ret == ERR_ACCOUNT_COMMON_TEE_NOT_ALLOW_RECOVERY) {
-                ACCOUNT_LOGW("OS account type migration to TEE returned known code, ret=%{public}d", ret);
+                ACCOUNT_LOGW("OS account type migration to TEE, not allow recovery, ret=%{public}d", ret);
                 return;
             }
             ACCOUNT_LOGW("OS account type migration to TEE failed, ret=%{public}d, retry=%{public}u/%{public}u",
@@ -727,9 +727,9 @@ void AccountMgrService::StartOsAccountTypeMigrationAsync()
             std::this_thread::sleep_for(std::chrono::milliseconds(RETRY_SLEEP_MS));
         }
         // Still fail after retry
-        ACCOUNT_LOGE("Failed to migrate os account types to tee, ret=%{public}d", ret);
+        ACCOUNT_LOGE("Failed to migrate os account types to TEE, ret=%{public}d", ret);
         ReportOsAccountOperationFail(0, MIGRATE_OSACCOUNT_TYPE_TO_TEE, ret,
-            "Failed to migrate os account types to tee");
+            "Failed to migrate os account types to TEE");
     });
     // Detach the thread to run independently
     // The thread will clean up itself when complete
