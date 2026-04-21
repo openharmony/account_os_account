@@ -843,9 +843,13 @@ void PrivilegeCacheManager::StartCleanTask()
     auto task = []() {
         (void) PrivilegeCacheManager::GetInstance().CleanExpiredPrivilegesAndSaveToFile();
     };
+#ifdef FUZZ_TEST
+    task();
+#else
     std::thread thread(task);
     pthread_setname_np(thread.native_handle(), "StartCleanTask");
     thread.detach();
+#endif
 }
 
 void PrivilegeCacheManager::RollbackDelSingleRecord(

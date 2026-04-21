@@ -281,9 +281,13 @@ ErrCode DomainAccountClient::AuthUser(int32_t userId,
             callbackService->OnResult(errCode, emptyDomainParcel);
         }
     };
+#ifdef FUZZ_TEST
+    task();
+#else
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), "DomainAuthThread");
     taskThread.detach();
+#endif
 
     return ERR_OK;
 #else

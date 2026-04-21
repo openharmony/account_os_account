@@ -308,9 +308,13 @@ void AccountFileWatcherMgr::StartWatch() // start watcher
     }
     run_ = true;
     auto task = [this] { this->GetNotifyEvent(); };
+#ifdef FUZZ_TEST
+    task();
+#else
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), "fileWatcher");
     taskThread.detach();
+#endif
 }
 
 void AccountFileWatcherMgr::AddFileWatcher(

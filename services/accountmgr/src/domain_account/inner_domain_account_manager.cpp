@@ -53,17 +53,17 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
+#ifndef FUZZ_TEST
 constexpr char THREAD_AUTH[] = "auth";
 constexpr char THREAD_INNER_AUTH[] = "innerAuth";
-#ifndef FUZZ_TEST
 constexpr char THREAD_AUTH_WITH_PARAM[] = "authWithParam";
 constexpr char THREAD_HAS_ACCOUNT[] = "hasAccount";
 constexpr char THREAD_GET_ACCOUNT[] = "getAccount";
-#endif
 constexpr char THREAD_BIND_ACCOUNT[] = "bindAccount";
 constexpr char THREAD_UNBIND_ACCOUNT[] = "unbindAccount";
 constexpr char THREAD_GET_ACCESS_TOKEN[] = "getAccessToken";
 constexpr char THREAD_IS_ACCOUNT_VALID[] = "isAccountTokenValid";
+#endif
 constexpr char DLOPEN_ERR[] = "dlopen failed";
 constexpr int32_t INVALID_USERID = -1;
 constexpr int32_t ADMIN_USERID = 0;
@@ -1018,9 +1018,13 @@ ErrCode InnerDomainAccountManager::Auth(const DomainAccountInfo &info, const std
             auto task = [this, info, password, innerCallback, plugin = plugin_] {
                 this->StartAuth(plugin, info, password, innerCallback, AUTH_WITH_CREDENTIAL_MODE);
             };
+#ifdef FUZZ_TEST
+            task();
+#else
             std::thread taskThread(task);
             pthread_setname_np(taskThread.native_handle(), THREAD_AUTH);
             taskThread.detach();
+#endif
             return ERR_OK;
         }
     }
@@ -1032,14 +1036,12 @@ ErrCode InnerDomainAccountManager::Auth(const DomainAccountInfo &info, const std
         err = PluginAuth(info, password, contextId);
         if (err == ERR_OK) {
             if (!AddToContextMap(contextId, innerCallback)) {
-                ACCOUNT_LOGE("AddToContextMap failed");
                 return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
             }
             return ERR_OK;
         }
     }
     if (!result.Marshalling(emptyParcel)) {
-        ACCOUNT_LOGE("DomainAuthResult marshalling failed.");
         err = ConvertToJSErrCode(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
     }
     if (innerCallback != nullptr) {
@@ -1404,9 +1406,13 @@ ErrCode InnerDomainAccountManager::InnerAuth(int32_t userId, const std::vector<u
             auto task = [this, domainInfo, authData, innerCallback, authMode, plugin = plugin_] {
                 this->StartAuth(plugin, domainInfo, authData, innerCallback, authMode);
             };
+#ifdef FUZZ_TEST
+            task();
+#else
             std::thread taskThread(task);
             pthread_setname_np(taskThread.native_handle(), THREAD_INNER_AUTH);
             taskThread.detach();
+#endif
             return ERR_OK;
         }
     }
@@ -1414,9 +1420,13 @@ ErrCode InnerDomainAccountManager::InnerAuth(int32_t userId, const std::vector<u
         this->StartPluginAuth(userId, authData, domainInfo, innerCallback, authMode);
     };
     if (authMode != AUTH_WITH_CREDENTIAL_MODE) {
+#ifdef FUZZ_TEST
+        task();
+#else
         std::thread taskThread(task);
         pthread_setname_np(taskThread.native_handle(), THREAD_INNER_AUTH);
         taskThread.detach();
+#endif
         return ERR_OK;
     }
     return StartPluginAuth(userId, authData, domainInfo, innerCallback, authMode);
@@ -1749,9 +1759,13 @@ ErrCode InnerDomainAccountManager::GetAccessToken(
             this->StartGetAccessToken(plugin, accountToken, targetInfo, option, callback);
         };
     }
+#ifdef FUZZ_TEST
+    task();
+#else
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), THREAD_GET_ACCESS_TOKEN);
     taskThread.detach();
+#endif
     return ERR_OK;
 }
 
@@ -2208,9 +2222,13 @@ ErrCode InnerDomainAccountManager::OnAccountBound(const DomainAccountInfo &info,
             this->StartOnAccountBound(plugin, info, localId, callbackService);
         };
     }
+#ifdef FUZZ_TEST
+    task();
+#else
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), THREAD_BIND_ACCOUNT);
     taskThread.detach();
+#endif
     return ERR_OK;
 }
 
@@ -2251,9 +2269,13 @@ ErrCode InnerDomainAccountManager::OnAccountUnBound(const DomainAccountInfo &inf
             this->StartOnAccountUnBound(plugin, info, callbackService);
         };
     }
+#ifdef FUZZ_TEST
+    task();
+#else
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), THREAD_UNBIND_ACCOUNT);
     taskThread.detach();
+#endif
     return ERR_OK;
 }
 
@@ -2496,9 +2518,13 @@ ErrCode InnerDomainAccountManager::IsAccountTokenValid(const DomainAccountInfo &
             this->StartIsAccountTokenValid(plugin, info, token, callbackService);
         };
     }
+#ifdef FUZZ_TEST
+    task();
+#else
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), THREAD_IS_ACCOUNT_VALID);
     taskThread.detach();
+#endif
     return ERR_OK;
 }
 

@@ -399,9 +399,13 @@ ErrCode InnerAuthorizationManager::StartUIExtensionTask(const ConnectAbilityInfo
         this->ExecuteUIExtensionTask(uiInfo, connectCallback, callback, requestRemoteObj);
     };
 
+#ifdef FUZZ_TEST
+    task();
+#else
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), "OnConnectAbility");
     taskThread.detach();
+#endif
     return ERR_OK;
 }
 

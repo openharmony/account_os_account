@@ -24,7 +24,9 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
+#ifndef FUZZ_TEST
 const char THREAD_OS_ACCOUNT_CONSTRAINT_EVENT[] = "OsAccountConstraintEvent";
+#endif
 
 ErrCode ConvertToAccountErrCode(ErrCode idlErrCode)
 {
@@ -56,9 +58,13 @@ ErrCode OsAccountConstraintSubscriberManager::OnConstraintChanged(
             auto task = [subscriber, data]() mutable {
                 subscriber->OnConstraintChanged(data);
             };
+#ifdef FUZZ_TEST
+            task();
+#else
             std::thread taskThread(task);
             pthread_setname_np(taskThread.native_handle(), THREAD_OS_ACCOUNT_CONSTRAINT_EVENT);
             taskThread.detach();
+#endif
         }
     }
     return ERR_OK;
