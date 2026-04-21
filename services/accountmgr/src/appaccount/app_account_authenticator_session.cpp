@@ -30,7 +30,9 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
+#ifndef FUZZ_TEST
 const char THREAD_AUTH_SESSION[] = "authSession";
+#endif
 ErrCode ConvertToAccountErrCode(ErrCode idlErrCode, int32_t funcResult)
 {
     if (idlErrCode == ERR_OK) {
@@ -149,9 +151,13 @@ ErrCode AppAccountAuthenticatorSession::Open()
     auto task = [want, this] {
         AbilityManagerAdapter::GetInstance()->ConnectAbility(want, this->conn_, nullptr, this->userId_);
     };
+#ifdef FUZZ_TEST
+    task();
+#else
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), THREAD_AUTH_SESSION);
     taskThread.detach();
+#endif
     isOpened_ = true;
     return ERR_OK;
 }
