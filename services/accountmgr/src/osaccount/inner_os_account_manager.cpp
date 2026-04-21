@@ -2442,7 +2442,7 @@ ErrCode IInnerOsAccountManager::MigrateOsAccountTypesToTEE()
         ACCOUNT_LOGI("No valid accounts to migrate");
     }
 
-    return ERR_OK;
+    return errCode;
 #else
     // If TEE is not supported, migration is not needed
     ACCOUNT_LOGI("TEE is not supported, skip migration");

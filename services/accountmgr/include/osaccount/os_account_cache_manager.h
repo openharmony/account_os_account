@@ -37,7 +37,7 @@ public:
      * Get account type and restricted flag from cache
      * @param id Account ID
      * @return Optional pair of (type, restricted): restricted=true means TEE has no entry and type
-     *         is sourced from local file; restricted=false means type comes directly from TEE.
+     * is sourced from local file; restricted=false means type comes directly from TEE.
      */
     std::optional<std::pair<OsAccountType, bool>> GetAccountTypeFromCache(int32_t id);
 
@@ -45,8 +45,8 @@ public:
      * Set account type in cache
      * @param id Account ID
      * @param typeAndRestricted Pair of account type and restricted flag.
-     *                          restricted=false: type from TEE (authoritative)
-     *                          restricted=true: TEE has no entry, type from local file
+     * restricted=false: type from TEE (authoritative)
+     * restricted=true: TEE has no entry, type from local file
      */
     void SetAccountTypeInCache(int32_t id, const std::pair<OsAccountType, bool> &typeAndRestricted);
 

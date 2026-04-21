@@ -68,7 +68,11 @@ HWTEST_F(IInnerOsAccountManagerMigrationTest, MigrateOsAccountTypesToTEE001, Tes
     // This should not crash even if TEE is not available
     ErrCode ret = innerMgrService_->MigrateOsAccountTypesToTEE();
     // In normal test environment without TEE, should return OK (skip gracefully)
+#ifdef SUPPORT_AUTHORIZATION
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_OPERATION_FAIL);
+#else
     EXPECT_EQ(ret, ERR_OK);
+#endif
 }
 
 /**
@@ -87,7 +91,11 @@ HWTEST_F(IInnerOsAccountManagerMigrationTest, MigrateOsAccountTypesToTEE002, Tes
     // Now test migration
     ret = innerMgrService_->MigrateOsAccountTypesToTEE();
     // Should succeed even if TEE operations fail
+#ifdef SUPPORT_AUTHORIZATION
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_OPERATION_FAIL);
+#else
     EXPECT_EQ(ret, ERR_OK);
+#endif
 
     // Verify account list remains unchanged
     std::vector<OsAccountInfo> afterAccounts;
@@ -107,7 +115,11 @@ HWTEST_F(IInnerOsAccountManagerMigrationTest, MigrateOsAccountTypesToTEE003, Tes
     // Test that to-be-removed accounts are properly skipped
     // Migration should not crash or fail even if accounts exist
     ErrCode ret = innerMgrService_->MigrateOsAccountTypesToTEE();
+#ifdef SUPPORT_AUTHORIZATION
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_OPERATION_FAIL);
+#else
     EXPECT_EQ(ret, ERR_OK);
+#endif
 }
 
 } // namespace AccountSA
