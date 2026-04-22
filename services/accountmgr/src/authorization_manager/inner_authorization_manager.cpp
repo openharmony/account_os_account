@@ -211,20 +211,31 @@ ErrCode InnerAuthorizationManager::CallTaAuthorization(const std::vector<uint8_t
     param.grantUserId = accountId;
     int32_t ret = memcpy_s(param.permission, sizeof(param.permission), info.privilege.data(), info.privilege.size());
     if (ret != EOK) {
-        ACCOUNT_LOGE("Get privilege failed duo to memcpy_s failed, %{public}d", ret);
+        ACCOUNT_LOGE("Get privilege failed due to memcpy_s failed, %{public}d", ret);
         REPORT_OS_ACCOUNT_FAIL(accountId, PRIVILEGE_OPT_ACQUIRE_AUTH, ret,
-            "Get privilege failed duo to memcpy_s failed");
+            "Get privilege failed due to memcpy_s failed");
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
     param.permissionSize = info.privilege.size();
-    ret = memcpy_s(param.authToken, sizeof(param.authToken), iamToken.data(), iamToken.size() * sizeof(uint8_t));
-    if (ret != EOK) {
-        ACCOUNT_LOGE("Get tokem failed duo to memcpy_s failed, %{public}d", ret);
-        REPORT_OS_ACCOUNT_FAIL(accountId, PRIVILEGE_OPT_ACQUIRE_AUTH, ret,
-            "Get token failed duo to memcpy_s failed");
-        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    param.authTokenSize = 0;
+    (void)memset_s(param.authToken, sizeof(param.authToken), 0, sizeof(param.authToken));
+    if (iamToken.size() > AUTH_TOKEN_LEN) {
+        ACCOUNT_LOGE("AuthToken size %{public}zu exceeds maximum", iamToken.size());
+        REPORT_OS_ACCOUNT_FAIL(accountId, PRIVILEGE_OPT_ACQUIRE_AUTH, ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
+            "AuthToken size exceeds maximum");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
-    param.authTokenSize = iamToken.size();
+    if (iamToken.size() != 0) {
+        ret = memcpy_s(param.authToken, sizeof(param.authToken), iamToken.data(), iamToken.size());
+        if (ret != EOK) {
+            ACCOUNT_LOGE("Get token failed due to memcpy_s failed, %{public}d", ret);
+            REPORT_OS_ACCOUNT_FAIL(accountId, PRIVILEGE_OPT_ACQUIRE_AUTH, ret,
+                "Get token failed due to memcpy_s failed");
+            return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+        }
+        param.authTokenSize = iamToken.size();
+    }
+
     param.grantValidityPeriod = info.timeout;
 
     OsAccountTeeAdapter teeAdapter;
