@@ -72,7 +72,9 @@ namespace {
 const char OPERATION_UPDATE[] = "update";
 #ifdef SUPPORT_AUTHORIZATION
 const char OPERATION_GET_TYPE[] = "getType";
+#ifndef IS_EMULATOR
 const char MANAGE_LOCAL_ACCOUNTS[] = "ohos.permission.MANAGE_LOCAL_ACCOUNTS";
+#endif // IS_EMULATOR
 #endif // SUPPORT_AUTHORIZATION
 const char OPERATION_SET_TYPE[] = "setType";
 const char OPERATION_SET_TO_BE_REMOVED[] = "setToBeRemoved";
