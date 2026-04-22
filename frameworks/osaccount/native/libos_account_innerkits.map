@@ -267,6 +267,8 @@
         "OHOS::AccountSA::OsAccountInfo::GetCreatorType() const";
         *OHOS::AccountSA::OsAccountInfo::SetDisplayId*;
         *OHOS::AccountSA::OsAccountInfo::GetDisplayId*;
+        "OHOS::AccountSA::OsAccountInfo::SetVersion(int)";
+        "OHOS::AccountSA::OsAccountInfo::GetVersion() const";
         "OHOS::AccountSA::OsAccountInfo::OsAccountInfo(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, OHOS::AccountSA::OsAccountType, long long)";
         "OHOS::AccountSA::OsAccountInfo::OsAccountInfo(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, OHOS::AccountSA::OsAccountType, long)";
         "OHOS::AccountSA::OsAccountInfo::OsAccountInfo(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, OHOS::AccountSA::OsAccountType)";

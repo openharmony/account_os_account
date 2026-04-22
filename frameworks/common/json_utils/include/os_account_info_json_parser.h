@@ -44,6 +44,7 @@ const char IS_FOREGROUND[] = "isForeground";
 const char IS_LOGGED_IN[] = "isLoggedIn";
 const char IS_DATA_REMOVABLE[] = "isDataRemovable";
 const char CREATOR_TYPE[] = "creatorType";
+const char VERSION[] = "version";
 const char DOMAIN_ACCOUNT_STATUS[] = "domainAccountStatus";
 const char DOMAIN_ACCOUNT_CONFIG[] = "domainServerConfigId";
 const char DOMAIN_ACCOUNT_ADDITION[] = "domainAdditionInfo";
