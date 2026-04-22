@@ -44,6 +44,7 @@ CJsonUnique ToJson(const OsAccountInfo &accountInfo)
     AddBoolToJson(jsonObject, IS_LOGGED_IN, accountInfo.isLoggedIn_);
     AddBoolToJson(jsonObject, IS_DATA_REMOVABLE, accountInfo.isDataRemovable_);
     AddIntToJson(jsonObject, CREATOR_TYPE, accountInfo.creatorType_);
+    AddIntToJson(jsonObject, VERSION, accountInfo.version_);
 
     auto domainInfoObject = CreateJson();
     AddStringToJson(domainInfoObject, DOMAIN_NAME, accountInfo.domainInfo_.domain_);
@@ -82,6 +83,7 @@ bool FromJson(cJSON *jsonObject, OsAccountInfo &accountInfo)
     GetDataByType<bool>(jsonObject, IS_LOGGED_IN, accountInfo.isLoggedIn_);
     GetDataByType<bool>(jsonObject, IS_DATA_REMOVABLE, accountInfo.isDataRemovable_);
     GetDataByType<int32_t>(jsonObject, CREATOR_TYPE, accountInfo.creatorType_);
+    GetDataByType<int32_t>(jsonObject, VERSION, accountInfo.version_);
 
     CJson *typeJson = nullptr;
     GetDataByType<CJson *>(jsonObject, DOMAIN_INFO, typeJson);

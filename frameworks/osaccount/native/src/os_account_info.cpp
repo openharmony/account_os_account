@@ -168,6 +168,16 @@ void OsAccountInfo::SetCreatorType(int32_t creatorType)
     creatorType_ = creatorType;
 }
 
+int32_t OsAccountInfo::GetVersion() const
+{
+    return version_;
+}
+
+void OsAccountInfo::SetVersion(int32_t version)
+{
+    version_ = version;
+}
+
 bool OsAccountInfo::SetDomainInfo(const DomainAccountInfo &domainInfo)
 {
     if (domainInfo.accountName_.size() >= Constants::LOCAL_NAME_MAX_SIZE) {
