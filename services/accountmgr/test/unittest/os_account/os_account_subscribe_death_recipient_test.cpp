@@ -541,5 +541,42 @@ HWTEST_F(OsAccountCoverageTest, SubscribeConstraints_005, TestSize.Level1)
     result = OsAccountConstraintManager::GetInstance().UnsubscribeOsAccountConstraints(info, listener);
     EXPECT_EQ(result, ERR_OK);
 }
+
+/**
+ * @tc.name: SubscribeConstraints_006
+ * @tc.desc: Test SubscribeOsAccountConstraints publish
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountCoverageTest, SubscribeConstraints_006, TestSize.Level1)
+{
+    std::set<std::string> constraints;
+    constraints = {"constraint.wifi"};
+    OsAccountConstraintSubscribeInfo info(constraints);
+    OsAccountConstraintSubscribeInfo info1(constraints);
+    info1.enableAcross = true;
+    info1.localId = 100;
+    info1.enableAcross = false;
+    info1.localId = 101;
+    sptr<MockAccountMgrService> listener = new (std::nothrow) MockAccountMgrService();
+    ASSERT_NE(nullptr, listener);
+    ErrCode result = OsAccountConstraintManager::GetInstance().SubscribeOsAccountConstraints(info, listener);
+    EXPECT_EQ(result, ERR_OK);
+    OsAccountConstraintManager::GetInstance().Publish(100, constraints, true);
+    OsAccountConstraintManager::GetInstance().Publish(101, constraints, true);
+
+    sptr<MockAccountMgrService> listener1 = new (std::nothrow) MockAccountMgrService();
+    ASSERT_NE(nullptr, listener1);
+    result = OsAccountConstraintManager::GetInstance().SubscribeOsAccountConstraints(info1, listener1);
+    EXPECT_EQ(result, ERR_OK);
+    OsAccountConstraintManager::GetInstance().Publish(100, constraints, true);
+    OsAccountConstraintManager::GetInstance().Publish(101, constraints, true);
+
+    result = OsAccountConstraintManager::GetInstance().UnsubscribeOsAccountConstraints(info, listener);
+    EXPECT_EQ(result, ERR_OK);
+    result = OsAccountConstraintManager::GetInstance().UnsubscribeOsAccountConstraints(info1, listener1);
+    EXPECT_EQ(result, ERR_OK);
+}
+
 }  // namespace AccountSA
 }  // namespace OHOS

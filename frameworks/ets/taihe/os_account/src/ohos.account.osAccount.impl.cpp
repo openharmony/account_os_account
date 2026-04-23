@@ -382,9 +382,6 @@ static bool CheckAuthTypes(array_view<AuthType> intCredTypes, std::vector<UserIa
             credentialTypes.push_back(static_cast<UserIam::UserAuth::AuthType>(static_cast<int32_t>(inputType)));
         }
     }
-    if ((!invalidFlag) && (!unsupportFlag)) {
-        return true;
-    }
     if (invalidFlag) {
         ACCOUNT_LOGE("One or more auth types are invalid");
         std::string errMsg = "One or more auth types are invalid: " + invalids;
@@ -397,6 +394,7 @@ static bool CheckAuthTypes(array_view<AuthType> intCredTypes, std::vector<UserIa
         taihe::set_business_error(ERR_JS_AUTH_TYPE_NOT_SUPPORTED, errMsg);
         return false;
     }
+    return true;
 }
 
 class THGetInfoCallback : public AccountSA::GetCredInfoCallback {
