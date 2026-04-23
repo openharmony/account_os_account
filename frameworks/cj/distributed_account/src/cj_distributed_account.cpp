@@ -43,10 +43,12 @@ CJDistributedInfo convertToCJInfo(AccountSA::OhosAccountInfo ohosInfo)
     return cjInfo;
 }
 
-AccountSA::OhosAccountInfo getOhosInfoFromCJInfo(CJDistributedInfo cjInfo)
+ErrCode getOhosInfoFromCJInfo(CJDistributedInfo cjInfo, AccountSA::OhosAccountInfo &ohosInfo)
 {
-    AccountSA::OhosAccountInfo ohosInfo;
-    OhosAccountKits::GetInstance().GetOhosAccountInfo(ohosInfo);
+    ErrCode errCode = OhosAccountKits::GetInstance().GetOhosAccountInfo(ohosInfo);
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
     if (cjInfo.name != nullptr) {
         ohosInfo.name_ = cjInfo.name;
     }
@@ -67,7 +69,7 @@ AccountSA::OhosAccountInfo getOhosInfoFromCJInfo(CJDistributedInfo cjInfo)
             ohosInfo.scalableData_ = *scalableWant;
         }
     }
-    return ohosInfo;
+    return ERR_OK;
 }
 
 extern "C"
@@ -84,8 +86,13 @@ extern "C"
 
     void FfiOHOSDistributedAccountUnitSetOsAccountDistributedInfo(CJDistributedInfo cjInfo, int32_t *errCode)
     {
-        AccountSA::OhosAccountInfo ohosAccountInfo = getOhosInfoFromCJInfo(cjInfo);
+        AccountSA::OhosAccountInfo ohosAccountInfo;
+        ErrCode result = getOhosInfoFromCJInfo(cjInfo, ohosAccountInfo);
         if (errCode == nullptr) {
+            return;
+        }
+        if (result != ERR_OK) {
+            *errCode = ConvertToJSErrCode(result);
             return;
         }
         *errCode = ConvertToJSErrCode(
