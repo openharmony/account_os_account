@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,6 +20,11 @@
 
 namespace OHOS {
 namespace AccountSA {
+// Atomic flags for plugin registration status, initialized to false
+// These flags control whether HiSysEvent reporting should be performed
+std::atomic<bool> DomainHisyseventUtils::jsPluginRegistered_(false);
+std::atomic<bool> DomainHisyseventUtils::nativePluginRegistered_(false);
+
 static std::string GetOperationName(PluginMethodEnum methodEnum)
 {
     switch (methodEnum) {
@@ -79,6 +84,10 @@ static void GetLocalIdFromDomain(int32_t& userId, const DomainAccountInfo& domai
 void DomainHisyseventUtils::ReportStatistic(const std::string &optName, int32_t userId,
     const DomainAccountInfo &domainInfo)
 {
+    // Only report HiSysEvent when plugin is registered to avoid unnecessary logging
+    if (!IsPluginRegistered()) {
+        return;
+    }
     if (optName == Constants::DOMAIN_OPT_GET_CONFIG || optName == Constants::DOMAIN_OPT_GET_INFO ||
         optName == Constants::DOMAIN_OPT_GET_POLICY) {
         return;
@@ -101,6 +110,10 @@ void DomainHisyseventUtils::ReportStatistic(PluginMethodEnum methodEnum, int32_t
 void DomainHisyseventUtils::ReportFail(const int32_t errCode, const std::string &msg, const std::string &optName,
     int32_t userId, const DomainAccountInfo &domainInfo)
 {
+    // Only report HiSysEvent when plugin is registered to avoid unnecessary logging
+    if (!IsPluginRegistered()) {
+        return;
+    }
     if (userId == -1 && domainInfo.accountName_.empty()) {
         DomainHisysEventInfo eventInfo(-1, optName);
         return ReportDomainAccountOperationFail(eventInfo, errCode, msg);
@@ -113,6 +126,10 @@ void DomainHisyseventUtils::ReportFail(const int32_t errCode, const std::string 
 void DomainHisyseventUtils::ReportFail(const int32_t errCode, const std::string &msg, const std::string &optName,
     int32_t userId, const GetDomainAccountInfoOptions &options)
 {
+    // Only report HiSysEvent when plugin is registered to avoid unnecessary logging
+    if (!IsPluginRegistered()) {
+        return;
+    }
     DomainAccountInfo domainInfo = options.accountInfo;
     if (userId == -1 && domainInfo.accountName_.empty()) {
         DomainHisysEventInfo eventInfo(-1, optName, options.callingUid);
@@ -127,6 +144,24 @@ void DomainHisyseventUtils::ReportFail(const int32_t errCode, const std::string 
     int32_t userId, const DomainAccountInfo &domainInfo)
 {
     ReportFail(errCode, msg, GetOperationName(methodEnum), userId, domainInfo);
+}
+
+void DomainHisyseventUtils::SetJsPluginRegistered(bool isRegistered)
+{
+    // Set JS plugin registration flag atomically
+    jsPluginRegistered_.store(isRegistered);
+}
+
+void DomainHisyseventUtils::SetNativePluginRegistered(bool isRegistered)
+{
+    // Set native plugin registration flag atomically
+    nativePluginRegistered_.store(isRegistered);
+}
+
+bool DomainHisyseventUtils::IsPluginRegistered()
+{
+    // Return true if either JS plugin or native plugin is registered
+    return jsPluginRegistered_.load() || nativePluginRegistered_.load();
 }
 } // AccountSA
 } // OHOS
