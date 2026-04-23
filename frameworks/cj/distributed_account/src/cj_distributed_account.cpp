@@ -86,11 +86,11 @@ extern "C"
 
     void FfiOHOSDistributedAccountUnitSetOsAccountDistributedInfo(CJDistributedInfo cjInfo, int32_t *errCode)
     {
-        AccountSA::OhosAccountInfo ohosAccountInfo;
-        ErrCode result = getOhosInfoFromCJInfo(cjInfo, ohosAccountInfo);
         if (errCode == nullptr) {
             return;
         }
+        AccountSA::OhosAccountInfo ohosAccountInfo;
+        ErrCode result = getOhosInfoFromCJInfo(cjInfo, ohosAccountInfo);
         if (result != ERR_OK) {
             *errCode = ConvertToJSErrCode(result);
             return;

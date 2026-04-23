@@ -350,7 +350,6 @@ int32_t CJAppAccountImpl::on(
 
 void CJAppAccountImpl::GetSubscriberByUnsubscribe(std::vector<std::shared_ptr<SubscribePtr>> &subscribers)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
     for (auto item : g_appAccountSubscribes) {
         subscribers.emplace_back(item->subscriber);
     }
@@ -366,11 +365,11 @@ int32_t CJAppAccountImpl::off(std::string type, void (*callback)(CArrAppAccountI
     }
     context->type = type;
     context->callbackRef = CJLambda::Create(callback);
-    std::vector<std::shared_ptr<SubscribePtr>> subscribers = {nullptr};
+    std::lock_guard<std::mutex> lock(mutex_);
+    std::vector<std::shared_ptr<SubscribePtr>> subscribers;
     GetSubscriberByUnsubscribe(subscribers);
     context->subscribers = subscribers;
     if (callback == nullptr) {
-        std::lock_guard<std::mutex> lock(mutex_);
         for (auto offSubscriber : context->subscribers) {
             int32_t ret = ConvertToJSErrCode(AppAccountManager::UnsubscribeAppAccount(offSubscriber));
             if (ret != ERR_OK) {
@@ -381,9 +380,8 @@ int32_t CJAppAccountImpl::off(std::string type, void (*callback)(CArrAppAccountI
             delete item;
         }
         g_appAccountSubscribes.clear();
-        std::vector<AsyncContextForSubscribe *>().swap(g_appAccountSubscribes);
+        g_appAccountSubscribes.shrink_to_fit();
     } else {
-        std::lock_guard<std::mutex> lock(mutex_);
         for (size_t idx = 0; idx < context->subscribers.size(); ++idx) {
             if (!IsSameFunction(&context->callbackRef, &context->subscribers[idx]->ref_)) {
                 continue;
