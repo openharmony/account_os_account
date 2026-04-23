@@ -198,7 +198,7 @@ ErrCode DomainAccountManagerService::AuthUser(int32_t userId, const std::vector<
         return result;
     }
     if (userId < START_USER_ID) {
-        ACCOUNT_LOGE("invalid userId");
+        ACCOUNT_LOGE("invalid userId, userId=%{public}d", userId);
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     return InnerDomainAccountManager::GetInstance().AuthUser(userId, password, callback);
@@ -220,7 +220,7 @@ ErrCode DomainAccountManagerService::AuthWithPopup(int32_t userId, const sptr<ID
         return result;
     }
     if (userId < 0) {
-        ACCOUNT_LOGE("invalid userId");
+        ACCOUNT_LOGE("invalid userId, userId=%{public}d", userId);
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     return InnerDomainAccountManager::GetInstance().AuthWithPopup(userId, callback);
@@ -347,7 +347,7 @@ ErrCode DomainAccountManagerService::CheckPermission(IDomainAccountIpcCode code)
     }
     const auto& it = PERMISSIONMAP.find(code);
     if (it == PERMISSIONMAP.end()) {
-        ACCOUNT_LOGE("No specific permission defined for code %{public}d, returning OK", static_cast<int>(code));
+        ACCOUNT_LOGI("No specific permission defined for code %{public}d, returning OK", static_cast<int>(code));
         return ERR_OK;
     }
     const auto& requiredPermissions = it->second;
@@ -359,6 +359,7 @@ ErrCode DomainAccountManagerService::CheckPermission(IDomainAccountIpcCode code)
             return AccountPermissionManager::VerifyPermission(permission) == ERR_OK;
         });
     if (!hasAnyPermission) {
+        ACCOUNT_LOGE("Permission denied, code = %{public}d.", static_cast<int>(code));
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     return ERR_OK;

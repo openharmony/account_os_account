@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -182,23 +182,25 @@ InnerDomainAccountManager &InnerDomainAccountManager::GetInstance()
 InnerDomainAuthCallback::InnerDomainAuthCallback(int32_t userId, const sptr<IDomainAccountCallback> &callback)
     : userId_(userId), callback_(callback)
 {
-    if (callback_ == nullptr) {
+    if (callback_ == nullptr || callback_->AsObject() == nullptr) {
+        ACCOUNT_LOGE("Callback_ or callback_->AsObject() is nullptr.");
         return;
     }
     deathRecipient_ = sptr<DomainAccountAuthDeathRecipient>::MakeSptr(userId);
     if (!callback_->AsObject()->AddDeathRecipient(deathRecipient_)) {
-        ACCOUNT_LOGE("AddDeathRecipient failed");
+        ACCOUNT_LOGE("Plugin AddDeathRecipient failed, please check callback status");
         deathRecipient_ = nullptr;
     }
 }
 
 InnerDomainAuthCallback::~InnerDomainAuthCallback()
 {
-    if ((callback_ == nullptr) || (deathRecipient_ == nullptr)) {
+    if ((callback_ == nullptr) || callback_->AsObject() == nullptr || (deathRecipient_ == nullptr)) {
+        ACCOUNT_LOGE("Callback_ or callback_->AsObject() or deathRecipient_ is nullptr.");
         return;
     }
     if (!callback_->AsObject()->RemoveDeathRecipient(deathRecipient_)) {
-        ACCOUNT_LOGE("RemoveDeathRecipient failed");
+        ACCOUNT_LOGE("Plugin RemoveDeathRecipient failed, please check callback status");
     }
 }
 
@@ -224,7 +226,7 @@ ErrCode InnerDomainAuthCallback::OnResult(int32_t errCode, const DomainAccountPa
         std::lock_guard<std::recursive_mutex> lock(InnerDomainAccountManager::GetInstance().authContextIdMapMutex_);
         uint64_t contextId = 0;
         if (!InnerDomainAccountManager::GetInstance().FindCallbackInContextMap(callback_, contextId)) {
-            ACCOUNT_LOGW("Cannot find contextId for callback, maybe has been cancelled");
+            ACCOUNT_LOGE("Cannot find contextId for callback, maybe has been cancelled");
             REPORT_DOMAIN_ACCOUNT_FAIL(ERR_JS_INVALID_CONTEXT_ID, "Cannot find contextId for callback",
                 Constants::DOMAIN_OPT_AUTH, userId_);
             return ERR_OK;
@@ -251,7 +253,7 @@ ErrCode InnerDomainAuthCallback::OnResult(int32_t errCode, const DomainAccountPa
     authResult->token.clear();
 
     if (!(*authResult).Marshalling(resultParcel)) {
-        ACCOUNT_LOGE("authResult Marshalling failed");
+        ACCOUNT_LOGE("DomainAuthResult Marshalling failed, please check data format");
         CallbackOnResult(callback_, ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR, resultParcel);
         return ERR_OK;
     }
@@ -301,11 +303,13 @@ ErrCode InnerDomainAccountManager::RegisterPlugin(const sptr<IDomainAccountPlugi
     auto deathRecipient = GetDeathRecipient();
     if ((plugin->AsObject()->IsProxyObject()) &&
         ((deathRecipient == nullptr) || (!plugin->AsObject()->AddDeathRecipient(deathRecipient)))) {
-        ACCOUNT_LOGE("failed to add death recipient for plugin");
+        ACCOUNT_LOGE("Plugin add death recipient failed, please check plugin status");
         return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
     }
     plugin_ = plugin;
     callingUid_ = IPCSkeleton::GetCallingUid();
+    // Mark JS plugin as registered to enable HiSysEvent reporting
+    DomainHisyseventUtils::SetJsPluginRegistered(true);
     return ERR_OK;
 }
 
@@ -327,6 +331,8 @@ ErrCode InnerDomainAccountManager::UnregisterPlugin()
     plugin_ = nullptr;
     callingUid_ = -1;
     deathRecipient_ = nullptr;
+    // Mark JS plugin as unregistered to disable HiSysEvent reporting
+    DomainHisyseventUtils::SetJsPluginRegistered(false);
     return ERR_OK;
 }
 
@@ -340,7 +346,7 @@ ErrCode InnerDomainAccountManager::StartAuth(const sptr<IDomainAccountPlugin> &p
     Parcel emptyParcel;
     AccountSA::DomainAuthResult emptyResult;
     if (!emptyResult.Marshalling(emptyParcel)) {
-        ACCOUNT_LOGE("authResult Marshalling failed");
+        ACCOUNT_LOGE("DomainAuthResult Marshalling failed, please check data format");
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
     if (plugin == nullptr) {
@@ -365,7 +371,7 @@ ErrCode InnerDomainAccountManager::StartAuth(const sptr<IDomainAccountPlugin> &p
             break;
     }
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("failed to auth domain account, errCode: %{public}d", errCode);
+        ACCOUNT_LOGE("Failed to auth domain account, errCode: %{public}d", errCode);
         DomainAccountParcel domainAccountParcel;
         domainAccountParcel.SetParcelData(emptyParcel);
         callback->OnResult(ConvertToJSErrCode(errCode), domainAccountParcel);
@@ -379,7 +385,7 @@ ErrCode InnerDomainAccountManager::GetDomainAccountInfoByUserId(int32_t userId, 
     OsAccountInfo accountInfo;
     ErrCode errCode = IInnerOsAccountManager::GetInstance().GetRealOsAccountInfoById(userId, accountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("get os account info failed, errCode: %{public}d", errCode);
+        ACCOUNT_LOGE("Failed to get os account info, errCode: %{public}d", errCode);
         REPORT_DOMAIN_ACCOUNT_FAIL(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR,
             "Get userId is invalid", Constants::DOMAIN_OPT_ADD_CONFIG, -1);
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
@@ -420,7 +426,9 @@ void InnerDomainAccountManager::LoaderLib(const std::string &path, const std::st
     for (auto i = 0; i < static_cast<int>(PluginMethodEnum::COUNT); ++i) {
         std::string methodName = GetMethodNameByEnum(static_cast<PluginMethodEnum>(i));
         if (methodName.empty()) {
-            ACCOUNT_LOGE("Call check methodName emtpty");
+            ACCOUNT_LOGE("Call check methodName empty");
+            REPORT_DOMAIN_ACCOUNT_FAIL(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, "Check methodName empty",
+                Constants::DOMAIN_OPT_REGISTER, ADMIN_USERID);
             libHandle_ = nullptr;
             methodMap_.clear();
             return;
@@ -439,6 +447,8 @@ void InnerDomainAccountManager::LoaderLib(const std::string &path, const std::st
         }
         methodMap_.emplace(static_cast<PluginMethodEnum>(i), func);
     }
+    // Mark native plugin as registered to enable HiSysEvent reporting
+    DomainHisyseventUtils::SetNativePluginRegistered(true);
 }
 
 void InnerDomainAccountManager::CloseLib()
@@ -453,6 +463,8 @@ void InnerDomainAccountManager::CloseLib()
     dlclose(libHandle_);
     libHandle_ = nullptr;
     methodMap_.clear();
+    // Mark native plugin as unregistered to disable HiSysEvent reporting
+    DomainHisyseventUtils::SetNativePluginRegistered(false);
     DomainHisyseventUtils::ReportStatistic(Constants::DOMAIN_OPT_UNREGISTER, ADMIN_USERID);
 }
 
@@ -702,13 +714,14 @@ ErrCode InnerDomainAccountManager::AddServerConfig(
     }
     auto iter = methodMap_.find(PluginMethodEnum::ADD_SERVER_CONFIG);
     if (iter == methodMap_.end() || iter->second == nullptr) {
-        ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::ADD_SERVER_CONFIG);
+        ACCOUNT_LOGE("Caller method=%{public}d not exist.", PluginMethodEnum::ADD_SERVER_CONFIG);
         REPORT_DOMAIN_ACCOUNT_FAIL(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST,
-            "Method AddServerConfig not exsit", Constants::DOMAIN_OPT_ADD_CONFIG, -1);
+            "Method AddServerConfig not exist", Constants::DOMAIN_OPT_ADD_CONFIG, -1);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
     int32_t localId = GetCallingUserID();
     if (localId == INVALID_USERID) {
+        ACCOUNT_LOGE("Calling localid is invalid, callingUid=%{public}d", IPCSkeleton::GetCallingUid());
         REPORT_DOMAIN_ACCOUNT_FAIL(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR,
             "Get userId is invalid", Constants::DOMAIN_OPT_ADD_CONFIG, -1);
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
@@ -732,13 +745,14 @@ ErrCode InnerDomainAccountManager::RemoveServerConfig(const std::string &configI
     }
     auto iter = methodMap_.find(PluginMethodEnum::REMOVE_SERVER_CONFIG);
     if (iter == methodMap_.end() || iter->second == nullptr) {
-        ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::REMOVE_SERVER_CONFIG);
+        ACCOUNT_LOGE("Caller method=%{public}d not exist.", PluginMethodEnum::REMOVE_SERVER_CONFIG);
         REPORT_DOMAIN_ACCOUNT_FAIL(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST,
-            "Method RemoveServerConfig not exsit", Constants::DOMAIN_OPT_REMOVE_CONFIG, -1);
+            "Method RemoveServerConfig not exist", Constants::DOMAIN_OPT_REMOVE_CONFIG, -1);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
     int32_t localId = GetCallingUserID();
     if (localId == -1) {
+        ACCOUNT_LOGE("Calling localid is invalid, callingUid=%{public}d", IPCSkeleton::GetCallingUid());
         REPORT_DOMAIN_ACCOUNT_FAIL(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR,
             "Get userId is invalid", Constants::DOMAIN_OPT_REMOVE_CONFIG, -1);
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
@@ -765,13 +779,14 @@ ErrCode InnerDomainAccountManager::UpdateServerConfig(const std::string &configI
     }
     auto iter = methodMap_.find(PluginMethodEnum::UPDATE_SERVER_CONFIG);
     if (iter == methodMap_.end() || iter->second == nullptr) {
-        ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::UPDATE_SERVER_CONFIG);
+        ACCOUNT_LOGE("Caller method=%{public}d not exist.", PluginMethodEnum::UPDATE_SERVER_CONFIG);
         REPORT_DOMAIN_ACCOUNT_FAIL(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST,
-            "Method UpdateServerConfig not exsit", Constants::DOMAIN_OPT_UPDATE_CONFIG, -1);
+            "Method UpdateServerConfig not exist", Constants::DOMAIN_OPT_UPDATE_CONFIG, -1);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
     int32_t localId = GetCallingUserID();
     if (localId == INVALID_USERID) {
+        ACCOUNT_LOGE("Calling localid is invalid, callingUid=%{public}d", IPCSkeleton::GetCallingUid());
         REPORT_DOMAIN_ACCOUNT_FAIL(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR,
             "Get userId is invalid", Constants::DOMAIN_OPT_UPDATE_CONFIG, -1);
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
@@ -805,13 +820,14 @@ ErrCode InnerDomainAccountManager::GetServerConfig(const std::string &configId,
     }
     auto iter = methodMap_.find(PluginMethodEnum::GET_SERVER_CONFIG);
     if (iter == methodMap_.end() || iter->second == nullptr) {
-        ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::GET_SERVER_CONFIG);
+        ACCOUNT_LOGE("Caller method=%{public}d not exist.", PluginMethodEnum::GET_SERVER_CONFIG);
         REPORT_DOMAIN_ACCOUNT_FAIL(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST,
-            "Method GetServerConfig not exsit", Constants::DOMAIN_OPT_GET_CONFIG, -1);
+            "Method GetServerConfig not exist", Constants::DOMAIN_OPT_GET_CONFIG, -1);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
     int32_t localId = GetCallingUserID();
     if (localId == INVALID_USERID) {
+        ACCOUNT_LOGE("Calling localid is invalid, callingUid=%{public}d", IPCSkeleton::GetCallingUid());
         REPORT_DOMAIN_ACCOUNT_FAIL(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR,
             "Get userId is invalid", Constants::DOMAIN_OPT_GET_CONFIG, -1);
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
@@ -826,37 +842,17 @@ ErrCode InnerDomainAccountManager::GetServerConfig(const std::string &configId,
     return GetAndCleanPluginBussnessError(&error, iter->first, -1);
 }
 
-ErrCode InnerDomainAccountManager::GetAllServerConfigs(
-    std::vector<DomainServerConfig> &configs) __attribute__((no_sanitize("cfi")))
+static void ParsePluginConfigInfoList(PluginServerConfigInfoList *configInfoList,
+    std::vector<DomainServerConfig> &configs)
 {
-    if (!IsSupportNetRequest()) {
-        ACCOUNT_LOGE("Not support background account request");
-        REPORT_DOMAIN_ACCOUNT_FAIL(ERR_DOMAIN_ACCOUNT_NOT_SUPPORT_BACKGROUND_ACCOUNT_REQUEST,
-            "Not support background account request", Constants::DOMAIN_OPT_GET_CONFIG, -1);
-        return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT_BACKGROUND_ACCOUNT_REQUEST;
-    }
-    auto iter = methodMap_.find(PluginMethodEnum::GET_ALL_SERVER_CONFIGS);
-    if (iter == methodMap_.end() || iter->second == nullptr) {
-        ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::GET_ALL_SERVER_CONFIGS);
-        REPORT_DOMAIN_ACCOUNT_FAIL(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST,
-            "Method GetAllServerConfigs not exsit", Constants::DOMAIN_OPT_GET_CONFIG, -1);
-        return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
-    }
-    int32_t localId = GetCallingUserID();
-    if (localId == INVALID_USERID) {
-        REPORT_DOMAIN_ACCOUNT_FAIL(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR,
-            "Get userId is invalid", Constants::DOMAIN_OPT_GET_CONFIG, -1);
-        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
-    }
-    PluginServerConfigInfoList *configInfoList = nullptr;
-    PluginBussnessError* error = (*reinterpret_cast<GetServerConfigListFunc>(iter->second))(&configInfoList);
     if (configInfoList == nullptr) {
-        ACCOUNT_LOGE("configInfoList is nullptr");
-        return GetAndCleanPluginBussnessError(&error, iter->first, -1);
+        ACCOUNT_LOGE("PluginServerConfigInfoList is nullptr");
+        return;
     }
     if (configInfoList->size == 0) {
+        ACCOUNT_LOGE("PluginServerConfigInfoList size is 0");
         delete configInfoList;
-        return GetAndCleanPluginBussnessError(&error, iter->first, -1);
+        return;
     }
     for (size_t i = 0; i < configInfoList->size; ++i) {
         DomainServerConfig config;
@@ -876,6 +872,35 @@ ErrCode InnerDomainAccountManager::GetAllServerConfigs(
     }
     delete[] configInfoList->items;
     delete configInfoList;
+}
+
+ErrCode InnerDomainAccountManager::GetAllServerConfigs(
+    std::vector<DomainServerConfig> &configs) __attribute__((no_sanitize("cfi")))
+{
+    if (!IsSupportNetRequest()) {
+        ACCOUNT_LOGE("Not support background account request");
+        REPORT_DOMAIN_ACCOUNT_FAIL(ERR_DOMAIN_ACCOUNT_NOT_SUPPORT_BACKGROUND_ACCOUNT_REQUEST,
+            "Not support background account request", Constants::DOMAIN_OPT_GET_CONFIG, -1);
+        return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT_BACKGROUND_ACCOUNT_REQUEST;
+    }
+    auto iter = methodMap_.find(PluginMethodEnum::GET_ALL_SERVER_CONFIGS);
+    if (iter == methodMap_.end() || iter->second == nullptr) {
+        ACCOUNT_LOGE("Caller method=%{public}d not exist.", PluginMethodEnum::GET_ALL_SERVER_CONFIGS);
+        REPORT_DOMAIN_ACCOUNT_FAIL(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST,
+            "Method GetAllServerConfigs not exist", Constants::DOMAIN_OPT_GET_CONFIG, -1);
+        return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
+    }
+    int32_t localId = GetCallingUserID();
+    if (localId == INVALID_USERID) {
+        ACCOUNT_LOGE("Calling localid is invalid, callingUid=%{public}d", IPCSkeleton::GetCallingUid());
+        REPORT_DOMAIN_ACCOUNT_FAIL(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR,
+            "Get userId is invalid", Constants::DOMAIN_OPT_GET_CONFIG, -1);
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
+    PluginServerConfigInfoList *configInfoList = nullptr;
+    PluginBussnessError* error = (*reinterpret_cast<GetServerConfigListFunc>(iter->second))(&configInfoList);
+
+    ParsePluginConfigInfoList(configInfoList, configs);
     return GetAndCleanPluginBussnessError(&error, iter->first, -1);
 }
 
@@ -884,9 +909,9 @@ ErrCode InnerDomainAccountManager::GetAccountServerConfig(const std::string &acc
 {
     auto iter = methodMap_.find(PluginMethodEnum::GET_ACCOUNT_SERVER_CONFIG);
     if (iter == methodMap_.end() || iter->second == nullptr) {
-        ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::GET_ACCOUNT_SERVER_CONFIG);
+        ACCOUNT_LOGE("Caller method=%{public}d not exist.", PluginMethodEnum::GET_ACCOUNT_SERVER_CONFIG);
         REPORT_DOMAIN_ACCOUNT_FAIL(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST,
-            "Method GetAccountServerConfig not exsit", Constants::DOMAIN_OPT_GET_CONFIG, -1);
+            "Method GetAccountServerConfig not exist", Constants::DOMAIN_OPT_GET_CONFIG, -1);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
     DomainAccountInfo info;
@@ -921,9 +946,9 @@ ErrCode InnerDomainAccountManager::GetAccountServerConfig(
     {
         std::lock_guard<std::mutex> lock(libMutex_);
         if (libHandle_ == nullptr) {
-            ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::GET_ACCOUNT_SERVER_CONFIG);
+            ACCOUNT_LOGE("Caller method=%{public}d not exist.", PluginMethodEnum::GET_ACCOUNT_SERVER_CONFIG);
             REPORT_DOMAIN_ACCOUNT_FAIL(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST,
-                "Method GetAccountServerConfig not exsit", Constants::DOMAIN_OPT_GET_CONFIG, -1);
+                "Method GetAccountServerConfig not exist", Constants::DOMAIN_OPT_GET_CONFIG, -1);
             return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
         }
     }
@@ -973,9 +998,9 @@ ErrCode InnerDomainAccountManager::PluginAuth(const DomainAccountInfo &info, con
 {
     auto iter = methodMap_.find(PluginMethodEnum::AUTH);
     if (iter == methodMap_.end() || iter->second == nullptr) {
-        ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::AUTH);
+        ACCOUNT_LOGE("Caller method=%{public}d not exist.", PluginMethodEnum::AUTH);
         REPORT_DOMAIN_ACCOUNT_FAIL(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST,
-            "Method Auth not exsit", Constants::DOMAIN_OPT_AUTH, -1, info);
+            "Method Auth not exist", Constants::DOMAIN_OPT_AUTH, -1, info);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
     int32_t localId = GetCallingUserID();
@@ -1058,9 +1083,9 @@ ErrCode InnerDomainAccountManager::PluginAuthWithParameters(const DomainAccountI
 {
     auto iter = methodMap_.find(PluginMethodEnum::AUTH_WITH_SERVER_CONFIG);
     if (iter == methodMap_.end() || iter->second == nullptr) {
-        ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::AUTH_WITH_SERVER_CONFIG);
+        ACCOUNT_LOGE("Caller method=%{public}d not exist.", PluginMethodEnum::AUTH_WITH_SERVER_CONFIG);
         REPORT_DOMAIN_ACCOUNT_FAIL(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST,
-            "Method AuthWithServerConfigFunc not exsit", Constants::DOMAIN_OPT_AUTH_WITH_SERVER_CONFIG, -1, info);
+            "Method AuthWithServerConfigFunc not exist", Constants::DOMAIN_OPT_AUTH_WITH_SERVER_CONFIG, -1, info);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
     int32_t localId = GetCallingUserID();
@@ -1091,7 +1116,7 @@ ErrCode InnerDomainAccountManager::AuthWithParameters(const DomainAccountInfo &i
     const std::vector<uint8_t> &password, const DomainAccountAuthOptions &authOptions,
     const sptr<IDomainAccountCallback> &callback)
 {
-    ACCOUNT_LOGI("domain account auth with server parameters");
+    ACCOUNT_LOGD("domain account auth with server parameters");
     if (!IsSupportNetRequest()) {
         ACCOUNT_LOGE("Not support background account request");
         REPORT_DOMAIN_ACCOUNT_FAIL(ERR_DOMAIN_ACCOUNT_NOT_SUPPORT_BACKGROUND_ACCOUNT_REQUEST,
@@ -1134,9 +1159,9 @@ ErrCode InnerDomainAccountManager::PluginBindAccount(const DomainAccountInfo &in
 {
     auto iter = methodMap_.find(PluginMethodEnum::BIND_ACCOUNT);
     if (iter == methodMap_.end() || iter->second == nullptr) {
-        ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::BIND_ACCOUNT);
+        ACCOUNT_LOGE("Caller method=%{public}d not exist.", PluginMethodEnum::BIND_ACCOUNT);
         REPORT_DOMAIN_ACCOUNT_FAIL(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST,
-            "Method BindAccount not exsit", Constants::DOMAIN_OPT_BIND, localId, info);
+            "Method BindAccount not exist", Constants::DOMAIN_OPT_BIND, localId, info);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
     ACCOUNT_LOGD("Param localId=%{public}d.", localId);
@@ -1164,9 +1189,9 @@ ErrCode InnerDomainAccountManager::PluginUnBindAccount(
 {
     auto iter = methodMap_.find(PluginMethodEnum::UNBIND_ACCOUNT);
     if (iter == methodMap_.end() || iter->second == nullptr) {
-        ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::UNBIND_ACCOUNT);
+        ACCOUNT_LOGE("Caller method=%{public}d not exist.", PluginMethodEnum::UNBIND_ACCOUNT);
         REPORT_DOMAIN_ACCOUNT_FAIL(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST,
-            "Method UnBindAccount not exsit", Constants::DOMAIN_OPT_UNBIND, localId, info);
+            "Method UnBindAccount not exist", Constants::DOMAIN_OPT_UNBIND, localId, info);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
     PluginDomainAccountInfo domainAccountInfo;
@@ -1184,9 +1209,9 @@ ErrCode InnerDomainAccountManager::PluginIsAccountTokenValid(const DomainAccount
 {
     auto iter = methodMap_.find(PluginMethodEnum::IS_ACCOUNT_TOKEN_VALID);
     if (iter == methodMap_.end() || iter->second == nullptr) {
-        ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::IS_ACCOUNT_TOKEN_VALID);
+        ACCOUNT_LOGE("Caller method=%{public}d not exist.", PluginMethodEnum::IS_ACCOUNT_TOKEN_VALID);
         REPORT_DOMAIN_ACCOUNT_FAIL(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST,
-            "Method IsAccountTokenValid not exsit", Constants::DOMAIN_OPT_GET_INFO, -1, info);
+            "Method IsAccountTokenValid not exist", Constants::DOMAIN_OPT_GET_INFO, -1, info);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
     PluginDomainAccountInfo domainAccountInfo;
@@ -1209,9 +1234,9 @@ ErrCode InnerDomainAccountManager::PluginGetAccessToken(const GetAccessTokenOpti
 {
     auto iter = methodMap_.find(PluginMethodEnum::GET_ACCESS_TOKEN);
     if (iter == methodMap_.end() || iter->second == nullptr) {
-        ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::GET_ACCESS_TOKEN);
+        ACCOUNT_LOGE("Caller method=%{public}d not exist.", PluginMethodEnum::GET_ACCESS_TOKEN);
         REPORT_DOMAIN_ACCOUNT_FAIL(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST,
-            "Method GetAccessToken not exsit", Constants::DOMAIN_OPT_GET_INFO, -1, info);
+            "Method GetAccessToken not exist", Constants::DOMAIN_OPT_GET_INFO, -1, info);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
     PluginGetDomainAccessTokenOptions pOption;
@@ -1240,9 +1265,9 @@ ErrCode InnerDomainAccountManager::PluginAuthWithPopup(
 {
     auto iter = methodMap_.find(PluginMethodEnum::AUTH_WITH_POPUP);
     if (iter == methodMap_.end() || iter->second == nullptr) {
-        ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::AUTH_WITH_POPUP);
+        ACCOUNT_LOGE("Caller method=%{public}d not exist.", PluginMethodEnum::AUTH_WITH_POPUP);
         REPORT_DOMAIN_ACCOUNT_FAIL(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST,
-            "Method AuthWithPopup not exsit", Constants::DOMAIN_OPT_AUTH_POP, -1, info);
+            "Method AuthWithPopup not exist", Constants::DOMAIN_OPT_AUTH_POP, -1, info);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
     PluginDomainAccountInfo domainAccountInfo;
@@ -1263,9 +1288,9 @@ ErrCode InnerDomainAccountManager::PluginAuthToken(const DomainAccountInfo &info
 {
     auto iter = methodMap_.find(PluginMethodEnum::AUTH_WITH_TOKEN);
     if (iter == methodMap_.end() || iter->second == nullptr) {
-        ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::AUTH_WITH_TOKEN);
+        ACCOUNT_LOGE("Caller method=%{public}d not exist.", PluginMethodEnum::AUTH_WITH_TOKEN);
         REPORT_DOMAIN_ACCOUNT_FAIL(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST,
-            "Method AuthToken not exsit", Constants::DOMAIN_OPT_AUTH_TOKEN, -1, info);
+            "Method AuthToken not exist", Constants::DOMAIN_OPT_AUTH_TOKEN, -1, info);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
     PluginDomainAccountInfo domainAccountInfo;
@@ -1288,9 +1313,9 @@ ErrCode InnerDomainAccountManager::PluginGetAuthStatusInfo(const DomainAccountIn
 {
     auto iter = methodMap_.find(PluginMethodEnum::GET_AUTH_STATUS_INFO);
     if (iter == methodMap_.end() || iter->second == nullptr) {
-        ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::GET_AUTH_STATUS_INFO);
+        ACCOUNT_LOGE("Caller method=%{public}d not exist.", PluginMethodEnum::GET_AUTH_STATUS_INFO);
         REPORT_DOMAIN_ACCOUNT_FAIL(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST,
-            "Method GetAuthStatusInfo not exsit", Constants::DOMAIN_OPT_GET_INFO, -1, info);
+            "Method GetAuthStatusInfo not exist", Constants::DOMAIN_OPT_GET_INFO, -1, info);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
     PluginDomainAccountInfo domainAccountInfo;
@@ -1311,9 +1336,9 @@ ErrCode InnerDomainAccountManager::PluginUpdateAccountInfo(const DomainAccountIn
 {
     auto iter = methodMap_.find(PluginMethodEnum::UPDATE_ACCOUNT_INFO);
     if (iter == methodMap_.end() || iter->second == nullptr) {
-        ACCOUNT_LOGE("Caller method = %{public}d not exsit.", PluginMethodEnum::UPDATE_ACCOUNT_INFO);
+        ACCOUNT_LOGE("Caller method = %{public}d not exist.", PluginMethodEnum::UPDATE_ACCOUNT_INFO);
         REPORT_DOMAIN_ACCOUNT_FAIL(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST,
-            "Method UpdateAccountInfo not exsit", Constants::DOMAIN_OPT_UPDATE_INFO, -1, oldAccountInfo);
+            "Method UpdateAccountInfo not exist", Constants::DOMAIN_OPT_UPDATE_INFO, -1, oldAccountInfo);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
     int32_t callerLocalId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
@@ -1512,6 +1537,7 @@ ErrCode InnerDomainAccountManager::CancelAuthWork(const uint64_t &contextId) __a
         }
         EraseFromContextMap(contextId);
     }
+    ACCOUNT_LOGE("Invalid contextId = %{public}" PRIu64, contextId);
     return ERR_JS_INVALID_CONTEXT_ID;
 }
 
@@ -1780,15 +1806,15 @@ ErrCode InnerDomainAccountManager::IsAuthenticationExpired(
     }
     auto iter = methodMap_.find(PluginMethodEnum::IS_AUTHENTICATION_EXPIRED);
     if (iter == methodMap_.end() || iter->second == nullptr) {
-        ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::IS_AUTHENTICATION_EXPIRED);
+        ACCOUNT_LOGE("Caller method=%{public}d not exist.", PluginMethodEnum::IS_AUTHENTICATION_EXPIRED);
         REPORT_DOMAIN_ACCOUNT_FAIL(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST,
-            "Method IsAuthenticationExpired not exsit", Constants::DOMAIN_OPT_GET_INFO, -1, info);
+            "Method IsAuthenticationExpired not exist", Constants::DOMAIN_OPT_GET_INFO, -1, info);
         return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
     }
     int32_t userId = 0;
     ErrCode result = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(info, userId);
     if (result != ERR_OK) {
-        ACCOUNT_LOGI("The target domain account not found, isExpired=true.");
+        ACCOUNT_LOGE("The target domain account not found, isExpired=true.");
         REPORT_DOMAIN_ACCOUNT_FAIL(ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT,
             "The target domain account not found", Constants::DOMAIN_OPT_GET_INFO, -1, info);
         isExpired = true;
@@ -1797,7 +1823,7 @@ ErrCode InnerDomainAccountManager::IsAuthenticationExpired(
     OsAccountInfo osAccountInfo;
     result = IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(userId, osAccountInfo);
     if (result != ERR_OK) {
-        ACCOUNT_LOGI("Failed to get account info");
+        ACCOUNT_LOGE("Failed to get account info");
         REPORT_DOMAIN_ACCOUNT_FAIL(result, "Get osaccount info failed", Constants::DOMAIN_OPT_GET_INFO, userId, info);
         return result;
     }
@@ -1841,7 +1867,7 @@ ErrCode InnerDomainAccountManager::SetAccountPolicy(const DomainAccountInfo &inf
     }
     auto iter = methodMap_.find(PluginMethodEnum::SET_ACCOUNT_POLICY);
     if (iter == methodMap_.end() || iter->second == nullptr) {
-        ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::SET_ACCOUNT_POLICY);
+        ACCOUNT_LOGE("Caller method=%{public}d not exist.", PluginMethodEnum::SET_ACCOUNT_POLICY);
         REPORT_DOMAIN_ACCOUNT_FAIL(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST,
             "Method SetAccountPolicy not exist", Constants::DOMAIN_OPT_SET_POLICY, -1, info);
         return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
@@ -1851,7 +1877,7 @@ ErrCode InnerDomainAccountManager::SetAccountPolicy(const DomainAccountInfo &inf
     if (!info.IsEmpty()) {
         ErrCode result = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(info, userId);
         if (result != ERR_OK) {
-            ACCOUNT_LOGI("The target domain account not found.");
+            ACCOUNT_LOGE("The target domain account not found.");
             REPORT_DOMAIN_ACCOUNT_FAIL(result, "The target domain account not found", Constants::DOMAIN_OPT_SET_POLICY,
                 -1, info);
             return ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT;
@@ -1882,7 +1908,7 @@ ErrCode InnerDomainAccountManager::GetAccountPolicy(const DomainAccountInfo &inf
     }
     auto iter = methodMap_.find(PluginMethodEnum::GET_ACCOUNT_POLICY);
     if (iter == methodMap_.end() || iter->second == nullptr) {
-        ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::GET_ACCOUNT_POLICY);
+        ACCOUNT_LOGE("Caller method=%{public}d not exist.", PluginMethodEnum::GET_ACCOUNT_POLICY);
         REPORT_DOMAIN_ACCOUNT_FAIL(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST,
             "Method GetAccountPolicy not exist", Constants::DOMAIN_OPT_GET_POLICY, -1, info);
         return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
@@ -1892,7 +1918,7 @@ ErrCode InnerDomainAccountManager::GetAccountPolicy(const DomainAccountInfo &inf
     if (!info.IsEmpty()) {
         ErrCode result = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(info, userId);
         if (result != ERR_OK) {
-            ACCOUNT_LOGI("The target domain account not found.");
+            ACCOUNT_LOGE("The target domain account not found.");
             REPORT_DOMAIN_ACCOUNT_FAIL(result, "The target domain account not found", Constants::DOMAIN_OPT_GET_POLICY,
                 -1, info);
             return ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT;
@@ -1930,7 +1956,7 @@ static ErrCode ErrorOnResultWithRet(const ErrCode errCode, const sptr<IDomainAcc
 
 void CheckUserTokenCallback::OnResult(int32_t result, Parcel &parcel)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     if (result == ERR_OK) {
         isValid_ = parcel.ReadBool();
     }
@@ -1955,7 +1981,7 @@ void CheckUserTokenCallback::NotifyCallbackEnd()
 {
     std::unique_lock<std::mutex> lock(lock_);
     if (threadInSleep_) {
-        ACCOUNT_LOGI("threadInSleep_ set false.");
+        ACCOUNT_LOGI("threadInSleep_:true->false, reason:callback completed");
         threadInSleep_ = false;
         condition_.notify_one();
     }
@@ -1973,7 +1999,7 @@ ErrCode InnerDomainAccountManager::CheckUserToken(
     std::shared_ptr<CheckUserTokenCallback> callback = std::make_shared<CheckUserTokenCallback>();
     sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callback);
     if (callbackService == nullptr) {
-        ACCOUNT_LOGE("make shared DomainAccountCallbackService failed");
+        ACCOUNT_LOGE("InnerDomainAccountManager create DomainAccountCallbackService failed, please check memory");
         REPORT_DOMAIN_ACCOUNT_FAIL(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR,
             "Alloc DomainAccountCallbackService failed", Constants::DOMAIN_OPT_GET_INFO, -1, info);
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
@@ -2119,7 +2145,7 @@ ErrCode InnerDomainAccountManager::StartHasDomainAccount(const sptr<IDomainAccou
     sptr<DomainAccountCallbackService> callbackService =
         new (std::nothrow) DomainAccountCallbackService(callbackWrapper);
     if (callbackService == nullptr) {
-        ACCOUNT_LOGE("make shared DomainAccountCallbackService failed");
+        ACCOUNT_LOGE("InnerDomainAccountManager create DomainAccountCallbackService failed, please check memory");
         ErrorOnResult(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR, callback);
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
@@ -2206,7 +2232,7 @@ ErrCode InnerDomainAccountManager::OnAccountBound(const DomainAccountInfo &info,
     }
     sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callback);
     if (callbackService == nullptr) {
-        ACCOUNT_LOGE("make shared DomainAccountCallbackService failed");
+        ACCOUNT_LOGE("InnerDomainAccountManager create DomainAccountCallbackService failed, please check memory");
         REPORT_DOMAIN_ACCOUNT_FAIL(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR,
             "Alloc DomainAccountCallbackService failed", Constants::DOMAIN_OPT_BIND, localId, info);
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
@@ -2253,7 +2279,7 @@ ErrCode InnerDomainAccountManager::OnAccountUnBound(const DomainAccountInfo &inf
     }
     sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callback);
     if (callbackService == nullptr) {
-        ACCOUNT_LOGE("make shared DomainAccountCallbackService failed");
+        ACCOUNT_LOGE("InnerDomainAccountManager create DomainAccountCallbackService failed, please check memory");
         REPORT_DOMAIN_ACCOUNT_FAIL(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR,
             "Alloc DomainAccountCallbackService failed", Constants::DOMAIN_OPT_UNBIND, localId, info);
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
@@ -2329,9 +2355,9 @@ ErrCode InnerDomainAccountManager::PluginGetDomainAccountInfo(const GetDomainAcc
 {
     auto iter = methodMap_.find(PluginMethodEnum::GET_ACCOUNT_INFO);
     if (iter == methodMap_.end() || iter->second == nullptr) {
-        ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::GET_ACCOUNT_INFO);
+        ACCOUNT_LOGE("Caller method=%{public}d not exist.", PluginMethodEnum::GET_ACCOUNT_INFO);
         REPORT_DOMAIN_ACCOUNT_FAIL(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST,
-            "Method GetDomainAccountInfo not exsit", Constants::DOMAIN_OPT_GET_INFO, -1, options);
+            "Method GetDomainAccountInfo not exist", Constants::DOMAIN_OPT_GET_INFO, -1, options);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
     if (localId == -1) {
@@ -2429,7 +2455,7 @@ ErrCode InnerDomainAccountManager::GetDomainAccountInfo(
     };
     sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callbackFunc);
     if (callbackService == nullptr) {
-        ACCOUNT_LOGE("make shared DomainAccountCallbackService failed");
+        ACCOUNT_LOGE("InnerDomainAccountManager create DomainAccountCallbackService failed, please check memory");
         REPORT_DOMAIN_ACCOUNT_FAIL(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR,
             "Alloc DomainAccountCallbackService failed", Constants::DOMAIN_OPT_GET_INFO, -1, info);
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
@@ -2502,7 +2528,7 @@ ErrCode InnerDomainAccountManager::IsAccountTokenValid(const DomainAccountInfo &
     }
     sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callback);
     if (callbackService == nullptr) {
-        ACCOUNT_LOGE("make shared DomainAccountCallbackService failed");
+        ACCOUNT_LOGE("InnerDomainAccountManager create DomainAccountCallbackService failed, please check memory");
         REPORT_DOMAIN_ACCOUNT_FAIL(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR,
             "Alloc DomainAccountCallbackService failed", Constants::DOMAIN_OPT_GET_INFO, -1, info);
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
@@ -2553,7 +2579,7 @@ void UpdateAccountInfoCallback::OnResult(int32_t result, Parcel &parcel)
             accountInfo_.serverConfigId_ = parameters->GetStringParam("serverConfigId");
         }
     }
-    ACCOUNT_LOGI("ThreadInSleep_ set false.");
+    ACCOUNT_LOGI("threadInSleep_:true->false, reason:callback completed");
     threadInSleep_ = false;
     condition_.notify_one();
 }
@@ -2694,7 +2720,7 @@ void DomainAccountCallbackSync::OnResult(int32_t result, Parcel &parcel)
         return;
     }
     result_ = result;
-    ACCOUNT_LOGI("ThreadInSleep_ set false.");
+    ACCOUNT_LOGI("threadInSleep_:true->false, reason:callback completed");
     isCalled_ = true;
     condition_.notify_one();
 }
