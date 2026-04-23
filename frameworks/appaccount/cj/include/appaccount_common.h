@@ -45,7 +45,7 @@ struct AsyncContextForSubscribe {
 
 struct AsyncContextForUnSubscribe {
     std::string type;
-    std::vector<std::shared_ptr<SubscribePtr>> subscribers = {nullptr};
+    std::vector<std::shared_ptr<SubscribePtr>> subscribers;
     std::function<void(CArrAppAccountInfo)> callbackRef;
 };
 

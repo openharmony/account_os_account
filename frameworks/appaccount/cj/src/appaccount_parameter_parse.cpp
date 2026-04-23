@@ -261,9 +261,9 @@ int32_t InnerWrapWantParamsT(WantParams &wantParams, CParameters *p)
     return NO_ERROR;
 }
 
-static void ClearCharArray(char **arr, long count)
+static void ClearCharArray(char **arr, size_t count)
 {
-    for (long i = 0; i < count; i++) {
+    for (size_t i = 0; i < count; i++) {
         free(arr[i]);
     }
     free(arr);
@@ -301,9 +301,9 @@ int32_t InnerWrapWantParamsArrayString(sptr<AAFwk::IArray> &ao, CParameters *p)
     }
     for (long i = 0; i < size; i++) {
         int32_t ret = GetStringFromArray(ao, i, &arrP[i]);
-        if (ret == ERR_NO_MEMORY) {
-            ClearCharArray(arrP, i);
-            return ERR_NO_MEMORY;
+        if (ret != NO_ERROR) {
+            ClearCharArray(arrP, static_cast<size_t>(i));
+            return ret;
         }
     }
     p->size = size;
