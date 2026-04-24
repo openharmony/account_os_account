@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -128,6 +128,7 @@ static ErrCode ResetForegroundBeforeRemove(OsAccountInfo &osAccountInfo, int32_t
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_REMOVING_FOREGROUND_OS_ACCOUNT));
 #else
+        OsAccountInterface::SendToSamgrUserState(id, OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPING);
         ACCOUNT_LOGI("Remove foreground account id=%{public}d.", id);
         ErrCode errCode = OsAccountInterface::SendToAMSAccountDeactivate(osAccountInfo);
         if (errCode != ERR_OK) {
@@ -297,7 +298,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivateInBackground(OsAccountI
     subscribeManager_.Publish(osAccountInfo.GetLocalId(), OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING);
     (void)SendToStorageAccountStart(osAccountInfo);
     // StorageManager failture does not block boot, continue!
-    ErrCode errCode = SendToAMSAccountStart(osAccountInfo, Constants::INVALID_DISPLAY_ID, true);
+    ErrCode errCode = SendToAMSAndSamgrAccountStart(osAccountInfo, Constants::INVALID_DISPLAY_ID, true);
     if (errCode != ERR_OK) {
         return errCode;
     }
@@ -1474,6 +1475,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountDeactivate(OsAccountInfo &osAcc
 {
     int32_t localId = osAccountInfo.GetLocalId();
     CleanForegroundAccountMap(osAccountInfo);
+    OsAccountInterface::SendToSamgrUserState(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPING);
     ErrCode errCode = OsAccountInterface::SendToAMSAccountDeactivate(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("SendToAMSAccountDeactivate failed, id %{public}d, errCode %{public}d", localId, errCode);
@@ -3119,12 +3121,11 @@ ErrCode IInnerOsAccountManager::SendToStorageAndAMSAccountStart(OsAccountInfo &o
         }
     }
 
-    ErrCode errCode = SendToAMSAccountStart(osAccountInfo, displayId, isAppRecovery);
+    ErrCode errCode = SendToAMSAndSamgrAccountStart(osAccountInfo, displayId, isAppRecovery);
     if (errCode != ERR_OK) {
         RollBackToEarlierAccount(localId, oldId, displayId);
         return errCode;
     }
-
     return ERR_OK;
 }
 
@@ -3150,6 +3151,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
     }
 
     if (switched) {
+        OsAccountInterface::SendToSamgrUserState(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING);
         OsAccountInterface::PublishCommonEvent(osAccountInfo,
             OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_FOREGROUND, Constants::OPERATION_SWITCH);
     }
@@ -3222,7 +3224,7 @@ ErrCode  IInnerOsAccountManager::SendToStorageAccountStart(OsAccountInfo &osAcco
     return ERR_OK;
 }
 
-ErrCode  IInnerOsAccountManager::SendToAMSAccountStart(OsAccountInfo &osAccountInfo,
+ErrCode  IInnerOsAccountManager::SendToAMSAndSamgrAccountStart(OsAccountInfo &osAccountInfo,
     uint64_t displayId, const bool isAppRecovery)
 {
     OsAccountStartCallbackFunc callbackFunc = [this, displayId](int32_t localId) {
@@ -3245,7 +3247,7 @@ ErrCode  IInnerOsAccountManager::SendToAMSAccountStart(OsAccountInfo &osAccountI
             osAccountInfo.GetLocalId(), errCode);
         return errCode;
     }
-
+    OsAccountInterface::SendToSamgrUserState(osAccountInfo.GetLocalId(), OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING);
     return ERR_OK;
 }
 

@@ -190,7 +190,8 @@ private:
     ErrCode SendMsgForAccountActivate(OsAccountInfo &osAccountInfo, const bool startStorage = true,
                                       const uint64_t dispalyId = 0, const bool isAppRecovery = false);
     ErrCode SendToStorageAccountStart(OsAccountInfo &osAccountInfo);
-    ErrCode SendToAMSAccountStart(OsAccountInfo &osAccountInfo, const uint64_t dispalyId, const bool isAppRecovery);
+    ErrCode SendToAMSAndSamgrAccountStart(OsAccountInfo &osAccountInfo, const uint64_t dispalyId,
+        const bool isAppRecovery);
     ErrCode SendMsgForAccountDeactivate(OsAccountInfo &osAccountInfo, bool isStopStorage = true);
     void SendMsgForAccountUnlocked(OsAccountInfo &osAccountInfo);
     void SendMsgForAccountSwitched(OsAccountInfo &osAccountInfo);
@@ -270,7 +271,7 @@ private:
     SafeMap<int32_t, bool> lockingAccounts_;
 #endif
     std::map<int32_t, std::shared_ptr<std::mutex>> updateLocks_;
-    
+
     // Helper functions for ActivateDefaultOsAccount
     ErrCode ActivateU1Account();
     ErrCode PrepareForDefaultAccount(int32_t activatedId, OsAccountInfo &osAccountInfo);
