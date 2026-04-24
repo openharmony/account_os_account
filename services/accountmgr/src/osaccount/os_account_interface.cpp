@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -992,6 +992,42 @@ ErrCode OsAccountInterface::CheckAllAppDied(int32_t accountId)
         dealTimes--;
     }
     return ERR_ACCOUNT_COMMON_OPERATION_TIMEOUT;
+}
+
+ErrCode OsAccountInterface::SendToSamgrUserState(int32_t localId, OsAccountState state)
+{
+#ifdef SUPPORT_SAMGR_USER_STATE
+    ACCOUNT_LOGI("SendToSamgrUserState enter, localId=%{public}d, state=%{public}d", localId, state);
+    SamgrUserState userState;
+    switch (state) {
+        case OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING:
+            userState = SamgrUserState::USER_STATE_ACTIVATING;
+            break;
+        case OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING:
+            userState = SamgrUserState::USER_STATE_SWITCHING;
+            break;
+        case OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPING:
+            userState = SamgrUserState::USER_STATE_STOPPING;
+            break;
+        default:
+            ACCOUNT_LOGE("State is error, state=%{public}d", state);
+            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (!systemAbilityManager) {
+        ACCOUNT_LOGE("Failed to get system ability mgr.");
+        return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
+    }
+    auto errCode = systemAbilityManager->OnUserStateChanged(localId, userState);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to call OnUserStateChanged, %{public}d.", errCode);
+        return ERR_OSACCOUNT_SERVICE_SAMGR_USER_STATE_FAILED;
+    }
+    ACCOUNT_LOGI("SendToSamgrUserState success, localId=%{public}d", localId);
+    return ERR_OK;
+#else
+    return ERR_OK;
+#endif
 }
 }  // namespace AccountSA
 }  // namespace OHOS
