@@ -296,7 +296,7 @@ bool OsAccountSubscribeManager::OnStateChanged(
         }
         callback->SetStartTime(std::chrono::system_clock::now());
         if (errCode != ERR_OK) {
-            callback->OnComplete();
+            callback->ForceComplete();
         }
     };
 #ifdef FUZZ_TEST
@@ -358,12 +358,12 @@ static bool IsStateNeedHandShake(const OsAccountState& state)
 ErrCode OsAccountSubscribeManager::Publish(int32_t fromId, OsAccountState state,
     int32_t toId, std::optional<uint64_t> displayId)
 {
-    std::lock_guard<std::mutex> lock(subscribeRecordMutex_);
     auto cvPtr = std::make_shared<std::condition_variable>();
     auto safeQueue = std::make_shared<SafeQueue<uint8_t>>();
-    
-    PublishToAllSubscribers(fromId, state, toId, displayId, cvPtr, safeQueue);
-    
+    {
+        std::lock_guard<std::mutex> lock(subscribeRecordMutex_);
+        PublishToAllSubscribers(fromId, state, toId, displayId, cvPtr, safeQueue);
+    }
     if ((state == SWITCHING || state == SWITCHED) && displayId.has_value()) {
         ACCOUNT_LOGI("End, state: %{public}d, fromId: %{public}d, toId: %{public}d, displayId: %{public}d",
             state, fromId, toId, static_cast<int>(displayId.value()));
