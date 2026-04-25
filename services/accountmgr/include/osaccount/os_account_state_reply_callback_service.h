@@ -31,10 +31,12 @@ public:
         int32_t subscriberUid);
     ~OsAccountStateReplyCallbackService() override;
     ErrCode OnComplete() override;
+    void ForceComplete();
     void SetStartTime(const std::chrono::system_clock::time_point &startTime);
     int32_t GetSubscriberUid() const;
     static const char *ConvertStateToSceneFlag(OsAccountState state);
 private:
+    void CompleteInner();
     int32_t accountId_;
     OsAccountState state_;
     std::shared_ptr<std::condition_variable> cvPtr_;
