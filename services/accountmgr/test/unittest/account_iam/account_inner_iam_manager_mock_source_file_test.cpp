@@ -594,7 +594,7 @@ HWTEST_F(AccountIamManagerTest, GetProperty_0200, TestSize.Level3)
     std::unique_lock<std::mutex> lock(testCallback->mutex_);
     testCallback->cv_.wait_for(
         lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady_; });
-    EXPECT_EQ(testCallback->result_, ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE);
+    EXPECT_EQ(testCallback->result_, ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT);
     ret = IInnerOsAccountManager::GetInstance().RemoveOsAccount(osAccountInfo.GetLocalId());
     EXPECT_EQ(ret, 0);
 }
