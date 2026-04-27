@@ -1994,6 +1994,42 @@ public:
     }
 };
 
+static DomainAccountInfo CreateEmptyDomainAccountInfoTH()
+{
+    taihe::optional<uintptr_t> additional = taihe::optional<uintptr_t>();
+    AccountSA::GenerateEmptyAdditionRecord(additional);
+    return DomainAccountInfo{
+        .domain = string(""),
+        .accountName = string(""),
+        .accountId = optional<string>(std::in_place, string("")),
+        .isAuthenticated = optional<bool>(std::in_place, false),
+        .serverConfigId = optional<string>(std::in_place, string("")),
+        .additionalInfo = additional
+    };
+}
+
+static DomainAccountInfo BuildDomainAccountInfoFromCallback(
+    const AAFwk::WantParams &params)
+{
+    taihe::optional<uintptr_t> additional = taihe::optional<uintptr_t>();
+    DomainAccountInfo domainAccountInfo = DomainAccountInfo{
+        .domain = params.GetStringParam("domain"),
+        .accountName = params.GetStringParam("accountName"),
+        .accountId = optional<string>(std::in_place, params.GetStringParam("accountId").c_str()),
+        .isAuthenticated = optional<bool>(std::in_place, params.GetIntParam("isAuthenticated", 0)),
+        .serverConfigId = optional<string>(std::in_place, params.GetStringParam("serverConfigId").c_str()),
+        .additionalInfo = taihe::optional<uintptr_t>(additional)
+    };
+    std::string additionalInfo = params.GetStringParam("additionalInfo");
+    AccountSA::GetAdditionalInfo(additionalInfo, domainAccountInfo.additionalInfo);
+    auto value = params.GetParam("isAuthenticated");
+    OHOS::AAFwk::IBoolean *bo = OHOS::AAFwk::IBoolean::Query(value);
+    if (bo != nullptr) {
+        domainAccountInfo.isAuthenticated = optional<bool>(std::in_place, OHOS::AAFwk::Boolean::Unbox(bo));
+    }
+    return domainAccountInfo;
+}
+
 DomainAccountInfo GetAccountInfoSync(GetDomainAccountInfoOptions const& options)
 {
     AccountSA::DomainAccountInfo innerDomainInfo;
@@ -2004,16 +2040,7 @@ DomainAccountInfo GetAccountInfoSync(GetDomainAccountInfoOptions const& options)
     if (options.serverConfigId.has_value()) {
         innerDomainInfo.serverConfigId_ = options.serverConfigId.value();
     }
-    taihe::optional<uintptr_t> additional = taihe::optional<uintptr_t>();
-    AccountSA::GenerateEmptyAdditionRecord(additional);
-    DomainAccountInfo emptyDomainAccountInfo = {
-        .domain = string(""),
-        .accountName = string(""),
-        .accountId = optional<string>(std::in_place, string("")),
-        .isAuthenticated = optional<bool>(std::in_place, false),
-        .serverConfigId = optional<string>(std::in_place, string("")),
-        .additionalInfo = additional
-    };
+    DomainAccountInfo emptyDomainAccountInfo = CreateEmptyDomainAccountInfoTH();
     std::shared_ptr<THGetAccountInfoCallback> getAccountInfoCallback = std::make_shared<THGetAccountInfoCallback>();
     ErrCode errCode = AccountSA::DomainAccountClient::GetInstance().GetDomainAccountInfo(innerDomainInfo,
         getAccountInfoCallback);
@@ -2031,26 +2058,7 @@ DomainAccountInfo GetAccountInfoSync(GetDomainAccountInfoOptions const& options)
         SetTaiheBusinessErrorFromNativeCode(getAccountInfoCallback->errorCode_);
         return emptyDomainAccountInfo;
     }
-    DomainAccountInfo domainAccountInfo = DomainAccountInfo {
-        .domain = getAccountInfoCallback->getAccountInfoParams_.GetStringParam("domain"),
-        .accountName = getAccountInfoCallback->getAccountInfoParams_.GetStringParam("accountName"),
-        .accountId = optional<string>(std::in_place,
-            getAccountInfoCallback->getAccountInfoParams_.GetStringParam("accountId").c_str()),
-        .isAuthenticated = optional<bool>(std::in_place,
-            getAccountInfoCallback->getAccountInfoParams_.GetIntParam("isAuthenticated", 0)),
-        .serverConfigId = optional<string>(std::in_place,
-            getAccountInfoCallback->getAccountInfoParams_.GetStringParam("serverConfigId").c_str()),
-        .additionalInfo = additional
-    };
-    std::string additionalInfo = getAccountInfoCallback->getAccountInfoParams_.GetStringParam("additionalInfo");
-    AccountSA::GetAdditionalInfo(additionalInfo, additional);
-    domainAccountInfo.additionalInfo = additional;
-    auto value = getAccountInfoCallback->getAccountInfoParams_.GetParam("isAuthenticated");
-    OHOS::AAFwk::IBoolean *bo = OHOS::AAFwk::IBoolean::Query(value);
-    if (bo != nullptr) {
-        domainAccountInfo.isAuthenticated =  optional<bool>(std::in_place, OHOS::AAFwk::Boolean::Unbox(bo));
-    }
-    return domainAccountInfo;
+    return BuildDomainAccountInfoFromCallback(getAccountInfoCallback->getAccountInfoParams_);
 }
 
 void UpdateAccountInfoSync(DomainAccountInfo const &oldAccountInfo, DomainAccountInfo const &newAccountInfo)

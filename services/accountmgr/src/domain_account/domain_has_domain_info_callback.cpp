@@ -33,6 +33,7 @@ void DomainHasDomainInfoCallback::OnResult(const int32_t errCode, Parcel &parcel
     }
     Parcel parcelResult;
     if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("OnResult errCode=%{public}d", errCode);
         parcelResult.WriteBool(false);
         DomainAccountParcel domainAccountParcel;
         domainAccountParcel.SetParcelData(parcelResult);
@@ -53,6 +54,7 @@ void DomainHasDomainInfoCallback::OnResult(const int32_t errCode, Parcel &parcel
     info.domain_ = parameters->GetStringParam("domain");
     info.accountId_ = parameters->GetStringParam("accountId");
     if ((info.domain_ != domain_) || (info.accountName_ != accountName_)) {
+        ACCOUNT_LOGE("Not same domain account.");
         parcelResult.WriteBool(false);
         DomainAccountParcel domainAccountParcel;
         domainAccountParcel.SetParcelData(parcelResult);
