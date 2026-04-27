@@ -992,13 +992,14 @@ public:
 
     bool IsOsAccountConstraintEnabledSync(string_view constraint)
     {
-        bool isConsEnabled;
+        bool isConsEnabled = false;
         std::string innerConstraint(constraint.data(), constraint.size());
         std::vector<int> ids;
         ErrCode idErrCode = AccountSA::OsAccountManager::QueryActiveOsAccountIds(ids);
         if (idErrCode != ERR_OK) {
             ACCOUNT_LOGE("IsOsAccountActivatedSync Get id failed with idErrCode: %{public}d", idErrCode);
             SetTaiheBusinessErrorFromNativeCode(idErrCode);
+            return isConsEnabled;
         }
         if (ids.empty()) {
             ACCOUNT_LOGE("No Active OsAccount Ids");
