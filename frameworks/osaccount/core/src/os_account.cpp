@@ -822,13 +822,17 @@ ErrCode OsAccount::UnsubscribeOsAccount(const std::shared_ptr<OsAccountSubscribe
     if (listenerManager_ == nullptr) {
         return ERR_OSACCOUNT_KIT_NO_SPECIFIED_SUBSCRIBER_HAS_BEEN_REGISTERED;
     }
-    listenerManager_->RemoveRecord(subscriber);
     auto proxy = GetOsAccountProxy();
     if (proxy == nullptr) {
+        ACCOUNT_LOGE("failed to get os account proxy");
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
+    listenerManager_->RemoveRecord(subscriber);
     if (listenerManager_->Size() != 0) {
         result = proxy->SubscribeOsAccount(listenerManager_->GetTotalSubscribeInfo(), listenerManager_);
+        if (result != ERR_OK) {
+            listenerManager_->InsertRecord(subscriber);
+        }
         return result;
     }
 

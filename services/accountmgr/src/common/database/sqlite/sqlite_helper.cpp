@@ -69,7 +69,7 @@ void SqliteHelper::Open() __attribute__((no_sanitize("cfi")))
 void SqliteHelper::Close()
 {
     if (db_ == nullptr) {
-        ACCOUNT_LOGW("Do open data base first!");
+        ACCOUNT_LOGW("Sqlite database is already closed.");
         return;
     }
     int32_t ret = sqlite3_close(db_);

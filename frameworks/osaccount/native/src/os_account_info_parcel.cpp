@@ -53,6 +53,11 @@ bool ConstraintSourceTypeInfo::ReadFromParcel(Parcel &parcel)
         ACCOUNT_LOGE("Read typeInfo failed, please check typeInfo in parcel");
         return false;
     }
+    if (typeInfoValue < static_cast<int32_t>(ConstraintSourceType::CONSTRAINT_NOT_EXIST) ||
+        typeInfoValue > static_cast<int32_t>(ConstraintSourceType::CONSTRAINT_TYPE_PROFILE_OWNER)) {
+        ACCOUNT_LOGE("Invalid typeInfo value: %{public}d", typeInfoValue);
+        return false;
+    }
     typeInfo = static_cast<ConstraintSourceType>(typeInfoValue);
     return true;
 }

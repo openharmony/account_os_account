@@ -78,6 +78,10 @@ bool SubscribeCBInfo::IsSameCallBack(AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE type,
     }
     if (osSubscribeType == AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATED ||
         osSubscribeType == AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING) {
+        if (activeCallbackRef == nullptr || activeCallback == nullptr) {
+            ACCOUNT_LOGE("ActiveCallback is nullptr!");
+            return false;
+        }
         if (*activeCallbackRef == *activeCallback) {
             return true;
         } else {
@@ -85,6 +89,10 @@ bool SubscribeCBInfo::IsSameCallBack(AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE type,
             return false;
         }
     } else {
+        if (switchCallbackRef == nullptr || switchCallback == nullptr) {
+            ACCOUNT_LOGE("SwitchCallback is nullptr!");
+            return false;
+        }
         if (*switchCallbackRef == *switchCallback) {
             return true;
         } else {
