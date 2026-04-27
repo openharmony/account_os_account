@@ -15,6 +15,7 @@
 #include "os_account_manager_service.h"
 #include <algorithm>
 #include <cstddef>
+#include <securec.h>
 #include <stack>
 #include "account_constants.h"
 #include "account_info.h"
@@ -185,6 +186,20 @@ ErrCode ValidateToken(const SetOsAccountTypeOptions &options)
     if (token.empty() || token.size() > Constants::MAX_TOKEN_SIZE) {
         ACCOUNT_LOGE("SetOsAccountType failed, token is invalid!");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    std::vector<uint8_t> challenge;
+    std::vector<uint8_t> iamToken;
+    ErrCode errCode = InnerAuthorizationManager::GetInstance().VerifyToken(
+        token, MANAGE_LOCAL_ACCOUNT_PRIVILEGE_NAME, IPCSkeleton::GetCallingPid(), challenge, iamToken);
+    if (!challenge.empty()) {
+        (void)memset_s(challenge.data(), challenge.size(), 0, challenge.size());
+    }
+    if (!iamToken.empty()) {
+        (void)memset_s(iamToken.data(), iamToken.size(), 0, iamToken.size());
+    }
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("SetOsAccountType failed, VerifyToken failed, errCode: %{public}d", errCode);
+        return errCode;
     }
 #else
     if (options.token.has_value()) {

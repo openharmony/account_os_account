@@ -214,7 +214,7 @@ private:
     ErrCode RetryToInsertOsAccount(OsAccountInfo &osAccountInfo);
     bool JudgeOsAccountUpdate(cJSON *accountIndexJson);
     std::shared_ptr<std::mutex> GetOrInsertUpdateLock(int32_t id);
-    ErrCode VerifyAndSetOsAccountTypeInTEE(int32_t id, OsAccountType type,
+    ErrCode SetOsAccountTypeInTEE(int32_t id, OsAccountType type,
         const std::optional<std::vector<uint8_t>>& token);
 #ifdef SUPPORT_AUTHORIZATION
     ErrCode InsertOsAccountTypeToTee(int32_t localId, const OsAccountType &type, const std::vector<uint8_t>& token);
