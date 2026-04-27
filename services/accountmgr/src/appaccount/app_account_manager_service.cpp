@@ -413,6 +413,10 @@ ErrCode AppAccountManagerService::SetAppAccountSyncEnable(
 ErrCode AppAccountManagerService::GetAssociatedData(
     const std::string &name, const std::string &key, std::string &value, int32_t &funcResult)
 {
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE,
+        "Invalid name. The length of the name must be greater than 0 and less than 513", funcResult);
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(key, Constants::ASSOCIATED_KEY_MAX_SIZE,
+        "Invalid key. The length of the key must be greater than 0 and less than 1025", funcResult);
     int32_t callingUid = IPCSkeleton::GetCallingUid();
     std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(callingUid);
     funcResult = innerManager_->GetAssociatedData(name, key, value, callingUid);

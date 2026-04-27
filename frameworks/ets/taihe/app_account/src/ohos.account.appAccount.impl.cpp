@@ -452,6 +452,10 @@ public:
         ani_env *env = get_env();
         if (options.parameters.has_value()) {
             ani_ref parametersRef = reinterpret_cast<ani_ref>(options.parameters.value());
+            if (parametersRef == nullptr) {
+                ACCOUNT_LOGE("parametersRef is nullptr");
+                return;
+            }
             auto status = AppExecFwk::UnwrapWantParams(env, parametersRef, params);
             if (!status) {
                 ACCOUNT_LOGE("Failed to UnwrapWant options status = %{public}d", status);
@@ -1143,6 +1147,10 @@ public:
         AAFwk::WantParams params;
         ani_env *env = get_env();
         ani_ref parametersRef = reinterpret_cast<ani_ref>(options);
+        if (parametersRef == nullptr) {
+            ACCOUNT_LOGE("parametersRef is nullptr");
+            return;
+        }
         auto status = AppExecFwk::UnwrapWantParams(env, parametersRef, params);
         if (!status) {
             int32_t jsErrCode = GenerateBusinessErrorCode(JSErrorCode::ERR_JS_PARAMETER_ERROR);
