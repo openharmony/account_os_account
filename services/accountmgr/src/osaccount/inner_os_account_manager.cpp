@@ -2312,8 +2312,9 @@ ErrCode IInnerOsAccountManager::SetOsAccountType(const int id,
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR;
     }
 
-    // 4. TEE sensitive operations (token verification and security zone synchronization)
-    errCode = VerifyAndSetOsAccountTypeInTEE(id, type, options.token);
+    // 4. TEE sensitive operations (security zone synchronization)
+    // Note: token privilege check is done in OsAccountManagerService::ValidateToken
+    errCode = SetOsAccountTypeInTEE(id, type, options.token);
     // Clear token after use to prevent leakage
     if (options.token.has_value()) {
         std::vector<uint8_t> &tokenData = const_cast<std::vector<uint8_t>&>(options.token.value());
@@ -2347,24 +2348,13 @@ ErrCode IInnerOsAccountManager::SetOsAccountType(const int id,
     return ERR_OK;
 }
 
-ErrCode IInnerOsAccountManager::VerifyAndSetOsAccountTypeInTEE(
+ErrCode IInnerOsAccountManager::SetOsAccountTypeInTEE(
     int32_t id, OsAccountType type, const std::optional<std::vector<uint8_t>>& token)
 {
 #ifdef SUPPORT_AUTHORIZATION
     // token is guaranteed to have value by the caller
     const std::vector<uint8_t>& tokenData = token.value();
-    std::vector<uint8_t> unusedResult(sizeof(VerifyUserTokenResult), 0);
-    ErrCode errCode = teeAdapter_.VerifyToken(tokenData, "", unusedResult);
-    if (!unusedResult.empty()) {
-        (void)memset_s(unusedResult.data(), unusedResult.size(), 0, unusedResult.size());
-    }
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("VerifyToken failed, id: %{public}d, errCode: %{public}d", id, errCode);
-        ReportOsAccountOperationFail(id, OPERATION_SET_TYPE, errCode, "VerifyToken failed!");
-        return errCode;
-    }
-
-    errCode = teeAdapter_.SetOsAccountType(id, static_cast<int32_t>(type), tokenData);
+    ErrCode errCode = teeAdapter_.SetOsAccountType(id, static_cast<int32_t>(type), tokenData);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("SetOsAccountType in TEE failed, id: %{public}d, errCode: %{public}d", id, errCode);
         ReportOsAccountOperationFail(id, OPERATION_SET_TYPE, errCode, "SetOsAccountType in TEE failed!");
