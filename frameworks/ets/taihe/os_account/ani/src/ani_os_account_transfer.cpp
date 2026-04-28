@@ -95,9 +95,6 @@ ani_ref AniOsAccountTransfer::GenerateDynamic(ani_env *aniEnv, int64_t ptr)
     auto inputerData = std::shared_ptr<AccountSA::IInputerData>(
         rawPtr,
         [](AccountSA::IInputerData *p) {
-            if (p != nullptr) {
-                delete p;
-            }
         }
     );
     napi_env jsEnv;

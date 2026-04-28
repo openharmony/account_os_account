@@ -50,6 +50,9 @@ static void InitMap()
         return;
     }
     for (uint32_t i = 0; i < MAX_PRIVILEGE_SIZE; i++) {
+        if (g_privilegeList[i].privilegeName == nullptr) {
+            continue;
+        }
         g_privilegeMap[g_privilegeList[i].privilegeName] = i;
     }
     g_isPrivilegeMapInited.store(true);

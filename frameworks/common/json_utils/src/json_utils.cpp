@@ -501,7 +501,16 @@ bool GetIntFromJson(const CJson *jsonObj, const std::string &key, int32_t &value
         if (str.empty()) {
             return false;
         }
-        value = static_cast<int32_t>(strtol(str.c_str(), nullptr, DECIMALISM));
+        char *endptr = nullptr;
+        errno = 0;
+        long longValue = strtol(str.c_str(), &endptr, DECIMALISM);
+        if (endptr == nullptr || endptr == str.c_str() || *endptr != '\0' || errno == ERANGE) {
+            return false;
+        }
+        if (longValue < INT32_MIN || longValue > INT32_MAX) {
+            return false;
+        }
+        value = static_cast<int32_t>(longValue);
         return true;
     }
     return false;
@@ -526,7 +535,14 @@ bool GetUint64FromJson(const CJson *jsonObj, const std::string &key, uint64_t &v
         if (str.empty()) {
             return false;
         }
-        value = strtoull(str.c_str(), nullptr, DECIMALISM);
+        char *endptr = nullptr;
+        errno = 0;
+        value = strtoull(str.c_str(), &endptr, DECIMALISM);
+        // errno == ERANGE catches all negative inputs (strtoull wraps them to ULLONG_MAX),
+        // including cases with leading whitespace (e.g. " -1") that a simple str[0]=='-' check would miss.
+        if (endptr == nullptr || endptr == str.c_str() || *endptr != '\0' || errno == ERANGE) {
+            return false;
+        }
         return true;
     }
     if (IsNumber(item)) {
@@ -551,7 +567,13 @@ bool GetInt64FromJson(const CJson *jsonObj, const std::string &key, int64_t &val
         if (str.empty()) {
             return false;
         }
-        value = static_cast<int64_t>(strtoull(str.c_str(), nullptr, DECIMALISM));
+        char *endptr = nullptr;
+        errno = 0;
+        long long llValue = strtoll(str.c_str(), &endptr, DECIMALISM);
+        if (endptr == nullptr || endptr == str.c_str() || *endptr != '\0' || errno == ERANGE) {
+            return false;
+        }
+        value = static_cast<int64_t>(llValue);
         return true;
     }
     if (IsNumber(item)) {
