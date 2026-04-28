@@ -1394,6 +1394,12 @@ public:
         if (!isGetById && (result == IAMResultCode::ERR_IAM_NOT_ENROLLED)) {
             result = ERR_OK;
         }
+        // When domain account is not supported or bound,
+        // map it to ERR_IAM_TYPE_NOT_SUPPORT so the caller receives a valid IAM result field.
+        if (!isGetById && result == ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT) {
+            result = ERR_OK;
+            propertyInfoInner.result = ERR_IAM_TYPE_NOT_SUPPORT;
+        }
         errCode = result;
         cv.notify_one();
     }
