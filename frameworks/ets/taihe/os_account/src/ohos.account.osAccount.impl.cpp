@@ -476,7 +476,7 @@ public:
     array<EnrolledCredInfo> GetAuthInfoEmpty()
     {
         int32_t userId = -1;
-        AccountSA::AuthType authTypeInner;
+        AccountSA::AuthType authTypeInner {0};
         std::vector<EnrolledCredInfo> infos;
         ErrCode errCode = GetAuthInfoTHInner(userId, authTypeInner, infos);
         if (errCode != ERR_OK) {
@@ -514,7 +514,7 @@ public:
     {
         int32_t userId = -1;
         std::vector<EnrolledCredInfo> infos;
-        AccountSA::AuthType authTypeInner;
+        AccountSA::AuthType authTypeInner {0};
         if (!options.has_value()) {
             return GetAuthInfoEmpty();
         }

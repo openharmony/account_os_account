@@ -72,6 +72,7 @@ void OsAccountPluginManager::CloseLib()
         ACCOUNT_LOGE("LibHandle_ is nullptr.");
         return;
     }
+    methodMap_.clear();
     dlclose(libHandle_);
     libHandle_ = nullptr;
 }
