@@ -454,6 +454,10 @@ bool CreateOsAccountForDomainOptions::Marshalling(Parcel &parcel) const
             return false;
         }
     }
+    if (disallowedHapList.size() > DISALLOWED_HAP_LIST_MAX_SIZE) {
+        ACCOUNT_LOGE("Abnormal disallowedHapList data size, size %{public}zu", disallowedHapList.size());
+        return false;
+    }
     if (!parcel.WriteStringVector(disallowedHapList)) {
         ACCOUNT_LOGE("Failed to write disallowedHapList");
         return false;
@@ -509,6 +513,11 @@ bool CreateOsAccountForDomainOptions::ReadFromParcel(Parcel &parcel)
     }
     if (!parcel.ReadStringVector(&disallowedHapList)) {
         ACCOUNT_LOGE("Failed to read disallowedHapList.");
+        return false;
+    }
+    if (disallowedHapList.size() > DISALLOWED_HAP_LIST_MAX_SIZE) {
+        ACCOUNT_LOGE("Abnormal disallowedHapList data size reading from parcel, size %{public}zu",
+            disallowedHapList.size());
         return false;
     }
     if (!parcel.ReadString(shortName)) {

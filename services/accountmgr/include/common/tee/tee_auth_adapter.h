@@ -38,7 +38,7 @@ constexpr size_t TOKEN_CRYPTO_SIGN_SIZE = 32;
 
 typedef struct {
     uint8_t permission[PERMISSION_MAX_LEN + 1];
-    uint8_t permissionSize;
+    size_t permissionSize;
 } __attribute__((__packed__)) VerifyTokenParam;
 
 typedef struct {
@@ -79,7 +79,7 @@ struct VerifyGrantTimeResult {
 typedef struct ApplyUserTokenParam {
     uint32_t pid;
     uint8_t permission[PERMISSION_MAX_LEN + 1];
-    uint8_t permissionSize;
+    size_t permissionSize;
     int32_t grantValidityPeriod;
     int32_t grantUserId;
     uint8_t authToken[AUTH_TOKEN_LEN];

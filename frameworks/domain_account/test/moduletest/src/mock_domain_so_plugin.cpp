@@ -68,7 +68,7 @@ static bool SetPluginUint8Vector(const std::vector<uint8_t> &vector, PluginUint8
     }
     pVector.data = (uint8_t *)malloc(vector.size());
     (void)memcpy_s(pVector.data, vector.size(), (uint8_t *)vector.data(), vector.size());
-    pVector.capcity = vector.size();
+    pVector.capacity = vector.size();
     pVector.size = vector.size();
     return true;
 }
@@ -78,11 +78,11 @@ void SetIsCheckError(bool isCheckError)
     g_isCheckError = isCheckError;
 }
 
-PluginBussnessError *GetAccountServerConfig(const PluginDomainAccountInfo *domainAccountInfo,
+PluginBusinessError *GetAccountServerConfig(const PluginDomainAccountInfo *domainAccountInfo,
     PluginServerConfigInfo **serverConfigInfo)
 {
     ACCOUNT_LOGI("Mock GetAccountServerConfig enter.");
-    PluginBussnessError *error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    PluginBusinessError *error = (PluginBusinessError *)malloc(sizeof(PluginBusinessError));
     if (error == nullptr) {
         return nullptr;
     }
@@ -105,11 +105,11 @@ PluginBussnessError *GetAccountServerConfig(const PluginDomainAccountInfo *domai
     return error;
 }
 
-PluginBussnessError *Auth(const PluginDomainAccountInfo *domainAccountInfo, const PluginUint8Vector *credential,
+PluginBusinessError *Auth(const PluginDomainAccountInfo *domainAccountInfo, const PluginUint8Vector *credential,
     const int32_t callerLocalId, PluginAuthResultInfoCallback callback, uint64_t *contextId)
 {
     ACCOUNT_LOGI("Mock Auth enter.");
-    PluginBussnessError *error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    PluginBusinessError *error = (PluginBusinessError *)malloc(sizeof(PluginBusinessError));
     if (error == nullptr) {
         return nullptr;
     }
@@ -133,7 +133,7 @@ PluginBussnessError *Auth(const PluginDomainAccountInfo *domainAccountInfo, cons
         authResultInfo->freezingTime = 1;
         authResultInfo->localId = -1;
 
-        PluginBussnessError *error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+        PluginBusinessError *error = (PluginBusinessError *)malloc(sizeof(PluginBusinessError));
         if (error != nullptr) {
             error->code = 0;
             error->msg.data = nullptr;
@@ -150,12 +150,12 @@ PluginBussnessError *Auth(const PluginDomainAccountInfo *domainAccountInfo, cons
     return error;
 }
 
-PluginBussnessError *AuthWithServerConfig(const PluginString *parameters,
+PluginBusinessError *AuthWithServerConfig(const PluginString *parameters,
     const PluginDomainAccountInfo *domainAccountInfo, const PluginUint8Vector *credential, const int32_t callerLocalId)
 {
     ACCOUNT_LOGI("Mock AuthWithServerConfig, sleep 1 second");
     std::this_thread::sleep_for(std::chrono::seconds(1));
-    PluginBussnessError *error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    PluginBusinessError *error = (PluginBusinessError *)malloc(sizeof(PluginBusinessError));
     if (error != nullptr) {
         error->code = 0;
         error->msg.data = nullptr;
@@ -163,10 +163,10 @@ PluginBussnessError *AuthWithServerConfig(const PluginString *parameters,
     return error;
 }
 
-PluginBussnessError *BindAccount(const PluginDomainAccountInfo *domainAccountInfo, const int32_t localId)
+PluginBusinessError *BindAccount(const PluginDomainAccountInfo *domainAccountInfo, const int32_t localId)
 {
     ACCOUNT_LOGI("Mock BindAccount enter.");
-    PluginBussnessError *error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    PluginBusinessError *error = (PluginBusinessError *)malloc(sizeof(PluginBusinessError));
     if (error == nullptr) {
         return nullptr;
     }
@@ -175,10 +175,10 @@ PluginBussnessError *BindAccount(const PluginDomainAccountInfo *domainAccountInf
     return error;
 }
 
-PluginBussnessError *BindAccountError(const PluginDomainAccountInfo *domainAccountInfo, const int32_t localId)
+PluginBusinessError *BindAccountError(const PluginDomainAccountInfo *domainAccountInfo, const int32_t localId)
 {
     ACCOUNT_LOGI("Mock BindAccountError enter.");
-    PluginBussnessError *error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    PluginBusinessError *error = (PluginBusinessError *)malloc(sizeof(PluginBusinessError));
     if (error == nullptr) {
         return nullptr;
     }
@@ -187,11 +187,11 @@ PluginBussnessError *BindAccountError(const PluginDomainAccountInfo *domainAccou
     return error;
 }
 
-PluginBussnessError *GetAccountInfo(const PluginGetDomainAccountInfoOptions *options, const int32_t callerLocalId,
+PluginBusinessError *GetAccountInfo(const PluginGetDomainAccountInfoOptions *options, const int32_t callerLocalId,
                                     PluginDomainAccountInfo **domainAccountInfo)
 {
     ACCOUNT_LOGI("Mock GetAccountInfo enter.");
-    PluginBussnessError *error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    PluginBusinessError *error = (PluginBusinessError *)malloc(sizeof(PluginBusinessError));
     if (error == nullptr) {
         return nullptr;
     }
@@ -234,11 +234,11 @@ PluginBussnessError *GetAccountInfo(const PluginGetDomainAccountInfoOptions *opt
     return error;
 }
 
-PluginBussnessError *GetAccountInfoError(const PluginGetDomainAccountInfoOptions *options, const int32_t callerLocalId,
+PluginBusinessError *GetAccountInfoError(const PluginGetDomainAccountInfoOptions *options, const int32_t callerLocalId,
     PluginDomainAccountInfo **domainAccountInfo)
 {
     ACCOUNT_LOGI("Mock GetAccountInfoError enter.");
-    PluginBussnessError *error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    PluginBusinessError *error = (PluginBusinessError *)malloc(sizeof(PluginBusinessError));
     if (error == nullptr) {
         return nullptr;
     }
@@ -247,7 +247,7 @@ PluginBussnessError *GetAccountInfoError(const PluginGetDomainAccountInfoOptions
     return error;
 }
 
-PluginBussnessError *IsAuthenticationExpired(const PluginDomainAccountInfo *domainAccountInfo,
+PluginBusinessError *IsAuthenticationExpired(const PluginDomainAccountInfo *domainAccountInfo,
                                              const PluginUint8Vector *token, int32_t *isValid)
 {
     ACCOUNT_LOGI("Mock IsAuthenticationExpired enter.");
@@ -257,7 +257,7 @@ PluginBussnessError *IsAuthenticationExpired(const PluginDomainAccountInfo *doma
     if (isValid == nullptr) {
         return nullptr;
     }
-    PluginBussnessError *error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    PluginBusinessError *error = (PluginBusinessError *)malloc(sizeof(PluginBusinessError));
     if (error == nullptr) {
         return nullptr;
     }
@@ -286,11 +286,11 @@ PluginBussnessError *IsAuthenticationExpired(const PluginDomainAccountInfo *doma
     return error;
 }
 
-PluginBussnessError* SetAccountPolicy(const PluginString *parameters,
+PluginBusinessError* SetAccountPolicy(const PluginString *parameters,
     const PluginDomainAccountInfo *domainAccountInfo, const int32_t callerLocalId)
 {
     ACCOUNT_LOGI("Mock SetAccountPolicy enter.");
-    PluginBussnessError *error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    PluginBusinessError *error = (PluginBusinessError *)malloc(sizeof(PluginBusinessError));
     if (error == nullptr) {
         return nullptr;
     }
@@ -306,11 +306,11 @@ PluginBussnessError* SetAccountPolicy(const PluginString *parameters,
     return error;
 }
 
-PluginBussnessError *GetAccountPolicy(const PluginDomainAccountInfo *domainAccountInfo,
+PluginBusinessError *GetAccountPolicy(const PluginDomainAccountInfo *domainAccountInfo,
     const int32_t callerLocalId, PluginDomainAccountPolicy **domainAccountPolicy)
 {
     ACCOUNT_LOGI("Mock GetAccountPolicy enter.");
-    PluginBussnessError *error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    PluginBusinessError *error = (PluginBusinessError *)malloc(sizeof(PluginBusinessError));
     if (error == nullptr) {
         return nullptr;
     }
@@ -319,10 +319,10 @@ PluginBussnessError *GetAccountPolicy(const PluginDomainAccountInfo *domainAccou
     return error;
 }
 
-PluginBussnessError* UpdateAccountInfo(const PluginDomainAccountInfo *domainAccountInfo,
+PluginBusinessError* UpdateAccountInfo(const PluginDomainAccountInfo *domainAccountInfo,
     const PluginDomainAccountInfo *newDomainAccountInfo)
 {
-    PluginBussnessError* error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    PluginBusinessError* error = (PluginBusinessError *)malloc(sizeof(PluginBusinessError));
     if (error == nullptr) {
         return nullptr;
     }
@@ -331,11 +331,11 @@ PluginBussnessError* UpdateAccountInfo(const PluginDomainAccountInfo *domainAcco
     return error;
 }
 
-PluginBussnessError *UnBindAccount(const PluginDomainAccountInfo *domainAccountInfo, const int32_t localId)
+PluginBusinessError *UnBindAccount(const PluginDomainAccountInfo *domainAccountInfo, const int32_t localId)
 {
     ACCOUNT_LOGI("Mock UnBindAccount enter.");
     g_callingLocalId = localId;
-    PluginBussnessError *error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    PluginBusinessError *error = (PluginBusinessError *)malloc(sizeof(PluginBusinessError));
     if (error == nullptr) {
         return nullptr;
     }
@@ -344,11 +344,11 @@ PluginBussnessError *UnBindAccount(const PluginDomainAccountInfo *domainAccountI
     return error;
 }
 
-PluginBussnessError *UnBindAccountError(const PluginDomainAccountInfo *domainAccountInfo, const int32_t localId)
+PluginBusinessError *UnBindAccountError(const PluginDomainAccountInfo *domainAccountInfo, const int32_t localId)
 {
     ACCOUNT_LOGI("Mock UnBindAccountError enter.");
     g_callingLocalId = localId;
-    PluginBussnessError *error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    PluginBusinessError *error = (PluginBusinessError *)malloc(sizeof(PluginBusinessError));
     if (error == nullptr) {
         return nullptr;
     }
@@ -367,10 +367,10 @@ void ResetCallingLocalId()
     g_callingLocalId = -1;
 }
 
-PluginBussnessError* UpdateServerConfig(const PluginString *serverConfigId, const PluginString *parameters,
+PluginBusinessError* UpdateServerConfig(const PluginString *serverConfigId, const PluginString *parameters,
     const int32_t localId, PluginServerConfigInfo **serverConfigInfo)
 {
-    PluginBussnessError* error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    PluginBusinessError* error = (PluginBusinessError *)malloc(sizeof(PluginBusinessError));
     if (error == nullptr) {
         return nullptr;
     }
@@ -388,11 +388,11 @@ PluginBussnessError* UpdateServerConfig(const PluginString *serverConfigId, cons
     return error;
 }
 
-PluginBussnessError *AuthBlocking(const PluginDomainAccountInfo *domainAccountInfo, const PluginUint8Vector *credential,
+PluginBusinessError *AuthBlocking(const PluginDomainAccountInfo *domainAccountInfo, const PluginUint8Vector *credential,
     const int32_t callerLocalId, PluginAuthResultInfoCallback callback, uint64_t *contextId)
 {
     ACCOUNT_LOGI("Mock AuthBlock enter.");
-    PluginBussnessError *error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    PluginBusinessError *error = (PluginBusinessError *)malloc(sizeof(PluginBusinessError));
     if (error == nullptr) {
         return nullptr;
     }
@@ -424,7 +424,7 @@ PluginBussnessError *AuthBlocking(const PluginDomainAccountInfo *domainAccountIn
         authResultInfo->freezingTime = 1;
         authResultInfo->localId = -1;
 
-        PluginBussnessError *error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+        PluginBusinessError *error = (PluginBusinessError *)malloc(sizeof(PluginBusinessError));
         if (error != nullptr) {
             error->code = 0;
             error->msg.data = nullptr;
@@ -441,13 +441,13 @@ PluginBussnessError *AuthBlocking(const PluginDomainAccountInfo *domainAccountIn
     return error;
 }
 
-PluginBussnessError *CancelAuth(const uint64_t contextId)
+PluginBusinessError *CancelAuth(const uint64_t contextId)
 {
     if (g_needWaitCancel) {
         g_needWaitCancel = false;
         g_Cv.notify_all();
     }
-    PluginBussnessError *error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    PluginBusinessError *error = (PluginBusinessError *)malloc(sizeof(PluginBusinessError));
     if (error == nullptr) {
         return nullptr;
     }
@@ -462,7 +462,7 @@ PluginBussnessError *CancelAuth(const uint64_t contextId)
         authResultInfo->freezingTime = 1;
         authResultInfo->localId = -1;
 
-        PluginBussnessError *errorCallback = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+        PluginBusinessError *errorCallback = (PluginBusinessError *)malloc(sizeof(PluginBusinessError));
         if (errorCallback != nullptr) {
             errorCallback->code = ERR_JS_AUTH_CANCELLED;
             errorCallback->msg.data = nullptr;
