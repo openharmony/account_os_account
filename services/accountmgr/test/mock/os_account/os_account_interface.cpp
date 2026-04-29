@@ -184,5 +184,11 @@ ErrCode OsAccountInterface::CheckAllAppDied(int32_t accountId)
     }
     return ERR_OK;
 }
+
+ErrCode OsAccountInterface::SendToSamgrUserState(int32_t localId, OsAccountState state)
+{
+    ACCOUNT_LOGI("mock OsAccountInterface SendToSamgrUserState start");
+    return ERR_OK;
+}
 }  // namespace AccountSA
 }  // namespace OHOS
