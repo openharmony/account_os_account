@@ -161,6 +161,7 @@ public:
 private:
     int32_t sessionId_ = 0;
     std::atomic<bool> isOnResult_{false};
+    std::atomic<bool> isReleased_{false};
     std::vector<uint8_t> token_;
     std::shared_ptr<TaiheAcquireAuthorizationContext> context_ = nullptr;
     sptr<IRemoteObject> callback_ = nullptr;

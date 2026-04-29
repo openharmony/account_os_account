@@ -2595,7 +2595,7 @@ HWTEST_F(DomainAccountClientModuleTest, AuthResultInfoCallback001, TestSize.Leve
 {
     InnerDomainAccountManager::GetInstance().authContextIdMap_.clear();
     PluginAuthResultInfo *info = nullptr;
-    PluginBussnessError *errInfo = nullptr;
+    PluginBusinessError *errInfo = nullptr;
     InnerDomainAccountManager::GetInstance().AuthResultInfoCallback(1, info, errInfo);
 
     auto rawCallback = new (std::nothrow) AuthCallbackSync();

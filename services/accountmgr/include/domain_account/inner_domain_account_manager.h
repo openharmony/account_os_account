@@ -39,13 +39,14 @@ public:
     static InnerDomainAccountManager &GetInstance();
     ErrCode RegisterPlugin(const sptr<IDomainAccountPlugin> &plugin);
     ErrCode UnregisterPlugin();
+    void OnPluginDied();
     ErrCode Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
         const sptr<IDomainAccountCallback> &callback);
     ErrCode AuthWithParameters(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
         const DomainAccountAuthOptions &authOptions, const sptr<IDomainAccountCallback> &callback);
     ErrCode AuthUser(int32_t userId, const std::vector<uint8_t> &password,
         const sptr<IDomainAccountCallback> &callback);
-    void AuthResultInfoCallback(uint64_t contextId, PluginAuthResultInfo *authResultInfo, PluginBussnessError *error);
+    void AuthResultInfoCallback(uint64_t contextId, PluginAuthResultInfo *authResultInfo, PluginBusinessError *error);
     ErrCode CancelAuth(const sptr<IDomainAccountCallback> &callback);
     ErrCode CancelAuth(const uint64_t &contextId);
     ErrCode AuthWithPopup(int32_t userId, const sptr<IDomainAccountCallback> &callback);
@@ -103,6 +104,7 @@ private:
     InnerDomainAccountManager();
     ~InnerDomainAccountManager();
     bool GenerateContextId(uint64_t &contextId);
+    void ClearPlugin();
     DISALLOW_COPY_AND_MOVE(InnerDomainAccountManager);
     void StartIsAccountTokenValid(const sptr<IDomainAccountPlugin> &plugin, const AccountSA::DomainAccountInfo &info,
         const std::vector<uint8_t> &token, const sptr<IDomainAccountCallback> &callback);

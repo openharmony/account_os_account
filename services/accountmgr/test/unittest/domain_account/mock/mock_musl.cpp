@@ -64,10 +64,10 @@ void *dlopen(const char* path, int flag)
     return nullptr;
 }
 
-PluginBussnessError* AddServerConfig(const PluginString *parameters, const int32_t localId,
+PluginBusinessError* AddServerConfig(const PluginString *parameters, const int32_t localId,
     PluginServerConfigInfo **serverConfigInfo)
 {
-    PluginBussnessError* error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    PluginBusinessError* error = (PluginBusinessError *)malloc(sizeof(PluginBusinessError));
     if (error == nullptr) {
         return nullptr;
     }
@@ -81,9 +81,9 @@ PluginBussnessError* AddServerConfig(const PluginString *parameters, const int32
     return error;
 }
 
-PluginBussnessError* RemoveServerConfig(const PluginString *serverConfigId, const int32_t localId)
+PluginBusinessError* RemoveServerConfig(const PluginString *serverConfigId, const int32_t localId)
 {
-    PluginBussnessError* error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    PluginBusinessError* error = (PluginBusinessError *)malloc(sizeof(PluginBusinessError));
     if (error == nullptr) {
         return nullptr;
     }
@@ -95,10 +95,10 @@ PluginBussnessError* RemoveServerConfig(const PluginString *serverConfigId, cons
     return error;
 }
 
-PluginBussnessError* UpdateServerConfig(const PluginString *serverConfigId, const PluginString *parameters,
+PluginBusinessError* UpdateServerConfig(const PluginString *serverConfigId, const PluginString *parameters,
     const int32_t localId, PluginServerConfigInfo **serverConfigInfo)
 {
-    PluginBussnessError* error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    PluginBusinessError* error = (PluginBusinessError *)malloc(sizeof(PluginBusinessError));
     if (error == nullptr) {
         return nullptr;
     }
@@ -107,10 +107,10 @@ PluginBussnessError* UpdateServerConfig(const PluginString *serverConfigId, cons
     return error;
 }
 
-PluginBussnessError* GetServerConfig(const PluginString *serverConfigId, const int32_t callerLocalId,
+PluginBusinessError* GetServerConfig(const PluginString *serverConfigId, const int32_t callerLocalId,
     PluginServerConfigInfo **serverConfigInfo)
 {
-    PluginBussnessError* error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    PluginBusinessError* error = (PluginBusinessError *)malloc(sizeof(PluginBusinessError));
     if (error == nullptr) {
         return nullptr;
     }
@@ -142,9 +142,9 @@ static void AddServerConfigToList(PluginServerConfigInfoList **serverConfigInfoL
     item2->parameters.length = 0;
 }
 
-PluginBussnessError* GetServerConfigList(PluginServerConfigInfoList **serverConfigInfoList)
+PluginBusinessError* GetServerConfigList(PluginServerConfigInfoList **serverConfigInfoList)
 {
-    PluginBussnessError* error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    PluginBusinessError* error = (PluginBusinessError *)malloc(sizeof(PluginBusinessError));
     if (error == nullptr) {
         return nullptr;
     }
@@ -168,10 +168,10 @@ PluginBussnessError* GetServerConfigList(PluginServerConfigInfoList **serverConf
     return error;
 }
 
-PluginBussnessError* GetAccountServerConfig(const PluginDomainAccountInfo *domainAccountInfo,
+PluginBusinessError* GetAccountServerConfig(const PluginDomainAccountInfo *domainAccountInfo,
     PluginServerConfigInfo **serverConfigInfo)
 {
-    PluginBussnessError* error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    PluginBusinessError* error = (PluginBusinessError *)malloc(sizeof(PluginBusinessError));
     if (error == nullptr) {
         return nullptr;
     }
@@ -180,10 +180,10 @@ PluginBussnessError* GetAccountServerConfig(const PluginDomainAccountInfo *domai
     return error;
 }
 
-PluginBussnessError* Auth(const PluginDomainAccountInfo *domainAccountInfo,
+PluginBusinessError* Auth(const PluginDomainAccountInfo *domainAccountInfo,
     const PluginUint8Vector *credential, const int32_t localId, PluginAuthResultInfo **authResultInfo)
 {
-    PluginBussnessError* error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    PluginBusinessError* error = (PluginBusinessError *)malloc(sizeof(PluginBusinessError));
     if (error == nullptr) {
         return nullptr;
     }
@@ -192,10 +192,10 @@ PluginBussnessError* Auth(const PluginDomainAccountInfo *domainAccountInfo,
     return error;
 }
 
-PluginBussnessError* AuthWithPopup(const PluginDomainAccountInfo *domainAccountInfo,
+PluginBusinessError* AuthWithPopup(const PluginDomainAccountInfo *domainAccountInfo,
     PluginAuthResultInfo **authResultInfo)
 {
-    PluginBussnessError* error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    PluginBusinessError* error = (PluginBusinessError *)malloc(sizeof(PluginBusinessError));
     if (error == nullptr) {
         return nullptr;
     }
@@ -204,10 +204,10 @@ PluginBussnessError* AuthWithPopup(const PluginDomainAccountInfo *domainAccountI
     return error;
 }
 
-PluginBussnessError* AuthWithToken(const PluginDomainAccountInfo *domainAccountInfo,
+PluginBusinessError* AuthWithToken(const PluginDomainAccountInfo *domainAccountInfo,
     const PluginUint8Vector *token, PluginAuthResultInfo **authResultInfo)
 {
-    PluginBussnessError* error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    PluginBusinessError* error = (PluginBusinessError *)malloc(sizeof(PluginBusinessError));
     if (error == nullptr) {
         return nullptr;
     }
@@ -216,10 +216,10 @@ PluginBussnessError* AuthWithToken(const PluginDomainAccountInfo *domainAccountI
     return error;
 }
 
-PluginBussnessError* GetAccountInfo(const PluginGetDomainAccountInfoOptions *options, const int32_t callerLocalId,
+PluginBusinessError* GetAccountInfo(const PluginGetDomainAccountInfoOptions *options, const int32_t callerLocalId,
     PluginDomainAccountInfo **domainAccountInfo)
 {
-    PluginBussnessError* error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    PluginBusinessError* error = (PluginBusinessError *)malloc(sizeof(PluginBusinessError));
     if (error == nullptr) {
         return nullptr;
     }
@@ -228,10 +228,10 @@ PluginBussnessError* GetAccountInfo(const PluginGetDomainAccountInfoOptions *opt
     return error;
 }
 
-PluginBussnessError* GetAuthStatusInfo(const PluginDomainAccountInfo *domainAccountInfo,
+PluginBusinessError* GetAuthStatusInfo(const PluginDomainAccountInfo *domainAccountInfo,
     PluginAuthStatusInfo **authStatusInfo)
 {
-    PluginBussnessError* error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    PluginBusinessError* error = (PluginBusinessError *)malloc(sizeof(PluginBusinessError));
     if (error == nullptr) {
         return nullptr;
     }
@@ -240,10 +240,10 @@ PluginBussnessError* GetAuthStatusInfo(const PluginDomainAccountInfo *domainAcco
     return error;
 }
 
-PluginBussnessError* BindAccount(const PluginDomainAccountInfo *domainAccountInfo, const int32_t localId,
+PluginBusinessError* BindAccount(const PluginDomainAccountInfo *domainAccountInfo, const int32_t localId,
     const int32_t callerLocalId)
 {
-    PluginBussnessError* error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    PluginBusinessError* error = (PluginBusinessError *)malloc(sizeof(PluginBusinessError));
     if (error == nullptr) {
         return nullptr;
     }
@@ -252,9 +252,9 @@ PluginBussnessError* BindAccount(const PluginDomainAccountInfo *domainAccountInf
     return error;
 }
 
-PluginBussnessError* UnbindAccount(const PluginDomainAccountInfo *domainAccountInfo, const int32_t localId)
+PluginBusinessError* UnbindAccount(const PluginDomainAccountInfo *domainAccountInfo, const int32_t localId)
 {
-    PluginBussnessError* error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    PluginBusinessError* error = (PluginBusinessError *)malloc(sizeof(PluginBusinessError));
     if (error == nullptr) {
         return nullptr;
     }
@@ -263,10 +263,10 @@ PluginBussnessError* UnbindAccount(const PluginDomainAccountInfo *domainAccountI
     return error;
 }
 
-PluginBussnessError* UpdateAccountInfo(const PluginDomainAccountInfo *domainAccountInfo,
+PluginBusinessError* UpdateAccountInfo(const PluginDomainAccountInfo *domainAccountInfo,
     const PluginDomainAccountInfo *newDomainAccountInfo)
 {
-    PluginBussnessError* error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    PluginBusinessError* error = (PluginBusinessError *)malloc(sizeof(PluginBusinessError));
     if (error == nullptr) {
         return nullptr;
     }
@@ -275,10 +275,10 @@ PluginBussnessError* UpdateAccountInfo(const PluginDomainAccountInfo *domainAcco
     return error;
 }
 
-PluginBussnessError* IsAccountTokenValid(const PluginDomainAccountInfo *domainAccountInfo,
+PluginBusinessError* IsAccountTokenValid(const PluginDomainAccountInfo *domainAccountInfo,
     const PluginUint8Vector *token, int32_t *isValid)
 {
-    PluginBussnessError* error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    PluginBusinessError* error = (PluginBusinessError *)malloc(sizeof(PluginBusinessError));
     if (error == nullptr) {
         return nullptr;
     }
@@ -288,10 +288,10 @@ PluginBussnessError* IsAccountTokenValid(const PluginDomainAccountInfo *domainAc
     return error;
 }
 
-PluginBussnessError* GetAccessToken(const PluginGetDomainAccessTokenOptions *options,
+PluginBusinessError* GetAccessToken(const PluginGetDomainAccessTokenOptions *options,
     PluginUint8Vector **accessToken)
 {
-    PluginBussnessError* error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    PluginBusinessError* error = (PluginBusinessError *)malloc(sizeof(PluginBusinessError));
     if (error == nullptr) {
         return nullptr;
     }
@@ -300,10 +300,10 @@ PluginBussnessError* GetAccessToken(const PluginGetDomainAccessTokenOptions *opt
     return error;
 }
 
-PluginBussnessError* SetAccountPolicy(const PluginString *parameters,
+PluginBusinessError* SetAccountPolicy(const PluginString *parameters,
     const PluginDomainAccountInfo *domainAccountInfo, const int32_t callerLocalId)
 {
-    PluginBussnessError* error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    PluginBusinessError* error = (PluginBusinessError *)malloc(sizeof(PluginBusinessError));
     if (error == nullptr) {
         return nullptr;
     }
@@ -312,10 +312,10 @@ PluginBussnessError* SetAccountPolicy(const PluginString *parameters,
     return error;
 }
 
-PluginBussnessError* GetAccountPolicy(const PluginDomainAccountInfo *domainAccountInfo,
+PluginBusinessError* GetAccountPolicy(const PluginDomainAccountInfo *domainAccountInfo,
     const int32_t callerLocalId, PluginDomainAccountPolicy **domainAccountPolicy)
 {
-    PluginBussnessError* error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    PluginBusinessError* error = (PluginBusinessError *)malloc(sizeof(PluginBusinessError));
     if (error == nullptr) {
         return nullptr;
     }
