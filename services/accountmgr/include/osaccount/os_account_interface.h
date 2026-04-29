@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,6 +21,7 @@
 #include "account_error_no.h"
 #include <mutex>
 #include "os_account_info.h"
+#include "os_account_subscribe_info.h"
 #include "os_account_user_callback.h"
 
 namespace OHOS {
@@ -55,6 +56,7 @@ public:
     static void PublishCommonEvent(
         const OsAccountInfo &osAccountInfo, const std::string &commonEvent, const std::string &operation);
     static ErrCode CheckAllAppDied(int32_t accountId);
+    static ErrCode SendToSamgrUserState(int32_t localId, OsAccountState state);
 
 private:
     static ErrCode InnerSendToStorageAccountCreateComplete(int32_t localId);
