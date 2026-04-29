@@ -642,9 +642,6 @@ static bool CheckAndGetAuthTypes(napi_env env, std::vector<int32_t> inputTypes,
             credentialTypes.push_back(static_cast<UserIam::UserAuth::AuthType>(inputType));
             }
         }
-    if ((!invalidFlag) && (!unsupportFlag)) {
-        return true;
-    }
     if (invalidFlag) {
         ACCOUNT_LOGE("One or more auth types are invalid");
         std::string errMsg = "One or more auth types are invalid: " + invalids;
@@ -655,8 +652,9 @@ static bool CheckAndGetAuthTypes(napi_env env, std::vector<int32_t> inputTypes,
         ACCOUNT_LOGE("One or more auth types are not supported");
         std::string errMsg = "One or more auth types are not supported: " + unsupports;
         AccountNapiThrow(env, ERR_JS_AUTH_TYPE_NOT_SUPPORTED, errMsg, true);
+        return false;
     }
-    return false;
+    return true;
 }
 
 std::pair<bool, std::shared_ptr<CredSubscriberPtr>> FindAndGetSubscriber(
