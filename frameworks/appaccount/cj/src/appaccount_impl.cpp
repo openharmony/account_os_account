@@ -350,7 +350,6 @@ int32_t CJAppAccountImpl::on(
 
 void CJAppAccountImpl::GetSubscriberByUnsubscribe(std::vector<std::shared_ptr<SubscribePtr>> &subscribers)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
     for (auto item : g_appAccountSubscribes) {
         subscribers.emplace_back(item->subscriber);
     }
@@ -366,20 +365,23 @@ int32_t CJAppAccountImpl::off(std::string type, void (*callback)(CArrAppAccountI
     }
     context->type = type;
     context->callbackRef = CJLambda::Create(callback);
-    std::vector<std::shared_ptr<SubscribePtr>> subscribers = {nullptr};
+    std::lock_guard<std::mutex> lock(mutex_);
+    std::vector<std::shared_ptr<SubscribePtr>> subscribers;
     GetSubscriberByUnsubscribe(subscribers);
     context->subscribers = subscribers;
     if (callback == nullptr) {
-        std::lock_guard<std::mutex> lock(mutex_);
         for (auto offSubscriber : context->subscribers) {
             int32_t ret = ConvertToJSErrCode(AppAccountManager::UnsubscribeAppAccount(offSubscriber));
             if (ret != ERR_OK) {
                 errCode = ret;
             }
         }
+        for (auto item : g_appAccountSubscribes) {
+            delete item;
+        }
         g_appAccountSubscribes.clear();
+        g_appAccountSubscribes.shrink_to_fit();
     } else {
-        std::lock_guard<std::mutex> lock(mutex_);
         for (size_t idx = 0; idx < context->subscribers.size(); ++idx) {
             if (!IsSameFunction(&context->callbackRef, &context->subscribers[idx]->ref_)) {
                 continue;
@@ -389,6 +391,7 @@ int32_t CJAppAccountImpl::off(std::string type, void (*callback)(CArrAppAccountI
             if (ret != ERR_OK) {
                 errCode = ret;
             }
+            delete g_appAccountSubscribes[idx];
             g_appAccountSubscribes.erase(g_appAccountSubscribes.begin() + idx);
             break;
         }
@@ -429,10 +432,10 @@ int32_t CJAppAccountImpl::checkAccountLabels(std::string name, std::string owner
     }
     int err =  ConvertToJSErrCode(
         AppAccountManager::CheckAccountLabels(name, owner, Convert2VecString(labels), callback));
-    if (callback->errCode == ERR_OK) {
-        ret.data = callback->onResultRetBool;
+    if (callback->GetErrCode() == ERR_OK) {
+        ret.data = callback->GetOnResultRetBool();
     } else {
-        ret.code = callback->errCode;
+        ret.code = callback->GetErrCode();
     }
     if (err != ERR_OK) {
         ACCOUNT_LOGE("CheckAccountLabels failed");
@@ -489,15 +492,15 @@ int32_t CJAppAccountImpl::selectAccountByOptions(
     }
     int err = ConvertToJSErrCode(
         AppAccountManager::SelectAccountsByOptions(context->options, callback));
-    std::vector<std::string> names = callback->onResultRetNames;
-    std::vector<std::string> owners = callback->onResultRetOwners;
+    std::vector<std::string> names = callback->GetOnResultRetNames();
+    std::vector<std::string> owners = callback->GetOnResultRetOwners();
     if (names.size() != owners.size()) {
-        callback->errCode = ERR_CJ_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION;
+        callback->SetErrCode(ERR_CJ_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION);
     }
-    if (callback->errCode == ERR_OK) {
+    if (callback->GetErrCode() == ERR_OK) {
         ret.cArrAppAccountInfo = Convert2CArrAppAccountInfo(names, owners);
     } else {
-        ret.err = callback->errCode;
+        ret.err = callback->GetErrCode();
     }
     if (err != ERR_OK) {
         ACCOUNT_LOGE("selectAccountByOptions failed");
@@ -548,18 +551,16 @@ int32_t CJAppAccountImpl::verifyCredential(
         AppAccountManager::VerifyCredential(name, owner, options, appAccountMgrCb));
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("verifyCredential failed");
-        AAFwk::Want result;
-        std::string value = std::string();
-        appAccountMgrCb->OnResult(ERR_CJ_SYSTEM_SERVICE_EXCEPTION, result);
+        std::string value;
         callback.onResult(ERR_CJ_SYSTEM_SERVICE_EXCEPTION, Convert2CAuthResult(value, value, value, value));
         return errCode;
     }
     // account: AppAccountInfo
-    std::string nameResult = appAccountMgrCb->nameResult;
-    std::string ownerResult = appAccountMgrCb->ownerResult;
+    std::string nameResult = appAccountMgrCb->GetNameResult();
+    std::string ownerResult = appAccountMgrCb->GetOwnerResult();
     //tokenInfo: AuthTokenInfo
-    std::string authTypeResult = appAccountMgrCb->authTypeResult;
-    std::string tokenResult = appAccountMgrCb->tokenResult;
+    std::string authTypeResult = appAccountMgrCb->GetAuthTypeResult();
+    std::string tokenResult = appAccountMgrCb->GetTokenResult();
     CAuthResult result = Convert2CAuthResult(nameResult, ownerResult, authTypeResult, tokenResult);
     callback.onResult(errCode, result);
     return errCode;
@@ -599,18 +600,16 @@ int32_t CJAppAccountImpl::setAuthenticatorProperties(
         AppAccountManager::SetAuthenticatorProperties(owner, options, appAccountMgrCb));
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("setAuthenticatorProperties failed");
-        AAFwk::Want result;
-        std::string value = std::string();
-        appAccountMgrCb->OnResult(ERR_CJ_SYSTEM_SERVICE_EXCEPTION, result);
+        std::string value;
         callback.onResult(ERR_CJ_SYSTEM_SERVICE_EXCEPTION, Convert2CAuthResult(value, value, value, value));
         return errCode;
     }
     // account: AppAccountInfo
-    std::string nameResult = appAccountMgrCb->nameResult;
-    std::string ownerResult = appAccountMgrCb->ownerResult;
+    std::string nameResult = appAccountMgrCb->GetNameResult();
+    std::string ownerResult = appAccountMgrCb->GetOwnerResult();
     //tokenInfo: AuthTokenInfo
-    std::string authTypeResult = appAccountMgrCb->authTypeResult;
-    std::string tokenResult = appAccountMgrCb->tokenResult;
+    std::string authTypeResult = appAccountMgrCb->GetAuthTypeResult();
+    std::string tokenResult = appAccountMgrCb->GetTokenResult();
     CAuthResult result = Convert2CAuthResult(nameResult, ownerResult, authTypeResult, tokenResult);
     callback.onResult(errCode, result);
     return errCode;
@@ -727,7 +726,7 @@ CArrString CJAppAccountImpl::ConvertSet2CArrString(std::set<std::string> &in)
         return arrStr;
     }
     size_t i = 0;
-    for (auto idx = in.begin(); idx != in.end(); idx++) {
+    for (auto idx = in.begin(); idx != in.end(); idx++, i++) {
         retValue[i] =  MallocCString(*idx);
         if (retValue[i] == nullptr) {
             clearCharPointer(retValue, i);
