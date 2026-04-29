@@ -1120,6 +1120,7 @@ ExecutorProperty ConvertToExecutorPropertyTH(
     const std::vector<AccountSA::Attributes::AttributeKey> &keys)
 {
     ExecutorProperty propertyTH = CreateEmptyExecutorPropertyTH();
+    propertyTH.result = propertyInfoInner.result;
     for (const auto &key : keys) {
         switch (key) {
             case AccountSA::Attributes::AttributeKey::ATTR_PIN_SUB_TYPE:
