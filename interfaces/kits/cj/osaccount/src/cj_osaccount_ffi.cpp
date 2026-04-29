@@ -31,17 +31,17 @@ namespace OHOS::AccountJsKit {
                 *errCode);
             return false;
         }
-        ACCOUNT_LOGE("[osAccount] IsOsAccountConstraintEnabled start");
+        ACCOUNT_LOGI("[osAccount] IsOsAccountConstraintEnabled start");
         bool ret = OsAccountManagerImpl::IsOsAccountConstraintEnabled(constraint, errCode);
-        ACCOUNT_LOGE("[osAccount] IsOsAccountConstraintEnabled success. errCode %{public}d", *errCode);
+        ACCOUNT_LOGI("[osAccount] IsOsAccountConstraintEnabled success. errCode %{public}d", *errCode);
         return ret;
     }
 
     int32_t FfiOHOSOsAccountGetOsAccountType(int32_t *errCode)
     {
-        ACCOUNT_LOGE("[osAccount] GetOsAccountType start");
+        ACCOUNT_LOGI("[osAccount] GetOsAccountType start");
         int32_t ret = OsAccountManagerImpl::GetOsAccountType(errCode);
-        ACCOUNT_LOGE("[osAccount] GetOsAccountType success. errCode %{public}d", *errCode);
+        ACCOUNT_LOGI("[osAccount] GetOsAccountType success. errCode %{public}d", *errCode);
         return ret;
     }
 
@@ -53,26 +53,26 @@ namespace OHOS::AccountJsKit {
 
     bool FfiOHOSOsAccountCheckMultiOsAccountEnabled(int32_t *errCode)
     {
-        ACCOUNT_LOGE("[osAccount] CheckMultiOsAccountEnabled start");
+        ACCOUNT_LOGI("[osAccount] CheckMultiOsAccountEnabled start");
         bool ret = OsAccountManagerImpl::CheckMultiOsAccountEnabled(errCode);
-        ACCOUNT_LOGE("[osAccount] CheckMultiOsAccountEnabled success. errCode %{public}d", *errCode);
+        ACCOUNT_LOGI("[osAccount] CheckMultiOsAccountEnabled success. errCode %{public}d", *errCode);
         return ret;
     }
 
     int32_t FfiOHOSOsAccountGetOsAccountLocalId(int32_t *errCode)
     {
-        ACCOUNT_LOGE("[osAccount] GetOsAccountLocalId start");
+        ACCOUNT_LOGI("[osAccount] GetOsAccountLocalId start");
         int32_t ret = OsAccountManagerImpl::GetOsAccountLocalId(errCode);
-        ACCOUNT_LOGE("[osAccount] GetOsAccountLocalId success. errCode %{public}d", *errCode);
+        ACCOUNT_LOGI("[osAccount] GetOsAccountLocalId success. errCode %{public}d", *errCode);
         return ret;
     }
 
     RetDataCArrI32 FfiOHOSOsAccountGetActivatedOsAccountLocalIds()
     {
         std::vector<int32_t> osAccountIds;
-        ACCOUNT_LOGE("[osAccount] GetActivatedOsAccountLocalIds start");
+        ACCOUNT_LOGI("[osAccount] GetActivatedOsAccountLocalIds start");
         int32_t code = OsAccountManagerImpl::GetActivatedOsAccountLocalIds(osAccountIds);
-        ACCOUNT_LOGE("[osAccount] GetActivatedOsAccountLocalIds success. errCode %{public}d", code);
+        ACCOUNT_LOGI("[osAccount] GetActivatedOsAccountLocalIds success. errCode %{public}d", code);
         CArrI32 data = {.head = nullptr, .size = 0};
         RetDataCArrI32 ret = {.code = code, .data = data};
         if (code != ERR_JS_SUCCESS) {
@@ -96,66 +96,66 @@ namespace OHOS::AccountJsKit {
 
     uint32_t FfiOHOSOsAccountGetOsAccountCount(int32_t *errCode)
     {
-        ACCOUNT_LOGE("[osAccount] GetOsAccountCount start");
+        ACCOUNT_LOGI("[osAccount] GetOsAccountCount start");
         uint32_t ret = OsAccountManagerImpl::GetOsAccountCount(errCode);
-        ACCOUNT_LOGE("[osAccount] GetOsAccountCount success. errCode %{public}d", *errCode);
+        ACCOUNT_LOGI("[osAccount] GetOsAccountCount success. errCode %{public}d", *errCode);
         return ret;
     }
 
     char *FfiOHOSOsAccountQueryDistributedVirtualDeviceId(int32_t *errCode)
     {
-        ACCOUNT_LOGE("[osAccount] QueryDistributedVirtualDeviceId start");
+        ACCOUNT_LOGI("[osAccount] QueryDistributedVirtualDeviceId start");
         char *ret = OsAccountManagerImpl::QueryDistributedVirtualDeviceId(errCode);
-        ACCOUNT_LOGE("[osAccount] QueryDistributedVirtualDeviceId success. errCode %{public}d", *errCode);
+        ACCOUNT_LOGI("[osAccount] QueryDistributedVirtualDeviceId success. errCode %{public}d", *errCode);
         return ret;
     }
 
     int64_t FfiOHOSOsAccountGetSerialNumberForOsAccountLocalId(int32_t localId, int32_t *errCode)
     {
-        ACCOUNT_LOGE("[osAccount] GetSerialNumberForOsAccountLocalId start");
+        ACCOUNT_LOGI("[osAccount] GetSerialNumberForOsAccountLocalId start");
         int64_t ret = OsAccountManagerImpl::GetSerialNumberForOsAccountLocalId(localId, errCode);
-        ACCOUNT_LOGE("[osAccount] GetSerialNumberForOsAccountLocalId success. errCode %{public}d", *errCode);
+        ACCOUNT_LOGI("[osAccount] GetSerialNumberForOsAccountLocalId success. errCode %{public}d", *errCode);
         return ret;
     }
 
     int32_t FfiOHOSOsAccountGetOsAccountLocalIdForSerialNumber(int64_t serialNumber, int32_t *errCode)
     {
-        ACCOUNT_LOGE("[osAccount] GetOsAccountLocalIdForSerialNumber start");
+        ACCOUNT_LOGI("[osAccount] GetOsAccountLocalIdForSerialNumber start");
         int32_t ret = OsAccountManagerImpl::GetOsAccountLocalIdForSerialNumber(serialNumber, errCode);
-        ACCOUNT_LOGE("[osAccount] GetOsAccountLocalIdForSerialNumber success. errCode %{public}d", *errCode);
+        ACCOUNT_LOGI("[osAccount] GetOsAccountLocalIdForSerialNumber success. errCode %{public}d", *errCode);
         return ret;
     }
 
     int32_t FfiOHOSOsAccountGetOsAccountLocalIdForDomain(CDomainAccountInfo cDoaminInfo, int32_t *errCode)
     {
-        ACCOUNT_LOGE("[osAccount] GetOsAccountLocalIdForDomain start");
+        ACCOUNT_LOGI("[osAccount] GetOsAccountLocalIdForDomain start");
         int32_t ret = OsAccountManagerImpl::GetOsAccountLocalIdForDomain(
             cDoaminInfo.domain, cDoaminInfo.accountName, errCode);
-        ACCOUNT_LOGE("[osAccount] GetOsAccountLocalIdForDomain success. errCode %{public}d", *errCode);
+        ACCOUNT_LOGI("[osAccount] GetOsAccountLocalIdForDomain success. errCode %{public}d", *errCode);
         return ret;
     }
 
     int32_t FfiOHOSOsAccountGetOsAccountLocalIdForUid(int32_t uid, int32_t *errCode)
     {
-        ACCOUNT_LOGE("[osAccount] GetOsAccountLocalIdForUid start");
+        ACCOUNT_LOGI("[osAccount] GetOsAccountLocalIdForUid start");
         int32_t ret = OsAccountManagerImpl::GetOsAccountLocalIdForUid(uid, errCode);
-        ACCOUNT_LOGE("[osAccount] GetOsAccountLocalIdForUid success. errCode %{public}d", *errCode);
+        ACCOUNT_LOGI("[osAccount] GetOsAccountLocalIdForUid success. errCode %{public}d", *errCode);
         return ret;
     }
 
     char *FfiOHOSOsAccountGetOsAccountName(int32_t *errCode)
     {
-        ACCOUNT_LOGE("[osAccount] GetOsAccountName start");
+        ACCOUNT_LOGI("[osAccount] GetOsAccountName start");
         char *ret = OsAccountManagerImpl::GetOsAccountName(errCode);
-        ACCOUNT_LOGE("[osAccount] GetOsAccountName success. errCode %{public}d", *errCode);
+        ACCOUNT_LOGI("[osAccount] GetOsAccountName success. errCode %{public}d", *errCode);
         return ret;
     }
 
     bool FfiOHOSOsAccountIsOsAccountUnlocked(int32_t *errCode)
     {
-        ACCOUNT_LOGE("[osAccount] IsOsAccountUnlocked start");
+        ACCOUNT_LOGI("[osAccount] IsOsAccountUnlocked start");
         bool ret = OsAccountManagerImpl::IsOsAccountUnlocked(errCode);
-        ACCOUNT_LOGE("[osAccount] IsOsAccountUnlocked success. errCode %{public}d", *errCode);
+        ACCOUNT_LOGI("[osAccount] IsOsAccountUnlocked success. errCode %{public}d", *errCode);
         return ret;
     }
     EXTERN_C_END

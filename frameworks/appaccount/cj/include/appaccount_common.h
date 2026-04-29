@@ -45,7 +45,7 @@ struct AsyncContextForSubscribe {
 
 struct AsyncContextForUnSubscribe {
     std::string type;
-    std::vector<std::shared_ptr<SubscribePtr>> subscribers = {nullptr};
+    std::vector<std::shared_ptr<SubscribePtr>> subscribers;
     std::function<void(CArrAppAccountInfo)> callbackRef;
 };
 
@@ -70,16 +70,22 @@ public:
     ErrCode CallbackEnter([[maybe_unused]] uint32_t code) override;
     ErrCode CallbackExit([[maybe_unused]] uint32_t code, [[maybe_unused]] int32_t result) override;
 
-    bool onResultRetBool = false;
-    std::vector<std::string> onResultRetNames;
-    std::vector<std::string> onResultRetOwners;
+    ErrCode GetErrCode();
+    bool GetOnResultRetBool();
+    std::vector<std::string> GetOnResultRetNames();
+    std::vector<std::string> GetOnResultRetOwners();
+    void SetErrCode(ErrCode code);
+
     AAFwk::Want result_;
     AAFwk::Want request_;
-    ErrCode errCode = ERR_OK;
 
 private:
     std::mutex mutex_;
     bool isDone = false;
+    ErrCode errCode = ERR_OK;
+    bool onResultRetBool = false;
+    std::vector<std::string> onResultRetNames;
+    std::vector<std::string> onResultRetOwners;
     std::function<void(RetDataBool)> checkAccountLabelsCallbackRef = nullptr;
     std::function<void(ErrCArrAppAccountInfo)> selectAccountsCallbackRef = nullptr;
 };
@@ -109,19 +115,23 @@ public:
     ErrCode CallbackEnter([[maybe_unused]] uint32_t code) override;
     ErrCode CallbackExit([[maybe_unused]] uint32_t code, [[maybe_unused]] int32_t result) override;
 
+    ErrCode GetErrCode();
+    std::string GetNameResult();
+    std::string GetOwnerResult();
+    std::string GetAuthTypeResult();
+    std::string GetTokenResult();
+
     AAFwk::Want result_;
     JSAuthCallback callback_;
-    ErrCode errCode = ERR_OK;
-    // account: AppAccountInfo
-    std::string nameResult;
-    std::string ownerResult;
-    //tokenInfo: AuthTokenInfo
-    std::string authTypeResult;
-    std::string tokenResult;
 
 private:
     std::mutex mutex_;
     bool isDone = false;
+    ErrCode errCode = ERR_OK;
+    std::string nameResult;
+    std::string ownerResult;
+    std::string authTypeResult;
+    std::string tokenResult;
 };
 } // namespace OHOS::AccountSA
 #endif
