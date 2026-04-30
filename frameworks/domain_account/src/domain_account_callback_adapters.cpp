@@ -15,6 +15,7 @@
 
 #include "domain_account_callback_adapters.h"
 
+#include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "domain_account_common.h"
 #include "get_access_token_callback.h"

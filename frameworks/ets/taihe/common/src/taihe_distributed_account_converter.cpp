@@ -19,6 +19,7 @@
 #include "ohos.account.distributedAccount.proj.hpp"
 #include "stdexcept"
 #include "taihe/runtime.hpp"
+#include "want_params_wrapper.h"
 
 using namespace taihe;
 using namespace ohos::account::distributedAccount;
@@ -55,7 +56,17 @@ DistributedInfo ConvertToDistributedInfoTH(const OhosAccountInfo& info)
         .scalableData = optional<uintptr_t>(std::nullopt),
     };
 
-    auto scalableData = AppExecFwk::WrapWantParams(env, info.scalableData_.GetParams());
+    AAFwk::WantParams params;
+    if (!info.scalableData_.empty()) {
+        std::string scalableDataCopy = info.scalableData_;
+        std::unique_ptr<AAFwk::Want> wantFromData(AAFwk::Want::FromString(scalableDataCopy));
+        if (wantFromData != nullptr) {
+            params = wantFromData->GetParams();
+        } else {
+            ACCOUNT_LOGW("Failed to deserialize scalableData, it will be empty");
+        }
+    }
+    auto scalableData = AppExecFwk::WrapWantParams(env, params);
     if (scalableData == nullptr) {
         ACCOUNT_LOGE("WrapWantParams get nullptr");
         return ret;

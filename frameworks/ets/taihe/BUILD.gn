@@ -162,6 +162,7 @@ taihe_shared_library("distributed_account_taihe_native") {
   ]
 
   external_deps = [
+    "ability_base:base",
     "ability_base:want",
     "ability_runtime:ani_common",
     "ability_runtime:app_context",
@@ -240,6 +241,7 @@ taihe_shared_library("os_account_taihe_native") {
   ]
 
   external_deps = [
+    "ability_base:base",
     "ability_base:want",
     "ability_runtime:ability_context_native",
     "ability_runtime:abilitykit_native",

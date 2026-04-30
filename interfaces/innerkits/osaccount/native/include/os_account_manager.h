@@ -37,6 +37,7 @@
 #ifndef OS_ACCOUNT_INTERFACES_INNERKITS_OS_ACCOUNT_MANAGER_H
 #define OS_ACCOUNT_INTERFACES_INNERKITS_OS_ACCOUNT_MANAGER_H
 
+#include <map>
 #include <string>
 #include <vector>
 #include "domain_account_callback.h"

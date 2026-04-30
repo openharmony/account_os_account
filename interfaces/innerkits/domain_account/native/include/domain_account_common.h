@@ -19,7 +19,6 @@
 #include <string>
 #include <vector>
 #include "parcel.h"
-#include "want.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -115,11 +114,11 @@ public:
 class GetAccessTokenOptions : public Parcelable {
 public:
     GetAccessTokenOptions();
-    GetAccessTokenOptions(const int32_t &callingUid, const AAFwk::WantParams &getTokenParams);
+    GetAccessTokenOptions(const int32_t &callingUid, const std::string &getTokenParams);
 
 public:
     int32_t callingUid_ = -1;
-    AAFwk::WantParams getTokenParams_;
+    std::string getTokenParams_;
     bool ReadFromParcel(Parcel &parcel);
     bool Marshalling(Parcel &parcel) const override;
     static GetAccessTokenOptions *Unmarshalling(Parcel &parcel);

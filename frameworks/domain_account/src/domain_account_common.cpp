@@ -181,7 +181,7 @@ DomainAccountAuthOptions *DomainAccountAuthOptions::Unmarshalling(Parcel &parcel
     return authOptions;
 }
 
-GetAccessTokenOptions::GetAccessTokenOptions(const int32_t &callingUid, const AAFwk::WantParams &getTokenParams)
+GetAccessTokenOptions::GetAccessTokenOptions(const int32_t &callingUid, const std::string &getTokenParams)
     : callingUid_(callingUid), getTokenParams_(getTokenParams)
 {}
 
@@ -194,13 +194,10 @@ bool GetAccessTokenOptions::ReadFromParcel(Parcel &parcel)
         ACCOUNT_LOGE("Failed to read callingUid");
         return false;
     }
-    auto param = parcel.ReadParcelable<AAFwk::WantParams>();
-    if (param == nullptr) {
-        ACCOUNT_LOGE("Failed to read wantParams");
+    if (!parcel.ReadString(getTokenParams_)) {
+        ACCOUNT_LOGE("Failed to read getTokenParams");
         return false;
     }
-    getTokenParams_ = (*param);
-    delete param;
     return true;
 }
 
@@ -210,7 +207,7 @@ bool GetAccessTokenOptions::Marshalling(Parcel &parcel) const
         ACCOUNT_LOGE("Failed to write callingUid");
         return false;
     }
-    if (!parcel.WriteParcelable(&getTokenParams_)) {
+    if (!parcel.WriteString(getTokenParams_)) {
         ACCOUNT_LOGE("Failed to write getTokenParams");
         return false;
     }

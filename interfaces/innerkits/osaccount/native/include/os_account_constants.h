@@ -16,6 +16,7 @@
 #define OS_ACCOUNT_INTERFACES_INNERKITS_OS_ACCOUNT_CONSTANT_H
 
 #include <string>
+#include <unistd.h>
 #include <sys/sysinfo.h>
 #include "os_account_info.h"
 

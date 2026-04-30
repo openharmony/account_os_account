@@ -76,8 +76,7 @@ void DomainAccountCommonModuleTest::TearDown(void)
  */
 HWTEST_F(DomainAccountCommonModuleTest, DomainAccountCommonModuleTest_GetAccessTokenOptions_001, TestSize.Level3)
 {
-    AAFwk::WantParams parameters;
-    GetAccessTokenOptions option(CALLING_UID, parameters);
+    GetAccessTokenOptions option(CALLING_UID, "");
     Parcel parcel;
     option.Marshalling(parcel);
     GetAccessTokenOptions *getAccessTokenOptions = option.Unmarshalling(parcel);

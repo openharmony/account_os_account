@@ -58,6 +58,7 @@
         "huks",
         "init",
         "ipc",
+        "json",
         "napi",
         "pin_auth",
         "runtime_core",
