@@ -67,6 +67,7 @@ ohos_unittest("OsAccountControlFileManagerUnitTest") {
     "googletest:gtest_main",
     "hilog:libhilog",
     "init:libbegetutil",
+    "ipc:ipc_single",
     "kv_store:distributeddata_inner",
   ]
 
@@ -145,6 +146,7 @@ ohos_unittest("OsAccountControlFileManagerMockUnitTest") {
     "googletest:gtest_main",
     "hilog:libhilog",
     "init:libbegetutil",
+    "ipc:ipc_single",
     "kv_store:distributeddata_inner",
   ]
 
@@ -358,6 +360,7 @@ ohos_unittest("OsAccountDataStorageTest") {
     "googletest:gmock_main",
     "googletest:gtest_main",
     "hilog:libhilog",
+    "ipc:ipc_single",
     "kv_store:distributeddata_inner",
   ]
   part_name = "os_account"
@@ -399,6 +402,7 @@ ohos_unittest("os_account_domain_account_callback_test") {
   ]
 
   external_deps = [
+    "ability_base:base",
     "ability_base:want",
     "ability_runtime:runtime",
     "access_token:libaccesstoken_sdk",
@@ -1419,9 +1423,11 @@ ohos_unittest("os_account_static_subscriber_manager_test") {
   ]
 
   external_deps = [
+    "c_utils:utils",
     "googletest:gmock_main",
     "googletest:gtest_main",
     "hilog:libhilog",
+    "ipc:ipc_single",
   ]
 
   part_name = "os_account"

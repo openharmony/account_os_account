@@ -72,6 +72,7 @@ ohos_unittest("os_account_info_test") {
     "googletest:gmock_main",
     "googletest:gtest_main",
     "hilog:libhilog",
+    "ipc:ipc_single",
   ]
   cflags_cc = []
   if (os_account_enable_multiple_os_accounts || use_clang_coverage) {
@@ -140,6 +141,7 @@ ohos_unittest("os_account_manager_lite_test") {
     "googletest:gmock_main",
     "googletest:gtest_main",
     "hilog:libhilog",
+    "ipc:ipc_single",
   ]
 }
 

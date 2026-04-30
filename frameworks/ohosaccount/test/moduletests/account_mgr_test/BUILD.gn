@@ -188,6 +188,7 @@ ohos_moduletest("DeviceAccountInfoModuleTest") {
   configs = [ "${services_path}/accountmgr/test:accountmgr_test_config" ]
 
   external_deps = [
+    "ability_base:base",
     "ability_base:want",
     "c_utils:utils",
     "googletest:gmock_main",

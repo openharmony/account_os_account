@@ -22,6 +22,7 @@
 #include "distributed_account_subscribe_callback.h"
 #include "parcel.h"
 #include "want.h"
+#include "int_wrapper.h"
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -246,7 +247,13 @@ HWTEST_F(DeviceAccountInfoTest, OhosAccountInfoTest_005, TestSize.Level3)
     ohosAccountInfoSrc.nickname_ = "test_nickname";
     ohosAccountInfoSrc.avatar_ = "test_avatar";
     ohosAccountInfoSrc.SetRawUid("test_raw_uid");
-    ohosAccountInfoSrc.scalableData_.SetParam("age", 123);
+    {
+        AAFwk::WantParams wantParams;
+        wantParams.SetParam("age", AAFwk::Integer::Box(123));
+        AAFwk::Want want;
+        want.SetParams(wantParams);
+        ohosAccountInfoSrc.scalableData_ = want.ToString();
+    }
 
     MessageParcel parcel;
     EXPECT_TRUE(ohosAccountInfoSrc.Marshalling(parcel));

@@ -130,15 +130,10 @@ ohos_shared_library("os_account_innerkits") {
 
   external_deps = [
     "cJSON:cjson",
-    "hilog:libhilog",
-    "samgr:samgr_proxy",
-  ]
-
-  public_external_deps = [
-    "ability_base:base",
-    "ability_base:want",
     "c_utils:utils",
+    "hilog:libhilog",
     "ipc:ipc_single",
+    "samgr:samgr_proxy",
   ]
 
   innerapi_tags = [
