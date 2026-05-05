@@ -107,6 +107,8 @@ ani_ref AniAppAccountTransfer::GenerateAppAccountMangerDynamic(ani_env *aniEnv, 
         AccountJsKit::NapiAppAccount::GetPropertySize(), AccountJsKit::NapiAppAccount::appAccountProperties, &cons);
     napi_value instance = nullptr;
     if (napi_new_instance(jsEnv, cons, 0, nullptr, &instance) != napi_ok) {
+        ACCOUNT_LOGE("failed to napi_new_instance");
+        arkts_napi_scope_close_n(jsEnv, 0, nullptr, nullptr);
         return nullptr;
     }
     napi_status status = napi_wrap(jsEnv, instance, rawPtr,
@@ -116,6 +118,7 @@ ani_ref AniAppAccountTransfer::GenerateAppAccountMangerDynamic(ani_env *aniEnv, 
         }, nullptr, nullptr);
     if (status != napi_ok) {
         ACCOUNT_LOGE("failed to wrap js instance with native object");
+        arkts_napi_scope_close_n(jsEnv, 0, nullptr, nullptr);
         return nullptr;
     }
     ani_ref outObj;
@@ -212,6 +215,7 @@ ani_ref AniAppAccountTransfer::GenerateCallbackDynamic(ani_env *aniEnv, uint64_t
     auto callback = new (std::nothrow) OHOS::AccountJsKit::NapiAppAccountAuthenticatorCallback(nativeCallback);
     if (callback == nullptr) {
         ACCOUNT_LOGE("failed to create NapiAppAccountAuthenticatorCallback");
+        arkts_napi_scope_close_n(jsEnv, 0, nullptr, nullptr);
         return nullptr;
     }
     napi_status status = napi_wrap(
@@ -224,6 +228,7 @@ ani_ref AniAppAccountTransfer::GenerateCallbackDynamic(ani_env *aniEnv, uint64_t
     if (status != napi_ok) {
         ACCOUNT_LOGE("Wrap js AuthenticatorStub and native callback failed");
         delete callback;
+        arkts_napi_scope_close_n(jsEnv, 0, nullptr, nullptr);
         return nullptr;
     }
     ani_ref outObj;

@@ -68,6 +68,7 @@ public:
 private:
     int32_t sessionId_ = 0;
     std::atomic<bool> isOnResult_;
+    std::atomic<bool> isReleased_;
     std::vector<uint8_t> token_;
     std::shared_ptr<AcquireAuthorizationContext> context_ = nullptr;
     sptr<IRemoteObject> callback_ = nullptr;

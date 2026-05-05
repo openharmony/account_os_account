@@ -27,13 +27,13 @@ typedef struct {
 typedef struct {
     uint8_t* data;
     size_t size;
-    size_t capcity;
+    size_t capacity;
 } PluginUint8Vector;
 
 typedef struct {
     int32_t code;
     PluginString msg;
-} PluginBussnessError;
+} PluginBusinessError;
 
 typedef struct {
     PluginString id;
@@ -77,7 +77,7 @@ typedef struct {
 typedef struct {
     PluginDomainAccountInfo domainAccountInfo;
     PluginUint8Vector domainAccountToken;
-    PluginString bussinessParams;
+    PluginString businessParams;
     int32_t callerUid;
 } PluginGetDomainAccessTokenOptions;
 
@@ -86,46 +86,47 @@ typedef struct {
 } PluginDomainAccountPolicy;
 
 typedef void (*PluginAuthResultInfoCallback)(uint64_t contextId, PluginAuthResultInfo *authResultInfo,
-    PluginBussnessError *error);
-typedef PluginBussnessError* (*AddServerConfigFunc)(const PluginString *parameters, const int32_t callerLocalId,
+    PluginBusinessError *error);
+typedef PluginBusinessError* (*AddServerConfigFunc)(const PluginString *parameters, const int32_t callerLocalId,
     PluginServerConfigInfo **serverConfigInfo);
-typedef PluginBussnessError* (*RemoveServerConfigFunc)(const PluginString *serverConfigId, const int32_t callerLocalId);
-typedef PluginBussnessError* (*UpdateServerConfigFunc)(const PluginString *serverConfigId,
+typedef PluginBusinessError* (*RemoveServerConfigFunc)(const PluginString *serverConfigId,
+    const int32_t callerLocalId);
+typedef PluginBusinessError* (*UpdateServerConfigFunc)(const PluginString *serverConfigId,
     const PluginString *parameters, const int32_t callerLocalId, PluginServerConfigInfo **serverConfigInfo);
-typedef PluginBussnessError* (*GetServerConfigFunc)(const PluginString *serverConfigId, const int32_t callerLocalId,
+typedef PluginBusinessError* (*GetServerConfigFunc)(const PluginString *serverConfigId, const int32_t callerLocalId,
     PluginServerConfigInfo **serverConfigInfo);
-typedef PluginBussnessError* (*GetServerConfigListFunc)(PluginServerConfigInfoList **serverConfigInfoList);
-typedef PluginBussnessError* (*GetAccountServerConfigFunc)(const PluginDomainAccountInfo *domainAccountInfo,
+typedef PluginBusinessError* (*GetServerConfigListFunc)(PluginServerConfigInfoList **serverConfigInfoList);
+typedef PluginBusinessError* (*GetAccountServerConfigFunc)(const PluginDomainAccountInfo *domainAccountInfo,
     PluginServerConfigInfo **serverConfigInfo);
-typedef PluginBussnessError* (*AuthFunc)(const PluginDomainAccountInfo *domainAccountInfo,
+typedef PluginBusinessError* (*AuthFunc)(const PluginDomainAccountInfo *domainAccountInfo,
     const PluginUint8Vector *credential, const int32_t callerLocalId,
     PluginAuthResultInfoCallback callback, uint64_t *contextId);
-typedef PluginBussnessError* (*AuthWithPopupFunc)(const PluginDomainAccountInfo *domainAccountInfo,
+typedef PluginBusinessError* (*AuthWithPopupFunc)(const PluginDomainAccountInfo *domainAccountInfo,
     PluginAuthResultInfo **authResultInfo);
-typedef PluginBussnessError* (*AuthWithTokenFunc)(const PluginDomainAccountInfo *domainAccountInfo,
+typedef PluginBusinessError* (*AuthWithTokenFunc)(const PluginDomainAccountInfo *domainAccountInfo,
     const PluginUint8Vector *token, PluginAuthResultInfo **authResultInfo);
-typedef PluginBussnessError* (*GetAccountInfoFunc)(const PluginGetDomainAccountInfoOptions *options,
+typedef PluginBusinessError* (*GetAccountInfoFunc)(const PluginGetDomainAccountInfoOptions *options,
     const int32_t callerLocalId, PluginDomainAccountInfo **domainAccountInfo);
-typedef PluginBussnessError* (*GetAuthStatusInfoFunc)(const PluginDomainAccountInfo *domainAccountInfo,
+typedef PluginBusinessError* (*GetAuthStatusInfoFunc)(const PluginDomainAccountInfo *domainAccountInfo,
     PluginAuthStatusInfo **authStatusInfo);
-typedef PluginBussnessError* (*BindAccountFunc)(const PluginDomainAccountInfo *domainAccountInfo, const int32_t localId,
-    const int32_t callerLocalId);
-typedef PluginBussnessError* (*UnbindAccountFunc)(const PluginDomainAccountInfo *domainAccountInfo,
+typedef PluginBusinessError* (*BindAccountFunc)(const PluginDomainAccountInfo *domainAccountInfo,
+    const int32_t localId, const int32_t callerLocalId);
+typedef PluginBusinessError* (*UnbindAccountFunc)(const PluginDomainAccountInfo *domainAccountInfo,
     const int32_t localId);
-typedef PluginBussnessError* (*UpdateAccountInfoFunc)(const PluginDomainAccountInfo *domainAccountInfo,
+typedef PluginBusinessError* (*UpdateAccountInfoFunc)(const PluginDomainAccountInfo *domainAccountInfo,
     const PluginDomainAccountInfo *newDomainAccountInfo, const int32_t callerLocalId);
-typedef PluginBussnessError* (*IsAccountTokenValidFunc)(const PluginDomainAccountInfo *domainAccountInfo,
+typedef PluginBusinessError* (*IsAccountTokenValidFunc)(const PluginDomainAccountInfo *domainAccountInfo,
     const PluginUint8Vector *token, int32_t *isValid);
-typedef PluginBussnessError* (*IsAuthenticationExpiredFunc)(const PluginDomainAccountInfo *domainAccountInfo,
+typedef PluginBusinessError* (*IsAuthenticationExpiredFunc)(const PluginDomainAccountInfo *domainAccountInfo,
     const PluginUint8Vector *token, int32_t *isValid);
-typedef PluginBussnessError* (*GetAccessTokenFunc)(const PluginGetDomainAccessTokenOptions *options,
+typedef PluginBusinessError* (*GetAccessTokenFunc)(const PluginGetDomainAccessTokenOptions *options,
     PluginUint8Vector **accessToken);
-typedef PluginBussnessError* (*GetAccountPolicyFunc)(const PluginDomainAccountInfo *domainAccountInfo,
+typedef PluginBusinessError* (*GetAccountPolicyFunc)(const PluginDomainAccountInfo *domainAccountInfo,
     const int32_t callerLocalId, PluginDomainAccountPolicy **domainAccountPolicy);
-typedef PluginBussnessError* (*SetAccountPolicyFunc)(const PluginString *parameters,
+typedef PluginBusinessError* (*SetAccountPolicyFunc)(const PluginString *parameters,
     const PluginDomainAccountInfo *domainAccountInfo, const int32_t callerLocalId);
-typedef PluginBussnessError* (*CancelAuthFunc)(const uint64_t contextId);
-typedef PluginBussnessError* (*AuthWithServerConfigFunc)(const PluginString *parameters,
+typedef PluginBusinessError* (*CancelAuthFunc)(const uint64_t contextId);
+typedef PluginBusinessError* (*AuthWithServerConfigFunc)(const PluginString *parameters,
     const PluginDomainAccountInfo *domainAccountInfo, const PluginUint8Vector *credential, const int32_t callerLocalId);
 
 enum PluginMethodEnum {
