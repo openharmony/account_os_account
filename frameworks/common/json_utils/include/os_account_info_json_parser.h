@@ -49,6 +49,7 @@ const char DOMAIN_ACCOUNT_STATUS[] = "domainAccountStatus";
 const char DOMAIN_ACCOUNT_CONFIG[] = "domainServerConfigId";
 const char DOMAIN_ACCOUNT_ADDITION[] = "domainAdditionInfo";
 constexpr int32_t ALLOWED_HAP_LIST_MAX_SIZE = 1000;
+constexpr int32_t DISALLOWED_HAP_LIST_MAX_SIZE = 1000;
 } // namespace
 CJsonUnique ToJson(const OsAccountInfo &accountInfo);
 bool FromJson(cJSON *jsonObject, OsAccountInfo &accountInfo);

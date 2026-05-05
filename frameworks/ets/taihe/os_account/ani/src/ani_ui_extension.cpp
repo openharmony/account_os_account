@@ -48,6 +48,7 @@ UIExtensionCallback::UIExtensionCallback(const std::shared_ptr<TaiheAcquireAutho
 {
     context_ = context;
     isOnResult_.exchange(false);
+    isReleased_.exchange(false);
 }
 
 /**
@@ -79,9 +80,13 @@ void UIExtensionCallback::SetCallBack(const sptr<IRemoteObject> &callback)
 void UIExtensionCallback::OnRelease(int32_t releaseCode)
 {
     ACCOUNT_LOGI("enter OnRelease releaseCode:%{public}d", releaseCode);
-    if (!isOnResult_.load()) {
-        ReleaseHandler(ERR_AUTHORIZATION_CREATE_UI_EXTENSION_ERROR);
+    if (isOnResult_.load()) {
+        return;
     }
+    if (isReleased_.exchange(true)) {
+        return;
+    }
+    ReleaseHandler(ERR_AUTHORIZATION_CREATE_UI_EXTENSION_ERROR);
 }
 
 /**
@@ -99,6 +104,9 @@ void UIExtensionCallback::OnError(int32_t code, const std::string &name, const s
     ACCOUNT_LOGI("enter OnError errCode:%{public}d, name:%{public}s, message:%{public}s", code, name.c_str(),
         message.c_str());
     if (isOnResult_.load()) {
+        return;
+    }
+    if (isReleased_.exchange(true)) {
         return;
     }
     if (code == BACKGROUNT_ERROR) {
@@ -119,11 +127,14 @@ void UIExtensionCallback::OnError(int32_t code, const std::string &name, const s
 void UIExtensionCallback::OnResult(int32_t resultCode, const OHOS::AAFwk::Want &result)
 {
     ACCOUNT_LOGI("enter OnResult resultCode:%{public}d", resultCode);
+    if (isReleased_.load() || isOnResult_.exchange(true)) {
+        ACCOUNT_LOGI("Already released or result received, ignore OnResult");
+        return;
+    }
     if (this->context_ == nullptr) {
         ACCOUNT_LOGE("Request context is null.");
         return;
     }
-    isOnResult_.exchange(true);
      // terminal when error or cancel
     if (resultCode == CANCEL_ERROR) {
         return ReleaseHandler(ERR_OK, AUTHORIZATION_CANCELED);
@@ -183,9 +194,13 @@ void UIExtensionCallback::OnRemoteReady(const std::shared_ptr<OHOS::Ace::ModalUI
 void UIExtensionCallback::OnDestroy()
 {
     ACCOUNT_LOGI("enter OnDestroy");
-    if (!isOnResult_.load()) {
-        ReleaseHandler(EXTENSION_ERROR, AUTHORIZATION_SERVICE_BUSY);
+    if (isOnResult_.load()) {
+        return;
     }
+    if (isReleased_.exchange(true)) {
+        return;
+    }
+    ReleaseHandler(EXTENSION_ERROR, AUTHORIZATION_SERVICE_BUSY);
 }
 
 /**

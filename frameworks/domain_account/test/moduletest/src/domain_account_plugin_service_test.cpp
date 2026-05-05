@@ -195,3 +195,76 @@ HWTEST_F(DomainPluginServiceModuleTest, DomainPluginStubModuleTest_OnAccountUnBo
     DomainAccountInfo info;
     EXPECT_EQ(pluginServie_->OnAccountUnBound(info, nullptr), ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
 }
+
+/**
+ * @tc.name: DomainPluginStubModuleTest_CheckAndInitExecEnv_001
+ * @tc.desc: CheckAndInitExecEnv with callback nullptr when innerPlugin is valid.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainPluginServiceModuleTest, DomainPluginStubModuleTest_CheckAndInitExecEnv_001, TestSize.Level3)
+{
+    sptr<DomainAccountPluginService> pluginServie = new (std::nothrow) DomainAccountPluginService(g_plugin);
+    ASSERT_NE(pluginServie, nullptr);
+    DomainAccountInfo info;
+    std::vector<uint8_t> token;
+    EXPECT_EQ(pluginServie->IsAccountTokenValid(info, token, nullptr), ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
+}
+
+/**
+ * @tc.name: DomainPluginStubModuleTest_CheckAndInitExecEnv_002
+ * @tc.desc: CheckAndInitExecEnv with callback nullptr when innerPlugin is valid for GetAccessToken.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainPluginServiceModuleTest, DomainPluginStubModuleTest_CheckAndInitExecEnv_002, TestSize.Level3)
+{
+    sptr<DomainAccountPluginService> pluginServie = new (std::nothrow) DomainAccountPluginService(g_plugin);
+    ASSERT_NE(pluginServie, nullptr);
+    DomainAccountInfo info;
+    std::vector<uint8_t> accountToken;
+    GetAccessTokenOptions option;
+    EXPECT_EQ(pluginServie->GetAccessToken(info, accountToken, option, nullptr), ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
+}
+
+/**
+ * @tc.name: DomainPluginStubModuleTest_CheckAndInitExecEnv_003
+ * @tc.desc: CheckAndInitExecEnv with callback nullptr when innerPlugin is valid for GetDomainAccountInfo.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainPluginServiceModuleTest, DomainPluginStubModuleTest_CheckAndInitExecEnv_003, TestSize.Level3)
+{
+    sptr<DomainAccountPluginService> pluginServie = new (std::nothrow) DomainAccountPluginService(g_plugin);
+    ASSERT_NE(pluginServie, nullptr);
+    GetDomainAccountInfoOptions options;
+    EXPECT_EQ(pluginServie->GetDomainAccountInfo(options, nullptr), ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
+}
+
+/**
+ * @tc.name: DomainPluginStubModuleTest_CheckAndInitExecEnv_004
+ * @tc.desc: CheckAndInitExecEnv with callback nullptr when innerPlugin is valid for OnAccountBound.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainPluginServiceModuleTest, DomainPluginStubModuleTest_CheckAndInitExecEnv_004, TestSize.Level3)
+{
+    sptr<DomainAccountPluginService> pluginServie = new (std::nothrow) DomainAccountPluginService(g_plugin);
+    ASSERT_NE(pluginServie, nullptr);
+    DomainAccountInfo info;
+    EXPECT_EQ(pluginServie->OnAccountBound(info, 0, nullptr), ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
+}
+
+/**
+ * @tc.name: DomainPluginStubModuleTest_CheckAndInitExecEnv_005
+ * @tc.desc: CheckAndInitExecEnv with callback nullptr when innerPlugin is valid for OnAccountUnBound.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainPluginServiceModuleTest, DomainPluginStubModuleTest_CheckAndInitExecEnv_005, TestSize.Level3)
+{
+    sptr<DomainAccountPluginService> pluginServie = new (std::nothrow) DomainAccountPluginService(g_plugin);
+    ASSERT_NE(pluginServie, nullptr);
+    DomainAccountInfo info;
+    EXPECT_EQ(pluginServie->OnAccountUnBound(info, nullptr), ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
+}

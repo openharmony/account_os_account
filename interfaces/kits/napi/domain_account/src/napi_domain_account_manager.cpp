@@ -42,19 +42,27 @@ using namespace OHOS::AccountSA;
 
 static napi_value CreatePluginAsyncCallback(napi_env env, napi_callback callback, JsDomainPluginParam *param)
 {
+    if (param == nullptr) {
+        ACCOUNT_LOGE("param is nullptr");
+        return nullptr;
+    }
     napi_value napiCallback = nullptr;
     napi_status status = napi_create_function(env, "callback", NAPI_AUTO_LENGTH, callback, param, &napiCallback);
     if (status != napi_ok) {
         ACCOUNT_LOGE("failed to create js function");
+        delete param;
         return nullptr;
     }
     status = napi_wrap(env, napiCallback, param,
         [](napi_env env, void *data, void *hint) {
             ACCOUNT_LOGI("release JsDomainPluginParam");
-            delete reinterpret_cast<JsDomainPluginParam *>(data);
+            if (data != nullptr) {
+                delete reinterpret_cast<JsDomainPluginParam *>(data);
+            }
         }, nullptr, nullptr);
     if (status != napi_ok) {
         ACCOUNT_LOGE("failed to wrap callback with JsDomainPluginParam");
+        delete param;
         return nullptr;
     }
     return napiCallback;
@@ -349,9 +357,6 @@ static std::function<void()> GetDomainAccountInfoWork(JsDomainPluginParam *param
         param->lockInfo->count--;
         param->lockInfo->condition.notify_all();
         napi_close_handle_scope(param->env, scope);
-        if (napiCallback == nullptr) {
-            delete param;
-        }
     };
 }
 
@@ -400,9 +405,6 @@ static std::function<void()> OnAccountBoundWork(JsDomainPluginParam *param)
         param->lockInfo->count--;
         param->lockInfo->condition.notify_all();
         napi_close_handle_scope(param->env, scope);
-        if (napiCallback == nullptr) {
-            delete param;
-        }
     };
 }
 
@@ -425,9 +427,6 @@ static std::function<void()> OnAccountUnBoundWork(JsDomainPluginParam *param)
         param->lockInfo->count--;
         param->lockInfo->condition.notify_all();
         napi_close_handle_scope(param->env, scope);
-        if (napiCallback == nullptr) {
-            delete param;
-        }
     };
 }
 
@@ -528,9 +527,6 @@ static std::function<void()> GetAccessTokenWork(JsDomainPluginParam *param)
         param->lockInfo->count--;
         param->lockInfo->condition.notify_all();
         napi_close_handle_scope(param->env, scope);
-        if (napiCallback == nullptr) {
-            delete param;
-        }
     };
 }
 
@@ -554,9 +550,6 @@ static std::function<void()> IsUserTokenValidWork(JsDomainPluginParam *param)
         param->lockInfo->count--;
         param->lockInfo->condition.notify_all();
         napi_close_handle_scope(param->env, scope);
-        if (napiCallback == nullptr) {
-            delete param;
-        }
     };
 }
 
@@ -579,9 +572,6 @@ static std::function<void()> GetAuthStatusInfoWork(JsDomainPluginParam *param)
         param->lockInfo->count--;
         param->lockInfo->condition.notify_all();
         napi_close_handle_scope(param->env, scope);
-        if (napiCallback == nullptr) {
-            delete param;
-        }
     };
 }
 

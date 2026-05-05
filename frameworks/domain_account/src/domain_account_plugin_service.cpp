@@ -29,6 +29,10 @@ DomainAccountPluginService::~DomainAccountPluginService()
 ErrCode DomainAccountPluginService::CheckAndInitExecEnv(const sptr<IDomainAccountCallback> &callback,
     DomainAccountCallbackClient **callbackClient)
 {
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("callback is nullptr");
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+    }
     if (innerPlugin_ == nullptr) {
         ACCOUNT_LOGE("innerPlugin_ is nullptr");
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;

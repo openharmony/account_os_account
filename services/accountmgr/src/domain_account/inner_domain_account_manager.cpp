@@ -325,15 +325,30 @@ ErrCode InnerDomainAccountManager::UnregisterPlugin()
             callingUid_, IPCSkeleton::GetCallingUid());
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
+    ClearPlugin();
+    return ERR_OK;
+}
+
+void InnerDomainAccountManager::OnPluginDied()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (callingUid_ == -1) {
+        ACCOUNT_LOGI("No plugin register, ignore plugin died event.");
+        return;
+    }
+    ACCOUNT_LOGI("Plugin died, clear plugin info, callingUid=%{public}d.", callingUid_);
+    ClearPlugin();
+}
+
+void InnerDomainAccountManager::ClearPlugin()
+{
     if ((plugin_ != nullptr) && (plugin_->AsObject() != nullptr)) {
         plugin_->AsObject()->RemoveDeathRecipient(deathRecipient_);
     }
     plugin_ = nullptr;
     callingUid_ = -1;
     deathRecipient_ = nullptr;
-    // Mark JS plugin as unregistered to disable HiSysEvent reporting
     DomainHisyseventUtils::SetJsPluginRegistered(false);
-    return ERR_OK;
 }
 
 ErrCode InnerDomainAccountManager::StartAuth(const sptr<IDomainAccountPlugin> &plugin, const DomainAccountInfo &info,
@@ -502,12 +517,12 @@ static bool SetPluginUint8Vector(const std::vector<uint8_t> &vector, PluginUint8
     if (vector.empty()) {
         ACCOUNT_LOGD("Vector is empty.");
         pVector.data = nullptr;
-        pVector.capcity = 0;
+        pVector.capacity = 0;
         pVector.size = 0;
         return true;
     }
     pVector.data = (uint8_t *)vector.data();
-    pVector.capcity = vector.size();
+    pVector.capacity = vector.size();
     pVector.size = vector.size();
     return true;
 }
@@ -519,14 +534,14 @@ void GetAndCleanPluginUint8Vector(PluginUint8Vector &pVector, std::vector<uint8_
         return;
     }
     vector.assign(pVector.data, pVector.data + pVector.size);
-    (void)memset_s(pVector.data, pVector.capcity, 0, pVector.capcity);
+    (void)memset_s(pVector.data, pVector.capacity, 0, pVector.capacity);
     free(pVector.data);
     pVector.data = nullptr;
-    pVector.capcity = 0;
+    pVector.capacity = 0;
     pVector.size = 0;
 }
 
-static ErrCode GetAndCleanPluginBussnessError(PluginBussnessError **error, PluginMethodEnum methodEnum, int32_t id,
+static ErrCode GetAndCleanPluginBussnessError(PluginBusinessError **error, PluginMethodEnum methodEnum, int32_t id,
     const DomainAccountInfo &info = DomainAccountInfo())
 {
     if (error == nullptr || (*error) == nullptr) {
@@ -686,15 +701,15 @@ static void SetPluginGetDomainAccessTokenOptions(const GetAccessTokenOptions &op
     SetPluginDomainAccountInfo(info, domainAccountInfo);
     PluginUint8Vector domainAccountToken;
     SetPluginUint8Vector(token, domainAccountToken);
-    PluginString bussinessParams;
-    SetPluginString(option.getTokenParams_, bussinessParams);
+    PluginString businessParams;
+    SetPluginString(option.getTokenParams_, businessParams);
     pluginOptions.domainAccountInfo = domainAccountInfo;
     pluginOptions.domainAccountToken = domainAccountToken;
-    pluginOptions.bussinessParams = bussinessParams;
+    pluginOptions.businessParams = businessParams;
     pluginOptions.callerUid = option.callingUid_;
 }
 
-static void PluginAuthCallback(uint64_t contextId, PluginAuthResultInfo *authResultInfo, PluginBussnessError *error)
+static void PluginAuthCallback(uint64_t contextId, PluginAuthResultInfo *authResultInfo, PluginBusinessError *error)
     __attribute__((no_sanitize("cfi")))
 {
     InnerDomainAccountManager::GetInstance().AuthResultInfoCallback(contextId, authResultInfo, error);
@@ -726,7 +741,7 @@ ErrCode InnerDomainAccountManager::AddServerConfig(
     PluginString param;
     SetPluginString(paremters, param);
     PluginServerConfigInfo *configInfo = nullptr;
-    PluginBussnessError* error = (*reinterpret_cast<AddServerConfigFunc>(iter->second))(&param, localId, &configInfo);
+    PluginBusinessError* error = (*reinterpret_cast<AddServerConfigFunc>(iter->second))(&param, localId, &configInfo);
     GetAndCleanPluginServerConfigInfo(&configInfo, config.id_, config.domain_, config.parameters_);
     CleanPluginString(&(param.data), param.length);
     return GetAndCleanPluginBussnessError(&error, iter->first, -1);
@@ -756,7 +771,7 @@ ErrCode InnerDomainAccountManager::RemoveServerConfig(const std::string &configI
     }
     PluginString serverConfigId;
     SetPluginString(configId, serverConfigId);
-    PluginBussnessError* error = (*reinterpret_cast<RemoveServerConfigFunc>(iter->second))(&serverConfigId, localId);
+    PluginBusinessError* error = (*reinterpret_cast<RemoveServerConfigFunc>(iter->second))(&serverConfigId, localId);
     CleanPluginString(&(serverConfigId.data), serverConfigId.length);
     ErrCode errCode = GetAndCleanPluginBussnessError(&error, iter->first, -1);
     if (errCode == ERR_JS_INVALID_PARAMETER) {
@@ -793,7 +808,7 @@ ErrCode InnerDomainAccountManager::UpdateServerConfig(const std::string &configI
     SetPluginString(configId, serverConfigId);
     SetPluginString(paremters, param);
     PluginServerConfigInfo *configInfo = nullptr;
-    PluginBussnessError* error = (*reinterpret_cast<UpdateServerConfigFunc>(iter->second))(&serverConfigId, &param,
+    PluginBusinessError* error = (*reinterpret_cast<UpdateServerConfigFunc>(iter->second))(&serverConfigId, &param,
         localId, &configInfo);
     GetAndCleanPluginServerConfigInfo(&configInfo, config.id_, config.domain_, config.parameters_);
     CleanPluginString(&(param.data), param.length);
@@ -832,7 +847,7 @@ ErrCode InnerDomainAccountManager::GetServerConfig(const std::string &configId,
     PluginString serverConfigId;
     SetPluginString(configId, serverConfigId);
     PluginServerConfigInfo *configInfo = nullptr;
-    PluginBussnessError* error = (*reinterpret_cast<GetServerConfigFunc>(iter->second))(
+    PluginBusinessError* error = (*reinterpret_cast<GetServerConfigFunc>(iter->second))(
             &serverConfigId, localId, &configInfo);
     GetAndCleanPluginServerConfigInfo(&configInfo, config.id_, config.domain_, config.parameters_);
     CleanPluginString(&(serverConfigId.data), serverConfigId.length);
@@ -855,10 +870,13 @@ static void ParsePluginConfigInfoList(PluginServerConfigInfoList *configInfoList
         DomainServerConfig config;
         if (GetAndCleanPluginString(configInfoList->items[i].id, config.id_) != ERR_OK) {
             ACCOUNT_LOGE("Failed to get server config id at index %{public}zu", i);
+            GetAndCleanPluginString(configInfoList->items[i].domain, config.domain_);
+            GetAndCleanPluginString(configInfoList->items[i].parameters, config.parameters_);
             continue;
         }
         if (GetAndCleanPluginString(configInfoList->items[i].domain, config.domain_) != ERR_OK) {
             ACCOUNT_LOGE("Failed to get server config domain at index %{public}zu", i);
+            GetAndCleanPluginString(configInfoList->items[i].parameters, config.parameters_);
             continue;
         }
         if (GetAndCleanPluginString(configInfoList->items[i].parameters, config.parameters_) != ERR_OK) {
@@ -895,7 +913,7 @@ ErrCode InnerDomainAccountManager::GetAllServerConfigs(
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     PluginServerConfigInfoList *configInfoList = nullptr;
-    PluginBussnessError* error = (*reinterpret_cast<GetServerConfigListFunc>(iter->second))(&configInfoList);
+    PluginBusinessError* error = (*reinterpret_cast<GetServerConfigListFunc>(iter->second))(&configInfoList);
 
     ParsePluginConfigInfoList(configInfoList, configs);
     return GetAndCleanPluginBussnessError(&error, iter->first, -1);
@@ -917,7 +935,7 @@ ErrCode InnerDomainAccountManager::GetAccountServerConfig(const std::string &acc
     PluginDomainAccountInfo domainAccountInfo;
     SetPluginDomainAccountInfo(info, domainAccountInfo);
     PluginServerConfigInfo *serverConfigInfo = nullptr;
-    PluginBussnessError* error = (*reinterpret_cast<GetAccountServerConfigFunc>(iter->second))(&domainAccountInfo,
+    PluginBusinessError* error = (*reinterpret_cast<GetAccountServerConfigFunc>(iter->second))(&domainAccountInfo,
         &serverConfigInfo);
     GetAndCleanPluginServerConfigInfo(&serverConfigInfo, config.id_, config.domain_, config.parameters_);
     CleanPluginString(&(domainAccountInfo.domain.data), domainAccountInfo.domain.length);
@@ -964,7 +982,7 @@ ErrCode InnerDomainAccountManager::GetAccountServerConfig(
 }
 
 void InnerDomainAccountManager::AuthResultInfoCallback(
-    uint64_t contextId, PluginAuthResultInfo *authResultInfo, PluginBussnessError *error)
+    uint64_t contextId, PluginAuthResultInfo *authResultInfo, PluginBusinessError *error)
 {
     std::lock_guard<std::recursive_mutex> lock(authContextIdMapMutex_);
     auto it = authContextIdMap_.find(contextId);
@@ -1012,7 +1030,7 @@ ErrCode InnerDomainAccountManager::PluginAuth(const DomainAccountInfo &info, con
     PluginUint8Vector credential;
     SetPluginUint8Vector(password, credential);
     ACCOUNT_LOGD("Param localId=%{public}d.", localId);
-    PluginBussnessError* error = (*reinterpret_cast<AuthFunc>(iter->second))(&domainAccountInfo, &credential, localId,
+    PluginBusinessError* error = (*reinterpret_cast<AuthFunc>(iter->second))(&domainAccountInfo, &credential, localId,
         PluginAuthCallback, &contextId);
     CleanPluginString(&(domainAccountInfo.domain.data), domainAccountInfo.domain.length);
     CleanPluginString(&(domainAccountInfo.serverConfigId.data), domainAccountInfo.serverConfigId.length);
@@ -1099,7 +1117,7 @@ ErrCode InnerDomainAccountManager::PluginAuthWithParameters(const DomainAccountI
     SetPluginDomainAccountInfo(info, domainAccountInfo);
     PluginUint8Vector credential;
     SetPluginUint8Vector(password, credential);
-    PluginBussnessError* error = (*reinterpret_cast<AuthWithServerConfigFunc>(iter->second))(&param,
+    PluginBusinessError* error = (*reinterpret_cast<AuthWithServerConfigFunc>(iter->second))(&param,
         &domainAccountInfo, &credential, localId);
     CleanPluginString(&(param.data), param.length);
     CleanPluginString(&(domainAccountInfo.domain.data), domainAccountInfo.domain.length);
@@ -1171,7 +1189,7 @@ ErrCode InnerDomainAccountManager::PluginBindAccount(const DomainAccountInfo &in
     }
     PluginDomainAccountInfo domainAccountInfo;
     SetPluginDomainAccountInfo(info, domainAccountInfo);
-    PluginBussnessError* error =
+    PluginBusinessError* error =
         (*reinterpret_cast<BindAccountFunc>(iter->second))(&domainAccountInfo, localId, callerLocalId);
     CleanPluginString(&(domainAccountInfo.domain.data), domainAccountInfo.domain.length);
     CleanPluginString(&(domainAccountInfo.serverConfigId.data), domainAccountInfo.serverConfigId.length);
@@ -1193,7 +1211,7 @@ ErrCode InnerDomainAccountManager::PluginUnBindAccount(
     }
     PluginDomainAccountInfo domainAccountInfo;
     SetPluginDomainAccountInfo(info, domainAccountInfo);
-    PluginBussnessError* error = (*reinterpret_cast<UnbindAccountFunc>(iter->second))(&domainAccountInfo, localId);
+    PluginBusinessError* error = (*reinterpret_cast<UnbindAccountFunc>(iter->second))(&domainAccountInfo, localId);
     CleanPluginString(&(domainAccountInfo.domain.data), domainAccountInfo.domain.length);
     CleanPluginString(&(domainAccountInfo.serverConfigId.data), domainAccountInfo.serverConfigId.length);
     CleanPluginString(&(domainAccountInfo.accountName.data), domainAccountInfo.accountName.length);
@@ -1215,7 +1233,7 @@ ErrCode InnerDomainAccountManager::PluginIsAccountTokenValid(const DomainAccount
     SetPluginDomainAccountInfo(info, domainAccountInfo);
     PluginUint8Vector pToken;
     SetPluginUint8Vector(token, pToken);
-    PluginBussnessError* error =
+    PluginBusinessError* error =
         (*reinterpret_cast<IsAccountTokenValidFunc>(iter->second))(&domainAccountInfo, &pToken, &isValid);
     CleanPluginString(&(domainAccountInfo.domain.data), domainAccountInfo.domain.length);
     CleanPluginString(&(domainAccountInfo.serverConfigId.data), domainAccountInfo.serverConfigId.length);
@@ -1239,8 +1257,8 @@ ErrCode InnerDomainAccountManager::PluginGetAccessToken(const GetAccessTokenOpti
     PluginGetDomainAccessTokenOptions pOption;
     SetPluginGetDomainAccessTokenOptions(option, token, info, pOption);
     PluginUint8Vector *accessToken = nullptr;
-    ACCOUNT_LOGD("Param params=%{public}s callerUid=%{public}d.", pOption.bussinessParams.data, pOption.callerUid);
-    PluginBussnessError* error = (*reinterpret_cast<GetAccessTokenFunc>(iter->second))(&pOption, &accessToken);
+    ACCOUNT_LOGD("Param params=%{public}s callerUid=%{public}d.", pOption.businessParams.data, pOption.callerUid);
+    PluginBusinessError* error = (*reinterpret_cast<GetAccessTokenFunc>(iter->second))(&pOption, &accessToken);
     if (accessToken != nullptr) {
         GetAndCleanPluginUint8Vector(*accessToken, resultParcel.token);
         free(accessToken);
@@ -1253,7 +1271,7 @@ ErrCode InnerDomainAccountManager::PluginGetAccessToken(const GetAccessTokenOpti
         pOption.domainAccountInfo.accountName.length);
     CleanPluginString(&(pOption.domainAccountInfo.accountId.data),
         pOption.domainAccountInfo.accountId.length);
-    CleanPluginString(&(pOption.bussinessParams.data), pOption.bussinessParams.length);
+    CleanPluginString(&(pOption.businessParams.data), pOption.businessParams.length);
     return GetAndCleanPluginBussnessError(&error, iter->first, -1, info);
 }
 
@@ -1270,7 +1288,7 @@ ErrCode InnerDomainAccountManager::PluginAuthWithPopup(
     PluginDomainAccountInfo domainAccountInfo;
     SetPluginDomainAccountInfo(info, domainAccountInfo);
     PluginAuthResultInfo *authResultInfo = nullptr;
-    PluginBussnessError* error = (*reinterpret_cast<AuthWithPopupFunc>(iter->second))(&domainAccountInfo,
+    PluginBusinessError* error = (*reinterpret_cast<AuthWithPopupFunc>(iter->second))(&domainAccountInfo,
         &authResultInfo);
     GetAndCleanPluginAuthResultInfo(&authResultInfo, resultParcel);
     CleanPluginString(&(domainAccountInfo.domain.data), domainAccountInfo.domain.length);
@@ -1295,7 +1313,7 @@ ErrCode InnerDomainAccountManager::PluginAuthToken(const DomainAccountInfo &info
     PluginUint8Vector token;
     SetPluginUint8Vector(authData, token);
     PluginAuthResultInfo *authResultInfo = nullptr;
-    PluginBussnessError* error = (*reinterpret_cast<AuthWithTokenFunc>(iter->second))(&domainAccountInfo, &token,
+    PluginBusinessError* error = (*reinterpret_cast<AuthWithTokenFunc>(iter->second))(&domainAccountInfo, &token,
         &authResultInfo);
     GetAndCleanPluginAuthResultInfo(&authResultInfo, resultParcel);
     CleanPluginString(&(domainAccountInfo.domain.data), domainAccountInfo.domain.length);
@@ -1318,7 +1336,7 @@ ErrCode InnerDomainAccountManager::PluginGetAuthStatusInfo(const DomainAccountIn
     PluginDomainAccountInfo domainAccountInfo;
     SetPluginDomainAccountInfo(info, domainAccountInfo);
     PluginAuthStatusInfo *authStatusInfo = nullptr;
-    PluginBussnessError* error =
+    PluginBusinessError* error =
         (*reinterpret_cast<GetAuthStatusInfoFunc>(iter->second))(&domainAccountInfo, &authStatusInfo);
     GetAndCleanPluginAuthStatusInfo(&authStatusInfo, authInfo);
     CleanPluginString(&(domainAccountInfo.domain.data), domainAccountInfo.domain.length);
@@ -1343,7 +1361,7 @@ ErrCode InnerDomainAccountManager::PluginUpdateAccountInfo(const DomainAccountIn
     SetPluginDomainAccountInfo(oldAccountInfo, oldDomainAccountInfo);
     PluginDomainAccountInfo newDomainAccountInfo;
     SetPluginDomainAccountInfo(newAccountInfo, newDomainAccountInfo);
-    PluginBussnessError* error = (*reinterpret_cast<UpdateAccountInfoFunc>(iter->second))(&oldDomainAccountInfo,
+    PluginBusinessError* error = (*reinterpret_cast<UpdateAccountInfoFunc>(iter->second))(&oldDomainAccountInfo,
         &newDomainAccountInfo, callerLocalId);
     CleanPluginString(&(oldDomainAccountInfo.domain.data), oldDomainAccountInfo.domain.length);
     CleanPluginString(&(oldDomainAccountInfo.serverConfigId.data), oldDomainAccountInfo.serverConfigId.length);
@@ -1513,7 +1531,7 @@ ErrCode InnerDomainAccountManager::CancelAuthWork(const uint64_t &contextId) __a
                 Constants::DOMAIN_OPT_CANCEL_AUTH, -1);
             return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
         }
-        PluginBussnessError *error = (*reinterpret_cast<CancelAuthFunc>(iter->second))(contextId);
+        PluginBusinessError *error = (*reinterpret_cast<CancelAuthFunc>(iter->second))(contextId);
         return GetAndCleanPluginBussnessError(&error, PluginMethodEnum::CANCEL_AUTH, -1);
     }
     auto it = authContextIdMap_.find(contextId);
@@ -1844,7 +1862,7 @@ ErrCode InnerDomainAccountManager::IsAuthenticationExpired(
     PluginUint8Vector pToken;
     SetPluginUint8Vector(accountToken, pToken);
     int32_t isValid = 0;
-    PluginBussnessError* error =
+    PluginBusinessError* error =
         (*reinterpret_cast<IsAuthenticationExpiredFunc>(iter->second))(&domainAccountInfo, &pToken, &isValid);
     CleanPluginDomainAccountInfo(domainAccountInfo);
     if (error == nullptr) {
@@ -1888,7 +1906,7 @@ ErrCode InnerDomainAccountManager::SetAccountPolicy(const DomainAccountInfo &inf
     SetPluginString(policy, parameters);
     PluginDomainAccountInfo domainAccountInfo;
     SetPluginDomainAccountInfo(info, domainAccountInfo);
-    PluginBussnessError* error =
+    PluginBusinessError* error =
         (*reinterpret_cast<SetAccountPolicyFunc>(iter->second))(&parameters, &domainAccountInfo, callerLocalId);
     CleanPluginString(&(domainAccountInfo.domain.data), domainAccountInfo.domain.length);
     CleanPluginString(&(domainAccountInfo.serverConfigId.data), domainAccountInfo.serverConfigId.length);
@@ -1928,7 +1946,7 @@ ErrCode InnerDomainAccountManager::GetAccountPolicy(const DomainAccountInfo &inf
     PluginDomainAccountInfo domainAccountInfo;
     SetPluginDomainAccountInfo(info, domainAccountInfo);
     PluginDomainAccountPolicy *domainAccountPolicy = nullptr;
-    PluginBussnessError* error = (*reinterpret_cast<GetAccountPolicyFunc>(iter->second))(&domainAccountInfo,
+    PluginBusinessError* error = (*reinterpret_cast<GetAccountPolicyFunc>(iter->second))(&domainAccountInfo,
         callerLocalId, &domainAccountPolicy);
     if (domainAccountPolicy != nullptr) {
         GetAndCleanPluginDomainAccountPolicy(&domainAccountPolicy, policy);
@@ -2374,7 +2392,7 @@ ErrCode InnerDomainAccountManager::PluginGetDomainAccountInfo(const GetDomainAcc
     SetPluginDomainAccountInfo(options.accountInfo, pluginOptions.domainAccountInfo);
     pluginOptions.callerUid = options.callingUid;
     PluginDomainAccountInfo *accountInfoResult = nullptr;
-    PluginBussnessError* error =
+    PluginBusinessError* error =
         (*reinterpret_cast<GetAccountInfoFunc>(iter->second))(&pluginOptions, localId, &accountInfoResult);
     GetAndCleanPluginDomainAccountInfo(info, &accountInfoResult);
     CleanPluginString(&(pluginOptions.domainAccountInfo.domain.data), pluginOptions.domainAccountInfo.domain.length);
