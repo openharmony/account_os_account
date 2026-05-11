@@ -158,6 +158,7 @@
         "OHOS::AccountSA::OsAccountManager::GetOsAccountSwitchMod()";
         OHOS::AccountSA::OsAccountManager::GetDefaultActivatedOsAccount*;
         OHOS::AccountSA::OsAccountManager::SetDefaultActivatedOsAccount*;
+        "OHOS::AccountSA::OsAccountInfo::GetForegroundDistributedAccountId() const";
         "OHOS::AccountSA::OsAccountManager::SetOsAccountName(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::AccountSA::OsAccountManager::CreateOsAccountForDomain(OHOS::AccountSA::OsAccountType const&, OHOS::AccountSA::DomainAccountInfo const&, std::__h::shared_ptr<OHOS::AccountSA::DomainAccountCallback> const&)";
         "OHOS::AccountSA::OsAccountManager::GetDistributedVirtualDeviceId(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&)";
@@ -322,6 +323,10 @@
         "OHOS::AccountSA::ReportUserDataSize(std::__h::vector<int, std::__h::allocator<int>> const&)";
         "VTT for OHOS::AccountSA::OhosAccountInfo";
         "vtable for OHOS::AccountSA::OhosAccountInfo";
+        "OHOS::AccountSA::OsAccountSubspaceClient::GetInstance()";
+        "OHOS::AccountSA::OsAccountSubspaceClient::CreateOsAccountSubspace(int, OHOS::AccountSA::OsAccountSubspaceResult&)";
+        "OHOS::AccountSA::OsAccountSubspaceClient::DeleteOsAccountSubspace(int, int)";
+        "OHOS::AccountSA::OsAccountSubspaceClient::SwitchOsAccountSubspace(int, int)";
         "OHOS::AccountSA::OhosAccountInfo::Unmarshalling(OHOS::Parcel&)";
     };
   local:

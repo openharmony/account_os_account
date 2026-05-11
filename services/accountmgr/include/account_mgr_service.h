@@ -31,6 +31,10 @@
 #include "singleton.h"
 #include "system_ability.h"
 
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+#include "os_account_subspace_manager_service.h"
+#endif
+
 namespace OHOS {
 namespace AccountSA {
 enum ServiceRunningState { STATE_NOT_START, STATE_RUNNING };
@@ -65,6 +69,7 @@ public:
     ErrCode GetAccountIAMService(sptr<IRemoteObject>& funcResult) override;
     ErrCode GetDomainAccountService(sptr<IRemoteObject>& funcResult) override;
     ErrCode GetAuthorizationService(sptr<IRemoteObject>& funcResult) override;
+    ErrCode GetOsAccountSubspaceService(sptr<IRemoteObject>& funcResult) override;
 
     void OnStart() override;
     void OnStop() override;
@@ -112,6 +117,7 @@ private:
     wptr<IRemoteObject> accountIAMService_ = nullptr;
     wptr<IRemoteObject> domainAccountMgrService_ = nullptr;
     wptr<IRemoteObject> authorizationManagerService_ = nullptr;
+    wptr<IRemoteObject> distributedAccountSpaceService_ = nullptr;
 
     std::mutex statusMutex_;
     bool isStorageReady_ = false;

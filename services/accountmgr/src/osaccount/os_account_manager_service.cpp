@@ -2520,14 +2520,14 @@ ErrCode OsAccountManagerService::CheckLocalIdRestricted(int32_t localId)
     bool hasAccount = false;
     ErrCode ret = innerManager_.IsOsAccountExists(localId, hasAccount);
     if (ret != ERR_OK) {
-        ACCOUNT_LOGE("Is OsAccount Exists failed, ret = %{public}d, localId = %{public}d", ret, localId);
+        ACCOUNT_LOGE("IsOsAccountExists failed, ret=%{public}d, localId=%{public}d", ret, localId);
         return ret;
     }
     if (hasAccount) {
-        ACCOUNT_LOGW("Os account exists, return restricted account, localId = %{public}d", localId);
+        ACCOUNT_LOGW("Os account is restricted, localId=%{public}d", localId);
         return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
-    ACCOUNT_LOGW("Os account not exists, return account not found, localId = %{public}d", localId);
+    ACCOUNT_LOGW("Os account not exists, localId=%{public}d", localId);
     return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
 }
 

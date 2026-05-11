@@ -14,6 +14,7 @@
 import("//build/ohos.gni")
 import("//build/test.gni")
 import("../../../../../os_account.gni")
+import("../../../os_account_service.gni")
 
 module_output_path = "os_account/distributed_account"
 
@@ -212,4 +213,598 @@ group("unittest") {
     ":OhosEventManagerMultipleThreadTest",
     ":OhosServiceTest",
   ]
+  deps += [
+    ":OsAccountSubspaceCoverageTest",
+    ":OsAccountSubspaceManagerTest",
+    ":OsAccountSubspaceTest",
+  ]
+}
+
+ohos_unittest("OsAccountSubspaceTest") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  module_out_path = module_output_path
+  cflags_cc = [ "-DENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE" ]
+  include_dirs = [
+    "${os_account_interfaces_native_path}/include",
+    "${os_account_core_path}/include",
+    "${services_path}/accountmgr/include",
+    "${common_path}/account_error",
+    "${common_path}/log/include",
+    "${common_path}/perf_stat/include",
+    "${common_path}/file_operator/include",
+    "${common_path}/json_utils/include",
+    "${common_path}/utils/include",
+    "${common_path}/privileges/include",
+    "${common_path}/include",
+    "${innerkits_common}/include",
+    "${innerkits_path}/include",
+    "${os_account_dfx_path}/hisysevent_adapter",
+    "${os_account_dfx_path}/data_dfx",
+  ]
+
+  sources = [
+    "${common_path}/account_error/src/account_error_no.cpp",
+    "${common_path}/file_operator/src/account_file_operator.cpp",
+    "${common_path}/json_utils/src/json_utils.cpp",
+    "${common_path}/log/src/account_log_wrapper.cpp",
+    "${os_account_dfx_path}/hisysevent_adapter/account_hisysevent_adapter.cpp",
+    "${innerkits_native_path}/src/distributed_account_subscribe_callback.cpp",
+    "${services_path}/accountmgr/src/distributed_account/os_account_subspace_data_deal.cpp",
+    "os_account_subspace_test.cpp",
+  ]
+
+  configs = [
+    ":accountmgr_data_deal_test_config",
+    "${services_path}/accountmgr/test:accountmgr_test_config",
+  ]
+
+  deps = [
+    "${account_test_common}:account_test_common_source_set",
+    "${innerkits_native_path}:libaccountkits",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${services_path}/accountmgr:accountmgr",
+  ]
+
+  external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "access_token:libtokenid_sdk",
+    "access_token:libtokensetproc_shared",
+    "cJSON:cjson",
+    "c_utils:utils",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
+  if (has_hiviewdfx_hisysevent_part) {
+    cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
+    external_deps += [ "hisysevent:libhisysevent" ]
+  }
+  part_name = "os_account"
+}
+
+ohos_unittest("OsAccountSubspaceManagerTest") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  module_out_path = module_output_path
+  cflags_cc = [ "-DENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE" ]
+  use_exceptions = true
+  cflags = []
+
+  sources = [
+    "os_account_subspace_manager_test.cpp",
+  ]
+
+  sources += [
+    "${common_path}/account_error/src/account_error_no.cpp",
+    "${common_path}/file_operator/src/account_file_operator.cpp",
+    "${common_path}/json_utils/src/json_utils.cpp",
+    "${common_path}/log/src/account_log_wrapper.cpp",
+    "${os_account_dfx_path}/hisysevent_adapter/account_hisysevent_adapter.cpp",
+    "${account_iam_framework_path}/src/account_iam_info.cpp",
+    "${domain_account_framework_path}/src/domain_account_common.cpp",
+    "${os_account_innerkits_native_path}/src/os_account_constraint_subscriber.cpp",
+    "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
+  ]
+  sources += account_service_sources
+  sources += [
+    "${services_path}/accountmgr/src/distributed_account/os_account_subspace_data_deal.cpp",
+    "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager.cpp",
+    "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager_service.cpp",
+    "${services_path}/accountmgr/src/ability_manager_adapter/ability_manager_adapter.cpp",
+    "${os_account_core_path}/src/os_account_constraint_subscriber_manager.cpp",
+    "${os_account_core_path}/src/os_account.cpp",
+    "${os_account_core_path}/src/os_account_death_recipient.cpp",
+    "${os_account_core_path}/src/os_account_event_listener.cpp",
+    "${services_path}/accountmgr/src/common/database/kvstore/kvstore_adapter_impl.cpp",
+  ]
+
+  include_dirs = [
+    "${os_account_interfaces_native_path}/include",
+    "${os_account_core_path}/include",
+    "${services_path}/accountmgr/include",
+    "${services_path}/accountmgr/include/distributed_account",
+    "${services_path}/accountmgr/include/bundle_manager_adapter",
+    "${os_account_subspace_interfaces_native_path}/include",
+    "${common_path}/account_error",
+    "${common_path}/log/include",
+    "${common_path}/perf_stat/include",
+    "${common_path}/file_operator/include",
+    "${common_path}/json_utils/include",
+    "${common_path}/utils/include",
+    "${common_path}/privileges/include",
+    "${common_path}/include",
+    "${innerkits_common}/include",
+    "${innerkits_path}/include",
+    "${os_account_dfx_path}/hisysevent_adapter",
+    "${os_account_dfx_path}/data_dfx",
+    "${account_iam_interfaces_native_path}/include",
+  ]
+
+  configs = [
+    ":accountmgr_data_deal_test_config",
+    "${services_path}/accountmgr:accountmgr_config",
+    "${services_path}/accountmgr/test:accountmgr_test_config",
+  ]
+
+  deps = [
+    "${account_test_common}:account_test_common_source_set",
+    "${common_path}:libaccount_common",
+    "${account_iam_framework_path}:account_iam_stub",
+    "${domain_account_framework_path}:domain_account_stub",
+    "${os_account_subspace_framework_path}:os_account_subspace_stub",
+    "${innerkits_native_path}:account_stub",
+    "${innerkits_native_path}:libaccountkits",
+    "${os_account_innerkits_native_path}:os_account_event_proxy",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${os_account_innerkits_native_path}:os_account_state_reply_callback_proxy",
+    "${os_account_innerkits_native_path}:os_account_state_reply_callback_stub",
+    "${os_account_innerkits_native_path}:os_account_proxy",
+    "${os_account_innerkits_native_path}:os_account_stub",
+    "${services_path}/accountmgr:accountmgr",
+  ]
+
+  external_deps = [
+    "ability_base:base",
+    "ability_base:configuration",
+    "ability_base:want",
+    "ability_runtime:ability_connect_callback_stub",
+    "ability_runtime:wantagent_innerkits",
+    "access_token:libaccesstoken_sdk",
+    "access_token:libtokenid_sdk",
+    "access_token:libtokensetproc_shared",
+    "bundle_framework:appexecfwk_base",
+    "cJSON:cjson",
+    "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "init:libbegetutil",
+    "ipc:ipc_single",
+    "openssl:libcrypto_shared",
+    "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
+  ]
+
+  if (has_kv_store_part) {
+    deps += [
+      "${app_account_innerkits_native_path}:app_account_authenticator_callback_proxy",
+      "${app_account_innerkits_native_path}:app_account_authenticator_callback_stub",
+      "${app_account_innerkits_native_path}:app_account_authenticator_proxy",
+      "${app_account_innerkits_native_path}:app_account_stub",
+    ]
+  }
+
+  if (os_account_enable_multiple_foreground_os_accounts) {
+    cflags_cc += [ "-DENABLE_MULTI_FOREGROUND_OS_ACCOUNTS" ]
+    external_deps += [ "window_manager:libdm_lite" ]
+  }
+
+  if (os_account_multiple_active_accounts ||
+      os_account_support_deactivate_main_os_account) {
+    external_deps += [ "ability_runtime:app_manager" ]
+    cflags_cc += [ "-DENABLE_DEACTIVATE_OS_ACCOUNTS" ]
+  }
+
+  if (os_account_support_lock_os_account) {
+    cflags_cc += [ "-DSUPPORT_LOCK_OS_ACCOUNT" ]
+  }
+
+  if (os_account_distributed_feature && !use_libfuzzer) {
+    cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
+    sources +=
+        [ "${services_path}/accountmgr/src/account_file_watcher_manager.cpp" ]
+    if (has_huks_part) {
+      external_deps += [ "huks:libhukssdk" ]
+      cflags_cc += [ "-DHAS_HUKS_PART" ]
+    }
+  }
+
+  if (use_libfuzzer) {
+    cflags_cc += [ "-DFUZZ_TEST" ]
+  }
+
+  if (os_account_support_domain_accounts) {
+    cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+    sources += [
+      "${domain_account_framework_path}/src/domain_account_callback_service.cpp",
+      "${domain_account_framework_path}/src/domain_account_parcel.cpp",
+    ]
+    deps += [
+      "${domain_account_framework_path}:domain_account_callback_proxy",
+      "${domain_account_framework_path}:domain_account_callback_stub",
+      "${domain_account_framework_path}:domain_account_plugin_proxy",
+    ]
+  }
+
+  if (has_user_auth_part) {
+    cflags_cc += [
+      "-DHAS_USER_AUTH_PART",
+      "-DHAS_USER_IDM_PART",
+    ]
+    sources += [
+      "${services_path}/accountmgr/src/account_iam/account_iam_callback.cpp",
+      "${services_path}/accountmgr/src/account_iam/account_iam_service.cpp",
+      "${services_path}/accountmgr/src/account_iam/inner_account_iam_manager.cpp",
+    ]
+    external_deps += [ "user_auth_framework:userauth_client" ]
+  }
+
+  cflags_cc += [ "-DHAS_APP_ACCOUNT_PART" ]
+  if (has_kv_store_part) {
+    sources += [
+      "${app_account_innerkits_native_path}/src/app_account_common.cpp",
+      "${app_account_innerkits_native_path}/src/app_account_info.cpp",
+      "${app_account_innerkits_native_path}/src/app_account_subscribe_info.cpp",
+      "${services_path}/accountmgr/src/appaccount/app_account_authenticator_callback.cpp",
+      "${services_path}/accountmgr/src/appaccount/app_account_authenticator_manager.cpp",
+      "${services_path}/accountmgr/src/appaccount/app_account_authenticator_session.cpp",
+      "${services_path}/accountmgr/src/appaccount/app_account_authenticator_session_manager.cpp",
+      "${services_path}/accountmgr/src/appaccount/app_account_check_labels_callback.cpp",
+      "${services_path}/accountmgr/src/appaccount/app_account_check_labels_session.cpp",
+      "${services_path}/accountmgr/src/appaccount/app_account_common_event_observer.cpp",
+      "${services_path}/accountmgr/src/appaccount/app_account_common_event_subscriber.cpp",
+      "${services_path}/accountmgr/src/appaccount/app_account_control_manager.cpp",
+      "${services_path}/accountmgr/src/appaccount/app_account_data_storage.cpp",
+      "${services_path}/accountmgr/src/appaccount/app_account_manager_service.cpp",
+      "${services_path}/accountmgr/src/appaccount/app_account_subscribe_death_recipient.cpp",
+      "${services_path}/accountmgr/src/appaccount/app_account_subscribe_manager.cpp",
+      "${services_path}/accountmgr/src/appaccount/inner_app_account_manager.cpp",
+      "${services_path}/accountmgr/src/appaccount/os_account_state_subscriber.cpp",
+    ]
+    sources += [ "${services_path}/accountmgr/src/account_data_storage.cpp" ]
+    deps += [ "${os_account_innerkits_native_path}:os_account_event_stub" ]
+  }
+
+  if (has_kv_store_part && os_account_distributed_feature) {
+    external_deps += [ "kv_store:distributeddata_inner" ]
+    sources += [
+      "${services_path}/accountmgr/src/osaccount/os_account_data_storage.cpp",
+      "${services_path}/accountmgr/src/osaccount/os_account_database_operator.cpp",
+    ]
+    cflags_cc += [ "-DHAS_KV_STORE_PART" ]
+  } else {
+    cflags_cc += [ "-DSQLITE_DLCLOSE_ENABLE" ]
+    sources += [ "${services_path}/accountmgr/src/common/database/database_adapter_loader.cpp" ]
+  }
+
+  if (has_storage_service_part) {
+    cflags += [ "-DHAS_STORAGE_PART" ]
+    external_deps += [ "storage_service:storage_manager_sa_proxy" ]
+  }
+
+  if (has_ces_part) {
+    cflags_cc += [ "-DHAS_CES_PART" ]
+    external_deps += [ "common_event_service:cesfwk_innerkits" ]
+  }
+
+  if (use_musl) {
+    cflags_cc += [ "-DUSE_MUSL" ]
+  }
+
+  if (hicollie_enable == true) {
+    external_deps += [ "hicollie:libhicollie" ]
+    cflags_cc += [ "-DHICOLLIE_ENABLE" ]
+  }
+
+  if (security_guard_enabled) {
+    external_deps += [
+      "security_guard:libsg_collect_sdk",
+      "time_service:time_client",
+    ]
+    cflags_cc += [ "-DSECURITY_GUARDE_ENABLE" ]
+  }
+
+  if (has_hiviewdfx_hitrace_part) {
+    external_deps += [ "hitrace:hitrace_meter" ]
+    cflags_cc += [ "-DHAS_HITRACE_PART" ]
+  }
+
+  if (has_asset_part) {
+    external_deps += [ "asset:asset_sdk" ]
+    cflags_cc += [ "-DHAS_ASSET_PART" ]
+  }
+
+  if (has_hiviewdfx_hisysevent_part) {
+    cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
+    external_deps += [ "hisysevent:libhisysevent" ]
+  }
+
+  sources += [ "${services_path}/accountmgr/test/mock/common/bundle_manager_adapter.cpp" ]
+  part_name = "os_account"
+}
+
+ohos_unittest("OsAccountSubspaceCoverageTest") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  module_out_path = module_output_path
+  cflags_cc = [ "-DENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE", "-DACCOUNT_TEST" ]
+  use_exceptions = true
+  cflags = []
+
+  sources = [
+    "os_account_subspace_client_test.cpp",
+    "os_account_subspace_coverage_test.cpp",
+  ]
+
+  sources += [
+    "${common_path}/account_error/src/account_error_no.cpp",
+    "${common_path}/file_operator/src/account_file_operator.cpp",
+    "${common_path}/json_utils/src/json_utils.cpp",
+    "${common_path}/log/src/account_log_wrapper.cpp",
+    "${os_account_dfx_path}/hisysevent_adapter/account_hisysevent_adapter.cpp",
+    "${account_iam_framework_path}/src/account_iam_info.cpp",
+    "${domain_account_framework_path}/src/domain_account_common.cpp",
+    "${os_account_innerkits_native_path}/src/os_account_constraint_subscriber.cpp",
+    "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
+  ]
+  sources += account_service_sources
+  sources += [
+    "${services_path}/accountmgr/src/distributed_account/os_account_subspace_data_deal.cpp",
+    "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager.cpp",
+    "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager_service.cpp",
+    "${services_path}/accountmgr/src/ability_manager_adapter/ability_manager_adapter.cpp",
+    "${os_account_core_path}/src/os_account_constraint_subscriber_manager.cpp",
+    "${os_account_core_path}/src/os_account.cpp",
+    "${os_account_core_path}/src/os_account_death_recipient.cpp",
+    "${os_account_core_path}/src/os_account_event_listener.cpp",
+    "${services_path}/accountmgr/src/common/database/kvstore/kvstore_adapter_impl.cpp",
+  ]
+  sources += [
+    "${os_account_subspace_framework_path}/src/os_account_subspace_client.cpp",
+    "${services_path}/accountmgr/test/mock/src/mock_account_mgr_service.cpp",
+  ]
+
+  include_dirs = [
+    "${os_account_interfaces_native_path}/include",
+    "${os_account_core_path}/include",
+    "${services_path}/accountmgr/include",
+    "${services_path}/accountmgr/include/distributed_account",
+    "${services_path}/accountmgr/include/bundle_manager_adapter",
+    "${os_account_subspace_interfaces_native_path}/include",
+    "${os_account_subspace_framework_path}/src",
+    "${common_path}/account_error",
+    "${common_path}/log/include",
+    "${common_path}/perf_stat/include",
+    "${common_path}/file_operator/include",
+    "${common_path}/json_utils/include",
+    "${common_path}/utils/include",
+    "${common_path}/privileges/include",
+    "${common_path}/include",
+    "${innerkits_common}/include",
+    "${innerkits_path}/include",
+    "${os_account_dfx_path}/hisysevent_adapter",
+    "${os_account_dfx_path}/data_dfx",
+    "${account_iam_interfaces_native_path}/include",
+  ]
+
+  configs = [
+    ":accountmgr_data_deal_test_config",
+    "${services_path}/accountmgr:accountmgr_config",
+    "${services_path}/accountmgr/test:accountmgr_test_config",
+  ]
+
+  deps = [
+    "${account_test_common}:account_test_common_source_set",
+    "${common_path}:libaccount_common",
+    "${account_iam_framework_path}:account_iam_stub",
+    "${domain_account_framework_path}:domain_account_stub",
+    "${os_account_subspace_framework_path}:os_account_subspace_stub",
+    "${innerkits_native_path}:account_stub",
+    "${innerkits_native_path}:libaccountkits",
+    "${os_account_innerkits_native_path}:os_account_event_proxy",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${os_account_innerkits_native_path}:os_account_state_reply_callback_proxy",
+    "${os_account_innerkits_native_path}:os_account_state_reply_callback_stub",
+    "${os_account_innerkits_native_path}:os_account_proxy",
+    "${os_account_innerkits_native_path}:os_account_stub",
+    "${services_path}/accountmgr:accountmgr",
+  ]
+
+  external_deps = [
+    "ability_base:base",
+    "ability_base:configuration",
+    "ability_base:want",
+    "ability_runtime:ability_connect_callback_stub",
+    "ability_runtime:wantagent_innerkits",
+    "access_token:libaccesstoken_sdk",
+    "access_token:libtokenid_sdk",
+    "access_token:libtokensetproc_shared",
+    "bundle_framework:appexecfwk_base",
+    "cJSON:cjson",
+    "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "init:libbegetutil",
+    "ipc:ipc_single",
+    "openssl:libcrypto_shared",
+    "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
+  ]
+
+  if (has_kv_store_part) {
+    deps += [
+      "${app_account_innerkits_native_path}:app_account_authenticator_callback_proxy",
+      "${app_account_innerkits_native_path}:app_account_authenticator_callback_stub",
+      "${app_account_innerkits_native_path}:app_account_authenticator_proxy",
+      "${app_account_innerkits_native_path}:app_account_stub",
+    ]
+  }
+
+  if (os_account_enable_multiple_foreground_os_accounts) {
+    cflags_cc += [ "-DENABLE_MULTI_FOREGROUND_OS_ACCOUNTS" ]
+    external_deps += [ "window_manager:libdm_lite" ]
+  }
+
+  if (os_account_multiple_active_accounts ||
+      os_account_support_deactivate_main_os_account) {
+    external_deps += [ "ability_runtime:app_manager" ]
+    cflags_cc += [ "-DENABLE_DEACTIVATE_OS_ACCOUNTS" ]
+  }
+
+  if (os_account_support_lock_os_account) {
+    cflags_cc += [ "-DSUPPORT_LOCK_OS_ACCOUNT" ]
+  }
+
+  if (os_account_distributed_feature && !use_libfuzzer) {
+    cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
+    sources +=
+        [ "${services_path}/accountmgr/src/account_file_watcher_manager.cpp" ]
+    if (has_huks_part) {
+      external_deps += [ "huks:libhukssdk" ]
+      cflags_cc += [ "-DHAS_HUKS_PART" ]
+    }
+  }
+
+  if (use_libfuzzer) {
+    cflags_cc += [ "-DFUZZ_TEST" ]
+  }
+
+  if (os_account_support_domain_accounts) {
+    cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+    sources += [
+      "${domain_account_framework_path}/src/domain_account_callback_service.cpp",
+      "${domain_account_framework_path}/src/domain_account_parcel.cpp",
+    ]
+    deps += [
+      "${domain_account_framework_path}:domain_account_callback_proxy",
+      "${domain_account_framework_path}:domain_account_callback_stub",
+      "${domain_account_framework_path}:domain_account_plugin_proxy",
+    ]
+  }
+
+  if (has_user_auth_part) {
+    cflags_cc += [
+      "-DHAS_USER_AUTH_PART",
+      "-DHAS_USER_IDM_PART",
+    ]
+    sources += [
+      "${services_path}/accountmgr/src/account_iam/account_iam_callback.cpp",
+      "${services_path}/accountmgr/src/account_iam/account_iam_service.cpp",
+      "${services_path}/accountmgr/src/account_iam/inner_account_iam_manager.cpp",
+    ]
+    external_deps += [ "user_auth_framework:userauth_client" ]
+  }
+
+  cflags_cc += [ "-DHAS_APP_ACCOUNT_PART" ]
+  if (has_kv_store_part) {
+    sources += [
+      "${app_account_innerkits_native_path}/src/app_account_common.cpp",
+      "${app_account_innerkits_native_path}/src/app_account_info.cpp",
+      "${app_account_innerkits_native_path}/src/app_account_subscribe_info.cpp",
+      "${services_path}/accountmgr/src/appaccount/app_account_authenticator_callback.cpp",
+      "${services_path}/accountmgr/src/appaccount/app_account_authenticator_manager.cpp",
+      "${services_path}/accountmgr/src/appaccount/app_account_authenticator_session.cpp",
+      "${services_path}/accountmgr/src/appaccount/app_account_authenticator_session_manager.cpp",
+      "${services_path}/accountmgr/src/appaccount/app_account_check_labels_callback.cpp",
+      "${services_path}/accountmgr/src/appaccount/app_account_check_labels_session.cpp",
+      "${services_path}/accountmgr/src/appaccount/app_account_common_event_observer.cpp",
+      "${services_path}/accountmgr/src/appaccount/app_account_common_event_subscriber.cpp",
+      "${services_path}/accountmgr/src/appaccount/app_account_control_manager.cpp",
+      "${services_path}/accountmgr/src/appaccount/app_account_data_storage.cpp",
+      "${services_path}/accountmgr/src/appaccount/app_account_manager_service.cpp",
+      "${services_path}/accountmgr/src/appaccount/app_account_subscribe_death_recipient.cpp",
+      "${services_path}/accountmgr/src/appaccount/app_account_subscribe_manager.cpp",
+      "${services_path}/accountmgr/src/appaccount/inner_app_account_manager.cpp",
+      "${services_path}/accountmgr/src/appaccount/os_account_state_subscriber.cpp",
+    ]
+    sources += [ "${services_path}/accountmgr/src/account_data_storage.cpp" ]
+    deps += [ "${os_account_innerkits_native_path}:os_account_event_stub" ]
+  }
+
+  if (has_kv_store_part && os_account_distributed_feature) {
+    external_deps += [ "kv_store:distributeddata_inner" ]
+    sources += [
+      "${services_path}/accountmgr/src/osaccount/os_account_data_storage.cpp",
+      "${services_path}/accountmgr/src/osaccount/os_account_database_operator.cpp",
+    ]
+    cflags_cc += [ "-DHAS_KV_STORE_PART" ]
+  } else {
+    cflags_cc += [ "-DSQLITE_DLCLOSE_ENABLE" ]
+    sources += [ "${services_path}/accountmgr/src/common/database/database_adapter_loader.cpp" ]
+  }
+
+  if (has_storage_service_part) {
+    cflags += [ "-DHAS_STORAGE_PART" ]
+    external_deps += [ "storage_service:storage_manager_sa_proxy" ]
+  }
+
+  if (has_ces_part) {
+    cflags_cc += [ "-DHAS_CES_PART" ]
+    external_deps += [ "common_event_service:cesfwk_innerkits" ]
+  }
+
+  if (use_musl) {
+    cflags_cc += [ "-DUSE_MUSL" ]
+  }
+
+  if (hicollie_enable == true) {
+    external_deps += [ "hicollie:libhicollie" ]
+    cflags_cc += [ "-DHICOLLIE_ENABLE" ]
+  }
+
+  if (security_guard_enabled) {
+    external_deps += [
+      "security_guard:libsg_collect_sdk",
+      "time_service:time_client",
+    ]
+    cflags_cc += [ "-DSECURITY_GUARDE_ENABLE" ]
+  }
+
+  if (has_hiviewdfx_hitrace_part) {
+    external_deps += [ "hitrace:hitrace_meter" ]
+    cflags_cc += [ "-DHAS_HITRACE_PART" ]
+  }
+
+  if (has_asset_part) {
+    external_deps += [ "asset:asset_sdk" ]
+    cflags_cc += [ "-DHAS_ASSET_PART" ]
+  }
+
+  if (has_hiviewdfx_hisysevent_part) {
+    cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
+    external_deps += [ "hisysevent:libhisysevent" ]
+  }
+
+  sources += [ "${services_path}/accountmgr/test/mock/common/bundle_manager_adapter.cpp" ]
+  part_name = "os_account"
 }

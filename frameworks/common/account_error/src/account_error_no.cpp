@@ -90,6 +90,16 @@ static const std::unordered_map<uint32_t, std::string> g_errorStringMap = {
     {ERR_JS_FOREGROUND_OS_ACCOUNT_NOT_FOUND, "The foreground OS account is not found"},
     {ERR_JS_DISPLAY_NOT_FOUND, "Display not found"},
     {ERR_JS_CROSS_DISPLAY_ACTIVATION_NOT_SUPPORTED, "Cross-display activation not supported"},
+    {ERR_JS_OS_ACCOUNT_SUBSPACE_NOT_FOUND,
+        "The OS account subspace not found"},
+    {ERR_JS_OS_ACCOUNT_SUBSPACE_LIMIT_REACHED,
+        "The number of the OS account subspaces has reached limit"},
+    {ERR_JS_OS_ACCOUNT_SUBSPACE_RESTRICTED,
+        "Restricted OS account subspace cannot be deleted"},
+    {ERR_JS_OS_ACCOUNT_SUBSPACE_DELETE_FOREGROUND_RESTRICTED,
+        "The OS account subspace cannot be deleted because it is foreground"},
+    {ERR_JS_OS_ACCOUNT_SUBSPACE_SWITCH_HAS_ACTIVE_SESSION,
+        "The foreground OS account subspace cannot be switched because it has an active session"},
 };
 
 const std::unordered_map<int32_t, int32_t> errorMap = {
@@ -97,7 +107,13 @@ const std::unordered_map<int32_t, int32_t> errorMap = {
     { ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR, ERR_JS_IS_NOT_SYSTEM_APP },
     { ERR_ACCOUNT_COMMON_INVALID_PARAMETER, ERR_JS_INVALID_PARAMETER },
     { ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR, ERR_JS_ACCOUNT_NOT_FOUND },
-    { ERR_ACCOUNT_COMMON_NOT_AUTHENTICATED, ERR_JS_ACCOUNT_NOT_AUTHENTICATED }
+    { ERR_ACCOUNT_COMMON_NOT_AUTHENTICATED, ERR_JS_ACCOUNT_NOT_AUTHENTICATED },
+    { ERR_ACCOUNT_COMMON_BUSY, ERR_JS_ACCOUNT_SERVICE_BUSY },
+    { ERR_OS_ACCOUNT_SUBSPACE_LIMIT, ERR_JS_OS_ACCOUNT_SUBSPACE_LIMIT_REACHED },
+    { ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND, ERR_JS_OS_ACCOUNT_SUBSPACE_NOT_FOUND },
+    { ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED, ERR_JS_OS_ACCOUNT_SUBSPACE_RESTRICTED },
+    { ERR_OS_ACCOUNT_SUBSPACE_IS_FOREGROUND, ERR_JS_OS_ACCOUNT_SUBSPACE_DELETE_FOREGROUND_RESTRICTED },
+    { ERR_OS_ACCOUNT_SUBSPACE_HAS_ACTIVE_SESSION, ERR_JS_OS_ACCOUNT_SUBSPACE_SWITCH_HAS_ACTIVE_SESSION },
 };
 
 static const std::unordered_map<int32_t, int32_t> IAM_ERRCODE_MAP = {

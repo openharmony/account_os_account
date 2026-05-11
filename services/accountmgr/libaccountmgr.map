@@ -403,6 +403,16 @@
         "OHOS::AccountSA::DatabaseAdapterLoader::GetInstance()";
         "OHOS::AccountSA::DatabaseAdapterLoader::GetDataManager()";
         "OHOS::AccountSA::NativeAppAuthResult::NativeAppAuthResult(OHOS::AAFwk::Want const&)";
+        "OHOS::AccountSA::OsAccountSubspaceManager::GetInstance()";
+        "OHOS::AccountSA::OsAccountSubspaceManager::Init(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
+        "OHOS::AccountSA::OsAccountSubspaceManager::CheckActiveSessionStatus(OHOS::AccountSA::OsAccountSubspaceDataDeal*, int, int)";
+        "OHOS::AccountSA::OsAccountSubspaceManager::CreateSubspace(int, int&)";
+        "OHOS::AccountSA::OsAccountSubspaceManager::RemoveSubspace(int, int)";
+        "OHOS::AccountSA::OsAccountSubspaceManager::SwitchSubspace(int, int, int&)";
+        "OHOS::AccountSA::OsAccountSubspaceManager::CleanupOrphanedSubspaces()";
+        "OHOS::AccountSA::OsAccountSubspaceManagerService::OsAccountSubspaceManagerService()";
+        "vtable for OHOS::AccountSA::OsAccountSubspaceManagerService";
+        "VTT for OHOS::AccountSA::OsAccountSubspaceManagerService";
     };
   local:
     *;

@@ -473,5 +473,17 @@ sptr<IRemoteObject> OhosAccountKitsImpl::GetAuthorizationService()
     accountProxy->GetAuthorizationService(result);
     return result;
 }
+
+sptr<IRemoteObject> OhosAccountKitsImpl::GetOsAccountSubspaceService()
+{
+    auto accountProxy = GetService();
+    if (accountProxy == nullptr) {
+        ACCOUNT_LOGE("Get proxy failed");
+        return nullptr;
+    }
+    sptr<IRemoteObject> result = nullptr;
+    accountProxy->GetOsAccountSubspaceService(result);
+    return result;
+}
 } // namespace AccountSA
 } // namespace OHOS

@@ -29,6 +29,7 @@
 #include "ohos.account.osAccount.proj.hpp"
 #include "ohos_account_kits.h"
 #include "os_account_info.h"
+#include "os_account_subspace_client.h"
 #include "taihe_distributed_account_converter.h"
 #include "taihe/runtime.hpp"
 #include "taihe_common.h"
@@ -1640,11 +1641,58 @@ AuthorizationManager GetAuthorizationManager()
     return make_holder<AuthorizationManagerImpl, AuthorizationManager>();
 }
 
+class OsAccountSubProfileManagerImpl {
+public:
+    OsAccountSubProfileManagerImpl() {}
+
+    OsAccountSubProfile CreateOsAccountSubProfileSync(int32_t osAccountId)
+    {
+        AccountSA::OsAccountSubspaceResult cppResult;
+        ErrCode err = AccountSA::OsAccountSubspaceClient::GetInstance().CreateOsAccountSubspace(
+            osAccountId, cppResult);
+        if (err != ERR_OK) {
+            SetTaiheBusinessErrorFromNativeCode(err);
+        }
+        OsAccountSubProfile result;
+        result.id = cppResult.id;
+        result.osAccountLocalId = cppResult.osAccountId;
+        result.index = cppResult.index;
+        return result;
+    }
+
+    void DeleteOsAccountSubProfileSync(int32_t osAccountId, int32_t subProfileId)
+    {
+        ErrCode err = AccountSA::OsAccountSubspaceClient::GetInstance().DeleteOsAccountSubspace(
+            osAccountId, subProfileId);
+        if (err != ERR_OK) {
+            SetTaiheBusinessErrorFromNativeCode(err);
+        }
+    }
+
+    void SwitchOsAccountSubProfileSync(int32_t osAccountId, int32_t subProfileId)
+    {
+        ErrCode err = AccountSA::OsAccountSubspaceClient::GetInstance().SwitchOsAccountSubspace(
+            osAccountId, subProfileId);
+        if (err != ERR_OK) {
+            SetTaiheBusinessErrorFromNativeCode(err);
+        }
+    }
+};
+
+OsAccountSubProfileManager GetOsAccountSubProfileManager()
+{
+    if (AccountSA::AccountPermissionManager::CheckSystemApp(false) != ERR_OK) {
+        SetTaiheBusinessErrorFromNativeCode(ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+    }
+    return make_holder<OsAccountSubProfileManagerImpl, OsAccountSubProfileManager>();
+}
+
 
 } // namespace
 
 TH_EXPORT_CPP_API_GetAccountManager(GetAccountManager);
 TH_EXPORT_CPP_API_GetAuthorizationManager(GetAuthorizationManager);
+TH_EXPORT_CPP_API_GetOsAccountSubProfileManager(GetOsAccountSubProfileManager);
 
 namespace OHOS {
 namespace AccountSA {

@@ -38,12 +38,33 @@ interface AuthorizationManager {
     HasAuthorizationSync(privilege: String): bool;
 }
 
+@overload("getOsAccountSubProfileManager")
+function GetOsAccountSubProfileManager(): OsAccountSubProfileManager;
+
+interface OsAccountSubProfileManager {
+    @gen_promise("createOsAccountSubProfile")
+    CreateOsAccountSubProfileSync(osAccountId: i32): OsAccountSubProfile;
+
+    @gen_promise("deleteOsAccountSubProfile")
+    DeleteOsAccountSubProfileSync(osAccountId: i32, subProfileId: i32);
+
+    @gen_promise("switchOsAccountSubProfile")
+    SwitchOsAccountSubProfileSync(osAccountId: i32, subProfileId: i32);
+}
+
 @overload("getAccountManager")
 function GetAccountManager(): AccountManager;
 
 @gen_promise("isDomainAccountSupported")
 function IsDomainAccountSupportedSync(): bool;
 
+
+struct OsAccountSubProfile {
+    id: i32;
+    osAccountLocalId: i32;
+    index: i32;
+    distributedInfo: Optional<distributedAccount.DistributedInfo>;
+}
 interface AccountManager {
     @gen_async("isMainOsAccount")
     @gen_promise("isMainOsAccount")

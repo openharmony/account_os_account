@@ -1540,6 +1540,29 @@ bool IInnerOsAccountManager::IsToBeRemoved(int32_t localId)
     return osAccountInfo.GetToBeRemoved();
 }
 
+ErrCode IInnerOsAccountManager::CheckLocalIdRestricted(int32_t localId)
+{
+    if (localId == Constants::ADMIN_LOCAL_ID) {
+        ACCOUNT_LOGW("Os account is admin account");
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
+    if (localId >= Constants::START_USER_ID) {
+        return ERR_OK;
+    }
+    bool hasAccount = false;
+    ErrCode ret = IsOsAccountExists(localId, hasAccount);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("IsOsAccountExists failed, ret=%{public}d, localId=%{public}d", ret, localId);
+        return ret;
+    }
+    if (hasAccount) {
+        ACCOUNT_LOGW("Os account is restricted, localId=%{public}d", localId);
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
+    ACCOUNT_LOGW("Os account not exists, localId=%{public}d", localId);
+    return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+}
+
 ErrCode IInnerOsAccountManager::ValidateOsAccount(const OsAccountInfo &osAccountInfo)
 {
     if (osAccountInfo.GetType() == OsAccountType::PRIVATE) {
@@ -4061,5 +4084,26 @@ OsAccountControlFileManager &IInnerOsAccountManager::GetFileController()
 {
     return *std::reinterpret_pointer_cast<OsAccountControlFileManager>(osAccountControl_);
 }
+
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+ErrCode IInnerOsAccountManager::SetOsAccountForegroundSubspaceId(
+    int32_t localId, int32_t subspaceId)
+{
+    std::lock_guard<std::mutex> lock(*GetOrInsertUpdateLock(localId));
+    OsAccountInfo osAccountInfo;
+    ErrCode errCode = osAccountControl_->GetOsAccountInfoById(localId, osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("GetOsAccountInfoById failed for localId=%{public}d, errCode=%{public}d", localId, errCode);
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
+    osAccountInfo.SetForegroundSubspaceId(subspaceId);
+    errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("UpdateOsAccount failed, errCode=%{public}d, localId=%{public}d", errCode, localId);
+        return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
+    }
+    return ERR_OK;
+}
+#endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 }  // namespace AccountSA
 }  // namespace OHOS

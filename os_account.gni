@@ -55,6 +55,10 @@ domain_account_interfaces_native_path =
     "${os_account_path}/interfaces/innerkits/domain_account/native"
 domain_account_framework_path = "${os_account_path}/frameworks/domain_account"
 
+os_account_subspace_interfaces_native_path =
+    "${os_account_path}/interfaces/innerkits/os_account_subspace/native"
+os_account_subspace_framework_path = "${os_account_path}/frameworks/os_account_subspace"
+
 account_napi_common_path = "${os_account_path}/interfaces/kits/napi/common"
 
 account_coverage_config_path = "${os_account_path}/config"
@@ -154,6 +158,10 @@ declare_args() {
 
 declare_args() {
   os_account_enable_multiple_foreground_os_accounts = false
+}
+
+declare_args() {
+  os_account_enable_multiple_os_account_subspace = false
 }
 
 if (!defined(global_parts_info) ||

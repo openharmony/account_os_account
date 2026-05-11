@@ -29,6 +29,7 @@
 #endif
 #include <sys/types.h>
 #include <sstream>
+#include <thread>
 #include <string_ex.h>
 #include "accesstoken_kit.h"
 #include "account_constants.h"
@@ -44,6 +45,9 @@
 #include "account_hisysevent_adapter.h"
 #include "device_account_info.h"
 #include "distributed_account_subscribe_manager.h"
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+#include "os_account_subspace_manager.h"
+#endif
 #include "ipc_skeleton.h"
 #include "ohos_account_constants.h"
 #include "system_ability_definition.h"
@@ -537,6 +541,106 @@ ErrCode OhosAccountManager::UnsubscribeDistributedAccountEvent(const DISTRIBUTED
     }
     return errCode;
 }
+
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+void OhosAccountManager::InitOsAccountSubspaceManager(const std::string &rootPath)
+{
+    OsAccountSubspaceManager::GetInstance().Init(rootPath);
+    auto task = []() { OsAccountSubspaceManager::GetInstance().CleanupOrphanedSubspaces(); };
+#ifdef FUZZ_TEST
+    task();
+#else
+    std::thread taskThread(task);
+    pthread_setname_np(taskThread.native_handle(), "DistAccSpaceCln");
+    taskThread.detach();
+#endif
+}
+
+ErrCode OhosAccountManager::CreateOsAccountSubspace(int32_t osAccountId, OsAccountSubspaceResult &result)
+{
+    int32_t newSubspaceId = 0;
+    ErrCode ret = OsAccountSubspaceManager::GetInstance().CreateSubspace(osAccountId, newSubspaceId);
+    if (ret != ERR_OK) {
+        REPORT_OS_ACCOUNT_FAIL(osAccountId, "subspace_create", ret,
+            "CreateOsAccountSubspace failed");
+        return ret;
+    }
+    result.id = newSubspaceId;
+    result.osAccountId = osAccountId;
+    result.index = newSubspaceId - osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
+
+    ErrCode publishRet = subscribeManager_.Publish(
+        DistributedAccountSpaceEventType::CREATE, osAccountId, newSubspaceId);
+    if (publishRet != ERR_OK) {
+        ACCOUNT_LOGW("Failed to publish CREATE event for distId=%{public}d, ret=%{public}d (space is still valid)",
+            newSubspaceId, publishRet);
+    }
+    ACCOUNT_LOGI("CreateOsAccountSubspace successful, osAccountId=%{public}d, subspaceId=%{public}d",
+        osAccountId, newSubspaceId);
+    ReportOsAccountLifeCycle(newSubspaceId, "subspace_create");
+    return ERR_OK;
+}
+
+ErrCode OhosAccountManager::DeleteOsAccountSubspace(int32_t osAccountId, int32_t subspaceId)
+{
+    ErrCode ret = OsAccountSubspaceManager::GetInstance().RemoveSubspace(osAccountId, subspaceId);
+    if (ret != ERR_OK) {
+        REPORT_OS_ACCOUNT_FAIL(osAccountId, "subspace_delete", ret,
+            "DeleteOsAccountSubspace failed");
+        return ret;
+    }
+    ErrCode publishRet = subscribeManager_.Publish(
+        DistributedAccountSpaceEventType::DELETED, osAccountId, subspaceId);
+    if (publishRet != ERR_OK) {
+        ACCOUNT_LOGW("Failed to publish DELETED event for distId=%{public}d, ret=%{public}d",
+            subspaceId, publishRet);
+    }
+    ACCOUNT_LOGI("DeleteOsAccountSubspace successful, osAccountId=%{public}d, subspaceId=%{public}d",
+        osAccountId, subspaceId);
+    ReportOsAccountLifeCycle(subspaceId, "subspace_delete");
+    return ERR_OK;
+}
+
+ErrCode OhosAccountManager::SwitchOsAccountSubspace(
+    int32_t osAccountId, int32_t subspaceId, int32_t &fromSubspaceId)
+{
+    // index-0 active session check: mgrMutex_ + dataDealer_->AccountInfoFromJson() reads the
+    // distributed account LOGIN state — this data is owned exclusively by OhosAccountManager.
+    // Foreground checks for non-0 spaces are handled internally inside SwitchSubspace.
+    int32_t base = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
+    OsAccountInfo osAccountInfo;
+    ErrCode err = IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(osAccountId, osAccountInfo);
+    if (err != ERR_OK) {
+        ACCOUNT_LOGW("GetOsAccountInfoById failed, skip base subspace check and proceed");
+    } else if (osAccountInfo.GetForegroundSubspaceId() == base) {
+        std::lock_guard<std::mutex> lock(mgrMutex_);
+        AccountInfo currentAccountInfo;
+        if (dataDealer_->AccountInfoFromJson(currentAccountInfo, osAccountId) == ERR_OK &&
+            currentAccountInfo.ohosAccountInfo_.status_ == ACCOUNT_STATE_LOGIN) {
+            ACCOUNT_LOGE("Current foreground base subspace has active session, switch rejected");
+            return ERR_OS_ACCOUNT_SUBSPACE_HAS_ACTIVE_SESSION;
+        }
+    }
+
+    ErrCode ret = OsAccountSubspaceManager::GetInstance().SwitchSubspace(
+        osAccountId, subspaceId, fromSubspaceId);
+    if (ret != ERR_OK) {
+        REPORT_OS_ACCOUNT_FAIL(osAccountId, "subspace_switch", ret,
+            "SwitchOsAccountSubspace failed");
+        return ret;
+    }
+    ErrCode publishRet = subscribeManager_.Publish(
+        DistributedAccountSpaceEventType::SWITCHED, osAccountId, subspaceId, fromSubspaceId);
+    if (publishRet != ERR_OK) {
+        ACCOUNT_LOGW("Failed to publish SWITCHED event for distId=%{public}d, ret=%{public}d",
+            subspaceId, publishRet);
+    }
+    ACCOUNT_LOGI("SwitchOsAccountSubspace successful, osAccountId=%{public}d, from=%{public}d, to=%{public}d",
+        osAccountId, fromSubspaceId, subspaceId);
+    ReportOsAccountLifeCycle(subspaceId, "subspace_switch");
+    return ERR_OK;
+}
+#endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 
 /**
  * Get current account state.

@@ -1,0 +1,124 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/config/components/idl_tool/idl.gni")
+import("//build/ohos.gni")
+import("../../os_account.gni")
+
+idl_gen_interface("frameworks_os_account_subspace_interface") {
+  sources = [ "IOsAccountSubspace.idl" ]
+  log_domainid = "0xD001B00"
+  log_tag = "DistributedAccountSpaceFwk"
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+config("frameworks_os_account_subspace_interface_public_config") {
+  include_dirs = [ "${target_gen_dir}" ]
+}
+
+config("os_account_subspace_innerkits_config") {
+  visibility = [ ":*" ]
+
+  cflags = []
+  if (target_cpu == "arm") {
+    cflags += [ "-DBINDER_IPC_32BIT" ]
+  }
+
+  cflags += [ "-pipe" ]
+  cflags_cc = [
+    "-Wdate-time",
+    "-Wformat=2",
+    "-Wshadow",
+  ]
+
+  if (os_account_enable_multiple_os_account_subspace) {
+    cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE" ]
+  }
+
+  defines = [
+    "ACCOUNT_LOG_TAG = \"DistributedAccountSpaceFwk\"",
+    "LOG_DOMAIN = 0xD001B00",
+  ]
+}
+
+config("os_account_subspace_innerkits_public_config") {
+  visibility = [ ":*" ]
+
+  if (os_account_enable_multiple_os_account_subspace) {
+    cflags_cc = [ "-DENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE" ]
+  }
+
+  include_dirs = [
+    "include",
+    "${os_account_subspace_interfaces_native_path}/include",
+    "${common_path}/include",
+    "${common_path}/utils/include",
+    "${innerkits_common}/include",
+    "${innerkits_path}/include",
+    "${target_gen_dir}",
+  ]
+}
+
+ohos_source_set("os_account_subspace_client") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  sources = [ "src/os_account_subspace_client.cpp" ]
+  if (os_account_enable_multiple_os_account_subspace) {
+    output_values = get_target_outputs(":frameworks_os_account_subspace_interface")
+    sources += filter_include(output_values, [ "*os_account_subspace_proxy.cpp" ])
+  }
+
+  configs = [ ":os_account_subspace_innerkits_config" ]
+  public_configs = [ ":os_account_subspace_innerkits_public_config" ]
+
+  deps = [
+    ":frameworks_os_account_subspace_interface",
+    "${common_path}:libaccount_common",
+    "${innerkits_native_path}:libaccountkits",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+    "samgr:samgr_proxy",
+  ]
+
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+ohos_source_set("os_account_subspace_stub") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  configs = [ ":os_account_subspace_innerkits_config" ]
+  public_configs = [ ":os_account_subspace_innerkits_public_config" ]
+  output_values = get_target_outputs(":frameworks_os_account_subspace_interface")
+  sources = filter_include(output_values, [ "*os_account_subspace_stub.cpp" ])
+  deps = [ ":frameworks_os_account_subspace_interface" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
+  subsystem_name = "account"
+  part_name = "os_account"
+}

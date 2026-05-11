@@ -80,7 +80,13 @@ public:
         return 0;
     }
     
-    ErrCode GetAuthorizationService(sptr<IRemoteObject>& funcResult) override
+ErrCode GetAuthorizationService(sptr<IRemoteObject>& funcResult) override
+    {
+        funcResult = nullptr;
+        return 0;
+    }
+
+    ErrCode GetOsAccountSubspaceService(sptr<IRemoteObject>& funcResult) override
     {
         funcResult = nullptr;
         return 0;

@@ -178,6 +178,19 @@ void OsAccountInfo::SetVersion(int32_t version)
     version_ = version;
 }
 
+int32_t OsAccountInfo::GetForegroundSubspaceId() const
+{
+    if (foregroundSubspaceId_ == -1) {
+        return localId_ * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
+    }
+    return foregroundSubspaceId_;
+}
+
+void OsAccountInfo::SetForegroundSubspaceId(int32_t foregroundSubspaceId)
+{
+    foregroundSubspaceId_ = foregroundSubspaceId;
+}
+
 bool OsAccountInfo::SetDomainInfo(const DomainAccountInfo &domainInfo)
 {
     if (domainInfo.accountName_.size() >= Constants::LOCAL_NAME_MAX_SIZE) {

@@ -40,6 +40,7 @@
 #endif // SUPPORT_AUTHORIZATION
 #include "datetime_ex.h"
 #include "directory_ex.h"
+#include "distributed_account_subscribe_manager.h"
 #include "domain_account_manager_service.h"
 #include "file_ex.h"
 #include "hitrace_adapter.h"
@@ -71,6 +72,7 @@ const std::set<std::int32_t> WHITE_LIST = {
     3019, // DLP_UID
     3553, // DLP_CREDENTIAL_SA_UID
 };
+
 #ifdef USE_MUSL
 constexpr std::int32_t DSOFTBUS_UID = 1024;
 #else
@@ -524,6 +526,23 @@ ErrCode AccountMgrService::GetDomainAccountService(sptr<IRemoteObject>& funcResu
 #endif // SUPPORT_DOMAIN_ACCOUNTS
 }
 
+ErrCode AccountMgrService::GetOsAccountSubspaceService(sptr<IRemoteObject>& funcResult)
+{
+    [[maybe_unused]] auto timerPtr = RequestTimer(Constants::OPERATION_GET_SERVICE);
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    std::lock_guard<std::mutex> lock(serviceMutex_);
+    funcResult = distributedAccountSpaceService_.promote();
+    if (funcResult == nullptr) {
+        funcResult = new (std::nothrow) OsAccountSubspaceManagerService();
+        distributedAccountSpaceService_ = funcResult;
+    }
+    return ERR_OK;
+#else
+    funcResult = nullptr;
+    return ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED;
+#endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+}
+
 bool AccountMgrService::IsServiceStarted(void) const
 {
     return (state_ == STATE_RUNNING);
@@ -693,6 +712,9 @@ bool AccountMgrService::Init()
     // Start migration in separate thread to avoid blocking service startup
     StartOsAccountTypeMigrationAsync();
 #endif // SUPPORT_AUTHORIZATION
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    OhosAccountManager::GetInstance().InitOsAccountSubspaceManager(ACCOUNT_CFG_DIR_ROOT_PATH);
+#endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
     state_ = ServiceRunningState::STATE_RUNNING;
     if (!registerToService_) {
         if (!Publish(&DelayedRefSingleton<AccountMgrService>::GetInstance())) {
@@ -832,5 +854,6 @@ int32_t AccountMgrService::CheckUserIdValid(int32_t userId)
     }
     return ERR_OK;
 }
+
 }  // namespace AccountSA
 }  // namespace OHOS

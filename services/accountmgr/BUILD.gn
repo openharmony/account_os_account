@@ -50,6 +50,7 @@ config("accountmgr_config") {
     "./include/common/database",
     "./include/common/database/kvstore",
     "./include/osaccount",
+    "./include/distributed_account",
     "${innerkits_path}/include",
     "${os_account_core_path}/include",
     "${os_account_dfx_path}/hidumper_adapter",
@@ -58,6 +59,7 @@ config("accountmgr_config") {
     "${os_account_dfx_path}/hisysevent_adapter",
     "${os_account_dfx_path}/hitrace_adapter",
     "${app_account_innerkits_native_path}/include",
+    "${os_account_subspace_interfaces_native_path}/include",
     "${os_account_path}/frameworks/ohosaccount/native/include",
     "${os_account_core_path}/include",
     "${os_account_interfaces_native_path}/include",
@@ -325,6 +327,16 @@ ohos_shared_library("accountmgr") {
       sources += [ "./src/common/tee/tee_auth_adapter_soft.cpp" ]
       cflags_cc += [ "-DIS_EMULATOR" ]
     }
+  }
+
+  if (os_account_enable_multiple_os_account_subspace) {
+    cflags += [ "-DENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE" ]
+    sources += [
+      "${services_path}/accountmgr/src/distributed_account/os_account_subspace_data_deal.cpp",
+      "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager.cpp",
+      "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager_service.cpp",
+    ]
+    deps += [ "${os_account_subspace_framework_path}:os_account_subspace_stub" ]
   }
 
   if (os_account_enable_multiple_foreground_os_accounts) {
