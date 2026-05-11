@@ -521,7 +521,7 @@ static bool SetPluginUint8Vector(const std::vector<uint8_t> &vector, PluginUint8
         pVector.size = 0;
         return true;
     }
-    pVector.data = (uint8_t *)vector.data();
+    pVector.data = const_cast<uint8_t*>(vector.data());
     pVector.capacity = vector.size();
     pVector.size = vector.size();
     return true;
