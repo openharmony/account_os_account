@@ -343,14 +343,13 @@ int32_t CJAppAccountImpl::on(
         ACCOUNT_LOGE("accountChange subscribe failed");
         return ret;
     }
-    g_appAccountSubscribes.emplace_back(context.get());
-    context.release();
+    g_appAccountSubscribes.emplace_back(std::move(context));
     return ret;
 }
 
 void CJAppAccountImpl::GetSubscriberByUnsubscribe(std::vector<std::shared_ptr<SubscribePtr>> &subscribers)
 {
-    for (auto item : g_appAccountSubscribes) {
+    for (const auto &item : g_appAccountSubscribes) {
         subscribers.emplace_back(item->subscriber);
     }
 }
@@ -376,9 +375,6 @@ int32_t CJAppAccountImpl::off(std::string type, void (*callback)(CArrAppAccountI
                 errCode = ret;
             }
         }
-        for (auto item : g_appAccountSubscribes) {
-            delete item;
-        }
         g_appAccountSubscribes.clear();
         g_appAccountSubscribes.shrink_to_fit();
     } else {
@@ -391,7 +387,6 @@ int32_t CJAppAccountImpl::off(std::string type, void (*callback)(CArrAppAccountI
             if (ret != ERR_OK) {
                 errCode = ret;
             }
-            delete g_appAccountSubscribes[idx];
             g_appAccountSubscribes.erase(g_appAccountSubscribes.begin() + idx);
             break;
         }
@@ -733,6 +728,7 @@ CArrString CJAppAccountImpl::ConvertSet2CArrString(std::set<std::string> &in)
             free(retValue);
             return {nullptr, 0};
         }
+        i++;
     }
     arrStr.head = retValue;
     return arrStr;
