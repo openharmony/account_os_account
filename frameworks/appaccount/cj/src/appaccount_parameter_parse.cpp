@@ -163,6 +163,9 @@ void SetDataParameters(CArrParameters parameters, WantParams &wantP)
 {
     for (int i = 0; i < parameters.size; i++) {
         auto head = parameters.head + i;
+        if (head->key == nullptr) {
+            continue;
+        }
         auto key = std::string(head->key);
         if (head->valueType == I32_TYPE) { // int32_t
             wantP.SetParam(key, OHOS::AAFwk::Integer::Box(*static_cast<int32_t *>(head->value)));
@@ -295,7 +298,7 @@ int32_t InnerWrapWantParamsArrayString(sptr<AAFwk::IArray> &ao, CParameters *p)
     if (ao->GetLength(size) != ERR_OK || size == 0) {
         return ERR_CES_FAILED;
     }
-    char **arrP = static_cast<char **>(malloc(sizeof(char *) * size));
+    char **arrP = static_cast<char **>(calloc(size, sizeof(char *)));
     if (arrP == nullptr) {
         return ERR_NO_MEMORY;
     }
