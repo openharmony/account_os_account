@@ -2009,7 +2009,6 @@ ErrCode OsAccountManagerService::SubscribeOsAccountConstraints(const OsAccountCo
             ACCOUNT_LOGE("Is not system application, result = %{public}u.", checkResult);
             return checkResult;
         }
-        validSubscribeInfo.localId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
     }
 #ifdef HICOLLIE_ENABLE
     unsigned int flag = HiviewDFX::XCOLLIE_FLAG_LOG;
@@ -2051,7 +2050,6 @@ ErrCode OsAccountManagerService::UnsubscribeOsAccountConstraints(const OsAccount
             ACCOUNT_LOGE("Is not system application, result = %{public}u.", checkResult);
             return checkResult;
         }
-        validSubscribeInfo.localId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
     }
     ErrCode result = constraintManger_.UnsubscribeOsAccountConstraints(validSubscribeInfo, eventListener);
     if (result != ERR_OK) {
