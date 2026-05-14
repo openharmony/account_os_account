@@ -27,7 +27,6 @@ namespace AccountSA {
 class OsAccountConstraintSubscriberManager : public OsAccountConstraintEventStub {
 public:
     bool needAcross = true;
-    int32_t localId = -1;
     static OsAccountConstraintSubscriberManager* GetInstance();
     ErrCode OnConstraintChanged(int32_t localId, const std::set<std::string> &constraints, bool enable) override;
     ErrCode SubscribeOsAccountConstraints(const std::shared_ptr<OsAccountConstraintSubscriber> &subscriber,
