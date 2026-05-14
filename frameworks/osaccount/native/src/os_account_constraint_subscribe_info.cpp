@@ -53,10 +53,6 @@ bool OsAccountConstraintSubscribeInfo::Marshalling(Parcel &parcel) const
         ACCOUNT_LOGE("Write needAcross failed.");
         return false;
     }
-    if (!parcel.WriteInt32(localId)) {
-        ACCOUNT_LOGE("Write localId failed.");
-        return false;
-    }
     return true;
 }
 
@@ -92,10 +88,6 @@ bool OsAccountConstraintSubscribeInfo::ReadFromParcel(Parcel &parcel)
     }
     if (!parcel.ReadBool(needAcross)) {
         ACCOUNT_LOGE("Read needAcross failed.");
-        return false;
-    }
-    if (!parcel.ReadInt32(localId)) {
-        ACCOUNT_LOGE("Read localId failed.");
         return false;
     }
     return true;
