@@ -32,7 +32,6 @@ public:
     bool Marshalling(Parcel &parcel) const override;
     static OsAccountConstraintSubscribeInfo *Unmarshalling(Parcel &parcel);
     bool needAcross = true;
-    int32_t localId = -1;
 
 private:
     bool ReadFromParcel(Parcel &parcel);

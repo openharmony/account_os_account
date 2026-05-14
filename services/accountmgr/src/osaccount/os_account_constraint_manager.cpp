@@ -17,6 +17,8 @@
 
 #include "account_log_wrapper.h"
 #include "account_hisysevent_adapter.h"
+#include "ipc_skeleton.h"
+#include "account_info.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -47,7 +49,8 @@ ErrCode OsAccountConstraintManager::SubscribeOsAccountConstraints(const OsAccoun
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     if (!subscribeInfo.needAcross) {
-        return subscribeManager_.SubscribeOsAccountConstraints(subscribeInfo.localId, constraints, eventListener);
+        int32_t localId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
+        return subscribeManager_.SubscribeOsAccountConstraints(localId, constraints, eventListener);
     }
     return subscribeManager_.SubscribeOsAccountConstraints(constraints, eventListener);
 }
@@ -67,7 +70,8 @@ ErrCode OsAccountConstraintManager::UnsubscribeOsAccountConstraints(
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     if (!subscribeInfo.needAcross) {
-        return subscribeManager_.UnsubscribeOsAccountConstraints(subscribeInfo.localId, constraints, eventListener);
+        int32_t localId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
+        return subscribeManager_.UnsubscribeOsAccountConstraints(localId, constraints, eventListener);
     }
     return subscribeManager_.UnsubscribeOsAccountConstraints(constraints, eventListener);
 }
