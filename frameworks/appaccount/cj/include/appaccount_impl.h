@@ -32,7 +32,7 @@ public:
     CJAppAccountImpl() = default;
     ~CJAppAccountImpl() = default;
     std::mutex mutex_;
-    std::vector<AsyncContextForSubscribe *> g_appAccountSubscribes;
+    std::vector<std::unique_ptr<AsyncContextForSubscribe>> g_appAccountSubscribes;
 
     int32_t createAccount(std::string name, CCreateAccountOptions cOptions);
     int32_t removeAccount(std::string name);
