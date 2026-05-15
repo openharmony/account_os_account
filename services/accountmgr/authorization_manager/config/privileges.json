@@ -27,6 +27,10 @@
         {
             "name":"ohos.privilege.erase_device",
             "description":"Erase device data and system partitions"
+        },
+        {
+            "name":"ohos.privilege.format_data_disk",
+            "description":"Formatting Data Disk"
         }
     ]
 }
