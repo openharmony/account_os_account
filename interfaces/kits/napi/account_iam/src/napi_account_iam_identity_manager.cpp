@@ -691,12 +691,14 @@ napi_value NapiAccountIAMIdentityManager::OnCredentialChanged(napi_env env, napi
         return nullptr;
     }
     if (!CheckAndGetAuthTypes(env, inputTypes, credentialTypes)) {
+        ReleaseNapiRefArray(env, {tempRef});
         return nullptr;
     }
     auto subscriber = std::make_shared<CredSubscriberPtr>(env, tempRef);
     if (subscriber == nullptr) {
         ACCOUNT_LOGE("Failed to create subscriber");
         AccountNapiThrow(env, ERR_JS_SYSTEM_SERVICE_EXCEPTION, true);
+        ReleaseNapiRefArray(env, {tempRef});
         return nullptr;
     }
     tempRef = nullptr;
@@ -761,6 +763,7 @@ napi_value NapiAccountIAMIdentityManager::OffCredentialChanged(napi_env env, nap
     if (subscriber == nullptr) {
         ACCOUNT_LOGE("Failed to create subscriber");
         AccountNapiThrow(env, ERR_JS_SYSTEM_SERVICE_EXCEPTION, true);
+        ReleaseNapiRefArray(env, {tempRef});
         return nullptr;
     }
     tempRef = nullptr;
