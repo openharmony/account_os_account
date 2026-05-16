@@ -23,6 +23,9 @@
 namespace OHOS {
 namespace AccountSA {
 const int32_t UID_TRANSFORM_DIVISOR = 200000;
+const int32_t ERR_CODE = -1;
+const std::string TEST_TRUE_NAME_1 = "testTrueName1";
+const std::string TEST_TRUE_NAME_2 = "testTrueName2";
 
 class IInnerOsAccountManager {
 public:
@@ -52,12 +55,28 @@ public:
 
     ErrCode GetRealOsAccountInfoById(const int id, OsAccountInfo &osAccountInfo)
     {
+        if (id == 1) {
+            return ERR_CODE;
+        }
         return ERR_OK;
     }
 
     ErrCode IsOsAccountDeactivating(const int id, bool &isDeactivating)
     {
         return ERR_OK;
+    }
+
+    ErrCode GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id)
+    {
+        if (domainInfo.accountName_ == TEST_TRUE_NAME_1) {
+            id = 1;
+            return ERR_OK;
+        }
+        if (domainInfo.accountName_ == TEST_TRUE_NAME_2) {
+            id = 0;
+            return ERR_OK;
+        }
+        return ERR_CODE;
     }
 public:
    std::shared_ptr<OsAccountControlFileManager> osAccountControl_;
