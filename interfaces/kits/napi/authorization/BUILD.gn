@@ -40,6 +40,7 @@ ohos_shared_library("authorization_napi") {
   public_configs = [ ":authorization_napi_kit_config" ]
 
   sources = [
+    "src/authorization_ui_extension_callback.cpp",
     "src/napi_authorization_manager.cpp",
     "src/napi_authorization_module.cpp",
   ]
