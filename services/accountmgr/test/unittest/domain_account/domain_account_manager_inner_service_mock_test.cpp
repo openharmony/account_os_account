@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
+#include "domain_plugin_adapter.h"
 #define private public
 #include "inner_domain_account_manager.h"
 #undef private
@@ -102,7 +103,8 @@ HWTEST_F(DomainAccountManagerInnerServiceMockTest, IsSupportNetRequest001, TestS
     auto instance = std::make_shared<InnerDomainAccountManager>();
     std::string testStr = "test", rightPath = "/rightPath/", rightSoName = "right.z.so";
     // LoadLib success
-    instance->LoaderLib(rightPath, rightSoName);
+    DomainPluginAdapter::GetInstance().LoadPlugin(
+            &instance->libHandle_, &instance->methodMap_, rightPath, rightSoName);
     setuid(USER_UID);
     EXPECT_EQ(instance->SetAccountPolicy(domainInfo, policy), NET_REQ_ERROR);
     EXPECT_EQ(instance->GetAccountPolicy(domainInfo, policy), NET_REQ_ERROR);
@@ -149,7 +151,8 @@ HWTEST_F(DomainAccountManagerInnerServiceMockTest, GetAllServerConfigs001, TestS
     std::string rightPath = "/rightPath/";
     std::string rightSoName = "right.z.so";
     // LoadLib success
-    instance->LoaderLib(rightPath, rightSoName);
+    DomainPluginAdapter::GetInstance().LoadPlugin(
+            &instance->libHandle_, &instance->methodMap_, rightPath, rightSoName);
     setuid(USER_UID);
     EXPECT_EQ(instance->GetAllServerConfigs(configs),
         ERR_DOMAIN_ACCOUNT_NOT_SUPPORT_BACKGROUND_ACCOUNT_REQUEST);
@@ -188,7 +191,8 @@ HWTEST_F(DomainAccountManagerInnerServiceMockTest, IsDomainAccountSupported001, 
     std::string rightSoName = "right.z.so";
     EXPECT_FALSE(instance->IsPluginAvailable());
     // LoadLib success
-    instance->LoaderLib(rightPath, rightSoName);
+    DomainPluginAdapter::GetInstance().LoadPlugin(
+            &instance->libHandle_, &instance->methodMap_, rightPath, rightSoName);
     EXPECT_TRUE(instance->IsPluginAvailable());
 }
 } // AccountSA
