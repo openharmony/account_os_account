@@ -17,6 +17,7 @@
 #include <thread>
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
+#include "domain_plugin_adapter.h"
 #define private public
 #define protected public
 #include "domain_account_plugin_death_recipient.h"
@@ -497,7 +498,7 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
 
 /**
  * @tc.name: DomainAccountManagerInnerServiceTest025
- * @tc.desc: LoaderLib CloseLib.
+ * @tc.desc: LoaderLib ClosePlugin.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -508,33 +509,42 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
     std::string rightPath = "/rightPath/";
     std::string rightSoName = "right.z.so";
     //LoadLib success
-    instance->LoaderLib(rightPath, rightSoName);
+    DomainPluginAdapter::GetInstance().LoadPlugin(
+            &instance->libHandle_, &instance->methodMap_, rightPath, rightSoName);
     EXPECT_NE(instance->libHandle_, nullptr);
-    //CloseLib path
-    instance->CloseLib();
+    //ClosePlugin path
+    DomainPluginAdapter::GetInstance().ClosePlugin(
+            &instance->libHandle_, &instance->methodMap_);
     EXPECT_EQ(instance->libHandle_, nullptr);
-    //CloseLib path libHandle_ nullper
-    instance->CloseLib();
+    //ClosePlugin path libHandle_ nullper
+    DomainPluginAdapter::GetInstance().ClosePlugin(
+            &instance->libHandle_, &instance->methodMap_);
     EXPECT_EQ(instance->libHandle_, nullptr);
     //empty libName
-    instance->LoaderLib(rightPath, "");
+    DomainPluginAdapter::GetInstance().LoadPlugin(
+            &instance->libHandle_, &instance->methodMap_, rightPath, "");
     EXPECT_EQ(instance->libHandle_, nullptr);
     //error path
-    instance->LoaderLib("/", rightSoName);
+    DomainPluginAdapter::GetInstance().LoadPlugin(
+            &instance->libHandle_, &instance->methodMap_, "/", rightSoName);
     EXPECT_EQ(instance->libHandle_, nullptr);
     //error libName
     std::string errorlibName = "error.z.so";
-    instance->LoaderLib(rightPath, errorlibName);
+    DomainPluginAdapter::GetInstance().LoadPlugin(
+            &instance->libHandle_, &instance->methodMap_, rightPath, errorlibName);
     EXPECT_EQ(instance->libHandle_, nullptr);
     //not legal so
     std::string notLegalLibName = "leg.z.so";
-    instance->LoaderLib(rightPath, notLegalLibName);
+    DomainPluginAdapter::GetInstance().LoadPlugin(
+            &instance->libHandle_, &instance->methodMap_, rightPath, notLegalLibName);
     EXPECT_EQ(instance->libHandle_, nullptr);
     //empty path
-    instance->LoaderLib("", rightSoName);
+    DomainPluginAdapter::GetInstance().LoadPlugin(
+            &instance->libHandle_, &instance->methodMap_, "", rightSoName);
     EXPECT_NE(instance->libHandle_, nullptr);
     //clear
-    instance->CloseLib();
+    DomainPluginAdapter::GetInstance().ClosePlugin(
+            &instance->libHandle_, &instance->methodMap_);
 }
 
 /**
@@ -606,7 +616,8 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
     std::string rightPath = "/rightPath/";
     std::string rightSoName = "right.z.so";
     //LoadLib success
-    instance->LoaderLib(rightPath, rightSoName);
+    DomainPluginAdapter::GetInstance().LoadPlugin(
+            &instance->libHandle_, &instance->methodMap_, rightPath, rightSoName);
     info.accountId_ = STRING_TEST_NAME;
     info.domain_ = STRING_TEST_NAME;
     info.accountName_ = STRING_TEST_NAME;
@@ -660,7 +671,8 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
     std::string rightPath = "/rightPath/";
     std::string rightSoName = "right.z.so";
     //LoadLib success
-    instance->LoaderLib(rightPath, rightSoName);
+    DomainPluginAdapter::GetInstance().LoadPlugin(
+            &instance->libHandle_, &instance->methodMap_, rightPath, rightSoName);
     info.accountId_ = STRING_TEST_NAME;
     info.domain_ = STRING_TEST_NAME;
     info.accountName_ = STRING_TEST_NAME;
@@ -704,7 +716,8 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, GetAllServerConfigs001, TestSize.
     std::vector<DomainServerConfig> configs;
     std::string rightPath = "/rightPath/";
     std::string rightSoName = "right.z.so";
-    instance->LoaderLib(rightPath, rightSoName);
+    DomainPluginAdapter::GetInstance().LoadPlugin(
+            &instance->libHandle_, &instance->methodMap_, rightPath, rightSoName);
     setuid(TEST_UID);
     EXPECT_EQ(instance->GetAllServerConfigs(configs), ERR_OK);
     DomainServerConfig config;
