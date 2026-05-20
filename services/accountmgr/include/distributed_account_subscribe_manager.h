@@ -18,6 +18,7 @@
 
 #include <map>
 #include <set>
+#include "distributed_account_subscribe_callback.h"
 #include "idistributed_account_event.h"
 #include "idistributed_account_subscribe.h"
 #include "singleton.h"
@@ -33,6 +34,9 @@ public:
         const sptr<IRemoteObject> &eventListener) override;
     ErrCode UnsubscribeDistributedAccountEvent(const sptr<IRemoteObject> &eventListener) override;
     ErrCode Publish(const int id, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE subscribeType) override;
+
+    ErrCode Publish(DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE eventType, int32_t localId,
+        int32_t distributedAccountId, int32_t previousDistributedAccountId = -1) override;
 
 private:
     DistributedAccountSubscribeManager();
