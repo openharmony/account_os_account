@@ -26,6 +26,13 @@ enum class DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE : int32_t {
     LOGOUT,
     LOGOFF,
     TOKEN_INVALID,
+    BOUND,
+    UNBOUND,
+    CREATE,
+    DELETED,
+    SWITCHING,
+    SWITCHED,
+    INVALID_TYPE,
 };
 
 class DistributedAccountEventData : public Parcelable {
