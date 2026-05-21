@@ -153,7 +153,7 @@ bool DistributedAccountSubscribeManager::OnAccountsChanged(
     return true;
 }
 
-ErrCode DistributedAccountSubscribeManager::Publish(DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE eventType,
+ErrCode DistributedAccountSubscribeManager::Publish(DistributedAccountSpaceEventType eventType,
     int32_t localId, int32_t distributedAccountId, int32_t previousDistributedAccountId)
 {
     return ERR_OK;

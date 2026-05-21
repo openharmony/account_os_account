@@ -35,7 +35,7 @@ public:
     ErrCode UnsubscribeDistributedAccountEvent(const sptr<IRemoteObject> &eventListener) override;
     ErrCode Publish(const int id, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE subscribeType) override;
 
-    ErrCode Publish(DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE eventType, int32_t localId,
+    ErrCode Publish(DistributedAccountSpaceEventType eventType, int32_t localId,
         int32_t distributedAccountId, int32_t previousDistributedAccountId = -1) override;
 
 private:

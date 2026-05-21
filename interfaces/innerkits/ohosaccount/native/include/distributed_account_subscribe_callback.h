@@ -21,17 +21,22 @@
 
 namespace OHOS {
 namespace AccountSA {
+
+enum class DistributedAccountSpaceEventType : int32_t {
+    CREATE = 0,
+    DELETED = 1,
+    BOUND = 2,
+    UNBOUND = 3,
+    SWITCHING = 4,
+    SWITCHED = 5,
+    INVALID_TYPE = 6,
+};
+
 enum class DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE : int32_t {
     LOGIN = 0,
     LOGOUT,
     LOGOFF,
     TOKEN_INVALID,
-    BOUND,
-    UNBOUND,
-    CREATE,
-    DELETED,
-    SWITCHING,
-    SWITCHED,
     INVALID_TYPE,
 };
 

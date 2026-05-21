@@ -43,7 +43,7 @@ public:
     virtual ErrCode UnsubscribeDistributedAccountEvent(const sptr<IRemoteObject> &eventListener) = 0;
     virtual ErrCode Publish(const int id, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE subscribeType) = 0;
 
-    virtual ErrCode Publish(DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE eventType, int32_t localId,
+    virtual ErrCode Publish(DistributedAccountSpaceEventType eventType, int32_t localId,
         int32_t distributedAccountId, int32_t previousDistributedAccountId = -1) = 0;
 };
 }  // namespace AccountSA
