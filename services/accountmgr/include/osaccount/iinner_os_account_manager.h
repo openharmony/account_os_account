@@ -95,6 +95,9 @@ public:
     ErrCode SetOsAccountIsLoggedIn(const int32_t id, const bool isLoggedIn) override;
     ErrCode GetOsAccountCredentialId(const int id, uint64_t &credentialId) override;
     ErrCode SetOsAccountCredentialId(const int id, uint64_t credentialId) override;
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    ErrCode SetOsAccountForegroundSubspaceId(int32_t localId, int32_t subspaceId);
+#endif
     ErrCode IsAllowedCreateAdmin(bool &isAllowedCreateAdmin) override;
     ErrCode GetCreatedOsAccountNumFromDatabase(const std::string& storeID,
         int &createdOsAccountNum) override;
@@ -128,6 +131,7 @@ public:
     ErrCode SetOsAccountToBeRemoved(int32_t localId, bool toBeRemoved) override;
     ErrCode SendMsgForAccountCreate(OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options = {});
     ErrCode GetOsAccountInfoById(const int id, OsAccountInfo &osAccountInfo);
+    ErrCode CheckLocalIdRestricted(int32_t localId);
     ErrCode GetTypeNumber(const OsAccountType& type, int32_t& typeNumber) override;
     ErrCode CheckTypeNumber(const OsAccountType& type) override;
     ErrCode ActivateDefaultOsAccount() override;

@@ -46,6 +46,12 @@ CJsonUnique ToJson(const OsAccountInfo &accountInfo)
     AddIntToJson(jsonObject, CREATOR_TYPE, accountInfo.creatorType_);
     AddIntToJson(jsonObject, VERSION, accountInfo.version_);
 
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    int32_t fgSubspaceId = (accountInfo.foregroundSubspaceId_ == -1) ?
+        accountInfo.localId_ * 1000 : accountInfo.foregroundSubspaceId_;
+    AddIntToJson(jsonObject, FOREGROUND_SUBSPACE_ID, fgSubspaceId);
+#endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+
     auto domainInfoObject = CreateJson();
     AddStringToJson(domainInfoObject, DOMAIN_NAME, accountInfo.domainInfo_.domain_);
     AddStringToJson(domainInfoObject, DOMAIN_ACCOUNT_NAME, accountInfo.domainInfo_.accountName_);
@@ -84,6 +90,12 @@ bool FromJson(cJSON *jsonObject, OsAccountInfo &accountInfo)
     GetDataByType<bool>(jsonObject, IS_DATA_REMOVABLE, accountInfo.isDataRemovable_);
     GetDataByType<int32_t>(jsonObject, CREATOR_TYPE, accountInfo.creatorType_);
     GetDataByType<int32_t>(jsonObject, VERSION, accountInfo.version_);
+
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    int32_t fgSubspaceId = accountInfo.localId_ * 1000;
+    GetDataByType<int32_t>(jsonObject, FOREGROUND_SUBSPACE_ID, fgSubspaceId);
+    accountInfo.foregroundSubspaceId_ = fgSubspaceId;
+#endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 
     CJson *typeJson = nullptr;
     GetDataByType<CJson *>(jsonObject, DOMAIN_INFO, typeJson);

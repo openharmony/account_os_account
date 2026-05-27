@@ -103,6 +103,13 @@ public:
     ErrCode UnsubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
         const sptr<IRemoteObject> &eventListener);
 
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    void InitOsAccountSubspaceManager(const std::string &rootPath);
+    ErrCode CreateOsAccountSubspace(int32_t osAccountId, OsAccountSubspaceResult &result);
+    ErrCode DeleteOsAccountSubspace(int32_t osAccountId, int32_t subspaceId);
+    ErrCode SwitchOsAccountSubspace(int32_t osAccountId, int32_t subspaceId, int32_t &fromSubspaceId);
+#endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+
     /**
      * Get current account state.
      *

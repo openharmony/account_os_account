@@ -98,6 +98,9 @@ ohos_shared_library("os_account_innerkits") {
   ]
 
   configs = [ ":osaccountinterface_config" ]
+  if (os_account_enable_multiple_os_account_subspace) {
+    cflags = [ "-DENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE" ]
+  }
 
   public_configs = [ ":osaccountinterface_config" ]
   public_configs += [ "${domain_account_framework_path}:frameworks_domain_account_interface_public_config" ]
@@ -110,6 +113,10 @@ ohos_shared_library("os_account_innerkits") {
     "${domain_account_framework_path}:domain_account_innerkits",
     "${innerkits_native_path}:libaccountkits",
   ]
+
+  if (os_account_enable_multiple_os_account_subspace) {
+    deps += [ "${os_account_subspace_framework_path}:os_account_subspace_client" ]
+  }
 
   if (!use_clang_coverage) {
     version_script = "libos_account_innerkits.map"

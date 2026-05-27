@@ -591,6 +591,7 @@ napi_value NapiDistributedAccount::UpdateOhosAccountInfo(napi_env env, napi_call
     contextPtr.release();
     return result;
 }
+
 } // namespace AccountJsKit
 } // namespace OHOS
 

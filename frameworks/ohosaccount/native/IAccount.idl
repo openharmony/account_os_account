@@ -55,4 +55,6 @@ interface OHOS.AccountSA.IAccount {
     IRemoteObject GetDomainAccountService();
 
     IRemoteObject GetAuthorizationService();
+
+    IRemoteObject GetOsAccountSubspaceService();
 }

@@ -23,6 +23,7 @@
         "OHOS::AccountSA::OhosAccountKitsImpl::GetOsAccountService()";
         "OHOS::AccountSA::OhosAccountKitsImpl::GetAccountIAMService()";
         "OHOS::AccountSA::OhosAccountKitsImpl::GetAuthorizationService()";
+        "OHOS::AccountSA::OhosAccountKitsImpl::GetOsAccountSubspaceService()";
         "OHOS::AccountSA::OhosAccountKitsImpl::QueryOhosAccountInfo(OHOS::AccountSA::OhosAccountInfo&)";
         OHOS::AccountSA::OhosAccountKitsImpl::QueryDistributedVirtualDeviceId*;
         "OHOS::AccountSA::WriteOhosAccountInfo(OHOS::MessageParcel&, OHOS::AccountSA::OhosAccountInfo const&)";
@@ -43,6 +44,7 @@
         "vtable for OHOS::AccountSA::OhosAccountInfo";
         "OHOS::AccountSA::OhosAccountInfo::Unmarshalling(OHOS::Parcel&)";
         "OHOS::AccountSA::OhosAccountInfo::Marshalling(OHOS::Parcel&) const";
+        "OHOS::AccountSA::OsAccountSubspaceResult::Unmarshalling(OHOS::Parcel&)";
     };
   local:
     *;

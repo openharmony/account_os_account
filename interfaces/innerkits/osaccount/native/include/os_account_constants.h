@@ -141,6 +141,8 @@ const OS_ACCOUNT_SWITCH_MOD NOW_OS_ACCOUNT_SWITCH_MOD = OS_ACCOUNT_SWITCH_MOD::H
 #ifdef SUPPORT_AUTHORIZATION
 const size_t MAX_TOKEN_SIZE = 1024 + 116 + 8;
 #endif
+// Multiplier for computing subspaceId = osAccountId * MULTIPLIER + index, index in [1, 999]
+constexpr int32_t OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER = 1000;
 };  // namespace Constants
 }  // namespace AccountSA
 }  // namespace OHOS

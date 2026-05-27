@@ -118,6 +118,20 @@ bool OhosAccountInfo::ReadFromParcel(Parcel& parcel)
     return true;
 }
 
+OsAccountSubspaceResult* OsAccountSubspaceResult::Unmarshalling(Parcel &parcel)
+{
+    auto *info = new (std::nothrow) OsAccountSubspaceResult();
+    if (info == nullptr) {
+        return nullptr;
+    }
+    if (!parcel.ReadInt32(info->id) || !parcel.ReadInt32(info->osAccountId) ||
+        !parcel.ReadInt32(info->index)) {
+        delete info;
+        return nullptr;
+    }
+    return info;
+}
+
 bool OhosAccountInfo::ReadAvatarData(Parcel& parcel)
 {
     int32_t avatarSize;

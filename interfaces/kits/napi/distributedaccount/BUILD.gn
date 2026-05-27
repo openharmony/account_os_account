@@ -39,6 +39,10 @@ ohos_shared_library("distributedaccount") {
     "LOG_DOMAIN = 0xD001B00",
   ]
 
+  if (os_account_enable_multiple_os_account_subspace) {
+    cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE" ]
+  }
+
   deps = [
     "${account_napi_common_path}:account_napi_common",
     "${common_path}:libaccount_common",

@@ -70,6 +70,9 @@ ohos_shared_library("libaccount_common") {
   ]
 
   cflags = [ "-pipe" ]
+  if (os_account_enable_multiple_os_account_subspace) {
+    cflags += [ "-DENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE" ]
+  }
   cflags_cc = [
     "-Wdate-time",
     "-Wformat=2",

@@ -48,7 +48,10 @@ const char EVENT_PUBLISH[]                    = "event publish";
 const char OHOS_ACCOUNT_EVENT_LOGIN[]         = "Ohos.account.event.LOGIN";
 const char OHOS_ACCOUNT_EVENT_LOGOUT[]        = "Ohos.account.event.LOGOUT";
 const char OHOS_ACCOUNT_EVENT_TOKEN_INVALID[] = "Ohos.account.event.TOKEN_INVALID";
-const char OHOS_ACCOUNT_EVENT_LOGOFF[]        = "Ohos.account.event.LOGOFF";
+const char OHOS_ACCOUNT_EVENT_LOGOFF[]           = "Ohos.account.event.LOGOFF";
+const char OHOS_ACCOUNT_EVENT_DISTRIBUTED_SPACE_CREATE[]    = "Ohos.account.event.DISTRIBUTED_SPACE_CREATE";
+const char OHOS_ACCOUNT_EVENT_DISTRIBUTED_SPACE_DELETED[]   = "Ohos.account.event.DISTRIBUTED_SPACE_DELETE";
+const char OHOS_ACCOUNT_EVENT_DISTRIBUTED_SPACE_SWITCHED[]  = "Ohos.account.event.DISTRIBUTED_SPACE_SWITCH";
 const char OPERATION_INIT_OPEN_FILE_TO_READ[] = "InitOpenFileToRead";
 const char OPERATION_REMOVE_FILE[] = "RemoveFile";
 const char OPERATION_OPEN_FILE_TO_READ[] = "OpenFileToRead";
@@ -70,6 +73,9 @@ typedef enum : std::int32_t {
     ACCOUNT_MANUAL_LOGOUT_EVT, // account logout manually
     ACCOUNT_MANUAL_UNBOUND_EVT, // account unbound manually
     ACCOUNT_MANUAL_LOGOFF_EVT, // account logoff manually
+    ACCOUNT_DISTRIBUTED_SPACE_CREATE_EVT, // distributed account space created
+    ACCOUNT_DISTRIBUTED_SPACE_DELETED_EVT, // distributed account space deleted
+    ACCOUNT_DISTRIBUTED_SPACE_SWITCHED_EVT, // distributed account space switched
 } ACCOUNT_INNER_EVENT_TYPE;
 
 const char DEFAULT_OHOS_ACCOUNT_NAME[] = "ohosAnonymousName"; // default name
@@ -136,6 +142,18 @@ private:
     std::string rawUid_;
 };
 
+struct OsAccountSubspaceResult : public Parcelable {
+    int32_t id = 0;
+    int32_t osAccountId = 0;
+    int32_t index = 0;
+
+    bool Marshalling(Parcel &parcel) const override
+    {
+        return parcel.WriteInt32(id) && parcel.WriteInt32(osAccountId) && parcel.WriteInt32(index);
+    }
+    static OsAccountSubspaceResult* Unmarshalling(Parcel &parcel);
+};
+
 class AccountInfo {
 public:
     OhosAccountInfo ohosAccountInfo_;
@@ -181,6 +199,14 @@ public:
 
     ~AccountInfo() {}
 };
+
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+struct OsAccountSubspaceInfo : AccountInfo {
+    int32_t subspaceId = 0;
+    bool isCreateCompleted = false;
+    bool toBeRemoved = false;
+};
+#endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 } // namespace AccountSA
 } // namespace OHOS
 

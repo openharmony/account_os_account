@@ -120,7 +120,6 @@ DistributedInfo CreateDistributedInfoFromAccountInfo(const OhosAccountInfo &info
 {
     return ConvertToDistributedInfoTH(info);
 }
-
 } // namespace AccountSA
 } // namespace OHOS
 

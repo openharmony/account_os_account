@@ -212,6 +212,9 @@ public:
 
     void SetVersion(int32_t version);
 
+    int32_t GetForegroundSubspaceId() const;
+    void SetForegroundSubspaceId(int32_t foregroundSubspaceId);
+
 public:
     int localId_ = -1;
     std::string localName_;
@@ -234,6 +237,7 @@ public:
     bool isDataRemovable_ = true;
     int32_t creatorType_ = 0;
     int32_t version_ = OS_ACCOUNT_INFO_DEFAULT_VERSION;  // Track account info modification version
+    int32_t foregroundSubspaceId_ = -1;  // default: localId_ * 1000 (initialized lazily)
 };
 
 typedef enum {

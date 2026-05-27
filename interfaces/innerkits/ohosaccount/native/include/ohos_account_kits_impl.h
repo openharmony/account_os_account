@@ -56,6 +56,7 @@ public:
     sptr<IRemoteObject> GetAppAccountService();
     sptr<IRemoteObject> GetAccountIAMService();
     sptr<IRemoteObject> GetAuthorizationService();
+    sptr<IRemoteObject> GetOsAccountSubspaceService();
 
 private:
     OhosAccountKitsImpl() = default;

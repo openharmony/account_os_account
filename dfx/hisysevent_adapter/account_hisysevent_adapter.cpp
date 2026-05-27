@@ -13,20 +13,19 @@
  * limitations under the License.
  */
 #include "account_hisysevent_adapter.h"
+#include <map>
 #include "account_log_wrapper.h"
 #ifdef HAS_HISYSEVENT_PART
 #include "hisysevent.h"
 #endif // HAS_HISYSEVENT_PART
 #include "account_info.h"
+#include "os_account_constants.h"
 
 namespace OHOS {
 namespace AccountSA {
-namespace {
 #ifdef HAS_HISYSEVENT_PART
 using namespace OHOS::HiviewDFX;
-#endif // HAS_HISYSEVENT_PART
-}
-#ifdef HAS_HISYSEVENT_PART
+
 std::string AnonymizeName(const std::string& nameStr)
 {
     if (nameStr == DEFAULT_OHOS_ACCOUNT_NAME || nameStr.empty()) {
