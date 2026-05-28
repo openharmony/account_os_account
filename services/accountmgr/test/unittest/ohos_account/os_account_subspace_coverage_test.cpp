@@ -51,7 +51,7 @@ using namespace OHOS;
 using namespace OHOS::AccountSA;
 
 namespace {
-const std::string TEST_ROOT_DIR = "/data/test/os_account_subspace_coverage_test/";
+const std::string TEST_ROOT_DIR = "/data/test/os_account_subspace_coverage_test_dir/";
 constexpr int32_t TEST_OS_ACCOUNT_ID = 100;
 constexpr int32_t TEST_SUBSPACE_BASE = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
 } // namespace

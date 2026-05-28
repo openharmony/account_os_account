@@ -37,7 +37,7 @@ using namespace OHOS;
 using namespace OHOS::AccountSA;
 
 namespace {
-const std::string TEST_ROOT_DIR = "/data/test/os_account_subspace_manager_test/";
+const std::string TEST_ROOT_DIR = "/data/test/os_account_subspace_manager_test_dir/";
 constexpr int32_t OS_ACCOUNT_ID = 100;
 }  // namespace
 

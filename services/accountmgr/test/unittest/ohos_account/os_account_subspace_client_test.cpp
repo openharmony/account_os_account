@@ -99,17 +99,21 @@ HWTEST_F(OsAccountSubspaceClientTest, GetInstance_Singleton_001, TestSize.Level1
 
 /**
  * @tc.name: OsAccountSubspaceClientTest_NoPermission_001
- * @tc.desc: Without SetSelfTokenID, the real GetOsAccountSubspaceProxy()
- *           calls into the running service which returns PERMISSION_DENIED.
- *           This verifies the proxy is properly initialized through
- *           OhosAccountKitsImpl when proxy_ is null.
+ * @tc.desc: CreateOsAccountSubspace returns PERMISSION_DENIED from proxy
+ *           when the service denies access due to missing permission.
  */
 HWTEST_F(OsAccountSubspaceClientTest, NoPermission_001, TestSize.Level1)
 {
+    sptr<MockOsAccountSubspaceStub> mockProxy = new (std::nothrow) MockOsAccountSubspaceStub();
+    ASSERT_NE(mockProxy, nullptr);
+    mockProxy->createRet_ = ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    OsAccountSubspaceClient::GetInstance().proxy_ = mockProxy;
+
     OsAccountSubspaceResult result;
     ErrCode ret = OsAccountSubspaceClient::GetInstance().CreateOsAccountSubspace(
         TEST_OS_ACCOUNT_ID, result);
     EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    EXPECT_EQ(mockProxy->lastCreateOsAccountId, TEST_OS_ACCOUNT_ID);
 }
 
 /**
@@ -267,18 +271,14 @@ HWTEST_F(OsAccountSubspaceClientTest, GetOsAccountSubspaceProxy_CacheHit_001, Te
 
 /**
  * @tc.name: OsAccountSubspaceClientTest_GetOsAccountSubspaceProxy_CacheMiss_001
- * @tc.desc: GetOsAccountSubspaceProxy initializes proxy from OhosAccountKitsImpl
- *           when proxy_ is null. In the service test binary the service IS
- *           running, so a valid proxy is returned.
+ * @tc.desc: GetOsAccountSubspaceProxy returns nullptr on cache miss when
+ *           the real service is not available (unit test environment).
  */
 HWTEST_F(OsAccountSubspaceClientTest, GetOsAccountSubspaceProxy_CacheMiss_001, TestSize.Level1)
 {
-    // proxy_ is null after SetUp reset; service is running → valid proxy returned
+    // proxy_ is null after SetUp reset; no service running → nullptr returned
     auto result = OsAccountSubspaceClient::GetInstance().GetOsAccountSubspaceProxy();
-    EXPECT_NE(result, nullptr);
-    // Cleanup to avoid affecting other tests
-    OsAccountSubspaceClient::GetInstance().proxy_ = nullptr;
-    OsAccountSubspaceClient::GetInstance().deathRecipient_ = nullptr;
+    EXPECT_EQ(result, nullptr);
 }
 
 /**
