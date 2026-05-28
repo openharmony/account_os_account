@@ -23,8 +23,9 @@
 #include "account_info.h"
 #include "account_mgr_service.h"
 #include "iinner_os_account_manager.h"
-#include "os_account_info.h"
 #include "os_account_constants.h"
+#include "os_account_info.h"
+#include "osaccount/os_account_control_file_manager.h"
 #include <openssl/sha.h>
 
 namespace OHOS {
@@ -42,6 +43,8 @@ struct MockState {
     std::vector<OsAccountInfo> createdOsAccounts;
     int32_t callingUid = 0;
     int32_t callingUserId = TEST_USERID;
+    ErrCode forceUpdateSubspaceInfoFail = ERR_OK;
+    ErrCode forceGetInfoByIdFail = ERR_OK;
 };
 
 static MockState &GetMockState()
@@ -56,6 +59,25 @@ void ResetMockState()
     state.createdOsAccounts.clear();
     state.callingUid = 0;
     state.callingUserId = TEST_USERID;
+    state.forceUpdateSubspaceInfoFail = ERR_OK;
+    state.forceGetInfoByIdFail = ERR_OK;
+}
+
+void MockForceUpdateSubspaceInfoFail(ErrCode errCode)
+{
+    GetMockState().forceUpdateSubspaceInfoFail = errCode;
+}
+
+void MockForceGetOsAccountInfoByIdFail(ErrCode errCode)
+{
+    GetMockState().forceGetInfoByIdFail = errCode;
+}
+
+void MockClearForceFailFlags()
+{
+    auto &state = GetMockState();
+    state.forceUpdateSubspaceInfoFail = ERR_OK;
+    state.forceGetInfoByIdFail = ERR_OK;
 }
 
 void MockSetCallingUid(int32_t uid)
@@ -87,7 +109,11 @@ ErrCode IInnerOsAccountManager::QueryAllCreatedOsAccounts(std::vector<OsAccountI
 
 ErrCode IInnerOsAccountManager::GetOsAccountInfoById(const int id, OsAccountInfo &osAccountInfo)
 {
-    for (const auto &info : GetMockState().createdOsAccounts) {
+    auto &state = GetMockState();
+    if (state.forceGetInfoByIdFail != ERR_OK) {
+        return state.forceGetInfoByIdFail;
+    }
+    for (const auto &info : state.createdOsAccounts) {
         if (info.GetLocalId() == id) {
             osAccountInfo = info;
             return ERR_OK;
@@ -100,11 +126,47 @@ ErrCode IInnerOsAccountManager::SetOsAccountForegroundSubspaceId(int32_t localId
 {
     for (auto &info : GetMockState().createdOsAccounts) {
         if (info.GetLocalId() == localId) {
-            info.SetForegroundSubspaceId(subspaceId);
+            info.SetForegroundSubProfileId(subspaceId);
             return ERR_OK;
         }
     }
     return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+}
+
+ErrCode IInnerOsAccountManager::UpdateOsAccountSubspaceInfo(
+    int32_t localId, int32_t nextSubProfileId, const std::vector<std::string> &subProfileIdList)
+{
+    auto &state = GetMockState();
+    if (state.forceUpdateSubspaceInfoFail != ERR_OK) {
+        return state.forceUpdateSubspaceInfoFail;
+    }
+    for (auto &info : state.createdOsAccounts) {
+        if (info.GetLocalId() == localId) {
+            info.SetNextSubProfileId(nextSubProfileId);
+            info.SetSubProfileIdList(subProfileIdList);
+            return ERR_OK;
+        }
+    }
+    return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+}
+
+ErrCode IInnerOsAccountManager::CreateOsAccount(
+    const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo)
+{
+    return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+}
+
+ErrCode IInnerOsAccountManager::RemoveOsAccount(const int id)
+{
+    return ERR_OK;
+}
+
+static constexpr size_t FILE_CONTROLLER_BUF_SIZE = 4096;
+alignas(std::max_align_t) static uint8_t g_fileControllerBuf[FILE_CONTROLLER_BUF_SIZE] = {0};
+
+OsAccountControlFileManager &IInnerOsAccountManager::GetFileController()
+{
+    return *reinterpret_cast<OsAccountControlFileManager *>(g_fileControllerBuf);
 }
 
 namespace {

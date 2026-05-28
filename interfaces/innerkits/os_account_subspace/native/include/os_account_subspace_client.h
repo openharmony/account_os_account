@@ -19,21 +19,21 @@
 #include <set>
 #include "account_info.h"
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-#include "ios_account_subspace.h"
+#include "ios_account_sub_profile.h"
 #include "nocopyable.h"
 #endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 #include "account_error_no.h"
 
 namespace OHOS {
 namespace AccountSA {
-class OsAccountSubspaceClient {
+class OsAccountSubProfileClient {
 public:
-    static OsAccountSubspaceClient &GetInstance();
+    static OsAccountSubProfileClient &GetInstance();
 
-    ErrCode CreateOsAccountSubspace(int32_t osAccountId,
+    ErrCode CreateOsAccountSubProfile(int32_t osAccountId,
         OsAccountSubspaceResult &subspaceResult);
-    ErrCode DeleteOsAccountSubspace(int32_t osAccountId, int32_t subspaceId);
-    ErrCode SwitchOsAccountSubspace(int32_t osAccountId, int32_t subspaceId);
+    ErrCode DeleteOsAccountSubProfile(int32_t osAccountId, int32_t subspaceId);
+    ErrCode SwitchOsAccountSubProfile(int32_t osAccountId, int32_t subspaceId);
 
     ErrCode GetOsAccountForegroundSubProfileId(int32_t &subProfileId);
     ErrCode GetOsAccountForegroundSubProfileId(int32_t osAccountId, int32_t &subProfileId);
@@ -46,25 +46,25 @@ public:
         OsAccountSubspaceResult &subspaceResult, OhosAccountInfo &distributedInfo);
 
 private:
-    OsAccountSubspaceClient();
-    ~OsAccountSubspaceClient() = default;
-    DISALLOW_COPY_AND_MOVE(OsAccountSubspaceClient);
+    OsAccountSubProfileClient();
+    ~OsAccountSubProfileClient() = default;
+    DISALLOW_COPY_AND_MOVE(OsAccountSubProfileClient);
 
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-    class OsAccountSubspaceDeathRecipient : public IRemoteObject::DeathRecipient {
+    class OsAccountSubProfileDeathRecipient : public IRemoteObject::DeathRecipient {
     public:
-        OsAccountSubspaceDeathRecipient() = default;
-        ~OsAccountSubspaceDeathRecipient() override = default;
+        OsAccountSubProfileDeathRecipient() = default;
+        ~OsAccountSubProfileDeathRecipient() override = default;
         void OnRemoteDied(const wptr<IRemoteObject> &remote) override;
-        DISALLOW_COPY_AND_MOVE(OsAccountSubspaceDeathRecipient);
+        DISALLOW_COPY_AND_MOVE(OsAccountSubProfileDeathRecipient);
     };
 
-    sptr<IOsAccountSubspace> GetOsAccountSubspaceProxy();
+    sptr<IOsAccountSubProfile> GetOsAccountSubProfileProxy();
     void ResetProxy(const wptr<IRemoteObject> &remote);
 
     std::mutex mutex_;
-    sptr<IOsAccountSubspace> proxy_ = nullptr;
-    sptr<OsAccountSubspaceDeathRecipient> deathRecipient_ = nullptr;
+    sptr<IOsAccountSubProfile> proxy_ = nullptr;
+    sptr<OsAccountSubProfileDeathRecipient> deathRecipient_ = nullptr;
 #endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 };
 }  // namespace AccountSA

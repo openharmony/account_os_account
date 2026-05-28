@@ -219,7 +219,7 @@ group("unittest") {
   deps += [
     ":OhosAccountSpaceLoginLogoutTest",
     ":OsAccountSubspaceCoverageTest",
-    ":OsAccountSubspaceManagerTest",
+    ":OsAccountSubProfileManagerTest",
     ":OsAccountSubspaceTest",
   ]
 }
@@ -392,7 +392,7 @@ ohos_unittest("OsAccountSubspaceTest") {
   part_name = "os_account"
 }
 
-ohos_unittest("OsAccountSubspaceManagerTest") {
+ohos_unittest("OsAccountSubProfileManagerTest") {
   branch_protector_ret = "pac_ret"
 
   sanitize = {
@@ -422,7 +422,12 @@ ohos_unittest("OsAccountSubspaceManagerTest") {
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
   ]
   sources += account_service_sources
+  sources -= [
+    "${services_path}/accountmgr/src/osaccount/inner_os_account_manager.cpp",
+    "${services_path}/accountmgr/src/account_mgr_service.cpp",
+  ]
   sources += [
+    "mock/mock_space_dependencies.cpp",
     "${services_path}/accountmgr/src/distributed_account/os_account_subspace_data_deal.cpp",
     "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager.cpp",
     "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager_service.cpp",
@@ -680,6 +685,10 @@ ohos_unittest("OsAccountSubspaceCoverageTest") {
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
   ]
   sources += account_service_sources
+  sources -= [
+    "${services_path}/accountmgr/src/osaccount/inner_os_account_manager.cpp",
+    "${services_path}/accountmgr/src/account_mgr_service.cpp",
+  ]
   sources += [
     "${services_path}/accountmgr/src/distributed_account/os_account_subspace_data_deal.cpp",
     "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager.cpp",
@@ -694,6 +703,7 @@ ohos_unittest("OsAccountSubspaceCoverageTest") {
   sources += [
     "${os_account_subspace_framework_path}/src/os_account_subspace_client.cpp",
     "${services_path}/accountmgr/test/mock/src/mock_account_mgr_service.cpp",
+    "mock/mock_space_dependencies.cpp",
   ]
 
   include_dirs = [

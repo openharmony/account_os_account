@@ -1,0 +1,111 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("../../../../os_account.gni")
+
+#####################hydra-fuzz###################
+import("//build/config/features.gni")
+import("//build/ohos.gni")
+import("//build/test.gni")
+
+##############################fuzztest##########################################
+ohos_fuzztest("CmdSwitchOsAccountSubspaceStubFuzzTest") {
+  module_out_path = fuzz_output_path
+
+  fuzz_config_file = "."
+  include_dirs = [
+    "${innerkits_path}/include",
+    "${os_account_core_path}/include",
+    "${os_account_interfaces_native_path}/include",
+    "${os_account_path}/test/fuzztest/appaccount/common",
+    "${os_account_path}/services/accountmgr/include",
+    "${os_account_path}/services/accountmgr/include/distributed_account",
+    "${os_account_path}/services/accountmgr/include/osaccount",
+    "${os_account_subspace_interfaces_native_path}/include",
+    "${os_account_path}/dfx/hidumper_adapter",
+    "${os_account_path}/dfx/hitrace_adapter",
+    "${innerkits_common}/include",
+    "${common_path}/account_error",
+    "${common_path}/log/include",
+    "${common_path}/file_operator/include",
+    "${common_path}/json_utils/include",
+    "${common_path}/perf_stat/include",
+    "${common_path}/utils/include",
+    "${common_path}/privileges/include",
+    "${common_path}/include",
+    "${os_account_dfx_path}/hisysevent_adapter",
+    "${os_account_dfx_path}/data_dfx",
+    "${account_iam_interfaces_native_path}/include",
+  ]
+  cflags = [
+    "-g",
+    "-O0",
+    "-Wno-unused-variable",
+    "-fno-omit-frame-pointer",
+  ]
+  if (target_cpu == "arm") {
+    cflags += [ "-DBINDER_IPC_32BIT" ]
+  }
+  configs = [
+    "${domain_account_framework_path}:frameworks_domain_account_interface_public_config",
+    "${os_account_innerkits_native_path}:frameworks_osaccount_interface_public_config",
+  ]
+  sources = [
+    "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager_service.cpp",
+    "cmd_switch_os_account_subspace_stub_fuzzer.cpp",
+  ]
+
+  deps = [
+    "${account_test_common}:account_test_common_source_set",
+    "${innerkits_native_path}:account_stub",
+    "${account_iam_framework_path}:account_iam_stub",
+    "${domain_account_framework_path}:domain_account_innerkits",
+    "${domain_account_framework_path}:domain_account_stub",
+    "${os_account_innerkits_native_path}:os_account_event_proxy",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${os_account_innerkits_native_path}:os_account_state_reply_callback_proxy",
+    "${os_account_innerkits_native_path}:os_account_state_reply_callback_stub",
+    "${os_account_innerkits_native_path}:os_account_proxy",
+    "${os_account_innerkits_native_path}:os_account_stub",
+    "${os_account_subspace_framework_path}:os_account_subspace_client",
+    "${os_account_subspace_framework_path}:os_account_subspace_stub",
+    "${os_account_path}/frameworks/appaccount/native:app_account_innerkits",
+    "${os_account_path}/frameworks/common:libaccount_common",
+    "${os_account_path}/services/accountmgr:accountmgr",
+    "${os_account_path}/services/accountmgr/src/appaccount:app_account_service_core",
+  ]
+
+  external_deps = [
+    "ability_base:want",
+    "ability_runtime:app_manager",
+    "ability_runtime:wantagent_innerkits",
+    "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken_shared",
+    "access_token:libtokenid_sdk",
+    "access_token:libtokensetproc_shared",
+    "bundle_framework:appexecfwk_base",
+    "cJSON:cjson",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+    "kv_store:distributeddata_inner",
+    "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
+  ]
+
+  defines = [
+    "ACCOUNT_LOG_TAG = \"OsAcSubStubFuzz\"",
+    "LOG_DOMAIN = 0xD001B00",
+    "ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE",
+  ]
+}

@@ -50,7 +50,7 @@ public:
     {
         allPermTokenId_ = GetAllAccountPermission();
         ASSERT_NE(allPermTokenId_, 0);
-        service_ = std::make_shared<OsAccountSubspaceManagerService>();
+        service_ = std::make_shared<OsAccountSubProfileManagerService>();
         accountMgrService_ = std::make_shared<AccountMgrService>();
     }
 
@@ -70,12 +70,12 @@ public:
 
     void TearDown() override {}
 
-    static std::shared_ptr<OsAccountSubspaceManagerService> service_;
+    static std::shared_ptr<OsAccountSubProfileManagerService> service_;
     static std::shared_ptr<AccountMgrService> accountMgrService_;
     static uint64_t allPermTokenId_;
 };
 
-std::shared_ptr<OsAccountSubspaceManagerService> OsAccountSubspaceServiceTest::service_ = nullptr;
+std::shared_ptr<OsAccountSubProfileManagerService> OsAccountSubspaceServiceTest::service_ = nullptr;
 std::shared_ptr<AccountMgrService> OsAccountSubspaceServiceTest::accountMgrService_ = nullptr;
 uint64_t OsAccountSubspaceServiceTest::allPermTokenId_ = 0;
 
@@ -101,30 +101,30 @@ HWTEST_F(OsAccountSubspaceServiceTest, CreateOsAccountSubspace_CheckUserIdValid_
 HWTEST_F(OsAccountSubspaceServiceTest, DeleteOsAccountSubspace_OwnershipMismatch_001, TestSize.Level1)
 {
     int32_t wrongDistId = 200001;
-    ErrCode ret = service_->DeleteOsAccountSubspace(TEST_OS_ACCOUNT_ID, wrongDistId);
+    ErrCode ret = service_->DeleteOsAccountSubProfile(TEST_OS_ACCOUNT_ID, wrongDistId);
     EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
 }
 
 /**
- * @tc.name: DeleteOsAccountSubspace_RemoveZeroSubspace_002
+ * @tc.name: DeleteOsAccountSubProfile_RemoveZeroSubspace_002
  * @tc.desc: R5 - Cannot remove 0-index space (distId % 1000 == 0) returns SUBSPACE_RESTRICTED
  * @tc.type: FUNC
  */
-HWTEST_F(OsAccountSubspaceServiceTest, DeleteOsAccountSubspace_RemoveZeroSubspace_002, TestSize.Level1)
+HWTEST_F(OsAccountSubspaceServiceTest, DeleteOsAccountSubProfile_RemoveZeroSubspace_002, TestSize.Level1)
 {
-    ErrCode ret = service_->DeleteOsAccountSubspace(TEST_OS_ACCOUNT_ID, TEST_SUBSPACE_ID_BASE);
+    ErrCode ret = service_->DeleteOsAccountSubProfile(TEST_OS_ACCOUNT_ID, TEST_SUBSPACE_ID_BASE);
     EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED);
 }
 
 /**
- * @tc.name: SwitchOsAccountSubspace_OwnershipMismatch_001
+ * @tc.name: SwitchOsAccountSubProfile_OwnershipMismatch_001
  * @tc.desc: S3 - Ownership mismatch returns SUBSPACE_NOT_FOUND
  * @tc.type: FUNC
  */
-HWTEST_F(OsAccountSubspaceServiceTest, SwitchOsAccountSubspace_OwnershipMismatch_001, TestSize.Level1)
+HWTEST_F(OsAccountSubspaceServiceTest, SwitchOsAccountSubProfile_OwnershipMismatch_001, TestSize.Level1)
 {
     int32_t wrongDistId = 200001;
-    ErrCode ret = service_->SwitchOsAccountSubspace(TEST_OS_ACCOUNT_ID, wrongDistId);
+    ErrCode ret = service_->SwitchOsAccountSubProfile(TEST_OS_ACCOUNT_ID, wrongDistId);
     EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
 }
 
@@ -142,33 +142,33 @@ HWTEST_F(OsAccountSubspaceServiceTest, CreateOsAccountSubspace_PermissionDenied_
     ASSERT_EQ(SetSelfTokenID(noPermTokenId), 0);
     setuid(TEST_UID);
     OsAccountSubspaceResult result;
-    ErrCode ret = service_->CreateOsAccountSubspace(TEST_OS_ACCOUNT_ID, result);
+    ErrCode ret = service_->CreateOsAccountSubProfile(TEST_OS_ACCOUNT_ID, result);
     EXPECT_NE(ret, ERR_OK);
     setuid(ROOT_UID);
     ASSERT_TRUE(RecoveryPermission(noPermTokenId, allPermTokenId_));
 }
 
 /**
- * @tc.name: CreateOsAccountSubspace_AdminAccount_001
+ * @tc.name: CreateOsAccountSubProfile_AdminAccount_001
  * @tc.desc: Create: osAccountId=0 (ADMIN) → CheckLocalIdRestricted → MANAGER_ID_ERROR (12300008)
  * @tc.type: FUNC
  */
-HWTEST_F(OsAccountSubspaceServiceTest, CreateOsAccountSubspace_AdminAccount_001, TestSize.Level1)
+HWTEST_F(OsAccountSubspaceServiceTest, CreateOsAccountSubProfile_AdminAccount_001, TestSize.Level1)
 {
     OsAccountSubspaceResult result;
-    ErrCode ret = service_->CreateOsAccountSubspace(0, result);
+    ErrCode ret = service_->CreateOsAccountSubProfile(0, result);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
 }
 
 /**
- * @tc.name: CreateOsAccountSubspace_AccountNotFound_001
+ * @tc.name: CreateOsAccountSubProfile_AccountNotFound_001
  * @tc.desc: Create: osAccountId=200 (nonexistent, >=100) → GetOsAccountInfoById fails → NOT_EXIST (12300003)
  * @tc.type: FUNC
  */
-HWTEST_F(OsAccountSubspaceServiceTest, CreateOsAccountSubspace_AccountNotFound_001, TestSize.Level1)
+HWTEST_F(OsAccountSubspaceServiceTest, CreateOsAccountSubProfile_AccountNotFound_001, TestSize.Level1)
 {
     OsAccountSubspaceResult result;
-    ErrCode ret = service_->CreateOsAccountSubspace(200, result);
+    ErrCode ret = service_->CreateOsAccountSubProfile(200, result);
     EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
@@ -184,7 +184,7 @@ HWTEST_F(OsAccountSubspaceServiceTest, DeleteOsAccountSubspace_PermissionDenied_
     ASSERT_TRUE(AllocPermission({}, noPermTokenId, false));
     ASSERT_EQ(SetSelfTokenID(noPermTokenId), 0);
     setuid(TEST_UID);
-    ErrCode ret = service_->DeleteOsAccountSubspace(TEST_OS_ACCOUNT_ID, TEST_SUBSPACE_ID_BASE + 1);
+    ErrCode ret = service_->DeleteOsAccountSubProfile(TEST_OS_ACCOUNT_ID, TEST_SUBSPACE_ID_BASE + 1);
     EXPECT_NE(ret, ERR_OK);
     setuid(ROOT_UID);
     ASSERT_TRUE(RecoveryPermission(noPermTokenId, allPermTokenId_));
@@ -202,7 +202,7 @@ HWTEST_F(OsAccountSubspaceServiceTest, SwitchOsAccountSubspace_PermissionDenied_
     ASSERT_TRUE(AllocPermission({}, noPermTokenId, false));
     ASSERT_EQ(SetSelfTokenID(noPermTokenId), 0);
     setuid(TEST_UID);
-    ErrCode ret = service_->SwitchOsAccountSubspace(TEST_OS_ACCOUNT_ID, TEST_SUBSPACE_ID_BASE + 1);
+    ErrCode ret = service_->SwitchOsAccountSubProfile(TEST_OS_ACCOUNT_ID, TEST_SUBSPACE_ID_BASE + 1);
     EXPECT_NE(ret, ERR_OK);
     setuid(ROOT_UID);
     ASSERT_TRUE(RecoveryPermission(noPermTokenId, allPermTokenId_));
@@ -213,55 +213,55 @@ HWTEST_F(OsAccountSubspaceServiceTest, SwitchOsAccountSubspace_PermissionDenied_
  * @tc.desc: R3 - Negative subspaceId causes ownership mismatch (subspaceId/1000 != osAccountId)
  * @tc.type: FUNC
  */
-HWTEST_F(OsAccountSubspaceServiceTest, DeleteOsAccountSubspace_NegativeSubspaceId_001, TestSize.Level1)
+HWTEST_F(OsAccountSubspaceServiceTest, DeleteOsAccountSubProfile_NegativeSubspaceId_001, TestSize.Level1)
 {
-    ErrCode ret = service_->DeleteOsAccountSubspace(TEST_OS_ACCOUNT_ID, -1);
+    ErrCode ret = service_->DeleteOsAccountSubProfile(TEST_OS_ACCOUNT_ID, -1);
     EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
 }
 
 /**
- * @tc.name: DeleteOsAccountSubspace_ZeroIndexOwnershipMismatch_001
+ * @tc.name: DeleteOsAccountSubProfile_ZeroIndexOwnershipMismatch_001
  * @tc.desc: R5/R3 - subspaceId=0 (0/1000=0 != 100) causes ownership mismatch;
  *            ownership check runs before 0-index RESTRICTED check, returns SUBSPACE_NOT_FOUND
  * @tc.type: FUNC
  */
-HWTEST_F(OsAccountSubspaceServiceTest, DeleteOsAccountSubspace_ZeroIndexOwnershipMismatch_001, TestSize.Level1)
+HWTEST_F(OsAccountSubspaceServiceTest, DeleteOsAccountSubProfile_ZeroIndexOwnershipMismatch_001, TestSize.Level1)
 {
-    ErrCode ret = service_->DeleteOsAccountSubspace(TEST_OS_ACCOUNT_ID, 0);
+    ErrCode ret = service_->DeleteOsAccountSubProfile(TEST_OS_ACCOUNT_ID, 0);
     EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
 }
 
 /**
- * @tc.name: DeleteOsAccountSubspace_ZeroIndexOwnershipConsistent_001
+ * @tc.name: DeleteOsAccountSubProfile_ZeroIndexOwnershipConsistent_001
  * @tc.desc: R5 - When osAccountId=0 (ADMIN_LOCAL_ID), CheckLocalIdRestricted returns non-OK
  *            which maps to SUBSPACE_NOT_FOUND for Delete/Switch.
  * @tc.type: FUNC
  */
-HWTEST_F(OsAccountSubspaceServiceTest, DeleteOsAccountSubspace_ZeroIndexOwnershipConsistent_001, TestSize.Level1)
+HWTEST_F(OsAccountSubspaceServiceTest, DeleteOsAccountSubProfile_ZeroIndexOwnershipConsistent_001, TestSize.Level1)
 {
-    ErrCode ret = service_->DeleteOsAccountSubspace(0, 0);
+    ErrCode ret = service_->DeleteOsAccountSubProfile(0, 0);
     EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
 }
 
 /**
- * @tc.name: DeleteOsAccountSubspace_OwnershipMismatch_LargeId_001
+ * @tc.name: DeleteOsAccountSubProfile_OwnershipMismatch_LargeId_001
  * @tc.desc: R3 - subspaceId far exceeds osAccountId range (999999/1000=999 != 100)
  * @tc.type: FUNC
  */
-HWTEST_F(OsAccountSubspaceServiceTest, DeleteOsAccountSubspace_OwnershipMismatch_LargeId_001, TestSize.Level1)
+HWTEST_F(OsAccountSubspaceServiceTest, DeleteOsAccountSubProfile_OwnershipMismatch_LargeId_001, TestSize.Level1)
 {
-    ErrCode ret = service_->DeleteOsAccountSubspace(TEST_OS_ACCOUNT_ID, 999999);
+    ErrCode ret = service_->DeleteOsAccountSubProfile(TEST_OS_ACCOUNT_ID, 999999);
     EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
 }
 
 /**
- * @tc.name: SwitchOsAccountSubspace_OwnershipMismatch_LargeId_001
+ * @tc.name: SwitchOsAccountSubProfile_OwnershipMismatch_LargeId_001
  * @tc.desc: S3 - subspaceId far exceeds osAccountId range (999999/1000=999 != 100)
  * @tc.type: FUNC
  */
-HWTEST_F(OsAccountSubspaceServiceTest, SwitchOsAccountSubspace_OwnershipMismatch_LargeId_001, TestSize.Level1)
+HWTEST_F(OsAccountSubspaceServiceTest, SwitchOsAccountSubProfile_OwnershipMismatch_LargeId_001, TestSize.Level1)
 {
-    ErrCode ret = service_->SwitchOsAccountSubspace(TEST_OS_ACCOUNT_ID, 999999);
+    ErrCode ret = service_->SwitchOsAccountSubProfile(TEST_OS_ACCOUNT_ID, 999999);
     EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
 }
 #endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE

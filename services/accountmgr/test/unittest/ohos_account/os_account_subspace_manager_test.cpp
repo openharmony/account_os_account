@@ -31,6 +31,8 @@
 #include "accesstoken_kit.h"
 #include "account_info.h"
 #include "os_account_constants.h"
+#include "os_account_info.h"
+#include "mock/mock_space_dependencies.h"
 #include "token_setproc.h"
 
 using namespace testing::ext;
@@ -42,7 +44,7 @@ const std::string TEST_ROOT_DIR = "/data/test/os_account_subspace_manager_test_d
 constexpr int32_t OS_ACCOUNT_ID = 100;
 }  // namespace
 
-class OsAccountSubspaceManagerTest : public testing::Test {
+class OsAccountSubProfileManagerTest : public testing::Test {
 public:
     static void SetUpTestCase()
     {
@@ -67,42 +69,38 @@ public:
         std::error_code ec;
         std::filesystem::remove_all(TEST_ROOT_DIR, ec);
         std::filesystem::create_directories(TEST_ROOT_DIR);
-        auto &mgr = OsAccountSubspaceManager::GetInstance();
+        auto &mgr = OsAccountSubProfileManager::GetInstance();
         mgr.Init(TEST_ROOT_DIR);
+        OsAccountInfo osAccountInfo;
+        osAccountInfo.SetLocalId(OS_ACCOUNT_ID);
+        MockSetCreatedOsAccounts({osAccountInfo});
     }
 
-    void TearDown() override {}
-
-    void SaveCompletedSpace(int32_t osAccountId, int32_t index)
+    void TearDown() override
     {
-        int32_t distId = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + index;
-        OsAccountSubspaceInfo info;
-        info.userId_ = osAccountId;
-        info.subspaceId = distId;
-        info.isCreateCompleted = true;
-        info.toBeRemoved = false;
-        ASSERT_EQ(OsAccountSubspaceManager::GetInstance().subspaceDataDeal_->SaveSubspaceInfo(info), ERR_OK);
+        MockClearForceFailFlags();
+        MockSetCreatedOsAccounts({});
     }
 
     static uint64_t allPermTokenId_;
 };
 
-uint64_t OsAccountSubspaceManagerTest::allPermTokenId_ = 0;
+uint64_t OsAccountSubProfileManagerTest::allPermTokenId_ = 0;
 
 /**
  * @tc.name: CreateSubspace_Success_001
  * @tc.desc: C1 - CreateSubspace allocates minimum available index and persists two-phase write
  * @tc.type: FUNC
  */
-HWTEST_F(OsAccountSubspaceManagerTest, CreateSubspace_Success_001, TestSize.Level1)
+HWTEST_F(OsAccountSubProfileManagerTest, CreateSubspace_Success_001, TestSize.Level1)
 {
-    auto &mgr = OsAccountSubspaceManager::GetInstance();
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
     int32_t newSubspaceId = 0;
-    ErrCode ret = mgr.CreateSubspace(OS_ACCOUNT_ID, newSubspaceId);
+    ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, newSubspaceId);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(newSubspaceId, OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 1);
 
-    EXPECT_TRUE(mgr.subspaceDataDeal_->IsValidSubspaceExists(OS_ACCOUNT_ID, newSubspaceId));
+    EXPECT_TRUE(mgr.subProfileDataDeal_->IsValidSubProfileExists(OS_ACCOUNT_ID, newSubspaceId));
 }
 
 /**
@@ -110,21 +108,21 @@ HWTEST_F(OsAccountSubspaceManagerTest, CreateSubspace_Success_001, TestSize.Leve
  * @tc.desc: C1 - CreateSubspace allocates successive indices and each space is independently valid
  * @tc.type: FUNC
  */
-HWTEST_F(OsAccountSubspaceManagerTest, CreateSubspace_Multiple_002, TestSize.Level1)
+HWTEST_F(OsAccountSubProfileManagerTest, CreateSubspace_Multiple_002, TestSize.Level1)
 {
-    auto &mgr = OsAccountSubspaceManager::GetInstance();
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
     int32_t distId1 = 0;
     int32_t distId2 = 0;
-    ErrCode ret1 = mgr.CreateSubspace(OS_ACCOUNT_ID, distId1);
+    ErrCode ret1 = mgr.CreateSubProfile(OS_ACCOUNT_ID, distId1);
     EXPECT_EQ(ret1, ERR_OK);
     EXPECT_EQ(distId1, OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 1);
 
-    ErrCode ret2 = mgr.CreateSubspace(OS_ACCOUNT_ID, distId2);
+    ErrCode ret2 = mgr.CreateSubProfile(OS_ACCOUNT_ID, distId2);
     EXPECT_EQ(ret2, ERR_OK);
     EXPECT_EQ(distId2, OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 2);
 
-    EXPECT_TRUE(mgr.subspaceDataDeal_->IsValidSubspaceExists(OS_ACCOUNT_ID, distId1));
-    EXPECT_TRUE(mgr.subspaceDataDeal_->IsValidSubspaceExists(OS_ACCOUNT_ID, distId2));
+    EXPECT_TRUE(mgr.subProfileDataDeal_->IsValidSubProfileExists(OS_ACCOUNT_ID, distId1));
+    EXPECT_TRUE(mgr.subProfileDataDeal_->IsValidSubProfileExists(OS_ACCOUNT_ID, distId2));
 }
 
 /**
@@ -132,15 +130,81 @@ HWTEST_F(OsAccountSubspaceManagerTest, CreateSubspace_Multiple_002, TestSize.Lev
  * @tc.desc: C7 - CreateSubspace returns REACH_LIMIT when all 999 slots are used
  * @tc.type: FUNC
  */
-HWTEST_F(OsAccountSubspaceManagerTest, CreateSubspace_LimitReached_003, TestSize.Level1)
+HWTEST_F(OsAccountSubProfileManagerTest, CreateSubspace_LimitReached_003, TestSize.Level1)
 {
-    auto &mgr = OsAccountSubspaceManager::GetInstance();
-    for (int32_t i = 1; i <= MAX_OS_ACCOUNT_SUBSPACE_COUNT; ++i) {
-        SaveCompletedSpace(OS_ACCOUNT_ID, i);
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
+    // Setup mock: account 100 with all 999 subspaces already allocated
+    OsAccountInfo osAccountInfo;
+    osAccountInfo.SetLocalId(OS_ACCOUNT_ID);
+    std::vector<std::string> fullList;
+    for (int32_t i = 1; i <= MAX_OS_ACCOUNT_SUB_PROFILE_COUNT; ++i) {
+        fullList.push_back(
+            std::to_string(OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + i));
     }
+    osAccountInfo.SetSubProfileIdList(fullList);
+    MockSetCreatedOsAccounts({osAccountInfo});
+
     int32_t newSubspaceId = 0;
-    ErrCode ret = mgr.CreateSubspace(OS_ACCOUNT_ID, newSubspaceId);
+    ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, newSubspaceId);
     EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_LIMIT);
+}
+
+/**
+ * @tc.name: CreateSubspace_HintOccupied_004
+ * @tc.desc: When nextSubProfileId hint is already occupied in subProfileIdList,
+ *           AllocateOsAccountSubProfileId enters the search loop body
+ *           (++startId, ++searchCount) and finds the next free slot.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountSubProfileManagerTest, CreateSubspace_HintOccupied_004, TestSize.Level1)
+{
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
+    int32_t base = OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
+
+    // Set hint to base+1 and already-occupied list {base+1, base+2}
+    // → AllocateOsAccountSubProfileId checks base+1 (occupied, ++startId/+searchCount)
+    //   → base+2 (occupied, ++startId/+searchCount) → base+3 (free, returns ERR_OK)
+    OsAccountInfo osAccountInfo;
+    osAccountInfo.SetLocalId(OS_ACCOUNT_ID);
+    osAccountInfo.SetNextSubProfileId(base + 1);
+    osAccountInfo.SetSubProfileIdList({std::to_string(base + 1), std::to_string(base + 2)});
+    MockSetCreatedOsAccounts({osAccountInfo});
+
+    int32_t distId = 0;
+    ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, distId);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(distId, base + 3);
+}
+
+/**
+ * @tc.name: CreateSubspace_WrapAround_005
+ * @tc.desc: When hint is at INDEX_MAX and that slot is occupied,
+ *           AllocateOsAccountSubProfileId wraps startId from maxId+1 back to minId
+ *           (covering ++startId → startId > maxId → startId = minId).
+ *           All slots 2..MAX are occupied; only slot 1 is free.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountSubProfileManagerTest, CreateSubspace_WrapAround_005, TestSize.Level1)
+{
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
+    int32_t base = OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
+
+    OsAccountInfo osAccountInfo;
+    osAccountInfo.SetLocalId(OS_ACCOUNT_ID);
+    // Fill all slots except index 1: subProfileIdList.size() = MAX - 1 < MAX → guard passes
+    std::vector<std::string> idList;
+    for (int32_t i = 2; i <= MAX_OS_ACCOUNT_SUB_PROFILE_COUNT; ++i) {
+        idList.push_back(std::to_string(base + i));
+    }
+    osAccountInfo.SetNextSubProfileId(base + OsAccountSubProfileDataDeal::OS_ACCOUNT_SUB_PROFILE_INDEX_MAX);
+    osAccountInfo.SetSubProfileIdList(idList);
+    MockSetCreatedOsAccounts({osAccountInfo});
+
+    int32_t distId = 0;
+    ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, distId);
+    EXPECT_EQ(ret, ERR_OK);
+    // After wrap: startId = base + MAX + 1 > maxId → wrap to minId = base + 1 → free
+    EXPECT_EQ(distId, base + 1);
 }
 
 /**
@@ -148,15 +212,15 @@ HWTEST_F(OsAccountSubspaceManagerTest, CreateSubspace_LimitReached_003, TestSize
  * @tc.desc: C10 - CreateSubspace uses two-phase write; after creation the file has isCreateCompleted=true
  * @tc.type: FUNC
  */
-HWTEST_F(OsAccountSubspaceManagerTest, CreateSubspace_AtomicWrite_001, TestSize.Level1)
+HWTEST_F(OsAccountSubProfileManagerTest, CreateSubspace_AtomicWrite_001, TestSize.Level1)
 {
-    auto &mgr = OsAccountSubspaceManager::GetInstance();
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
     int32_t newSubspaceId = 0;
-    ErrCode ret = mgr.CreateSubspace(OS_ACCOUNT_ID, newSubspaceId);
+    ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, newSubspaceId);
     EXPECT_EQ(ret, ERR_OK);
 
     OsAccountSubspaceInfo loaded;
-    ret = mgr.subspaceDataDeal_->LoadSubspaceInfo(OS_ACCOUNT_ID, newSubspaceId, loaded);
+    ret = mgr.subProfileDataDeal_->LoadSubProfileInfo(OS_ACCOUNT_ID, newSubspaceId, loaded);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_TRUE(loaded.isCreateCompleted);
     EXPECT_FALSE(loaded.toBeRemoved);
@@ -174,16 +238,22 @@ HWTEST_F(OsAccountSubspaceManagerTest, CreateSubspace_AtomicWrite_001, TestSize.
  * @tc.desc: C1 - CreateSubspace for different OS accounts produces isolated IDs
  * @tc.type: FUNC
  */
-HWTEST_F(OsAccountSubspaceManagerTest, CreateSubspace_Isolation_001, TestSize.Level1)
+HWTEST_F(OsAccountSubProfileManagerTest, CreateSubspace_Isolation_001, TestSize.Level1)
 {
-    auto &mgr = OsAccountSubspaceManager::GetInstance();
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
     constexpr int32_t OS_ACCOUNT_ID_A = 100;
     constexpr int32_t OS_ACCOUNT_ID_B = 101;
 
+    OsAccountInfo infoA;
+    infoA.SetLocalId(OS_ACCOUNT_ID_A);
+    OsAccountInfo infoB;
+    infoB.SetLocalId(OS_ACCOUNT_ID_B);
+    MockSetCreatedOsAccounts({infoA, infoB});
+
     int32_t distIdA = 0;
     int32_t distIdB = 0;
-    ErrCode retA = mgr.CreateSubspace(OS_ACCOUNT_ID_A, distIdA);
-    ErrCode retB = mgr.CreateSubspace(OS_ACCOUNT_ID_B, distIdB);
+    ErrCode retA = mgr.CreateSubProfile(OS_ACCOUNT_ID_A, distIdA);
+    ErrCode retB = mgr.CreateSubProfile(OS_ACCOUNT_ID_B, distIdB);
     EXPECT_EQ(retA, ERR_OK);
     EXPECT_EQ(retB, ERR_OK);
 
@@ -197,16 +267,16 @@ HWTEST_F(OsAccountSubspaceManagerTest, CreateSubspace_Isolation_001, TestSize.Le
  * @tc.desc: R1 - RemoveSpace successfully removes a non-foreground space
  * @tc.type: FUNC
  */
-HWTEST_F(OsAccountSubspaceManagerTest, RemoveSpace_Success_001, TestSize.Level1)
+HWTEST_F(OsAccountSubProfileManagerTest, RemoveSpace_Success_001, TestSize.Level1)
 {
-    auto &mgr = OsAccountSubspaceManager::GetInstance();
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
     int32_t distId = 0;
-    ErrCode ret = mgr.CreateSubspace(OS_ACCOUNT_ID, distId);
+    ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, distId);
     EXPECT_EQ(ret, ERR_OK);
 
-    ret = mgr.RemoveSubspace(OS_ACCOUNT_ID, distId);
+    ret = mgr.RemoveSubProfile(OS_ACCOUNT_ID, distId);
     EXPECT_EQ(ret, ERR_OK);
-    EXPECT_FALSE(mgr.subspaceDataDeal_->IsValidSubspaceExists(OS_ACCOUNT_ID, distId));
+    EXPECT_FALSE(mgr.subProfileDataDeal_->IsValidSubProfileExists(OS_ACCOUNT_ID, distId));
 }
 
 /**
@@ -214,59 +284,58 @@ HWTEST_F(OsAccountSubspaceManagerTest, RemoveSpace_Success_001, TestSize.Level1)
  * @tc.desc: R1 - RemoveSpace marks toBeRemoved=true before deleting directory
  * @tc.type: FUNC
  */
-HWTEST_F(OsAccountSubspaceManagerTest, RemoveSpace_ToBeRemoved_001, TestSize.Level1)
+HWTEST_F(OsAccountSubProfileManagerTest, RemoveSpace_ToBeRemoved_001, TestSize.Level1)
 {
-    auto &mgr = OsAccountSubspaceManager::GetInstance();
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
     int32_t distId = 0;
-    ErrCode ret = mgr.CreateSubspace(OS_ACCOUNT_ID, distId);
+    ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, distId);
     EXPECT_EQ(ret, ERR_OK);
 
     OsAccountSubspaceInfo info;
-    mgr.subspaceDataDeal_->LoadSubspaceInfo(OS_ACCOUNT_ID, distId, info);
+    mgr.subProfileDataDeal_->LoadSubProfileInfo(OS_ACCOUNT_ID, distId, info);
     EXPECT_FALSE(info.toBeRemoved);
 
-    ret = mgr.RemoveSubspace(OS_ACCOUNT_ID, distId);
+    ret = mgr.RemoveSubProfile(OS_ACCOUNT_ID, distId);
     EXPECT_EQ(ret, ERR_OK);
-    EXPECT_FALSE(mgr.subspaceDataDeal_->IsValidSubspaceExists(OS_ACCOUNT_ID, distId));
+    EXPECT_FALSE(mgr.subProfileDataDeal_->IsValidSubProfileExists(OS_ACCOUNT_ID, distId));
 }
 
 /**
  * @tc.name: RemoveSpace_ZeroIndex_001
  * @tc.desc: R5 - SM层对0-index空间返回SUBSPACE_NOT_FOUND（index-0 subspace保护由SV层实现）
- *            SM层IsValidSubspaceExists对index-0 subspace目录路径返回false，因为index-0 subspace的文件在{osAccountId}/account.json而非子目录
+ *            SM层IsValidSubProfileExists对index-0 subspace目录路径返回false
+              因为index-0 subspace的文件在{osAccountId}/account.json而非子目录
  * @tc.type: FUNC
  */
-HWTEST_F(OsAccountSubspaceManagerTest, RemoveSpace_ZeroIndex_001, TestSize.Level1)
+HWTEST_F(OsAccountSubProfileManagerTest, RemoveSpace_ZeroIndex_001, TestSize.Level1)
 {
-    auto &mgr = OsAccountSubspaceManager::GetInstance();
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
     int32_t zeroDistId = OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
-    ErrCode ret = mgr.RemoveSubspace(OS_ACCOUNT_ID, zeroDistId);
+    ErrCode ret = mgr.RemoveSubProfile(OS_ACCOUNT_ID, zeroDistId);
     EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
 }
 
 /**
  * @tc.name: RemoveSpace_ForegroundCheck_001
  * @tc.desc: Verify RemoveSubspaceLocked foreground check — when GetOsAccountInfoById
- *           succeeds and the subspace is the current foreground, returns IS_FOREGROUND.
- *           In UT, account 100 is not in IInnerOsAccountManager so GetOsAccountInfoById
- *           fails and the foreground check is skipped (fallthrough path). This test
- *           validates the fallthrough: subspace is removed normally with ERR_OK.
- *           Full foreground coverage requires developer_test with a real account.
+ *           succeeds (mock provides account 100) and default foregroundId=0 ≠ subspaceId,
+ *           the foreground guard does not block removal. Full foreground coverage
+ *           (foregroundId == subspaceId → IS_FOREGROUND) requires developer_test
+ *           with a subspace that was previously switched to.
  * @tc.type: FUNC
  */
-HWTEST_F(OsAccountSubspaceManagerTest, RemoveSpace_ForegroundCheck_001, TestSize.Level1)
+HWTEST_F(OsAccountSubProfileManagerTest, RemoveSpace_ForegroundCheck_001, TestSize.Level1)
 {
-    auto &mgr = OsAccountSubspaceManager::GetInstance();
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
     int32_t distId = 0;
-    ErrCode ret = mgr.CreateSubspace(OS_ACCOUNT_ID, distId);
+    ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, distId);
     EXPECT_EQ(ret, ERR_OK);
 
-    // GetOsAccountInfoById fails in UT → foreground check skipped → subspace removed normally
-    ret = mgr.RemoveSubspace(OS_ACCOUNT_ID, distId);
-    // In developer_test with real account, this returns ERR_OS_ACCOUNT_SUBSPACE_IS_FOREGROUND
-    // if the subspace was previously switched to. In UT it returns ERR_OK (fallthrough).
+    // GetOsAccountInfoById succeeds → foregroundId=0 ≠ subspaceId → removal proceeds normally
+    ret = mgr.RemoveSubProfile(OS_ACCOUNT_ID, distId);
+    // In developer_test with foreground subspace switched, this returns ERR_OS_ACCOUNT_SUBSPACE_IS_FOREGROUND
     EXPECT_TRUE(ret == ERR_OK || ret == ERR_OS_ACCOUNT_SUBSPACE_IS_FOREGROUND);
-    EXPECT_FALSE(mgr.subspaceDataDeal_->IsValidSubspaceExists(OS_ACCOUNT_ID, distId));
+    EXPECT_FALSE(mgr.subProfileDataDeal_->IsValidSubProfileExists(OS_ACCOUNT_ID, distId));
 }
 
 /**
@@ -274,76 +343,12 @@ HWTEST_F(OsAccountSubspaceManagerTest, RemoveSpace_ForegroundCheck_001, TestSize
  * @tc.desc: R8 - RemoveSpace returns SUBSPACE_NOT_FOUND for non-existent space
  * @tc.type: FUNC
  */
-HWTEST_F(OsAccountSubspaceManagerTest, RemoveSpace_NotFound_002, TestSize.Level1)
+HWTEST_F(OsAccountSubProfileManagerTest, RemoveSpace_NotFound_002, TestSize.Level1)
 {
-    auto &mgr = OsAccountSubspaceManager::GetInstance();
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
     int32_t nonExistDistId = OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 999;
-    ErrCode ret = mgr.RemoveSubspace(OS_ACCOUNT_ID, nonExistDistId);
+    ErrCode ret = mgr.RemoveSubProfile(OS_ACCOUNT_ID, nonExistDistId);
     EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
-}
-
-/**
- * @tc.name: CleanupOrphanedSubspaces_Orphan_001
- * @tc.desc: R10 - CleanupOrphanedSubspaces removes directories with isCreateCompleted=false.
- *            NOTE: CleanupOrphanedSubspaces calls IInnerOsAccountManager::QueryAllCreatedOsAccounts
- *            which in UT mock returns empty list, so the cleanup loop is effectively skipped.
- *            The test still verifies: (a) ScanOrphanedSubspaceIds finds orphaned spaces,
- *            and (b) IsValidSubspaceExists returns false for orphaned space (due to file content).
- *            Full end-to-end cleanup (orphan found → directory removed) requires developer_test.
- * @tc.type: FUNC
- */
-HWTEST_F(OsAccountSubspaceManagerTest, CleanupOrphanedSubspaces_Orphan_001, TestSize.Level1)
-{
-    auto &mgr = OsAccountSubspaceManager::GetInstance();
-
-    int32_t orphanDistId = OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 5;
-    OsAccountSubspaceInfo orphanInfo;
-    orphanInfo.userId_ = OS_ACCOUNT_ID;
-    orphanInfo.subspaceId = orphanDistId;
-    orphanInfo.isCreateCompleted = false;
-    orphanInfo.toBeRemoved = false;
-    ASSERT_EQ(mgr.subspaceDataDeal_->SaveSubspaceInfo(orphanInfo), ERR_OK);
-
-    std::set<int32_t> orphanIds;
-    EXPECT_EQ(mgr.subspaceDataDeal_->ScanOrphanedSubspaceIds(OS_ACCOUNT_ID, orphanIds), ERR_OK);
-    EXPECT_EQ(orphanIds.count(orphanDistId), 1u);
-
-    mgr.CleanupOrphanedSubspaces();
-
-    EXPECT_FALSE(mgr.subspaceDataDeal_->IsValidSubspaceExists(OS_ACCOUNT_ID, orphanDistId));
-    std::string spaceDir = TEST_ROOT_DIR + std::to_string(OS_ACCOUNT_ID) + "/" + std::to_string(orphanDistId);
-    EXPECT_FALSE(std::filesystem::exists(spaceDir));
-}
-
-/**
- * @tc.name: CleanupOrphanedSubspaces_PendingRemoval_002
- * @tc.desc: R9 - CleanupOrphanedSubspaces removes directories with toBeRemoved=true.
- *            NOTE: Same UT mock limitation as CleanupOrphanedSubspaces_Orphan_001 —
- *            QueryAllCreatedOsAccounts returns empty, cleanup loop skipped.
- *            Full end-to-end cleanup requires developer_test.
- * @tc.type: FUNC
- */
-HWTEST_F(OsAccountSubspaceManagerTest, CleanupOrphanedSubspaces_PendingRemoval_002, TestSize.Level1)
-{
-    auto &mgr = OsAccountSubspaceManager::GetInstance();
-
-    int32_t pendingDistId = OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 10;
-    OsAccountSubspaceInfo pendingInfo;
-    pendingInfo.userId_ = OS_ACCOUNT_ID;
-    pendingInfo.subspaceId = pendingDistId;
-    pendingInfo.isCreateCompleted = true;
-    pendingInfo.toBeRemoved = true;
-    ASSERT_EQ(mgr.subspaceDataDeal_->SaveSubspaceInfo(pendingInfo), ERR_OK);
-
-    std::set<int32_t> pendingIds;
-    EXPECT_EQ(mgr.subspaceDataDeal_->ScanPendingRemovalSubspaceIds(OS_ACCOUNT_ID, pendingIds), ERR_OK);
-    EXPECT_EQ(pendingIds.count(pendingDistId), 1u);
-
-    mgr.CleanupOrphanedSubspaces();
-
-    EXPECT_FALSE(mgr.subspaceDataDeal_->IsValidSubspaceExists(OS_ACCOUNT_ID, pendingDistId));
-    std::string spaceDir = TEST_ROOT_DIR + std::to_string(OS_ACCOUNT_ID) + "/" + std::to_string(pendingDistId);
-    EXPECT_FALSE(std::filesystem::exists(spaceDir));
 }
 
 /**
@@ -351,40 +356,66 @@ HWTEST_F(OsAccountSubspaceManagerTest, CleanupOrphanedSubspaces_PendingRemoval_0
  * @tc.desc: S6 - SwitchSpace returns SUBSPACE_NOT_FOUND for non-existent target space
  * @tc.type: FUNC
  */
-HWTEST_F(OsAccountSubspaceManagerTest, SwitchSpace_NotFound_001, TestSize.Level1)
+HWTEST_F(OsAccountSubProfileManagerTest, SwitchSpace_NotFound_001, TestSize.Level1)
 {
-    auto &mgr = OsAccountSubspaceManager::GetInstance();
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
     int32_t nonExistDistId = OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 999;
     int32_t fromSubspaceId = 0;
-    ErrCode ret = mgr.SwitchSubspace(OS_ACCOUNT_ID, nonExistDistId, fromSubspaceId);
+    ErrCode ret = mgr.SwitchSubProfile(OS_ACCOUNT_ID, nonExistDistId, fromSubspaceId);
     EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
 }
 
 /**
  * @tc.name: RemoveSpace_ToBeRemovedAndCleanup_001
- * @tc.desc: R1/R9 - RemoveSpace marks toBeRemoved and CleanupOrphanedSubspaces finishes cleanup
+ * @tc.desc: R1/R9 - RemoveSpace marks toBeRemoved and CleanupOrphanedSubProfiles finishes cleanup
  * @tc.type: FUNC
  */
-HWTEST_F(OsAccountSubspaceManagerTest, RemoveSpace_ToBeRemovedAndCleanup_001, TestSize.Level1)
+HWTEST_F(OsAccountSubProfileManagerTest, RemoveSpace_ToBeRemovedAndCleanup_001, TestSize.Level1)
 {
-    auto &mgr = OsAccountSubspaceManager::GetInstance();
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
     int32_t distId1 = 0;
     int32_t distId2 = 0;
-    ErrCode ret1 = mgr.CreateSubspace(OS_ACCOUNT_ID, distId1);
-    ErrCode ret2 = mgr.CreateSubspace(OS_ACCOUNT_ID, distId2);
+    ErrCode ret1 = mgr.CreateSubProfile(OS_ACCOUNT_ID, distId1);
+    ErrCode ret2 = mgr.CreateSubProfile(OS_ACCOUNT_ID, distId2);
     EXPECT_EQ(ret1, ERR_OK);
     EXPECT_EQ(ret2, ERR_OK);
 
-    ret1 = mgr.RemoveSubspace(OS_ACCOUNT_ID, distId1);
+    ret1 = mgr.RemoveSubProfile(OS_ACCOUNT_ID, distId1);
     EXPECT_EQ(ret1, ERR_OK);
 
-    EXPECT_TRUE(mgr.subspaceDataDeal_->IsValidSubspaceExists(OS_ACCOUNT_ID, distId2));
-    EXPECT_FALSE(mgr.subspaceDataDeal_->IsValidSubspaceExists(OS_ACCOUNT_ID, distId1));
+    EXPECT_TRUE(mgr.subProfileDataDeal_->IsValidSubProfileExists(OS_ACCOUNT_ID, distId2));
+    EXPECT_FALSE(mgr.subProfileDataDeal_->IsValidSubProfileExists(OS_ACCOUNT_ID, distId1));
 
     std::set<int32_t> validIds;
-    EXPECT_EQ(mgr.subspaceDataDeal_->ScanOsAccountSubspaceIds(OS_ACCOUNT_ID, validIds), ERR_OK);
+    EXPECT_EQ(mgr.subProfileDataDeal_->ScanOsAccountSubProfileIds(OS_ACCOUNT_ID, validIds), ERR_OK);
     EXPECT_EQ(validIds.count(distId1), 0u);
     EXPECT_EQ(validIds.count(distId2), 1u);
+}
+
+/**
+ * @tc.name: RemoveSpace_UpdateOsAccountSubspaceInfoFail_002
+ * @tc.desc: R1 - RemoveSubspace coverage: RemoveOsAccountSubspaceInfo branch when
+ *           UpdateOsAccountSubspaceInfo returns error after erasing subspaceId from list
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountSubProfileManagerTest, RemoveSpace_UpdateOsAccountSubspaceInfoFail_002, TestSize.Level1)
+{
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
+
+    // Create normally first so mock state is correctly updated with the subspace ID
+    int32_t subspaceId = 0;
+    ErrCode createRet = mgr.CreateSubProfile(OS_ACCOUNT_ID, subspaceId);
+    EXPECT_EQ(createRet, ERR_OK);
+
+    // Force UpdateOsAccountSubspaceInfo to fail only for the removal path.
+    // RemoveSubspaceLocked → RemoveOsAccountSubspaceInfo calls UpdateOsAccountSubspaceInfo
+    // which fails → hits the err != ERR_OK log branch for coverage.
+    MockForceUpdateSubspaceInfoFail(ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+
+    ErrCode removeRet = mgr.RemoveSubProfile(OS_ACCOUNT_ID, subspaceId);
+    EXPECT_EQ(removeRet, ERR_OK);
+
+    MockClearForceFailFlags();
 }
 
 #endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE

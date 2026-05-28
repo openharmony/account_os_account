@@ -29,6 +29,9 @@ void ResetMockState();
 void MockSetCallingUid(int32_t uid);
 void MockSetCallingUserId(int32_t userId);
 void MockSetCreatedOsAccounts(const std::vector<OsAccountInfo> &accounts);
+void MockForceUpdateSubspaceInfoFail(ErrCode errCode);
+void MockForceGetOsAccountInfoByIdFail(ErrCode errCode);
+void MockClearForceFailFlags();
 std::string GenerateOhosUdidWithSha256(const std::string &name, const std::string &uid);
 
 } // namespace AccountSA

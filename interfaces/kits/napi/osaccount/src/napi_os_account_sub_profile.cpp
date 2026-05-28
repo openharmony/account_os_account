@@ -42,7 +42,7 @@ std::vector<std::shared_ptr<SubspaceSubscriber>> g_subspaceSubscribers;
 static void CreateOsAccountSubProfileExecuteCB(napi_env env, void *data)
 {
     auto *ctx = reinterpret_cast<SubProfileAsyncContext *>(data);
-    ctx->errCode = OsAccountSubspaceClient::GetInstance().CreateOsAccountSubspace(
+    ctx->errCode = OsAccountSubProfileClient::GetInstance().CreateOsAccountSubProfile(
         ctx->osAccountId, ctx->result);
 }
 
@@ -75,14 +75,14 @@ static void CreateOsAccountSubProfileCompletedCB(napi_env env, napi_status statu
 static void DeleteOsAccountSubProfileExecuteCB(napi_env env, void *data)
 {
     auto *ctx = reinterpret_cast<SubProfileAsyncContext *>(data);
-    ctx->errCode = OsAccountSubspaceClient::GetInstance().DeleteOsAccountSubspace(
+    ctx->errCode = OsAccountSubProfileClient::GetInstance().DeleteOsAccountSubProfile(
         ctx->osAccountId, ctx->subProfileId);
 }
 
 static void SwitchOsAccountSubProfileExecuteCB(napi_env env, void *data)
 {
     auto *ctx = reinterpret_cast<SubProfileAsyncContext *>(data);
-    ctx->errCode = OsAccountSubspaceClient::GetInstance().SwitchOsAccountSubspace(
+    ctx->errCode = OsAccountSubProfileClient::GetInstance().SwitchOsAccountSubProfile(
         ctx->osAccountId, ctx->subProfileId);
 }
 }  // namespace
@@ -579,10 +579,10 @@ static void GetForegroundSubProfileIdExecuteCB(napi_env env, void *data)
     GetOsAccountSubProfileInfoAsyncContext *asyncContext =
         reinterpret_cast<GetOsAccountSubProfileInfoAsyncContext *>(data);
     if (asyncContext->hasLocalId) {
-        asyncContext->errCode = OsAccountSubspaceClient::GetInstance().GetOsAccountForegroundSubProfileId(
+        asyncContext->errCode = OsAccountSubProfileClient::GetInstance().GetOsAccountForegroundSubProfileId(
             asyncContext->localId, asyncContext->subProfileId);
     } else {
-        asyncContext->errCode = OsAccountSubspaceClient::GetInstance().GetOsAccountForegroundSubProfileId(
+        asyncContext->errCode = OsAccountSubProfileClient::GetInstance().GetOsAccountForegroundSubProfileId(
             asyncContext->subProfileId);
     }
 }
@@ -658,10 +658,10 @@ static void GetSubProfileIdsExecuteCB(napi_env env, void *data)
     GetOsAccountSubProfileInfoAsyncContext *asyncContext =
         reinterpret_cast<GetOsAccountSubProfileInfoAsyncContext *>(data);
     if (asyncContext->hasLocalId) {
-        asyncContext->errCode = OsAccountSubspaceClient::GetInstance().GetOsAccountSubProfileIds(
+        asyncContext->errCode = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfileIds(
             asyncContext->localId, asyncContext->subProfileIds);
     } else {
-        asyncContext->errCode = OsAccountSubspaceClient::GetInstance().GetOsAccountSubProfileIds(
+        asyncContext->errCode = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfileIds(
             asyncContext->subProfileIds);
     }
 }
@@ -744,7 +744,7 @@ static void GetLocalIdForSubProfileExecuteCB(napi_env env, void *data)
 {
     GetOsAccountSubProfileInfoAsyncContext *asyncContext =
         reinterpret_cast<GetOsAccountSubProfileInfoAsyncContext *>(data);
-    asyncContext->errCode = OsAccountSubspaceClient::GetInstance().GetOsAccountLocalIdForSubProfile(
+    asyncContext->errCode = OsAccountSubProfileClient::GetInstance().GetOsAccountLocalIdForSubProfile(
         asyncContext->subProfileId, asyncContext->localId);
 }
 
@@ -838,11 +838,11 @@ static void GetSubProfileExecuteCB(napi_env env, void *data)
     GetOsAccountSubProfileAsyncContext *asyncContext =
         reinterpret_cast<GetOsAccountSubProfileAsyncContext *>(data);
     if (asyncContext->hasLocalId) {
-        asyncContext->errCode = OsAccountSubspaceClient::GetInstance().GetOsAccountSubProfile(
+        asyncContext->errCode = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfile(
             asyncContext->localId, asyncContext->subProfileId,
             asyncContext->subspaceResult, asyncContext->distributedInfo);
     } else {
-        asyncContext->errCode = OsAccountSubspaceClient::GetInstance().GetOsAccountSubProfile(
+        asyncContext->errCode = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfile(
             asyncContext->subProfileId, asyncContext->subspaceResult, asyncContext->distributedInfo);
     }
 }

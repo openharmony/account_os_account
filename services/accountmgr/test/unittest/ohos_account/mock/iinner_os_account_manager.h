@@ -23,13 +23,24 @@
 namespace OHOS {
 namespace AccountSA {
 
+class OsAccountControlFileManager;
+
 class IInnerOsAccountManager {
 public:
     static IInnerOsAccountManager &GetInstance();
     ErrCode QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos);
     ErrCode GetOsAccountInfoById(const int id, OsAccountInfo &osAccountInfo);
     ErrCode SetOsAccountForegroundSubspaceId(int32_t localId, int32_t subspaceId);
+    ErrCode UpdateOsAccountSubspaceInfo(int32_t localId, int32_t nextSubProfileId,
+        const std::vector<std::string> &subProfileIdList);
+    ErrCode CreateOsAccount(const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo);
+    ErrCode RemoveOsAccount(const int id);
+    OsAccountControlFileManager &GetFileController();
 };
+
+void MockForceUpdateSubspaceInfoFail(ErrCode errCode);
+void MockForceGetOsAccountInfoByIdFail(ErrCode errCode);
+void MockClearForceFailFlags();
 
 } // namespace AccountSA
 } // namespace OHOS

@@ -13,15 +13,17 @@
  * limitations under the License.
  */
 
-#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OS_ACCOUNT_SUBSPACE_DATA_DEAL_H
-#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OS_ACCOUNT_SUBSPACE_DATA_DEAL_H
+#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OS_ACCOUNT_SUB_PROFILE_DATA_DEAL_H
+#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OS_ACCOUNT_SUB_PROFILE_DATA_DEAL_H
 
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 
+#include <dirent.h>
 #include <functional>
 #include <memory>
 #include <set>
 #include <string>
+#include <vector>
 #include "account_error_no.h"
 #include "account_file_operator.h"
 #include "account_info.h"
@@ -29,32 +31,36 @@
 namespace OHOS {
 namespace AccountSA {
 
-extern const int32_t MAX_OS_ACCOUNT_SUBSPACE_COUNT;
+extern const int32_t MAX_OS_ACCOUNT_SUB_PROFILE_COUNT;
 
 /**
  * @brief Handles read/write of non-0 OS account subspace account.json files.
  *
  * File path: {configRootDir}/{osAccountId}/{subspaceId}/account.json
  */
-class OsAccountSubspaceDataDeal {
+class OsAccountSubProfileDataDeal {
 public:
-    static constexpr int32_t OS_ACCOUNT_SUBSPACE_INDEX_MIN = 1;
-    static constexpr int32_t OS_ACCOUNT_SUBSPACE_INDEX_MAX = 999;
+    static constexpr int32_t OS_ACCOUNT_SUB_PROFILE_INDEX_MIN = 1;
+    static constexpr int32_t OS_ACCOUNT_SUB_PROFILE_INDEX_MAX = 999;
 public:
-    explicit OsAccountSubspaceDataDeal(const std::string &configRootDir);
-    ~OsAccountSubspaceDataDeal() = default;
+    explicit OsAccountSubProfileDataDeal(const std::string &configRootDir);
+    ~OsAccountSubProfileDataDeal() = default;
 
     /**
-     * @brief Allocate the minimum available OS account subspace ID for given osAccountId.
-     * Given the set of already-used indices, finds the smallest index in [1,999] not in usedIndices.
+     * @brief Allocate the next available OS account subspace ID for given osAccountId.
+     * Pure computation: uses nextSubProfileId hint + subProfileIdList from OsAccountInfo
+     * to determine the next ID. No file I/O.
+     * If nextSubProfileId == -1 (first subspace), starts from osAccountId*1000+1.
+     * If the hinted slot is occupied, searches forward wrapping from MAX to MIN.
      *
-     * @param osAccountId  the OS account ID
-     * @param usedIndices  set of already-used index values
-     * @param outId        output: the allocated subspaceId
+     * @param osAccountId       the OS account ID
+     * @param nextSubProfileId  hint from OsAccountInfo.nextSubProfileId_ (-1 if first)
+     * @param subProfileIdStrList existing subspace IDs from OsAccountInfo.subProfileIdList_
+     * @param outId              output: the allocated subspaceId
      * @return ERR_OK on success, ERR_OS_ACCOUNT_SUBSPACE_LIMIT if all indices exhausted
      */
-    static ErrCode AllocateOsAccountSubspaceId(int32_t osAccountId,
-        const std::set<int32_t> &usedIndices, int32_t &outId);
+    ErrCode AllocateOsAccountSubProfileId(int32_t osAccountId, int32_t nextSubProfileId,
+        const std::vector<std::string> &subProfileIdStrList, int32_t &outId);
 
     /**
      * @brief Scan non-0 OS account subspace directories under osAccountId.
@@ -64,7 +70,7 @@ public:
      * @param validIds     output: set of valid subspaceIds
      * @return ERR_OK always (invalid subspaces are simply skipped)
      */
-    ErrCode ScanOsAccountSubspaceIds(int32_t osAccountId, std::set<int32_t> &validIds) const;
+    ErrCode ScanOsAccountSubProfileIds(int32_t osAccountId, std::set<int32_t> &validIds) const;
 
     /**
      * @brief Write OsAccountSubspaceInfo to the corresponding account.json.
@@ -72,7 +78,7 @@ public:
      * @param info  subspace info to persist
      * @return ERR_OK on success
      */
-    ErrCode SaveSubspaceInfo(const OsAccountSubspaceInfo &info);
+    ErrCode SaveSubProfileInfo(const OsAccountSubspaceInfo &info);
 
     /**
      * @brief Read OsAccountSubspaceInfo from account.json.
@@ -82,7 +88,7 @@ public:
      * @param info          output: loaded subspace info
      * @return ERR_OK on success, error code otherwise
      */
-    ErrCode LoadSubspaceInfo(int32_t osAccountId, int32_t subspaceId,
+    ErrCode LoadSubProfileInfo(int32_t osAccountId, int32_t subspaceId,
         OsAccountSubspaceInfo &info) const;
 
     /**
@@ -92,7 +98,7 @@ public:
      * @param subspaceId    OS account subspace ID
      * @return ERR_OK on success
      */
-    ErrCode RemoveSubspaceDir(int32_t osAccountId, int32_t subspaceId);
+    ErrCode RemoveSubProfileDir(int32_t osAccountId, int32_t subspaceId);
 
     /**
      * @brief Scan non-0 OS account subspace directories for orphaned (incomplete) subspaces.
@@ -102,7 +108,7 @@ public:
      * @param orphanIds    output: set of orphaned subspaceIds
      * @return ERR_OK always (missing dirs are simply skipped)
      */
-    ErrCode ScanOrphanedSubspaceIds(int32_t osAccountId, std::set<int32_t> &orphanIds) const;
+    ErrCode ScanOrphanedSubProfileIds(int32_t osAccountId, std::set<int32_t> &orphanIds) const;
 
     /**
      * @brief Scan non-0 OS account subspace directories for subspaces pending removal.
@@ -112,19 +118,20 @@ public:
      * @param pendingRemoveIds output: set of subspaceIds with to_be_removed=true
      * @return ERR_OK always (missing dirs are simply skipped)
      */
-    ErrCode ScanPendingRemovalSubspaceIds(int32_t osAccountId, std::set<int32_t> &pendingRemoveIds) const;
+    ErrCode ScanPendingRemovalSubProfileIds(int32_t osAccountId, std::set<int32_t> &pendingRemoveIds) const;
 
     /**
      * @brief Check whether a valid (completed, not-to-be-removed) subspace exists.
      */
-    bool IsValidSubspaceExists(int32_t osAccountId, int32_t subspaceId) const;
+    bool IsValidSubProfileExists(int32_t osAccountId, int32_t subspaceId) const;
 
 private:
-    std::string GetSubspaceDir(int32_t osAccountId, int32_t subspaceId) const;
-    std::string GetSubspaceFilePath(int32_t osAccountId, int32_t subspaceId) const;
-    ErrCode ParseSubspaceInfoFromJson(const std::string &jsonStr, OsAccountSubspaceInfo &info) const;
-    std::string SerializeSubspaceInfoToJson(const OsAccountSubspaceInfo &info) const;
-    ErrCode ScanSubspaceIdsWithFilter(int32_t osAccountId,
+    static int32_t ParseDirEntryAsSubProfileId(const struct dirent *entry, int32_t osAccountId, int32_t base);
+    std::string GetSubProfileDir(int32_t osAccountId, int32_t subspaceId) const;
+    std::string GetSubProfileFilePath(int32_t osAccountId, int32_t subspaceId) const;
+    ErrCode ParseSubProfileInfoFromJson(const std::string &jsonStr, OsAccountSubspaceInfo &info) const;
+    std::string SerializeSubProfileInfoToJson(const OsAccountSubspaceInfo &info) const;
+    ErrCode ScanSubProfileIds(int32_t osAccountId,
         std::function<bool(const OsAccountSubspaceInfo &)> filter,
         std::set<int32_t> &resultIds) const;
 
@@ -137,4 +144,4 @@ private:
 
 #endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 
-#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OS_ACCOUNT_SUBSPACE_DATA_DEAL_H
+#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OS_ACCOUNT_SUB_PROFILE_DATA_DEAL_H

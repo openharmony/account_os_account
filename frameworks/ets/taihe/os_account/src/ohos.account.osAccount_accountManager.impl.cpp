@@ -1706,7 +1706,7 @@ public:
     OsAccountSubProfile CreateOsAccountSubProfileSync(int32_t osAccountId)
     {
         AccountSA::OsAccountSubspaceResult cppResult;
-        ErrCode err = AccountSA::OsAccountSubspaceClient::GetInstance().CreateOsAccountSubspace(
+        ErrCode err = AccountSA::OsAccountSubProfileClient::GetInstance().CreateOsAccountSubProfile(
             osAccountId, cppResult);
         if (err != ERR_OK) {
             SetTaiheBusinessErrorFromNativeCode(err);
@@ -1720,7 +1720,7 @@ public:
 
     void DeleteOsAccountSubProfileSync(int32_t osAccountId, int32_t subProfileId)
     {
-        ErrCode err = AccountSA::OsAccountSubspaceClient::GetInstance().DeleteOsAccountSubspace(
+        ErrCode err = AccountSA::OsAccountSubProfileClient::GetInstance().DeleteOsAccountSubProfile(
             osAccountId, subProfileId);
         if (err != ERR_OK) {
             SetTaiheBusinessErrorFromNativeCode(err);
@@ -1729,7 +1729,7 @@ public:
 
     void SwitchOsAccountSubProfileSync(int32_t osAccountId, int32_t subProfileId)
     {
-        ErrCode err = AccountSA::OsAccountSubspaceClient::GetInstance().SwitchOsAccountSubspace(
+        ErrCode err = AccountSA::OsAccountSubProfileClient::GetInstance().SwitchOsAccountSubProfile(
             osAccountId, subProfileId);
         if (err != ERR_OK) {
             SetTaiheBusinessErrorFromNativeCode(err);
@@ -1832,7 +1832,7 @@ public:
     int32_t GetOsAccountForegroundSubProfileIdSync()
     {
         int32_t subProfileId = 0;
-        ErrCode err = AccountSA::OsAccountSubspaceClient::GetInstance().GetOsAccountForegroundSubProfileId(
+        ErrCode err = AccountSA::OsAccountSubProfileClient::GetInstance().GetOsAccountForegroundSubProfileId(
             subProfileId);
         if (err != ERR_OK) {
             SetTaiheBusinessErrorFromNativeCode(err);
@@ -1843,7 +1843,7 @@ public:
     int32_t GetOsAccountForegroundSubProfileIdWithIdSync(int32_t osAccountId)
     {
         int32_t subProfileId = 0;
-        ErrCode err = AccountSA::OsAccountSubspaceClient::GetInstance().GetOsAccountForegroundSubProfileId(
+        ErrCode err = AccountSA::OsAccountSubProfileClient::GetInstance().GetOsAccountForegroundSubProfileId(
             osAccountId, subProfileId);
         if (err != ERR_OK) {
             SetTaiheBusinessErrorFromNativeCode(err);
@@ -1854,7 +1854,7 @@ public:
     taihe::array<int32_t> GetOsAccountSubProfileIdsSync()
     {
         std::vector<int32_t> subProfileIds;
-        ErrCode err = AccountSA::OsAccountSubspaceClient::GetInstance().GetOsAccountSubProfileIds(
+        ErrCode err = AccountSA::OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfileIds(
             subProfileIds);
         if (err != ERR_OK) {
             SetTaiheBusinessErrorFromNativeCode(err);
@@ -1865,7 +1865,7 @@ public:
     taihe::array<int32_t> GetOsAccountSubProfileIdsWithIdSync(int32_t osAccountId)
     {
         std::vector<int32_t> subProfileIds;
-        ErrCode err = AccountSA::OsAccountSubspaceClient::GetInstance().GetOsAccountSubProfileIds(
+        ErrCode err = AccountSA::OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfileIds(
             osAccountId, subProfileIds);
         if (err != ERR_OK) {
             SetTaiheBusinessErrorFromNativeCode(err);
@@ -1876,7 +1876,7 @@ public:
     int32_t GetOsAccountLocalIdForSubProfileSync(int32_t subProfileId)
     {
         int32_t osAccountId = 0;
-        ErrCode err = AccountSA::OsAccountSubspaceClient::GetInstance().GetOsAccountLocalIdForSubProfile(
+        ErrCode err = AccountSA::OsAccountSubProfileClient::GetInstance().GetOsAccountLocalIdForSubProfile(
             subProfileId, osAccountId);
         if (err != ERR_OK) {
             SetTaiheBusinessErrorFromNativeCode(err);
@@ -1888,7 +1888,7 @@ public:
     {
         AccountSA::OsAccountSubspaceResult cppResult;
         AccountSA::OhosAccountInfo distInfo;
-        ErrCode err = AccountSA::OsAccountSubspaceClient::GetInstance().GetOsAccountSubProfile(
+        ErrCode err = AccountSA::OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfile(
             subProfileId, cppResult, distInfo);
         if (err != ERR_OK) {
             SetTaiheBusinessErrorFromNativeCode(err);
@@ -1908,7 +1908,7 @@ public:
     {
         AccountSA::OsAccountSubspaceResult cppResult;
         AccountSA::OhosAccountInfo distInfo;
-        ErrCode err = AccountSA::OsAccountSubspaceClient::GetInstance().GetOsAccountSubProfile(
+        ErrCode err = AccountSA::OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfile(
             osAccountId, subProfileId, cppResult, distInfo);
         if (err != ERR_OK) {
             SetTaiheBusinessErrorFromNativeCode(err);

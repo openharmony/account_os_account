@@ -114,10 +114,10 @@ public:
     ErrCode GetOsAccountSubProfile(int32_t osAccountId, int32_t subProfileId,
         OsAccountSubspaceResult &subspaceResult, OhosAccountInfo &distributedInfo);
     ErrCode GetOhosAccountDistributedInfoFromSubspace(
-        int32_t localId, int32_t fgSubspaceId, OhosAccountInfo &ohosAccountInfo);
+        int32_t localId, int32_t fgSubProfileId, OhosAccountInfo &ohosAccountInfo);
 
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-    void InitOsAccountSubspaceManager(const std::string &rootPath);
+    void InitOsAccountSubProfileManager(const std::string &rootPath);
     ErrCode CreateOsAccountSubspace(int32_t osAccountId, OsAccountSubspaceResult &result);
     ErrCode DeleteOsAccountSubspace(int32_t osAccountId, int32_t subspaceId);
     ErrCode SwitchOsAccountSubspace(int32_t osAccountId, int32_t subspaceId, int32_t &fromSubspaceId);

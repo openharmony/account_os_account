@@ -42,7 +42,7 @@ ErrCode CheckSubspacePermission()
 }
 }  // namespace
 
-int32_t OsAccountSubspaceManagerService::CreateOsAccountSubspace(
+int32_t OsAccountSubProfileManagerService::CreateOsAccountSubProfile(
     int32_t osAccountId, OsAccountSubspaceResult &subspaceResult)
 {
     ErrCode permRet = CheckSubspacePermission();
@@ -64,7 +64,7 @@ int32_t OsAccountSubspaceManagerService::CreateOsAccountSubspace(
     return ret;
 }
 
-int32_t OsAccountSubspaceManagerService::DeleteOsAccountSubspace(
+int32_t OsAccountSubProfileManagerService::DeleteOsAccountSubProfile(
     int32_t osAccountId, int32_t subspaceId)
 {
     ErrCode permRet = CheckSubspacePermission();
@@ -92,7 +92,7 @@ int32_t OsAccountSubspaceManagerService::DeleteOsAccountSubspace(
     return ret;
 }
 
-int32_t OsAccountSubspaceManagerService::SwitchOsAccountSubspace(
+int32_t OsAccountSubProfileManagerService::SwitchOsAccountSubProfile(
     int32_t osAccountId, int32_t subspaceId)
 {
     ErrCode permRet = CheckSubspacePermission();

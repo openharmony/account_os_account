@@ -49,7 +49,9 @@ const char DOMAIN_ACCOUNT_STATUS[] = "domainAccountStatus";
 const char DOMAIN_ACCOUNT_CONFIG[] = "domainServerConfigId";
 const char DOMAIN_ACCOUNT_ADDITION[] = "domainAdditionInfo";
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-const char FOREGROUND_SUBSPACE_ID[] = "foregroundSubspaceId";
+const char FOREGROUND_SUBPROFILE_ID[] = "foregroundSubProfileId";
+const char NEXT_SUBPROFILE_ID[] = "nextSubProfileId";
+const char SUBPROFILE_ID_LIST[] = "subProfileList";
 #endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 constexpr int32_t ALLOWED_HAP_LIST_MAX_SIZE = 1000;
 constexpr int32_t DISALLOWED_HAP_LIST_MAX_SIZE = 1000;

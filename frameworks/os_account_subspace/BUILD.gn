@@ -16,7 +16,7 @@ import("//build/ohos.gni")
 import("../../os_account.gni")
 
 idl_gen_interface("frameworks_os_account_subspace_interface") {
-  sources = [ "IOsAccountSubspace.idl" ]
+  sources = [ "IOsAccountSubProfile.idl" ]
   log_domainid = "0xD001B00"
   log_tag = "DistributedAccountSpaceFwk"
   subsystem_name = "account"
@@ -80,7 +80,7 @@ ohos_source_set("os_account_subspace_client") {
   sources = [ "src/os_account_subspace_client.cpp" ]
   if (os_account_enable_multiple_os_account_subspace) {
     output_values = get_target_outputs(":frameworks_os_account_subspace_interface")
-    sources += filter_include(output_values, [ "*os_account_subspace_proxy.cpp" ])
+    sources += filter_include(output_values, [ "*os_account_sub_profile_proxy.cpp" ])
   }
 
   configs = [ ":os_account_subspace_innerkits_config" ]
@@ -112,7 +112,7 @@ ohos_source_set("os_account_subspace_stub") {
   configs = [ ":os_account_subspace_innerkits_config" ]
   public_configs = [ ":os_account_subspace_innerkits_public_config" ]
   output_values = get_target_outputs(":frameworks_os_account_subspace_interface")
-  sources = filter_include(output_values, [ "*os_account_subspace_stub.cpp" ])
+  sources = filter_include(output_values, [ "*os_account_sub_profile_stub.cpp" ])
   deps = [ ":frameworks_os_account_subspace_interface" ]
   external_deps = [
     "c_utils:utils",

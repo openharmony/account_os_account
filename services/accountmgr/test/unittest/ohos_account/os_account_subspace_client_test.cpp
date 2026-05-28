@@ -21,7 +21,7 @@
 #undef private
 
 #include "account_error_no.h"
-#include "os_account_subspace_stub.h"
+#include "os_account_sub_profile_stub.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -33,25 +33,25 @@ constexpr int32_t TEST_OS_ACCOUNT_ID = 100;
 constexpr int32_t TEST_SUBSPACE_ID = 100001;
 constexpr ErrCode ERR_EXPECTED_FAILURE = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
 
-// Mock IOsAccountSubspace that overrides all three subspace operations.
-// Inherits OsAccountSubspaceStub to provide valid AsObject() and IRemoteObject semantics.
-class MockOsAccountSubspaceStub : public OsAccountSubspaceStub {
+// Mock IOsAccountSubProfile that overrides all three subspace operations.
+// Inherits OsAccountSubProfileStub to provide valid AsObject() and IRemoteObject semantics.
+class MockOsAccountSubProfileStub : public OsAccountSubProfileStub {
 public:
-    ErrCode CreateOsAccountSubspace(int32_t osAccountId, OsAccountSubspaceResult &result) override
+    ErrCode CreateOsAccountSubProfile(int32_t osAccountId, OsAccountSubspaceResult &result) override
     {
         lastCreateOsAccountId = osAccountId;
         result = createResult_;
         return createRet_;
     }
 
-    ErrCode DeleteOsAccountSubspace(int32_t osAccountId, int32_t subspaceId) override
+    ErrCode DeleteOsAccountSubProfile(int32_t osAccountId, int32_t subspaceId) override
     {
         lastDeleteOsAccountId = osAccountId;
         lastDeleteSubspaceId = subspaceId;
         return deleteRet_;
     }
 
-    ErrCode SwitchOsAccountSubspace(int32_t osAccountId, int32_t subspaceId) override
+    ErrCode SwitchOsAccountSubProfile(int32_t osAccountId, int32_t subspaceId) override
     {
         lastSwitchOsAccountId = osAccountId;
         lastSwitchSubspaceId = subspaceId;
@@ -71,58 +71,58 @@ public:
 };
 } // namespace
 
-// ===== OsAccountSubspaceClientTest =====
-class OsAccountSubspaceClientTest : public testing::Test {
+// ===== OsAccountSubProfileClientTest =====
+class OsAccountSubProfileClientTest : public testing::Test {
 public:
     void SetUp() override
     {
-        OsAccountSubspaceClient::GetInstance().proxy_ = nullptr;
-        OsAccountSubspaceClient::GetInstance().deathRecipient_ = nullptr;
+        OsAccountSubProfileClient::GetInstance().proxy_ = nullptr;
+        OsAccountSubProfileClient::GetInstance().deathRecipient_ = nullptr;
     }
     void TearDown() override
     {
-        OsAccountSubspaceClient::GetInstance().proxy_ = nullptr;
-        OsAccountSubspaceClient::GetInstance().deathRecipient_ = nullptr;
+        OsAccountSubProfileClient::GetInstance().proxy_ = nullptr;
+        OsAccountSubProfileClient::GetInstance().deathRecipient_ = nullptr;
     }
 };
 
 /**
- * @tc.name: OsAccountSubspaceClientTest_GetInstance_Singleton_001
+ * @tc.name: OsAccountSubProfileClientTest_GetInstance_Singleton_001
  * @tc.desc: GetInstance returns the same instance on multiple calls.
  */
-HWTEST_F(OsAccountSubspaceClientTest, GetInstance_Singleton_001, TestSize.Level1)
+HWTEST_F(OsAccountSubProfileClientTest, GetInstance_Singleton_001, TestSize.Level1)
 {
-    OsAccountSubspaceClient &instance1 = OsAccountSubspaceClient::GetInstance();
-    OsAccountSubspaceClient &instance2 = OsAccountSubspaceClient::GetInstance();
+    OsAccountSubProfileClient &instance1 = OsAccountSubProfileClient::GetInstance();
+    OsAccountSubProfileClient &instance2 = OsAccountSubProfileClient::GetInstance();
     EXPECT_EQ(&instance1, &instance2);
 }
 
 /**
- * @tc.name: OsAccountSubspaceClientTest_NoPermission_001
- * @tc.desc: CreateOsAccountSubspace returns PERMISSION_DENIED from proxy
+ * @tc.name: OsAccountSubProfileClientTest_NoPermission_001
+ * @tc.desc: OsAccountSubProfileClient::CreateOsAccountSubProfile returns PERMISSION_DENIED from proxy
  *           when the service denies access due to missing permission.
  */
-HWTEST_F(OsAccountSubspaceClientTest, NoPermission_001, TestSize.Level1)
+HWTEST_F(OsAccountSubProfileClientTest, NoPermission_001, TestSize.Level1)
 {
-    sptr<MockOsAccountSubspaceStub> mockProxy = new (std::nothrow) MockOsAccountSubspaceStub();
+    sptr<MockOsAccountSubProfileStub> mockProxy = new (std::nothrow) MockOsAccountSubProfileStub();
     ASSERT_NE(mockProxy, nullptr);
     mockProxy->createRet_ = ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
-    OsAccountSubspaceClient::GetInstance().proxy_ = mockProxy;
+    OsAccountSubProfileClient::GetInstance().proxy_ = mockProxy;
 
     OsAccountSubspaceResult result;
-    ErrCode ret = OsAccountSubspaceClient::GetInstance().CreateOsAccountSubspace(
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().CreateOsAccountSubProfile(
         TEST_OS_ACCOUNT_ID, result);
     EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
     EXPECT_EQ(mockProxy->lastCreateOsAccountId, TEST_OS_ACCOUNT_ID);
 }
 
 /**
- * @tc.name: OsAccountSubspaceClientTest_CreateOsAccountSubspace_Success_001
- * @tc.desc: CreateOsAccountSubspace delegates to proxy when proxy is valid.
+ * @tc.name: OsAccountSubProfileClientTest_CreateOsAccountSubProfile_Success_001
+ * @tc.desc: CreateOsAccountSubProfile delegates to proxy when proxy is valid.
  */
-HWTEST_F(OsAccountSubspaceClientTest, CreateOsAccountSubspace_Success_001, TestSize.Level1)
+HWTEST_F(OsAccountSubProfileClientTest, CreateOsAccountSubProfile_Success_001, TestSize.Level1)
 {
-    sptr<MockOsAccountSubspaceStub> mockProxy = new (std::nothrow) MockOsAccountSubspaceStub();
+    sptr<MockOsAccountSubProfileStub> mockProxy = new (std::nothrow) MockOsAccountSubProfileStub();
     ASSERT_NE(mockProxy, nullptr);
 
     mockProxy->createRet_ = ERR_OK;
@@ -130,10 +130,10 @@ HWTEST_F(OsAccountSubspaceClientTest, CreateOsAccountSubspace_Success_001, TestS
     mockProxy->createResult_.osAccountId = TEST_OS_ACCOUNT_ID;
     mockProxy->createResult_.index = 1;
 
-    OsAccountSubspaceClient::GetInstance().proxy_ = mockProxy;
+    OsAccountSubProfileClient::GetInstance().proxy_ = mockProxy;
 
     OsAccountSubspaceResult result;
-    ErrCode ret = OsAccountSubspaceClient::GetInstance().CreateOsAccountSubspace(
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().CreateOsAccountSubProfile(
         TEST_OS_ACCOUNT_ID, result);
 
     EXPECT_EQ(ret, ERR_OK);
@@ -144,19 +144,19 @@ HWTEST_F(OsAccountSubspaceClientTest, CreateOsAccountSubspace_Success_001, TestS
 }
 
 /**
- * @tc.name: OsAccountSubspaceClientTest_CreateOsAccountSubspace_ProxyError_001
- * @tc.desc: CreateOsAccountSubspace returns proxy error when proxy fails.
+ * @tc.name: OsAccountSubProfileClientTest_CreateOsAccountSubProfile_ProxyError_001
+ * @tc.desc: OsAccountSubProfileClient::CreateOsAccountSubProfile returns proxy error when proxy fails.
  */
-HWTEST_F(OsAccountSubspaceClientTest, CreateOsAccountSubspace_ProxyError_001, TestSize.Level1)
+HWTEST_F(OsAccountSubProfileClientTest, CreateOsAccountSubProfile_ProxyError_001, TestSize.Level1)
 {
-    sptr<MockOsAccountSubspaceStub> mockProxy = new (std::nothrow) MockOsAccountSubspaceStub();
+    sptr<MockOsAccountSubProfileStub> mockProxy = new (std::nothrow) MockOsAccountSubProfileStub();
     ASSERT_NE(mockProxy, nullptr);
 
     mockProxy->createRet_ = ERR_EXPECTED_FAILURE;
-    OsAccountSubspaceClient::GetInstance().proxy_ = mockProxy;
+    OsAccountSubProfileClient::GetInstance().proxy_ = mockProxy;
 
     OsAccountSubspaceResult result;
-    ErrCode ret = OsAccountSubspaceClient::GetInstance().CreateOsAccountSubspace(
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().CreateOsAccountSubProfile(
         TEST_OS_ACCOUNT_ID, result);
 
     EXPECT_EQ(ret, ERR_EXPECTED_FAILURE);
@@ -164,18 +164,18 @@ HWTEST_F(OsAccountSubspaceClientTest, CreateOsAccountSubspace_ProxyError_001, Te
 }
 
 /**
- * @tc.name: OsAccountSubspaceClientTest_DeleteOsAccountSubspace_Success_001
- * @tc.desc: DeleteOsAccountSubspace delegates to proxy when proxy is valid.
+ * @tc.name: OsAccountSubProfileClientTest_DeleteOsAccountSubProfile_Success_001
+ * @tc.desc: DeleteOsAccountSubProfile delegates to proxy when proxy is valid.
  */
-HWTEST_F(OsAccountSubspaceClientTest, DeleteOsAccountSubspace_Success_001, TestSize.Level1)
+HWTEST_F(OsAccountSubProfileClientTest, DeleteOsAccountSubProfile_Success_001, TestSize.Level1)
 {
-    sptr<MockOsAccountSubspaceStub> mockProxy = new (std::nothrow) MockOsAccountSubspaceStub();
+    sptr<MockOsAccountSubProfileStub> mockProxy = new (std::nothrow) MockOsAccountSubProfileStub();
     ASSERT_NE(mockProxy, nullptr);
 
     mockProxy->deleteRet_ = ERR_OK;
-    OsAccountSubspaceClient::GetInstance().proxy_ = mockProxy;
+    OsAccountSubProfileClient::GetInstance().proxy_ = mockProxy;
 
-    ErrCode ret = OsAccountSubspaceClient::GetInstance().DeleteOsAccountSubspace(
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().DeleteOsAccountSubProfile(
         TEST_OS_ACCOUNT_ID, TEST_SUBSPACE_ID);
 
     EXPECT_EQ(ret, ERR_OK);
@@ -184,18 +184,18 @@ HWTEST_F(OsAccountSubspaceClientTest, DeleteOsAccountSubspace_Success_001, TestS
 }
 
 /**
- * @tc.name: OsAccountSubspaceClientTest_DeleteOsAccountSubspace_ProxyError_001
- * @tc.desc: DeleteOsAccountSubspace returns proxy error when proxy fails.
+ * @tc.name: OsAccountSubProfileClientTest_DeleteOsAccountSubProfile_ProxyError_001
+ * @tc.desc: DeleteOsAccountSubProfile returns proxy error when proxy fails.
  */
-HWTEST_F(OsAccountSubspaceClientTest, DeleteOsAccountSubspace_ProxyError_001, TestSize.Level1)
+HWTEST_F(OsAccountSubProfileClientTest, DeleteOsAccountSubProfile_ProxyError_001, TestSize.Level1)
 {
-    sptr<MockOsAccountSubspaceStub> mockProxy = new (std::nothrow) MockOsAccountSubspaceStub();
+    sptr<MockOsAccountSubProfileStub> mockProxy = new (std::nothrow) MockOsAccountSubProfileStub();
     ASSERT_NE(mockProxy, nullptr);
 
     mockProxy->deleteRet_ = ERR_EXPECTED_FAILURE;
-    OsAccountSubspaceClient::GetInstance().proxy_ = mockProxy;
+    OsAccountSubProfileClient::GetInstance().proxy_ = mockProxy;
 
-    ErrCode ret = OsAccountSubspaceClient::GetInstance().DeleteOsAccountSubspace(
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().DeleteOsAccountSubProfile(
         TEST_OS_ACCOUNT_ID, TEST_SUBSPACE_ID);
 
     EXPECT_EQ(ret, ERR_EXPECTED_FAILURE);
@@ -204,18 +204,18 @@ HWTEST_F(OsAccountSubspaceClientTest, DeleteOsAccountSubspace_ProxyError_001, Te
 }
 
 /**
- * @tc.name: OsAccountSubspaceClientTest_SwitchOsAccountSubspace_Success_001
- * @tc.desc: SwitchOsAccountSubspace delegates to proxy when proxy is valid.
+ * @tc.name: OsAccountSubProfileClientTest_SwitchOsAccountSubProfile_Success_001
+ * @tc.desc: SwitchOsAccountSubProfile delegates to proxy when proxy is valid.
  */
-HWTEST_F(OsAccountSubspaceClientTest, SwitchOsAccountSubspace_Success_001, TestSize.Level1)
+HWTEST_F(OsAccountSubProfileClientTest, SwitchOsAccountSubProfile_Success_001, TestSize.Level1)
 {
-    sptr<MockOsAccountSubspaceStub> mockProxy = new (std::nothrow) MockOsAccountSubspaceStub();
+    sptr<MockOsAccountSubProfileStub> mockProxy = new (std::nothrow) MockOsAccountSubProfileStub();
     ASSERT_NE(mockProxy, nullptr);
 
     mockProxy->switchRet_ = ERR_OK;
-    OsAccountSubspaceClient::GetInstance().proxy_ = mockProxy;
+    OsAccountSubProfileClient::GetInstance().proxy_ = mockProxy;
 
-    ErrCode ret = OsAccountSubspaceClient::GetInstance().SwitchOsAccountSubspace(
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().SwitchOsAccountSubProfile(
         TEST_OS_ACCOUNT_ID, TEST_SUBSPACE_ID);
 
     EXPECT_EQ(ret, ERR_OK);
@@ -224,18 +224,18 @@ HWTEST_F(OsAccountSubspaceClientTest, SwitchOsAccountSubspace_Success_001, TestS
 }
 
 /**
- * @tc.name: OsAccountSubspaceClientTest_SwitchOsAccountSubspace_ProxyError_001
- * @tc.desc: SwitchOsAccountSubspace returns proxy error when proxy fails.
+ * @tc.name: OsAccountSubProfileClientTest_SwitchOsAccountSubProfile_ProxyError_001
+ * @tc.desc: SwitchOsAccountSubProfile returns proxy error when proxy fails.
  */
-HWTEST_F(OsAccountSubspaceClientTest, SwitchOsAccountSubspace_ProxyError_001, TestSize.Level1)
+HWTEST_F(OsAccountSubProfileClientTest, SwitchOsAccountSubProfile_ProxyError_001, TestSize.Level1)
 {
-    sptr<MockOsAccountSubspaceStub> mockProxy = new (std::nothrow) MockOsAccountSubspaceStub();
+    sptr<MockOsAccountSubProfileStub> mockProxy = new (std::nothrow) MockOsAccountSubProfileStub();
     ASSERT_NE(mockProxy, nullptr);
 
     mockProxy->switchRet_ = ERR_EXPECTED_FAILURE;
-    OsAccountSubspaceClient::GetInstance().proxy_ = mockProxy;
+    OsAccountSubProfileClient::GetInstance().proxy_ = mockProxy;
 
-    ErrCode ret = OsAccountSubspaceClient::GetInstance().SwitchOsAccountSubspace(
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().SwitchOsAccountSubProfile(
         TEST_OS_ACCOUNT_ID, TEST_SUBSPACE_ID);
 
     EXPECT_EQ(ret, ERR_EXPECTED_FAILURE);
@@ -244,66 +244,66 @@ HWTEST_F(OsAccountSubspaceClientTest, SwitchOsAccountSubspace_ProxyError_001, Te
 }
 
 /**
- * @tc.name: OsAccountSubspaceClientTest_DeathRecipient_NullRemote_001
+ * @tc.name: OsAccountSubProfileClientTest_DeathRecipient_NullRemote_001
  * @tc.desc: OnRemoteDied with null remote returns early without crash.
  */
-HWTEST_F(OsAccountSubspaceClientTest, DeathRecipient_NullRemote_001, TestSize.Level1)
+HWTEST_F(OsAccountSubProfileClientTest, DeathRecipient_NullRemote_001, TestSize.Level1)
 {
-    OsAccountSubspaceClient::OsAccountSubspaceDeathRecipient recipient;
+    OsAccountSubProfileClient::OsAccountSubProfileDeathRecipient recipient;
     wptr<IRemoteObject> nullRemote = nullptr;
     EXPECT_NO_FATAL_FAILURE(recipient.OnRemoteDied(nullRemote));
 }
 
 /**
- * @tc.name: OsAccountSubspaceClientTest_GetOsAccountSubspaceProxy_CacheHit_001
- * @tc.desc: GetOsAccountSubspaceProxy returns cached proxy without creating a new one.
+ * @tc.name: OsAccountSubProfileClientTest_GetOsAccountSubProfileProxy_CacheHit_001
+ * @tc.desc: GetOsAccountSubProfileProxy returns cached proxy without creating a new one.
  */
-HWTEST_F(OsAccountSubspaceClientTest, GetOsAccountSubspaceProxy_CacheHit_001, TestSize.Level1)
+HWTEST_F(OsAccountSubProfileClientTest, GetOsAccountSubProfileProxy_CacheHit_001, TestSize.Level1)
 {
-    sptr<MockOsAccountSubspaceStub> mockProxy = new (std::nothrow) MockOsAccountSubspaceStub();
+    sptr<MockOsAccountSubProfileStub> mockProxy = new (std::nothrow) MockOsAccountSubProfileStub();
     ASSERT_NE(mockProxy, nullptr);
 
-    OsAccountSubspaceClient::GetInstance().proxy_ = mockProxy;
+    OsAccountSubProfileClient::GetInstance().proxy_ = mockProxy;
 
-    auto result = OsAccountSubspaceClient::GetInstance().GetOsAccountSubspaceProxy();
+    auto result = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfileProxy();
     EXPECT_EQ(result.GetRefPtr(), mockProxy.GetRefPtr());
 }
 
 /**
- * @tc.name: OsAccountSubspaceClientTest_GetOsAccountSubspaceProxy_CacheMiss_001
- * @tc.desc: GetOsAccountSubspaceProxy returns nullptr on cache miss when
+ * @tc.name: OsAccountSubProfileClientTest_GetOsAccountSubProfileProxy_CacheMiss_001
+ * @tc.desc: GetOsAccountSubProfileProxy returns nullptr on cache miss when
  *           the real service is not available (unit test environment).
  */
-HWTEST_F(OsAccountSubspaceClientTest, GetOsAccountSubspaceProxy_CacheMiss_001, TestSize.Level1)
+HWTEST_F(OsAccountSubProfileClientTest, GetOsAccountSubProfileProxy_CacheMiss_001, TestSize.Level1)
 {
     // proxy_ is null after SetUp reset; no service running → nullptr returned
-    auto result = OsAccountSubspaceClient::GetInstance().GetOsAccountSubspaceProxy();
+    auto result = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfileProxy();
     EXPECT_EQ(result, nullptr);
 }
 
 /**
- * @tc.name: OsAccountSubspaceClientTest_ResetProxy_NullProxy_001
+ * @tc.name: OsAccountSubProfileClientTest_ResetProxy_NullProxy_001
  * @tc.desc: ResetProxy with proxy_ already null returns early without explosion.
  */
-HWTEST_F(OsAccountSubspaceClientTest, ResetProxy_NullProxy_001, TestSize.Level1)
+HWTEST_F(OsAccountSubProfileClientTest, ResetProxy_NullProxy_001, TestSize.Level1)
 {
     wptr<IRemoteObject> remote = nullptr;
     EXPECT_NO_FATAL_FAILURE(
-        OsAccountSubspaceClient::GetInstance().ResetProxy(remote));
-    EXPECT_EQ(OsAccountSubspaceClient::GetInstance().proxy_, nullptr);
-    EXPECT_EQ(OsAccountSubspaceClient::GetInstance().deathRecipient_, nullptr);
+        OsAccountSubProfileClient::GetInstance().ResetProxy(remote));
+    EXPECT_EQ(OsAccountSubProfileClient::GetInstance().proxy_, nullptr);
+    EXPECT_EQ(OsAccountSubProfileClient::GetInstance().deathRecipient_, nullptr);
 }
 
 /**
- * @tc.name: OsAccountSubspaceClientTest_ResetProxy_ValidProxy_NoMatch_001
+ * @tc.name: OsAccountSubProfileClientTest_ResetProxy_ValidProxy_NoMatch_001
  * @tc.desc: ResetProxy clears proxy and deathRecipient even when remote does not match.
  */
-HWTEST_F(OsAccountSubspaceClientTest, ResetProxy_ValidProxy_NoMatch_001, TestSize.Level1)
+HWTEST_F(OsAccountSubProfileClientTest, ResetProxy_ValidProxy_NoMatch_001, TestSize.Level1)
 {
-    sptr<MockOsAccountSubspaceStub> mockProxy = new (std::nothrow) MockOsAccountSubspaceStub();
+    sptr<MockOsAccountSubProfileStub> mockProxy = new (std::nothrow) MockOsAccountSubProfileStub();
     ASSERT_NE(mockProxy, nullptr);
 
-    OsAccountSubspaceClient &client = OsAccountSubspaceClient::GetInstance();
+    OsAccountSubProfileClient &client = OsAccountSubProfileClient::GetInstance();
     client.proxy_ = mockProxy;
 
     // Pass a null remote; AsObject() is not null but remote.promote() is null → no match,

@@ -212,8 +212,14 @@ public:
 
     void SetVersion(int32_t version);
 
-    int32_t GetForegroundSubspaceId() const;
-    void SetForegroundSubspaceId(int32_t foregroundSubspaceId);
+    int32_t GetForegroundSubProfileId() const;
+    void SetForegroundSubProfileId(int32_t foregroundSubProfileId);
+
+    int32_t GetNextSubProfileId() const;
+    void SetNextSubProfileId(int32_t nextSubProfileId);
+
+    std::vector<std::string> GetSubProfileIdList() const;
+    void SetSubProfileIdList(const std::vector<std::string> &subProfileIdList);
 
 public:
     int localId_ = -1;
@@ -237,7 +243,9 @@ public:
     bool isDataRemovable_ = true;
     int32_t creatorType_ = 0;
     int32_t version_ = OS_ACCOUNT_INFO_DEFAULT_VERSION;  // Track account info modification version
-    int32_t foregroundSubspaceId_ = -1;  // default: localId_ * 1000 (initialized lazily)
+    int32_t foregroundSubProfileId_ = -1;
+    int32_t nextSubProfileId_ = -1;
+    std::vector<std::string> subProfileIdList_;  // default: localId_ * 1000 (initialized lazily)
 };
 
 typedef enum {

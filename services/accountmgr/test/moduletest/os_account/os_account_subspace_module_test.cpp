@@ -77,7 +77,7 @@ public:
         std::error_code ec;
         std::filesystem::remove_all(TEST_ROOT_DIR, ec);
         std::filesystem::create_directories(TEST_ROOT_DIR);
-        dataDeal_ = std::make_unique<OsAccountSubspaceDataDeal>(TEST_ROOT_DIR);
+        dataDeal_ = std::make_unique<OsAccountSubProfileDataDeal>(TEST_ROOT_DIR);
     }
 
     void TearDown() override
@@ -85,7 +85,7 @@ public:
         dataDeal_.reset();
     }
 
-    std::unique_ptr<OsAccountSubspaceDataDeal> dataDeal_;
+    std::unique_ptr<OsAccountSubProfileDataDeal> dataDeal_;
     static uint64_t allPermTokenId_;
 };
 
@@ -99,9 +99,11 @@ uint64_t OsAccountSubspaceModuleTest::allPermTokenId_ = 0;
 HWTEST_F(OsAccountSubspaceModuleTest, LifecycleFullFlow_001, TestSize.Level1)
 {
     // Step 1: Create two spaces
-    std::set<int32_t> usedIndices;
+    std::vector<std::string> subProfileIdStrList;
+    int32_t nextSubProfileId = -1;
     int32_t distId1 = 0;
-    EXPECT_EQ(dataDeal_->AllocateOsAccountSubspaceId(OS_ACCOUNT_ID_A, usedIndices, distId1), ERR_OK);
+    EXPECT_EQ(dataDeal_->AllocateOsAccountSubProfileId(
+        OS_ACCOUNT_ID_A, nextSubProfileId, subProfileIdStrList, distId1), ERR_OK);
     EXPECT_EQ(distId1, OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 1);
 
     OsAccountSubspaceInfo info1;
@@ -109,11 +111,14 @@ HWTEST_F(OsAccountSubspaceModuleTest, LifecycleFullFlow_001, TestSize.Level1)
     info1.subspaceId = distId1;
     info1.isCreateCompleted = true;
     info1.toBeRemoved = false;
-    EXPECT_EQ(dataDeal_->SaveSubspaceInfo(info1), ERR_OK);
+    EXPECT_EQ(dataDeal_->SaveSubProfileInfo(info1), ERR_OK);
 
-    usedIndices.insert(1);
+    subProfileIdStrList.push_back(std::to_string(distId1));
+    int32_t base = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
+    nextSubProfileId = base + 2;
     int32_t distId2 = 0;
-    EXPECT_EQ(dataDeal_->AllocateOsAccountSubspaceId(OS_ACCOUNT_ID_A, usedIndices, distId2), ERR_OK);
+    EXPECT_EQ(dataDeal_->AllocateOsAccountSubProfileId(
+        OS_ACCOUNT_ID_A, nextSubProfileId, subProfileIdStrList, distId2), ERR_OK);
     EXPECT_EQ(distId2, OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 2);
 
     OsAccountSubspaceInfo info2;
@@ -121,43 +126,43 @@ HWTEST_F(OsAccountSubspaceModuleTest, LifecycleFullFlow_001, TestSize.Level1)
     info2.subspaceId = distId2;
     info2.isCreateCompleted = true;
     info2.toBeRemoved = false;
-    EXPECT_EQ(dataDeal_->SaveSubspaceInfo(info2), ERR_OK);
+    EXPECT_EQ(dataDeal_->SaveSubProfileInfo(info2), ERR_OK);
 
     // Step 2: Verify both spaces visible
     std::set<int32_t> validIds;
-    EXPECT_EQ(dataDeal_->ScanOsAccountSubspaceIds(OS_ACCOUNT_ID_A, validIds), ERR_OK);
+    EXPECT_EQ(dataDeal_->ScanOsAccountSubProfileIds(OS_ACCOUNT_ID_A, validIds), ERR_OK);
     EXPECT_EQ(validIds.size(), 2u);
     EXPECT_TRUE(validIds.count(distId1) > 0);
     EXPECT_TRUE(validIds.count(distId2) > 0);
 
     // Step 3: Mark distId1 as to-be-removed (simulating switchOsAccountSubspace => foreground = distId2,
     //         then removeDistributedOsAccount(distId1))
-    EXPECT_TRUE(dataDeal_->IsValidSubspaceExists(OS_ACCOUNT_ID_A, distId1));
+    EXPECT_TRUE(dataDeal_->IsValidSubProfileExists(OS_ACCOUNT_ID_A, distId1));
     OsAccountSubspaceInfo removeInfo;
-    dataDeal_->LoadSubspaceInfo(OS_ACCOUNT_ID_A, distId1, removeInfo);
+    dataDeal_->LoadSubProfileInfo(OS_ACCOUNT_ID_A, distId1, removeInfo);
     removeInfo.toBeRemoved = true;
-    EXPECT_EQ(dataDeal_->SaveSubspaceInfo(removeInfo), ERR_OK);
+    EXPECT_EQ(dataDeal_->SaveSubProfileInfo(removeInfo), ERR_OK);
 
     // Step 4: Remove directory
-    EXPECT_EQ(dataDeal_->RemoveSubspaceDir(OS_ACCOUNT_ID_A, distId1), ERR_OK);
+    EXPECT_EQ(dataDeal_->RemoveSubProfileDir(OS_ACCOUNT_ID_A, distId1), ERR_OK);
 
     // Step 5: Verify distId1 gone, distId2 still present
-    EXPECT_FALSE(dataDeal_->IsValidSubspaceExists(OS_ACCOUNT_ID_A, distId1));
-    EXPECT_TRUE(dataDeal_->IsValidSubspaceExists(OS_ACCOUNT_ID_A, distId2));
+    EXPECT_FALSE(dataDeal_->IsValidSubProfileExists(OS_ACCOUNT_ID_A, distId1));
+    EXPECT_TRUE(dataDeal_->IsValidSubProfileExists(OS_ACCOUNT_ID_A, distId2));
 
     validIds.clear();
-    EXPECT_EQ(dataDeal_->ScanOsAccountSubspaceIds(OS_ACCOUNT_ID_A, validIds), ERR_OK);
+    EXPECT_EQ(dataDeal_->ScanOsAccountSubProfileIds(OS_ACCOUNT_ID_A, validIds), ERR_OK);
     EXPECT_EQ(validIds.size(), 1u);
     EXPECT_TRUE(validIds.count(distId2) > 0);
 
     // Step 6: Remove distId2
-    EXPECT_EQ(dataDeal_->RemoveSubspaceDir(OS_ACCOUNT_ID_A, distId2), ERR_OK);
-    EXPECT_FALSE(dataDeal_->IsValidSubspaceExists(OS_ACCOUNT_ID_A, distId2));
+    EXPECT_EQ(dataDeal_->RemoveSubProfileDir(OS_ACCOUNT_ID_A, distId2), ERR_OK);
+    EXPECT_FALSE(dataDeal_->IsValidSubProfileExists(OS_ACCOUNT_ID_A, distId2));
 }
 
 /**
  * @tc.name: ZeroSpaceUnchanged_001
- * @tc.desc: Task 7.2 — Verify 0-space (index=0) is never managed by OsAccountSubspaceDataDeal
+ * @tc.desc: Task 7.2 — Verify 0-space (index=0) is never managed by OsAccountSubProfileDataDeal
  *           (index 0 is outside the managed [1,999] range and is excluded from scan results)
  * @tc.type: FUNC
  */
@@ -174,14 +179,14 @@ HWTEST_F(OsAccountSubspaceModuleTest, ZeroSpaceUnchanged_001, TestSize.Level1)
     ofs << R"({"subspaceId":)" << zeroDistId << R"(,"osAccountId":)" << OS_ACCOUNT_ID_A << "}";
     ofs.close();
 
-    // ScanOsAccountSubspaceIds must NOT include the 0-space
+    // ScanOsAccountSubProfileIds must NOT include the 0-space
     std::set<int32_t> validIds;
-    EXPECT_EQ(dataDeal_->ScanOsAccountSubspaceIds(OS_ACCOUNT_ID_A, validIds), ERR_OK);
+    EXPECT_EQ(dataDeal_->ScanOsAccountSubProfileIds(OS_ACCOUNT_ID_A, validIds), ERR_OK);
     EXPECT_EQ(validIds.count(zeroDistId), 0u);
 
-    // ScanOrphanedSubspaceIds must also NOT include the 0-space
+    // ScanOrphanedSubProfileIds must also NOT include the 0-space
     std::set<int32_t> orphanIds;
-    EXPECT_EQ(dataDeal_->ScanOrphanedSubspaceIds(OS_ACCOUNT_ID_A, orphanIds), ERR_OK);
+    EXPECT_EQ(dataDeal_->ScanOrphanedSubProfileIds(OS_ACCOUNT_ID_A, orphanIds), ERR_OK);
     EXPECT_EQ(orphanIds.count(zeroDistId), 0u);
 
     // The 0-space directory and file must still exist (untouched)
@@ -191,7 +196,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, ZeroSpaceUnchanged_001, TestSize.Level1)
 /**
  * @tc.name: CrashRecovery_IncompleteCreate_001
  * @tc.desc: Task 7.3 — Crash recovery: orphaned spaces with isCreateCompleted=false are found by
- *           ScanOrphanedSubspaceIds and excluded from valid IDs
+ *           ScanOrphanedSubProfileIds and excluded from valid IDs
  * @tc.type: FUNC
  */
 HWTEST_F(OsAccountSubspaceModuleTest, CrashRecovery_IncompleteCreate_001, TestSize.Level1)
@@ -203,7 +208,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, CrashRecovery_IncompleteCreate_001, TestSi
     crashInfo.subspaceId = crashDistId;
     crashInfo.isCreateCompleted = false;
     crashInfo.toBeRemoved = false;
-    EXPECT_EQ(dataDeal_->SaveSubspaceInfo(crashInfo), ERR_OK);
+    EXPECT_EQ(dataDeal_->SaveSubProfileInfo(crashInfo), ERR_OK);
 
     // Also create a normal complete space
     int32_t goodDistId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 6;
@@ -212,33 +217,33 @@ HWTEST_F(OsAccountSubspaceModuleTest, CrashRecovery_IncompleteCreate_001, TestSi
     goodInfo.subspaceId = goodDistId;
     goodInfo.isCreateCompleted = true;
     goodInfo.toBeRemoved = false;
-    EXPECT_EQ(dataDeal_->SaveSubspaceInfo(goodInfo), ERR_OK);
+    EXPECT_EQ(dataDeal_->SaveSubProfileInfo(goodInfo), ERR_OK);
 
-    // ScanOsAccountSubspaceIds excludes the crash space
+    // ScanOsAccountSubProfileIds excludes the crash space
     std::set<int32_t> validIds;
-    EXPECT_EQ(dataDeal_->ScanOsAccountSubspaceIds(OS_ACCOUNT_ID_A, validIds), ERR_OK);
+    EXPECT_EQ(dataDeal_->ScanOsAccountSubProfileIds(OS_ACCOUNT_ID_A, validIds), ERR_OK);
     EXPECT_EQ(validIds.count(crashDistId), 0u);
     EXPECT_EQ(validIds.count(goodDistId), 1u);
 
-    // ScanOrphanedSubspaceIds finds the crash space
+    // ScanOrphanedSubProfileIds finds the crash space
     std::set<int32_t> orphanIds;
-    EXPECT_EQ(dataDeal_->ScanOrphanedSubspaceIds(OS_ACCOUNT_ID_A, orphanIds), ERR_OK);
+    EXPECT_EQ(dataDeal_->ScanOrphanedSubProfileIds(OS_ACCOUNT_ID_A, orphanIds), ERR_OK);
     EXPECT_EQ(orphanIds.count(crashDistId), 1u);
     EXPECT_EQ(orphanIds.count(goodDistId), 0u);
 
     // Simulate SA startup cleanup: remove orphaned directory
-    EXPECT_EQ(dataDeal_->RemoveSubspaceDir(OS_ACCOUNT_ID_A, crashDistId), ERR_OK);
+    EXPECT_EQ(dataDeal_->RemoveSubProfileDir(OS_ACCOUNT_ID_A, crashDistId), ERR_OK);
 
     // After cleanup, orphan is gone
     orphanIds.clear();
-    EXPECT_EQ(dataDeal_->ScanOrphanedSubspaceIds(OS_ACCOUNT_ID_A, orphanIds), ERR_OK);
+    EXPECT_EQ(dataDeal_->ScanOrphanedSubProfileIds(OS_ACCOUNT_ID_A, orphanIds), ERR_OK);
     EXPECT_EQ(orphanIds.size(), 0u);
 }
 
 /**
  * @tc.name: CrashRecovery_PendingRemove_001
  * @tc.desc: Task 7.3 — Crash recovery: spaces with to_be_removed=true are treated as non-existent
- *           and remain invisible; CleanupOrphanedSubspaces (via ScanPendingRemovalSubspaceIds) removes them
+ *           and remain invisible; CleanupOrphanedSubspaces (via ScanPendingRemovalSubProfileIds) removes them
  * @tc.type: FUNC
  */
 HWTEST_F(OsAccountSubspaceModuleTest, CrashRecovery_PendingRemove_001, TestSize.Level1)
@@ -250,29 +255,29 @@ HWTEST_F(OsAccountSubspaceModuleTest, CrashRecovery_PendingRemove_001, TestSize.
     pendingInfo.subspaceId = pendingRemoveDistId;
     pendingInfo.isCreateCompleted = true;
     pendingInfo.toBeRemoved = true;
-    EXPECT_EQ(dataDeal_->SaveSubspaceInfo(pendingInfo), ERR_OK);
+    EXPECT_EQ(dataDeal_->SaveSubProfileInfo(pendingInfo), ERR_OK);
 
-    // IsValidSubspaceExists returns false for to_be_removed=true
-    EXPECT_FALSE(dataDeal_->IsValidSubspaceExists(OS_ACCOUNT_ID_A, pendingRemoveDistId));
+    // IsValidSubProfileExists returns false for to_be_removed=true
+    EXPECT_FALSE(dataDeal_->IsValidSubProfileExists(OS_ACCOUNT_ID_A, pendingRemoveDistId));
 
-    // ScanOsAccountSubspaceIds excludes it
+    // ScanOsAccountSubProfileIds excludes it
     std::set<int32_t> validIds;
-    EXPECT_EQ(dataDeal_->ScanOsAccountSubspaceIds(OS_ACCOUNT_ID_A, validIds), ERR_OK);
+    EXPECT_EQ(dataDeal_->ScanOsAccountSubProfileIds(OS_ACCOUNT_ID_A, validIds), ERR_OK);
     EXPECT_EQ(validIds.count(pendingRemoveDistId), 0u);
 
-    // ScanOrphanedSubspaceIds also excludes it (it's not incomplete, it's pending removal)
+    // ScanOrphanedSubProfileIds also excludes it (it's not incomplete, it's pending removal)
     std::set<int32_t> orphanIds;
-    EXPECT_EQ(dataDeal_->ScanOrphanedSubspaceIds(OS_ACCOUNT_ID_A, orphanIds), ERR_OK);
+    EXPECT_EQ(dataDeal_->ScanOrphanedSubProfileIds(OS_ACCOUNT_ID_A, orphanIds), ERR_OK);
     EXPECT_EQ(orphanIds.count(pendingRemoveDistId), 0u);
 
-    // ScanPendingRemovalSubspaceIds detects it
+    // ScanPendingRemovalSubProfileIds detects it
     std::set<int32_t> pendingIds;
-    EXPECT_EQ(dataDeal_->ScanPendingRemovalSubspaceIds(OS_ACCOUNT_ID_A, pendingIds), ERR_OK);
+    EXPECT_EQ(dataDeal_->ScanPendingRemovalSubProfileIds(OS_ACCOUNT_ID_A, pendingIds), ERR_OK);
     EXPECT_EQ(pendingIds.count(pendingRemoveDistId), 1u);
 
-    // Simulate restart: ScanPendingRemovalSubspaceIds → RemoveSubspaceDir (mirrors CleanupOrphanedSubspaces)
+    // Simulate restart: ScanPendingRemovalSubProfileIds → RemoveSubProfileDir (mirrors CleanupOrphanedSubspaces)
     for (int32_t distId : pendingIds) {
-        EXPECT_EQ(dataDeal_->RemoveSubspaceDir(OS_ACCOUNT_ID_A, distId), ERR_OK);
+        EXPECT_EQ(dataDeal_->RemoveSubProfileDir(OS_ACCOUNT_ID_A, distId), ERR_OK);
     }
 
     // After cleanup, the to_be_removed directory is gone
@@ -283,7 +288,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, CrashRecovery_PendingRemove_001, TestSize.
 
 /**
  * @tc.name: ConcurrentSwitch_Consistency_001
- * @tc.desc: Task 7.4 — Concurrent SaveSubspaceInfo calls on different spaces do not corrupt each other's data
+ * @tc.desc: Task 7.4 — Concurrent SaveSubProfileInfo calls on different spaces do not corrupt each other's data
  * @tc.type: FUNC
  */
 HWTEST_F(OsAccountSubspaceModuleTest, ConcurrentSwitch_Consistency_001, TestSize.Level1)
@@ -298,7 +303,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, ConcurrentSwitch_Consistency_001, TestSize
         info.subspaceId = OS_ACCOUNT_ID_B * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + i;
         info.isCreateCompleted = true;
         info.toBeRemoved = false;
-        EXPECT_EQ(dataDeal_->SaveSubspaceInfo(info), ERR_OK);
+        EXPECT_EQ(dataDeal_->SaveSubProfileInfo(info), ERR_OK);
     }
 
     std::mutex errorMutex;
@@ -310,7 +315,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, ConcurrentSwitch_Consistency_001, TestSize
             info.subspaceId = spaceId;
             info.isCreateCompleted = true;
             info.toBeRemoved = false;
-            ErrCode ret = dataDeal_->SaveSubspaceInfo(info);
+            ErrCode ret = dataDeal_->SaveSubProfileInfo(info);
             if (ret != ERR_OK) {
                 std::lock_guard<std::mutex> lock(errorMutex);
                 errors.push_back(ret);
@@ -332,7 +337,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, ConcurrentSwitch_Consistency_001, TestSize
     for (int32_t i = 1; i <= NUM_SPACES; ++i) {
         int32_t distId = OS_ACCOUNT_ID_B * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + i;
         OsAccountSubspaceInfo loaded;
-        EXPECT_EQ(dataDeal_->LoadSubspaceInfo(OS_ACCOUNT_ID_B, distId, loaded), ERR_OK);
+        EXPECT_EQ(dataDeal_->LoadSubProfileInfo(OS_ACCOUNT_ID_B, distId, loaded), ERR_OK);
         EXPECT_TRUE(loaded.isCreateCompleted);
         EXPECT_FALSE(loaded.toBeRemoved);
         EXPECT_EQ(loaded.subspaceId, distId);
@@ -354,7 +359,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, MultiAccountIsolation_001, TestSize.Level1
         info.subspaceId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + i;
         info.isCreateCompleted = true;
         info.toBeRemoved = false;
-        EXPECT_EQ(dataDeal_->SaveSubspaceInfo(info), ERR_OK);
+        EXPECT_EQ(dataDeal_->SaveSubProfileInfo(info), ERR_OK);
     }
     for (int32_t i = 1; i <= 3; ++i) {
         OsAccountSubspaceInfo info;
@@ -362,12 +367,12 @@ HWTEST_F(OsAccountSubspaceModuleTest, MultiAccountIsolation_001, TestSize.Level1
         info.subspaceId = OS_ACCOUNT_ID_B * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + i;
         info.isCreateCompleted = true;
         info.toBeRemoved = false;
-        EXPECT_EQ(dataDeal_->SaveSubspaceInfo(info), ERR_OK);
+        EXPECT_EQ(dataDeal_->SaveSubProfileInfo(info), ERR_OK);
     }
 
     std::set<int32_t> validIdsA, validIdsB;
-    EXPECT_EQ(dataDeal_->ScanOsAccountSubspaceIds(OS_ACCOUNT_ID_A, validIdsA), ERR_OK);
-    EXPECT_EQ(dataDeal_->ScanOsAccountSubspaceIds(OS_ACCOUNT_ID_B, validIdsB), ERR_OK);
+    EXPECT_EQ(dataDeal_->ScanOsAccountSubProfileIds(OS_ACCOUNT_ID_A, validIdsA), ERR_OK);
+    EXPECT_EQ(dataDeal_->ScanOsAccountSubProfileIds(OS_ACCOUNT_ID_B, validIdsB), ERR_OK);
 
     EXPECT_EQ(validIdsA.size(), 2u);
     EXPECT_EQ(validIdsB.size(), 3u);
@@ -383,8 +388,8 @@ HWTEST_F(OsAccountSubspaceModuleTest, MultiAccountIsolation_001, TestSize.Level1
 
 /**
  * @tc.name: CreateSubspace_SaveComplete_001
- * @tc.desc: SaveSubspaceInfo updates isCreateCompleted from false to true,
- *           and subsequent LoadSubspaceInfo reflects the new state.
+ * @tc.desc: SaveSubProfileInfo updates isCreateCompleted from false to true,
+ *           and subsequent LoadSubProfileInfo reflects the new state.
  * @tc.type: FUNC
  */
 HWTEST_F(OsAccountSubspaceModuleTest, CreateSubspace_SaveComplete_001, TestSize.Level1)
@@ -399,55 +404,55 @@ HWTEST_F(OsAccountSubspaceModuleTest, CreateSubspace_SaveComplete_001, TestSize.
     info.subspaceId = distId;
     info.isCreateCompleted = false;
     info.toBeRemoved = false;
-    EXPECT_EQ(dataDeal_->SaveSubspaceInfo(info), ERR_OK);
+    EXPECT_EQ(dataDeal_->SaveSubProfileInfo(info), ERR_OK);
 
     OsAccountSubspaceInfo loaded1;
-    EXPECT_EQ(dataDeal_->LoadSubspaceInfo(OS_ACCOUNT_ID_A, distId, loaded1), ERR_OK);
+    EXPECT_EQ(dataDeal_->LoadSubProfileInfo(OS_ACCOUNT_ID_A, distId, loaded1), ERR_OK);
     EXPECT_FALSE(loaded1.isCreateCompleted);
 
     info.isCreateCompleted = true;
-    EXPECT_EQ(dataDeal_->SaveSubspaceInfo(info), ERR_OK);
+    EXPECT_EQ(dataDeal_->SaveSubProfileInfo(info), ERR_OK);
 
     OsAccountSubspaceInfo loaded2;
-    EXPECT_EQ(dataDeal_->LoadSubspaceInfo(OS_ACCOUNT_ID_A, distId, loaded2), ERR_OK);
+    EXPECT_EQ(dataDeal_->LoadSubProfileInfo(OS_ACCOUNT_ID_A, distId, loaded2), ERR_OK);
     EXPECT_TRUE(loaded2.isCreateCompleted);
 }
 
 /**
- * @tc.name: ScanOrphanedSubspaceIds_EmptyDir_001
+ * @tc.name: ScanOrphanedSubProfileIds_EmptyDir_001
  * @tc.desc: Scanning an empty OS account directory returns empty orphan set
  * @tc.type: FUNC
  */
-HWTEST_F(OsAccountSubspaceModuleTest, ScanOrphanedSubspaceIds_EmptyDir_001, TestSize.Level1)
+HWTEST_F(OsAccountSubspaceModuleTest, ScanOrphanedSubProfileIds_EmptyDir_001, TestSize.Level1)
 {
     std::string osAccountDir = TEST_ROOT_DIR + std::to_string(OS_ACCOUNT_ID_A);
     std::filesystem::create_directories(osAccountDir);
 
     std::set<int32_t> orphanIds;
-    EXPECT_EQ(dataDeal_->ScanOrphanedSubspaceIds(OS_ACCOUNT_ID_A, orphanIds), ERR_OK);
+    EXPECT_EQ(dataDeal_->ScanOrphanedSubProfileIds(OS_ACCOUNT_ID_A, orphanIds), ERR_OK);
     EXPECT_TRUE(orphanIds.empty());
 }
 
 /**
- * @tc.name: Idempotent_RemoveSubspaceDir_001
- * @tc.desc: RemoveSubspaceDir on non-existent directory returns ERR_OK (idempotent)
+ * @tc.name: Idempotent_RemoveSubProfileDir_001
+ * @tc.desc: RemoveSubProfileDir on non-existent directory returns ERR_OK (idempotent)
  * @tc.type: FUNC
  */
-HWTEST_F(OsAccountSubspaceModuleTest, Idempotent_RemoveSubspaceDir_001, TestSize.Level1)
+HWTEST_F(OsAccountSubspaceModuleTest, Idempotent_RemoveSubProfileDir_001, TestSize.Level1)
 {
     int32_t nonExistDistId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 99;
-    ErrCode ret = dataDeal_->RemoveSubspaceDir(OS_ACCOUNT_ID_A, nonExistDistId);
+    ErrCode ret = dataDeal_->RemoveSubProfileDir(OS_ACCOUNT_ID_A, nonExistDistId);
     EXPECT_EQ(ret, ERR_OK);
 }
 
-// ===== ScanSubspaceIdsWithFilter branch coverage =====
+// ===== ScanSubProfileIds branch coverage =====
 
 /**
- * @tc.name: ScanSubspaceIdsWithFilter_NonDirEntry_001
+ * @tc.name: ScanSubProfileIds_NonDirEntry_001
  * @tc.desc: Branch C — entry with d_type != DT_DIR (a regular file) is skipped
  * @tc.type: FUNC
  */
-HWTEST_F(OsAccountSubspaceModuleTest, ScanSubspaceIdsWithFilter_NonDirEntry_001, TestSize.Level1)
+HWTEST_F(OsAccountSubspaceModuleTest, ScanSubProfileIds_NonDirEntry_001, TestSize.Level1)
 {
     std::string accDir = TEST_ROOT_DIR + std::to_string(OS_ACCOUNT_ID_A) + "/";
     std::filesystem::create_directories(accDir);
@@ -457,32 +462,32 @@ HWTEST_F(OsAccountSubspaceModuleTest, ScanSubspaceIdsWithFilter_NonDirEntry_001,
 
     std::set<int32_t> ids;
     auto filter = [](const OsAccountSubspaceInfo &info) { return true; };
-    EXPECT_EQ(dataDeal_->ScanSubspaceIdsWithFilter(OS_ACCOUNT_ID_A, filter, ids), ERR_OK);
+    EXPECT_EQ(dataDeal_->ScanSubProfileIds(OS_ACCOUNT_ID_A, filter, ids), ERR_OK);
     EXPECT_TRUE(ids.empty());
 }
 
 /**
- * @tc.name: ScanSubspaceIdsWithFilter_NonDigitName_001
+ * @tc.name: ScanSubProfileIds_NonDigitName_001
  * @tc.desc: Branch E — directory with a non-digit name (e.g. "abc") is skipped
  * @tc.type: FUNC
  */
-HWTEST_F(OsAccountSubspaceModuleTest, ScanSubspaceIdsWithFilter_NonDigitName_001, TestSize.Level1)
+HWTEST_F(OsAccountSubspaceModuleTest, ScanSubProfileIds_NonDigitName_001, TestSize.Level1)
 {
     std::string accDir = TEST_ROOT_DIR + std::to_string(OS_ACCOUNT_ID_A) + "/";
     std::filesystem::create_directories(accDir + "abc");
 
     std::set<int32_t> ids;
     auto filter = [](const OsAccountSubspaceInfo &info) { return true; };
-    EXPECT_EQ(dataDeal_->ScanSubspaceIdsWithFilter(OS_ACCOUNT_ID_A, filter, ids), ERR_OK);
+    EXPECT_EQ(dataDeal_->ScanSubProfileIds(OS_ACCOUNT_ID_A, filter, ids), ERR_OK);
     EXPECT_TRUE(ids.empty());
 }
 
 /**
- * @tc.name: ScanSubspaceIdsWithFilter_OverflowSubspaceId_001
- * @tc.desc: Branch F — all-digit name that overflows INT32_MAX returns INVALID_PARAMETER
+ * @tc.name: ScanSubProfileIds_OverflowSubspaceId_001
+ * @tc.desc: Branch F — all-digit name that overflows INT32_MAX is skipped, scan returns ERR_OK
  * @tc.type: FUNC
  */
-HWTEST_F(OsAccountSubspaceModuleTest, ScanSubspaceIdsWithFilter_OverflowSubspaceId_001, TestSize.Level1)
+HWTEST_F(OsAccountSubspaceModuleTest, ScanSubProfileIds_OverflowSubspaceId_001, TestSize.Level1)
 {
     // 3000000000 > INT32_MAX (2147483647), triggers val > INT32_MAX branch
     const std::string overflowName = "3000000000";
@@ -491,16 +496,16 @@ HWTEST_F(OsAccountSubspaceModuleTest, ScanSubspaceIdsWithFilter_OverflowSubspace
 
     std::set<int32_t> ids;
     auto filter = [](const OsAccountSubspaceInfo &info) { return true; };
-    EXPECT_EQ(dataDeal_->ScanSubspaceIdsWithFilter(OS_ACCOUNT_ID_A, filter, ids),
-        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    EXPECT_EQ(dataDeal_->ScanSubProfileIds(OS_ACCOUNT_ID_A, filter, ids), ERR_OK);
+    EXPECT_TRUE(ids.empty());
 }
 
 /**
- * @tc.name: ScanSubspaceIdsWithFilter_OutOfRangeIndex_001
- * @tc.desc: Branch G — valid integer but index > OS_ACCOUNT_SUBSPACE_INDEX_MAX is skipped
+ * @tc.name: ScanSubProfileIds_OutOfRangeIndex_001
+ * @tc.desc: Branch G — valid integer but index > OS_ACCOUNT_SUB_PROFILE_INDEX_MAX is skipped
  * @tc.type: FUNC
  */
-HWTEST_F(OsAccountSubspaceModuleTest, ScanSubspaceIdsWithFilter_OutOfRangeIndex_001, TestSize.Level1)
+HWTEST_F(OsAccountSubspaceModuleTest, ScanSubProfileIds_OutOfRangeIndex_001, TestSize.Level1)
 {
     // base=200000, thisDir=250000 → index=50000 > 999 → skipped
     int32_t outOfRangeId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 50000;
@@ -509,16 +514,16 @@ HWTEST_F(OsAccountSubspaceModuleTest, ScanSubspaceIdsWithFilter_OutOfRangeIndex_
 
     std::set<int32_t> ids;
     auto filter = [](const OsAccountSubspaceInfo &info) { return true; };
-    EXPECT_EQ(dataDeal_->ScanSubspaceIdsWithFilter(OS_ACCOUNT_ID_A, filter, ids), ERR_OK);
+    EXPECT_EQ(dataDeal_->ScanSubProfileIds(OS_ACCOUNT_ID_A, filter, ids), ERR_OK);
     EXPECT_TRUE(ids.empty());
 }
 
 /**
- * @tc.name: ScanSubspaceIdsWithFilter_LoadJsonFailed_001
- * @tc.desc: Branch H — valid subspace directory without JSON file → LoadSubspaceInfo fails → skip
+ * @tc.name: ScanSubProfileIds_LoadJsonFailed_001
+ * @tc.desc: Branch H — valid subspace directory without JSON file → LoadSubProfileInfo fails → skip
  * @tc.type: FUNC
  */
-HWTEST_F(OsAccountSubspaceModuleTest, ScanSubspaceIdsWithFilter_LoadJsonFailed_001, TestSize.Level1)
+HWTEST_F(OsAccountSubspaceModuleTest, ScanSubProfileIds_LoadJsonFailed_001, TestSize.Level1)
 {
     int32_t subspaceId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 5;
     std::string accDir = TEST_ROOT_DIR + std::to_string(OS_ACCOUNT_ID_A) + "/";
@@ -526,8 +531,26 @@ HWTEST_F(OsAccountSubspaceModuleTest, ScanSubspaceIdsWithFilter_LoadJsonFailed_0
 
     std::set<int32_t> ids;
     auto filter = [](const OsAccountSubspaceInfo &info) { return true; };
-    EXPECT_EQ(dataDeal_->ScanSubspaceIdsWithFilter(OS_ACCOUNT_ID_A, filter, ids), ERR_OK);
+    EXPECT_EQ(dataDeal_->ScanSubProfileIds(OS_ACCOUNT_ID_A, filter, ids), ERR_OK);
     EXPECT_TRUE(ids.empty());
+}
+
+/**
+ * @tc.name: ScanSubProfileIds_NullptrFilter_001
+ * @tc.desc: ScanSubProfileIds with nullptr filter skips JSON loading and
+ *           inserts subspaceId directly from directory name
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountSubspaceModuleTest, ScanSubProfileIds_NullptrFilter_001, TestSize.Level1)
+{
+    int32_t subspaceId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 5;
+    std::string accDir = TEST_ROOT_DIR + std::to_string(OS_ACCOUNT_ID_A) + "/";
+    std::filesystem::create_directories(accDir + std::to_string(subspaceId));
+
+    std::set<int32_t> ids;
+    EXPECT_EQ(dataDeal_->ScanSubProfileIds(OS_ACCOUNT_ID_A, nullptr, ids), ERR_OK);
+    ASSERT_EQ(ids.size(), 1u);
+    EXPECT_EQ(*ids.begin(), subspaceId);
 }
 
 /**
@@ -537,23 +560,23 @@ HWTEST_F(OsAccountSubspaceModuleTest, ScanSubspaceIdsWithFilter_LoadJsonFailed_0
  */
 HWTEST_F(OsAccountSubspaceModuleTest, CheckActiveSessionStatus_ZeroSubspace_001, TestSize.Level1)
 {
-    auto &mgr = OsAccountSubspaceManager::GetInstance();
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
     mgr.Init(TEST_ROOT_DIR);
     int32_t baseId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
     bool result = mgr.CheckActiveSessionStatus(
-        mgr.subspaceDataDeal_.get(), OS_ACCOUNT_ID_A, baseId);
+        mgr.subProfileDataDeal_.get(), OS_ACCOUNT_ID_A, baseId);
     EXPECT_FALSE(result);
 }
 
 /**
  * @tc.name: CheckActiveSessionStatus_NonZeroSubspace_LoggedIn_003
  * @tc.desc: S9 - non-index 0 space with LOGIN status blocks switch
- *           Uses SaveSubspaceInfo with ohosAccountInfo_.status_=LOGIN for data integrity
+ *           Uses SaveSubProfileInfo with ohosAccountInfo_.status_=LOGIN for data integrity
  * @tc.type: FUNC
  */
 HWTEST_F(OsAccountSubspaceModuleTest, CheckActiveSessionStatus_NonZeroSubspace_LoggedIn_003, TestSize.Level1)
 {
-    auto &mgr = OsAccountSubspaceManager::GetInstance();
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
     mgr.Init(TEST_ROOT_DIR);
     int32_t distId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 1;
 
@@ -563,22 +586,22 @@ HWTEST_F(OsAccountSubspaceModuleTest, CheckActiveSessionStatus_NonZeroSubspace_L
     info.isCreateCompleted = true;
     info.toBeRemoved = false;
     info.ohosAccountInfo_.status_ = ACCOUNT_STATE_LOGIN;
-    ASSERT_EQ(mgr.subspaceDataDeal_->SaveSubspaceInfo(info), ERR_OK);
+    ASSERT_EQ(mgr.subProfileDataDeal_->SaveSubProfileInfo(info), ERR_OK);
 
     bool result = mgr.CheckActiveSessionStatus(
-        mgr.subspaceDataDeal_.get(), OS_ACCOUNT_ID_A, distId);
+        mgr.subProfileDataDeal_.get(), OS_ACCOUNT_ID_A, distId);
     EXPECT_TRUE(result);
 }
 
 /**
  * @tc.name: CheckActiveSessionStatus_NonZeroSubspace_Unbound_004
  * @tc.desc: non-index 0 space with UNBOUND (default) allows switch
- *           Default ohosAccountInfo_.status_=ACCOUNT_STATE_UNBOUND from SaveSubspaceInfo
+ *           Default ohosAccountInfo_.status_=ACCOUNT_STATE_UNBOUND from SaveSubProfileInfo
  * @tc.type: FUNC
  */
 HWTEST_F(OsAccountSubspaceModuleTest, CheckActiveSessionStatus_NonZeroSubspace_Unbound_004, TestSize.Level1)
 {
-    auto &mgr = OsAccountSubspaceManager::GetInstance();
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
     mgr.Init(TEST_ROOT_DIR);
     int32_t distId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 2;
 
@@ -587,10 +610,10 @@ HWTEST_F(OsAccountSubspaceModuleTest, CheckActiveSessionStatus_NonZeroSubspace_U
     info.subspaceId = distId;
     info.isCreateCompleted = true;
     info.toBeRemoved = false;
-    ASSERT_EQ(mgr.subspaceDataDeal_->SaveSubspaceInfo(info), ERR_OK);
+    ASSERT_EQ(mgr.subProfileDataDeal_->SaveSubProfileInfo(info), ERR_OK);
 
     bool result = mgr.CheckActiveSessionStatus(
-        mgr.subspaceDataDeal_.get(), OS_ACCOUNT_ID_A, distId);
+        mgr.subProfileDataDeal_.get(), OS_ACCOUNT_ID_A, distId);
     EXPECT_FALSE(result);
 }
 
@@ -601,11 +624,11 @@ HWTEST_F(OsAccountSubspaceModuleTest, CheckActiveSessionStatus_NonZeroSubspace_U
  */
 HWTEST_F(OsAccountSubspaceModuleTest, SwitchSpace_NotFound_001, TestSize.Level1)
 {
-    auto &mgr = OsAccountSubspaceManager::GetInstance();
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
     mgr.Init(TEST_ROOT_DIR);
     int32_t nonExistDistId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 999;
     int32_t fromSubspaceId = 0;
-    ErrCode ret = mgr.SwitchSubspace(OS_ACCOUNT_ID_A, nonExistDistId, fromSubspaceId);
+    ErrCode ret = mgr.SwitchSubProfile(OS_ACCOUNT_ID_A, nonExistDistId, fromSubspaceId);
     EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
 }
 
@@ -616,10 +639,10 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchSpace_NotFound_001, TestSize.Level1)
  */
 HWTEST_F(OsAccountSubspaceModuleTest, RemoveSpace_NotFound_001, TestSize.Level1)
 {
-    auto &mgr = OsAccountSubspaceManager::GetInstance();
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
     mgr.Init(TEST_ROOT_DIR);
     int32_t nonExistDistId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 999;
-    ErrCode ret = mgr.RemoveSubspace(OS_ACCOUNT_ID_A, nonExistDistId);
+    ErrCode ret = mgr.RemoveSubProfile(OS_ACCOUNT_ID_A, nonExistDistId);
     EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
 }
 
@@ -634,7 +657,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, RemoveSpace_NotFound_001, TestSize.Level1)
  */
 HWTEST_F(OsAccountSubspaceModuleTest, SwitchSpace_Success_001, TestSize.Level1)
 {
-    auto &mgr = OsAccountSubspaceManager::GetInstance();
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
     mgr.Init(TEST_ROOT_DIR);
 
     // Create a subspace
@@ -644,11 +667,11 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchSpace_Success_001, TestSize.Level1)
     info.subspaceId = distId;
     info.isCreateCompleted = true;
     info.toBeRemoved = false;
-    ASSERT_EQ(mgr.subspaceDataDeal_->SaveSubspaceInfo(info), ERR_OK);
+    ASSERT_EQ(mgr.subProfileDataDeal_->SaveSubProfileInfo(info), ERR_OK);
 
     // Switch to the subspace
     int32_t fromSubspaceId = 0;
-    ErrCode ret = mgr.SwitchSubspace(OS_ACCOUNT_ID_A, distId, fromSubspaceId);
+    ErrCode ret = mgr.SwitchSubProfile(OS_ACCOUNT_ID_A, distId, fromSubspaceId);
     // SwitchSubspaceLocked calls GetOsAccountInfoById which may fail if OS account
     // not fully initialized; accept either success or the specific error
     EXPECT_TRUE(ret == ERR_OK || ret == ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
@@ -656,22 +679,22 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchSpace_Success_001, TestSize.Level1)
 
 /**
  * @tc.name: SwitchSpace_ToBase_001
- * @tc.desc: S7 - Switch to index-0 subspace (base) skips IsValidSubspaceExists.
- *            NOTE: base subspace skips IsValidSubspaceExists verification, so
+ * @tc.desc: S7 - Switch to index-0 subspace (base) skips IsValidSubProfileExists.
+ *            NOTE: base subspace skips IsValidSubProfileExists verification, so
  *            SUBSPACE_NOT_FOUND must NOT be returned. GetOsAccountInfoById may fail
  *            in UT (returns NOT_EXIST_ERROR), which is acceptable — only
- *            SUBSPACE_NOT_FOUND from IsValidSubspaceExists would indicate a bug.
+ *            SUBSPACE_NOT_FOUND from IsValidSubProfileExists would indicate a bug.
  * @tc.type: FUNC
  */
 HWTEST_F(OsAccountSubspaceModuleTest, SwitchSpace_ToBase_001, TestSize.Level1)
 {
-    auto &mgr = OsAccountSubspaceManager::GetInstance();
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
     mgr.Init(TEST_ROOT_DIR);
     int32_t baseDistId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
     int32_t fromSubspaceId = 0;
 
-    // Switch to base subspace — must not return SUBSPACE_NOT_FOUND from IsValidSubspaceExists
-    ErrCode ret = mgr.SwitchSubspace(OS_ACCOUNT_ID_A, baseDistId, fromSubspaceId);
+    // Switch to base subspace — must not return SUBSPACE_NOT_FOUND from IsValidSubProfileExists
+    ErrCode ret = mgr.SwitchSubProfile(OS_ACCOUNT_ID_A, baseDistId, fromSubspaceId);
     EXPECT_NE(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
 }
 
@@ -686,7 +709,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchSpace_ToBase_001, TestSize.Level1)
  */
 HWTEST_F(OsAccountSubspaceModuleTest, RemoveSpace_Foreground_001, TestSize.Level1)
 {
-    auto &mgr = OsAccountSubspaceManager::GetInstance();
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
     mgr.Init(TEST_ROOT_DIR);
 
     // Create two subspaces
@@ -696,7 +719,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, RemoveSpace_Foreground_001, TestSize.Level
     info1.subspaceId = distId1;
     info1.isCreateCompleted = true;
     info1.toBeRemoved = false;
-    ASSERT_EQ(mgr.subspaceDataDeal_->SaveSubspaceInfo(info1), ERR_OK);
+    ASSERT_EQ(mgr.subProfileDataDeal_->SaveSubProfileInfo(info1), ERR_OK);
 
     int32_t distId2 = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 21;
     OsAccountSubspaceInfo info2;
@@ -704,31 +727,32 @@ HWTEST_F(OsAccountSubspaceModuleTest, RemoveSpace_Foreground_001, TestSize.Level
     info2.subspaceId = distId2;
     info2.isCreateCompleted = true;
     info2.toBeRemoved = false;
-    ASSERT_EQ(mgr.subspaceDataDeal_->SaveSubspaceInfo(info2), ERR_OK);
+    ASSERT_EQ(mgr.subProfileDataDeal_->SaveSubProfileInfo(info2), ERR_OK);
 
     // Try to switch to distId1 to make it foreground
     int32_t fromSubspaceId = 0;
-    mgr.SwitchSubspace(OS_ACCOUNT_ID_A, distId1, fromSubspaceId);
+    mgr.SwitchSubProfile(OS_ACCOUNT_ID_A, distId1, fromSubspaceId);
 
     // Try to remove distId1 — may fail if SetOsAccountForegroundSubspaceId didn't persist
-    ErrCode ret = mgr.RemoveSubspace(OS_ACCOUNT_ID_A, distId1);
+    ErrCode ret = mgr.RemoveSubProfile(OS_ACCOUNT_ID_A, distId1);
     // If foreground tracking worked → IS_FOREGROUND; otherwise accept OK or SUBSPACE_NOT_FOUND
     EXPECT_TRUE(ret == ERR_OS_ACCOUNT_SUBSPACE_IS_FOREGROUND ||
                 ret == ERR_OK ||
                 ret == ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
 
     // Cleanup
-    mgr.subspaceDataDeal_->RemoveSubspaceDir(OS_ACCOUNT_ID_A, distId1);
-    mgr.subspaceDataDeal_->RemoveSubspaceDir(OS_ACCOUNT_ID_A, distId2);
+    mgr.subProfileDataDeal_->RemoveSubProfileDir(OS_ACCOUNT_ID_A, distId1);
+    mgr.subProfileDataDeal_->RemoveSubProfileDir(OS_ACCOUNT_ID_A, distId2);
 }
 
 /**
- * @tc.name: ScanSubspaceIdsWithFilter_ErrnoOverflow_001
+ * @tc.name: ScanSubProfileIds_ErrnoOverflow_001
  * @tc.desc: Branch A — 20-digit all-numeric directory name triggers strtol overflow (errno != 0).
- *           The isDigit check passes, but strtol sets errno=ERANGE and returns LONG_MAX.
+ *           The isDigit check passes, but strtol sets errno=ERANGE; the entry is skipped and
+ *           scan returns ERR_OK.
  * @tc.type: FUNC
  */
-HWTEST_F(OsAccountSubspaceModuleTest, ScanSubspaceIdsWithFilter_ErrnoOverflow_001, TestSize.Level1)
+HWTEST_F(OsAccountSubspaceModuleTest, ScanSubProfileIds_ErrnoOverflow_001, TestSize.Level1)
 {
     // 20-digit number > LONG_MAX (9223372036854775807), triggers errno != 0 branch
     const std::string overflowName = "99999999999999999999";
@@ -737,17 +761,17 @@ HWTEST_F(OsAccountSubspaceModuleTest, ScanSubspaceIdsWithFilter_ErrnoOverflow_00
 
     std::set<int32_t> ids;
     auto filter = [](const OsAccountSubspaceInfo &info) { return true; };
-    EXPECT_EQ(dataDeal_->ScanSubspaceIdsWithFilter(OS_ACCOUNT_ID_A, filter, ids),
-        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    EXPECT_EQ(dataDeal_->ScanSubProfileIds(OS_ACCOUNT_ID_A, filter, ids), ERR_OK);
+    EXPECT_TRUE(ids.empty());
 }
 
 /**
- * @tc.name: ScanSubspaceIdsWithFilter_DotAndDotDot_001
+ * @tc.name: ScanSubProfileIds_DotAndDotDot_001
  * @tc.desc: Branch B — "." and ".." directory entries are skipped by the name check.
  *           Even though they pass d_type==DT_DIR, the continue on name skips them.
  * @tc.type: FUNC
  */
-HWTEST_F(OsAccountSubspaceModuleTest, ScanSubspaceIdsWithFilter_DotAndDotDot_001, TestSize.Level1)
+HWTEST_F(OsAccountSubspaceModuleTest, ScanSubProfileIds_DotAndDotDot_001, TestSize.Level1)
 {
     // Create a valid subspace dir (with JSON) so scan finds something
     int32_t validSubspaceId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 99;
@@ -759,17 +783,17 @@ HWTEST_F(OsAccountSubspaceModuleTest, ScanSubspaceIdsWithFilter_DotAndDotDot_001
     info.subspaceId = validSubspaceId;
     info.isCreateCompleted = true;
     info.toBeRemoved = false;
-    ASSERT_EQ(dataDeal_->SaveSubspaceInfo(info), ERR_OK);
+    ASSERT_EQ(dataDeal_->SaveSubProfileInfo(info), ERR_OK);
 
     // Scan — "." and ".." should be silently skipped, only valid subspace returned
     std::set<int32_t> ids;
     auto filter = [](const OsAccountSubspaceInfo &info) { return true; };
-    EXPECT_EQ(dataDeal_->ScanSubspaceIdsWithFilter(OS_ACCOUNT_ID_A, filter, ids), ERR_OK);
+    EXPECT_EQ(dataDeal_->ScanSubProfileIds(OS_ACCOUNT_ID_A, filter, ids), ERR_OK);
     EXPECT_EQ(ids.size(), 1u);
     EXPECT_TRUE(ids.count(validSubspaceId) > 0);
 
     // Cleanup
-    dataDeal_->RemoveSubspaceDir(OS_ACCOUNT_ID_A, validSubspaceId);
+    dataDeal_->RemoveSubProfileDir(OS_ACCOUNT_ID_A, validSubspaceId);
 }
 
 /**
@@ -781,7 +805,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, ScanSubspaceIdsWithFilter_DotAndDotDot_001
  */
 HWTEST_F(OsAccountSubspaceModuleTest, SwitchOsAccountSubspace_GetOsAccountInfoFailed_001, TestSize.Level1)
 {
-    auto &mgr = OsAccountSubspaceManager::GetInstance();
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
     mgr.Init(TEST_ROOT_DIR);
 
     // Create a subspace first so SwitchSubspace can find it
@@ -791,7 +815,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchOsAccountSubspace_GetOsAccountInfoFa
     info.subspaceId = distId;
     info.isCreateCompleted = true;
     info.toBeRemoved = false;
-    ASSERT_EQ(mgr.subspaceDataDeal_->SaveSubspaceInfo(info), ERR_OK);
+    ASSERT_EQ(mgr.subProfileDataDeal_->SaveSubProfileInfo(info), ERR_OK);
 
     // Call SwitchOsAccountSubspace on OhosAccountManager — the GetOsAccountInfoById
     // will fail for the non-existent OS account, skipping the active session check.
@@ -804,7 +828,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchOsAccountSubspace_GetOsAccountInfoFa
     EXPECT_TRUE(ret == ERR_OK || ret == ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 
     // Cleanup
-    mgr.subspaceDataDeal_->RemoveSubspaceDir(OS_ACCOUNT_ID_A, distId);
+    mgr.subProfileDataDeal_->RemoveSubProfileDir(OS_ACCOUNT_ID_A, distId);
 }
 
 /**
@@ -819,7 +843,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchOsAccountSubspace_GetOsAccountInfoFa
  */
 HWTEST_F(OsAccountSubspaceModuleTest, SwitchOsAccountSubspace_Publish_001, TestSize.Level1)
 {
-    auto &mgr = OsAccountSubspaceManager::GetInstance();
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
     mgr.Init(TEST_ROOT_DIR);
 
     // Create subspace for switching
@@ -829,7 +853,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchOsAccountSubspace_Publish_001, TestS
     info.subspaceId = distId;
     info.isCreateCompleted = true;
     info.toBeRemoved = false;
-    ASSERT_EQ(mgr.subspaceDataDeal_->SaveSubspaceInfo(info), ERR_OK);
+    ASSERT_EQ(mgr.subProfileDataDeal_->SaveSubProfileInfo(info), ERR_OK);
 
     // Switch — this exercises the full path including Publish.
     // On device, SwitchSubspaceLocked may fail if OS account not initialized.
@@ -839,17 +863,17 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchOsAccountSubspace_Publish_001, TestS
     EXPECT_TRUE(ret == ERR_OK || ret == ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 
     // Cleanup
-    mgr.subspaceDataDeal_->RemoveSubspaceDir(OS_ACCOUNT_ID_A, distId);
+    mgr.subProfileDataDeal_->RemoveSubProfileDir(OS_ACCOUNT_ID_A, distId);
 }
 
 /**
- * @tc.name: RemoveSubspaceDir_RetryLoop_001
- * @tc.desc: Branch A — RemoveSubspaceDir retryCount++ branch. Uses chattr +i on
+ * @tc.name: RemoveSubProfileDir_RetryLoop_001
+ * @tc.desc: Branch A — RemoveSubProfileDir retryCount++ branch. Uses chattr +i on
  *           inner file to make ForceRemoveDirectory fail, triggering the retry loop.
  *           Covers lines 270-278 in os_account_subspace_data_deal.cpp.
  * @tc.type: FUNC
  */
-HWTEST_F(OsAccountSubspaceModuleTest, RemoveSubspaceDir_RetryLoop_001, TestSize.Level1)
+HWTEST_F(OsAccountSubspaceModuleTest, RemoveSubProfileDir_RetryLoop_001, TestSize.Level1)
 {
     constexpr int32_t distId = 50;
     std::string spaceDir = TEST_ROOT_DIR + std::to_string(OS_ACCOUNT_ID_A) + "/" + std::to_string(distId);
@@ -861,8 +885,8 @@ HWTEST_F(OsAccountSubspaceModuleTest, RemoveSubspaceDir_RetryLoop_001, TestSize.
     ofs.close();
     ASSERT_EQ(system(("chattr +i " + innerFile).c_str()), 0);
 
-    // RemoveSubspaceDir should fail after retry loop (retryCount++ branch)
-    ErrCode ret = dataDeal_->RemoveSubspaceDir(OS_ACCOUNT_ID_A, distId);
+    // RemoveSubProfileDir should fail after retry loop (retryCount++ branch)
+    ErrCode ret = dataDeal_->RemoveSubProfileDir(OS_ACCOUNT_ID_A, distId);
     EXPECT_NE(ret, ERR_OK);
 
     // Cleanup: remove immutable attribute, then remove dir
@@ -873,14 +897,14 @@ HWTEST_F(OsAccountSubspaceModuleTest, RemoveSubspaceDir_RetryLoop_001, TestSize.
 
 /**
  * @tc.name: RemoveSubspaceLocked_DirRemoveFailed_001
- * @tc.desc: Branch B — RemoveSubspaceLocked RemoveSubspaceDir failure branch.
+ * @tc.desc: Branch B — RemoveSubspaceLocked RemoveSubProfileDir failure branch.
  *           Uses chattr +i on inner file so that after saving toBeRemoved=true,
- *           the RemoveSubspaceDir call fails, covering the error log at line 166-168.
+ *           the RemoveSubProfileDir call fails, covering the error log at line 166-168.
  * @tc.type: FUNC
  */
 HWTEST_F(OsAccountSubspaceModuleTest, RemoveSubspaceLocked_DirRemoveFailed_001, TestSize.Level1)
 {
-    auto &mgr = OsAccountSubspaceManager::GetInstance();
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
     mgr.Init(TEST_ROOT_DIR);
     constexpr int32_t distId = 51;
     // Save valid subspace info
@@ -889,7 +913,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, RemoveSubspaceLocked_DirRemoveFailed_001, 
     info.subspaceId = distId;
     info.isCreateCompleted = true;
     info.toBeRemoved = false;
-    ASSERT_EQ(mgr.subspaceDataDeal_->SaveSubspaceInfo(info), ERR_OK);
+    ASSERT_EQ(mgr.subProfileDataDeal_->SaveSubProfileInfo(info), ERR_OK);
 
     // Set an immutable inner file so ForceRemoveDirectory cannot delete the dir
     std::string spaceDir = TEST_ROOT_DIR + std::to_string(OS_ACCOUNT_ID_A) + "/" + std::to_string(distId);
@@ -899,8 +923,8 @@ HWTEST_F(OsAccountSubspaceModuleTest, RemoveSubspaceLocked_DirRemoveFailed_001, 
     ofs.close();
     ASSERT_EQ(system(("chattr +i " + innerFile).c_str()), 0);
 
-    // RemoveSubspace tries Load → Save toBeRemoved → RemoveSubspaceDir (fails)
-    ErrCode ret = mgr.RemoveSubspace(OS_ACCOUNT_ID_A, distId);
+    // RemoveSubspace tries Load → Save toBeRemoved → RemoveSubProfileDir (fails)
+    ErrCode ret = mgr.RemoveSubProfile(OS_ACCOUNT_ID_A, distId);
     EXPECT_NE(ret, ERR_OK);
 
     // Cleanup
@@ -910,13 +934,13 @@ HWTEST_F(OsAccountSubspaceModuleTest, RemoveSubspaceLocked_DirRemoveFailed_001, 
 }
 
 /**
- * @tc.name: LoadSubspaceInfo_ReadFailed_001
- * @tc.desc: Branch C — LoadSubspaceInfo GetFileContentByPath != ERR_OK branch
+ * @tc.name: LoadSubProfileInfo_ReadFailed_001
+ * @tc.desc: Branch C — LoadSubProfileInfo GetFileContentByPath != ERR_OK branch
  *           (line 253-256). Uses chmod 0000 on account.json so that fopen fails
  *           with EACCES if the test process runs as non-root.
  * @tc.type: FUNC
  */
-HWTEST_F(OsAccountSubspaceModuleTest, LoadSubspaceInfo_ReadFailed_001, TestSize.Level1)
+HWTEST_F(OsAccountSubspaceModuleTest, LoadSubProfileInfo_ReadFailed_001, TestSize.Level1)
 {
     constexpr int32_t distId = 52;
     std::string spaceDir = TEST_ROOT_DIR + std::to_string(OS_ACCOUNT_ID_A) + "/" + std::to_string(distId);
@@ -930,7 +954,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, LoadSubspaceInfo_ReadFailed_001, TestSize.
     chmod(jsonFile.c_str(), 0000);
 
     OsAccountSubspaceInfo info;
-    ErrCode ret = dataDeal_->LoadSubspaceInfo(OS_ACCOUNT_ID_A, distId, info);
+    ErrCode ret = dataDeal_->LoadSubProfileInfo(OS_ACCOUNT_ID_A, distId, info);
     // If process is root (CAP_DAC_READ_SEARCH bypasses DAC), this may still
     // succeed. In that case the branch is only covered in real error scenarios.
     EXPECT_TRUE(ret == ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR ||
@@ -946,7 +970,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, LoadSubspaceInfo_ReadFailed_001, TestSize.
 
 /**
  * @tc.name: SwitchSubspaceLocked_ActiveSessionDetected_001
- * @tc.desc: Verify OsAccountSubspaceManager::SwitchSubspaceLocked rejects switch
+ * @tc.desc: Verify OsAccountSubProfileManager::SwitchSubspaceLocked rejects switch
  *           when the current foreground subspace has LOGIN active session.
  *           Uses system account 100 (always present on device).
  * @tc.type: FUNC
@@ -971,17 +995,17 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchSubspaceLocked_SetForegroundFailed_0
     constexpr int32_t ACCOUNT_ID = 100;
     int32_t base = ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
 
-    auto &mgr = OsAccountSubspaceManager::GetInstance();
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
     mgr.Init(TEST_ROOT_DIR);
 
     // Save original foreground
     OsAccountInfo originalInfo;
     ASSERT_EQ(IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(ACCOUNT_ID, originalInfo), ERR_OK);
-    int32_t originalFg = originalInfo.GetForegroundSubspaceId();
+    int32_t originalFg = originalInfo.GetForegroundSubProfileId();
 
     // Create a subspace and set foreground to it (non-base)
     int32_t newSubspaceId = 0;
-    ASSERT_EQ(mgr.CreateSubspace(ACCOUNT_ID, newSubspaceId), ERR_OK);
+    ASSERT_EQ(mgr.CreateSubProfile(ACCOUNT_ID, newSubspaceId), ERR_OK);
     ASSERT_EQ(IInnerOsAccountManager::GetInstance().SetOsAccountForegroundSubspaceId(
         ACCOUNT_ID, newSubspaceId), ERR_OK);
 
@@ -991,7 +1015,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchSubspaceLocked_SetForegroundFailed_0
     info.userId_ = ACCOUNT_ID;
     info.isCreateCompleted = true;
     info.toBeRemoved = false;
-    ASSERT_EQ(mgr.subspaceDataDeal_->SaveSubspaceInfo(info), ERR_OK);
+    ASSERT_EQ(mgr.subProfileDataDeal_->SaveSubProfileInfo(info), ERR_OK);
 
     // Inject mock that fails UpdateOsAccount
     auto &innerMgr = IInnerOsAccountManager::GetInstance();
@@ -1002,13 +1026,13 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchSubspaceLocked_SetForegroundFailed_0
     // Switch to base: target=base → skips CheckActiveSessionStatus (base subspace)
     // → SetOsAccountForegroundSubspaceId → mock UpdateOsAccount returns error
     int32_t fromSubspaceId = -1;
-    ErrCode ret = mgr.SwitchSubspace(ACCOUNT_ID, base, fromSubspaceId);
+    ErrCode ret = mgr.SwitchSubProfile(ACCOUNT_ID, base, fromSubspaceId);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR);
 
     // Restore
     innerMgr.osAccountControl_ = originalControl;
     IInnerOsAccountManager::GetInstance().SetOsAccountForegroundSubspaceId(ACCOUNT_ID, originalFg);
-    mgr.subspaceDataDeal_->RemoveSubspaceDir(ACCOUNT_ID, newSubspaceId);
+    mgr.subProfileDataDeal_->RemoveSubProfileDir(ACCOUNT_ID, newSubspaceId);
 }
 
 /**
@@ -1026,7 +1050,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchOsAccountSubspace_ActiveSessionRejec
     // Save original foreground and restore after test
     OsAccountInfo originalInfo;
     ASSERT_EQ(IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(ACCOUNT_ID, originalInfo), ERR_OK);
-    int32_t originalFg = originalInfo.GetForegroundSubspaceId();
+    int32_t originalFg = originalInfo.GetForegroundSubProfileId();
 
     // Set foreground to base so the OhosAccountManager base-subspace active session check runs
     ASSERT_EQ(IInnerOsAccountManager::GetInstance().SetOsAccountForegroundSubspaceId(
@@ -1050,10 +1074,10 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchOsAccountSubspace_ActiveSessionRejec
     ASSERT_EQ(ohosMgr.dataDealer_->AccountInfoToJson(loginInfo), ERR_OK);
 
     // Create subspace 10001 (needed as target for the switch)
-    auto &mgr = OsAccountSubspaceManager::GetInstance();
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
     mgr.Init(TEST_ROOT_DIR);
     int32_t newSubspaceId = 0;
-    ASSERT_EQ(mgr.CreateSubspace(ACCOUNT_ID, newSubspaceId), ERR_OK);
+    ASSERT_EQ(mgr.CreateSubProfile(ACCOUNT_ID, newSubspaceId), ERR_OK);
 
     int32_t fromSubspaceId = -1;
     ErrCode ret = ohosMgr.SwitchOsAccountSubspace(ACCOUNT_ID, newSubspaceId, fromSubspaceId);
@@ -1062,7 +1086,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchOsAccountSubspace_ActiveSessionRejec
     // Cleanup: restore dataDealer_, foreground, and remove subspace dir
     ohosMgr.dataDealer_ = std::move(originalDataDealer);
     IInnerOsAccountManager::GetInstance().SetOsAccountForegroundSubspaceId(ACCOUNT_ID, originalFg);
-    mgr.subspaceDataDeal_->RemoveSubspaceDir(ACCOUNT_ID, newSubspaceId);
+    mgr.subProfileDataDeal_->RemoveSubProfileDir(ACCOUNT_ID, newSubspaceId);
     std::error_code ec;
     std::filesystem::remove_all(TEST_ROOT_DIR + std::to_string(ACCOUNT_ID), ec);
 }

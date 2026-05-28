@@ -4042,7 +4042,27 @@ ErrCode IInnerOsAccountManager::SetOsAccountForegroundSubspaceId(
         ACCOUNT_LOGE("GetOsAccountInfoById failed for localId=%{public}d, errCode=%{public}d", localId, errCode);
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
-    osAccountInfo.SetForegroundSubspaceId(subspaceId);
+    osAccountInfo.SetForegroundSubProfileId(subspaceId);
+    errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("UpdateOsAccount failed, errCode=%{public}d, localId=%{public}d", errCode, localId);
+        return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
+    }
+    return ERR_OK;
+}
+
+ErrCode IInnerOsAccountManager::UpdateOsAccountSubspaceInfo(
+    int32_t localId, int32_t nextSubProfileId, const std::vector<std::string> &subProfileIdList)
+{
+    std::lock_guard<std::mutex> lock(*GetOrInsertUpdateLock(localId));
+    OsAccountInfo osAccountInfo;
+    ErrCode errCode = osAccountControl_->GetOsAccountInfoById(localId, osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("GetOsAccountInfoById failed for localId=%{public}d, errCode=%{public}d", localId, errCode);
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
+    osAccountInfo.SetNextSubProfileId(nextSubProfileId);
+    osAccountInfo.SetSubProfileIdList(subProfileIdList);
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("UpdateOsAccount failed, errCode=%{public}d, localId=%{public}d", errCode, localId);
