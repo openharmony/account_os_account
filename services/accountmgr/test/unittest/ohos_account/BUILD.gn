@@ -217,10 +217,108 @@ group("unittest") {
     ":OhosServiceTest",
   ]
   deps += [
+    ":OhosAccountSpaceLoginLogoutTest",
     ":OsAccountSubspaceCoverageTest",
     ":OsAccountSubspaceManagerTest",
     ":OsAccountSubspaceTest",
   ]
+}
+
+ohos_unittest("OhosAccountSpaceLoginLogoutTest") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  module_out_path = module_output_path
+  cflags_cc = [
+    "-DENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE",
+    "-DHAS_CES_PART",
+    "-DACCOUNT_TEST",
+  ]
+  include_dirs = [
+    "${account_iam_interfaces_native_path}/include",
+    "${os_account_interfaces_native_path}/include",
+    "${os_account_core_path}/include",
+    "${services_path}/accountmgr/test/unittest/ohos_account/mock",
+    "${services_path}/accountmgr/include",
+    "${services_path}/accountmgr/test/mock/include/ams",
+    "${common_path}/account_error",
+    "${common_path}/log/include",
+    "${common_path}/include",
+    "${innerkits_common}/include",
+    "${innerkits_path}/include",
+    "${innerkits_native_path}/include",
+    "${os_account_dfx_path}/hidumper_adapter",
+    "${os_account_dfx_path}/hitrace_adapter",
+    "${os_account_dfx_path}/hisysevent_adapter",
+  ]
+
+  sources = [
+    "${common_path}/log/src/account_log_wrapper.cpp",
+    "${os_account_dfx_path}/hisysevent_adapter/account_hisysevent_adapter.cpp",
+    "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
+    "${services_path}/accountmgr/src/account_event_provider.cpp",
+    "${services_path}/accountmgr/src/account_state_machine.cpp",
+    "${services_path}/accountmgr/src/distributed_account_subscribe_death_recipient.cpp",
+    "${services_path}/accountmgr/src/distributed_account/os_account_subspace_data_deal.cpp",
+    "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager.cpp",
+    "${services_path}/accountmgr/src/distributed_account_subscribe_manager.cpp",
+    "${services_path}/accountmgr/src/ohos_account_data_deal.cpp",
+    "${services_path}/accountmgr/src/ohos_account_manager.cpp",
+    "mock/mock_space_dependencies.cpp",
+    "ohos_account_space_login_logout_test.cpp",
+  ]
+
+  configs = [
+    ":accountmgr_data_deal_test_config",
+    "${services_path}/accountmgr/test:accountmgr_test_config",
+  ]
+
+  deps = [
+    "${account_test_common}:account_test_common_source_set",
+    "${common_path}:libaccount_common",
+    "${innerkits_native_path}:libaccountkits",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
+  ]
+
+  external_deps = [
+    "ability_base:base",
+    "ability_base:want",
+    "access_token:libaccesstoken_sdk",
+    "access_token:libtokenid_sdk",
+    "access_token:libtokensetproc_shared",
+    "cJSON:cjson",
+    "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+    "kv_store:distributeddata_inner",
+    "openssl:libcrypto_shared",
+    "samgr:samgr_proxy",
+  ]
+  if (has_hiviewdfx_hisysevent_part) {
+    cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
+    external_deps += [ "hisysevent:libhisysevent" ]
+  }
+  if (has_ces_part) {
+    cflags_cc += [ "-DHAS_CES_PART" ]
+    external_deps += [ "common_event_service:cesfwk_innerkits" ]
+  }
+  if (os_account_distributed_feature && !use_libfuzzer) {
+    cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
+    sources +=
+        [ "${services_path}/accountmgr/src/account_file_watcher_manager.cpp" ]
+    if (has_huks_part) {
+      external_deps += [ "huks:libhukssdk" ]
+      cflags_cc += [ "-DHAS_HUKS_PART" ]
+    }
+  }
+  part_name = "os_account"
 }
 
 ohos_unittest("OsAccountSubspaceTest") {

@@ -1391,18 +1391,7 @@ ErrCode IInnerOsAccountManager::RemoveOsAccountOperate(const int id, OsAccountIn
             id, DomainAccountEvent::LOG_OUT, DomainAccountStatus::LOGOUT, domainAccountInfo);
     }
 #endif // SUPPORT_DOMAIN_ACCOUNTS
-    AccountInfo ohosInfo;
-    (void)OhosAccountManager::GetInstance().GetAccountInfoByUserId(id, ohosInfo);
-    if (ohosInfo.ohosAccountInfo_.name_ != DEFAULT_OHOS_ACCOUNT_NAME) {
-#ifdef HAS_CES_PART
-        AccountEventProvider::EventPublishAsUser(
-            EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOUT, id);
-        AccountEventProvider::EventPublishAsUser(
-            EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOUT, id);
-#else  // HAS_CES_PART
-        ACCOUNT_LOGI("No common event part! Publish nothing!");
-#endif // HAS_CES_PART
-    }
+    (void)OhosAccountManager::GetInstance().SendLogoutEventOnDelOsAccount(id);
     errCode = SendMsgForAccountRemove(osAccountInfo);
     if (errCode != ERR_OK) {
         return errCode;

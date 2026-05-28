@@ -41,6 +41,8 @@ typedef enum : std::int32_t {
     ACCOUNT_STATE_NOTLOGIN,
     // account logoff, all the data of this account will be deleted in the network
     ACCOUNT_STATE_LOGOFF,
+    // local token of account expired, need to re-authenticate
+    ACCOUNT_STATE_TOKEN_EXPIRED,
 } OHOS_ACCOUNT_STATE;
 
 // event string

@@ -108,5 +108,35 @@ bool AccountEventProvider::EventPublishAsUser(const std::string& event, int32_t 
 #endif // HAS_CES_PART
     return true;
 }
+
+
+bool AccountEventProvider::EventPublishAsUser(const std::string& event, const AAFwk::Want &want, int32_t userId)
+{
+    if (userId == UNDEFINED_USER) {
+        ACCOUNT_LOGE("EventPublishAsUser failed, userId is UNDEFINED_USER");
+        return false;
+    }
+#ifdef HAS_CES_PART
+    EventFwk::Want publishWant = want;
+    publishWant.SetAction(event);
+    CommonEventData data;
+    data.SetWant(publishWant);
+    StartTraceAdapter("Ohos account event publish.");
+    /* publish */
+    if (!CommonEventManager::PublishCommonEventAsUser(data, userId)) {
+        ACCOUNT_LOGE("PublishCommonEventAsUser failed! event %{public}s. userId is %{public}d", event.c_str(), userId);
+        REPORT_OHOS_ACCOUNT_FAIL(userId, EVENT_PUBLISH, false,
+            "PublishCommonEventAsUser failed, event=" + event + ", userId=" + std::to_string(userId));
+        FinishTraceAdapter();
+        return false;
+    } else {
+        ACCOUNT_LOGI("PublishCommonEventAsUser succeed! event %{public}s.", event.c_str());
+    }
+    FinishTraceAdapter();
+#else // HAS_CES_PART
+    ACCOUNT_LOGI("No common event part, do not publish anything! event %{public}s.", event.c_str());
+#endif // HAS_CES_PART
+    return true;
+}
 } // namespace AccountSA
 } // namespace OHOS
