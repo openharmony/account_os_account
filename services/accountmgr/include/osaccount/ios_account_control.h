@@ -16,8 +16,8 @@
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_IOS_ACCOUNT_CONTROL_H
 #include "os_account_info.h"
 #include "account_error_no.h"
+#include <map>
 #include <stdint.h>
-#include "json_utils.h"
 namespace OHOS {
 namespace AccountSA {
 struct OsAccountConfig {
@@ -40,14 +40,13 @@ class IOsAccountControl {
 public:
     virtual void Init() = 0;
     virtual ErrCode GetOsAccountConfig(OsAccountConfig &config) = 0;
-    virtual ErrCode GetOsAccountList(std::vector<OsAccountInfo> &osAccountList) = 0;
+    virtual ErrCode GetOsAccountList(std::vector<OsAccountInfo> &osAccountList, bool needPhoto = false) = 0;
     virtual ErrCode GetOsAccountIdList(std::vector<int32_t> &idList) = 0;
     virtual ErrCode GetOsAccountInfoById(const int id, OsAccountInfo &osAccountInfo) = 0;
     virtual ErrCode GetConstraintsByType(const OsAccountType type, std::vector<std::string> &constraints) = 0;
     virtual ErrCode InsertOsAccount(OsAccountInfo &osAccountInfo) = 0;
     virtual ErrCode DelOsAccount(const int id) = 0;
     virtual ErrCode UpdateOsAccount(OsAccountInfo &osAccountInfo) = 0;
-    virtual ErrCode GetAccountIndexFromFile(CJsonUnique &accountIndexJson) = 0;
     virtual ErrCode GetSerialNumber(int64_t &serialNumber) = 0;
     virtual ErrCode GetAllowCreateId(int &id) = 0;
     virtual ErrCode IsOsAccountExists(const int id, bool &isExists) = 0;
@@ -88,7 +87,6 @@ public:
     virtual ErrCode GetDefaultActivatedOsAccount(int32_t &id) = 0;
     virtual ErrCode GetDefaultActivatedOsAccount(const uint64_t displayId, int32_t &id) = 0;
     virtual ErrCode GetAllDefaultActivatedOsAccounts(std::map<uint64_t, int32_t> &ids) = 0;
-    virtual ErrCode UpdateAccountIndex(const OsAccountInfo &osAccountInfo, const bool isDelete) = 0;
     virtual ErrCode SetNextLocalId(const int32_t &nextLocalId) = 0;
     virtual ErrCode SetDomainBoundFlag(
         const int32_t localId, const bool flag, const DomainAccountInfo domainInfo = {}) = 0;

@@ -633,10 +633,6 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfo(const std::string &localNam
         ACCOUNT_LOGE("Insert os account info err, errCode %{public}d.", errCode);
         return errCode;
     }
-    errCode = osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Update account index failed, errCode = %{public}d", errCode);
-    }
 
     errCode = osAccountControl_->UpdateBaseOAConstraints(std::to_string(osAccountInfo.GetLocalId()),
         osAccountInfo.GetConstraints(), true);
@@ -711,10 +707,6 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfoWithFullInfo(OsAccountInfo &
     if ((errCode != ERR_OK) && (errCode != ERR_OSACCOUNT_SERVICE_CONTROL_INSERT_FILE_EXISTS_ERROR)) {
         ACCOUNT_LOGE("Insert os account info err, errCode %{public}d.", errCode);
         return errCode;
-    }
-    errCode = osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Update account index failed, errCode = %{public}d", errCode);
     }
 
     std::vector<std::string> constraints;
@@ -906,10 +898,6 @@ ErrCode IInnerOsAccountManager::UpdateFirstOsAccountInfo(OsAccountInfo& accountI
             "Failed to update OS account");
         return code;
     }
-    code = osAccountControl_->UpdateAccountIndex(accountInfoOld, false);
-    if (code != ERR_OK) {
-        ACCOUNT_LOGE("Update account index failed, errCode = %{public}d", code);
-    }
     osAccountInfo = accountInfoOld;
     return ERR_OK;
 }
@@ -1083,7 +1071,6 @@ ErrCode IInnerOsAccountManager::UpdateOsAccountWithFullInfo(OsAccountInfo &newIn
     oldInfo.SetPhoto(newInfo.GetPhoto());
     oldInfo.SetConstraints(newInfo.GetConstraints());
     errCode = osAccountControl_->UpdateOsAccount(oldInfo);
-    osAccountControl_->UpdateAccountIndex(oldInfo, false);
     newInfo = oldInfo;
     if (errCode != ERR_OK) {
         ReportOsAccountOperationFail(localId, OPERATION_UPDATE, errCode, "UpdateOsAccount failed!");
@@ -1208,11 +1195,6 @@ ErrCode IInnerOsAccountManager::BindDomainAccount(const OsAccountType &type,
         ACCOUNT_LOGW("Multiple os accounts feature not enabled");
         return ERR_OSACCOUNT_SERVICE_MANAGER_NOT_ENABLE_MULTI_ERROR;
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
-    }
-    errCode = osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Update account index failed, errCode = %{public}d", errCode);
-        return errCode;
     }
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
@@ -1530,16 +1512,6 @@ void IInnerOsAccountManager::SendMsgForAccountSwitched(OsAccountInfo &osAccountI
 #endif
 }
 
-bool IInnerOsAccountManager::IsToBeRemoved(int32_t localId)
-{
-    OsAccountInfo osAccountInfo;
-    ErrCode ret = GetRealOsAccountInfoById(localId, osAccountInfo);
-    if (ret == ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR) {
-        return true;
-    }
-    return osAccountInfo.GetToBeRemoved();
-}
-
 ErrCode IInnerOsAccountManager::CheckLocalIdRestricted(int32_t localId)
 {
     if (localId == Constants::ADMIN_LOCAL_ID) {
@@ -1568,32 +1540,21 @@ ErrCode IInnerOsAccountManager::ValidateOsAccount(const OsAccountInfo &osAccount
     if (osAccountInfo.GetType() == OsAccountType::PRIVATE) {
         return ERR_OK;
     }
-    auto accountIndexJson = CreateJson();
-    ErrCode result = osAccountControl_->GetAccountIndexFromFile(accountIndexJson);
+    std::vector<OsAccountInfo> osAccountInfos;
+    ErrCode result = osAccountControl_->GetOsAccountList(osAccountInfos);
     if (result != ERR_OK) {
         return result;
     }
     int32_t id = osAccountInfo.GetLocalId();
-    cJSON *element = nullptr;
-    cJSON_ArrayForEach(element, accountIndexJson) {
-        int32_t localId = 0;
-        std::string key(element->string);
-        if (!StrToInt(key, localId)) {
-            ACCOUNT_LOGE("Convert localId failed");
+    for (const auto &info : osAccountInfos) {
+        if ((info.GetType() == OsAccountType::PRIVATE) || (info.GetLocalId() == id) || info.GetToBeRemoved()) {
             continue;
         }
-        cJSON *nameObj = GetObjFromJson(accountIndexJson, key);
-        std::string localName;
-        if (GetStringFromJson(nameObj, Constants::LOCAL_NAME, localName) &&
-            (osAccountInfo.GetLocalName() == localName) && (localId != id) && !IsToBeRemoved(localId)) {
-                return ERR_ACCOUNT_COMMON_NAME_HAD_EXISTED;
+        if (osAccountInfo.GetLocalName() == info.GetLocalName()) {
+            return ERR_ACCOUNT_COMMON_NAME_HAD_EXISTED;
         }
-        if (!osAccountInfo.GetShortName().empty()) {
-            std::string shortName;
-            if (GetStringFromJson(nameObj, Constants::SHORT_NAME, shortName) &&
-                (osAccountInfo.GetShortName() == shortName) && (localId != id) && !IsToBeRemoved(localId)) {
-                    return ERR_ACCOUNT_COMMON_SHORT_NAME_HAD_EXISTED;
-            }
+        if (!osAccountInfo.GetShortName().empty() && (osAccountInfo.GetShortName() == info.GetShortName())) {
+            return ERR_ACCOUNT_COMMON_SHORT_NAME_HAD_EXISTED;
         }
     }
     return ERR_OK;
@@ -2580,10 +2541,6 @@ ErrCode IInnerOsAccountManager::SetOsAccountName(const int id, const std::string
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Update osaccount info error %{public}d, id: %{public}d", errCode, osAccountInfo.GetLocalId());
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
-    }
-    errCode = osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Update account index failed, errCode = %{public}d", errCode);
     }
     ReportAccountOperationEvent(ACCOUNT_OPERATION_TYPE_UPDATE_NAME, name, id);
     OsAccountInterface::PublishCommonEvent(
