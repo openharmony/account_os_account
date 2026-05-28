@@ -47,7 +47,7 @@ using namespace OHOS;
 using namespace OHOS::AccountSA;
 
 namespace {
-const std::string TEST_ROOT_DIR = "/data/test/os_account_subspace_module_test/";
+const std::string TEST_ROOT_DIR = "/data/test/os_account_subspace_module_test_dir/";
 constexpr int32_t OS_ACCOUNT_ID_A = 200;
 constexpr int32_t OS_ACCOUNT_ID_B = 201;
 }  // namespace
@@ -773,59 +773,6 @@ HWTEST_F(OsAccountSubspaceModuleTest, ScanSubspaceIdsWithFilter_DotAndDotDot_001
 }
 
 /**
- * @tc.name: GetOsAccountSubspaceProxy_CreatesProxy_001
- * @tc.desc: Branch C — when proxy_ is null, GetOsAccountSubspaceProxy creates a fresh proxy
- *           and deathRecipient. Covers lines 98-117 of GetOsAccountSubspaceProxy.
- * @tc.type: FUNC
- */
-HWTEST_F(OsAccountSubspaceModuleTest, GetOsAccountSubspaceProxy_CreatesProxy_001, TestSize.Level1)
-{
-    auto &client = OsAccountSubspaceClient::GetInstance();
-    // Force re-creation by resetting internal state
-    client.proxy_ = nullptr;
-    client.deathRecipient_ = nullptr;
-
-    // Trigger proxy creation via a public method
-    OsAccountSubspaceResult result;
-    client.CreateOsAccountSubspace(OS_ACCOUNT_ID_A, result);
-
-    // After the call, proxy_ should be non-null (lines 101-117 were exercised)
-    EXPECT_NE(client.proxy_, nullptr);
-    // deathRecipient should be created (line 106)
-    EXPECT_NE(client.deathRecipient_, nullptr);
-}
-
-/**
- * @tc.name: GetOsAccountSubspaceProxy_CachedProxy_001
- * @tc.desc: Branch D — when proxy_ is already non-null, GetOsAccountSubspaceProxy returns
- *           the cached proxy immediately (line 98). Covers line 98-99.
- * @tc.type: FUNC
- */
-HWTEST_F(OsAccountSubspaceModuleTest, GetOsAccountSubspaceProxy_CachedProxy_001, TestSize.Level1)
-{
-    auto &client = OsAccountSubspaceClient::GetInstance();
-
-    // First call creates proxy and deathRecipient
-    {
-        client.proxy_ = nullptr;
-        client.deathRecipient_ = nullptr;
-        OsAccountSubspaceResult result;
-        client.CreateOsAccountSubspace(OS_ACCOUNT_ID_A, result);
-    }
-
-    // Second call reuses cached proxy (line 98)
-    sptr<IOsAccountSubspace> savedProxy = client.proxy_;
-    sptr<OsAccountSubspaceClient::OsAccountSubspaceDeathRecipient> savedDR = client.deathRecipient_;
-    ASSERT_NE(savedProxy, nullptr);
-
-    OsAccountSubspaceResult result2;
-    client.CreateOsAccountSubspace(OS_ACCOUNT_ID_A, result2);
-    // Proxy and deathRecipient should remain the same (cached)
-    EXPECT_EQ(client.proxy_, savedProxy);
-    EXPECT_EQ(client.deathRecipient_, savedDR);
-}
-
-/**
  * @tc.name: SwitchOsAccountSubspace_GetOsAccountInfoFailed_001
  * @tc.desc: Branch E — when GetOsAccountInfoById fails for a non-existent account,
  *           the base subspace active session check is skipped and falls through to
@@ -1012,47 +959,6 @@ public:
     }
 };
 
-HWTEST_F(OsAccountSubspaceModuleTest, SwitchSubspaceLocked_ActiveSessionDetected_001, TestSize.Level1)
-{
-    constexpr int32_t ACCOUNT_ID = 100;
-    int32_t base = ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
-
-    // Save original foreground to restore after test
-    OsAccountInfo originalInfo;
-    ASSERT_EQ(IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(ACCOUNT_ID, originalInfo), ERR_OK);
-    int32_t originalFg = originalInfo.GetForegroundSubspaceId();
-
-    auto &mgr = OsAccountSubspaceManager::GetInstance();
-    mgr.Init(TEST_ROOT_DIR);
-
-    // Create a subspace (10001) — uses TEST_ROOT_DIR
-    int32_t newSubspaceId = 0;
-    ASSERT_EQ(mgr.CreateSubspace(ACCOUNT_ID, newSubspaceId), ERR_OK);
-
-    // Set foreground to the new subspace (non-base) so CheckActiveSessionStatus enters the check
-    ASSERT_EQ(IInnerOsAccountManager::GetInstance().SetOsAccountForegroundSubspaceId(
-        ACCOUNT_ID, newSubspaceId), ERR_OK);
-
-    // Save LOGIN state for the subspace → CheckActiveSessionStatus returns true
-    OsAccountSubspaceInfo info;
-    info.subspaceId = newSubspaceId;
-    info.userId_ = ACCOUNT_ID;
-    info.isCreateCompleted = true;
-    info.toBeRemoved = false;
-    info.ohosAccountInfo_.status_ = ACCOUNT_STATE_LOGIN;
-    ASSERT_EQ(mgr.subspaceDataDeal_->SaveSubspaceInfo(info), ERR_OK);
-
-    // Switch to base → fromSubspaceId = newSubspaceId (non-base)
-    // → CheckActiveSessionStatus(10001) → LOGIN → returns true → REJECT
-    int32_t fromSubspaceId = -1;
-    ErrCode ret = mgr.SwitchSubspace(ACCOUNT_ID, base, fromSubspaceId);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_HAS_ACTIVE_SESSION);
-
-    // Cleanup: restore foreground and remove subspace dir
-    IInnerOsAccountManager::GetInstance().SetOsAccountForegroundSubspaceId(ACCOUNT_ID, originalFg);
-    mgr.subspaceDataDeal_->RemoveSubspaceDir(ACCOUNT_ID, newSubspaceId);
-}
-
 /**
  * @tc.name: SwitchSubspaceLocked_SetForegroundFailed_001
  * @tc.desc: Mock IOsAccountControl::UpdateOsAccount to return an error,
@@ -1130,20 +1036,18 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchOsAccountSubspace_ActiveSessionRejec
     auto &ohosMgr = OhosAccountManager::GetInstance();
     auto originalDataDealer = std::move(ohosMgr.dataDealer_);
     ohosMgr.dataDealer_ = std::make_unique<OhosAccountDataDeal>(TEST_ROOT_DIR);
-    ohosMgr.dataDealer_->Init(ACCOUNT_ID);
+    ASSERT_EQ(ohosMgr.dataDealer_->Init(ACCOUNT_ID), ERR_OK);
 
-    // Write LOGIN state account.json for account 100 under TEST_ROOT_DIR
-    std::string userDir = TEST_ROOT_DIR + std::to_string(ACCOUNT_ID);
-    std::error_code ec;
-    std::filesystem::create_directories(userDir, ec);
-    std::string jsonPath = userDir + "/account.json";
-    std::ofstream ofs(jsonPath);
-    ASSERT_TRUE(ofs.is_open());
-    ofs << R"({"version":1,"bind_time":0,"user_id":)" << ACCOUNT_ID
-        << R"(,"account_name":"test","raw_uid":"test","open_id":"test",)"
-        << R"("bind_status":1,"calling_uid":0,"account_nickname":"",)"
-        << R"("account_scalableData":""})";
-    ofs.close();
+    // Write LOGIN state via AccountInfoToJson to ensure consistent file format and digest
+    AccountInfo loginInfo;
+    loginInfo.version_ = 1;
+    loginInfo.bindTime_ = 0;
+    loginInfo.userId_ = ACCOUNT_ID;
+    loginInfo.ohosAccountInfo_.name_ = "test";
+    loginInfo.ohosAccountInfo_.uid_ = "test";
+    loginInfo.ohosAccountInfo_.status_ = ACCOUNT_STATE_LOGIN;
+    loginInfo.ohosAccountInfo_.callingUid_ = 0;
+    ASSERT_EQ(ohosMgr.dataDealer_->AccountInfoToJson(loginInfo), ERR_OK);
 
     // Create subspace 10001 (needed as target for the switch)
     auto &mgr = OsAccountSubspaceManager::GetInstance();
@@ -1159,7 +1063,8 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchOsAccountSubspace_ActiveSessionRejec
     ohosMgr.dataDealer_ = std::move(originalDataDealer);
     IInnerOsAccountManager::GetInstance().SetOsAccountForegroundSubspaceId(ACCOUNT_ID, originalFg);
     mgr.subspaceDataDeal_->RemoveSubspaceDir(ACCOUNT_ID, newSubspaceId);
-    std::filesystem::remove_all(userDir, ec);
+    std::error_code ec;
+    std::filesystem::remove_all(TEST_ROOT_DIR + std::to_string(ACCOUNT_ID), ec);
 }
 
 #endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE

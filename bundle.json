@@ -93,7 +93,6 @@
           "//base/account/os_account/frameworks/authorization:authorization_innerkits",
           "//base/account/os_account/frameworks/common:common_target",
           "//base/account/os_account/frameworks/domain_account:domain_account_innerkits",
-          "//base/account/os_account/frameworks/os_account_subspace:os_account_subspace_client",
           "//base/account/os_account/frameworks/ohosaccount/native:libaccountkits",
           "//base/account/os_account/frameworks/osaccount/native:os_account_innerkits"
         ],
