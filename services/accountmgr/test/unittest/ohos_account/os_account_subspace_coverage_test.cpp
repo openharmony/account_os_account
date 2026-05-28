@@ -1002,6 +1002,16 @@ public:
     bool IsServiceStarted() const { return true; }
     int32_t CallbackEnter(uint32_t code) override { return ERR_OK; }
     int32_t CallbackExit(uint32_t code, int32_t result) override { return ERR_OK; }
+    ErrCode SubscribeDistributedAccountSpaceEvents(
+        const std::vector<int32_t>& typeInts, const sptr<IRemoteObject>& eventListener) override
+    {
+        return ERR_OK;
+    }
+    ErrCode UnsubscribeDistributedAccountSpaceEvents(
+        const std::vector<int32_t>& typeInts, const sptr<IRemoteObject>& eventListener) override
+    {
+        return ERR_OK;
+    }
 };
 
 // Helper fixture: injects a MockAccountProxyForSubspaceDeath into OhosAccountKitsImpl::accountProxy_

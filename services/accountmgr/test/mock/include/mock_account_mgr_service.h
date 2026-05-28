@@ -79,8 +79,8 @@ public:
         funcResult = nullptr;
         return 0;
     }
-    
-ErrCode GetAuthorizationService(sptr<IRemoteObject>& funcResult) override
+
+    ErrCode GetAuthorizationService(sptr<IRemoteObject>& funcResult) override
     {
         funcResult = nullptr;
         return 0;
@@ -106,7 +106,16 @@ ErrCode GetAuthorizationService(sptr<IRemoteObject>& funcResult) override
     {
         return ERR_OK;
     }
-
+    ErrCode SubscribeDistributedAccountSpaceEvents(
+        const std::vector<int32_t>& typeInts, const sptr<IRemoteObject>& eventListener) override
+    {
+        return ERR_OK;
+    }
+    ErrCode UnsubscribeDistributedAccountSpaceEvents(
+        const std::vector<int32_t>& typeInts, const sptr<IRemoteObject>& eventListener) override
+    {
+        return ERR_OK;
+    }
 private:
     std::int32_t devAccountId_;
 };

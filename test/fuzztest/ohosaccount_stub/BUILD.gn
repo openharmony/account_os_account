@@ -18,5 +18,7 @@ group("fuzztest") {
   deps += [
     # deps file
     "getohosaccountinfostub_fuzzer:GetOhosAccountInfoStubFuzzTest",
+    "subscribedistributedaccountspaceeventsstub_fuzzer:SubscribeDistributedAccountSpaceEventsStubFuzzTest",
+    "unsubscribedistributedaccountspaceeventsstub_fuzzer:UnsubscribeDistributedAccountSpaceEventsStubFuzzTest",
   ]
 }

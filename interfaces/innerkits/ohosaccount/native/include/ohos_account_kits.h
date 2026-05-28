@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -36,6 +36,7 @@
 #ifndef BASE_ACCOUNT_OHOS_ACCOUNT_KITS_H
 #define BASE_ACCOUNT_OHOS_ACCOUNT_KITS_H
 
+#include <set>
 #include "account_info.h"
 #include "distributed_account_subscribe_callback.h"
 #include "nocopyable.h"
@@ -163,6 +164,30 @@ public:
      */
     virtual ErrCode UnsubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
         const std::shared_ptr<DistributedAccountSubscribeCallback> &callback) = 0;
+
+    /**
+     * @brief Batch subscribes distributed account space events by types and callback.
+     * @param types space event types set
+     * @param callback subscribe callback
+     * @return error code, see account_error_no.h
+     */
+    virtual ErrCode SubscribeDistributedAccountSpaceEvents(const std::set<DistributedAccountSpaceEventType>& types,
+        const std::shared_ptr<DistributedAccountSubscribeCallback> &callback)
+    {
+        return ERR_OK;
+    }
+
+    /**
+     * @brief Unsubscribes all distributed account space events for a callback.
+     * @param callback subscribe callback
+     * @return error code, see account_error_no.h
+     */
+    virtual ErrCode UnsubscribeDistributedAccountSpaceEvents(
+        const std::shared_ptr<DistributedAccountSubscribeCallback> &callback)
+    {
+        return ERR_OK;
+    }
+
 protected:
     OhosAccountKits() = default;
 };

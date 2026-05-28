@@ -14,9 +14,11 @@
  */
 
 sequenceable DistributedAccountSubscribeCallback..OHOS.AccountSA.DistributedAccountEventData;
+sequenceable DistributedAccountSubscribeCallback..OHOS.AccountSA.DistributedAccountSpaceEventData;
 
 interface_token ohos.accountfwk.IDistributedAccountEvent;
 
 interface OHOS.AccountSA.IDistributedAccountEvent {
     void OnAccountsChanged([in] DistributedAccountEventData eventData);
+    void OnSpaceAccountsChanged([in] DistributedAccountSpaceEventData eventData);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,11 +25,18 @@ namespace AccountSA {
 struct DistributedSubscribeRecord {
     sptr<IRemoteObject> eventListener_;
     std::set<DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE> types_;
+    std::set<DistributedAccountSpaceEventType> spaceTypes_;
+    int32_t localId_ = -1;
+    bool isSaCall_ = false;
 
-    DistributedSubscribeRecord() : eventListener_(nullptr)
+    DistributedSubscribeRecord() : eventListener_(nullptr), localId_(-1), isSaCall_(false)
     {}
-    DistributedSubscribeRecord(sptr<IRemoteObject> eventListener) : eventListener_(eventListener)
+    DistributedSubscribeRecord(sptr<IRemoteObject> eventListener, int32_t localId = -1, bool isSaCall = false)
+        : eventListener_(eventListener), localId_(localId), isSaCall_(isSaCall)
     {}
+
+    void AddSpaceTypes(const std::set<DistributedAccountSpaceEventType> &newTypes);
+    void RemoveSpaceTypes(const std::set<DistributedAccountSpaceEventType> &types);
 };
 
 using DistributedSubscribeRecordPtr = std::shared_ptr<DistributedSubscribeRecord>;
@@ -41,7 +48,12 @@ public:
     virtual ErrCode UnsubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
         const sptr<IRemoteObject> &eventListener) = 0;
     virtual ErrCode UnsubscribeDistributedAccountEvent(const sptr<IRemoteObject> &eventListener) = 0;
-    virtual ErrCode Publish(const int id, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE subscribeType) = 0;
+    virtual ErrCode SubscribeDistributedAccountSpaceEvents(const std::set<DistributedAccountSpaceEventType> &types,
+        const sptr<IRemoteObject> &eventListener) = 0;
+    virtual ErrCode UnsubscribeDistributedAccountSpaceEvents(const std::set<DistributedAccountSpaceEventType> &types,
+        const sptr<IRemoteObject> &eventListener) = 0;
+    virtual ErrCode Publish(const int id, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE subscribeType,
+        int32_t subProfileId = -1) = 0;
 
     virtual ErrCode Publish(DistributedAccountSpaceEventType eventType, int32_t localId,
         int32_t distributedAccountId, int32_t previousDistributedAccountId = -1) = 0;

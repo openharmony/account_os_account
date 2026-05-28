@@ -66,6 +66,8 @@ group("fuzztest") {
     "setspecificosaccountconstraints_fuzzer:SetSpecificOsAccountConstraintsFuzzTest",
     "startosaccount_fuzzer:StartOsAccountFuzzTest",
     "subscribeconstraints_fuzzer:SubscribeConstraintsFuzzTest",
+    "subscribedistributedaccountspaceevents_fuzzer:SubscribeDistributedAccountSpaceEventsFuzzTest",
+    "unsubscribedistributedaccountspaceevents_fuzzer:UnsubscribeDistributedAccountSpaceEventsFuzzTest",
     "unsubscribeconstraints_fuzzer:UnsubscribeConstraintsFuzzTest",
     "updateosaccountwithfullinfo_fuzzer:UpdateOsAccountWithFullInfoFuzzTest",
   ]

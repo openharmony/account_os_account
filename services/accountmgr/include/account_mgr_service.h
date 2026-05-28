@@ -64,6 +64,11 @@ public:
     ErrCode QueryDeviceAccountId(std::int32_t &accountId) override;
     ErrCode SubscribeDistributedAccountEvent(int32_t typeInt, const sptr<IRemoteObject>& eventListener) override;
     ErrCode UnsubscribeDistributedAccountEvent(int32_t typeInt, const sptr<IRemoteObject>& eventListener) override;
+
+    ErrCode SubscribeDistributedAccountSpaceEvents(
+        const std::vector<int32_t>& typeInts, const sptr<IRemoteObject>& eventListener) override;
+    ErrCode UnsubscribeDistributedAccountSpaceEvents(
+        const std::vector<int32_t>& typeInts, const sptr<IRemoteObject>& eventListener) override;
     ErrCode GetAppAccountService(sptr<IRemoteObject>& funcResult) override;
     ErrCode GetOsAccountService(sptr<IRemoteObject>& funcResult) override;
     ErrCode GetAccountIAMService(sptr<IRemoteObject>& funcResult) override;

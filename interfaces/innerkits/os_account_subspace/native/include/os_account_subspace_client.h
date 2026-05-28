@@ -16,11 +16,13 @@
 #ifndef OS_ACCOUNT_INTERFACES_INNERKITS_OS_ACCOUNT_SUBSPACE_INCLUDE_OS_ACCOUNT_SUBSPACE_CLIENT_H
 #define OS_ACCOUNT_INTERFACES_INNERKITS_OS_ACCOUNT_SUBSPACE_INCLUDE_OS_ACCOUNT_SUBSPACE_CLIENT_H
 
+#include <set>
 #include "account_info.h"
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 #include "ios_account_subspace.h"
 #include "nocopyable.h"
 #endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+#include "account_error_no.h"
 
 namespace OHOS {
 namespace AccountSA {

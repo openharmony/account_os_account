@@ -45,6 +45,8 @@
 #include "os_account_info.h"
 #include "os_account_subscriber.h"
 #include "account_error_no.h"
+#include "distributed_account_subscribe_callback.h"
+
 namespace OHOS {
 namespace AccountSA {
 class OsAccountManager {
@@ -813,6 +815,34 @@ public:
      */
     static ErrCode BindDomainAccount(const int32_t localId, const DomainAccountInfo &domainInfo,
         const std::shared_ptr<DomainAccountCallback> &callback);
+
+    /**
+     * @brief Subscribe distributed account space events.
+     *
+     * @permission ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION or caller must be system app
+     * @param types - Indicates the event types to subscribe. The value can be:
+     *        <ul>
+     *        <li>{@code DistributedAccountSpaceEventType::CREATED} - Space account created event.</li>
+     *        <li>{@code DistributedAccountSpaceEventType::DELETED} - Space account deleted event.</li>
+     *        <li>{@code DistributedAccountSpaceEventType::SWITCHING} - Space account switching event.</li>
+     *        <li>{@code DistributedAccountSpaceEventType::SWITCHED} - Space account switched event.</li>
+     *        </ul>
+     * @param callback - Indicates the callback for receiving space events.
+     * @return error code, see account_error_no.h.
+     */
+    static ErrCode SubscribeDistributedAccountSpaceEvents(
+        const std::set<DistributedAccountSpaceEventType>& types,
+        const std::shared_ptr<DistributedAccountSubscribeCallback>& callback);
+
+    /**
+     * @brief Unsubscribe distributed account space events.
+     *
+     * @permission ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION or caller must be system app
+     * @param callback - Indicates the callback to unsubscribe.
+     * @return error code, see account_error_no.h.
+     */
+    static ErrCode UnsubscribeDistributedAccountSpaceEvents(
+        const std::shared_ptr<DistributedAccountSubscribeCallback>& callback);
 };
 }  // namespace AccountSA
 }  // namespace OHOS
