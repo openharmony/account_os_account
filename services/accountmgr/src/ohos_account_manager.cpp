@@ -858,8 +858,6 @@ ErrCode OhosAccountManager::PublishLoginEvents(int32_t userId, int32_t originalS
         (void)CreateCommonEventSubscribe();
         return ERR_OK;
     }
-    AccountEventProvider::EventPublishAsUser(
-        CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_BOUND, userId);
     AccountEventProvider::EventPublishAsUser(CommonEventSupport::COMMON_EVENT_HWID_LOGIN, userId);
     AccountEventProvider::EventPublishAsUser(
         CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGIN, userId);
@@ -911,8 +909,6 @@ ErrCode OhosAccountManager::LogoutOhosAccount(
         EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOUT, userId);
     AccountEventProvider::EventPublishAsUser(
         EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOUT, userId);
-    AccountEventProvider::EventPublishAsUser(
-        EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_UNBOUND, userId);
 #else  // HAS_CES_PART
     ACCOUNT_LOGI("No common event part! Publish nothing!");
 #endif // HAS_CES_PART
@@ -961,8 +957,6 @@ ErrCode OhosAccountManager::LogoffOhosAccount(
         EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOFF, userId);
     AccountEventProvider::EventPublishAsUser(
         EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOFF, userId);
-    AccountEventProvider::EventPublishAsUser(
-        EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_UNBOUND, userId);
 #else  // HAS_CES_PART
     ACCOUNT_LOGI("No common event part, publish nothing for logoff!");
 #endif // HAS_CES_PART
@@ -1110,8 +1104,6 @@ void OhosAccountManager::ClearMainAccountIfMatch(int32_t localId, const std::int
         EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOUT, localId);
     AccountEventProvider::EventPublishAsUser(
         EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOUT, localId);
-    AccountEventProvider::EventPublishAsUser(
-            EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_UNBOUND, localId); 
 #else
     PublishLogoutSpaceEvents(localId, localId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER, true);
 #endif
@@ -1260,9 +1252,6 @@ ErrCode OhosAccountManager::PublishLoginSpaceEvents(int32_t userId, int32_t subs
         return ERR_OK;
     }
 #ifdef HAS_CES_PART
-    if (isUnbound) {
-        SendMultiSubSpaceCommonEvt(userId, subspaceId, CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_BOUND);
-    }
     SendMultiSubSpaceCommonEvt(userId, subspaceId, CommonEventSupport::COMMON_EVENT_HWID_LOGIN);
     SendMultiSubSpaceCommonEvt(userId, subspaceId, CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGIN);
 #endif // HAS_CES_PART
@@ -1329,9 +1318,6 @@ void OhosAccountManager::PublishLogoutSpaceEvents(int32_t localId, int32_t subsp
         EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOUT, want, localId);
     AccountEventProvider::EventPublishAsUser(
         EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOUT, want, localId);
-    if (isUnbound) {
-        SendMultiSubSpaceCommonEvt(localId, subspaceId, CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_UNBOUND);
-    }
 #endif // HAS_CES_PART
 }
 
@@ -1566,9 +1552,6 @@ ErrCode OhosAccountManager::SendMultiSpaceLogoutOnDelOsAccount(int32_t localId)
             continue;
         }
         subscribeManager_.Publish(localId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::UNBOUND, spaceId);
-#ifdef HAS_CES_PART
-        SendMultiSubSpaceCommonEvt(localId, spaceId, CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_UNBOUND);
-#endif // HAS_CES_PART
     }
     return ERR_OK;
 }
@@ -1592,8 +1575,6 @@ ErrCode OhosAccountManager::SendLogoutEventOnDelOsAccount(int32_t localId)
             EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOUT, localId);
         AccountEventProvider::EventPublishAsUser(
             EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOUT, localId);
-        AccountEventProvider::EventPublishAsUser(
-            EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_UNBOUND, localId);
 #endif // HAS_CES_PART
     }
     return ERR_OK;
