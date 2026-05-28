@@ -570,7 +570,7 @@ ErrCode OhosAccountManager::CreateOsAccountSubspace(int32_t osAccountId, OsAccou
     result.index = newSubspaceId - osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
 
     ErrCode publishRet = subscribeManager_.Publish(
-        DistributedAccountSpaceEventType::CREATE, osAccountId, newSubspaceId);
+        DistributedAccountSpaceEventType::CREATED, osAccountId, newSubspaceId);
     if (publishRet != ERR_OK) {
         ACCOUNT_LOGW("Failed to publish CREATE event for distId=%{public}d, ret=%{public}d (space is still valid)",
             newSubspaceId, publishRet);
@@ -641,6 +641,18 @@ ErrCode OhosAccountManager::SwitchOsAccountSubspace(
     return ERR_OK;
 }
 #endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+
+ErrCode OhosAccountManager::SubscribeDistributedAccountSpaceEvents(
+    const std::set<DistributedAccountSpaceEventType> &types, const sptr<IRemoteObject> &eventListener)
+{
+    return subscribeManager_.SubscribeDistributedAccountSpaceEvents(types, eventListener);
+}
+
+ErrCode OhosAccountManager::UnsubscribeDistributedAccountSpaceEvents(
+    const std::set<DistributedAccountSpaceEventType> &types, const sptr<IRemoteObject> &eventListener)
+{
+    return subscribeManager_.UnsubscribeDistributedAccountSpaceEvents(types, eventListener);
+}
 
 /**
  * Get current account state.

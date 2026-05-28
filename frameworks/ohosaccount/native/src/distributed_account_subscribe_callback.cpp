@@ -29,6 +29,10 @@ bool DistributedAccountEventData::Marshalling(Parcel &parcel) const
         ACCOUNT_LOGE("Write type failed.");
         return false;
     }
+    if (!parcel.WriteInt32(subspaceId_)) {
+        ACCOUNT_LOGE("Write subProfileId failed.");
+        return false;
+    }
     return true;
 }
 
@@ -47,7 +51,8 @@ DistributedAccountEventData *DistributedAccountEventData::Unmarshalling(Parcel &
 
 bool DistributedAccountEventData::operator==(const DistributedAccountEventData &eventData) const
 {
-    return (this->id_ == eventData.id_) && (this->type_ == eventData.type_);
+    return (this->id_ == eventData.id_) && (this->type_ == eventData.type_) &&
+        (this->subspaceId_ == eventData.subspaceId_);
 }
 
 bool DistributedAccountEventData::ReadFromParcel(Parcel &parcel)
@@ -64,6 +69,91 @@ bool DistributedAccountEventData::ReadFromParcel(Parcel &parcel)
         return false;
     }
     type_ = static_cast<DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE>(type);
+    int32_t subProfileId = 0;
+    if (!parcel.ReadInt32(subProfileId)) {
+        ACCOUNT_LOGE("Read subProfileId failed.");
+        return false;
+    }
+    subspaceId_ = subProfileId;
+    return true;
+}
+
+bool DistributedAccountSpaceEventData::Marshalling(Parcel &parcel) const
+{
+    if (!parcel.WriteInt32(static_cast<int32_t>(type_))) {
+        ACCOUNT_LOGE("Write type failed.");
+        return false;
+    }
+    if (!parcel.WriteInt32(osAccountId_)) {
+        ACCOUNT_LOGE("Write osAccountId failed.");
+        return false;
+    }
+    if (!parcel.WriteInt32(subspaceId_)) {
+        ACCOUNT_LOGE("Write subProfileId failed.");
+        return false;
+    }
+    if (!parcel.WriteInt32(previousSubspaceId_)) {
+        ACCOUNT_LOGE("Write previousSubProfileId failed.");
+        return false;
+    }
+    return true;
+}
+
+DistributedAccountSpaceEventData *DistributedAccountSpaceEventData::Unmarshalling(Parcel &parcel)
+{
+    DistributedAccountSpaceEventData *eventData = new (std::nothrow) DistributedAccountSpaceEventData();
+
+    if (eventData != nullptr && !eventData->ReadFromParcel(parcel)) {
+        ACCOUNT_LOGE("Read from parcel failed.");
+        delete eventData;
+        eventData = nullptr;
+    }
+
+    return eventData;
+}
+
+bool DistributedAccountSpaceEventData::operator==(const DistributedAccountSpaceEventData &eventData) const
+{
+    if (this->type_ != eventData.type_) {
+        return false;
+    }
+    if (this->osAccountId_ != eventData.osAccountId_ ||
+        this->subspaceId_ != eventData.subspaceId_ ||
+        this->previousSubspaceId_ != eventData.previousSubspaceId_) {
+        return false;
+    }
+    return true;
+}
+
+bool DistributedAccountSpaceEventData::ReadFromParcel(Parcel &parcel)
+{
+    int32_t type = 0;
+    if (!parcel.ReadInt32(type)) {
+        ACCOUNT_LOGE("Read type failed.");
+        return false;
+    }
+    type_ = static_cast<DistributedAccountSpaceEventType>(type);
+
+    int32_t osAccountId = -1;
+    if (!parcel.ReadInt32(osAccountId)) {
+        ACCOUNT_LOGE("Read osAccountId failed.");
+        return false;
+    }
+    osAccountId_ = osAccountId;
+
+    int32_t spaceId = -1;
+    if (!parcel.ReadInt32(spaceId)) {
+        ACCOUNT_LOGE("Read subProfileId failed.");
+        return false;
+    }
+    subspaceId_ = spaceId;
+
+    int32_t previousSpaceId = -1;
+    if (!parcel.ReadInt32(previousSpaceId)) {
+        ACCOUNT_LOGE("Read previousSubProfileId failed.");
+        return false;
+    }
+    previousSubspaceId_ = previousSpaceId;
 
     return true;
 }

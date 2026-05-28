@@ -236,6 +236,64 @@ public:
     }
 };
 
+using TaiheSubProfileCallback = taihe::callback<void(OsAccountSubProfileEventData const&)>;
+
+class TaiheSubspaceCallback final : public AccountSA::DistributedAccountSubscribeCallback {
+public:
+    explicit TaiheSubspaceCallback(std::shared_ptr<TaiheSubProfileCallback> &cb)
+        : callback_(cb) {}
+    ~TaiheSubspaceCallback() {}
+
+    void OnSpaceAccountsChanged(const AccountSA::DistributedAccountSpaceEventData &eventData) override
+    {
+        OsAccountSubProfileEvent::key_t eventKey;
+        switch (eventData.type_) {
+            case AccountSA::DistributedAccountSpaceEventType::CREATED:
+                eventKey = OsAccountSubProfileEvent::key_t::CREATED;
+                break;
+            case AccountSA::DistributedAccountSpaceEventType::DELETED:
+                eventKey = OsAccountSubProfileEvent::key_t::DELETED;
+                break;
+            case AccountSA::DistributedAccountSpaceEventType::SWITCHING:
+                eventKey = OsAccountSubProfileEvent::key_t::SWITCHING;
+                break;
+            case AccountSA::DistributedAccountSpaceEventType::SWITCHED:
+                eventKey = OsAccountSubProfileEvent::key_t::SWITCHED;
+                break;
+            default:
+                ACCOUNT_LOGE("Unknown space event type: %{public}d", static_cast<int32_t>(eventData.type_));
+                return;
+        }
+        OsAccountSubProfileEventData data = OsAccountSubProfileEventData {
+            .event = OsAccountSubProfileEvent(eventKey),
+            .osAccountLocalId = eventData.osAccountId_,
+            .subProfileId = eventData.subspaceId_,
+        };
+        if (eventData.previousSubspaceId_ != -1) {
+            data.previousSubProfileId =
+                optional<int32_t>(std::in_place_t{}, static_cast<int32_t>(eventData.previousSubspaceId_));
+        }
+        if (callback_ != nullptr) {
+            TaiheSubProfileCallback call = *callback_;
+            call(data);
+        }
+    }
+
+    bool IsSameCallback(std::shared_ptr<TaiheSubProfileCallback> &callback)
+    {
+        if (callback_ != nullptr && callback != nullptr) {
+            return *callback_ == *callback;
+        }
+        return false;
+    }
+
+private:
+    std::shared_ptr<TaiheSubProfileCallback> callback_ = nullptr;
+};
+
+std::mutex g_lockForSubspaceSubscribers;
+std::vector<std::shared_ptr<TaiheSubspaceCallback>> g_subspaceSubscribers;
+
 class AccountManagerImpl {
 private:
     AccountSA::OsAccountManager *osAccountManger_ = nullptr;
@@ -1676,6 +1734,99 @@ public:
         if (err != ERR_OK) {
             SetTaiheBusinessErrorFromNativeCode(err);
         }
+    }
+
+    void OnOsAccountSubProfileEvent(array_view<OsAccountSubProfileEvent> events,
+        callback_view<void(OsAccountSubProfileEventData const&)> callback)
+    {
+        if (events.size() == 0) {
+            SetTaiheBusinessErrorFromNativeCode(ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+            return;
+        }
+
+        std::set<AccountSA::DistributedAccountSpaceEventType> types;
+        for (size_t i = 0; i < events.size(); i++) {
+            int32_t eventValue = events[i].get_value();
+            if (eventValue < static_cast<int32_t>(AccountSA::DistributedAccountSpaceEventType::CREATED) ||
+                eventValue >= static_cast<int32_t>(AccountSA::DistributedAccountSpaceEventType::INVALID_TYPE)) {
+                SetTaiheBusinessErrorFromNativeCode(ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+                return;
+            }
+            types.insert(static_cast<AccountSA::DistributedAccountSpaceEventType>(eventValue));
+        }
+
+        TaiheSubProfileCallback call = callback;
+        auto cb = std::make_shared<TaiheSubProfileCallback>(call);
+        std::shared_ptr<TaiheSubspaceCallback> subscribeCallback = nullptr;
+        bool hasExistingRecord = false;
+
+        std::lock_guard<std::mutex> lock(g_lockForSubspaceSubscribers);
+        for (const auto &existing : g_subspaceSubscribers) {
+            if (existing->IsSameCallback(cb)) {
+                hasExistingRecord = true;
+                subscribeCallback = existing;
+                break;
+            }
+        }
+
+        if (!hasExistingRecord) {
+            subscribeCallback = std::make_shared<TaiheSubspaceCallback>(cb);
+        }
+
+        ErrCode errCode = AccountSA::OsAccountManager::SubscribeDistributedAccountSpaceEvents(types, subscribeCallback);
+        if (errCode == ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR) {
+            SetTaiheBusinessErrorFromNativeCode(ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+            return;
+        }
+        if (errCode != ERR_OK) {
+            SetTaiheBusinessErrorFromNativeCode(ERR_JS_SYSTEM_SERVICE_EXCEPTION);
+            return;
+        }
+        if (!hasExistingRecord) {
+            g_subspaceSubscribers.emplace_back(subscribeCallback);
+        }
+        ACCOUNT_LOGI("Subspace subscriber added, total=%zu", g_subspaceSubscribers.size());
+    }
+
+    void OffOsAccountSubProfileEvent(optional_view<callback<void(OsAccountSubProfileEventData const&)>> callback)
+    {
+        if (AccountSA::AccountPermissionManager::CheckSystemApp(false) != ERR_OK) {
+            SetTaiheBusinessErrorFromNativeCode(ERR_JS_IS_NOT_SYSTEM_APP);
+            return;
+        }
+        std::shared_ptr<TaiheSubspaceCallback> targetCallback = nullptr;
+        std::shared_ptr<TaiheSubProfileCallback> cb = nullptr;
+        if (callback.has_value()) {
+            cb = std::make_shared<TaiheSubProfileCallback>(callback.value());
+        }
+
+        std::lock_guard<std::mutex> lock(g_lockForSubspaceSubscribers);
+
+        auto it = g_subspaceSubscribers.begin();
+        while (it != g_subspaceSubscribers.end()) {
+            auto currentCallback = std::static_pointer_cast<TaiheSubspaceCallback>(*it);
+            bool isMatched = (cb == nullptr) || currentCallback->IsSameCallback(cb);
+            if (!isMatched) {
+                ++it;
+                continue;
+            }
+
+            ErrCode errCode = AccountSA::OsAccountManager::UnsubscribeDistributedAccountSpaceEvents(*it);
+            if (errCode == ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR) {
+                SetTaiheBusinessErrorFromNativeCode(ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+                return;
+            }
+            if (errCode != ERR_OK) {
+                SetTaiheBusinessErrorFromNativeCode(ERR_JS_SYSTEM_SERVICE_EXCEPTION);
+                return;
+            }
+            it = g_subspaceSubscribers.erase(it);
+            if (cb != nullptr) {
+                ACCOUNT_LOGI("Unsubscribe specific callback succeed");
+                return;
+            }
+        }
+        ACCOUNT_LOGI("Unsubscribe subspace events succeed");
     }
 };
 

@@ -57,6 +57,7 @@ ohos_moduletest("AccountInnerSdkModuleMockTest") {
     "${common_path}/log/src/account_log_wrapper.cpp",
     "${innerkits_native_path}/src/ohos_account_kits.cpp",
     "${innerkits_native_path}/src/ohos_account_kits_impl.cpp",
+    "${innerkits_native_path}/src/distributed_account_event_service.cpp",
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
     "${services_path}/accountmgr/src/account_iam/account_iam_callback.cpp",
@@ -215,6 +216,7 @@ ohos_moduletest("SubscribeDistributedAccountModuleTest") {
   sources = [
     "${common_path}/log/src/account_log_wrapper.cpp",
     "${innerkits_native_path}/src/account_info.cpp",
+    "${innerkits_native_path}/src/distributed_account_event_service.cpp",
     "${innerkits_native_path}/src/ohos_account_kits.cpp",
     "${innerkits_native_path}/src/ohos_account_kits_impl.cpp",
   ]

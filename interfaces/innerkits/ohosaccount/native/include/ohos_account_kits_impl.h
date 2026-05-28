@@ -49,6 +49,10 @@ public:
         const std::shared_ptr<DistributedAccountSubscribeCallback> &callback) final;
     ErrCode UnsubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
         const std::shared_ptr<DistributedAccountSubscribeCallback> &callback) final;
+    ErrCode SubscribeDistributedAccountSpaceEvents(const std::set<DistributedAccountSpaceEventType>& types,
+        const std::shared_ptr<DistributedAccountSubscribeCallback> &callback) final;
+    ErrCode UnsubscribeDistributedAccountSpaceEvents(
+        const std::shared_ptr<DistributedAccountSubscribeCallback> &callback) final;
     void RestoreSubscribe();
     ErrCode SubscribeSystemAbility(const DomainAccountSubscribeSACallbackFunc& callbackFunc);
     sptr<IRemoteObject> GetOsAccountService();
@@ -74,6 +78,9 @@ private:
     void ResetService(const wptr<IRemoteObject>& remote);
     sptr<IAccount> GetService();
     ErrCode CreateDistributedAccountEventService(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
+        const std::shared_ptr<DistributedAccountSubscribeCallback> &callback,
+        sptr<IRemoteObject> &DistributedAccountEventService);
+    ErrCode CreateDistributedAccountSpaceEventService(const std::set<DistributedAccountSpaceEventType> &types,
         const std::shared_ptr<DistributedAccountSubscribeCallback> &callback,
         sptr<IRemoteObject> &DistributedAccountEventService);
 

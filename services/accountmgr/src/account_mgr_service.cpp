@@ -446,6 +446,46 @@ ErrCode AccountMgrService::UnsubscribeDistributedAccountEvent(int32_t typeInt, c
     return OhosAccountManager::GetInstance().UnsubscribeDistributedAccountEvent(type, eventListener);
 }
 
+ErrCode AccountMgrService::SubscribeDistributedAccountSpaceEvents(
+    const std::vector<int32_t>& typeInts, const sptr<IRemoteObject>& eventListener)
+{
+    [[maybe_unused]] auto timerPtr = RequestTimer(Constants::OPERATION_SUBSCRIBE);
+    ErrCode res = AccountPermissionManager::CheckSystemApp();
+    if (res != ERR_OK) {
+        ACCOUNT_LOGE("Check systemApp failed.");
+        return res;
+    }
+    if (eventListener == nullptr || typeInts.empty()) {
+        ACCOUNT_LOGE("Invalid parameter, eventListener null or typeInts empty.");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    std::set<DistributedAccountSpaceEventType> types;
+    for (auto typeInt : typeInts) {
+        types.insert(static_cast<DistributedAccountSpaceEventType>(typeInt));
+    }
+    return OhosAccountManager::GetInstance().SubscribeDistributedAccountSpaceEvents(types, eventListener);
+}
+
+ErrCode AccountMgrService::UnsubscribeDistributedAccountSpaceEvents(
+    const std::vector<int32_t>& typeInts, const sptr<IRemoteObject>& eventListener)
+{
+    [[maybe_unused]] auto timerPtr = RequestTimer(Constants::OPERATION_UNSUBSCRIBE);
+    ErrCode res = AccountPermissionManager::CheckSystemApp();
+    if (res != ERR_OK) {
+        ACCOUNT_LOGE("Check systemApp failed.");
+        return res;
+    }
+    if (eventListener == nullptr || typeInts.empty()) {
+        ACCOUNT_LOGE("Invalid parameter, eventListener null or typeInts empty.");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    std::set<DistributedAccountSpaceEventType> types;
+    for (auto typeInt : typeInts) {
+        types.insert(static_cast<DistributedAccountSpaceEventType>(typeInt));
+    }
+    return OhosAccountManager::GetInstance().UnsubscribeDistributedAccountSpaceEvents(types, eventListener);
+}
+
 ErrCode AccountMgrService::GetAppAccountService(sptr<IRemoteObject>& funcResult)
 {
     [[maybe_unused]] auto timerPtr = RequestTimer(Constants::OPERATION_GET_SERVICE);

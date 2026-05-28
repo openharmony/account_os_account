@@ -28,6 +28,7 @@ config("accountmgr_data_deal_test_config") {
     "${os_account_dfx_path}/hisysevent_adapter",
     "${services_path}/accountmgr/include",
     "${innerkits_path}/include",
+    "${innerkits_native_path}/include",
   ]
 }
 
@@ -60,6 +61,8 @@ ohos_unittest("OhosServiceTest") {
   ]
 
   sources += [ "ohos_account_manager_test.cpp" ]
+
+  sources += [ "distributed_account_subscribe_manager_test.cpp" ]
 
   configs = [
     ":accountmgr_data_deal_test_config",

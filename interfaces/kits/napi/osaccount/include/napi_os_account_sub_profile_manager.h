@@ -16,11 +16,30 @@
 #ifndef OS_ACCOUNT_INTERFACES_KITS_NAPI_OSACCOUNT_INCLUDE_NAPI_OS_ACCOUNT_SUB_PROFILE_MANAGER_H
 #define OS_ACCOUNT_INTERFACES_KITS_NAPI_OSACCOUNT_INCLUDE_NAPI_OS_ACCOUNT_SUB_PROFILE_MANAGER_H
 
+#include <set>
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
+#include "distributed_account_subscribe_callback.h"
+#include "napi_account_common.h"
 
 namespace OHOS {
 namespace AccountJsKit {
+
+class SubspaceSubscriber final : public AccountSA::DistributedAccountSubscribeCallback,
+                            public std::enable_shared_from_this<SubspaceSubscriber> {
+public:
+    explicit SubspaceSubscriber(napi_env &env, napi_ref &ref);
+    ~SubspaceSubscriber();
+    void OnSpaceAccountsChanged(const AccountSA::DistributedAccountSpaceEventData &eventData) override;
+    std::shared_ptr<NapiCallbackRef> callback = nullptr;
+    napi_env env = nullptr;
+};
+
+struct SubspaceEventWorker : public CommonAsyncContext {
+    AccountSA::DistributedAccountSpaceEventData eventData;
+    std::shared_ptr<NapiCallbackRef> callback = nullptr;
+    std::shared_ptr<SubspaceSubscriber> subscriber = nullptr;
+};
 
 class NapiOsAccountSubProfileManager {
 public:
@@ -32,6 +51,8 @@ private:
     static napi_value CreateOsAccountSubProfile(napi_env env, napi_callback_info cbInfo);
     static napi_value DeleteOsAccountSubProfile(napi_env env, napi_callback_info cbInfo);
     static napi_value SwitchOsAccountSubProfile(napi_env env, napi_callback_info cbInfo);
+    static napi_value onOsAccountSubProfileEvent(napi_env env, napi_callback_info cbInfo);
+    static napi_value offOsAccountSubProfileEvent(napi_env env, napi_callback_info cbInfo);
 };
 
 }  // namespace AccountJsKit

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,6 +18,7 @@
 
 #include <map>
 #include <mutex>
+#include <set>
 #include <string>
 #ifdef HAS_CES_PART
 #include "account_event_subscribe.h"
@@ -109,6 +110,26 @@ public:
     ErrCode DeleteOsAccountSubspace(int32_t osAccountId, int32_t subspaceId);
     ErrCode SwitchOsAccountSubspace(int32_t osAccountId, int32_t subspaceId, int32_t &fromSubspaceId);
 #endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+
+    /**
+     * Subscribe distributed account space events by multiple types.
+     *
+     * @param types space event types set
+     * @param eventListener event listener
+     * @return subscribe result.
+     */
+    ErrCode SubscribeDistributedAccountSpaceEvents(const std::set<DistributedAccountSpaceEventType> &types,
+        const sptr<IRemoteObject> &eventListener);
+
+    /**
+     * Unsubscribe distributed account space events by multiple types.
+     *
+     * @param types space event types set
+     * @param eventListener event listener
+     * @return unsubscribe result.
+     */
+    ErrCode UnsubscribeDistributedAccountSpaceEvents(const std::set<DistributedAccountSpaceEventType> &types,
+        const sptr<IRemoteObject> &eventListener);
 
     /**
      * Get current account state.

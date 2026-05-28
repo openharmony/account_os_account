@@ -50,6 +50,12 @@ interface OsAccountSubProfileManager {
 
     @gen_promise("switchOsAccountSubProfile")
     SwitchOsAccountSubProfileSync(osAccountId: i32, subProfileId: i32);
+
+    @rename("onOsAccountSubProfileEvent")
+    OnOsAccountSubProfileEvent(events: Array<OsAccountSubProfileEvent>, callback: (data: OsAccountSubProfileEventData) => void): void;
+
+    @rename("offOsAccountSubProfileEvent")
+    OffOsAccountSubProfileEvent(callback: Optional<(data: OsAccountSubProfileEventData) => void>): void;
 }
 
 @overload("getAccountManager")
@@ -461,6 +467,20 @@ struct OsAccountSwitchEventData {
     fromAccountId: i32;
     toAccountId: i32;
     displayId: Optional<i64>;
+}
+
+enum OsAccountSubProfileEvent : i32 {
+    CREATED = 0,
+    DELETED = 1,
+    SWITCHING = 2,
+    SWITCHED = 3
+}
+
+struct OsAccountSubProfileEventData {
+    event: OsAccountSubProfileEvent;
+    osAccountLocalId: i32;
+    subProfileId: i32;
+    previousSubProfileId: Optional<i32>;
 }
 
 struct ConstraintChangeInfo  {

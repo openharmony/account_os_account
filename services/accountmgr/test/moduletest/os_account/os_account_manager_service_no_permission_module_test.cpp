@@ -25,6 +25,7 @@
 #include "token_setproc.h"
 #include "ipc_skeleton.h"
 #define private public
+#include "account_mgr_service.h"
 #include "account_file_operator.h"
 #include "iinner_os_account_manager.h"
 #include "os_account_control_file_manager.h"
@@ -624,6 +625,13 @@ HWTEST_F(OsAccountManagerServiceNoPermissionModuleTest, SubscribeConstraints_No_
         osAccountManagerService_->SubscribeOsAccountConstraints(info, nullptr));
     EXPECT_EQ(ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR,
         osAccountManagerService_->UnsubscribeOsAccountConstraints(info, nullptr));
+    std::vector<int32_t> typeInts;
+    auto accountService_ = new (std::nothrow) AccountMgrService();
+    ASSERT_NE(accountService_, nullptr);
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR,
+        accountService_->SubscribeDistributedAccountSpaceEvents(typeInts, nullptr));
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR,
+        accountService_->UnsubscribeDistributedAccountSpaceEvents(typeInts, nullptr));
     ASSERT_TRUE(RecoveryPermission(tokenID, selfTokenId));
 }
 

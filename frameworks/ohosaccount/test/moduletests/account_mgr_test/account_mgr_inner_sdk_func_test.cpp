@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include "file_ex.h"
@@ -43,6 +44,7 @@
 #ifdef BUNDLE_ADAPTER_MOCK
 #define private public
 #include "ohos_account_kits_impl.h"
+#include "distributed_account_event_service.h"
 #include "os_account.h"
 #include "os_account_manager_service.h"
 #include "os_account_proxy.h"
@@ -855,3 +857,225 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserIdPermissionTest004
     setuid(0);
     ASSERT_EQ(0, SetSelfTokenID(selfTokenId));
 }
+
+class MockDistributedAccountSpaceSubscribeCallback final : public DistributedAccountSubscribeCallback {
+public:
+    explicit MockDistributedAccountSpaceSubscribeCallback() {}
+    MOCK_METHOD1(OnAccountsChanged, void(const DistributedAccountEventData &eventData));
+    MOCK_METHOD1(OnSpaceAccountsChanged, void(const DistributedAccountSpaceEventData &eventData));
+};
+
+/**
+ * @tc.name: SubscribeDistributedAccountSpaceEventsTest001
+ * @tc.desc: Test SubscribeDistributedAccountSpaceEvents with nullptr callback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountMgrInnerSdkFuncTest, SubscribeDistributedAccountSpaceEventsTest001, TestSize.Level3)
+{
+    std::set<DistributedAccountSpaceEventType> types = {DistributedAccountSpaceEventType::CREATED};
+    std::shared_ptr<DistributedAccountSubscribeCallback> callback = nullptr;
+
+    ErrCode result = OhosAccountKits::GetInstance().SubscribeDistributedAccountSpaceEvents(types, callback);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: SubscribeDistributedAccountSpaceEventsTest002
+ * @tc.desc: Test SubscribeDistributedAccountSpaceEvents with empty types
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountMgrInnerSdkFuncTest, SubscribeDistributedAccountSpaceEventsTest002, TestSize.Level3)
+{
+    std::set<DistributedAccountSpaceEventType> types;
+    auto callback = std::make_shared<MockDistributedAccountSpaceSubscribeCallback>();
+    ASSERT_NE(callback, nullptr);
+
+    ErrCode result = OhosAccountKits::GetInstance().SubscribeDistributedAccountSpaceEvents(types, callback);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: UnsubscribeDistributedAccountSpaceEventsTest001
+ * @tc.desc: Test UnsubscribeDistributedAccountSpaceEvents with nullptr callback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountMgrInnerSdkFuncTest, UnsubscribeDistributedAccountSpaceEventsTest001, TestSize.Level3)
+{
+    std::shared_ptr<DistributedAccountSubscribeCallback> callback = nullptr;
+
+    ErrCode result = OhosAccountKits::GetInstance().UnsubscribeDistributedAccountSpaceEvents(callback);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
+}
+
+/**
+ * @tc.name: UnsubscribeDistributedAccountSpaceEventsTest002
+ * @tc.desc: Test UnsubscribeDistributedAccountSpaceEvents without subscription
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountMgrInnerSdkFuncTest, UnsubscribeDistributedAccountSpaceEventsTest002, TestSize.Level3)
+{
+    auto callback = std::make_shared<MockDistributedAccountSpaceSubscribeCallback>();
+    ASSERT_NE(callback, nullptr);
+
+    ErrCode result = OhosAccountKits::GetInstance().UnsubscribeDistributedAccountSpaceEvents(callback);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+#ifdef BUNDLE_ADAPTER_MOCK
+/**
+ * @tc.name: CreateDistributedAccountSpaceEventServiceTest001
+ * @tc.desc: Test CreateDistributedAccountSpaceEventService with nullptr callback - cover line 371
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountMgrInnerSdkFuncTest, CreateDistributedAccountSpaceEventServiceTest001, TestSize.Level3)
+{
+    sptr<IRemoteObject> listener = nullptr;
+    std::set<DistributedAccountSpaceEventType> types = {DistributedAccountSpaceEventType::CREATED};
+    std::shared_ptr<DistributedAccountSubscribeCallback> callback = nullptr;
+
+    ErrCode result = OhosAccountKitsImpl::GetInstance().CreateDistributedAccountSpaceEventService(
+        types, callback, listener);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
+    EXPECT_EQ(listener, nullptr);
+}
+
+/**
+ * @tc.name: CreateDistributedAccountSpaceEventServiceTest002
+ * @tc.desc: Test CreateDistributedAccountSpaceEventService with already registered callback - cover line 376
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountMgrInnerSdkFuncTest, CreateDistributedAccountSpaceEventServiceTest002, TestSize.Level3)
+{
+    sptr<IRemoteObject> listener = nullptr;
+    std::set<DistributedAccountSpaceEventType> types = {DistributedAccountSpaceEventType::CREATED};
+    auto callback = std::make_shared<MockDistributedAccountSpaceSubscribeCallback>();
+    ASSERT_NE(callback, nullptr);
+
+    DistributedAccountEventService::GetInstance()->AddSpaceTypes(types, callback);
+    ErrCode result = OhosAccountKitsImpl::GetInstance().CreateDistributedAccountSpaceEventService(
+        types, callback, listener);
+    EXPECT_EQ(result, ERR_OHOSACCOUNT_KIT_CALLBACK_ALREADY_REGISTERED_ERROR);
+
+    DistributedAccountEventService::GetInstance()->DeleteSpaceCallback(callback);
+}
+
+/**
+ * @tc.name: CreateDistributedAccountSpaceEventServiceTest003
+ * @tc.desc: Test CreateDistributedAccountSpaceEventService success
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountMgrInnerSdkFuncTest, CreateDistributedAccountSpaceEventServiceTest003, TestSize.Level3)
+{
+    sptr<IRemoteObject> listener = nullptr;
+    std::set<DistributedAccountSpaceEventType> types = {DistributedAccountSpaceEventType::CREATED};
+    auto callback = std::make_shared<MockDistributedAccountSpaceSubscribeCallback>();
+    ASSERT_NE(callback, nullptr);
+
+    ErrCode result = OhosAccountKitsImpl::GetInstance().CreateDistributedAccountSpaceEventService(
+        types, callback, listener);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_NE(listener, nullptr);
+}
+
+/**
+ * @tc.name: SubscribeDistributedAccountSpaceEventsTest003
+ * @tc.desc: Test SubscribeDistributedAccountSpaceEvents with already subscribed all types - cover line 555
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountMgrInnerSdkFuncTest, SubscribeDistributedAccountSpaceEventsTest003, TestSize.Level3)
+{
+    std::set<DistributedAccountSpaceEventType> types = {DistributedAccountSpaceEventType::CREATED};
+    auto callback1 = std::make_shared<MockDistributedAccountSpaceSubscribeCallback>();
+    ASSERT_NE(callback1, nullptr);
+    auto callback2 = std::make_shared<MockDistributedAccountSpaceSubscribeCallback>();
+    ASSERT_NE(callback2, nullptr);
+    OhosAccountKitsImpl::GetInstance().RestoreSubscribe();
+    DistributedAccountEventService::GetInstance()->AddSpaceTypes(types, callback1);
+
+    ErrCode result = OhosAccountKitsImpl::GetInstance().SubscribeDistributedAccountSpaceEvents(types, callback2);
+    EXPECT_EQ(result, ERR_OK);
+    OhosAccountKitsImpl::GetInstance().RestoreSubscribe();
+    DistributedAccountEventService::GetInstance()->DeleteSpaceCallback(callback1);
+    DistributedAccountEventService::GetInstance()->DeleteSpaceCallback(callback2);
+}
+
+/**
+ * @tc.name: SubscribeDistributedAccountSpaceEventsTest005
+ * @tc.desc: Test GetOhosAccountInfoByUserId with hap permission
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountMgrInnerSdkFuncTest, SubscribeDistributedAccountSpaceEventsTest005, TestSize.Level0)
+{
+    std::set<DistributedAccountSpaceEventType> types = {DistributedAccountSpaceEventType::CREATED};
+    auto callback1 = std::make_shared<MockDistributedAccountSpaceSubscribeCallback>();
+    ASSERT_NE(callback1, nullptr);
+    ErrCode result = OhosAccountKitsImpl::GetInstance().SubscribeDistributedAccountSpaceEvents(types, callback1);
+    EXPECT_EQ(result, ERR_OK);
+    uint64_t tokenId;
+    ASSERT_TRUE(AllocPermission({}, tokenId, false));
+    types.insert(DistributedAccountSpaceEventType::DELETED);
+    result = OhosAccountKitsImpl::GetInstance().SubscribeDistributedAccountSpaceEvents(types, callback1);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+    result = OhosAccountKitsImpl::GetInstance().UnsubscribeDistributedAccountSpaceEvents(callback1);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+    ASSERT_TRUE(RecoveryPermission(tokenId, 0));
+}
+
+/**
+ * @tc.name: SubscribeDistributedAccountSpaceEventsTest004
+ * @tc.desc: Test SubscribeDistributedAccountSpaceEvents with callback already registered - cover line 543
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountMgrInnerSdkFuncTest, SubscribeDistributedAccountSpaceEventsTest004, TestSize.Level3)
+{
+    std::set<DistributedAccountSpaceEventType> types = {DistributedAccountSpaceEventType::CREATED};
+    std::vector<std::shared_ptr<MockDistributedAccountSpaceSubscribeCallback>> vec;
+    for (int i = 0; i < Constants::DISTRIBUTED_SUBSCRIBER_MAX_SIZE; i++) {
+        auto callback = std::make_shared<MockDistributedAccountSpaceSubscribeCallback>();
+        ASSERT_NE(callback, nullptr);
+        vec.emplace_back(callback);
+        DistributedAccountEventService::GetInstance()->AddSpaceTypes(types, callback);
+    }
+    auto callback = std::make_shared<MockDistributedAccountSpaceSubscribeCallback>();
+    ASSERT_NE(callback, nullptr);
+    auto result = OhosAccountKitsImpl::GetInstance().SubscribeDistributedAccountSpaceEvents(types, callback);
+    EXPECT_EQ(result, ERR_OK);
+    DistributedAccountEventService::GetInstance()->DeleteSpaceCallback(callback);
+    for (auto callback1 : vec) {
+        DistributedAccountEventService::GetInstance()->DeleteSpaceCallback(callback1);
+    }
+}
+
+/**
+ * @tc.name: UnsubscribeDistributedAccountSpaceEventsTest003
+ * @tc.desc: Test UnsubscribeDistributedAccountSpaceEvents with multiple subscribers - cover line 597
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountMgrInnerSdkFuncTest, UnsubscribeDistributedAccountSpaceEventsTest003, TestSize.Level3)
+{
+    std::set<DistributedAccountSpaceEventType> types = {DistributedAccountSpaceEventType::CREATED};
+    auto callback1 = std::make_shared<MockDistributedAccountSpaceSubscribeCallback>();
+    ASSERT_NE(callback1, nullptr);
+    auto callback2 = std::make_shared<MockDistributedAccountSpaceSubscribeCallback>();
+    ASSERT_NE(callback2, nullptr);
+
+    DistributedAccountEventService::GetInstance()->AddSpaceTypes(types, callback1);
+    DistributedAccountEventService::GetInstance()->AddSpaceTypes(types, callback2);
+
+    ErrCode result = OhosAccountKitsImpl::GetInstance().UnsubscribeDistributedAccountSpaceEvents(callback1);
+    EXPECT_EQ(result, ERR_OK);
+
+    DistributedAccountEventService::GetInstance()->DeleteSpaceCallback(callback2);
+}
+#endif // BUNDLE_ADAPTER_MOCK
