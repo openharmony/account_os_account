@@ -196,13 +196,7 @@ ErrCode OsAccountSubspaceDataDeal::ParseSubspaceInfoFromJson(
     int32_t bindTime = 0;
     GetDataByType<int32_t>(jsonObj.get(), JSON_KEY_BIND_TIME, bindTime);
     info.bindTime_ = static_cast<std::time_t>(bindTime);
-    info.version_ = ACCOUNT_VERSION_DEFAULT;
     GetDataByType<int32_t>(jsonObj.get(), JSON_KEY_VERSION, info.version_);
-    info.ohosAccountInfo_.name_ = DEFAULT_OHOS_ACCOUNT_NAME;
-    info.ohosAccountInfo_.uid_ = DEFAULT_OHOS_ACCOUNT_UID;
-    info.ohosAccountInfo_.SetRawUid(DEFAULT_OHOS_ACCOUNT_UID);
-    info.ohosAccountInfo_.status_ = ACCOUNT_STATE_UNBOUND;
-    info.ohosAccountInfo_.callingUid_ = DEFAULT_CALLING_UID;
     GetDataByType<std::string>(jsonObj.get(), JSON_KEY_OHOSACCOUNT_NAME, info.ohosAccountInfo_.name_);
     std::string rawUid;
     if (GetDataByType<std::string>(jsonObj.get(), JSON_KEY_OHOSACCOUNT_RAW_UID, rawUid)) {

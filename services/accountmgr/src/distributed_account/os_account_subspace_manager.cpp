@@ -110,6 +110,12 @@ ErrCode OsAccountSubspaceManager::CreateSubspaceLocked(int32_t osAccountId, int3
     info.isCreateCompleted = false;
     info.toBeRemoved = false;
     info.version_ = ACCOUNT_VERSION_ANON;
+    info.bindTime_ = 0;
+    info.ohosAccountInfo_.name_ = DEFAULT_OHOS_ACCOUNT_NAME;
+    info.ohosAccountInfo_.uid_ = DEFAULT_OHOS_ACCOUNT_UID;
+    info.ohosAccountInfo_.SetRawUid(DEFAULT_OHOS_ACCOUNT_UID);
+    info.ohosAccountInfo_.status_ = ACCOUNT_STATE_UNBOUND;
+    info.ohosAccountInfo_.callingUid_ = DEFAULT_CALLING_UID;
     ret = subspaceDataDeal_->SaveSubspaceInfo(info);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("SaveSubspaceInfo incomplete failed, subspaceId=%{public}d, ret=%{public}d",

@@ -29,6 +29,7 @@
 #include "account_log_wrapper.h"
 #include "account_test_common.h"
 #include "accesstoken_kit.h"
+#include "account_info.h"
 #include "os_account_constants.h"
 #include "token_setproc.h"
 
@@ -159,6 +160,13 @@ HWTEST_F(OsAccountSubspaceManagerTest, CreateSubspace_AtomicWrite_001, TestSize.
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_TRUE(loaded.isCreateCompleted);
     EXPECT_FALSE(loaded.toBeRemoved);
+    EXPECT_EQ(loaded.version_, ACCOUNT_VERSION_ANON);
+    EXPECT_EQ(loaded.bindTime_, 0);
+    EXPECT_EQ(loaded.ohosAccountInfo_.name_, DEFAULT_OHOS_ACCOUNT_NAME);
+    EXPECT_EQ(loaded.ohosAccountInfo_.uid_, DEFAULT_OHOS_ACCOUNT_UID);
+    EXPECT_EQ(loaded.ohosAccountInfo_.GetRawUid(), DEFAULT_OHOS_ACCOUNT_UID);
+    EXPECT_EQ(loaded.ohosAccountInfo_.status_, ACCOUNT_STATE_UNBOUND);
+    EXPECT_EQ(loaded.ohosAccountInfo_.callingUid_, DEFAULT_CALLING_UID);
 }
 
 /**
