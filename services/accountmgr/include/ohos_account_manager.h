@@ -309,7 +309,7 @@ private:
     ErrCode VerifySpaceAccountBinding(int32_t userId, int32_t subspaceId,
         const OhosAccountInfo &accountInfo, const OsAccountSubspaceInfo &spaceInfo);
     ErrCode PublishLoginSpaceEvents(int32_t userId, int32_t subspaceId,
-        const OsAccountSubspaceInfo &spaceInfo, bool isUnbound);
+        const OsAccountSubspaceInfo &spaceInfo, int32_t originalStatus);
     void PublishLogoutSpaceEvents(int32_t localId, int32_t subspaceId, bool isUnbound);
     ErrCode GetDistributedAccountSpaceInfo(int32_t userId, int32_t subspaceId, OsAccountSubspaceInfo &spaceInfo);
     ErrCode SetDistributedAccountSpaceInfo(const OsAccountSubspaceInfo &spaceInfo);

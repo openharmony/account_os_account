@@ -823,7 +823,7 @@ ErrCode OhosAccountManager::LoginOhosAccount(const int32_t userId, const OhosAcc
         REPORT_OHOS_ACCOUNT_FAIL(userId, Constants::OPERATION_LOGIN, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR,
             "Call checkOhosAccountCanBind failed.");
         ACCOUNT_LOGE("check can be bound failed, userId %{public}d.", userId);
-        return ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR;
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     int32_t originalStatus = currAccountInfo.ohosAccountInfo_.status_;
     if (!HandleEvent(currAccountInfo, eventStr)) {
@@ -1089,7 +1089,7 @@ void OhosAccountManager::OnPackageRemoved(const std::int32_t callingUid)
 void OhosAccountManager::ClearMainAccountIfMatch(int32_t localId, const std::int32_t bundleUid)
 {
     AccountInfo accountInfo;
-    if (GetAccountInfoByUserId(localId, accountInfo) != ERR_OK) {
+    if (dataDealer_->AccountInfoFromJson(accountInfo, localId) != ERR_OK) {
         return;
     }
     if (accountInfo.ohosAccountInfo_.callingUid_ != bundleUid ||
@@ -1194,7 +1194,7 @@ ErrCode OhosAccountManager::LoginOhosAccountSpace(int32_t userId, int32_t subspa
         ACCOUNT_LOGE("ohosAccountUid invalid length, %{public}zu.", ohosAccountUid.length());
         return ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR;
     }
-    bool isUnbound = (spaceInfo.ohosAccountInfo_.status_ == ACCOUNT_STATE_UNBOUND);
+    int32_t originalStatus = spaceInfo.ohosAccountInfo_.status_;
     ret = VerifySpaceAccountBinding(userId, subspaceId, ohosAccountInfo, spaceInfo);
     if (ret != ERR_OK) {
         return ret;
@@ -1218,7 +1218,7 @@ ErrCode OhosAccountManager::LoginOhosAccountSpace(int32_t userId, int32_t subspa
         ACCOUNT_LOGE("Avatar is empty, userId %{public}d.", userId);
         REPORT_OHOS_ACCOUNT_FAIL(userId, Constants::OPERATION_LOGIN, ERR_OK, "Avatar is empty.");
     }
-    return PublishLoginSpaceEvents(userId, subspaceId, spaceInfo, isUnbound);
+    return PublishLoginSpaceEvents(userId, subspaceId, spaceInfo, originalStatus);
 }
 
 ErrCode OhosAccountManager::VerifySpaceAccountBinding(int32_t userId, int32_t subspaceId,
@@ -1238,13 +1238,13 @@ ErrCode OhosAccountManager::VerifySpaceAccountBinding(int32_t userId, int32_t su
 }
 
 ErrCode OhosAccountManager::PublishLoginSpaceEvents(int32_t userId, int32_t subspaceId,
-    const OsAccountSubspaceInfo &spaceInfo, bool isUnbound)
+    const OsAccountSubspaceInfo &spaceInfo, int32_t originalStatus)
 {
-    if (isUnbound) {
+    if (originalStatus == ACCOUNT_STATE_UNBOUND) {
         subscribeManager_.Publish(userId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::BOUND, subspaceId);
     }
     subscribeManager_.Publish(userId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGIN, subspaceId);
-    bool isPubLoginEvent = (spaceInfo.ohosAccountInfo_.status_ != ACCOUNT_STATE_LOGIN);
+    bool isPubLoginEvent = (originalStatus != ACCOUNT_STATE_LOGIN);
     if (!isPubLoginEvent) {
 #ifdef HAS_CES_PART
         AccountEventProvider::EventPublish(CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, userId, nullptr);
@@ -1351,6 +1351,7 @@ ErrCode OhosAccountManager::HandleOhosAccountSpaceTokenInvalidEvent(int32_t user
     ret = SetDistributedAccountSpaceInfo(spaceInfo);
     if (ret != ERR_OK) {
         ACCOUNT_LOGW("SetDistributedAccountSpaceInfo failed, spaceId=%{public}d", subspaceId);
+        return ret;
     }
 
     subscribeManager_.Publish(userId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::TOKEN_INVALID, subspaceId);
@@ -1360,7 +1361,8 @@ ErrCode OhosAccountManager::HandleOhosAccountSpaceTokenInvalidEvent(int32_t user
     SendMultiSubSpaceCommonEvt(userId, subspaceId, CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_TOKEN_INVALID);
 #endif // HAS_CES_PART
 
-    ACCOUNT_LOGI("success, spaceId=%{public}d", subspaceId);
+    ACCOUNT_LOGI("HandleOhosAccountSpaceTokenInvalidEvent success, userId=%{public}d, spaceId=%{public}d",
+        userId, subspaceId);
     return ERR_OK;
 }
 
@@ -1424,44 +1426,12 @@ bool OhosAccountManager::CheckOhosAccountCanBind(const AccountInfo &currAccountI
             AccountMgrService::GetInstance().GetCallingUserID());
         return false;
     }
-
-    // check whether newOhosUid has been already bound to another account or not
-    DIR* rootDir = opendir(ACCOUNT_CFG_DIR_ROOT_PATH.c_str());
-    if (rootDir == nullptr) {
-        ACCOUNT_LOGE("cannot open dir %{public}s, err %{public}d.", ACCOUNT_CFG_DIR_ROOT_PATH.c_str(), errno);
-        return false;
-    }
-    struct dirent* curDir = nullptr;
-    while ((curDir = readdir(rootDir)) != nullptr) {
-        std::string curDirName(curDir->d_name);
-        if (curDirName == "." || curDirName == ".." || curDir->d_type != DT_DIR) {
-            continue;
-        }
-
-        AccountInfo curInfo;
-        std::stringstream sstream;
-        sstream << curDirName;
-        std::int32_t userId = -1;
-        sstream >> userId;
-        if (dataDealer_->AccountInfoFromJson(curInfo, userId) != ERR_OK) {
-            ACCOUNT_LOGI("get ohos account info from user %{public}s failed.", curDirName.c_str());
-            continue;
-        }
-
-        if (curInfo.ohosAccountInfo_.status_ != ACCOUNT_STATE_LOGIN) {
-            continue; // account not bind, skip check
-        }
-    }
-
-    (void)closedir(rootDir);
     return true;
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 
-bool OhosAccountManager::CheckSameDistributedAccount(
-    const OhosAccountInfo &currAccountInfo,
-    const OhosAccountInfo &newOhosAccountInfo,
-    const std::int32_t callingUserId) const
+bool OhosAccountManager::CheckSameDistributedAccount(const OhosAccountInfo &currAccountInfo,
+    const OhosAccountInfo &newOhosAccountInfo, const std::int32_t callingUserId) const
 {
     std::string ohosAccountUid = GenerateOhosUdidWithSha256(newOhosAccountInfo.name_, newOhosAccountInfo.uid_);
     if (newOhosAccountInfo.name_ != currAccountInfo.name_ || ohosAccountUid != currAccountInfo.uid_) {
@@ -1544,7 +1514,7 @@ ErrCode OhosAccountManager::SendMultiSpaceLogoutOnDelOsAccount(int32_t localId)
                 localId, spaceId);
             continue;
         }
-        if (spaceInfo.ohosAccountInfo_.name_ == DEFAULT_OHOS_ACCOUNT_NAME) {
+        if (spaceInfo.ohosAccountInfo_.status_ == ACCOUNT_STATE_UNBOUND) {
             continue;
         }
         if (spaceInfo.ohosAccountInfo_.status_ == ACCOUNT_STATE_LOGIN) {

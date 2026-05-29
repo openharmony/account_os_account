@@ -291,7 +291,7 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest008, TestSize.Level3)
 {
     OhosAccountInfo curOhosAccountInfo;
     EXPECT_EQ(OhosAccountManager::GetInstance().LoginOhosAccount(0, curOhosAccountInfo, "test"),
-              ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
+              ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
 /**

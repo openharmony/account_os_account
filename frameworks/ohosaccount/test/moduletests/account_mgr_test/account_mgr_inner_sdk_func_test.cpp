@@ -261,7 +261,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo002, TestSize.Level3)
     accountInfo.name_ = TEST_DIFF_ACCOUNT_NAME;
     accountInfo.uid_ = TEST_DIFF_ACCOUNT_UID;
     ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogin);
-    EXPECT_EQ(ret, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
     // logout
     accountInfo.name_ = TEST_ACCOUNT_NAME;
     accountInfo.uid_ = TEST_ACCOUNT_UID;
@@ -500,7 +500,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo009, TestSize.Level3)
     accountInfo.uid_ = TEST_DIFF_ACCOUNT_UID;
     ret = OhosAccountKits::GetInstance().SetOsAccountDistributedInfo(
         osAccountInfoOne.GetLocalId(), accountInfo, g_eventLogin);
-    EXPECT_EQ(ret, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
     // logout
     accountInfo.name_ = TEST_ACCOUNT_NAME;
     accountInfo.uid_ = TEST_ACCOUNT_UID;
@@ -698,14 +698,14 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo015, TestSize.Level3)
     accountInfo.avatar_ = "";
     accountInfo.scalableData_ = "";
     auto ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogin);
-    EXPECT_EQ(ret, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 
     accountInfo.name_ = TEST_ACCOUNT_NAME;
     for (std::size_t i = 0; i < 512 + 1; i++) { // The max value of uid_ is 512
         accountInfo.uid_.push_back('a');
     }
     ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogin);
-    EXPECT_EQ(ret, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 
     std::string eventLogin;
     for (std::size_t i = 0; i < 1024 + 1; i++) { // The max value of eventLogin is 1024

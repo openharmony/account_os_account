@@ -51,6 +51,9 @@ constexpr int32_t OS_ACCOUNT_ID = 100;
 constexpr int32_t BASE_SPACE_ID = 100000;
 constexpr int32_t SPACE_ID_1 = 100001;
 constexpr int32_t SPACE_ID_2 = 100002;
+constexpr int32_t SPACE_ID_3 = 100003;
+constexpr int32_t SPACE_ID_4 = 100004;
+constexpr int32_t SPACE_ID_5 = 100005;
 const std::string TEST_NAME = "TestAccountName";
 const std::string TEST_UID = "TestAccountUid";
 const std::string TEST_AVATAR = "TestAvatar";
@@ -74,6 +77,7 @@ public:
     void ClearAllTestSpaces();
     void WriteBaseAccountJson(int32_t userId, OHOS_ACCOUNT_STATE status,
         const OhosAccountInfo &accountInfo = OhosAccountInfo());
+    void SetupSpaceForInvalidTransition(OHOS_ACCOUNT_STATE initialState);
 
     static uint64_t allPermTokenId_;
 };
@@ -212,6 +216,19 @@ void OhosAccountSpaceLoginLogoutTest::WriteBaseAccountJson(int32_t userId, OHOS_
         avatarOfs << accountInfo.avatar_;
         avatarOfs.close();
     }
+}
+
+void OhosAccountSpaceLoginLogoutTest::SetupSpaceForInvalidTransition(OHOS_ACCOUNT_STATE initialState)
+{
+    OhosAccountInfo boundInfo = MakeTestAccountInfo();
+    std::string ohosAccountUid = GenerateOhosUdidWithSha256(TEST_NAME, TEST_UID);
+    boundInfo.uid_ = ohosAccountUid;
+    boundInfo.status_ = initialState;
+
+    OsAccountSubspaceInfo spaceInfo = MakeTestSpaceInfo(OS_ACCOUNT_ID, SPACE_ID_1,
+        initialState, boundInfo);
+    SaveSpaceViaApi(spaceInfo);
+    SetupOsAccountWithForeground(OS_ACCOUNT_ID, SPACE_ID_1);
 }
 
 // ======================== Login Tests ========================
@@ -935,6 +952,476 @@ HWTEST_F(OhosAccountSpaceLoginLogoutTest, GetDistributedAccountSpaceInfo_BaseSpa
     EXPECT_EQ(BASE_SPACE_ID, spaceInfo.subspaceId);
     EXPECT_EQ(OS_ACCOUNT_ID, spaceInfo.userId_);
     EXPECT_EQ(ACCOUNT_STATE_LOGIN, spaceInfo.ohosAccountInfo_.status_);
+}
+
+// ======================== Login from TOKEN_EXPIRED/LOGOFF Tests ========================
+
+/**
+ * @tc.name: SpaceLoginTokenExpiredTest001
+ * @tc.desc: Test login space account from TOKEN_EXPIRED state successfully transitions to LOGIN
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountSpaceLoginLogoutTest, SpaceLogin_TokenExpired_Success, TestSize.Level1)
+{
+    OhosAccountInfo boundInfo = MakeTestAccountInfo();
+    std::string ohosAccountUid = GenerateOhosUdidWithSha256(TEST_NAME, TEST_UID);
+    boundInfo.uid_ = ohosAccountUid;
+    boundInfo.status_ = ACCOUNT_STATE_TOKEN_EXPIRED;
+
+    OsAccountSubspaceInfo spaceInfo = MakeTestSpaceInfo(OS_ACCOUNT_ID, SPACE_ID_1,
+        ACCOUNT_STATE_TOKEN_EXPIRED, boundInfo);
+    SaveSpaceViaApi(spaceInfo);
+    SetupOsAccountWithForeground(OS_ACCOUNT_ID, SPACE_ID_1);
+
+    OhosAccountInfo accountInfo = MakeTestAccountInfo();
+    auto ret = OhosAccountManager::GetInstance().LoginOhosAccountSpace(
+        OS_ACCOUNT_ID, SPACE_ID_1, accountInfo, OHOS_ACCOUNT_EVENT_LOGIN);
+
+    EXPECT_EQ(ERR_OK, ret);
+
+    OsAccountSubspaceInfo loadedInfo;
+    LoadSpaceViaApi(OS_ACCOUNT_ID, SPACE_ID_1, loadedInfo);
+    EXPECT_EQ(ACCOUNT_STATE_LOGIN, loadedInfo.ohosAccountInfo_.status_);
+    EXPECT_EQ(TEST_NAME, loadedInfo.ohosAccountInfo_.name_);
+    EXPECT_EQ(ohosAccountUid, loadedInfo.ohosAccountInfo_.uid_);
+}
+
+/**
+ * @tc.name: SpaceLoginLogoffTest001
+ * @tc.desc: Test login space account from LOGOFF state successfully transitions to LOGIN
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountSpaceLoginLogoutTest, SpaceLogin_Logoff_Success, TestSize.Level1)
+{
+    OhosAccountInfo boundInfo = MakeTestAccountInfo();
+    std::string ohosAccountUid = GenerateOhosUdidWithSha256(TEST_NAME, TEST_UID);
+    boundInfo.uid_ = ohosAccountUid;
+    boundInfo.status_ = ACCOUNT_STATE_LOGOFF;
+
+    OsAccountSubspaceInfo spaceInfo = MakeTestSpaceInfo(OS_ACCOUNT_ID, SPACE_ID_1,
+        ACCOUNT_STATE_LOGOFF, boundInfo);
+    SaveSpaceViaApi(spaceInfo);
+    SetupOsAccountWithForeground(OS_ACCOUNT_ID, SPACE_ID_1);
+
+    OhosAccountInfo accountInfo = MakeTestAccountInfo();
+    auto ret = OhosAccountManager::GetInstance().LoginOhosAccountSpace(
+        OS_ACCOUNT_ID, SPACE_ID_1, accountInfo, OHOS_ACCOUNT_EVENT_LOGIN);
+
+    EXPECT_EQ(ERR_OK, ret);
+
+    OsAccountSubspaceInfo loadedInfo;
+    LoadSpaceViaApi(OS_ACCOUNT_ID, SPACE_ID_1, loadedInfo);
+    EXPECT_EQ(ACCOUNT_STATE_LOGIN, loadedInfo.ohosAccountInfo_.status_);
+    EXPECT_EQ(TEST_NAME, loadedInfo.ohosAccountInfo_.name_);
+    EXPECT_EQ(ohosAccountUid, loadedInfo.ohosAccountInfo_.uid_);
+}
+
+// ======================== Invalid Transitions from TOKEN_EXPIRED Tests ========================
+
+/**
+ * @tc.name: SpaceLogoutTokenExpiredFailTest001
+ * @tc.desc: Test logout from TOKEN_EXPIRED space account fails with state machine rejection
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountSpaceLoginLogoutTest, SpaceLogout_TokenExpired_Fail, TestSize.Level2)
+{
+    SetupSpaceForInvalidTransition(ACCOUNT_STATE_TOKEN_EXPIRED);
+
+    OhosAccountInfo requestInfo = MakeTestAccountInfo();
+    auto ret = OhosAccountManager::GetInstance().LogoutOhosAccountSpace(
+        OS_ACCOUNT_ID, SPACE_ID_1, requestInfo, "invalid_evt");
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, ret);
+
+    OsAccountSubspaceInfo loadedInfo;
+    LoadSpaceViaApi(OS_ACCOUNT_ID, SPACE_ID_1, loadedInfo);
+    EXPECT_EQ(ACCOUNT_STATE_TOKEN_EXPIRED, loadedInfo.ohosAccountInfo_.status_);
+}
+
+// ======================== Invalid Transitions from LOGOFF Tests ========================
+
+/**
+ * @tc.name: SpaceLogoutLogoffFailTest001
+ * @tc.desc: Test logout from LOGOFF space account fails with state machine rejection
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountSpaceLoginLogoutTest, SpaceLogout_Logoff_Fail, TestSize.Level2)
+{
+    SetupSpaceForInvalidTransition(ACCOUNT_STATE_LOGOFF);
+
+    OhosAccountInfo requestInfo = MakeTestAccountInfo();
+    auto ret = OhosAccountManager::GetInstance().LogoutOhosAccountSpace(
+        OS_ACCOUNT_ID, SPACE_ID_1, requestInfo, "invalid_evt");
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, ret);
+
+    OsAccountSubspaceInfo loadedInfo;
+    LoadSpaceViaApi(OS_ACCOUNT_ID, SPACE_ID_1, loadedInfo);
+    EXPECT_EQ(ACCOUNT_STATE_LOGOFF, loadedInfo.ohosAccountInfo_.status_);
+}
+
+// ======================== Invalid Transitions from NOTLOGIN Tests ========================
+
+/**
+ * @tc.name: SpaceLogoutNotLoginFailTest001
+ * @tc.desc: Test logout from NOTLOGIN space account fails with state machine rejection
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountSpaceLoginLogoutTest, SpaceLogout_NotLogin_Fail, TestSize.Level2)
+{
+    SetupSpaceForInvalidTransition(ACCOUNT_STATE_NOTLOGIN);
+
+    OhosAccountInfo requestInfo = MakeTestAccountInfo();
+    auto ret = OhosAccountManager::GetInstance().LogoutOhosAccountSpace(
+        OS_ACCOUNT_ID, SPACE_ID_1, requestInfo, "invalid_evt");
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, ret);
+
+    OsAccountSubspaceInfo loadedInfo;
+    LoadSpaceViaApi(OS_ACCOUNT_ID, SPACE_ID_1, loadedInfo);
+    EXPECT_EQ(ACCOUNT_STATE_NOTLOGIN, loadedInfo.ohosAccountInfo_.status_);
+}
+
+// ======================== OnPackageRemoved Per-State Tests ========================
+
+/**
+ * @tc.name: OnPackageRemovedClearAllNonUnboundStatesTest001
+ * @tc.desc: Test OnPackageRemoved clears all non-UNBOUND states (LOGIN, NOTLOGIN, TOKEN_EXPIRED, LOGOFF)
+ *           while skipping UNBOUND spaces
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountSpaceLoginLogoutTest, OnPackageRemoved_ClearAllNonUnboundStates, TestSize.Level1)
+{
+    MockSetCallingUid(1000);
+
+    std::string ohosAccountUid = GenerateOhosUdidWithSha256(TEST_NAME, TEST_UID);
+
+    OhosAccountInfo loginInfo = MakeTestAccountInfo();
+    loginInfo.uid_ = ohosAccountUid;
+    loginInfo.status_ = ACCOUNT_STATE_LOGIN;
+    loginInfo.callingUid_ = 1000;
+    OsAccountSubspaceInfo loginSpace = MakeTestSpaceInfo(OS_ACCOUNT_ID, SPACE_ID_1,
+        ACCOUNT_STATE_LOGIN, loginInfo);
+    SaveSpaceViaApi(loginSpace);
+
+    OhosAccountInfo notLoginInfo = MakeTestAccountInfo();
+    notLoginInfo.uid_ = ohosAccountUid;
+    notLoginInfo.status_ = ACCOUNT_STATE_NOTLOGIN;
+    notLoginInfo.callingUid_ = 1000;
+    OsAccountSubspaceInfo notLoginSpace = MakeTestSpaceInfo(OS_ACCOUNT_ID, SPACE_ID_2,
+        ACCOUNT_STATE_NOTLOGIN, notLoginInfo);
+    SaveSpaceViaApi(notLoginSpace);
+
+    OhosAccountInfo tokenExpiredInfo = MakeTestAccountInfo();
+    tokenExpiredInfo.uid_ = ohosAccountUid;
+    tokenExpiredInfo.status_ = ACCOUNT_STATE_TOKEN_EXPIRED;
+    tokenExpiredInfo.callingUid_ = 1000;
+    OsAccountSubspaceInfo tokenExpiredSpace = MakeTestSpaceInfo(OS_ACCOUNT_ID, SPACE_ID_3,
+        ACCOUNT_STATE_TOKEN_EXPIRED, tokenExpiredInfo);
+    SaveSpaceViaApi(tokenExpiredSpace);
+
+    OhosAccountInfo logoffInfo = MakeTestAccountInfo();
+    logoffInfo.uid_ = ohosAccountUid;
+    logoffInfo.status_ = ACCOUNT_STATE_LOGOFF;
+    logoffInfo.callingUid_ = 1000;
+    OsAccountSubspaceInfo logoffSpace = MakeTestSpaceInfo(OS_ACCOUNT_ID, SPACE_ID_4,
+        ACCOUNT_STATE_LOGOFF, logoffInfo);
+    SaveSpaceViaApi(logoffSpace);
+
+    OsAccountSubspaceInfo unboundSpace = MakeTestSpaceInfo(OS_ACCOUNT_ID, SPACE_ID_5,
+        ACCOUNT_STATE_UNBOUND);
+    SaveSpaceViaApi(unboundSpace);
+
+    OsAccountInfo osAccountInfo;
+    osAccountInfo.SetLocalId(OS_ACCOUNT_ID);
+    MockSetCreatedOsAccounts({osAccountInfo});
+
+    OhosAccountManager::GetInstance().OnPackageRemoved(1000);
+
+    OsAccountSubspaceInfo loaded1;
+    LoadSpaceViaApi(OS_ACCOUNT_ID, SPACE_ID_1, loaded1);
+    EXPECT_EQ(ACCOUNT_STATE_UNBOUND, loaded1.ohosAccountInfo_.status_);
+
+    OsAccountSubspaceInfo loaded2;
+    LoadSpaceViaApi(OS_ACCOUNT_ID, SPACE_ID_2, loaded2);
+    EXPECT_EQ(ACCOUNT_STATE_UNBOUND, loaded2.ohosAccountInfo_.status_);
+
+    OsAccountSubspaceInfo loaded3;
+    LoadSpaceViaApi(OS_ACCOUNT_ID, SPACE_ID_3, loaded3);
+    EXPECT_EQ(ACCOUNT_STATE_UNBOUND, loaded3.ohosAccountInfo_.status_);
+
+    OsAccountSubspaceInfo loaded4;
+    LoadSpaceViaApi(OS_ACCOUNT_ID, SPACE_ID_4, loaded4);
+    EXPECT_EQ(ACCOUNT_STATE_UNBOUND, loaded4.ohosAccountInfo_.status_);
+
+    OsAccountSubspaceInfo loaded5;
+    LoadSpaceViaApi(OS_ACCOUNT_ID, SPACE_ID_5, loaded5);
+    EXPECT_EQ(ACCOUNT_STATE_UNBOUND, loaded5.ohosAccountInfo_.status_);
+}
+
+/**
+ * @tc.name: OnPackageRemovedMixedCallingUidDifferentStatesTest001
+ * @tc.desc: Test OnPackageRemoved only clears spaces with matching callingUid across different
+ *           states (TOKEN_EXPIRED, LOGOFF, NOTLOGIN), leaving non-matching spaces unchanged
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountSpaceLoginLogoutTest, OnPackageRemoved_MixedCallingUidDifferentStates, TestSize.Level2)
+{
+    MockSetCallingUid(1000);
+
+    std::string ohosAccountUid = GenerateOhosUdidWithSha256(TEST_NAME, TEST_UID);
+
+    OhosAccountInfo tokenExpiredInfo = MakeTestAccountInfo();
+    tokenExpiredInfo.uid_ = ohosAccountUid;
+    tokenExpiredInfo.status_ = ACCOUNT_STATE_TOKEN_EXPIRED;
+    tokenExpiredInfo.callingUid_ = 1000;
+    OsAccountSubspaceInfo tokenExpiredSpace = MakeTestSpaceInfo(OS_ACCOUNT_ID, SPACE_ID_1,
+        ACCOUNT_STATE_TOKEN_EXPIRED, tokenExpiredInfo);
+    SaveSpaceViaApi(tokenExpiredSpace);
+
+    OhosAccountInfo logoffInfo = MakeTestAccountInfo();
+    logoffInfo.uid_ = ohosAccountUid;
+    logoffInfo.status_ = ACCOUNT_STATE_LOGOFF;
+    logoffInfo.callingUid_ = 2000;
+    OsAccountSubspaceInfo logoffSpace = MakeTestSpaceInfo(OS_ACCOUNT_ID, SPACE_ID_2,
+        ACCOUNT_STATE_LOGOFF, logoffInfo);
+    SaveSpaceViaApi(logoffSpace);
+
+    OhosAccountInfo notLoginInfo = MakeTestAccountInfo();
+    notLoginInfo.uid_ = ohosAccountUid;
+    notLoginInfo.status_ = ACCOUNT_STATE_NOTLOGIN;
+    notLoginInfo.callingUid_ = 1000;
+    OsAccountSubspaceInfo notLoginSpace = MakeTestSpaceInfo(OS_ACCOUNT_ID, SPACE_ID_3,
+        ACCOUNT_STATE_NOTLOGIN, notLoginInfo);
+    SaveSpaceViaApi(notLoginSpace);
+
+    OsAccountInfo osAccountInfo;
+    osAccountInfo.SetLocalId(OS_ACCOUNT_ID);
+    MockSetCreatedOsAccounts({osAccountInfo});
+
+    OhosAccountManager::GetInstance().OnPackageRemoved(1000);
+
+    OsAccountSubspaceInfo loaded1;
+    LoadSpaceViaApi(OS_ACCOUNT_ID, SPACE_ID_1, loaded1);
+    EXPECT_EQ(ACCOUNT_STATE_UNBOUND, loaded1.ohosAccountInfo_.status_);
+
+    OsAccountSubspaceInfo loaded2;
+    LoadSpaceViaApi(OS_ACCOUNT_ID, SPACE_ID_2, loaded2);
+    EXPECT_EQ(ACCOUNT_STATE_LOGOFF, loaded2.ohosAccountInfo_.status_);
+
+    OsAccountSubspaceInfo loaded3;
+    LoadSpaceViaApi(OS_ACCOUNT_ID, SPACE_ID_3, loaded3);
+    EXPECT_EQ(ACCOUNT_STATE_UNBOUND, loaded3.ohosAccountInfo_.status_);
+}
+
+// ======================== A: SendMultiSpaceLogoutOnDelOsAccount Tests ========================
+
+/**
+ * @tc.name: SendLogoutEventOnDelOsAccount_LoginSpace_001
+ * @tc.desc: Test SendLogoutEventOnDelOsAccount publishes logout events for LOGIN space and base space
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountSpaceLoginLogoutTest, SendLogoutEventOnDelOsAccount_LoginSpace, TestSize.Level1)
+{
+    OhosAccountInfo boundInfo = MakeTestAccountInfo();
+    std::string ohosAccountUid = GenerateOhosUdidWithSha256(TEST_NAME, TEST_UID);
+    boundInfo.uid_ = ohosAccountUid;
+    boundInfo.status_ = ACCOUNT_STATE_LOGIN;
+
+    OsAccountSubspaceInfo spaceInfo = MakeTestSpaceInfo(OS_ACCOUNT_ID, SPACE_ID_1,
+        ACCOUNT_STATE_LOGIN, boundInfo);
+    SaveSpaceViaApi(spaceInfo);
+
+    OhosAccountInfo baseOhosInfo = MakeTestAccountInfo();
+    baseOhosInfo.uid_ = ohosAccountUid;
+    baseOhosInfo.status_ = ACCOUNT_STATE_LOGIN;
+    WriteBaseAccountJson(OS_ACCOUNT_ID, ACCOUNT_STATE_LOGIN, baseOhosInfo);
+
+    auto ret = OhosAccountManager::GetInstance().SendLogoutEventOnDelOsAccount(OS_ACCOUNT_ID);
+    EXPECT_EQ(ERR_OK, ret);
+}
+
+/**
+ * @tc.name: SendLogoutEventOnDelOsAccount_NotLoginSpace_001
+ * @tc.desc: Test SendLogoutEventOnDelOsAccount publishes UNBOUND event for NOTLOGIN space
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountSpaceLoginLogoutTest, SendLogoutEventOnDelOsAccount_NotLoginSpace_PublishUnbound, TestSize.Level1)
+{
+    OhosAccountInfo boundInfo = MakeTestAccountInfo();
+    std::string ohosAccountUid = GenerateOhosUdidWithSha256(TEST_NAME, TEST_UID);
+    boundInfo.uid_ = ohosAccountUid;
+    boundInfo.status_ = ACCOUNT_STATE_NOTLOGIN;
+
+    OsAccountSubspaceInfo spaceInfo = MakeTestSpaceInfo(OS_ACCOUNT_ID, SPACE_ID_1,
+        ACCOUNT_STATE_NOTLOGIN, boundInfo);
+    SaveSpaceViaApi(spaceInfo);
+    SetupOsAccountWithForeground(OS_ACCOUNT_ID, SPACE_ID_1);
+
+    auto ret = OhosAccountManager::GetInstance().SendLogoutEventOnDelOsAccount(OS_ACCOUNT_ID);
+    EXPECT_EQ(ERR_OK, ret);
+}
+
+/**
+ * @tc.name: SendLogoutEventOnDelOsAccount_UnboundSpace_001
+ * @tc.desc: Test SendLogoutEventOnDelOsAccount skips UNBOUND space
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountSpaceLoginLogoutTest, SendLogoutEventOnDelOsAccount_UnboundSpace_Skip, TestSize.Level1)
+{
+    OsAccountSubspaceInfo spaceInfo = MakeTestSpaceInfo(OS_ACCOUNT_ID, SPACE_ID_1, ACCOUNT_STATE_UNBOUND);
+    SaveSpaceViaApi(spaceInfo);
+    SetupOsAccountWithForeground(OS_ACCOUNT_ID, SPACE_ID_1);
+
+    auto ret = OhosAccountManager::GetInstance().SendLogoutEventOnDelOsAccount(OS_ACCOUNT_ID);
+    EXPECT_EQ(ERR_OK, ret);
+}
+
+// ======================== B: ClearMainAccountIfMatch Tests ========================
+
+/**
+ * @tc.name: OnPackageRemoved_ClearMainAccount_001
+ * @tc.desc: Test OnPackageRemoved clears main account when callingUid matches and status is not UNBOUND
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountSpaceLoginLogoutTest, OnPackageRemoved_ClearMainAccount_MatchingCallingUid, TestSize.Level1)
+{
+    MockSetCallingUid(1000);
+
+    OhosAccountInfo baseOhosInfo = MakeTestAccountInfo();
+    std::string ohosAccountUid = GenerateOhosUdidWithSha256(TEST_NAME, TEST_UID);
+    baseOhosInfo.uid_ = ohosAccountUid;
+    baseOhosInfo.status_ = ACCOUNT_STATE_LOGIN;
+    baseOhosInfo.callingUid_ = 1000;
+    WriteBaseAccountJson(OS_ACCOUNT_ID, ACCOUNT_STATE_LOGIN, baseOhosInfo);
+
+    OsAccountInfo osAccountInfo;
+    osAccountInfo.SetLocalId(OS_ACCOUNT_ID);
+    MockSetCreatedOsAccounts({osAccountInfo});
+
+    OhosAccountManager::GetInstance().OnPackageRemoved(1000);
+
+    OsAccountSubspaceInfo baseSpaceInfo;
+    ErrCode ret = OhosAccountManager::GetInstance().GetDistributedAccountSpaceInfo(
+        OS_ACCOUNT_ID, BASE_SPACE_ID, baseSpaceInfo);
+    EXPECT_EQ(ERR_OK, ret);
+    EXPECT_EQ(ACCOUNT_STATE_UNBOUND, baseSpaceInfo.ohosAccountInfo_.status_);
+}
+
+/**
+ * @tc.name: OnPackageRemoved_SkipMainAccountUnbound_001
+ * @tc.desc: Test OnPackageRemoved skips main account when status is UNBOUND even if callingUid matches
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountSpaceLoginLogoutTest, OnPackageRemoved_SkipMainAccount_UnboundStatus, TestSize.Level1)
+{
+    MockSetCallingUid(1000);
+
+    OhosAccountInfo baseOhosInfo;
+    baseOhosInfo.callingUid_ = 1000;
+    WriteBaseAccountJson(OS_ACCOUNT_ID, ACCOUNT_STATE_UNBOUND, baseOhosInfo);
+
+    OsAccountInfo osAccountInfo;
+    osAccountInfo.SetLocalId(OS_ACCOUNT_ID);
+    MockSetCreatedOsAccounts({osAccountInfo});
+
+    OhosAccountManager::GetInstance().OnPackageRemoved(1000);
+
+    OsAccountSubspaceInfo baseSpaceInfo;
+    ErrCode ret = OhosAccountManager::GetInstance().GetDistributedAccountSpaceInfo(
+        OS_ACCOUNT_ID, BASE_SPACE_ID, baseSpaceInfo);
+    EXPECT_EQ(ERR_OK, ret);
+    EXPECT_EQ(ACCOUNT_STATE_UNBOUND, baseSpaceInfo.ohosAccountInfo_.status_);
+}
+
+// ======================== C: Nonexistent Space Early Failure Tests ========================
+
+/**
+ * @tc.name: SpaceLogoutNonexistentSpaceFail_001
+ * @tc.desc: Test logout from nonexistent subspace returns error
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountSpaceLoginLogoutTest, SpaceLogout_NonexistentSpace_Fail, TestSize.Level1)
+{
+    OhosAccountInfo accountInfo = MakeTestAccountInfo();
+    auto ret = OhosAccountManager::GetInstance().LogoutOhosAccountSpace(
+        OS_ACCOUNT_ID, 999999, accountInfo, OHOS_ACCOUNT_EVENT_LOGOUT);
+    EXPECT_NE(ERR_OK, ret);
+}
+
+/**
+ * @tc.name: SpaceLogoffNonexistentSpaceFail_001
+ * @tc.desc: Test logoff from nonexistent subspace returns error
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountSpaceLoginLogoutTest, SpaceLogoff_NonexistentSpace_Fail, TestSize.Level1)
+{
+    OhosAccountInfo accountInfo = MakeTestAccountInfo();
+    auto ret = OhosAccountManager::GetInstance().LogoffOhosAccountSpace(
+        OS_ACCOUNT_ID, 999999, accountInfo, OHOS_ACCOUNT_EVENT_LOGOFF);
+    EXPECT_NE(ERR_OK, ret);
+}
+
+/**
+ * @tc.name: SpaceTokenInvalidNonexistentSpaceFail_001
+ * @tc.desc: Test token invalid event on nonexistent subspace returns error
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountSpaceLoginLogoutTest, SpaceTokenInvalid_NonexistentSpace_Fail, TestSize.Level1)
+{
+    OhosAccountInfo accountInfo = MakeTestAccountInfo();
+    auto ret = OhosAccountManager::GetInstance().HandleOhosAccountSpaceTokenInvalidEvent(
+        OS_ACCOUNT_ID, 999999, accountInfo, OHOS_ACCOUNT_EVENT_TOKEN_INVALID);
+    EXPECT_NE(ERR_OK, ret);
+}
+
+// ======================== D: SetDistributedAccountSpaceInfo Base Space Tests ========================
+
+/**
+ * @tc.name: SetDistributedAccountSpaceInfoBaseSpace_001
+ * @tc.desc: Test SetDistributedAccountSpaceInfo writes base space data via AccountInfoToJson
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountSpaceLoginLogoutTest, SetDistributedAccountSpaceInfo_BaseSpace, TestSize.Level1)
+{
+    OhosAccountInfo baseOhosInfo = MakeTestAccountInfo();
+    std::string ohosAccountUid = GenerateOhosUdidWithSha256(TEST_NAME, TEST_UID);
+    baseOhosInfo.uid_ = ohosAccountUid;
+    baseOhosInfo.status_ = ACCOUNT_STATE_LOGIN;
+    WriteBaseAccountJson(OS_ACCOUNT_ID, ACCOUNT_STATE_NOTLOGIN, baseOhosInfo);
+
+    OsAccountSubspaceInfo spaceInfo;
+    spaceInfo.userId_ = OS_ACCOUNT_ID;
+    spaceInfo.subspaceId = BASE_SPACE_ID;
+    spaceInfo.isCreateCompleted = true;
+    spaceInfo.toBeRemoved = false;
+    spaceInfo.ohosAccountInfo_ = baseOhosInfo;
+    spaceInfo.ohosAccountInfo_.status_ = ACCOUNT_STATE_LOGIN;
+    spaceInfo.bindTime_ = std::time(nullptr);
+    spaceInfo.version_ = ACCOUNT_VERSION_ANON;
+
+    ErrCode ret = OhosAccountManager::GetInstance().SetDistributedAccountSpaceInfo(spaceInfo);
+    EXPECT_EQ(ERR_OK, ret);
+
+    OsAccountSubspaceInfo loadedInfo;
+    ret = OhosAccountManager::GetInstance().GetDistributedAccountSpaceInfo(
+        OS_ACCOUNT_ID, BASE_SPACE_ID, loadedInfo);
+    EXPECT_EQ(ERR_OK, ret);
+    EXPECT_EQ(ACCOUNT_STATE_LOGIN, loadedInfo.ohosAccountInfo_.status_);
+    EXPECT_EQ(BASE_SPACE_ID, loadedInfo.subspaceId);
 }
 
 #endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
