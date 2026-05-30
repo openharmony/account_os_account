@@ -137,11 +137,11 @@ void OhosAccountDataDeal::DealWithFileDeleteEvent(const std::string &fileName, c
             accountFileWatcherMgr_.RemoveFileWatcher(id, fileName);
             return;
         }
-        std::string fileDir = configFileDir_ + std::to_string(id);
-        if (!accountFileOperator_->IsExistDir(fileDir)) {
-            ACCOUNT_LOGI("this id is already removed.");
-            return;
-        }
+    }
+    std::string fileDir = configFileDir_ + std::to_string(id);
+    if (!accountFileOperator_->IsExistDir(fileDir)) {
+        ACCOUNT_LOGI("this id is already removed.");
+        return;
     }
     ReportOsAccountDataTampered(id, fileName, "DISTRIBUTED_ACCOUT_INFO");
 }

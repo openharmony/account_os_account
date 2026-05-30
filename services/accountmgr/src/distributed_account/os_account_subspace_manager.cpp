@@ -215,5 +215,25 @@ ErrCode OsAccountSubspaceManager::SwitchSubspaceLocked(
     }
     return ret;
 }
+
+ErrCode OsAccountSubspaceManager::LoadSubspaceInfo(int32_t osAccountId, int32_t subspaceId,
+    OsAccountSubspaceInfo &info)
+{
+    std::unique_lock<std::mutex> lock(subspaceOpMutex_);
+    return subspaceDataDeal_->LoadSubspaceInfo(osAccountId, subspaceId, info);
+}
+
+ErrCode OsAccountSubspaceManager::SaveSubspaceInfo(const OsAccountSubspaceInfo &info)
+{
+    std::unique_lock<std::mutex> lock(subspaceOpMutex_);
+    return subspaceDataDeal_->SaveSubspaceInfo(info);
+}
+
+ErrCode OsAccountSubspaceManager::ScanOsAccountSubspaceIds(int32_t osAccountId,
+    std::set<int32_t> &validIds)
+{
+    std::unique_lock<std::mutex> lock(subspaceOpMutex_);
+    return subspaceDataDeal_->ScanOsAccountSubspaceIds(osAccountId, validIds);
+}
 }  // namespace AccountSA
 }  // namespace OHOS

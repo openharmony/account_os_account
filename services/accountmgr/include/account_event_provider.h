@@ -17,6 +17,7 @@
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_EVENT_PROVIDER_H
 
 #include <string>
+#include <want.h>
 #include "domain_account_common.h"
 
 namespace OHOS {
@@ -25,6 +26,7 @@ class AccountEventProvider {
 public:
     static bool EventPublish(const std::string& event, int32_t userId, const DomainAccountEventData *report);
     static bool EventPublishAsUser(const std::string& event, int32_t userId);
+    static bool EventPublishAsUser(const std::string& event, const AAFwk::Want &want, int32_t userId);
 };
 }  // namespace AccountSA
 }  // namespace OHOS

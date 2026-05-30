@@ -19,6 +19,7 @@
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 #include <memory>
 #include <mutex>
+#include <set>
 #include <string>
 #include "account_error_no.h"
 #include "os_account_subspace_data_deal.h"
@@ -43,6 +44,10 @@ public:
 
     bool CheckActiveSessionStatus(
         OsAccountSubspaceDataDeal *dataDeal, int32_t osAccountId, int32_t fromSubspaceId);
+    ErrCode LoadSubspaceInfo(int32_t osAccountId, int32_t subspaceId,
+        OsAccountSubspaceInfo &info);
+    ErrCode SaveSubspaceInfo(const OsAccountSubspaceInfo &info);
+    ErrCode ScanOsAccountSubspaceIds(int32_t osAccountId, std::set<int32_t> &validIds);
 
 private:
     OsAccountSubspaceManager() = default;
