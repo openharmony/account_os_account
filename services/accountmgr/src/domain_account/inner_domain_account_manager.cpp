@@ -710,8 +710,12 @@ ErrCode InnerDomainAccountManager::Auth(const DomainAccountInfo &info, const std
     {
         std::lock_guard<std::mutex> lock(mutex_);
         if (plugin_ != nullptr) {
-            auto task = [this, info, password, innerCallback, plugin = plugin_] {
-                this->StartAuth(plugin, info, password, innerCallback, AUTH_WITH_CREDENTIAL_MODE);
+            auto task = [this, info, passwordCopy = password,
+                         innerCallback, plugin = plugin_]() mutable {
+                this->StartAuth(plugin, info, passwordCopy, innerCallback, AUTH_WITH_CREDENTIAL_MODE);
+                if (!passwordCopy.empty()) {
+                    (void)memset_s(passwordCopy.data(), passwordCopy.size(), 0, passwordCopy.size());
+                }
             };
 #ifdef FUZZ_TEST
             task();
@@ -726,9 +730,13 @@ ErrCode InnerDomainAccountManager::Auth(const DomainAccountInfo &info, const std
     Parcel emptyParcel;
     AccountSA::DomainAuthResult result;
     ErrCode err = -1;
+    std::vector<uint8_t> passwordCopy = password;
     {
         std::lock_guard<std::recursive_mutex> lock(authContextIdMapMutex_);
-        err = PluginAuth(info, password, contextId);
+        err = PluginAuth(info, passwordCopy, contextId);
+        if (!passwordCopy.empty()) {
+            (void)memset_s(passwordCopy.data(), passwordCopy.size(), 0, passwordCopy.size());
+        }
         if (err == ERR_OK) {
             if (!AddToContextMap(contextId, innerCallback)) {
                 return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
@@ -798,11 +806,15 @@ ErrCode InnerDomainAccountManager::AuthWithParameters(const DomainAccountInfo &i
     IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(info, userId);
 
     std::function<void()> task;
-    task = [this, userId, info, password, authOptions, callback] {
+    task = [this, userId, info, passwordCopy = password,
+            authOptions, callback]() mutable {
         sptr<InnerDomainAuthCallback> innerCallback = sptr<InnerDomainAuthCallback>::MakeSptr(userId, callback);
         Parcel emptyParcel;
         AccountSA::DomainAuthResult result;
-        ErrCode err = this->PluginAuthWithParameters(info, password, authOptions.serverParams_);
+        ErrCode err = this->PluginAuthWithParameters(info, passwordCopy, authOptions.serverParams_);
+        if (!passwordCopy.empty()) {
+            (void)memset_s(passwordCopy.data(), passwordCopy.size(), 0, passwordCopy.size());
+        }
 
         if (!result.Marshalling(emptyParcel)) {
             ACCOUNT_LOGE("DomainAuthResult marshalling failed.");
@@ -1112,8 +1124,12 @@ ErrCode InnerDomainAccountManager::InnerAuth(int32_t userId, const std::vector<u
                     return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
                 }
             }
-            auto task = [this, domainInfo, authData, innerCallback, authMode, plugin = plugin_] {
-                this->StartAuth(plugin, domainInfo, authData, innerCallback, authMode);
+            auto task = [this, domainInfo, authDataCopy = authData,
+                        innerCallback, authMode, plugin = plugin_]() mutable {
+                this->StartAuth(plugin, domainInfo, authDataCopy, innerCallback, authMode);
+                if (!authDataCopy.empty()) {
+                    (void)memset_s(authDataCopy.data(), authDataCopy.size(), 0, authDataCopy.size());
+                }
             };
 #ifdef FUZZ_TEST
             task();
@@ -1125,8 +1141,12 @@ ErrCode InnerDomainAccountManager::InnerAuth(int32_t userId, const std::vector<u
             return ERR_OK;
         }
     }
-    auto task = [this, userId, domainInfo, authData, innerCallback, authMode] {
-        this->StartPluginAuth(userId, authData, domainInfo, innerCallback, authMode);
+    auto task = [this, userId, domainInfo, authDataCopy = authData,
+                      innerCallback, authMode]() mutable {
+        this->StartPluginAuth(userId, authDataCopy, domainInfo, innerCallback, authMode);
+        if (!authDataCopy.empty()) {
+            (void)memset_s(authDataCopy.data(), authDataCopy.size(), 0, authDataCopy.size());
+        }
     };
     if (authMode != AUTH_WITH_CREDENTIAL_MODE) {
 #ifdef FUZZ_TEST
