@@ -408,7 +408,9 @@ void OhosAccountKitsImpl::RestoreSubscribe()
     }
     std::set<DistributedAccountSpaceEventType> existingTypes;
     DistributedAccountEventService::GetInstance()->GetAllSpaceType(existingTypes);
-
+    if (existingTypes.empty()) {
+        return;
+    }
     std::vector<int32_t> typeInts;
     for (auto type : existingTypes) {
         typeInts.push_back(static_cast<int32_t>(type));
