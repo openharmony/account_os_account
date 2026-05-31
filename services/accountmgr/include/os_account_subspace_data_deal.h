@@ -29,7 +29,7 @@
 namespace OHOS {
 namespace AccountSA {
 
-constexpr int32_t MAX_OS_ACCOUNT_SUBSPACE_COUNT = 999;
+extern const int32_t MAX_OS_ACCOUNT_SUBSPACE_COUNT;
 
 /**
  * @brief Handles read/write of non-0 OS account subspace account.json files.
