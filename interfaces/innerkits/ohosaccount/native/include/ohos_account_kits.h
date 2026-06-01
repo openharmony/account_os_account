@@ -188,6 +188,43 @@ public:
         return ERR_OK;
     }
 
+    virtual ErrCode GetOsAccountForegroundSubProfileId(int32_t &subProfileId)
+    {
+        return ERR_OK;
+    }
+
+    virtual ErrCode GetOsAccountForegroundSubProfileId(int32_t osAccountId, int32_t &subProfileId)
+    {
+        return ERR_OK;
+    }
+
+    virtual ErrCode GetOsAccountSubProfileIds(std::vector<int32_t> &subProfileIds)
+    {
+        return ERR_OK;
+    }
+
+    virtual ErrCode GetOsAccountSubProfileIds(int32_t osAccountId, std::vector<int32_t> &subProfileIds)
+    {
+        return ERR_OK;
+    }
+
+    virtual ErrCode GetOsAccountLocalIdForSubProfile(int32_t subProfileId, int32_t &osAccountId)
+    {
+        return ERR_OK;
+    }
+
+    virtual ErrCode GetOsAccountSubProfile(int32_t subProfileId,
+        OsAccountSubspaceResult &subspaceResult, OhosAccountInfo &distributedInfo)
+    {
+        return ERR_OK;
+    }
+
+    virtual ErrCode GetOsAccountSubProfile(int32_t osAccountId, int32_t subProfileId,
+        OsAccountSubspaceResult &subspaceResult, OhosAccountInfo &distributedInfo)
+    {
+        return ERR_OK;
+    }
+
 protected:
     OhosAccountKits() = default;
 };

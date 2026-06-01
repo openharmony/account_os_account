@@ -53,6 +53,15 @@ public:
         const std::shared_ptr<DistributedAccountSubscribeCallback> &callback) final;
     ErrCode UnsubscribeDistributedAccountSpaceEvents(
         const std::shared_ptr<DistributedAccountSubscribeCallback> &callback) final;
+    ErrCode GetOsAccountForegroundSubProfileId(int32_t &subProfileId) final;
+    ErrCode GetOsAccountForegroundSubProfileId(int32_t osAccountId, int32_t &subProfileId) final;
+    ErrCode GetOsAccountSubProfileIds(std::vector<int32_t> &subProfileIds) final;
+    ErrCode GetOsAccountSubProfileIds(int32_t osAccountId, std::vector<int32_t> &subProfileIds) final;
+    ErrCode GetOsAccountLocalIdForSubProfile(int32_t subProfileId, int32_t &osAccountId) final;
+    ErrCode GetOsAccountSubProfile(int32_t subProfileId,
+        OsAccountSubspaceResult &subspaceResult, OhosAccountInfo &distributedInfo) final;
+    ErrCode GetOsAccountSubProfile(int32_t osAccountId, int32_t subProfileId,
+        OsAccountSubspaceResult &subspaceResult, OhosAccountInfo &distributedInfo) final;
     void RestoreSubscribe();
     ErrCode SubscribeSystemAbility(const DomainAccountSubscribeSACallbackFunc& callbackFunc);
     sptr<IRemoteObject> GetOsAccountService();

@@ -16,9 +16,7 @@
 #include "os_account_subspace_client.h"
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 #include "ohos_account_kits_impl.h"
-#endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 
 namespace OHOS {
 namespace AccountSA {
@@ -132,5 +130,50 @@ void OsAccountSubspaceClient::ResetProxy(const wptr<IRemoteObject> &remote)
     deathRecipient_ = nullptr;
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+
+ErrCode OsAccountSubspaceClient::GetOsAccountForegroundSubProfileId(
+    int32_t &subProfileId)
+{
+    return OhosAccountKits::GetInstance().GetOsAccountForegroundSubProfileId(subProfileId);
+}
+
+ErrCode OsAccountSubspaceClient::GetOsAccountForegroundSubProfileId(
+    int32_t osAccountId, int32_t &subProfileId)
+{
+    return OhosAccountKits::GetInstance().GetOsAccountForegroundSubProfileId(osAccountId, subProfileId);
+}
+
+ErrCode OsAccountSubspaceClient::GetOsAccountSubProfileIds(
+    std::vector<int32_t> &subProfileIds)
+{
+    return OhosAccountKits::GetInstance().GetOsAccountSubProfileIds(subProfileIds);
+}
+
+ErrCode OsAccountSubspaceClient::GetOsAccountSubProfileIds(
+    int32_t osAccountId, std::vector<int32_t> &subProfileIds)
+{
+    return OhosAccountKits::GetInstance().GetOsAccountSubProfileIds(osAccountId, subProfileIds);
+}
+
+ErrCode OsAccountSubspaceClient::GetOsAccountLocalIdForSubProfile(
+    int32_t subProfileId, int32_t &osAccountId)
+{
+    return OhosAccountKits::GetInstance().GetOsAccountLocalIdForSubProfile(subProfileId, osAccountId);
+}
+
+ErrCode OsAccountSubspaceClient::GetOsAccountSubProfile(
+    int32_t subProfileId, OsAccountSubspaceResult &subspaceResult,
+    OhosAccountInfo &distributedInfo)
+{
+    return OhosAccountKits::GetInstance().GetOsAccountSubProfile(subProfileId, subspaceResult, distributedInfo);
+}
+
+ErrCode OsAccountSubspaceClient::GetOsAccountSubProfile(
+    int32_t osAccountId, int32_t subProfileId, OsAccountSubspaceResult &subspaceResult,
+    OhosAccountInfo &distributedInfo)
+{
+    return OhosAccountKits::GetInstance().GetOsAccountSubProfile(osAccountId, subProfileId, subspaceResult,
+        distributedInfo);
+}
 }  // namespace AccountSA
 }  // namespace OHOS

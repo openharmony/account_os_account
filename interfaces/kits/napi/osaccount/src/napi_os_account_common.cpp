@@ -17,8 +17,10 @@
 #include <string>
 #include "napi_account_error.h"
 #include "napi_account_common.h"
+#include "napi_common_want.h"
 #include "napi/native_common.h"
 #include "napi_os_account.h"
+#include "want.h"
 
 namespace OHOS {
 namespace AccountJsKit {
@@ -231,6 +233,41 @@ void CreateJsDistributedInfo(napi_env env, const OhosAccountInfo &info, napi_val
     napi_value scalable = nullptr;
     napi_create_object(env, &scalable);
     napi_set_named_property(env, result, "scalableData", scalable);
+}
+
+napi_value BuildDistributedInfoFromOhosAccountInfo(napi_env env, const OhosAccountInfo &info)
+{
+    napi_value result = nullptr;
+    NAPI_CALL(env, napi_create_object(env, &result));
+    napi_value value = nullptr;
+    NAPI_CALL(env, napi_create_string_utf8(env, info.name_.c_str(), info.name_.size(), &value));
+    NAPI_CALL(env, napi_set_named_property(env, result, "name", value));
+    NAPI_CALL(env, napi_create_string_utf8(env, info.uid_.c_str(), info.uid_.size(), &value));
+    NAPI_CALL(env, napi_set_named_property(env, result, "id", value));
+    NAPI_CALL(env, napi_create_string_utf8(env, "", 0, &value));
+    NAPI_CALL(env, napi_set_named_property(env, result, "event", value));
+    NAPI_CALL(env, napi_create_string_utf8(env, info.nickname_.c_str(), info.nickname_.size(), &value));
+    NAPI_CALL(env, napi_set_named_property(env, result, "nickname", value));
+    NAPI_CALL(env, napi_create_string_utf8(env, info.avatar_.c_str(), info.avatar_.size(), &value));
+    NAPI_CALL(env, napi_set_named_property(env, result, "avatar", value));
+    NAPI_CALL(env, napi_create_int32(env, info.status_, &value));
+    NAPI_CALL(env, napi_set_named_property(env, result, "status", value));
+    AAFwk::WantParams params;
+    if (!info.scalableData_.empty()) {
+        std::string scalableDataCopy = info.scalableData_;
+        std::unique_ptr<AAFwk::Want> wantFromData(AAFwk::Want::FromString(scalableDataCopy));
+        if (wantFromData != nullptr) {
+            params = wantFromData->GetParams();
+        } else {
+            ACCOUNT_LOGW("Failed to deserialize scalableData, it will be empty");
+        }
+    }
+    napi_value scalable = AppExecFwk::WrapWantParams(env, params);
+    if (scalable == nullptr) {
+        NAPI_CALL(env, napi_create_object(env, &scalable));
+    }
+    NAPI_CALL(env, napi_set_named_property(env, result, "scalableData", scalable));
+    return result;
 }
 
 void GetOACBInfoToJs(napi_env env, OsAccountInfo &info, napi_value &objOAInfo)

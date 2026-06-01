@@ -329,6 +329,13 @@
         "OHOS::AccountSA::OsAccountSubspaceClient::CreateOsAccountSubspace(int, OHOS::AccountSA::OsAccountSubspaceResult&)";
         "OHOS::AccountSA::OsAccountSubspaceClient::DeleteOsAccountSubspace(int, int)";
         "OHOS::AccountSA::OsAccountSubspaceClient::SwitchOsAccountSubspace(int, int)";
+        "OHOS::AccountSA::OsAccountSubspaceClient::GetOsAccountForegroundSubProfileId(int, int&)";
+        "OHOS::AccountSA::OsAccountSubspaceClient::GetOsAccountForegroundSubProfileId(int&)";
+        "OHOS::AccountSA::OsAccountSubspaceClient::GetOsAccountSubProfileIds(int, std::__h::vector<int, std::__h::allocator<int>>&)";
+        "OHOS::AccountSA::OsAccountSubspaceClient::GetOsAccountSubProfileIds(std::__h::vector<int, std::__h::allocator<int>>&)";
+        "OHOS::AccountSA::OsAccountSubspaceClient::GetOsAccountLocalIdForSubProfile(int, int&)";
+        "OHOS::AccountSA::OsAccountSubspaceClient::GetOsAccountSubProfile(int, OHOS::AccountSA::OsAccountSubspaceResult&)";
+        "OHOS::AccountSA::OsAccountSubspaceClient::GetOsAccountSubProfile(int, int, OHOS::AccountSA::OsAccountSubspaceResult&, OHOS::AccountSA::OhosAccountInfo&)";
         "OHOS::AccountSA::OhosAccountInfo::Unmarshalling(OHOS::Parcel&)";
     };
   local:

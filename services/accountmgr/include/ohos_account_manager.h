@@ -108,6 +108,13 @@ public:
      */
     ErrCode UnsubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
         const sptr<IRemoteObject> &eventListener);
+    ErrCode GetOsAccountForegroundSubProfileId(int32_t osAccountId, int32_t &subProfileId);
+    ErrCode GetOsAccountSubProfileIds(int32_t osAccountId, std::vector<int32_t> &subProfileIds);
+    ErrCode GetOsAccountLocalIdForSubProfile(int32_t subProfileId, int32_t &osAccountId);
+    ErrCode GetOsAccountSubProfile(int32_t osAccountId, int32_t subProfileId,
+        OsAccountSubspaceResult &subspaceResult, OhosAccountInfo &distributedInfo);
+    ErrCode GetOhosAccountDistributedInfoFromSubspace(
+        int32_t localId, int32_t fgSubspaceId, OhosAccountInfo &ohosAccountInfo);
 
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
     void InitOsAccountSubspaceManager(const std::string &rootPath);

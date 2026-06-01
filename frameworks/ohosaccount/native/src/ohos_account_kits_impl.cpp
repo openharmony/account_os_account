@@ -627,5 +627,90 @@ ErrCode OhosAccountKitsImpl::UnsubscribeDistributedAccountSpaceEvents(
     DistributedAccountEventService::GetInstance()->DeleteSpaceCallback(callback);
     return ERR_OK;
 }
+
+ErrCode OhosAccountKitsImpl::GetOsAccountForegroundSubProfileId(
+    int32_t &subProfileId)
+{
+    auto accountProxy = GetService();
+    if (accountProxy == nullptr) {
+        ACCOUNT_LOGE("Get proxy failed");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return accountProxy->GetOsAccountForegroundSubProfileId(subProfileId);
+}
+
+ErrCode OhosAccountKitsImpl::GetOsAccountForegroundSubProfileId(
+    int32_t osAccountId, int32_t &subProfileId)
+{
+    auto accountProxy = GetService();
+    if (accountProxy == nullptr) {
+        ACCOUNT_LOGE("Get proxy failed");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return accountProxy->GetOsAccountForegroundSubProfileId(osAccountId, subProfileId);
+}
+
+ErrCode OhosAccountKitsImpl::GetOsAccountSubProfileIds(
+    std::vector<int32_t> &subProfileIds)
+{
+    auto accountProxy = GetService();
+    if (accountProxy == nullptr) {
+        ACCOUNT_LOGE("Get proxy failed");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return accountProxy->GetOsAccountSubProfileIds(subProfileIds);
+}
+
+ErrCode OhosAccountKitsImpl::GetOsAccountSubProfileIds(
+    int32_t osAccountId, std::vector<int32_t> &subProfileIds)
+{
+    auto accountProxy = GetService();
+    if (accountProxy == nullptr) {
+        ACCOUNT_LOGE("Get proxy failed");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return accountProxy->GetOsAccountSubProfileIds(osAccountId, subProfileIds);
+}
+
+ErrCode OhosAccountKitsImpl::GetOsAccountLocalIdForSubProfile(
+    int32_t subProfileId, int32_t &osAccountId)
+{
+    auto accountProxy = GetService();
+    if (accountProxy == nullptr) {
+        ACCOUNT_LOGE("Get proxy failed");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return accountProxy->GetOsAccountLocalIdForSubProfile(subProfileId, osAccountId);
+}
+
+ErrCode OhosAccountKitsImpl::GetOsAccountSubProfile(
+    int32_t subProfileId, OsAccountSubspaceResult &subspaceResult,
+    OhosAccountInfo &distributedInfo)
+{
+    auto accountProxy = GetService();
+    if (accountProxy == nullptr) {
+        ACCOUNT_LOGE("Get proxy failed");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    AccountSA::OhosAccountInfo distInfo;
+    ErrCode ret = accountProxy->GetOsAccountSubProfile(subProfileId, subspaceResult, distInfo);
+    distributedInfo = distInfo;
+    return ret;
+}
+
+ErrCode OhosAccountKitsImpl::GetOsAccountSubProfile(
+    int32_t osAccountId, int32_t subProfileId, OsAccountSubspaceResult &subspaceResult,
+    OhosAccountInfo &distributedInfo)
+{
+    auto accountProxy = GetService();
+    if (accountProxy == nullptr) {
+        ACCOUNT_LOGE("Get proxy failed");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    AccountSA::OhosAccountInfo distInfo;
+    ErrCode ret = accountProxy->GetOsAccountSubProfile(osAccountId, subProfileId, subspaceResult, distInfo);
+    distributedInfo = distInfo;
+    return ret;
+}
 } // namespace AccountSA
 } // namespace OHOS

@@ -319,6 +319,8 @@ bool ParseParaOnConstraintChanged(napi_env env, napi_callback_info cbInfo,
 
 bool ParseParaOffConstraintChanged(napi_env env, napi_callback_info cbInfo, napi_ref &ref);
 
+napi_value BuildDistributedInfoFromOhosAccountInfo(napi_env env, const OhosAccountInfo &info);
+
 }  // namespace AccountJsKit
 }  // namespace OHOS
 

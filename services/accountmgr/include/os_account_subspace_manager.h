@@ -22,6 +22,7 @@
 #include <set>
 #include <string>
 #include "account_error_no.h"
+#include "account_info.h"
 #include "os_account_subspace_data_deal.h"
 
 namespace OHOS {
@@ -41,6 +42,11 @@ public:
     ErrCode CreateSubspace(int32_t osAccountId, int32_t &newSubspaceId);
     ErrCode RemoveSubspace(int32_t osAccountId, int32_t subspaceId);
     ErrCode SwitchSubspace(int32_t osAccountId, int32_t subspaceId, int32_t &fromSubspaceId);
+
+    ErrCode GetSubProfileIds(int32_t osAccountId, std::vector<int32_t> &subProfileIds);
+    ErrCode GetLocalIdForSubProfile(int32_t subProfileId, int32_t &osAccountId);
+    ErrCode GetSubProfile(int32_t osAccountId, int32_t subProfileId,
+        OsAccountSubspaceResult &subspaceResult, OhosAccountInfo &distributedInfo);
 
     bool CheckActiveSessionStatus(
         OsAccountSubspaceDataDeal *dataDeal, int32_t osAccountId, int32_t fromSubspaceId);

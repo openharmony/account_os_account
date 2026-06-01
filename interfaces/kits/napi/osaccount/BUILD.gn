@@ -64,6 +64,7 @@ ohos_shared_library("osaccount") {
 
   external_deps = [
     "ability_base:want",
+    "ability_runtime:napi_common",
     "cJSON:cjson",
     "c_utils:utils",
     "hilog:libhilog",

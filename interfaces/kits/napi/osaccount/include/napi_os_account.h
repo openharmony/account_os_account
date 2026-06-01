@@ -304,6 +304,22 @@ struct BindDomainAccountAsyncContext : public CommonAsyncContext {
     DomainAccountInfo domainInfo;
 };
 
+struct GetOsAccountSubProfileInfoAsyncContext : public CommonAsyncContext {
+    int32_t localId = -1;
+    int32_t subProfileId = -1;
+    bool hasLocalId = false;
+    std::vector<int32_t> subProfileIds = {};
+};
+
+struct GetOsAccountSubProfileAsyncContext : public CommonAsyncContext {
+    int32_t localId = -1;
+    int32_t subProfileId = -1;
+    bool hasLocalId = false;
+    OsAccountSubspaceResult subspaceResult;
+    OhosAccountInfo distributedInfo;
+};
+
+
 napi_value OsAccountInit(napi_env env, napi_value exports);
 
 napi_value GetAccountManager(napi_env env, napi_callback_info cbInfo);

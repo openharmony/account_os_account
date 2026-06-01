@@ -573,6 +573,28 @@ ErrCode OhosAccountManager::GetAccountInfoByUserId(std::int32_t userId, AccountI
     }
     std::lock_guard<std::mutex> mutexLock(mgrMutex_);
 
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    // Resolve foreground subspace: if non-base, read from subspace data
+    OsAccountInfo osAccountInfo;
+    ErrCode getInfoRet = IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(userId, osAccountInfo);
+    if (getInfoRet == ERR_OK) {
+        int32_t fgSubspaceId = osAccountInfo.GetForegroundSubspaceId();
+        if (fgSubspaceId != -1) {
+            OsAccountSubspaceInfo subspaceInfo;
+            ErrCode loadRet = GetDistributedAccountSpaceInfo(userId, fgSubspaceId, subspaceInfo);
+            if (loadRet == ERR_OK) {
+                info = subspaceInfo;  // Copy AccountInfo base fields from subspace info
+                return ERR_OK;
+            }
+            ACCOUNT_LOGW("load subspace info failed, fgSubspaceId=%{public}d, ret=%{public}d, "
+                         "fallback to base subspace.", fgSubspaceId, loadRet);
+        }
+    } else {
+        ACCOUNT_LOGW("GetOsAccountInfoById failed for userId=%{public}d, ret=%{public}d, "
+                     "fallback to base subspace.", userId, getInfoRet);
+    }
+#endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+
     ErrCode ret = dataDealer_->AccountInfoFromJson(info, userId);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("get ohos account info failed, userId %{public}d.", userId);
@@ -724,6 +746,91 @@ ErrCode OhosAccountManager::UnsubscribeDistributedAccountSpaceEvents(
     const std::set<DistributedAccountSpaceEventType> &types, const sptr<IRemoteObject> &eventListener)
 {
     return subscribeManager_.UnsubscribeDistributedAccountSpaceEvents(types, eventListener);
+}
+
+ErrCode OhosAccountManager::GetOsAccountForegroundSubProfileId(
+    int32_t osAccountId, int32_t &subProfileId)
+{
+    // Caller MUST validate account existence before calling this method.
+    OsAccountInfo osAccountInfo;
+    ErrCode ret = IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(osAccountId, osAccountInfo);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("GetOsAccountInfoById failed, osAccountId=%{public}d, ret=%{public}d", osAccountId, ret);
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
+    subProfileId = osAccountInfo.GetForegroundSubspaceId();
+    return ERR_OK;
+}
+
+ErrCode OhosAccountManager::GetOsAccountSubProfileIds(
+    int32_t osAccountId, std::vector<int32_t> &subProfileIds)
+{
+    subProfileIds.clear();
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    return OsAccountSubspaceManager::GetInstance().GetSubProfileIds(osAccountId, subProfileIds);
+#else
+    int32_t subProfileId = 0;
+    ErrCode ret = GetOsAccountForegroundSubProfileId(osAccountId, subProfileId);
+    if (ret == ERR_OK) {
+        subProfileIds.push_back(subProfileId);
+    }
+    return ret;
+#endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+}
+
+ErrCode OhosAccountManager::GetOsAccountLocalIdForSubProfile(
+    int32_t subProfileId, int32_t &osAccountId)
+{
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    ErrCode res = OsAccountSubspaceManager::GetInstance().GetLocalIdForSubProfile(subProfileId, osAccountId);
+    if (res != ERR_OK) {
+        return res;
+    }
+#else
+    auto id = subProfileId / Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
+    if (subProfileId != id * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER) {
+        ACCOUNT_LOGE("SubProfile %{public}d does not exist", subProfileId);
+        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+    }
+    osAccountId = id;
+#endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    OsAccountInfo osAccountInfo;
+    ErrCode ret = IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(osAccountId, osAccountInfo);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("OsAccount %{public}d not found for subProfileId=%{public}d", osAccountId, subProfileId);
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
+    return ERR_OK;
+}
+
+ErrCode OhosAccountManager::GetOsAccountSubProfile(int32_t osAccountId, int32_t subProfileId,
+    OsAccountSubspaceResult &subspaceResult, OhosAccountInfo &distributedInfo)
+{
+    int32_t base = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
+    ErrCode ret;
+    if (subProfileId == base) {
+        subspaceResult.id = subProfileId;
+        subspaceResult.osAccountId = osAccountId;
+        subspaceResult.index = 0;
+        AccountInfo accountInfo;
+        ret = dataDealer_->AccountInfoFromJson(accountInfo, osAccountId);
+        if (ret != ERR_OK) {
+            return ret;
+        }
+        distributedInfo = accountInfo.ohosAccountInfo_;
+    } else {
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+        ret = OsAccountSubspaceManager::GetInstance().GetSubProfile(
+            osAccountId, subProfileId, subspaceResult, distributedInfo);
+        if (ret != ERR_OK) {
+            return ret;
+        }
+#else
+        ACCOUNT_LOGE("SubProfile %{public}d does not exist", subProfileId);
+        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+#endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    }
+    return ERR_OK;
 }
 
 /**
