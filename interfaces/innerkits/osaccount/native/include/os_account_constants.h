@@ -35,7 +35,6 @@ const std::string OS_ACCOUNT_CONSTRAINT_CONFIG_PATH =
 const std::string OS_ACCOUNT_CONSTRAINT_DEFINITION_PATH =
     SYSTEM_ETC_BASE + PATH_SEPARATOR + "os_account_constraint_definition.json";
 const std::string ACCOUNT_LIST_FILE_JSON_PATH = USER_INFO_BASE + PATH_SEPARATOR + "account_list.json";
-const std::string ACCOUNT_INDEX_JSON_PATH = USER_INFO_BASE + PATH_SEPARATOR + "account_index_info.json";
 const std::string ACCOUNT_INFO_DIGEST_FILE_PATH = USER_INFO_BASE + PATH_SEPARATOR + "account_info_digest.json";
 const std::string BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH =
     USER_INFO_BASE + PATH_SEPARATOR + "base_os_account_constraints.json";

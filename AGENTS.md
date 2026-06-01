@@ -62,7 +62,6 @@ Defined in [os_account.gni](os_account.gni):
 You can find files below in `/data/service/el1/public/account/`.
 | File | Purpose |
 |------|---------|
-| `account_index_info.json`              | Restore short names and local names |
 | `account_info_digest.json`             | Restore digest data for configs |
 | `account_list.json`                    | Restore account base info |
 | `base_os_account_constraints.json`     | Restore base account constraints |

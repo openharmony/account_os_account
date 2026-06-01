@@ -206,7 +206,6 @@ private:
     void CheckAndRefreshLocalIdRecord(const int id);
     void RollBackToEarlierAccount(int32_t fromId, int32_t toId, uint64_t displayId = 0);
     void RollbackOsAccount(OsAccountInfo &osAccountInfo, bool needDelStorage, bool needDelBms);
-    bool IsToBeRemoved(const int32_t localId);
     // operations for active list
     void PushIdIntoActiveList(int32_t id);
     void EraseIdFromActiveList(int32_t id);

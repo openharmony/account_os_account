@@ -452,18 +452,6 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, CreateOsAccount001, TestSize.Level1)
     std::vector<std::string> constraintsFromFile = GetVectorStringFromJson(constraintsFromFileJson, std::to_string(accountInfo.GetLocalId()));
     EXPECT_THAT(accountInfo.GetConstraints(), testing::ElementsAreArray(constraintsFromFile));
 
-    // account index has been saved to account_index_info.json
-    auto accountIndexJson = CreateJson();
-    EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->GetAccountIndexFromFile(accountIndexJson));
-    cJSON *item = GetObjFromJson(accountIndexJson, std::to_string(accountInfo.GetLocalId()));
-    bool isExist = (item != nullptr);
-    EXPECT_TRUE(isExist);
-    if (isExist) {
-        cJSON *localNameItem = GetObjFromJson(item, Constants::LOCAL_NAME);
-        if (localNameItem != nullptr && IsString(localNameItem)) {
-            EXPECT_EQ(std::string(localNameItem->valuestring), accountInfo.GetLocalName());
-        }
-    }
     EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(accountInfo.GetLocalId()));
 }
 
@@ -510,18 +498,66 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, CreateOsAccount002, TestSize.Level1)
     std::vector<std::string> constraintsFromFile = GetVectorStringFromJson(constraintsFromFileJson, std::to_string(accountInfo.GetLocalId()));
     EXPECT_THAT(accountInfo.GetConstraints(), testing::ElementsAreArray(constraintsFromFile));
 
-    // account index has been saved to account_index_info.json
-    auto accountIndexJson = CreateJson();
-    EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->GetAccountIndexFromFile(accountIndexJson));
-    cJSON *item = GetObjFromJson(accountIndexJson, std::to_string(accountInfo.GetLocalId()));
-    bool isExist = (item != nullptr);
-    EXPECT_TRUE(isExist);
-    if (isExist) {
-        cJSON *localNameItem = GetObjFromJson(item, Constants::LOCAL_NAME);
-        if (localNameItem != nullptr && IsString(localNameItem)) {
-            EXPECT_EQ(std::string(localNameItem->valuestring), accountInfo.GetLocalName());
-        }
+    EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(accountInfo.GetLocalId()));
+}
+
+/*
+ * @tc.name: CreateOsAccountDuplicateName001
+ * @tc.desc: Create os account with duplicated local name or short name failed.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, CreateOsAccountDuplicateName001, TestSize.Level1)
+{
+    const std::string localName = "CreateOsAccountDuplicateName001";
+    const std::string shortName = "CreateOsAccountDuplicateShortName001";
+    OsAccountInfo accountInfo;
+    ASSERT_EQ(ERR_OK, innerMgrService_->CreateOsAccount(localName, shortName, NORMAL, accountInfo));
+
+    OsAccountInfo duplicateLocalNameInfo;
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_NAME_HAD_EXISTED,
+        innerMgrService_->CreateOsAccount(localName, "CreateOsAccountDuplicateShortName002", NORMAL,
+            duplicateLocalNameInfo));
+
+    OsAccountInfo duplicateShortNameInfo;
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_SHORT_NAME_HAD_EXISTED,
+        innerMgrService_->CreateOsAccount("CreateOsAccountDuplicateName002", shortName, NORMAL,
+            duplicateShortNameInfo));
+
+    EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(accountInfo.GetLocalId()));
+}
+
+/*
+ * @tc.name: CreateOsAccountDuplicateNameWithBadAccountInfo001
+ * @tc.desc: Create os account with duplicated name failed when old account info file is broken.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, CreateOsAccountDuplicateNameWithBadAccountInfo001, TestSize.Level1)
+{
+    const std::string localName = "CreateOsAccountDuplicateNameWithBadAccountInfo001";
+    const std::string shortName = "CreateOsAccountDuplicateShortNameWithBadAccountInfo001";
+    OsAccountInfo accountInfo;
+    ASSERT_EQ(ERR_OK, innerMgrService_->CreateOsAccount(localName, shortName, NORMAL, accountInfo));
+
+    std::shared_ptr<AccountFileOperator> accountFileOperator = std::make_shared<AccountFileOperator>();
+    std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR +
+        std::to_string(accountInfo.GetLocalId()) + Constants::PATH_SEPARATOR + Constants::USER_INFO_FILE_NAME;
+    std::string accountInfoContent;
+    ASSERT_EQ(ERR_OK, accountFileOperator->GetFileContentByPath(path, accountInfoContent));
+    ASSERT_EQ(ERR_OK, accountFileOperator->InputFileByPathAndContent(path, "bad account info"));
+
+    OsAccountInfo duplicateLocalNameInfo;
+    ErrCode errCode = innerMgrService_->CreateOsAccount(localName, "CreateOsAccountDuplicateShortName002", NORMAL,
+        duplicateLocalNameInfo);
+    EXPECT_NE(ERR_OK, errCode);
+
+    OsAccountInfo tmpInfo;
+    if ((duplicateLocalNameInfo.GetLocalId() > START_USER_ID) &&
+        (innerMgrService_->GetOsAccountInfoById(duplicateLocalNameInfo.GetLocalId(), tmpInfo) == ERR_OK)) {
+        EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(duplicateLocalNameInfo.GetLocalId()));
     }
+    EXPECT_EQ(ERR_OK, accountFileOperator->InputFileByPathAndContent(path, accountInfoContent));
     EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(accountInfo.GetLocalId()));
 }
 
@@ -575,18 +611,6 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, CreateOsAccountWithFullInfo001, TestSize.
     std::vector<std::string> constraintsFromFile = GetVectorStringFromJson(constraintsFromFileJson, std::to_string(accountInfo.GetLocalId()));
     EXPECT_THAT(accountInfo.GetConstraints(), testing::ElementsAreArray(constraintsFromFile));
 
-    // account index has been saved to account_index_info.json
-    auto accountIndexJson = CreateJson();
-    EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->GetAccountIndexFromFile(accountIndexJson));
-    cJSON *item = GetObjFromJson(accountIndexJson, std::to_string(accountInfo.GetLocalId()));
-    bool isExist = (item != nullptr);
-    EXPECT_TRUE(isExist);
-    if (isExist) {
-        cJSON *localNameItem = GetObjFromJson(item, Constants::LOCAL_NAME);
-        if (localNameItem != nullptr && IsString(localNameItem)) {
-            EXPECT_EQ(std::string(localNameItem->valuestring), accountInfo.GetLocalName());
-        };
-    }
     EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(accountInfo.GetLocalId()));
 }
 
@@ -670,25 +694,13 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, UpdateOsAccountWithFullInfo001, TestSize.
     EXPECT_EQ(ERR_OK, g_controlManager->GetBaseOAConstraintsFromFile(constraintsFromFileJson));
     std::vector<std::string> constraintsFromFile = GetVectorStringFromJson(constraintsFromFileJson, std::to_string(accountInfo.GetLocalId()));
 
-    // account index has been saved to account_index_info.json
-    auto accountIndexJson = CreateJson();
-    EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->GetAccountIndexFromFile(accountIndexJson));
-    cJSON *item = GetObjFromJson(accountIndexJson, std::to_string(accountInfo.GetLocalId()));
-    bool isExist = (item != nullptr);
-    EXPECT_TRUE(isExist);
-    if (isExist) {
-        cJSON *localNameItem = GetObjFromJson(item, Constants::LOCAL_NAME);
-        if (localNameItem != nullptr && IsString(localNameItem)) {
-            EXPECT_EQ(std::string(localNameItem->valuestring), accountInfo.GetLocalName());
-        }
-    }
     EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(accountInfo.GetLocalId()));
 }
 
 /*
  * @tc.name: RemoveOsAccount001
  * @tc.desc: Remove background os account successfully and update status in
- * account_info.json/base_os_account_constraints.json/account_index_info.json
+ * account_info.json/base_os_account_constraints.json
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -711,18 +723,6 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, RemoveOsAccount001, TestSize.Level1)
     std::vector<std::string> constraintsFromFile = GetVectorStringFromJson(constraintsFromFileJson, std::to_string(accountInfo.GetLocalId()));
     EXPECT_THAT(accountInfo.GetConstraints(), testing::ElementsAreArray(constraintsFromFile));
 
-    // account index has been saved to account_index_info.json
-    auto accountIndexJson = CreateJson();
-    EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->GetAccountIndexFromFile(accountIndexJson));
-    cJSON *item = GetObjFromJson(accountIndexJson, std::to_string(accountInfo.GetLocalId()));
-    bool isExist = (item != nullptr);
-    EXPECT_TRUE(isExist);
-    if (isExist) {
-        cJSON *localNameItem = GetObjFromJson(item, Constants::LOCAL_NAME);
-        if (localNameItem != nullptr && IsString(localNameItem)) {
-            EXPECT_EQ(std::string(localNameItem->valuestring), accountInfo.GetLocalName());
-        }
-    }
     EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(accountInfo.GetLocalId()));
 
     // account info in account_info.json has been erased
@@ -734,17 +734,12 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, RemoveOsAccount001, TestSize.Level1)
     constraintsFromFile.clear();
     constraintsFromFile = GetVectorStringFromJson(constraintsFromFileJson, std::to_string(accountInfo.GetLocalId()));
     EXPECT_TRUE(constraintsFromFile.empty());
-
-    // account index in account_index_info.json has been erased
-    EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->GetAccountIndexFromFile(accountIndexJson));
-    item = GetObjFromJson(accountIndexJson, std::to_string(accountInfo.GetLocalId()));
-    EXPECT_EQ(item, nullptr);
 }
 
 /*
  * @tc.name: RemoveOsAccount002
  * @tc.desc: Remove foreground os account successfully and update status in
- * account_info.json/base_os_account_constraints.json/account_index_info.json
+ * account_info.json/base_os_account_constraints.json
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -767,19 +762,6 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, RemoveOsAccount002, TestSize.Level1)
     std::vector<std::string> constraintsFromFile = GetVectorStringFromJson(constraintsFromFileJson, std::to_string(accountInfo.GetLocalId()));
     EXPECT_THAT(accountInfo.GetConstraints(), testing::ElementsAreArray(constraintsFromFile));
 
-    // account index has been saved to account_index_info.json
-    auto accountIndexJson = CreateJson();
-    EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->GetAccountIndexFromFile(accountIndexJson));
-    cJSON *item = GetObjFromJson(accountIndexJson, std::to_string(accountInfo.GetLocalId()));
-    bool isExist = (item != nullptr);
-    EXPECT_TRUE(isExist);
-    if (isExist) {
-        cJSON *localNameItem = GetObjFromJson(item, Constants::LOCAL_NAME);
-        if (localNameItem != nullptr && IsString(localNameItem)) {
-            EXPECT_EQ(std::string(localNameItem->valuestring), accountInfo.GetLocalName());
-        }
-    }
-
     EXPECT_EQ(ERR_OK, innerMgrService_->ActivateOsAccount(accountInfo.GetLocalId()));
     int id = 0;
     EXPECT_EQ(ERR_OK, innerMgrService_->GetForegroundOsAccountLocalId(0, id));
@@ -797,11 +779,6 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, RemoveOsAccount002, TestSize.Level1)
     constraintsFromFile.clear();
     constraintsFromFile = GetVectorStringFromJson(constraintsFromFileJson, std::to_string(accountInfo.GetLocalId()));
     EXPECT_TRUE(constraintsFromFile.empty());
-
-    // account index in account_index_info.json has been erased
-    EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->GetAccountIndexFromFile(accountIndexJson));
-    item = GetObjFromJson(accountIndexJson, std::to_string(accountInfo.GetLocalId()));
-    EXPECT_EQ(item, nullptr);
 }
 
 /*
@@ -1060,7 +1037,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, AccountStatusTest002, TestSize.Level1)
 
 /*
  * @tc.name: SetOsAccountName001
- * @tc.desc: Set os account name successfully and save to account_info.json/account_index_info.json
+ * @tc.desc: Set os account name successfully and save to account_info.json
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -1078,18 +1055,6 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, SetOsAccountName001, TestSize.Level1)
     createInfo.SetLocalName("SetOsAccountName001After");
     EXPECT_EQ(accountInfo.ToString(), createInfo.ToString());
 
-    // account index has been saved to account_index_info.json
-    auto accountIndexJson = CreateJson();
-    EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->GetAccountIndexFromFile(accountIndexJson));
-    cJSON *item = GetObjFromJson(accountIndexJson, std::to_string(accountInfo.GetLocalId()));
-    bool isExist = (item != nullptr);
-    EXPECT_TRUE(isExist);
-    if (isExist) {
-        cJSON *localNameItem = GetObjFromJson(item, Constants::LOCAL_NAME);
-        if (localNameItem != nullptr && IsString(localNameItem)) {
-            EXPECT_EQ(std::string(localNameItem->valuestring), accountInfo.GetLocalName());
-        }
-    }
     EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(createInfo.GetLocalId()));
 }
 
@@ -1448,7 +1413,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest013, TestSize
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
     innerMgrService_->osAccountControl_ = ptr;
 
-    EXPECT_CALL(*ptr, GetOsAccountList(::testing::_))
+    EXPECT_CALL(*ptr, GetOsAccountList(::testing::_, ::testing::_))
         .WillRepeatedly(testing::Return(0));
 
     EXPECT_CALL(*ptr, GetSerialNumber(::testing::_))
@@ -1876,7 +1841,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest027, TestSize
     ErrCode ret = innerMgrService_->GetOsAccountLocalIdBySerialNumber(serialNumber, id);
     EXPECT_EQ(ret, 0);
 
-    EXPECT_CALL(*ptr, GetOsAccountList(::testing::_))
+    EXPECT_CALL(*ptr, GetOsAccountList(::testing::_, ::testing::_))
         .WillRepeatedly(testing::Return(-1));
 
     serialNumber = 0;
@@ -2105,13 +2070,13 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest036, TestSize
     EXPECT_CALL(*ptr, UpdateOsAccount(::testing::_))
         .WillRepeatedly(testing::Return(0));
 
-    EXPECT_CALL(*ptr, GetOsAccountList(_))
+    EXPECT_CALL(*ptr, GetOsAccountList(_, _))
         .WillRepeatedly(DoAll(SetArgReferee<0>(accounts), testing::Return(0)));
 
     innerMgrService_->ResetAccountStatus();
     EXPECT_EQ(account1.GetIsActived(), true); // this interface has nothing to judge.
 
-    EXPECT_CALL(*ptr, GetOsAccountList(_))
+    EXPECT_CALL(*ptr, GetOsAccountList(_, _))
         .WillRepeatedly(DoAll(SetArgReferee<0>(accounts), testing::Return(-1)));
 
     innerMgrService_->ResetAccountStatus();
@@ -2184,7 +2149,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest039, TestSize
     innerMgrService_->PushIdIntoActiveList(TEST_USER_ID55);
 
     innerMgrService_->osAccountControl_ = ptr;
-    EXPECT_CALL(*ptr, GetOsAccountList(_))
+    EXPECT_CALL(*ptr, GetOsAccountList(_, _))
         .WillRepeatedly(DoAll(SetArgReferee<0>(accounts), testing::Return(0)));
     EXPECT_CALL(*ptr, GetSerialNumber(::testing::_))
         .WillRepeatedly(testing::Return(0));
