@@ -53,6 +53,10 @@ private:
     static napi_value SwitchOsAccountSubProfile(napi_env env, napi_callback_info cbInfo);
     static napi_value onOsAccountSubProfileEvent(napi_env env, napi_callback_info cbInfo);
     static napi_value offOsAccountSubProfileEvent(napi_env env, napi_callback_info cbInfo);
+    static napi_value GetOsAccountForegroundSubProfileId(napi_env env, napi_callback_info cbInfo);
+    static napi_value GetOsAccountSubProfileIds(napi_env env, napi_callback_info cbInfo);
+    static napi_value GetOsAccountLocalIdForSubProfile(napi_env env, napi_callback_info cbInfo);
+    static napi_value GetOsAccountSubProfile(napi_env env, napi_callback_info cbInfo);
 };
 
 }  // namespace AccountJsKit

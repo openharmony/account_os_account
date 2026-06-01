@@ -235,5 +235,58 @@ ErrCode OsAccountSubspaceManager::ScanOsAccountSubspaceIds(int32_t osAccountId,
     std::unique_lock<std::mutex> lock(subspaceOpMutex_);
     return subspaceDataDeal_->ScanOsAccountSubspaceIds(osAccountId, validIds);
 }
+
+ErrCode OsAccountSubspaceManager::GetSubProfileIds(
+    int32_t osAccountId, std::vector<int32_t> &subProfileIds)
+{
+    std::set<int32_t> idSet;
+    ErrCode ret = subspaceDataDeal_->ScanOsAccountSubspaceIds(osAccountId, idSet);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("ScanOsAccountSubspaceIds failed, osAccountId=%{public}d, ret=%{public}d",
+            osAccountId, ret);
+        return ret;
+    }
+    int32_t baseSubProfileId = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
+    idSet.insert(baseSubProfileId);
+    subProfileIds.assign(idSet.begin(), idSet.end());
+    return ERR_OK;
+}
+
+ErrCode OsAccountSubspaceManager::GetLocalIdForSubProfile(
+    int32_t subProfileId, int32_t &osAccountId)
+{
+    int32_t baseMultiplier = Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
+    osAccountId = subProfileId / baseMultiplier;
+    int32_t base = osAccountId * baseMultiplier;
+    if (subProfileId != base && !subspaceDataDeal_->IsValidSubspaceExists(osAccountId, subProfileId)) {
+        ACCOUNT_LOGE("SubProfile %{public}d does not exist", subProfileId);
+        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+    }
+    return ERR_OK;
+}
+
+ErrCode OsAccountSubspaceManager::GetSubProfile(int32_t osAccountId, int32_t subProfileId,
+    OsAccountSubspaceResult &subspaceResult, OhosAccountInfo &distributedInfo)
+{
+    // Caller MUST validate subProfile ownership (subProfileId / MULTIPLIER == osAccountId) at the service layer.
+    if (subProfileId != (osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER) &&
+        !subspaceDataDeal_->IsValidSubspaceExists(osAccountId, subProfileId)) {
+        ACCOUNT_LOGE("SubProfile %{public}d does not exist", subProfileId);
+        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+    }
+    subspaceResult.id = subProfileId;
+    subspaceResult.osAccountId = osAccountId;
+    subspaceResult.index = subProfileId - (osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER);
+    OsAccountSubspaceInfo subspaceInfo;
+    ErrCode ret = subspaceDataDeal_->LoadSubspaceInfo(osAccountId, subProfileId, subspaceInfo);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("LoadSubspaceInfo failed, osId=%{public}d, subId=%{public}d, ret=%{public}d",
+            osAccountId, subProfileId, ret);
+        return ret;
+    }
+    distributedInfo = subspaceInfo.ohosAccountInfo_;
+    return ERR_OK;
+}
+
 }  // namespace AccountSA
 }  // namespace OHOS

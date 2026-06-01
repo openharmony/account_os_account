@@ -21,10 +21,12 @@
 #include "account_permission_manager.h"
 #include "napi_account_common.h"
 #include "napi_account_error.h"
+#include "napi_common_want.h"
 #include "napi_os_account_common.h"
 #include "napi/native_common.h"
 #include "os_account_manager.h"
 #include "os_account_subspace_client.h"
+#include "want.h"
 
 using namespace OHOS::AccountSA;
 
@@ -552,6 +554,361 @@ napi_value NapiOsAccountSubProfileManager::offOsAccountSubProfileEvent(napi_env 
     return nullptr;
 }
 
+static bool ParseParaGetForegroundSubProfileId(napi_env env, napi_callback_info cbInfo,
+    GetOsAccountSubProfileInfoAsyncContext *asyncContext)
+{
+    size_t argc = ARGS_SIZE_ONE;
+    napi_value argv[ARGS_SIZE_ONE] = {0};
+    NAPI_CALL_BASE(env, napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr), false);
+    if (argc == ARGS_SIZE_ZERO) {
+        asyncContext->hasLocalId = false;
+        return true;
+    }
+    if (!GetIntProperty(env, argv[PARAMZERO], asyncContext->localId)) {
+        ACCOUNT_LOGE("Get osAccountId failed");
+        std::string errMsg = "Parameter error. The type of \"osAccountId\" must be number";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        return false;
+    }
+    asyncContext->hasLocalId = true;
+    return true;
+}
+
+static void GetForegroundSubProfileIdExecuteCB(napi_env env, void *data)
+{
+    GetOsAccountSubProfileInfoAsyncContext *asyncContext =
+        reinterpret_cast<GetOsAccountSubProfileInfoAsyncContext *>(data);
+    if (asyncContext->hasLocalId) {
+        asyncContext->errCode = OsAccountSubspaceClient::GetInstance().GetOsAccountForegroundSubProfileId(
+            asyncContext->localId, asyncContext->subProfileId);
+    } else {
+        asyncContext->errCode = OsAccountSubspaceClient::GetInstance().GetOsAccountForegroundSubProfileId(
+            asyncContext->subProfileId);
+    }
+}
+
+static void GetForegroundSubProfileIdCompletedCB(napi_env env, napi_status status, void *data)
+{
+    GetOsAccountSubProfileInfoAsyncContext *asyncContext =
+        reinterpret_cast<GetOsAccountSubProfileInfoAsyncContext *>(data);
+    napi_value errJs = nullptr;
+    napi_value dataJs = nullptr;
+    if (asyncContext->errCode == ERR_OK) {
+        NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &errJs));
+        NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, asyncContext->subProfileId, &dataJs));
+    } else {
+        errJs = GenerateBusinessError(env, asyncContext->errCode);
+        NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &dataJs));
+    }
+    ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
+    delete asyncContext;
+}
+
+napi_value NapiOsAccountSubProfileManager::GetOsAccountForegroundSubProfileId(napi_env env, napi_callback_info cbInfo)
+{
+    auto asyncContext = std::make_unique<GetOsAccountSubProfileInfoAsyncContext>();
+    asyncContext->env = env;
+    asyncContext->throwErr = true;
+
+    if (!ParseParaGetForegroundSubProfileId(env, cbInfo, asyncContext.get())) {
+        return nullptr;
+    }
+
+    napi_value result = nullptr;
+    NAPI_CALL(env, napi_create_promise(env, &asyncContext->deferred, &result));
+
+    napi_value resource = nullptr;
+    NAPI_CALL(env, napi_create_string_utf8(env, "GetOsAccountForegroundSubProfileId", NAPI_AUTO_LENGTH, &resource));
+
+    NAPI_CALL(env, napi_create_async_work(env,
+        nullptr,
+        resource,
+        GetForegroundSubProfileIdExecuteCB,
+        GetForegroundSubProfileIdCompletedCB,
+        reinterpret_cast<void *>(asyncContext.get()),
+        &asyncContext->work));
+
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, asyncContext->work, napi_qos_user_initiated));
+    asyncContext.release();
+    return result;
+}
+
+static bool ParseParaGetSubProfileIds(napi_env env, napi_callback_info cbInfo,
+    GetOsAccountSubProfileInfoAsyncContext *asyncContext)
+{
+    size_t argc = ARGS_SIZE_ONE;
+    napi_value argv[ARGS_SIZE_ONE] = {0};
+    NAPI_CALL_BASE(env, napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr), false);
+    if (argc == ARGS_SIZE_ZERO) {
+        asyncContext->hasLocalId = false;
+        return true;
+    }
+    if (!GetIntProperty(env, argv[PARAMZERO], asyncContext->localId)) {
+        ACCOUNT_LOGE("Get osAccountId failed");
+        std::string errMsg = "Parameter error. The type of \"osAccountId\" must be number";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        return false;
+    }
+    asyncContext->hasLocalId = true;
+    return true;
+}
+
+static void GetSubProfileIdsExecuteCB(napi_env env, void *data)
+{
+    GetOsAccountSubProfileInfoAsyncContext *asyncContext =
+        reinterpret_cast<GetOsAccountSubProfileInfoAsyncContext *>(data);
+    if (asyncContext->hasLocalId) {
+        asyncContext->errCode = OsAccountSubspaceClient::GetInstance().GetOsAccountSubProfileIds(
+            asyncContext->localId, asyncContext->subProfileIds);
+    } else {
+        asyncContext->errCode = OsAccountSubspaceClient::GetInstance().GetOsAccountSubProfileIds(
+            asyncContext->subProfileIds);
+    }
+}
+
+static void GetSubProfileIdsCompletedCB(napi_env env, napi_status status, void *data)
+{
+    GetOsAccountSubProfileInfoAsyncContext *asyncContext =
+        reinterpret_cast<GetOsAccountSubProfileInfoAsyncContext *>(data);
+    napi_value errJs = nullptr;
+    napi_value dataJs = nullptr;
+    if (asyncContext->errCode == ERR_OK) {
+        NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &errJs));
+        NAPI_CALL_RETURN_VOID(env, napi_create_array(env, &dataJs));
+        uint32_t index = 0;
+        for (const auto& id : asyncContext->subProfileIds) {
+            napi_value jsId = nullptr;
+            NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, id, &jsId));
+            NAPI_CALL_RETURN_VOID(env, napi_set_element(env, dataJs, index, jsId));
+            index++;
+        }
+    } else {
+        errJs = GenerateBusinessError(env, asyncContext->errCode, asyncContext->throwErr);
+        NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &dataJs));
+    }
+    ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
+    delete asyncContext;
+}
+
+napi_value NapiOsAccountSubProfileManager::GetOsAccountSubProfileIds(napi_env env, napi_callback_info cbInfo)
+{
+    auto getOASubProfileIds = std::make_unique<GetOsAccountSubProfileInfoAsyncContext>();
+    getOASubProfileIds->env = env;
+    getOASubProfileIds->throwErr = true;
+
+    if (!ParseParaGetSubProfileIds(env, cbInfo, getOASubProfileIds.get())) {
+        return nullptr;
+    }
+
+    napi_value result = nullptr;
+    NAPI_CALL(env, napi_create_promise(env, &getOASubProfileIds->deferred, &result));
+
+    napi_value resource = nullptr;
+    NAPI_CALL(env, napi_create_string_utf8(env, "GetOsAccountSubProfileIds", NAPI_AUTO_LENGTH, &resource));
+
+    NAPI_CALL(env, napi_create_async_work(env,
+        nullptr,
+        resource,
+        GetSubProfileIdsExecuteCB,
+        GetSubProfileIdsCompletedCB,
+        reinterpret_cast<void *>(getOASubProfileIds.get()),
+        &getOASubProfileIds->work));
+
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, getOASubProfileIds->work, napi_qos_user_initiated));
+    getOASubProfileIds.release();
+    return result;
+}
+
+static bool ParseParaGetLocalIdForSubProfile(napi_env env, napi_callback_info cbInfo,
+    GetOsAccountSubProfileInfoAsyncContext *asyncContext)
+{
+    size_t argc = ARGS_SIZE_ONE;
+    napi_value argv[ARGS_SIZE_ONE] = {0};
+    NAPI_CALL_BASE(env, napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr), false);
+    if (argc == ARGS_SIZE_ZERO) {
+        ACCOUNT_LOGE("The number of parameters should be at least 1");
+        std::string errMsg = "Parameter error. The number of parameters should be at least 1";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+        return false;
+    }
+    if (!GetIntProperty(env, argv[PARAMZERO], asyncContext->subProfileId)) {
+        ACCOUNT_LOGE("Get subProfileId failed");
+        std::string errMsg = "Parameter error. The type of \"subProfileId\" must be number";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        return false;
+    }
+    return true;
+}
+
+static void GetLocalIdForSubProfileExecuteCB(napi_env env, void *data)
+{
+    GetOsAccountSubProfileInfoAsyncContext *asyncContext =
+        reinterpret_cast<GetOsAccountSubProfileInfoAsyncContext *>(data);
+    asyncContext->errCode = OsAccountSubspaceClient::GetInstance().GetOsAccountLocalIdForSubProfile(
+        asyncContext->subProfileId, asyncContext->localId);
+}
+
+static void GetLocalIdForSubProfileCompletedCB(napi_env env, napi_status status, void *data)
+{
+    GetOsAccountSubProfileInfoAsyncContext *asyncContext =
+        reinterpret_cast<GetOsAccountSubProfileInfoAsyncContext *>(data);
+    napi_value errJs = nullptr;
+    napi_value dataJs = nullptr;
+    if (asyncContext->errCode == ERR_OK) {
+        NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &errJs));
+        NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, asyncContext->localId, &dataJs));
+    } else {
+        errJs = GenerateBusinessError(env, asyncContext->errCode);
+        NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &dataJs));
+    }
+    ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
+    delete asyncContext;
+}
+
+napi_value NapiOsAccountSubProfileManager::GetOsAccountLocalIdForSubProfile(napi_env env, napi_callback_info cbInfo)
+{
+    auto getOALocalIdForSubProfile = std::make_unique<GetOsAccountSubProfileInfoAsyncContext>();
+    getOALocalIdForSubProfile->env = env;
+    getOALocalIdForSubProfile->throwErr = true;
+
+    if (!ParseParaGetLocalIdForSubProfile(env, cbInfo, getOALocalIdForSubProfile.get())) {
+        return nullptr;
+    }
+
+    napi_value result = nullptr;
+    NAPI_CALL(env, napi_create_promise(env, &getOALocalIdForSubProfile->deferred, &result));
+
+    napi_value resource = nullptr;
+    NAPI_CALL(env, napi_create_string_utf8(env, "GetOsAccountLocalIdForSubProfile", NAPI_AUTO_LENGTH, &resource));
+
+    NAPI_CALL(env, napi_create_async_work(env,
+        nullptr,
+        resource,
+        GetLocalIdForSubProfileExecuteCB,
+        GetLocalIdForSubProfileCompletedCB,
+        reinterpret_cast<void *>(getOALocalIdForSubProfile.get()),
+        &getOALocalIdForSubProfile->work));
+
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, getOALocalIdForSubProfile->work, napi_qos_user_initiated));
+    getOALocalIdForSubProfile.release();
+    return result;
+}
+
+static bool ParseParaGetSubProfile(napi_env env, napi_callback_info cbInfo,
+    GetOsAccountSubProfileAsyncContext *asyncContext)
+{
+    size_t argc = ARGS_SIZE_TWO;
+    napi_value argv[ARGS_SIZE_TWO] = {0};
+    NAPI_CALL_BASE(env, napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr), false);
+    if (argc == ARGS_SIZE_ZERO) {
+        ACCOUNT_LOGE("The number of parameters should be at least 1");
+        std::string errMsg = "Parameter error. The number of parameters should be at least 1";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+        return false;
+    }
+
+    if (argc == ARGS_SIZE_TWO) {
+        if (!GetIntProperty(env, argv[PARAMZERO], asyncContext->localId)) {
+            ACCOUNT_LOGE("Get localId failed");
+            std::string errMsg = "Parameter error. The type of \"osAccountId\" must be number";
+            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+            return false;
+        }
+        if (!GetIntProperty(env, argv[PARAMONE], asyncContext->subProfileId)) {
+            ACCOUNT_LOGE("Get subProfileId failed");
+            std::string errMsg = "Parameter error. The type of \"subProfileId\" must be number";
+            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+            return false;
+        }
+        asyncContext->hasLocalId = true;
+    } else {
+        if (!GetIntProperty(env, argv[PARAMZERO], asyncContext->subProfileId)) {
+            ACCOUNT_LOGE("Get subProfileId failed");
+            std::string errMsg = "Parameter error. The type of \"subProfileId\" must be number";
+            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+            return false;
+        }
+        asyncContext->hasLocalId = false;
+    }
+    return true;
+}
+
+static void GetSubProfileExecuteCB(napi_env env, void *data)
+{
+    GetOsAccountSubProfileAsyncContext *asyncContext =
+        reinterpret_cast<GetOsAccountSubProfileAsyncContext *>(data);
+    if (asyncContext->hasLocalId) {
+        asyncContext->errCode = OsAccountSubspaceClient::GetInstance().GetOsAccountSubProfile(
+            asyncContext->localId, asyncContext->subProfileId,
+            asyncContext->subspaceResult, asyncContext->distributedInfo);
+    } else {
+        asyncContext->errCode = OsAccountSubspaceClient::GetInstance().GetOsAccountSubProfile(
+            asyncContext->subProfileId, asyncContext->subspaceResult, asyncContext->distributedInfo);
+    }
+}
+
+static void GetSubProfileCompletedCB(napi_env env, napi_status status, void *data)
+{
+    GetOsAccountSubProfileAsyncContext *asyncContext =
+        reinterpret_cast<GetOsAccountSubProfileAsyncContext *>(data);
+    napi_value errJs = nullptr;
+    napi_value dataJs = nullptr;
+    if (asyncContext->errCode == ERR_OK) {
+        NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &errJs));
+        napi_value obj;
+        NAPI_CALL_RETURN_VOID(env, napi_create_object(env, &obj));
+        napi_value idVal;
+        napi_value osAccountIdVal;
+        napi_value indexVal;
+        NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, asyncContext->subspaceResult.id, &idVal));
+        NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, asyncContext->subspaceResult.osAccountId,
+            &osAccountIdVal));
+        NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, asyncContext->subspaceResult.index, &indexVal));
+        NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, obj, "id", idVal));
+        NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, obj, "osAccountLocalId", osAccountIdVal));
+        NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, obj, "index", indexVal));
+        if (asyncContext->distributedInfo.status_ != ACCOUNT_STATE_UNBOUND) {
+            napi_value distInfo = BuildDistributedInfoFromOhosAccountInfo(env, asyncContext->distributedInfo);
+            NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, obj, "distributedInfo", distInfo));
+        }
+        dataJs = obj;
+    } else {
+        errJs = GenerateBusinessError(env, asyncContext->errCode);
+        NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &dataJs));
+    }
+    ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
+    delete asyncContext;
+}
+
+napi_value NapiOsAccountSubProfileManager::GetOsAccountSubProfile(napi_env env, napi_callback_info cbInfo)
+{
+    auto getOASubProfile = std::make_unique<GetOsAccountSubProfileAsyncContext>();
+    getOASubProfile->env = env;
+    getOASubProfile->throwErr = true;
+
+    if (!ParseParaGetSubProfile(env, cbInfo, getOASubProfile.get())) {
+        return nullptr;
+    }
+
+    napi_value result = nullptr;
+    NAPI_CALL(env, napi_create_promise(env, &getOASubProfile->deferred, &result));
+
+    napi_value resource = nullptr;
+    NAPI_CALL(env, napi_create_string_utf8(env, "GetOsAccountSubProfile", NAPI_AUTO_LENGTH, &resource));
+
+    NAPI_CALL(env, napi_create_async_work(env,
+        nullptr,
+        resource,
+        GetSubProfileExecuteCB,
+        GetSubProfileCompletedCB,
+        reinterpret_cast<void *>(getOASubProfile.get()),
+        &getOASubProfile->work));
+
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, getOASubProfile->work, napi_qos_user_initiated));
+    getOASubProfile.release();
+    return result;
+}
+
 napi_value NapiOsAccountSubProfileManager::Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor descriptor[] = {
@@ -577,6 +934,10 @@ napi_value NapiOsAccountSubProfileManager::Init(napi_env env, napi_value exports
         DECLARE_NAPI_FUNCTION("switchOsAccountSubProfile", SwitchOsAccountSubProfile),
         DECLARE_NAPI_FUNCTION("onOsAccountSubProfileEvent", onOsAccountSubProfileEvent),
         DECLARE_NAPI_FUNCTION("offOsAccountSubProfileEvent", offOsAccountSubProfileEvent),
+        DECLARE_NAPI_FUNCTION("getOsAccountForegroundSubProfileId", GetOsAccountForegroundSubProfileId),
+        DECLARE_NAPI_FUNCTION("getOsAccountSubProfileIds", GetOsAccountSubProfileIds),
+        DECLARE_NAPI_FUNCTION("getOsAccountLocalIdForSubProfile", GetOsAccountLocalIdForSubProfile),
+        DECLARE_NAPI_FUNCTION("getOsAccountSubProfile", GetOsAccountSubProfile),
     };
     napi_property_descriptor exportEnum[] = {
         DECLARE_NAPI_PROPERTY("OsAccountSubProfileEvent", osAccountSubProfileEvent),

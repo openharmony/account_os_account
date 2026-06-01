@@ -48,6 +48,7 @@
 #include "iinner_os_account_manager.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
+#include "os_account_info.h"
 #include "perf_stat.h"
 #include "string_ex.h"
 #include "system_ability_definition.h"
@@ -484,6 +485,161 @@ ErrCode AccountMgrService::UnsubscribeDistributedAccountSpaceEvents(
         types.insert(static_cast<DistributedAccountSpaceEventType>(typeInt));
     }
     return OhosAccountManager::GetInstance().UnsubscribeDistributedAccountSpaceEvents(types, eventListener);
+}
+
+int32_t AccountMgrService::GetOsAccountForegroundSubProfileId(int32_t &subProfileId)
+{
+    ErrCode ret = AccountPermissionManager::CheckSystemApp();
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Caller is not system app, ret=%{public}d", ret);
+        return ret;
+    }
+
+    int32_t osAccountId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
+    ret = IInnerOsAccountManager::GetInstance().CheckLocalIdRestricted(osAccountId);
+    if (ret != ERR_OK) {
+        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+    }
+    return OhosAccountManager::GetInstance().GetOsAccountForegroundSubProfileId(osAccountId, subProfileId);
+}
+
+int32_t AccountMgrService::GetOsAccountForegroundSubProfileId(
+    int32_t osAccountId, int32_t &subProfileId)
+{
+    ErrCode ret = AccountPermissionManager::CheckSystemApp();
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Caller is not system app, ret=%{public}d", ret);
+        return ret;
+    }
+
+    OsAccountInfo osAccountInfo;
+    ret = IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(osAccountId, osAccountInfo);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("OsAccount not exist, osAccountId=%{public}d, ret=%{public}d", osAccountId, ret);
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
+    ret = IInnerOsAccountManager::GetInstance().CheckLocalIdRestricted(osAccountId);
+    if (ret != ERR_OK) {
+        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+    }
+    return OhosAccountManager::GetInstance().GetOsAccountForegroundSubProfileId(osAccountId, subProfileId);
+}
+
+int32_t AccountMgrService::GetOsAccountSubProfileIds(
+    std::vector<int32_t> &subProfileIds)
+{
+    ErrCode ret = AccountPermissionManager::CheckSystemApp();
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Caller is not system app, ret=%{public}d", ret);
+        return ret;
+    }
+    ret = AccountPermissionManager::VerifyPermission("ohos.permission.GET_LOCAL_ACCOUNT_IDENTIFIERS");
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Permission check failed: GET_LOCAL_ACCOUNT_IDENTIFIERS, ret=%{public}d", ret);
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+
+    subProfileIds.clear();
+    int32_t osAccountId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
+    ret = IInnerOsAccountManager::GetInstance().CheckLocalIdRestricted(osAccountId);
+    if (ret != ERR_OK) {
+        return ERR_OK;
+    }
+    return OhosAccountManager::GetInstance().GetOsAccountSubProfileIds(osAccountId, subProfileIds);
+}
+
+int32_t AccountMgrService::GetOsAccountSubProfileIds(
+    int32_t osAccountId, std::vector<int32_t> &subProfileIds)
+{
+    ErrCode ret = AccountPermissionManager::CheckSystemApp();
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Caller is not system app, ret=%{public}d", ret);
+        return ret;
+    }
+    ret = AccountPermissionManager::VerifyPermission("ohos.permission.GET_LOCAL_ACCOUNT_IDENTIFIERS");
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Permission check failed: GET_LOCAL_ACCOUNT_IDENTIFIERS, ret=%{public}d", ret);
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+
+    subProfileIds.clear();
+    OsAccountInfo osAccountInfo;
+    ret = IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(osAccountId, osAccountInfo);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("OsAccount not exist, osAccountId=%{public}d, ret=%{public}d", osAccountId, ret);
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
+    ErrCode restrictedRet = IInnerOsAccountManager::GetInstance().CheckLocalIdRestricted(osAccountId);
+    if (restrictedRet != ERR_OK) {
+        return ERR_OK;
+    }
+    return OhosAccountManager::GetInstance().GetOsAccountSubProfileIds(osAccountId, subProfileIds);
+}
+
+int32_t AccountMgrService::GetOsAccountLocalIdForSubProfile(
+    int32_t subProfileId, int32_t &osAccountId)
+{
+    ErrCode ret = AccountPermissionManager::CheckSystemApp();
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Caller is not system app, ret=%{public}d", ret);
+        return ret;
+    }
+
+    return OhosAccountManager::GetInstance().GetOsAccountLocalIdForSubProfile(subProfileId, osAccountId);
+}
+
+int32_t AccountMgrService::GetOsAccountSubProfile(
+    int32_t subProfileId,
+    OsAccountSubspaceResult &subspaceResult, OhosAccountInfo &distributedInfo)
+{
+    ErrCode ret = AccountPermissionManager::CheckSystemApp();
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Caller is not system app, ret=%{public}d", ret);
+        return ret;
+    }
+    ret = AccountPermissionManager::VerifyPermission("ohos.permission.GET_LOCAL_ACCOUNTS");
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Permission check failed: GET_LOCAL_ACCOUNTS, ret=%{public}d", ret);
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+
+    int32_t osAccountId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
+    if (subProfileId / Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER != osAccountId) {
+        ACCOUNT_LOGE("subProfileId %{public}d does not belong to osAccountId %{public}d",
+            subProfileId, osAccountId);
+        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+    }
+    return OhosAccountManager::GetInstance().GetOsAccountSubProfile(
+        osAccountId, subProfileId, subspaceResult, distributedInfo);
+}
+
+int32_t AccountMgrService::GetOsAccountSubProfile(
+    int32_t osAccountId, int32_t subProfileId,
+    OsAccountSubspaceResult &subspaceResult, OhosAccountInfo &distributedInfo)
+{
+    ErrCode ret = AccountPermissionManager::CheckSystemApp();
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Caller is not system app, ret=%{public}d", ret);
+        return ret;
+    }
+    ret = AccountPermissionManager::VerifyPermission("ohos.permission.GET_LOCAL_ACCOUNTS");
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Permission check failed: GET_LOCAL_ACCOUNTS, ret=%{public}d", ret);
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+    ret = AccountPermissionManager::VerifyPermission("ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS");
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Permission check failed: INTERACT_ACROSS_LOCAL_ACCOUNTS, ret=%{public}d", ret);
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+
+    if (subProfileId / Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER != osAccountId) {
+        ACCOUNT_LOGE("subProfileId %{public}d does not belong to osAccountId %{public}d",
+            subProfileId, osAccountId);
+        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+    }
+    return OhosAccountManager::GetInstance().GetOsAccountSubProfile(
+        osAccountId, subProfileId, subspaceResult, distributedInfo);
 }
 
 ErrCode AccountMgrService::GetAppAccountService(sptr<IRemoteObject>& funcResult)

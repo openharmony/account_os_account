@@ -35,6 +35,16 @@ public:
     ErrCode DeleteOsAccountSubspace(int32_t osAccountId, int32_t subspaceId);
     ErrCode SwitchOsAccountSubspace(int32_t osAccountId, int32_t subspaceId);
 
+    ErrCode GetOsAccountForegroundSubProfileId(int32_t &subProfileId);
+    ErrCode GetOsAccountForegroundSubProfileId(int32_t osAccountId, int32_t &subProfileId);
+    ErrCode GetOsAccountSubProfileIds(std::vector<int32_t> &subProfileIds);
+    ErrCode GetOsAccountSubProfileIds(int32_t osAccountId, std::vector<int32_t> &subProfileIds);
+    ErrCode GetOsAccountLocalIdForSubProfile(int32_t subProfileId, int32_t &osAccountId);
+    ErrCode GetOsAccountSubProfile(int32_t subProfileId,
+        OsAccountSubspaceResult &subspaceResult, OhosAccountInfo &distributedInfo);
+    ErrCode GetOsAccountSubProfile(int32_t osAccountId, int32_t subProfileId,
+        OsAccountSubspaceResult &subspaceResult, OhosAccountInfo &distributedInfo);
+
 private:
     OsAccountSubspaceClient();
     ~OsAccountSubspaceClient() = default;

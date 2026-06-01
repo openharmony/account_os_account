@@ -69,6 +69,18 @@ public:
         const std::vector<int32_t>& typeInts, const sptr<IRemoteObject>& eventListener) override;
     ErrCode UnsubscribeDistributedAccountSpaceEvents(
         const std::vector<int32_t>& typeInts, const sptr<IRemoteObject>& eventListener) override;
+    int32_t GetOsAccountForegroundSubProfileId(int32_t &subProfileId) override;
+    int32_t GetOsAccountForegroundSubProfileId(int32_t osAccountId,
+        int32_t &subProfileId) override;
+    int32_t GetOsAccountSubProfileIds(std::vector<int32_t> &subProfileIds) override;
+    int32_t GetOsAccountSubProfileIds(int32_t osAccountId,
+        std::vector<int32_t> &subProfileIds) override;
+    int32_t GetOsAccountLocalIdForSubProfile(int32_t subProfileId,
+        int32_t &osAccountId) override;
+    int32_t GetOsAccountSubProfile(int32_t subProfileId,
+        OsAccountSubspaceResult &subspaceResult, OhosAccountInfo &distributedInfo) override;
+    int32_t GetOsAccountSubProfile(int32_t osAccountId, int32_t subProfileId,
+        OsAccountSubspaceResult &subspaceResult, OhosAccountInfo &distributedInfo) override;
     ErrCode GetAppAccountService(sptr<IRemoteObject>& funcResult) override;
     ErrCode GetOsAccountService(sptr<IRemoteObject>& funcResult) override;
     ErrCode GetAccountIAMService(sptr<IRemoteObject>& funcResult) override;

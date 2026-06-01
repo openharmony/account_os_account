@@ -1828,6 +1828,101 @@ public:
         }
         ACCOUNT_LOGI("Unsubscribe subspace events succeed");
     }
+    
+    int32_t GetOsAccountForegroundSubProfileIdSync()
+    {
+        int32_t subProfileId = 0;
+        ErrCode err = AccountSA::OsAccountSubspaceClient::GetInstance().GetOsAccountForegroundSubProfileId(
+            subProfileId);
+        if (err != ERR_OK) {
+            SetTaiheBusinessErrorFromNativeCode(err);
+        }
+        return subProfileId;
+    }
+
+    int32_t GetOsAccountForegroundSubProfileIdWithIdSync(int32_t osAccountId)
+    {
+        int32_t subProfileId = 0;
+        ErrCode err = AccountSA::OsAccountSubspaceClient::GetInstance().GetOsAccountForegroundSubProfileId(
+            osAccountId, subProfileId);
+        if (err != ERR_OK) {
+            SetTaiheBusinessErrorFromNativeCode(err);
+        }
+        return subProfileId;
+    }
+
+    taihe::array<int32_t> GetOsAccountSubProfileIdsSync()
+    {
+        std::vector<int32_t> subProfileIds;
+        ErrCode err = AccountSA::OsAccountSubspaceClient::GetInstance().GetOsAccountSubProfileIds(
+            subProfileIds);
+        if (err != ERR_OK) {
+            SetTaiheBusinessErrorFromNativeCode(err);
+        }
+        return taihe::array<int32_t>(taihe::copy_data_t{}, subProfileIds.data(), subProfileIds.size());
+    }
+
+    taihe::array<int32_t> GetOsAccountSubProfileIdsWithIdSync(int32_t osAccountId)
+    {
+        std::vector<int32_t> subProfileIds;
+        ErrCode err = AccountSA::OsAccountSubspaceClient::GetInstance().GetOsAccountSubProfileIds(
+            osAccountId, subProfileIds);
+        if (err != ERR_OK) {
+            SetTaiheBusinessErrorFromNativeCode(err);
+        }
+        return taihe::array<int32_t>(taihe::copy_data_t{}, subProfileIds.data(), subProfileIds.size());
+    }
+
+    int32_t GetOsAccountLocalIdForSubProfileSync(int32_t subProfileId)
+    {
+        int32_t osAccountId = 0;
+        ErrCode err = AccountSA::OsAccountSubspaceClient::GetInstance().GetOsAccountLocalIdForSubProfile(
+            subProfileId, osAccountId);
+        if (err != ERR_OK) {
+            SetTaiheBusinessErrorFromNativeCode(err);
+        }
+        return osAccountId;
+    }
+
+    OsAccountSubProfile GetOsAccountSubProfileSync(int32_t subProfileId)
+    {
+        AccountSA::OsAccountSubspaceResult cppResult;
+        AccountSA::OhosAccountInfo distInfo;
+        ErrCode err = AccountSA::OsAccountSubspaceClient::GetInstance().GetOsAccountSubProfile(
+            subProfileId, cppResult, distInfo);
+        if (err != ERR_OK) {
+            SetTaiheBusinessErrorFromNativeCode(err);
+        }
+        OsAccountSubProfile result;
+        result.id = cppResult.id;
+        result.osAccountLocalId = cppResult.osAccountId;
+        result.index = cppResult.index;
+        if (distInfo.status_ != AccountSA::ACCOUNT_STATE_UNBOUND) {
+            result.distributedInfo = taihe::optional<ohos::account::distributedAccount::DistributedInfo>(
+                std::in_place_t{}, AccountSA::ConvertToDistributedInfoTH(distInfo));
+        }
+        return result;
+    }
+
+    OsAccountSubProfile GetOsAccountSubProfileWithIdSync(int32_t osAccountId, int32_t subProfileId)
+    {
+        AccountSA::OsAccountSubspaceResult cppResult;
+        AccountSA::OhosAccountInfo distInfo;
+        ErrCode err = AccountSA::OsAccountSubspaceClient::GetInstance().GetOsAccountSubProfile(
+            osAccountId, subProfileId, cppResult, distInfo);
+        if (err != ERR_OK) {
+            SetTaiheBusinessErrorFromNativeCode(err);
+        }
+        OsAccountSubProfile result;
+        result.id = cppResult.id;
+        result.osAccountLocalId = cppResult.osAccountId;
+        result.index = cppResult.index;
+        if (distInfo.status_ != AccountSA::ACCOUNT_STATE_UNBOUND) {
+            result.distributedInfo = taihe::optional<ohos::account::distributedAccount::DistributedInfo>(
+                std::in_place_t{}, AccountSA::ConvertToDistributedInfoTH(distInfo));
+        }
+        return result;
+    }
 };
 
 OsAccountSubProfileManager GetOsAccountSubProfileManager()

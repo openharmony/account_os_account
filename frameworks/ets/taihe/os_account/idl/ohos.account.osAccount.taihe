@@ -56,6 +56,27 @@ interface OsAccountSubProfileManager {
 
     @rename("offOsAccountSubProfileEvent")
     OffOsAccountSubProfileEvent(callback: Optional<(data: OsAccountSubProfileEventData) => void>): void;
+    
+    @gen_promise("getOsAccountForegroundSubProfileId")
+    GetOsAccountForegroundSubProfileIdSync(): i32;
+
+    @gen_promise("getOsAccountForegroundSubProfileId")
+    GetOsAccountForegroundSubProfileIdWithIdSync(osAccountId: i32): i32;
+
+    @gen_promise("getOsAccountSubProfileIds")
+    GetOsAccountSubProfileIdsSync(): Array<i32>;
+
+    @gen_promise("getOsAccountSubProfileIds")
+    GetOsAccountSubProfileIdsWithIdSync(osAccountId: i32): Array<i32>;
+
+    @gen_promise("getOsAccountLocalIdForSubProfile")
+    GetOsAccountLocalIdForSubProfileSync(subProfileId: i32): i32;
+
+    @gen_promise("getOsAccountSubProfile")
+    GetOsAccountSubProfileSync(subProfileId: i32): OsAccountSubProfile;
+
+    @gen_promise("getOsAccountSubProfile")
+    GetOsAccountSubProfileWithIdSync(osAccountId: i32, subProfileId: i32): OsAccountSubProfile;
 }
 
 @overload("getAccountManager")
