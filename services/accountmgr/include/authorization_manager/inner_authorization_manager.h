@@ -198,24 +198,6 @@ public:
         int32_t callingPid = -1);
 
     /**
-     * @brief Calls UserIAM for user authentication.
-     *
-     * This method calls the UserIAM interface to authenticate the specified
-     * admin account. UserIAM will obtain and verify the password from the
-     * business process.
-     *
-     * @param accountId The admin account ID
-     * @param challenge The challenge value for authorization verification
-     * @param isAuthenticated Output parameter, authentication result (true means authentication succeeded)
-     * @return ERR_OK if call is successful, error code on failure
-     */
-    ErrCode CallUserIAMForAuthentication(int32_t accountId, const std::vector<uint8_t> &challenge,
-        const sptr<IAdminAuthorizationCallback> &callback, const std::string &privilege = "",
-        int32_t callingPid = -1);
-
-    void CopyAuthParam(const AuthParam &authParam, UserIam::UserAuth::AuthParam &iamAuthParam);
-
-    /**
      * Death recipient for monitoring application death.
      *
      * This inner class monitors the death of the calling application

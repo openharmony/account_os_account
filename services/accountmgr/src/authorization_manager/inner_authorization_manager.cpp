@@ -562,89 +562,17 @@ ErrCode InnerAuthorizationManager::AcquireAdminAuthorization(int32_t accountId,
     ACCOUNT_LOGI("AcquireAdminAuthorization accountId: %{public}d", accountId);
 
     if (callback == nullptr) {
-        ACCOUNT_LOGE("Callback is nullptr");
+        ACCOUNT_LOGE("callback is nullptr");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
-
-    ErrCode errCode = CallUserIAMForAuthentication(accountId, challenge, callback, privilege, callingPid);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Failed to call UserIAM for authentication, errCode: %{public}d", errCode);
-        return errCode;
-    }
-
-    return ERR_OK;
-}
-
-void InnerAuthorizationManager::CopyAuthParam(const AuthParam &authParam, UserIam::UserAuth::AuthParam &iamAuthParam)
-{
-    iamAuthParam.userId = authParam.userId;
-    iamAuthParam.challenge = authParam.challenge;
-    iamAuthParam.authType = authParam.authType;
-    iamAuthParam.authTrustLevel = authParam.authTrustLevel;
-    if (static_cast<int32_t>(authParam.authIntent) == AUTHORIZATION_INTENT_NUM) {
-        iamAuthParam.authIntent = UserIam::UserAuth::AuthIntent::DEFAULT;
-    } else {
-        iamAuthParam.authIntent = static_cast<UserIam::UserAuth::AuthIntent>(authParam.authIntent);
-    }
-    if (authParam.remoteAuthParam != std::nullopt) {
-        iamAuthParam.remoteAuthParam = UserIam::UserAuth::RemoteAuthParam();
-        if (authParam.remoteAuthParam.value().verifierNetworkId != std::nullopt) {
-            iamAuthParam.remoteAuthParam.value().verifierNetworkId =
-                authParam.remoteAuthParam.value().verifierNetworkId.value();
-        }
-        if (authParam.remoteAuthParam.value().collectorNetworkId != std::nullopt) {
-            iamAuthParam.remoteAuthParam.value().collectorNetworkId =
-                authParam.remoteAuthParam.value().collectorNetworkId.value();
-        }
-        if (authParam.remoteAuthParam.value().collectorTokenId != std::nullopt) {
-            iamAuthParam.remoteAuthParam.value().collectorTokenId =
-                authParam.remoteAuthParam.value().collectorTokenId.value();
-        }
-    }
-}
-
-ErrCode InnerAuthorizationManager::CallUserIAMForAuthentication(int32_t accountId,
-    const std::vector<uint8_t> &challenge, const sptr<IAdminAuthorizationCallback> &callback,
-    const std::string &privilege, int32_t callingPid)
-{
-    uint64_t contextId = 0;
-    ACCOUNT_LOGI("CallUserIAMForAuthentication accountId: %{public}d", accountId);
-
-    AuthParam authParam;
-    authParam.authType = AuthType::PIN;
-    authParam.authIntent = AuthIntent::DEFAULT;
-    authParam.authTrustLevel = AuthTrustLevel::ATL4;
-    authParam.userId = accountId;
-    authParam.challenge = challenge;
-
-    if (callback == nullptr) {
-        ACCOUNT_LOGE("callback is nullptr");
-        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
-    }
-    OsAccountInfo osAccountInfo;
-    if ((authParam.remoteAuthParam == std::nullopt) &&
-        (IInnerOsAccountManager::GetInstance().GetRealOsAccountInfoById(authParam.userId,
-            osAccountInfo)) != ERR_OK) {
-        ACCOUNT_LOGE("Account does not exist");
+    bool isExists = false;
+    IInnerOsAccountManager::GetInstance().IsOsAccountExists(accountId, isExists);
+    if (!isExists) {
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
-    bool isDeactivating = false;
-    IInnerOsAccountManager::GetInstance().IsOsAccountDeactivating(authParam.userId, isDeactivating);
-    if (isDeactivating) {
-        ACCOUNT_LOGE("The target account is deactivating, accountId:%{public}d", authParam.userId);
-        return ERR_IAM_BUSY;
-    }
-#ifdef SUPPORT_LOCK_OS_ACCOUNT
-    bool isLocking = false;
-    IInnerOsAccountManager::GetInstance().IsOsAccountLocking(authParam.userId, isLocking);
-    if (isLocking) {
-        ACCOUNT_LOGE("The target account is isLocking, accountId:%{public}d", authParam.userId);
-        return ERR_IAM_BUSY;
-    }
-#endif
     sptr<AuthCallbackDeathRecipient> deathRecipient = new (std::nothrow) AuthCallbackDeathRecipient();
     if ((deathRecipient == nullptr) || (!callback->AsObject()->AddDeathRecipient(deathRecipient))) {
-        ACCOUNT_LOGE("failed to add death recipient for auth callback");
+        ACCOUNT_LOGE("Add death recipient failed");
         return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
     }
 
@@ -652,10 +580,14 @@ ErrCode InnerAuthorizationManager::CallUserIAMForAuthentication(int32_t accountI
     callbackWrapper->SetDeathRecipient(deathRecipient);
 
     UserIam::UserAuth::AuthParam iamAuthParam;
-    CopyAuthParam(authParam, iamAuthParam);
-    ACCOUNT_LOGI("Start to auth user.");
+    iamAuthParam.authType = UserIam::UserAuth::AuthType::PIN;
+    iamAuthParam.authIntent = UserIam::UserAuth::AuthIntent::DEFAULT;
+    iamAuthParam.authTrustLevel = UserIam::UserAuth::AuthTrustLevel::ATL4;
+    iamAuthParam.userId = accountId;
+    iamAuthParam.challenge = challenge;
     SetFirstCallerTokenID(IPCSkeleton::GetCallingTokenID());
-    contextId = UserIam::UserAuth::UserAuthClient::GetInstance().BeginAuthentication(iamAuthParam, callbackWrapper);
+    uint64_t contextId = UserIam::UserAuth::UserAuthClient::GetInstance().BeginAuthentication(iamAuthParam,
+        callbackWrapper);
     deathRecipient->SetContextId(contextId);
     return ERR_OK;
 }
@@ -663,7 +595,6 @@ ErrCode InnerAuthorizationManager::CallUserIAMForAuthentication(int32_t accountI
 ErrCode AdminAuthCallback::CallTAForToken(int32_t accountId, const std::vector<uint8_t> &iamToken,
     std::vector<uint8_t> &token)
 {
-    ACCOUNT_LOGI("CallTAForToken accountId: %{public}d", accountId);
     token.clear();
 
     OsAccountTeeAdapter teeAdapter;
