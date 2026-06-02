@@ -24,6 +24,7 @@
 #include "account_log_wrapper.h"
 #include "json_utils.h"
 #include "os_account_constants.h"
+#include "parameters.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -47,6 +48,9 @@ const char JSON_KEY_OHOSACCOUNT_SCALABLEDATA[] = "account_scalableData";
 constexpr int32_t MAX_RETRY_TIMES = 3;
 }  // namespace
 
+const int32_t MAX_OS_ACCOUNT_SUBSPACE_COUNT =
+    OHOS::system::GetIntParameter<int32_t>("const.bms.appCloneMaxCount", 1000, 1, 1000) - 1;
+
 OsAccountSubspaceDataDeal::OsAccountSubspaceDataDeal(const std::string &configRootDir)
     : configRootDir_(configRootDir), fileOperator_(std::make_shared<AccountFileOperator>())
 {}
@@ -63,7 +67,7 @@ ErrCode OsAccountSubspaceDataDeal::AllocateOsAccountSubspaceId(
         }
     }
     ACCOUNT_LOGE("No available index for osAccountId=%{public}d, all %{public}d slots used.",
-        osAccountId, MAX_OS_ACCOUNT_SUBSPACE_COUNT);
+        osAccountId, OS_ACCOUNT_SUBSPACE_INDEX_MAX);
     return ERR_OS_ACCOUNT_SUBSPACE_LIMIT;
 }
 
