@@ -239,11 +239,16 @@ interface AppAccountManager {
     AuthWithMap(name: String, owner: String, authType: String, options: @sts_type("Record<string, RecordData>")Opaque, callback: AuthCallback);
 }
 
-@constructor ("Authenticator")@rename
-function MakeAuthenticator(@sts_this self: Authenticator): Authenticator;
+function MakeAuthenticator(): Authenticator;
 
 @class
 interface Authenticator {
+    @!sts_inject_into_class("""constructor() {
+    this(makeAuthenticator());
+    this.etsBind();
+}""")
+    EtsBind(@sts_this authenticator: Authenticator): void;
+
     CreateAccountImplicitly(options: CreateAccountImplicitlyOptions, callback: AuthCallback): void;
 
     Auth(name: String, authType: String, options: @sts_type("Record<string, RecordData>")Opaque, callback: AuthCallback): void;
