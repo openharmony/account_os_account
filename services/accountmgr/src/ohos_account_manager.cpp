@@ -1273,14 +1273,13 @@ ErrCode OhosAccountManager::HandleSpaceStateChange(OsAccountSubspaceInfo &spaceI
 static void UpdateOhosAccountSpaceInfo(const OhosAccountInfo &ohosAccountInfo, const std::string &ohosAccountUid,
     OsAccountSubspaceInfo &spaceInfo)
 {
+    spaceInfo.ohosAccountInfo_ = ohosAccountInfo;
     spaceInfo.ohosAccountInfo_.SetRawUid(ohosAccountInfo.uid_);
     spaceInfo.ohosAccountInfo_.uid_ = ohosAccountUid;
-    spaceInfo.ohosAccountInfo_.name_ = ohosAccountInfo.name_;
-    spaceInfo.ohosAccountInfo_.nickname_ = ohosAccountInfo.nickname_;
-    spaceInfo.ohosAccountInfo_.avatar_ = ohosAccountInfo.avatar_;
-    spaceInfo.ohosAccountInfo_.callingUid_ = IPCSkeleton::GetCallingUid();
+    spaceInfo.ohosAccountInfo_.status_ = ACCOUNT_STATE_LOGIN;
     spaceInfo.bindTime_ = std::time(nullptr);
     spaceInfo.version_ = ACCOUNT_VERSION_ANON;
+    spaceInfo.ohosAccountInfo_.callingUid_ = IPCSkeleton::GetCallingUid();
 }
 
 ErrCode OhosAccountManager::LoginOhosAccountSpace(int32_t userId, int32_t subspaceId,
