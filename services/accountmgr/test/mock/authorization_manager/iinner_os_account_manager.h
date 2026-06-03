@@ -66,6 +66,11 @@ public:
         return ERR_OK;
     }
 
+    ErrCode IsOsAccountExists(const int id, bool &isOsAccountExits)
+    {
+        return ERR_OK;
+    }
+
     ErrCode GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id)
     {
         if (domainInfo.accountName_ == TEST_TRUE_NAME_1) {

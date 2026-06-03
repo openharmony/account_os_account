@@ -360,13 +360,9 @@ ErrCode AuthorizationManagerService::VerifyAdminAuthPermission()
 {
     ErrCode result = AccountPermissionManager::VerifyPermission(PERMISSION_ACCESS_USER_AUTH_INTERNAL);
     if (result != ERR_OK) {
-        result = AccountPermissionManager::VerifyPermission(PERMISSION_ACQUIRE_AUTHORIZATION);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("Failed to verify permission, result: %{public}d", result);
-            return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
-        }
+        return result;
     }
-    return ERR_OK;
+    return AccountPermissionManager::VerifyPermission(PERMISSION_ACQUIRE_AUTHORIZATION);
 }
 
 ErrCode AuthorizationManagerService::FindAccountIdByName(const std::string &adminName, int32_t &accountId)
