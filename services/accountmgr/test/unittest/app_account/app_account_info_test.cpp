@@ -1135,3 +1135,59 @@ HWTEST_F(AppAccountInfoTest, AppAccountAuthenticatorStringInfo_Marshalling001, T
     EXPECT_EQ(option2->authType, STRING_AUTH_TYPE);
     EXPECT_EQ(option2->callerBundleName, STRING_BUNDLE_NAME);
 }
+
+/**
+ * @tc.name: ParseTokenInfosFromJson_EmptyAuthType_001
+ * @tc.desc: ParseTokenInfosFromJson with empty auth type in token array via FromJson.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppAccountInfoTest, ParseTokenInfosFromJson_EmptyAuthType_001, TestSize.Level3)
+{
+    ACCOUNT_LOGI("ParseTokenInfosFromJson_EmptyAuthType_001");
+    auto jsonObject = CreateJson();
+    AddStringToJson(jsonObject, OWNER, STRING_OWNER);
+    AddStringToJson(jsonObject, NAME, STRING_NAME);
+    auto tokenArray = CreateJsonArray();
+    auto tokenObject = CreateJson();
+    AddStringToJson(tokenObject, OAUTH_TOKEN, STRING_TOKEN);
+    AddBoolToJson(tokenObject, OAUTH_TOKEN_STATUS, true);
+    AddStringToJson(tokenObject, OAUTH_TYPE, STRING_EMPTY);
+    AddSetStringToJson(tokenObject, OAUTH_AUTH_LIST, {});
+    AddObjToArray(tokenArray, tokenObject);
+    AddObjToJson(jsonObject.get(), OAUTH_TOKEN_INFOS, tokenArray.get());
+
+    AppAccountInfo appAccountInfo;
+    bool result = FromJson(jsonObject.get(), appAccountInfo);
+    EXPECT_TRUE(result);
+    EXPECT_EQ(appAccountInfo.oauthTokens_.size(), 1);
+    EXPECT_TRUE(appAccountInfo.oauthTokens_.find(STRING_EMPTY) != appAccountInfo.oauthTokens_.end());
+}
+
+/**
+ * @tc.name: ParseTokenInfosFromJson_OverFlow_001
+ * @tc.desc: ParseTokenInfosFromJson when token count exceeds MAX_TOKEN_NUMBER.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppAccountInfoTest, ParseTokenInfosFromJson_OverFlow_001, TestSize.Level3)
+{
+    ACCOUNT_LOGI("ParseTokenInfosFromJson_OverFlow_001");
+    auto jsonObject = CreateJson();
+    AddStringToJson(jsonObject, OWNER, STRING_OWNER);
+    AddStringToJson(jsonObject, NAME, STRING_NAME);
+    auto tokenArray = CreateJsonArray();
+    for (int i = 0; i < OVERLOAD_MAX_TOKEN_NUMBER; i++) {
+        auto tokenObject = CreateJson();
+        std::string authType = STRING_AUTH_TYPE + std::to_string(i);
+        AddStringToJson(tokenObject, OAUTH_TOKEN, STRING_TOKEN);
+        AddBoolToJson(tokenObject, OAUTH_TOKEN_STATUS, true);
+        AddStringToJson(tokenObject, OAUTH_TYPE, authType);
+        AddSetStringToJson(tokenObject, OAUTH_AUTH_LIST, {});
+        AddObjToArray(tokenArray, tokenObject);
+    }
+    AddObjToJson(jsonObject.get(), OAUTH_TOKEN_INFOS, tokenArray.get());
+
+    AppAccountInfo appAccountInfo;
+    bool result = FromJson(jsonObject.get(), appAccountInfo);
+    EXPECT_TRUE(result);
+    EXPECT_EQ(appAccountInfo.oauthTokens_.size(), MAX_TOKEN_NUMBER);
+}

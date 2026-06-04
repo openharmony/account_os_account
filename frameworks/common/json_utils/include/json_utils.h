@@ -99,6 +99,8 @@ bool AddInt64ToJson(CJsonUnique &jsonObj, const std::string &key, int64_t value)
 bool GetUint64FromJson(const CJson *jsonObj, const std::string &key, uint64_t &value);
 bool AddUint64ToJson(CJson *jsonObj, const std::string &key, uint64_t value);
 bool AddUint64ToJson(CJsonUnique &jsonObj, const std::string &key, uint64_t value);
+bool AddDoubleToJson(CJson *jsonObj, const std::string &key, double value);
+bool AddDoubleToJson(CJsonUnique &jsonObj, const std::string &key, double value);
 
 // double
 double GetJsonNumberValue(const CJsonUnique &item);

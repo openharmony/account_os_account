@@ -813,6 +813,36 @@ bool AddIntToJson(CJsonUnique &jsonObj, const std::string &key, const int value)
     return AddIntToJson(jsonObj.get(), key, value);
 }
 
+bool AddDoubleToJson(CJson *jsonObj, const std::string &key, double value)
+{
+    if (jsonObj == nullptr || key.empty()) {
+        return false;
+    }
+
+    CJson *tmpObj = cJSON_GetObjectItemCaseSensitive(jsonObj, key.c_str());
+    if (tmpObj == nullptr) {
+        if (cJSON_AddNumberToObject(jsonObj, key.c_str(), value) == nullptr) {
+            return false;
+        }
+    } else {
+        CJson *tmp = cJSON_CreateNumber(value);
+        if (tmp == nullptr) {
+            return false;
+        }
+        if (!cJSON_ReplaceItemInObjectCaseSensitive(jsonObj, key.c_str(), tmp)) {
+            cJSON_Delete(tmp);
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool AddDoubleToJson(CJsonUnique &jsonObj, const std::string &key, double value)
+{
+    return AddDoubleToJson(jsonObj.get(), key, value);
+}
+
 bool AddUint64ToJson(CJson *jsonObj, const std::string &key, uint64_t value)
 {
     if (jsonObj == nullptr || key.empty()) {
