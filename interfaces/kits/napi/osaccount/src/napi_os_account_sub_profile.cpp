@@ -262,7 +262,7 @@ static void OnDistributedAccountEnvCleanup(void* data)
         while (it != g_subspaceSubscribers.end()) {
             if ((*it)->env == cleanupEnv) {
                 ACCOUNT_LOGW("Removing subscriber for destroyed environment");
-                ErrCode errCode = OsAccountManager::UnsubscribeDistributedAccountSpaceEvents(*it);
+                ErrCode errCode = OsAccountSubProfileClient::GetInstance().UnsubscribeOsAccountSubProfileEvents(*it);
                 if (errCode != ERR_OK) {
                     ACCOUNT_LOGE("Unsubscribe failed during env cleanup, errCode=%{public}d", errCode);
                 }
@@ -473,7 +473,7 @@ napi_value NapiOsAccountSubProfileManager::onOsAccountSubProfileEvent(napi_env e
         subscriber = newSubscriber;
     }
 
-    ErrCode errCode = OsAccountManager::SubscribeDistributedAccountSpaceEvents(types, subscriber);
+    ErrCode errCode = OsAccountSubProfileClient::GetInstance().SubscribeOsAccountSubProfileEvents(types, subscriber);
     if (errCode == ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR) {
         AccountNapiThrow(env, ERR_JS_IS_NOT_SYSTEM_APP);
         return nullptr;
@@ -534,7 +534,7 @@ napi_value NapiOsAccountSubProfileManager::offOsAccountSubProfileEvent(napi_env 
             continue;
         }
 
-        ErrCode errCode = OsAccountManager::UnsubscribeDistributedAccountSpaceEvents(*it);
+        ErrCode errCode = OsAccountSubProfileClient::GetInstance().UnsubscribeOsAccountSubProfileEvents(*it);
         if (errCode == ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR) {
             AccountNapiThrow(env, ERR_JS_IS_NOT_SYSTEM_APP);
             return nullptr;

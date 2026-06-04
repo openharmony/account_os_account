@@ -1773,7 +1773,8 @@ public:
             subscribeCallback = std::make_shared<TaiheSubspaceCallback>(cb);
         }
 
-        ErrCode errCode = AccountSA::OsAccountManager::SubscribeDistributedAccountSpaceEvents(types, subscribeCallback);
+        ErrCode errCode = AccountSA::OsAccountSubProfileClient::GetInstance().SubscribeOsAccountSubProfileEvents(types,
+            subscribeCallback);
         if (errCode == ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR) {
             SetTaiheBusinessErrorFromNativeCode(ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
             return;
@@ -1811,7 +1812,8 @@ public:
                 continue;
             }
 
-            ErrCode errCode = AccountSA::OsAccountManager::UnsubscribeDistributedAccountSpaceEvents(*it);
+            ErrCode errCode =
+                AccountSA::OsAccountSubProfileClient::GetInstance().UnsubscribeOsAccountSubProfileEvents(*it);
             if (errCode == ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR) {
                 SetTaiheBusinessErrorFromNativeCode(ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
                 return;
@@ -1828,7 +1830,7 @@ public:
         }
         ACCOUNT_LOGI("Unsubscribe subspace events succeed");
     }
-    
+
     int32_t GetOsAccountForegroundSubProfileIdSync()
     {
         int32_t subProfileId = 0;

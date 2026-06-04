@@ -184,8 +184,6 @@
         "OHOS::AccountSA::OsAccountManager::GetOsAccountLocalIdBySerialNumber(long, int&)";
         "OHOS::AccountSA::OsAccountManager::GetSerialNumberByOsAccountLocalId(int const&, long long&)";
         "OHOS::AccountSA::OsAccountManager::GetSerialNumberByOsAccountLocalId(int const&, long&)";
-        "OHOS::AccountSA::OsAccountManager::SubscribeDistributedAccountSpaceEvents(std::__h::set<OHOS::AccountSA::DistributedAccountSpaceEventType, std::__h::less<OHOS::AccountSA::DistributedAccountSpaceEventType>, std::__h::allocator<OHOS::AccountSA::DistributedAccountSpaceEventType>> const&, std::__h::shared_ptr<OHOS::AccountSA::DistributedAccountSubscribeCallback> const&)";
-        "OHOS::AccountSA::OsAccountManager::UnsubscribeDistributedAccountSpaceEvents(std::__h::shared_ptr<OHOS::AccountSA::DistributedAccountSubscribeCallback> const&)";
         "OHOS::AccountSA::OsAccountManager::IsMainOsAccount(bool&)";
         "OHOS::AccountSA::OsAccountManager::QueryOsAccountById(int, OHOS::AccountSA::OsAccountInfo&)";
         "OHOS::AccountSA::OsAccountManager::SetOsAccountConstraints(int, std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>> const&, bool)";
@@ -334,6 +332,8 @@
         "OHOS::AccountSA::OsAccountSubProfileClient::GetOsAccountSubProfileIds(int, std::__h::vector<int, std::__h::allocator<int>>&)";
         "OHOS::AccountSA::OsAccountSubProfileClient::GetOsAccountSubProfileIds(std::__h::vector<int, std::__h::allocator<int>>&)";
         "OHOS::AccountSA::OsAccountSubProfileClient::GetOsAccountLocalIdForSubProfile(int, int&)";
+        "OHOS::AccountSA::OsAccountSubProfileClient::SubscribeOsAccountSubProfileEvents(std::__h::set<OHOS::AccountSA::DistributedAccountSpaceEventType, std::__h::less<OHOS::AccountSA::DistributedAccountSpaceEventType>, std::__h::allocator<OHOS::AccountSA::DistributedAccountSpaceEventType>> const&, std::__h::shared_ptr<OHOS::AccountSA::DistributedAccountSubscribeCallback> const&)";
+        "OHOS::AccountSA::OsAccountSubProfileClient::UnsubscribeOsAccountSubProfileEvents(std::__h::shared_ptr<OHOS::AccountSA::DistributedAccountSubscribeCallback> const&)";
         "OHOS::AccountSA::OsAccountSubProfileClient::GetOsAccountSubProfile(int, OHOS::AccountSA::OsAccountSubspaceResult&, OHOS::AccountSA::OhosAccountInfo&)";
         "OHOS::AccountSA::OsAccountSubProfileClient::GetOsAccountSubProfile(int, int, OHOS::AccountSA::OsAccountSubspaceResult&, OHOS::AccountSA::OhosAccountInfo&)";
         "OHOS::AccountSA::OhosAccountInfo::Unmarshalling(OHOS::Parcel&)";

@@ -175,5 +175,19 @@ ErrCode OsAccountSubProfileClient::GetOsAccountSubProfile(
     return OhosAccountKits::GetInstance().GetOsAccountSubProfile(osAccountId, subProfileId, subspaceResult,
         distributedInfo);
 }
+
+ErrCode OsAccountSubProfileClient::SubscribeOsAccountSubProfileEvents(
+    const std::set<DistributedAccountSpaceEventType>& types,
+    const std::shared_ptr<DistributedAccountSubscribeCallback>& callback)
+{
+    return OhosAccountKitsImpl::GetInstance().SubscribeDistributedAccountSpaceEvents(types, callback);
+}
+
+ErrCode OsAccountSubProfileClient::UnsubscribeOsAccountSubProfileEvents(
+    const std::shared_ptr<DistributedAccountSubscribeCallback>& callback)
+{
+    return OhosAccountKitsImpl::GetInstance().UnsubscribeDistributedAccountSpaceEvents(callback);
+}
+
 }  // namespace AccountSA
 }  // namespace OHOS
