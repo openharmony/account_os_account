@@ -19,6 +19,7 @@
 #include <vector>
 #include "account_error_no.h"
 #include "os_account_info.h"
+#include "sub_profile_context.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -31,8 +32,8 @@ public:
     ErrCode QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos);
     ErrCode GetOsAccountInfoById(const int id, OsAccountInfo &osAccountInfo);
     ErrCode SetOsAccountForegroundSubspaceId(int32_t localId, int32_t subspaceId);
-    ErrCode UpdateOsAccountSubspaceInfo(int32_t localId, int32_t nextSubProfileId,
-        const std::vector<std::string> &subProfileIdList);
+    ErrCode UpdateOsAccountSubspaceInfo(int32_t localId, const SubProfileContext &data);
+    ErrCode ReadSubProfileContext(int32_t localId, SubProfileContext &data);
     ErrCode CreateOsAccount(const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo);
     ErrCode RemoveOsAccount(const int id);
     OsAccountControlFileManager &GetFileController();

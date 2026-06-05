@@ -24,6 +24,7 @@
 #endif // ENABLE_FILE_WATCHER
 #include "ios_account_control.h"
 #include "os_account_constants.h"
+#include "sub_profile_context.h"
 #if defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
 #include "os_account_database_operator.h"
 #endif // defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
@@ -122,6 +123,11 @@ public:
     ErrCode SetDomainBoundFlag(
         const int32_t localId, const bool isBoundCompleted, const DomainAccountInfo domainInfo = {}) override;
     ErrCode GetDomainBoundFlag(const int32_t localId, bool &isBoundCompleted, DomainAccountInfo &domainInfo) override;
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    ErrCode WriteSubProfileContext(int32_t localId, const SubProfileContext &data) override;
+    ErrCode ReadSubProfileContext(int32_t localId, SubProfileContext &data) override;
+    ErrCode DeleteSubProfileContextFile(int32_t localId) override;
+#endif
 private:
     ErrCode GetDefaultOsAccountConfig(OsAccountConfig &config);
     int32_t GetNextLocalId(const std::vector<std::string> &accountIdList, int32_t startId);

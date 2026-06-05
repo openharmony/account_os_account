@@ -21,6 +21,7 @@
 #include "account_error_no.h"
 #include "account_info.h"
 #include "os_account_info.h"
+#include "sub_profile_context.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -31,7 +32,12 @@ void MockSetCallingUserId(int32_t userId);
 void MockSetCreatedOsAccounts(const std::vector<OsAccountInfo> &accounts);
 void MockForceUpdateSubspaceInfoFail(ErrCode errCode);
 void MockForceGetOsAccountInfoByIdFail(ErrCode errCode);
+void MockForceReadSubProfileContextFail(ErrCode errCode);
 void MockClearForceFailFlags();
+void MockForceSubProfileContext(int32_t localId, const SubProfileContext &data);
+void MockInsertForegroundSubspaceId(int32_t localId, int32_t subspaceId);
+void MockEraseForegroundSubspaceId(int32_t localId);
+bool MockFindForegroundSubspaceId(int32_t localId, int32_t &subspaceId);
 std::string GenerateOhosUdidWithSha256(const std::string &name, const std::string &uid);
 
 } // namespace AccountSA

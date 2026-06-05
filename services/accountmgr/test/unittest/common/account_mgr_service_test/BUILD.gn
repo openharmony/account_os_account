@@ -455,6 +455,9 @@ ohos_unittest("OsAccountSubspaceServiceTest") {
     "${os_account_innerkits_native_path}/src/os_account_constraint_subscriber.cpp",
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
+    "${common_path}/json_utils/src/json_utils.cpp",
+    "${common_path}/json_utils/src/os_account_info_json_parser.cpp",
+    "${common_path}/log/src/account_log_wrapper.cpp",
   ]
   sources += account_service_sources
   sources += [

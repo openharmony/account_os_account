@@ -20,6 +20,7 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include "account_error_no.h"
+#include "account_hisysevent_adapter.h"
 #include "account_info.h"
 #include "account_log_wrapper.h"
 #include "json_utils.h"
@@ -45,23 +46,61 @@ const char JSON_KEY_OHOSACCOUNT_CALLINGUID[] = "calling_uid";
 const char JSON_KEY_OHOSACCOUNT_NICKNAME[] = "account_nickname";
 const char JSON_KEY_OHOSACCOUNT_SCALABLEDATA[] = "account_scalableData";
 const char SUBSPACE_ACCOUNT_AVATAR[] = "/account_avatar";
+const char JSON_KEY_SUBSPACE_INDEX[] = "subspaceIndex";
+const char JSON_KEY_SUBSPACE_OFFSET[] = "subspaceOffset";
 constexpr int32_t MAX_RETRY_TIMES = 3;
 }  // namespace
 
 const int32_t MAX_OS_ACCOUNT_SUB_PROFILE_COUNT =
-    OHOS::system::GetIntParameter<int32_t>("const.bms.appCloneMaxCount", 1000, 1, 1000) - 1;
+    OHOS::system::GetIntParameter<int32_t>("const.bms.appCloneMaxCount", 1000, 1, 1000);
 
 OsAccountSubProfileDataDeal::OsAccountSubProfileDataDeal(const std::string &configRootDir)
     : configRootDir_(configRootDir), fileOperator_(std::make_shared<AccountFileOperator>())
 {}
 
+ErrCode OsAccountSubProfileDataDeal::AllocateSubProfileIndex(
+    int32_t nextSubProfileIndex, const std::map<int32_t, int32_t> &subProfileIndexMap, int32_t &outIndex)
+{
+    // Allocate a free logical slot index from [1, MAX_OS_ACCOUNT_SUB_PROFILE_COUNT - 1].
+    // Index 0 (HEADLESS_SUBPROFILE_INDEX) is reserved and never allocated here.
+    // Simple self-increment: if the map is not yet full, allocate the next free index.
+    // When all indices have been allocated, wrap around to reuse the smallest available
+    // index (not present in the map after deletions).
+    int32_t minIndex = HEADLESS_SUBPROFILE_INDEX + 1;
+    int32_t maxIndex = MAX_OS_ACCOUNT_SUB_PROFILE_COUNT - 1;
+    int32_t totalRange = maxIndex - minIndex + 1;
+    int32_t startIndex = nextSubProfileIndex;
+    if (startIndex < minIndex || startIndex > maxIndex) {
+        startIndex = minIndex;
+    }
+
+    // Phase 1 (normal allocation): map is not full — find a free slot
+    int32_t candidate = startIndex;
+    for (int32_t i = 0; i < totalRange; i++) {
+        if (subProfileIndexMap.find(candidate) == subProfileIndexMap.end()) {
+            outIndex = candidate;
+            return ERR_OK;
+        }
+        ++candidate;
+        if (candidate > maxIndex) {
+            candidate = minIndex;
+        }
+    }
+
+    // Phase 2 (exhausted): all slots are occupied
+    ACCOUNT_LOGE("No available index slot, all %{public}d slots used.", totalRange);
+    REPORT_OS_ACCOUNT_FAIL(0, Constants::OPERATION_SUBPROFILE_CREATE,
+        ERR_OS_ACCOUNT_SUBSPACE_LIMIT, "All index slots used");
+    return ERR_OS_ACCOUNT_SUBSPACE_LIMIT;
+}
+
 ErrCode OsAccountSubProfileDataDeal::AllocateOsAccountSubProfileId(
     int32_t osAccountId, int32_t nextSubProfileId,
-    const std::vector<std::string> &subProfileIdStrList, int32_t &outId)
+    const std::vector<int32_t> &subProfileIdList, int32_t &outId)
 {
     int32_t base = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
-    int32_t minId = base + OS_ACCOUNT_SUB_PROFILE_INDEX_MIN;
-    int32_t maxId = base + OS_ACCOUNT_SUB_PROFILE_INDEX_MAX;
+    int32_t minId = base + OS_ACCOUNT_SUB_PROFILE_ID_MIN;
+    int32_t maxId = base + OS_ACCOUNT_SUB_PROFILE_ID_MAX;
     int32_t startId = nextSubProfileId;
 
     if (startId < minId || startId > maxId) {
@@ -69,14 +108,10 @@ ErrCode OsAccountSubProfileDataDeal::AllocateOsAccountSubProfileId(
     }
 
     int32_t searchCount = 0;
-    int32_t totalRange = OS_ACCOUNT_SUB_PROFILE_INDEX_MAX - OS_ACCOUNT_SUB_PROFILE_INDEX_MIN + 1;
+    int32_t totalRange = OS_ACCOUNT_SUB_PROFILE_ID_MAX - OS_ACCOUNT_SUB_PROFILE_ID_MIN + 1;
 
-    // Non-numeric strings in subProfileIdStrList (e.g. corrupted data) are implicitly
-    // skipped as they never match std::to_string(startId) — equivalent to the old
-    // behavior where StrToInt silently skipped them.
     do {
-        if (std::find(subProfileIdStrList.begin(), subProfileIdStrList.end(),
-            std::to_string(startId)) == subProfileIdStrList.end()) {
+        if (std::find(subProfileIdList.begin(), subProfileIdList.end(), startId) == subProfileIdList.end()) {
             outId = startId;
             ACCOUNT_LOGI("Allocated subspaceId=%{public}d for osAccountId=%{public}d", outId, osAccountId);
             return ERR_OK;
@@ -88,7 +123,7 @@ ErrCode OsAccountSubProfileDataDeal::AllocateOsAccountSubProfileId(
         }
         if (searchCount >= totalRange) {
             ACCOUNT_LOGE("No available index for osAccountId=%{public}d, all %{public}d slots used.",
-                osAccountId, OS_ACCOUNT_SUB_PROFILE_INDEX_MAX);
+                osAccountId, OS_ACCOUNT_SUB_PROFILE_ID_MAX);
             return ERR_OS_ACCOUNT_SUBSPACE_LIMIT;
         }
     } while (true);
@@ -130,8 +165,8 @@ int32_t OsAccountSubProfileDataDeal::ParseDirEntryAsSubProfileId(
         return -1;
     }
     int32_t subspaceId = static_cast<int32_t>(val);
-    int32_t index = subspaceId - base;
-    if (index < OS_ACCOUNT_SUB_PROFILE_INDEX_MIN || index > OS_ACCOUNT_SUB_PROFILE_INDEX_MAX) {
+    int32_t offset = subspaceId - base;
+    if (offset < 0 || offset > OS_ACCOUNT_SUB_PROFILE_ID_MAX) {
         return -1;
     }
     return subspaceId;
@@ -158,7 +193,7 @@ ErrCode OsAccountSubProfileDataDeal::ScanSubProfileIds(int32_t osAccountId,
             continue;
         }
 
-        if (!filter) {
+        if (filter == nullptr) {
             resultIds.insert(subspaceId);
             continue;
         }
@@ -203,6 +238,40 @@ ErrCode OsAccountSubProfileDataDeal::ScanPendingRemovalSubProfileIds(
         }, pendingRemoveIds);
 }
 
+ErrCode OsAccountSubProfileDataDeal::ScanRawSubProfileIds(
+    int32_t osAccountId, std::set<int32_t> &rawIds) const
+{
+    return ScanSubProfileIds(osAccountId, nullptr, rawIds);
+}
+
+ErrCode OsAccountSubProfileDataDeal::SaveSubProfileFiles(
+    const OsAccountSubspaceInfo &info, const std::string &serializedContent)
+{
+    std::string subspaceDir = GetSubProfileDir(info.userId_, info.subspaceId);
+    if (!fileOperator_->IsExistDir(subspaceDir)) {
+        ErrCode ret = fileOperator_->CreateDir(subspaceDir);
+        if (ret != ERR_OK) {
+            ACCOUNT_LOGE("CreateDir failed, osId=%{public}d, subId=%{public}d, ret=%{public}d",
+                info.userId_, info.subspaceId, ret);
+            return ret;
+        }
+    }
+    std::string avatarFile = GetSubProfileDir(info.userId_, info.subspaceId) + SUBSPACE_ACCOUNT_AVATAR;
+    ErrCode ret = fileOperator_->InputFileByPathAndContentWithTransaction(
+        avatarFile, info.ohosAccountInfo_.avatar_);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Failed to save avatar! ret = %{public}d", ret);
+        return ret;
+    }
+    std::string filePath = GetSubProfileFilePath(info.userId_, info.subspaceId);
+    ret = fileOperator_->InputFileByPathAndContentWithTransaction(filePath, serializedContent);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Write subspace failed, osId=%{public}d, subId=%{public}d, ret=%{public}d",
+            info.userId_, info.subspaceId, ret);
+    }
+    return ret;
+}
+
 std::string OsAccountSubProfileDataDeal::SerializeSubProfileInfoToJson(
     const OsAccountSubspaceInfo &info) const
 {
@@ -220,6 +289,8 @@ std::string OsAccountSubProfileDataDeal::SerializeSubProfileInfoToJson(
     AddIntToJson(jsonObj, JSON_KEY_OHOSACCOUNT_CALLINGUID, info.ohosAccountInfo_.callingUid_);
     AddStringToJson(jsonObj, JSON_KEY_OHOSACCOUNT_NICKNAME, info.ohosAccountInfo_.nickname_);
     AddStringToJson(jsonObj, JSON_KEY_OHOSACCOUNT_SCALABLEDATA, info.ohosAccountInfo_.scalableData_);
+    AddIntToJson(jsonObj, JSON_KEY_SUBSPACE_INDEX, info.index);
+    AddIntToJson(jsonObj, JSON_KEY_SUBSPACE_OFFSET, info.subspaceOffset);
     return PackJsonToString(jsonObj);
 }
 
@@ -252,35 +323,19 @@ ErrCode OsAccountSubProfileDataDeal::ParseSubProfileInfoFromJson(
     GetDataByType<int32_t>(jsonObj.get(), JSON_KEY_OHOSACCOUNT_CALLINGUID, info.ohosAccountInfo_.callingUid_);
     GetDataByType<std::string>(jsonObj.get(), JSON_KEY_OHOSACCOUNT_NICKNAME, info.ohosAccountInfo_.nickname_);
     GetDataByType<std::string>(jsonObj.get(), JSON_KEY_OHOSACCOUNT_SCALABLEDATA, info.ohosAccountInfo_.scalableData_);
+    GetDataByType<int32_t>(jsonObj.get(), JSON_KEY_SUBSPACE_INDEX, info.index);
+    GetDataByType<int32_t>(jsonObj.get(), JSON_KEY_SUBSPACE_OFFSET, info.subspaceOffset);
     return ERR_OK;
 }
 
 ErrCode OsAccountSubProfileDataDeal::SaveSubProfileInfo(const OsAccountSubspaceInfo &info)
 {
-    std::string subspaceDir = GetSubProfileDir(info.userId_, info.subspaceId);
-    if (!fileOperator_->IsExistDir(subspaceDir)) {
-        ErrCode ret = fileOperator_->CreateDir(subspaceDir);
-        if (ret != ERR_OK) {
-            ACCOUNT_LOGE("CreateDir failed, osId=%{public}d, subId=%{public}d, ret=%{public}d",
-                info.userId_, info.subspaceId, ret);
-            return ret;
-        }
-    }
-    std::string avatarFile = GetSubProfileDir(info.userId_, info.subspaceId) + SUBSPACE_ACCOUNT_AVATAR;
-    ErrCode ret = fileOperator_->InputFileByPathAndContentWithTransaction(
-        avatarFile, info.ohosAccountInfo_.avatar_);
-    if (ret != ERR_OK) {
-        ACCOUNT_LOGE("Failed to save avatar! ret = %{public}d", ret);
-        return ret;
-    }
-    std::string filePath = GetSubProfileFilePath(info.userId_, info.subspaceId);
     std::string content = SerializeSubProfileInfoToJson(info);
-    ret = fileOperator_->InputFileByPathAndContentWithTransaction(filePath, content);
-    if (ret != ERR_OK) {
-        ACCOUNT_LOGE("Write subspace failed, osId=%{public}d, subId=%{public}d, ret=%{public}d",
-            info.userId_, info.subspaceId, ret);
+    if (content.empty()) {
+        ACCOUNT_LOGE("Serialize failed for subspaceId=%{public}d", info.subspaceId);
+        return ERR_ACCOUNT_DATADEAL_JSON_FILE_CORRUPTION;
     }
-    return ret;
+    return SaveSubProfileFiles(info, content);
 }
 
 ErrCode OsAccountSubProfileDataDeal::LoadSubProfileInfo(
@@ -303,8 +358,14 @@ ErrCode OsAccountSubProfileDataDeal::LoadSubProfileInfo(
     }
     std::string avatarFile = GetSubProfileDir(osAccountId, subspaceId) + SUBSPACE_ACCOUNT_AVATAR;
     std::string avatarData;
+
     if (fileOperator_->GetFileContentByPath(avatarFile, avatarData) == ERR_OK) {
         info.ohosAccountInfo_.avatar_ = avatarData;
+    } else {
+        ACCOUNT_LOGW("Load avatar failed. OsAccountId=%{public}d, subspaceId=%{public}d",
+            osAccountId, subspaceId);
+        REPORT_OS_ACCOUNT_FAIL(osAccountId, Constants::OPERATION_SUBPROFILE_QUERY,
+            ERR_ACCOUNT_COMMON_FILE_READ_FAILED, "Avatar file not loaded");
     }
     return ERR_OK;
 }

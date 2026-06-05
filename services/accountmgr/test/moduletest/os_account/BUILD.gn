@@ -778,12 +778,14 @@ ohos_moduletest("os_account_subspace_module_test") {
 
   sources = [
     "os_account_subspace_module_test.cpp",
+    "${services_path}/accountmgr/test/unittest/ohos_account/mock/mock_space_dependencies.cpp",
   ]
 
   sources += [
     "${common_path}/account_error/src/account_error_no.cpp",
     "${common_path}/file_operator/src/account_file_operator.cpp",
     "${common_path}/json_utils/src/json_utils.cpp",
+    "${common_path}/json_utils/src/os_account_info_json_parser.cpp",
     "${common_path}/log/src/account_log_wrapper.cpp",
     "${os_account_dfx_path}/hisysevent_adapter/account_hisysevent_adapter.cpp",
     "${account_iam_framework_path}/src/account_iam_info.cpp",
@@ -792,6 +794,10 @@ ohos_moduletest("os_account_subspace_module_test") {
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
   ]
   sources += account_service_sources
+  sources -= [
+    "${services_path}/accountmgr/src/osaccount/inner_os_account_manager.cpp",
+    "${services_path}/accountmgr/src/account_mgr_service.cpp",
+  ]
   sources += [
     "${services_path}/accountmgr/src/distributed_account/os_account_subspace_data_deal.cpp",
     "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager.cpp",
@@ -815,6 +821,7 @@ ohos_moduletest("os_account_subspace_module_test") {
     "${services_path}/accountmgr/include",
     "${services_path}/accountmgr/include/osaccount",
     "${services_path}/accountmgr/include/distributed_account",
+    "${services_path}/accountmgr/test/unittest/ohos_account/mock",
     "${os_account_subspace_interfaces_native_path}/include",
     "${common_path}/account_error",
     "${common_path}/log/include",

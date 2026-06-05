@@ -655,15 +655,16 @@ void OhosAccountManager::InitOsAccountSubProfileManager(const std::string &rootP
 ErrCode OhosAccountManager::CreateOsAccountSubspace(int32_t osAccountId, OsAccountSubspaceResult &result)
 {
     int32_t newSubspaceId = 0;
-    ErrCode ret = OsAccountSubProfileManager::GetInstance().CreateSubProfile(osAccountId, newSubspaceId);
+    int32_t index = 0;
+    ErrCode ret = OsAccountSubProfileManager::GetInstance().CreateSubProfile(osAccountId, newSubspaceId, index);
     if (ret != ERR_OK) {
-        REPORT_OS_ACCOUNT_FAIL(osAccountId, "subspace_create", ret,
+        REPORT_OS_ACCOUNT_FAIL(osAccountId, Constants::OPERATION_SUBPROFILE_CREATE, ret,
             "CreateOsAccountSubspace failed");
         return ret;
     }
     result.id = newSubspaceId;
     result.osAccountId = osAccountId;
-    result.index = newSubspaceId - osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
+    result.index = index;
 
     ErrCode publishRet = subscribeManager_.Publish(
         DistributedAccountSubProfileEventType::CREATED, osAccountId, newSubspaceId);
@@ -673,15 +674,20 @@ ErrCode OhosAccountManager::CreateOsAccountSubspace(int32_t osAccountId, OsAccou
     }
     ACCOUNT_LOGI("CreateOsAccountSubspace successful, osAccountId=%{public}d, subspaceId=%{public}d",
         osAccountId, newSubspaceId);
-    ReportOsAccountLifeCycle(newSubspaceId, "subspace_create");
+    ReportOsAccountLifeCycle(newSubspaceId, Constants::OPERATION_SUBPROFILE_CREATE);
     return ERR_OK;
 }
 
 ErrCode OhosAccountManager::DeleteOsAccountSubspace(int32_t osAccountId, int32_t subspaceId)
 {
+    int32_t base = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
+    if (subspaceId == base) {
+        ACCOUNT_LOGE("Cannot delete headless subprofile (index=0)");
+        return ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED;
+    }
     ErrCode ret = OsAccountSubProfileManager::GetInstance().RemoveSubProfile(osAccountId, subspaceId);
     if (ret != ERR_OK) {
-        REPORT_OS_ACCOUNT_FAIL(osAccountId, "subspace_delete", ret,
+        REPORT_OS_ACCOUNT_FAIL(osAccountId, Constants::OPERATION_SUBPROFILE_DELETE, ret,
             "DeleteOsAccountSubspace failed");
         return ret;
     }
@@ -693,7 +699,7 @@ ErrCode OhosAccountManager::DeleteOsAccountSubspace(int32_t osAccountId, int32_t
     }
     ACCOUNT_LOGI("DeleteOsAccountSubspace successful, osAccountId=%{public}d, subspaceId=%{public}d",
         osAccountId, subspaceId);
-    ReportOsAccountLifeCycle(subspaceId, "subspace_delete");
+    ReportOsAccountLifeCycle(subspaceId, Constants::OPERATION_SUBPROFILE_DELETE);
     return ERR_OK;
 }
 
@@ -708,26 +714,11 @@ ErrCode OhosAccountManager::SwitchOsAccountSubspace(
             "subspaceId=%{public}d", osAccountId, subspaceId);
         return ERR_OK;
     }
-    // index-0 active session check: mgrMutex_ + dataDealer_->AccountInfoFromJson() reads the
-    // distributed account LOGIN state — this data is owned exclusively by OhosAccountManager.
-    // Foreground checks for non-0 spaces are handled internally inside SwitchSubProfile.
-    int32_t base = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
-    if (err != ERR_OK) {
-        ACCOUNT_LOGW("GetOsAccountInfoById failed, skip base subspace check and proceed");
-    } else if (osAccountInfo.GetForegroundSubProfileId() == base) {
-        std::lock_guard<std::mutex> lock(mgrMutex_);
-        AccountInfo currentAccountInfo;
-        if (dataDealer_->AccountInfoFromJson(currentAccountInfo, osAccountId) == ERR_OK &&
-            currentAccountInfo.ohosAccountInfo_.status_ == ACCOUNT_STATE_LOGIN) {
-            ACCOUNT_LOGE("Current foreground base subspace has active session, switch rejected");
-            return ERR_OS_ACCOUNT_SUBSPACE_HAS_ACTIVE_SESSION;
-        }
-    }
 
     ErrCode ret = OsAccountSubProfileManager::GetInstance().SwitchSubProfile(
         osAccountId, subspaceId, fromSubspaceId);
     if (ret != ERR_OK) {
-        REPORT_OS_ACCOUNT_FAIL(osAccountId, "subspace_switch", ret,
+        REPORT_OS_ACCOUNT_FAIL(osAccountId, Constants::OPERATION_SUBPROFILE_SWITCH, ret,
             "SwitchOsAccountSubspace failed");
         return ret;
     }
@@ -739,7 +730,7 @@ ErrCode OhosAccountManager::SwitchOsAccountSubspace(
     }
     ACCOUNT_LOGI("SwitchOsAccountSubspace successful, osAccountId=%{public}d, from=%{public}d, to=%{public}d",
         osAccountId, fromSubspaceId, subspaceId);
-    ReportOsAccountLifeCycle(subspaceId, "subspace_switch");
+    ReportOsAccountLifeCycle(subspaceId, Constants::OPERATION_SUBPROFILE_SWITCH);
     return ERR_OK;
 }
 #endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
@@ -808,30 +799,41 @@ ErrCode OhosAccountManager::GetOsAccountLocalIdForSubProfile(
 ErrCode OhosAccountManager::GetOsAccountSubProfile(int32_t osAccountId, int32_t subProfileId,
     OsAccountSubspaceResult &subspaceResult, OhosAccountInfo &distributedInfo)
 {
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    ErrCode ret = OsAccountSubProfileManager::GetInstance().GetSubProfile(
+        osAccountId, subProfileId, subspaceResult, distributedInfo);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+    // Headless subprofile (base ID): GetSubProfile returns subspaceResult (id, osAccountId, index)
+    // but leaves distributedInfo empty, because the authoritative source for the parent OS account's
+    // distributed info is account_info.json (managed by OhosAccountDataDeal), not an independent
+    // subspace file. Fill distributedInfo from AccountInfoFromJson here.
     int32_t base = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
-    ErrCode ret;
     if (subProfileId == base) {
-        subspaceResult.id = subProfileId;
-        subspaceResult.osAccountId = osAccountId;
-        subspaceResult.index = 0;
         AccountInfo accountInfo;
         ret = dataDealer_->AccountInfoFromJson(accountInfo, osAccountId);
         if (ret != ERR_OK) {
             return ret;
         }
         distributedInfo = accountInfo.ohosAccountInfo_;
-    } else {
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-        ret = OsAccountSubProfileManager::GetInstance().GetSubProfile(
-            osAccountId, subProfileId, subspaceResult, distributedInfo);
-        if (ret != ERR_OK) {
-            return ret;
-        }
+    }
 #else
+    int32_t base = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
+    if (subProfileId != base) {
         ACCOUNT_LOGE("SubProfile %{public}d does not exist", subProfileId);
         return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
-#endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
     }
+    subspaceResult.id = subProfileId;
+    subspaceResult.osAccountId = osAccountId;
+    subspaceResult.index = 0;
+    AccountInfo accountInfo;
+    ErrCode ret = dataDealer_->AccountInfoFromJson(accountInfo, osAccountId);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+    distributedInfo = accountInfo.ohosAccountInfo_;
+#endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
     return ERR_OK;
 }
 

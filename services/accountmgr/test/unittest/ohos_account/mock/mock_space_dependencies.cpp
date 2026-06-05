@@ -14,6 +14,7 @@
  */
 
 #include <iomanip>
+#include <map>
 #include <mutex>
 #include <vector>
 #include <sstream>
@@ -25,6 +26,7 @@
 #include "iinner_os_account_manager.h"
 #include "os_account_constants.h"
 #include "os_account_info.h"
+#include "os_account_info_json_parser.h"
 #include "osaccount/os_account_control_file_manager.h"
 #include <openssl/sha.h>
 
@@ -41,10 +43,12 @@ constexpr std::uint32_t WIDTH_FOR_HEX = 2;
 
 struct MockState {
     std::vector<OsAccountInfo> createdOsAccounts;
+    std::map<int32_t, SubProfileContext> subProfileCtxMap;
     int32_t callingUid = 0;
     int32_t callingUserId = TEST_USERID;
     ErrCode forceUpdateSubspaceInfoFail = ERR_OK;
     ErrCode forceGetInfoByIdFail = ERR_OK;
+    ErrCode forceReadSubProfileContextFail = ERR_OK;
 };
 
 static MockState &GetMockState()
@@ -57,10 +61,12 @@ void ResetMockState()
 {
     auto &state = GetMockState();
     state.createdOsAccounts.clear();
+    state.subProfileCtxMap.clear();
     state.callingUid = 0;
     state.callingUserId = TEST_USERID;
     state.forceUpdateSubspaceInfoFail = ERR_OK;
     state.forceGetInfoByIdFail = ERR_OK;
+    state.forceReadSubProfileContextFail = ERR_OK;
 }
 
 void MockForceUpdateSubspaceInfoFail(ErrCode errCode)
@@ -73,11 +79,53 @@ void MockForceGetOsAccountInfoByIdFail(ErrCode errCode)
     GetMockState().forceGetInfoByIdFail = errCode;
 }
 
+void MockForceReadSubProfileContextFail(ErrCode errCode)
+{
+    GetMockState().forceReadSubProfileContextFail = errCode;
+}
+
 void MockClearForceFailFlags()
 {
     auto &state = GetMockState();
     state.forceUpdateSubspaceInfoFail = ERR_OK;
     state.forceGetInfoByIdFail = ERR_OK;
+    state.forceReadSubProfileContextFail = ERR_OK;
+}
+
+void MockInsertForegroundSubspaceId(int32_t localId, int32_t subspaceId)
+{
+    for (auto &info : GetMockState().createdOsAccounts) {
+        if (info.GetLocalId() == localId) {
+            info.SetForegroundSubProfileId(subspaceId);
+            return;
+        }
+    }
+}
+
+void MockEraseForegroundSubspaceId(int32_t localId)
+{
+    for (auto &info : GetMockState().createdOsAccounts) {
+        if (info.GetLocalId() == localId) {
+            info.SetForegroundSubProfileId(-1);
+            return;
+        }
+    }
+}
+
+bool MockFindForegroundSubspaceId(int32_t localId, int32_t &subspaceId)
+{
+    for (const auto &info : GetMockState().createdOsAccounts) {
+        if (info.GetLocalId() == localId) {
+            subspaceId = info.GetForegroundSubProfileId();
+            return subspaceId != -1;
+        }
+    }
+    return false;
+}
+
+void MockForceSubProfileContext(int32_t localId, const SubProfileContext &data)
+{
+    GetMockState().subProfileCtxMap[localId] = data;
 }
 
 void MockSetCallingUid(int32_t uid)
@@ -130,24 +178,33 @@ ErrCode IInnerOsAccountManager::SetOsAccountForegroundSubspaceId(int32_t localId
             return ERR_OK;
         }
     }
-    return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
 }
 
 ErrCode IInnerOsAccountManager::UpdateOsAccountSubspaceInfo(
-    int32_t localId, int32_t nextSubProfileId, const std::vector<std::string> &subProfileIdList)
+    int32_t localId, const SubProfileContext &data)
 {
     auto &state = GetMockState();
     if (state.forceUpdateSubspaceInfoFail != ERR_OK) {
         return state.forceUpdateSubspaceInfoFail;
     }
-    for (auto &info : state.createdOsAccounts) {
-        if (info.GetLocalId() == localId) {
-            info.SetNextSubProfileId(nextSubProfileId);
-            info.SetSubProfileIdList(subProfileIdList);
-            return ERR_OK;
-        }
+    state.subProfileCtxMap[localId] = data;
+    return ERR_OK;
+}
+
+ErrCode IInnerOsAccountManager::ReadSubProfileContext(int32_t localId, SubProfileContext &data)
+{
+    auto &state = GetMockState();
+    if (state.forceReadSubProfileContextFail != ERR_OK) {
+        return state.forceReadSubProfileContextFail;
     }
-    return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    auto it = state.subProfileCtxMap.find(localId);
+    if (it != state.subProfileCtxMap.end()) {
+        data = it->second;
+        return ERR_OK;
+    }
+    data = SubProfileContext();
+    return ERR_ACCOUNT_COMMON_FILE_NOT_EXIST;
 }
 
 ErrCode IInnerOsAccountManager::CreateOsAccount(

@@ -28,6 +28,7 @@
 #include "ios_account_subscribe.h"
 #include "ohos_account_manager.h"
 #include "os_account_control_file_manager.h"
+#include "sub_profile_context.h"
 #include "os_account_interface.h"
 #include "os_account_activate_lock_plugin_manager.h"
 #ifdef SUPPORT_LOCK_OS_ACCOUNT
@@ -97,8 +98,8 @@ public:
     ErrCode SetOsAccountCredentialId(const int id, uint64_t credentialId) override;
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
     ErrCode SetOsAccountForegroundSubspaceId(int32_t localId, int32_t subspaceId);
-    ErrCode UpdateOsAccountSubspaceInfo(int32_t localId, int32_t nextSubProfileId,
-        const std::vector<std::string> &subProfileIdList);
+    ErrCode UpdateOsAccountSubspaceInfo(int32_t localId, const SubProfileContext &data);
+    ErrCode ReadSubProfileContext(int32_t localId, SubProfileContext &data);
 #endif
     ErrCode IsAllowedCreateAdmin(bool &isAllowedCreateAdmin) override;
     ErrCode GetCreatedOsAccountNumFromDatabase(const std::string& storeID,
@@ -132,6 +133,7 @@ public:
     ErrCode GetBackgroundOsAccountLocalIds(std::vector<int32_t> &localIds) override;
     ErrCode SetOsAccountToBeRemoved(int32_t localId, bool toBeRemoved) override;
     ErrCode SendMsgForAccountCreate(OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options = {});
+    ErrCode FinalizeAccountCreate(OsAccountInfo &osAccountInfo);
     ErrCode GetOsAccountInfoById(const int id, OsAccountInfo &osAccountInfo);
     ErrCode CheckLocalIdRestricted(int32_t localId);
     ErrCode GetTypeNumber(const OsAccountType& type, int32_t& typeNumber) override;
@@ -226,6 +228,7 @@ private:
     ErrCode InsertOsAccountTypeToTee(int32_t localId, const OsAccountType &type, const std::vector<uint8_t>& token);
     ErrCode RefreshAccountTypeInCache(
         int32_t id, OsAccountType localType, std::pair<OsAccountType, bool> &outType);
+    void ApplyCachedAccountType(int32_t id, OsAccountInfo &osAccountInfo);
 #endif // SUPPORT_AUTHORIZATION
     ErrCode UpdateAccountToBackground(int32_t oldId);
     ErrCode IsValidOsAccount(const OsAccountInfo &osAccountInfo);
@@ -274,6 +277,9 @@ private:
     SafeMap<int32_t, bool> deactivatingAccounts_;
 #ifdef SUPPORT_LOCK_OS_ACCOUNT
     SafeMap<int32_t, bool> lockingAccounts_;
+#endif
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    ErrCode InitOsAccountSubspaceForNewAccount(int32_t localId, int32_t &foregroundSubProfileId);
 #endif
     std::map<int32_t, std::shared_ptr<std::mutex>> updateLocks_;
 

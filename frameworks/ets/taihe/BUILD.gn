@@ -177,7 +177,7 @@ taihe_shared_library("distributed_account_taihe_native") {
     "LOG_DOMAIN = 0xD001B00",
   ]
 
-  if (os_account_enable_multiple_os_account_subspace) {
+  if (os_account_enable_multiple_os_account_sub_profiles) {
     cflags_cc = [ "-DENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE" ]
   }
 }

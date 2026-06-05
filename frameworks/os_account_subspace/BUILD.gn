@@ -42,7 +42,7 @@ config("os_account_subspace_innerkits_config") {
     "-Wshadow",
   ]
 
-  if (os_account_enable_multiple_os_account_subspace) {
+  if (os_account_enable_multiple_os_account_sub_profiles) {
     cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE" ]
   }
 
@@ -55,7 +55,7 @@ config("os_account_subspace_innerkits_config") {
 config("os_account_subspace_innerkits_public_config") {
   visibility = [ ":*" ]
 
-  if (os_account_enable_multiple_os_account_subspace) {
+  if (os_account_enable_multiple_os_account_sub_profiles) {
     cflags_cc = [ "-DENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE" ]
   }
 

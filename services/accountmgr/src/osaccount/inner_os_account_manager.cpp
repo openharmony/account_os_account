@@ -37,6 +37,11 @@
 #include "ipc_skeleton.h"
 #include "ohos_account_kits.h"
 #include "os_account_constants.h"
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+#include "distributed_account_subscribe_manager.h"
+#include "os_account_subspace_data_deal.h"
+#include "os_account_subspace_manager.h"
+#endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
 #include "os_account_domain_account_callback.h"
 #endif // SUPPORT_DOMAIN_ACCOUNTS
@@ -842,11 +847,30 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
         RollbackOsAccount(osAccountInfo, true, true);
         return errCode;
     }
+    return FinalizeAccountCreate(osAccountInfo);
+}
+
+ErrCode IInnerOsAccountManager::FinalizeAccountCreate(OsAccountInfo &osAccountInfo)
+{
+    int32_t localId = osAccountInfo.GetLocalId();
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
     AppAccountControlManager::GetInstance().SetOsAccountRemoved(osAccountInfo.GetLocalId(), false);
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    int32_t foregroundSubProfileId = -1;
+    ErrCode initSubspaceRet = InitOsAccountSubspaceForNewAccount(localId, foregroundSubProfileId);
+    if (initSubspaceRet != ERR_OK) {
+        ACCOUNT_LOGE("InitOsAccountSubspaceForNewAccount failed, localId=%{public}d, ret=%{public}d",
+            localId, initSubspaceRet);
+        ReportOsAccountOperationFail(localId, Constants::OPERATION_CREATE, initSubspaceRet,
+            "InitOsAccountSubspaceForNewAccount failed");
+        RollbackOsAccount(osAccountInfo, true, true);
+        return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
+    }
+    osAccountInfo.SetForegroundSubProfileId(foregroundSubProfileId);
+#endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
     osAccountInfo.SetIsCreateCompleted(true);
-    errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
+    ErrCode errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Create os account when update isCreateCompleted");
         ReportOsAccountOperationFail(localId, Constants::OPERATION_CREATE, errCode, "Failed to update OS account");
@@ -863,7 +887,6 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
     OsAccountInterface::SendToCESAccountCreate(osAccountInfo);
     subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::CREATED);
     ACCOUNT_LOGI("OsAccountAccountMgr send to storage and bm for start success");
-    // report data size when account created
     ReportUserDataSize(GetVerifiedAccountIds(verifiedAccounts_));
     ReportAccountOperationEvent(ACCOUNT_OPERATION_TYPE_CREATE, osAccountInfo.GetLocalName(), localId);
     return ERR_OK;
@@ -4044,7 +4067,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountForegroundSubspaceId(
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(localId, osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("GetOsAccountInfoById failed for localId=%{public}d, errCode=%{public}d", localId, errCode);
-        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
     }
     osAccountInfo.SetForegroundSubProfileId(subspaceId);
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
@@ -4056,22 +4079,65 @@ ErrCode IInnerOsAccountManager::SetOsAccountForegroundSubspaceId(
 }
 
 ErrCode IInnerOsAccountManager::UpdateOsAccountSubspaceInfo(
-    int32_t localId, int32_t nextSubProfileId, const std::vector<std::string> &subProfileIdList)
+    int32_t localId, const SubProfileContext &data)
 {
-    std::lock_guard<std::mutex> lock(*GetOrInsertUpdateLock(localId));
-    OsAccountInfo osAccountInfo;
-    ErrCode errCode = osAccountControl_->GetOsAccountInfoById(localId, osAccountInfo);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("GetOsAccountInfoById failed for localId=%{public}d, errCode=%{public}d", localId, errCode);
-        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    return osAccountControl_->WriteSubProfileContext(localId, data);
+}
+
+ErrCode IInnerOsAccountManager::ReadSubProfileContext(int32_t localId, SubProfileContext &data)
+{
+    return osAccountControl_->ReadSubProfileContext(localId, data);
+}
+
+ErrCode IInnerOsAccountManager::InitOsAccountSubspaceForNewAccount(int32_t localId, int32_t &foregroundSubProfileId)
+{
+    foregroundSubProfileId = -1;
+    SubProfileContext subprofileCtx = SubProfileContext::CreateWithHeadlessDefault(localId);
+    ErrCode writeRet = osAccountControl_->WriteSubProfileContext(localId, subprofileCtx);
+    if (writeRet != ERR_OK) {
+        ACCOUNT_LOGE("WriteSubProfileContext failed during account creation, localId=%{public}d, ret=%{public}d",
+            localId, writeRet);
+        return writeRet;
     }
-    osAccountInfo.SetNextSubProfileId(nextSubProfileId);
-    osAccountInfo.SetSubProfileIdList(subProfileIdList);
-    errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("UpdateOsAccount failed, errCode=%{public}d, localId=%{public}d", errCode, localId);
-        return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
+
+    int32_t newSubspaceId = 0;
+    int32_t outIndex = 0;
+    ErrCode createRet = OsAccountSubProfileManager::GetInstance().CreateSubProfile(
+        localId, newSubspaceId, outIndex);
+    if (createRet != ERR_OK) {
+        ACCOUNT_LOGE("CreateSubProfile failed for new account localId=%{public}d, ret=%{public}d",
+            localId, createRet);
+        osAccountControl_->DeleteSubProfileContextFile(localId);
+        return createRet;
     }
+
+    ErrCode publishCreateRet = DistributedAccountSubscribeManager::GetInstance().Publish(
+        DistributedAccountSubProfileEventType::CREATED, localId, newSubspaceId);
+    if (publishCreateRet != ERR_OK) {
+        ACCOUNT_LOGW("Failed to publish CREATED event for localId=%{public}d, subspaceId=%{public}d, ret=%{public}d",
+            localId, newSubspaceId, publishCreateRet);
+    }
+    ReportOsAccountLifeCycle(newSubspaceId, Constants::OPERATION_SUBPROFILE_CREATE);
+
+    int32_t fromSubspaceId = -1;
+    ErrCode switchRet = OsAccountSubProfileManager::GetInstance().SwitchSubProfile(
+        localId, newSubspaceId, fromSubspaceId);
+    if (switchRet != ERR_OK) {
+        ACCOUNT_LOGE("SwitchSubProfile failed for new account localId=%{public}d, ret=%{public}d",
+            localId, switchRet);
+        osAccountControl_->DeleteSubProfileContextFile(localId);
+        return switchRet;
+    }
+    foregroundSubProfileId = newSubspaceId;
+
+    ErrCode publishSwitchRet = DistributedAccountSubscribeManager::GetInstance().Publish(
+        DistributedAccountSubProfileEventType::SWITCHED, localId, newSubspaceId, fromSubspaceId);
+    if (publishSwitchRet != ERR_OK) {
+        ACCOUNT_LOGW("Failed to publish SWITCHED event for localId=%{public}d, subspaceId=%{public}d, ret=%{public}d",
+            localId, newSubspaceId, publishSwitchRet);
+    }
+    ReportOsAccountLifeCycle(newSubspaceId, Constants::OPERATION_SUBPROFILE_SWITCH);
+
     return ERR_OK;
 }
 #endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE

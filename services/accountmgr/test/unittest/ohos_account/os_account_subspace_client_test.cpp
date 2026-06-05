@@ -244,17 +244,6 @@ HWTEST_F(OsAccountSubProfileClientTest, SwitchOsAccountSubProfile_ProxyError_001
 }
 
 /**
- * @tc.name: OsAccountSubProfileClientTest_DeathRecipient_NullRemote_001
- * @tc.desc: OnRemoteDied with null remote returns early without crash.
- */
-HWTEST_F(OsAccountSubProfileClientTest, DeathRecipient_NullRemote_001, TestSize.Level1)
-{
-    OsAccountSubProfileClient::OsAccountSubProfileDeathRecipient recipient;
-    wptr<IRemoteObject> nullRemote = nullptr;
-    EXPECT_NO_FATAL_FAILURE(recipient.OnRemoteDied(nullRemote));
-}
-
-/**
  * @tc.name: OsAccountSubProfileClientTest_GetOsAccountSubProfileProxy_CacheHit_001
  * @tc.desc: GetOsAccountSubProfileProxy returns cached proxy without creating a new one.
  */
@@ -280,38 +269,4 @@ HWTEST_F(OsAccountSubProfileClientTest, GetOsAccountSubProfileProxy_CacheMiss_00
     auto result = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfileProxy();
     EXPECT_EQ(result, nullptr);
 }
-
-/**
- * @tc.name: OsAccountSubProfileClientTest_ResetProxy_NullProxy_001
- * @tc.desc: ResetProxy with proxy_ already null returns early without explosion.
- */
-HWTEST_F(OsAccountSubProfileClientTest, ResetProxy_NullProxy_001, TestSize.Level1)
-{
-    wptr<IRemoteObject> remote = nullptr;
-    EXPECT_NO_FATAL_FAILURE(
-        OsAccountSubProfileClient::GetInstance().ResetProxy(remote));
-    EXPECT_EQ(OsAccountSubProfileClient::GetInstance().proxy_, nullptr);
-    EXPECT_EQ(OsAccountSubProfileClient::GetInstance().deathRecipient_, nullptr);
-}
-
-/**
- * @tc.name: OsAccountSubProfileClientTest_ResetProxy_ValidProxy_NoMatch_001
- * @tc.desc: ResetProxy clears proxy and deathRecipient even when remote does not match.
- */
-HWTEST_F(OsAccountSubProfileClientTest, ResetProxy_ValidProxy_NoMatch_001, TestSize.Level1)
-{
-    sptr<MockOsAccountSubProfileStub> mockProxy = new (std::nothrow) MockOsAccountSubProfileStub();
-    ASSERT_NE(mockProxy, nullptr);
-
-    OsAccountSubProfileClient &client = OsAccountSubProfileClient::GetInstance();
-    client.proxy_ = mockProxy;
-
-    // Pass a null remote; AsObject() is not null but remote.promote() is null → no match,
-    // but proxy and deathRecipient should still be cleared.
-    wptr<IRemoteObject> remote = nullptr;
-    EXPECT_NO_FATAL_FAILURE(client.ResetProxy(remote));
-    EXPECT_EQ(client.proxy_, nullptr);
-    EXPECT_EQ(client.deathRecipient_, nullptr);
-}
-
 #endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE

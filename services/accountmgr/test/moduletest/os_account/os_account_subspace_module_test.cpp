@@ -39,6 +39,7 @@
 #include "account_log_wrapper.h"
 #include "account_test_common.h"
 #include "accesstoken_kit.h"
+#include "mock_space_dependencies.h"
 #include "os_account_constants.h"
 #include "token_setproc.h"
 
@@ -82,6 +83,7 @@ public:
 
     void TearDown() override
     {
+        ResetMockState();
         dataDeal_.reset();
     }
 
@@ -99,11 +101,11 @@ uint64_t OsAccountSubspaceModuleTest::allPermTokenId_ = 0;
 HWTEST_F(OsAccountSubspaceModuleTest, LifecycleFullFlow_001, TestSize.Level1)
 {
     // Step 1: Create two spaces
-    std::vector<std::string> subProfileIdStrList;
+    std::vector<int32_t> subProfileIdList;
     int32_t nextSubProfileId = -1;
     int32_t distId1 = 0;
     EXPECT_EQ(dataDeal_->AllocateOsAccountSubProfileId(
-        OS_ACCOUNT_ID_A, nextSubProfileId, subProfileIdStrList, distId1), ERR_OK);
+        OS_ACCOUNT_ID_A, nextSubProfileId, subProfileIdList, distId1), ERR_OK);
     EXPECT_EQ(distId1, OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 1);
 
     OsAccountSubspaceInfo info1;
@@ -113,12 +115,12 @@ HWTEST_F(OsAccountSubspaceModuleTest, LifecycleFullFlow_001, TestSize.Level1)
     info1.toBeRemoved = false;
     EXPECT_EQ(dataDeal_->SaveSubProfileInfo(info1), ERR_OK);
 
-    subProfileIdStrList.push_back(std::to_string(distId1));
+    subProfileIdList.push_back(distId1);
     int32_t base = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
     nextSubProfileId = base + 2;
     int32_t distId2 = 0;
     EXPECT_EQ(dataDeal_->AllocateOsAccountSubProfileId(
-        OS_ACCOUNT_ID_A, nextSubProfileId, subProfileIdStrList, distId2), ERR_OK);
+        OS_ACCOUNT_ID_A, nextSubProfileId, subProfileIdList, distId2), ERR_OK);
     EXPECT_EQ(distId2, OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 2);
 
     OsAccountSubspaceInfo info2;
@@ -162,35 +164,42 @@ HWTEST_F(OsAccountSubspaceModuleTest, LifecycleFullFlow_001, TestSize.Level1)
 
 /**
  * @tc.name: ZeroSpaceUnchanged_001
- * @tc.desc: Task 7.2 — Verify 0-space (index=0) is never managed by OsAccountSubProfileDataDeal
- *           (index 0 is outside the managed [1,999] range and is excluded from scan results)
+ * @tc.desc: Task 7.2 — Verify headless subprofile (index=0 subspace) IS recognized
+ *           as a valid sub-profile with isCreateCompleted=true (matching the new system
+ *           behavior where every account has an index-0 headless subprofile at creation).
+ *           It is NOT listed as orphan (isCreateCompleted=true, not toBeRemoved).
  * @tc.type: FUNC
  */
 HWTEST_F(OsAccountSubspaceModuleTest, ZeroSpaceUnchanged_001, TestSize.Level1)
 {
-    // Create a mock 0-space directory (simulating the existing primary space)
+    // Create a mock 0-space directory (simulating the headless subprofile at index 0)
     int32_t zeroDistId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER; // index 0
     std::string zeroDir = TEST_ROOT_DIR + std::to_string(OS_ACCOUNT_ID_A) + "/" + std::to_string(zeroDistId);
     std::filesystem::create_directories(zeroDir);
 
-    // Write a dummy account.json in the 0-space dir (simulating the existing file)
-    std::string zeroAccountJson = zeroDir + "/account.json";
-    std::ofstream ofs(zeroAccountJson);
-    ofs << R"({"subspaceId":)" << zeroDistId << R"(,"osAccountId":)" << OS_ACCOUNT_ID_A << "}";
+    // Write account.json with snake_case keys matching ParseSubProfileInfoFromJson format
+    // (SUBSPACE_ACCOUNT_JSON = "/account.json", loaded by LoadSubProfileInfo)
+    std::string accountJsonPath = zeroDir + "/account.json";
+    std::ofstream ofs(accountJsonPath);
+    ofs << R"({"osAccountId":)" << OS_ACCOUNT_ID_A
+        << R"(,"subspaceId":)" << zeroDistId
+        << R"(,"is_create_completed":true)"
+        << R"(,"to_be_removed":false)"
+        << "}";
     ofs.close();
 
-    // ScanOsAccountSubProfileIds must NOT include the 0-space
+    // ScanOsAccountSubProfileIds MUST include the headless subprofile
     std::set<int32_t> validIds;
     EXPECT_EQ(dataDeal_->ScanOsAccountSubProfileIds(OS_ACCOUNT_ID_A, validIds), ERR_OK);
-    EXPECT_EQ(validIds.count(zeroDistId), 0u);
+    EXPECT_EQ(validIds.count(zeroDistId), 1u);
 
-    // ScanOrphanedSubProfileIds must also NOT include the 0-space
+    // ScanOrphanedSubProfileIds must NOT include it (isCreateCompleted=true, not toBeRemoved)
     std::set<int32_t> orphanIds;
     EXPECT_EQ(dataDeal_->ScanOrphanedSubProfileIds(OS_ACCOUNT_ID_A, orphanIds), ERR_OK);
     EXPECT_EQ(orphanIds.count(zeroDistId), 0u);
 
-    // The 0-space directory and file must still exist (untouched)
-    EXPECT_TRUE(std::filesystem::exists(zeroAccountJson));
+    // The 0-space directory and account.json must still exist (untouched)
+    EXPECT_TRUE(std::filesystem::exists(accountJsonPath));
 }
 
 /**
@@ -502,7 +511,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, ScanSubProfileIds_OverflowSubspaceId_001, 
 
 /**
  * @tc.name: ScanSubProfileIds_OutOfRangeIndex_001
- * @tc.desc: Branch G — valid integer but index > OS_ACCOUNT_SUB_PROFILE_INDEX_MAX is skipped
+ * @tc.desc: Branch G — valid integer but index > OS_ACCOUNT_SUB_PROFILE_ID_MAX is skipped
  * @tc.type: FUNC
  */
 HWTEST_F(OsAccountSubspaceModuleTest, ScanSubProfileIds_OutOfRangeIndex_001, TestSize.Level1)
@@ -555,7 +564,8 @@ HWTEST_F(OsAccountSubspaceModuleTest, ScanSubProfileIds_NullptrFilter_001, TestS
 
 /**
  * @tc.name: CheckActiveSessionStatus_ZeroSubspace_001
- * @tc.desc: index-0 subspace always returns false — check moved to OhosAccountManager under mgrMutex_
+ * @tc.desc: index-0 (base) subspace has no subprofile_info.json file;
+ *           LoadSubProfileInfo fails and returns false naturally.
  * @tc.type: FUNC
  */
 HWTEST_F(OsAccountSubspaceModuleTest, CheckActiveSessionStatus_ZeroSubspace_001, TestSize.Level1)
@@ -565,6 +575,20 @@ HWTEST_F(OsAccountSubspaceModuleTest, CheckActiveSessionStatus_ZeroSubspace_001,
     int32_t baseId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
     bool result = mgr.CheckActiveSessionStatus(
         mgr.subProfileDataDeal_.get(), OS_ACCOUNT_ID_A, baseId);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: CheckActiveSessionStatus_NegativeOneSubspace_001
+ * @tc.desc: fromSubspaceId=-1 (default foreground) is skipped — no foreground set yet
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountSubspaceModuleTest, CheckActiveSessionStatus_NegativeOneSubspace_001, TestSize.Level1)
+{
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
+    mgr.Init(TEST_ROOT_DIR);
+    bool result = mgr.CheckActiveSessionStatus(
+        mgr.subProfileDataDeal_.get(), OS_ACCOUNT_ID_A, -1);
     EXPECT_FALSE(result);
 }
 
@@ -649,18 +673,17 @@ HWTEST_F(OsAccountSubspaceModuleTest, RemoveSpace_NotFound_001, TestSize.Level1)
 /**
  * @tc.name: SwitchSpace_Success_001
  * @tc.desc: S1/S2 - Switch to a valid non-0 subspace succeeds and returns previous foreground id.
- *            NOTE: SwitchSubspaceLocked calls GetOsAccountInfoById/SetOsAccountForegroundSubspaceId
- *            which depend on IInnerOsAccountManager. In UT mock, GetOsAccountInfoById may fail,
- *            causing NOT_EXIST instead of success. This test verifies the correct branch is taken
- *            (success or expected failure), not an unexpected crash. Full success path needs developer_test.
  * @tc.type: FUNC
  */
 HWTEST_F(OsAccountSubspaceModuleTest, SwitchSpace_Success_001, TestSize.Level1)
 {
+    OsAccountInfo osAccountInfoA;
+    osAccountInfoA.SetLocalId(OS_ACCOUNT_ID_A);
+    MockSetCreatedOsAccounts({osAccountInfoA});
+
     auto &mgr = OsAccountSubProfileManager::GetInstance();
     mgr.Init(TEST_ROOT_DIR);
 
-    // Create a subspace
     int32_t distId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 10;
     OsAccountSubspaceInfo info;
     info.userId_ = OS_ACCOUNT_ID_A;
@@ -669,21 +692,15 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchSpace_Success_001, TestSize.Level1)
     info.toBeRemoved = false;
     ASSERT_EQ(mgr.subProfileDataDeal_->SaveSubProfileInfo(info), ERR_OK);
 
-    // Switch to the subspace
     int32_t fromSubspaceId = 0;
     ErrCode ret = mgr.SwitchSubProfile(OS_ACCOUNT_ID_A, distId, fromSubspaceId);
-    // SwitchSubspaceLocked calls GetOsAccountInfoById which may fail if OS account
-    // not fully initialized; accept either success or the specific error
-    EXPECT_TRUE(ret == ERR_OK || ret == ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    EXPECT_EQ(ret, ERR_OK);
 }
 
 /**
  * @tc.name: SwitchSpace_ToBase_001
- * @tc.desc: S7 - Switch to index-0 subspace (base) skips IsValidSubProfileExists.
- *            NOTE: base subspace skips IsValidSubProfileExists verification, so
- *            SUBSPACE_NOT_FOUND must NOT be returned. GetOsAccountInfoById may fail
- *            in UT (returns NOT_EXIST_ERROR), which is acceptable — only
- *            SUBSPACE_NOT_FOUND from IsValidSubProfileExists would indicate a bug.
+ * @tc.desc: S7 - Switch to index-0 subspace (base) is restricted (headless protection).
+ *            Headless subprofile cannot be used as foreground.
  * @tc.type: FUNC
  */
 HWTEST_F(OsAccountSubspaceModuleTest, SwitchSpace_ToBase_001, TestSize.Level1)
@@ -693,9 +710,8 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchSpace_ToBase_001, TestSize.Level1)
     int32_t baseDistId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
     int32_t fromSubspaceId = 0;
 
-    // Switch to base subspace — must not return SUBSPACE_NOT_FOUND from IsValidSubProfileExists
     ErrCode ret = mgr.SwitchSubProfile(OS_ACCOUNT_ID_A, baseDistId, fromSubspaceId);
-    EXPECT_NE(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED);
 }
 
 /**
@@ -709,6 +725,10 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchSpace_ToBase_001, TestSize.Level1)
  */
 HWTEST_F(OsAccountSubspaceModuleTest, RemoveSpace_Foreground_001, TestSize.Level1)
 {
+    OsAccountInfo osAccountInfoA;
+    osAccountInfoA.SetLocalId(OS_ACCOUNT_ID_A);
+    MockSetCreatedOsAccounts({osAccountInfoA});
+
     auto &mgr = OsAccountSubProfileManager::GetInstance();
     mgr.Init(TEST_ROOT_DIR);
 
@@ -733,12 +753,8 @@ HWTEST_F(OsAccountSubspaceModuleTest, RemoveSpace_Foreground_001, TestSize.Level
     int32_t fromSubspaceId = 0;
     mgr.SwitchSubProfile(OS_ACCOUNT_ID_A, distId1, fromSubspaceId);
 
-    // Try to remove distId1 — may fail if SetOsAccountForegroundSubspaceId didn't persist
     ErrCode ret = mgr.RemoveSubProfile(OS_ACCOUNT_ID_A, distId1);
-    // If foreground tracking worked → IS_FOREGROUND; otherwise accept OK or SUBSPACE_NOT_FOUND
-    EXPECT_TRUE(ret == ERR_OS_ACCOUNT_SUBSPACE_IS_FOREGROUND ||
-                ret == ERR_OK ||
-                ret == ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_IS_FOREGROUND);
 
     // Cleanup
     mgr.subProfileDataDeal_->RemoveSubProfileDir(OS_ACCOUNT_ID_A, distId1);
@@ -798,9 +814,8 @@ HWTEST_F(OsAccountSubspaceModuleTest, ScanSubProfileIds_DotAndDotDot_001, TestSi
 
 /**
  * @tc.name: SwitchOsAccountSubspace_GetOsAccountInfoFailed_001
- * @tc.desc: Branch E — when GetOsAccountInfoById fails for a non-existent account,
- *           the base subspace active session check is skipped and falls through to
- *           SwitchSubspace. Covers the err != ERR_OK branch.
+ * @tc.desc: When GetOsAccountInfoById fails for a non-existent account,
+ *           SwitchSubProfileLocked returns ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND.
  * @tc.type: FUNC
  */
 HWTEST_F(OsAccountSubspaceModuleTest, SwitchOsAccountSubspace_GetOsAccountInfoFailed_001, TestSize.Level1)
@@ -822,10 +837,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchOsAccountSubspace_GetOsAccountInfoFa
     int32_t fromSubspaceId = -1;
     ErrCode ret = OhosAccountManager::GetInstance().SwitchOsAccountSubspace(
         OS_ACCOUNT_ID_A, distId, fromSubspaceId);
-
-    // SwitchSubspaceLocked calls GetOsAccountInfoById which may fail
-    // if OS account is not fully initialized on device.
-    EXPECT_TRUE(ret == ERR_OK || ret == ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
 
     // Cleanup
     mgr.subProfileDataDeal_->RemoveSubProfileDir(OS_ACCOUNT_ID_A, distId);
@@ -843,10 +855,13 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchOsAccountSubspace_GetOsAccountInfoFa
  */
 HWTEST_F(OsAccountSubspaceModuleTest, SwitchOsAccountSubspace_Publish_001, TestSize.Level1)
 {
+    OsAccountInfo osAccountInfoA;
+    osAccountInfoA.SetLocalId(OS_ACCOUNT_ID_A);
+    MockSetCreatedOsAccounts({osAccountInfoA});
+
     auto &mgr = OsAccountSubProfileManager::GetInstance();
     mgr.Init(TEST_ROOT_DIR);
 
-    // Create subspace for switching
     int32_t distId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 31;
     OsAccountSubspaceInfo info;
     info.userId_ = OS_ACCOUNT_ID_A;
@@ -855,14 +870,11 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchOsAccountSubspace_Publish_001, TestS
     info.toBeRemoved = false;
     ASSERT_EQ(mgr.subProfileDataDeal_->SaveSubProfileInfo(info), ERR_OK);
 
-    // Switch — this exercises the full path including Publish.
-    // On device, SwitchSubspaceLocked may fail if OS account not initialized.
     int32_t fromSubspaceId = -1;
     ErrCode ret = OhosAccountManager::GetInstance().SwitchOsAccountSubspace(
         OS_ACCOUNT_ID_A, distId, fromSubspaceId);
-    EXPECT_TRUE(ret == ERR_OK || ret == ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    EXPECT_EQ(ret, ERR_OK);
 
-    // Cleanup
     mgr.subProfileDataDeal_->RemoveSubProfileDir(OS_ACCOUNT_ID_A, distId);
 }
 
@@ -995,21 +1007,24 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchSubspaceLocked_SetForegroundFailed_0
     constexpr int32_t ACCOUNT_ID = 100;
     int32_t base = ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
 
+    OsAccountInfo mockAccountInfo;
+    mockAccountInfo.SetLocalId(ACCOUNT_ID);
+    mockAccountInfo.SetForegroundSubProfileId(-1);
+    MockSetCreatedOsAccounts({mockAccountInfo});
+
     auto &mgr = OsAccountSubProfileManager::GetInstance();
     mgr.Init(TEST_ROOT_DIR);
 
-    // Save original foreground
     OsAccountInfo originalInfo;
     ASSERT_EQ(IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(ACCOUNT_ID, originalInfo), ERR_OK);
     int32_t originalFg = originalInfo.GetForegroundSubProfileId();
 
-    // Create a subspace and set foreground to it (non-base)
     int32_t newSubspaceId = 0;
-    ASSERT_EQ(mgr.CreateSubProfile(ACCOUNT_ID, newSubspaceId), ERR_OK);
+    int32_t idx = 0;
+    ASSERT_EQ(mgr.CreateSubProfile(ACCOUNT_ID, newSubspaceId, idx), ERR_OK);
     ASSERT_EQ(IInnerOsAccountManager::GetInstance().SetOsAccountForegroundSubspaceId(
         ACCOUNT_ID, newSubspaceId), ERR_OK);
 
-    // Save subspace info with UNBOUND state (so CheckActiveSessionStatus returns false)
     OsAccountSubspaceInfo info;
     info.subspaceId = newSubspaceId;
     info.userId_ = ACCOUNT_ID;
@@ -1017,78 +1032,68 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchSubspaceLocked_SetForegroundFailed_0
     info.toBeRemoved = false;
     ASSERT_EQ(mgr.subProfileDataDeal_->SaveSubProfileInfo(info), ERR_OK);
 
-    // Inject mock that fails UpdateOsAccount
-    auto &innerMgr = IInnerOsAccountManager::GetInstance();
-    auto originalControl = innerMgr.osAccountControl_;
-    auto mockControl = std::make_shared<MockFailingUpdateControl>();
-    innerMgr.osAccountControl_ = mockControl;
+    MockForceUpdateSubspaceInfoFail(ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR);
 
-    // Switch to base: target=base → skips CheckActiveSessionStatus (base subspace)
-    // → SetOsAccountForegroundSubspaceId → mock UpdateOsAccount returns error
     int32_t fromSubspaceId = -1;
     ErrCode ret = mgr.SwitchSubProfile(ACCOUNT_ID, base, fromSubspaceId);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED);
 
-    // Restore
-    innerMgr.osAccountControl_ = originalControl;
+    MockClearForceFailFlags();
     IInnerOsAccountManager::GetInstance().SetOsAccountForegroundSubspaceId(ACCOUNT_ID, originalFg);
     mgr.subProfileDataDeal_->RemoveSubProfileDir(ACCOUNT_ID, newSubspaceId);
 }
 
 /**
  * @tc.name: SwitchOsAccountSubspace_ActiveSessionRejected_001
- * @tc.desc: Verify OhosAccountManager::SwitchOsAccountSubspace rejects switch
- *           when the base subspace has an active LOGIN session (dataDealer_ check).
- *           Uses system account 100 (always present on device).
+ * @tc.desc: Verify SwitchSubProfile rejects switch with
+ *           ERR_OS_ACCOUNT_SUBSPACE_HAS_ACTIVE_SESSION when the current foreground
+ *           subProfile has an active LOGIN session. Tests the unified active session
+ *           check inside SwitchSubProfileLocked via CheckActiveSessionStatus.
  * @tc.type: FUNC
  */
 HWTEST_F(OsAccountSubspaceModuleTest, SwitchOsAccountSubspace_ActiveSessionRejected_001, TestSize.Level1)
 {
     constexpr int32_t ACCOUNT_ID = 100;
-    int32_t base = ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
+    OsAccountInfo mockAccountInfo;
+    mockAccountInfo.SetLocalId(ACCOUNT_ID);
+    mockAccountInfo.SetForegroundSubProfileId(-1);
+    MockSetCreatedOsAccounts({mockAccountInfo});
 
-    // Save original foreground and restore after test
     OsAccountInfo originalInfo;
     ASSERT_EQ(IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(ACCOUNT_ID, originalInfo), ERR_OK);
     int32_t originalFg = originalInfo.GetForegroundSubProfileId();
 
-    // Set foreground to base so the OhosAccountManager base-subspace active session check runs
-    ASSERT_EQ(IInnerOsAccountManager::GetInstance().SetOsAccountForegroundSubspaceId(
-        ACCOUNT_ID, base), ERR_OK);
-
-    // Save original dataDealer_ and inject one using TEST_ROOT_DIR
-    auto &ohosMgr = OhosAccountManager::GetInstance();
-    auto originalDataDealer = std::move(ohosMgr.dataDealer_);
-    ohosMgr.dataDealer_ = std::make_unique<OhosAccountDataDeal>(TEST_ROOT_DIR);
-    ASSERT_EQ(ohosMgr.dataDealer_->Init(ACCOUNT_ID), ERR_OK);
-
-    // Write LOGIN state via AccountInfoToJson to ensure consistent file format and digest
-    AccountInfo loginInfo;
-    loginInfo.version_ = 1;
-    loginInfo.bindTime_ = 0;
-    loginInfo.userId_ = ACCOUNT_ID;
-    loginInfo.ohosAccountInfo_.name_ = "test";
-    loginInfo.ohosAccountInfo_.uid_ = "test";
-    loginInfo.ohosAccountInfo_.status_ = ACCOUNT_STATE_LOGIN;
-    loginInfo.ohosAccountInfo_.callingUid_ = 0;
-    ASSERT_EQ(ohosMgr.dataDealer_->AccountInfoToJson(loginInfo), ERR_OK);
-
-    // Create subspace 10001 (needed as target for the switch)
     auto &mgr = OsAccountSubProfileManager::GetInstance();
     mgr.Init(TEST_ROOT_DIR);
-    int32_t newSubspaceId = 0;
-    ASSERT_EQ(mgr.CreateSubProfile(ACCOUNT_ID, newSubspaceId), ERR_OK);
+
+    // Create two subprofiles: one as foreground with LOGIN state, one as switch target
+    int32_t fgSubspaceId = 0;
+    int32_t fgIdx = 0;
+    ASSERT_EQ(mgr.CreateSubProfile(ACCOUNT_ID, fgSubspaceId, fgIdx), ERR_OK);
+
+    int32_t targetSubspaceId = 0;
+    int32_t targetIdx = 0;
+    ASSERT_EQ(mgr.CreateSubProfile(ACCOUNT_ID, targetSubspaceId, targetIdx), ERR_OK);
+
+    // Set foreground subprofile to fgSubspaceId
+    ASSERT_EQ(IInnerOsAccountManager::GetInstance().SetOsAccountForegroundSubspaceId(
+        ACCOUNT_ID, fgSubspaceId), ERR_OK);
+
+    // Mark foreground subprofile as LOGIN (active session)
+    OsAccountSubspaceInfo fgInfo;
+    ASSERT_EQ(mgr.subProfileDataDeal_->LoadSubProfileInfo(ACCOUNT_ID, fgSubspaceId, fgInfo), ERR_OK);
+    fgInfo.ohosAccountInfo_.status_ = ACCOUNT_STATE_LOGIN;
+    ASSERT_EQ(mgr.subProfileDataDeal_->SaveSubProfileInfo(fgInfo), ERR_OK);
 
     int32_t fromSubspaceId = -1;
-    ErrCode ret = ohosMgr.SwitchOsAccountSubspace(ACCOUNT_ID, newSubspaceId, fromSubspaceId);
+    ErrCode ret = OhosAccountManager::GetInstance().SwitchOsAccountSubspace(
+        ACCOUNT_ID, targetSubspaceId, fromSubspaceId);
     EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_HAS_ACTIVE_SESSION);
 
-    // Cleanup: restore dataDealer_, foreground, and remove subspace dir
-    ohosMgr.dataDealer_ = std::move(originalDataDealer);
+    // Cleanup
     IInnerOsAccountManager::GetInstance().SetOsAccountForegroundSubspaceId(ACCOUNT_ID, originalFg);
-    mgr.subProfileDataDeal_->RemoveSubProfileDir(ACCOUNT_ID, newSubspaceId);
-    std::error_code ec;
-    std::filesystem::remove_all(TEST_ROOT_DIR + std::to_string(ACCOUNT_ID), ec);
+    mgr.subProfileDataDeal_->RemoveSubProfileDir(ACCOUNT_ID, fgSubspaceId);
+    mgr.subProfileDataDeal_->RemoveSubProfileDir(ACCOUNT_ID, targetSubspaceId);
 }
 
 #endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE

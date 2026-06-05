@@ -485,6 +485,70 @@ bool AddVectorStringToJson(CJsonUnique &jsonObj, const std::string &key, const s
     return AddVectorStringToJson(jsonObj.get(), key, vec);
 }
 
+std::vector<int32_t> GetVectorIntFromJson(const CJson *jsonObj, const std::string &key)
+{
+    std::vector<int32_t> result;
+    GetVectorIntFromJson(jsonObj, key, result);
+    return result;
+}
+
+bool GetVectorIntFromJson(const CJson *jsonObj, const std::string &key, std::vector<int32_t> &value)
+{
+    if (jsonObj == nullptr || key.empty()) {
+        return false;
+    }
+    CJson *array = cJSON_GetObjectItemCaseSensitive(jsonObj, key.c_str());
+    if (array == nullptr || !cJSON_IsArray(array)) {
+        return false;
+    }
+    value.clear();
+    int32_t size = cJSON_GetArraySize(array);
+    for (int32_t i = 0; i < size; ++i) {
+        CJson *item = cJSON_GetArrayItem(array, i);
+        if (cJSON_IsNumber(item)) {
+            value.push_back(static_cast<int32_t>(cJSON_GetNumberValue(item)));
+        }
+    }
+    return true;
+}
+
+std::vector<int32_t> GetVectorIntFromJson(const CJsonUnique &jsonObj, const std::string &key)
+{
+    return GetVectorIntFromJson(jsonObj.get(), key);
+}
+
+bool AddVectorIntToJson(CJson *jsonObj, const std::string &key, const std::vector<int32_t> &vec)
+{
+    if (jsonObj == nullptr || key.empty()) {
+        return false;
+    }
+    CJson *array = cJSON_CreateArray();
+    if (array == nullptr) {
+        return false;
+    }
+    for (const auto &val : vec) {
+        cJSON_AddItemToArray(array, cJSON_CreateNumber(static_cast<double>(val)));
+    }
+    CJson *item = cJSON_GetObjectItemCaseSensitive(jsonObj, key.c_str());
+    if (item == nullptr) {
+        if (!cJSON_AddItemToObject(jsonObj, key.c_str(), array)) {
+            cJSON_Delete(array);
+            return false;
+        }
+    } else {
+        if (!cJSON_ReplaceItemInObjectCaseSensitive(jsonObj, key.c_str(), array)) {
+            cJSON_Delete(array);
+            return false;
+        }
+    }
+    return true;
+}
+
+bool AddVectorIntToJson(CJsonUnique &jsonObj, const std::string &key, const std::vector<int32_t> &vec)
+{
+    return AddVectorIntToJson(jsonObj.get(), key, vec);
+}
+
 bool GetIntFromJson(const CJson *jsonObj, const std::string &key, int32_t &value)
 {
     if (jsonObj == nullptr || key.empty()) {
