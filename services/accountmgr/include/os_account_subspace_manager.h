@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OS_ACCOUNT_SUBSPACE_MANAGER_H
-#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OS_ACCOUNT_SUBSPACE_MANAGER_H
+#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OS_ACCOUNT_SUB_PROFILE_MANAGER_H
+#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OS_ACCOUNT_SUB_PROFILE_MANAGER_H
 
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 #include <memory>
@@ -23,6 +23,7 @@
 #include <string>
 #include "account_error_no.h"
 #include "account_info.h"
+#include "os_account_info.h"
 #include "os_account_subspace_data_deal.h"
 
 namespace OHOS {
@@ -32,16 +33,16 @@ namespace AccountSA {
  * Owns the data-deal object and the per-operation mutex; called by
  * OhosAccountManager which is responsible for event publishing.
  */
-class OsAccountSubspaceManager {
+class OsAccountSubProfileManager {
 public:
-    static OsAccountSubspaceManager &GetInstance();
+    static OsAccountSubProfileManager &GetInstance();
 
     void Init(const std::string &rootPath);
-    void CleanupOrphanedSubspaces();
+    void CleanupOrphanedSubProfiles();
 
-    ErrCode CreateSubspace(int32_t osAccountId, int32_t &newSubspaceId);
-    ErrCode RemoveSubspace(int32_t osAccountId, int32_t subspaceId);
-    ErrCode SwitchSubspace(int32_t osAccountId, int32_t subspaceId, int32_t &fromSubspaceId);
+    ErrCode CreateSubProfile(int32_t osAccountId, int32_t &newSubspaceId);
+    ErrCode RemoveSubProfile(int32_t osAccountId, int32_t subspaceId);
+    ErrCode SwitchSubProfile(int32_t osAccountId, int32_t subspaceId, int32_t &fromSubspaceId);
 
     ErrCode GetSubProfileIds(int32_t osAccountId, std::vector<int32_t> &subProfileIds);
     ErrCode GetLocalIdForSubProfile(int32_t subProfileId, int32_t &osAccountId);
@@ -49,26 +50,29 @@ public:
         OsAccountSubspaceResult &subspaceResult, OhosAccountInfo &distributedInfo);
 
     bool CheckActiveSessionStatus(
-        OsAccountSubspaceDataDeal *dataDeal, int32_t osAccountId, int32_t fromSubspaceId);
-    ErrCode LoadSubspaceInfo(int32_t osAccountId, int32_t subspaceId,
+        OsAccountSubProfileDataDeal *dataDeal, int32_t osAccountId, int32_t fromSubspaceId);
+    ErrCode LoadSubProfileInfo(int32_t osAccountId, int32_t subspaceId,
         OsAccountSubspaceInfo &info);
-    ErrCode SaveSubspaceInfo(const OsAccountSubspaceInfo &info);
-    ErrCode ScanOsAccountSubspaceIds(int32_t osAccountId, std::set<int32_t> &validIds);
+    ErrCode SaveSubProfileInfo(const OsAccountSubspaceInfo &info);
+    ErrCode ScanOsAccountSubProfileIds(int32_t osAccountId, std::set<int32_t> &validIds);
 
 private:
-    OsAccountSubspaceManager() = default;
-    ~OsAccountSubspaceManager() = default;
+    OsAccountSubProfileManager() = default;
+    ~OsAccountSubProfileManager() = default;
 
-    ErrCode CreateSubspaceLocked(int32_t osAccountId, int32_t &newSubspaceId);
-    ErrCode RemoveSubspaceLocked(int32_t osAccountId, int32_t subspaceId);
-    ErrCode SwitchSubspaceLocked(int32_t osAccountId, int32_t subspaceId, int32_t &fromSubspaceId);
+    OsAccountSubspaceInfo CreateDefaultSubProfileInfo(int32_t osAccountId, int32_t subspaceId);
+    ErrCode CreateSubProfileLocked(int32_t osAccountId, int32_t &newSubspaceId);
+    ErrCode RemoveSubProfileLocked(int32_t osAccountId, int32_t subspaceId);
+    ErrCode SwitchSubProfileLocked(int32_t osAccountId, int32_t subspaceId, int32_t &fromSubspaceId);
+    void RemoveOsAccountSubProfileInfo(int32_t osAccountId, int32_t subspaceId,
+        const OsAccountInfo &osAccountInfo);
 
-    std::mutex subspaceOpMutex_;
+    std::mutex subProfileOpMutex_;
     std::string rootPath_;
-    std::unique_ptr<OsAccountSubspaceDataDeal> subspaceDataDeal_;
+    std::unique_ptr<OsAccountSubProfileDataDeal> subProfileDataDeal_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
 
 #endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OS_ACCOUNT_SUBSPACE_MANAGER_H
+#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OS_ACCOUNT_SUB_PROFILE_MANAGER_H

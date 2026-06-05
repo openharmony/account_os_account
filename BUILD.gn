@@ -78,5 +78,6 @@ group("account_build_fuzztest") {
     "${os_account_path}/test/fuzztest/iamaccount_stub:fuzztest",
     "${os_account_path}/test/fuzztest/ohosaccount_stub:fuzztest",
     "${os_account_path}/test/fuzztest/osaccount_stub:fuzztest",
+    "${os_account_path}/test/fuzztest/os_account_subspace:fuzztest",
   ]
 }

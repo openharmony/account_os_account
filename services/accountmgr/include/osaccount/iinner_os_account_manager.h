@@ -97,6 +97,8 @@ public:
     ErrCode SetOsAccountCredentialId(const int id, uint64_t credentialId) override;
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
     ErrCode SetOsAccountForegroundSubspaceId(int32_t localId, int32_t subspaceId);
+    ErrCode UpdateOsAccountSubspaceInfo(int32_t localId, int32_t nextSubProfileId,
+        const std::vector<std::string> &subProfileIdList);
 #endif
     ErrCode IsAllowedCreateAdmin(bool &isAllowedCreateAdmin) override;
     ErrCode GetCreatedOsAccountNumFromDatabase(const std::string& storeID,

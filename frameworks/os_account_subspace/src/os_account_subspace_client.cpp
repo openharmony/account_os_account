@@ -20,24 +20,24 @@
 
 namespace OHOS {
 namespace AccountSA {
-OsAccountSubspaceClient &OsAccountSubspaceClient::GetInstance()
+OsAccountSubProfileClient &OsAccountSubProfileClient::GetInstance()
 {
-    static OsAccountSubspaceClient instance;
+    static OsAccountSubProfileClient instance;
     return instance;
 }
 
-OsAccountSubspaceClient::OsAccountSubspaceClient() {}
+OsAccountSubProfileClient::OsAccountSubProfileClient() {}
 
-ErrCode OsAccountSubspaceClient::CreateOsAccountSubspace(
+ErrCode OsAccountSubProfileClient::CreateOsAccountSubProfile(
     int32_t osAccountId, OsAccountSubspaceResult &subspaceResult)
 {
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-    auto proxy = GetOsAccountSubspaceProxy();
+    auto proxy = GetOsAccountSubProfileProxy();
     if (proxy == nullptr) {
         ACCOUNT_LOGE("proxy is nullptr");
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->CreateOsAccountSubspace(osAccountId, subspaceResult);
+    return proxy->CreateOsAccountSubProfile(osAccountId, subspaceResult);
 #else
     (void)osAccountId;
     (void)subspaceResult;
@@ -45,16 +45,16 @@ ErrCode OsAccountSubspaceClient::CreateOsAccountSubspace(
 #endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 }
 
-ErrCode OsAccountSubspaceClient::DeleteOsAccountSubspace(
+ErrCode OsAccountSubProfileClient::DeleteOsAccountSubProfile(
     int32_t osAccountId, int32_t subspaceId)
 {
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-    auto proxy = GetOsAccountSubspaceProxy();
+    auto proxy = GetOsAccountSubProfileProxy();
     if (proxy == nullptr) {
         ACCOUNT_LOGE("proxy is nullptr");
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->DeleteOsAccountSubspace(osAccountId, subspaceId);
+    return proxy->DeleteOsAccountSubProfile(osAccountId, subspaceId);
 #else
     (void)osAccountId;
     (void)subspaceId;
@@ -62,16 +62,16 @@ ErrCode OsAccountSubspaceClient::DeleteOsAccountSubspace(
 #endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 }
 
-ErrCode OsAccountSubspaceClient::SwitchOsAccountSubspace(
+ErrCode OsAccountSubProfileClient::SwitchOsAccountSubProfile(
     int32_t osAccountId, int32_t subspaceId)
 {
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-    auto proxy = GetOsAccountSubspaceProxy();
+    auto proxy = GetOsAccountSubProfileProxy();
     if (proxy == nullptr) {
         ACCOUNT_LOGE("proxy is nullptr");
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->SwitchOsAccountSubspace(osAccountId, subspaceId);
+    return proxy->SwitchOsAccountSubProfile(osAccountId, subspaceId);
 #else
     constexpr int32_t singleSubspaceMultiplier = 1000;
     return (subspaceId == osAccountId * singleSubspaceMultiplier) ? ERR_OK
@@ -80,17 +80,17 @@ ErrCode OsAccountSubspaceClient::SwitchOsAccountSubspace(
 }
 
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-void OsAccountSubspaceClient::OsAccountSubspaceDeathRecipient::OnRemoteDied(
+void OsAccountSubProfileClient::OsAccountSubProfileDeathRecipient::OnRemoteDied(
     const wptr<IRemoteObject> &remote)
 {
     if (remote == nullptr) {
         ACCOUNT_LOGE("remote is nullptr");
         return;
     }
-    OsAccountSubspaceClient::GetInstance().ResetProxy(remote);
+    OsAccountSubProfileClient::GetInstance().ResetProxy(remote);
 }
 
-sptr<IOsAccountSubspace> OsAccountSubspaceClient::GetOsAccountSubspaceProxy()
+sptr<IOsAccountSubProfile> OsAccountSubProfileClient::GetOsAccountSubProfileProxy()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (proxy_ != nullptr) {
@@ -101,7 +101,7 @@ sptr<IOsAccountSubspace> OsAccountSubspaceClient::GetOsAccountSubspaceProxy()
         ACCOUNT_LOGE("failed to get distributed account space service");
         return nullptr;
     }
-    deathRecipient_ = new (std::nothrow) OsAccountSubspaceDeathRecipient();
+    deathRecipient_ = new (std::nothrow) OsAccountSubProfileDeathRecipient();
     if (deathRecipient_ == nullptr) {
         ACCOUNT_LOGE("failed to create death recipient");
         return nullptr;
@@ -111,11 +111,11 @@ sptr<IOsAccountSubspace> OsAccountSubspaceClient::GetOsAccountSubspaceProxy()
         deathRecipient_ = nullptr;
         return nullptr;
     }
-    proxy_ = iface_cast<IOsAccountSubspace>(object);
+    proxy_ = iface_cast<IOsAccountSubProfile>(object);
     return proxy_;
 }
 
-void OsAccountSubspaceClient::ResetProxy(const wptr<IRemoteObject> &remote)
+void OsAccountSubProfileClient::ResetProxy(const wptr<IRemoteObject> &remote)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (proxy_ == nullptr) {
@@ -131,44 +131,44 @@ void OsAccountSubspaceClient::ResetProxy(const wptr<IRemoteObject> &remote)
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 
-ErrCode OsAccountSubspaceClient::GetOsAccountForegroundSubProfileId(
+ErrCode OsAccountSubProfileClient::GetOsAccountForegroundSubProfileId(
     int32_t &subProfileId)
 {
     return OhosAccountKits::GetInstance().GetOsAccountForegroundSubProfileId(subProfileId);
 }
 
-ErrCode OsAccountSubspaceClient::GetOsAccountForegroundSubProfileId(
+ErrCode OsAccountSubProfileClient::GetOsAccountForegroundSubProfileId(
     int32_t osAccountId, int32_t &subProfileId)
 {
     return OhosAccountKits::GetInstance().GetOsAccountForegroundSubProfileId(osAccountId, subProfileId);
 }
 
-ErrCode OsAccountSubspaceClient::GetOsAccountSubProfileIds(
+ErrCode OsAccountSubProfileClient::GetOsAccountSubProfileIds(
     std::vector<int32_t> &subProfileIds)
 {
     return OhosAccountKits::GetInstance().GetOsAccountSubProfileIds(subProfileIds);
 }
 
-ErrCode OsAccountSubspaceClient::GetOsAccountSubProfileIds(
+ErrCode OsAccountSubProfileClient::GetOsAccountSubProfileIds(
     int32_t osAccountId, std::vector<int32_t> &subProfileIds)
 {
     return OhosAccountKits::GetInstance().GetOsAccountSubProfileIds(osAccountId, subProfileIds);
 }
 
-ErrCode OsAccountSubspaceClient::GetOsAccountLocalIdForSubProfile(
+ErrCode OsAccountSubProfileClient::GetOsAccountLocalIdForSubProfile(
     int32_t subProfileId, int32_t &osAccountId)
 {
     return OhosAccountKits::GetInstance().GetOsAccountLocalIdForSubProfile(subProfileId, osAccountId);
 }
 
-ErrCode OsAccountSubspaceClient::GetOsAccountSubProfile(
+ErrCode OsAccountSubProfileClient::GetOsAccountSubProfile(
     int32_t subProfileId, OsAccountSubspaceResult &subspaceResult,
     OhosAccountInfo &distributedInfo)
 {
     return OhosAccountKits::GetInstance().GetOsAccountSubProfile(subProfileId, subspaceResult, distributedInfo);
 }
 
-ErrCode OsAccountSubspaceClient::GetOsAccountSubProfile(
+ErrCode OsAccountSubProfileClient::GetOsAccountSubProfile(
     int32_t osAccountId, int32_t subProfileId, OsAccountSubspaceResult &subspaceResult,
     OhosAccountInfo &distributedInfo)
 {

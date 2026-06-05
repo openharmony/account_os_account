@@ -13,14 +13,9 @@
  * limitations under the License.
  */
 
-sequenceable OsAccountSubspaceResult..OHOS.AccountSA.OsAccountSubspaceResult;
+#ifndef TEST_FUZZTEST_DELETEOSACCOUNTSUBPROFILE_FUZZER_H
+#define TEST_FUZZTEST_DELETEOSACCOUNTSUBPROFILE_FUZZER_H
 
-interface_token ohos.accountfwk.IOsAccountSubspace;
+#define FUZZ_PROJECT_NAME "delete_os_account_subprofile_fuzzer"
 
-interface OHOS.AccountSA.IOsAccountSubspace {
-    void CreateOsAccountSubspace([in] int osAccountId, [out] OsAccountSubspaceResult subspaceResult);
-
-    void DeleteOsAccountSubspace([in] int osAccountId, [in] int subspaceId);
-
-    void SwitchOsAccountSubspace([in] int osAccountId, [in] int subspaceId);
-}
+#endif // TEST_FUZZTEST_DELETEOSACCOUNTSUBPROFILE_FUZZER_H

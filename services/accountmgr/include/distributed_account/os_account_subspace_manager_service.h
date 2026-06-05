@@ -13,28 +13,28 @@
  * limitations under the License.
  */
 
-#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OS_ACCOUNT_SUBSPACE_MANAGER_SERVICE_H
-#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OS_ACCOUNT_SUBSPACE_MANAGER_SERVICE_H
+#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OS_ACCOUNT_SUB_PROFILE_MANAGER_SERVICE_H
+#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OS_ACCOUNT_SUB_PROFILE_MANAGER_SERVICE_H
 
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-#include "os_account_subspace_stub.h"
+#include "os_account_sub_profile_stub.h"
 #include "account_info.h"
 
 namespace OHOS {
 namespace AccountSA {
-class OsAccountSubspaceManagerService : public OsAccountSubspaceStub {
+class OsAccountSubProfileManagerService : public OsAccountSubProfileStub {
 public:
-    OsAccountSubspaceManagerService() = default;
-    ~OsAccountSubspaceManagerService() override = default;
+    OsAccountSubProfileManagerService() = default;
+    ~OsAccountSubProfileManagerService() override = default;
 
-    int32_t CreateOsAccountSubspace(int32_t osAccountId,
+    int32_t CreateOsAccountSubProfile(int32_t osAccountId,
         OsAccountSubspaceResult &subspaceResult) override;
-    int32_t DeleteOsAccountSubspace(int32_t osAccountId,
+    int32_t DeleteOsAccountSubProfile(int32_t osAccountId,
         int32_t subspaceId) override;
-    int32_t SwitchOsAccountSubspace(int32_t osAccountId,
+    int32_t SwitchOsAccountSubProfile(int32_t osAccountId,
         int32_t subspaceId) override;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
 #endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OS_ACCOUNT_SUBSPACE_MANAGER_SERVICE_H
+#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OS_ACCOUNT_SUB_PROFILE_MANAGER_SERVICE_H

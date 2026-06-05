@@ -71,7 +71,7 @@ public:
         const std::string &rawUid = TEST_UID);
     OsAccountSubspaceInfo MakeTestSpaceInfo(int32_t osAccountId, int32_t subspaceId,
         OHOS_ACCOUNT_STATE status, const OhosAccountInfo &accountInfo = OhosAccountInfo());
-    void SetupOsAccountWithForeground(int32_t localId, int32_t foregroundSubspaceId);
+    void SetupOsAccountWithForeground(int32_t localId, int32_t foregroundSubProfileId);
     void SaveSpaceViaApi(const OsAccountSubspaceInfo &info);
     void LoadSpaceViaApi(int32_t osAccountId, int32_t subspaceId, OsAccountSubspaceInfo& info);
     void ClearAllTestSpaces();
@@ -88,7 +88,7 @@ void OhosAccountSpaceLoginLogoutTest::SetUpTestCase()
 {
     allPermTokenId_ = GetAllAccountPermission();
     ASSERT_NE(allPermTokenId_, 0);
-    OsAccountSubspaceManager::GetInstance().Init(TEST_ROOT_DIR);
+    OsAccountSubProfileManager::GetInstance().Init(TEST_ROOT_DIR);
     OhosAccountManager::GetInstance().OnInitialize();
 }
 
@@ -150,11 +150,11 @@ OsAccountSubspaceInfo OhosAccountSpaceLoginLogoutTest::MakeTestSpaceInfo(
 }
 
 void OhosAccountSpaceLoginLogoutTest::SetupOsAccountWithForeground(
-    int32_t localId, int32_t foregroundSubspaceId)
+    int32_t localId, int32_t foregroundSubProfileId)
 {
     OsAccountInfo osAccountInfo;
     osAccountInfo.SetLocalId(localId);
-    osAccountInfo.foregroundSubspaceId_ = foregroundSubspaceId;
+    osAccountInfo.foregroundSubProfileId_ = foregroundSubProfileId;
     std::vector<OsAccountInfo> accounts = {osAccountInfo};
     MockSetCreatedOsAccounts(accounts);
 }
@@ -176,13 +176,13 @@ void OhosAccountSpaceLoginLogoutTest::LoadSpaceViaApi(
 void OhosAccountSpaceLoginLogoutTest::ClearAllTestSpaces()
 {
     std::set<int32_t> spaceIds;
-    OsAccountSubspaceManager::GetInstance().ScanOsAccountSubspaceIds(OS_ACCOUNT_ID, spaceIds);
+    OsAccountSubProfileManager::GetInstance().ScanOsAccountSubProfileIds(OS_ACCOUNT_ID, spaceIds);
     for (int32_t id : spaceIds) {
         OsAccountSubspaceInfo info;
-        if (OsAccountSubspaceManager::GetInstance().LoadSubspaceInfo(OS_ACCOUNT_ID, id, info) == ERR_OK) {
+        if (OsAccountSubProfileManager::GetInstance().LoadSubProfileInfo(OS_ACCOUNT_ID, id, info) == ERR_OK) {
             info.ohosAccountInfo_ = OhosAccountInfo();
             info.ohosAccountInfo_.status_ = ACCOUNT_STATE_UNBOUND;
-            OsAccountSubspaceManager::GetInstance().SaveSubspaceInfo(info);
+            OsAccountSubProfileManager::GetInstance().SaveSubProfileInfo(info);
         }
     }
 }

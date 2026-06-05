@@ -125,6 +125,7 @@
         "OHOS::AccountSA::AccountMgrService::GetCallingUserID()";
         *OHOS::AccountSA::CommitCredUpdateCallback::CommitCredUpdateCallback*;
         "OHOS::AccountSA::IInnerOsAccountManager::CheckAndAddLocalIdOperating(int)";
+        "OHOS::AccountSA::IInnerOsAccountManager::CheckLocalIdRestricted(int)";
         "OHOS::AccountSA::IInnerOsAccountManager::UpdateAccountStatusForDomain(int, OHOS::AccountSA::DomainAccountStatus)";
         "OHOS::AccountSA::IInnerOsAccountManager::CleanGarbageOsAccounts()";
         "OHOS::AccountSA::IInnerOsAccountManager::CreateBaseAdminAccount()";
@@ -209,6 +210,10 @@
         "OHOS::AccountSA::OhosAccountManager::LogoffOhosAccount(OHOS::AccountSA::OhosAccountInfo const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::AccountSA::OhosAccountManager::LogoutOhosAccount(OHOS::AccountSA::OhosAccountInfo const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::AccountSA::OhosAccountManager::OnInitialize()";
+        "OHOS::AccountSA::OhosAccountManager::InitOsAccountSubProfileManager(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
+        "OHOS::AccountSA::OhosAccountManager::CreateOsAccountSubspace(int, OHOS::AccountSA::OsAccountSubspaceResult&)";
+        "OHOS::AccountSA::OhosAccountManager::DeleteOsAccountSubspace(int, int)";
+        "OHOS::AccountSA::OhosAccountManager::SwitchOsAccountSubspace(int, int, int&)";
         "OHOS::AccountSA::OsAccountControlFileManager::BuildAndSaveBaseOAConstraintsJsonFile()";
         "OHOS::AccountSA::OsAccountControlFileManager::BuildAndSaveGlobalOAConstraintsJsonFile()";
         "OHOS::AccountSA::OsAccountControlFileManager::BuildAndSaveSpecificOAConstraintsJsonFile()";
@@ -411,16 +416,16 @@
         "OHOS::AccountSA::DatabaseAdapterLoader::GetInstance()";
         "OHOS::AccountSA::DatabaseAdapterLoader::GetDataManager()";
         "OHOS::AccountSA::NativeAppAuthResult::NativeAppAuthResult(OHOS::AAFwk::Want const&)";
-        "OHOS::AccountSA::OsAccountSubspaceManager::GetInstance()";
-        "OHOS::AccountSA::OsAccountSubspaceManager::Init(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
-        "OHOS::AccountSA::OsAccountSubspaceManager::CheckActiveSessionStatus(OHOS::AccountSA::OsAccountSubspaceDataDeal*, int, int)";
-        "OHOS::AccountSA::OsAccountSubspaceManager::CreateSubspace(int, int&)";
-        "OHOS::AccountSA::OsAccountSubspaceManager::RemoveSubspace(int, int)";
-        "OHOS::AccountSA::OsAccountSubspaceManager::SwitchSubspace(int, int, int&)";
-        "OHOS::AccountSA::OsAccountSubspaceManager::CleanupOrphanedSubspaces()";
-        "OHOS::AccountSA::OsAccountSubspaceManagerService::OsAccountSubspaceManagerService()";
-        "vtable for OHOS::AccountSA::OsAccountSubspaceManagerService";
-        "VTT for OHOS::AccountSA::OsAccountSubspaceManagerService";
+        "OHOS::AccountSA::OsAccountSubProfileManager::GetInstance()";
+        "OHOS::AccountSA::OsAccountSubProfileManager::Init(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
+        "OHOS::AccountSA::OsAccountSubProfileManager::CheckActiveSessionStatus(OHOS::AccountSA::OsAccountSubProfileDataDeal*, int, int)";
+        "OHOS::AccountSA::OsAccountSubProfileManager::CreateSubProfile(int, int&)";
+        "OHOS::AccountSA::OsAccountSubProfileManager::RemoveSubProfile(int, int)";
+        "OHOS::AccountSA::OsAccountSubProfileManager::SwitchSubProfile(int, int, int&)";
+        "OHOS::AccountSA::OsAccountSubProfileManager::CleanupOrphanedSubProfiles()";
+        "OHOS::AccountSA::OsAccountSubProfileManagerService::OsAccountSubProfileManagerService()";
+        "vtable for OHOS::AccountSA::OsAccountSubProfileManagerService";
+        "VTT for OHOS::AccountSA::OsAccountSubProfileManagerService";
     };
   local:
     *;

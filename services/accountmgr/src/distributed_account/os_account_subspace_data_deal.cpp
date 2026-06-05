@@ -43,46 +43,101 @@ const char JSON_KEY_OHOSACCOUNT_UID[] = "open_id";
 const char JSON_KEY_OHOSACCOUNT_STATUS[] = "bind_status";
 const char JSON_KEY_OHOSACCOUNT_CALLINGUID[] = "calling_uid";
 const char JSON_KEY_OHOSACCOUNT_NICKNAME[] = "account_nickname";
-const char JSON_KEY_OHOSACCOUNT_AVATAR[] = "account_avatar";
 const char JSON_KEY_OHOSACCOUNT_SCALABLEDATA[] = "account_scalableData";
+const char SUBSPACE_ACCOUNT_AVATAR[] = "/account_avatar";
 constexpr int32_t MAX_RETRY_TIMES = 3;
 }  // namespace
 
-const int32_t MAX_OS_ACCOUNT_SUBSPACE_COUNT =
+const int32_t MAX_OS_ACCOUNT_SUB_PROFILE_COUNT =
     OHOS::system::GetIntParameter<int32_t>("const.bms.appCloneMaxCount", 1000, 1, 1000) - 1;
 
-OsAccountSubspaceDataDeal::OsAccountSubspaceDataDeal(const std::string &configRootDir)
+OsAccountSubProfileDataDeal::OsAccountSubProfileDataDeal(const std::string &configRootDir)
     : configRootDir_(configRootDir), fileOperator_(std::make_shared<AccountFileOperator>())
 {}
 
-ErrCode OsAccountSubspaceDataDeal::AllocateOsAccountSubspaceId(
-    int32_t osAccountId, const std::set<int32_t> &usedIndices, int32_t &outId)
+ErrCode OsAccountSubProfileDataDeal::AllocateOsAccountSubProfileId(
+    int32_t osAccountId, int32_t nextSubProfileId,
+    const std::vector<std::string> &subProfileIdStrList, int32_t &outId)
 {
-    for (int32_t idx = OS_ACCOUNT_SUBSPACE_INDEX_MIN; idx <= OS_ACCOUNT_SUBSPACE_INDEX_MAX; ++idx) {
-        if (usedIndices.find(idx) == usedIndices.end()) {
-            outId = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + idx;
-            ACCOUNT_LOGI("Allocated subspaceId=%{public}d for osAccountId=%{public}d",
-                outId, osAccountId);
+    int32_t base = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
+    int32_t minId = base + OS_ACCOUNT_SUB_PROFILE_INDEX_MIN;
+    int32_t maxId = base + OS_ACCOUNT_SUB_PROFILE_INDEX_MAX;
+    int32_t startId = nextSubProfileId;
+
+    if (startId < minId || startId > maxId) {
+        startId = minId;
+    }
+
+    int32_t searchCount = 0;
+    int32_t totalRange = OS_ACCOUNT_SUB_PROFILE_INDEX_MAX - OS_ACCOUNT_SUB_PROFILE_INDEX_MIN + 1;
+
+    // Non-numeric strings in subProfileIdStrList (e.g. corrupted data) are implicitly
+    // skipped as they never match std::to_string(startId) — equivalent to the old
+    // behavior where StrToInt silently skipped them.
+    do {
+        if (std::find(subProfileIdStrList.begin(), subProfileIdStrList.end(),
+            std::to_string(startId)) == subProfileIdStrList.end()) {
+            outId = startId;
+            ACCOUNT_LOGI("Allocated subspaceId=%{public}d for osAccountId=%{public}d", outId, osAccountId);
             return ERR_OK;
         }
-    }
-    ACCOUNT_LOGE("No available index for osAccountId=%{public}d, all %{public}d slots used.",
-        osAccountId, OS_ACCOUNT_SUBSPACE_INDEX_MAX);
-    return ERR_OS_ACCOUNT_SUBSPACE_LIMIT;
+        ++startId;
+        ++searchCount;
+        if (startId > maxId) {
+            startId = minId;
+        }
+        if (searchCount >= totalRange) {
+            ACCOUNT_LOGE("No available index for osAccountId=%{public}d, all %{public}d slots used.",
+                osAccountId, OS_ACCOUNT_SUB_PROFILE_INDEX_MAX);
+            return ERR_OS_ACCOUNT_SUBSPACE_LIMIT;
+        }
+    } while (true);
 }
 
-std::string OsAccountSubspaceDataDeal::GetSubspaceDir(int32_t osAccountId, int32_t subspaceId) const
+std::string OsAccountSubProfileDataDeal::GetSubProfileDir(int32_t osAccountId, int32_t subspaceId) const
 {
     return configRootDir_ + std::to_string(osAccountId) + "/" + std::to_string(subspaceId);
 }
 
-std::string OsAccountSubspaceDataDeal::GetSubspaceFilePath(
+std::string OsAccountSubProfileDataDeal::GetSubProfileFilePath(
     int32_t osAccountId, int32_t subspaceId) const
 {
-    return GetSubspaceDir(osAccountId, subspaceId) + SUBSPACE_ACCOUNT_JSON;
+    return GetSubProfileDir(osAccountId, subspaceId) + SUBSPACE_ACCOUNT_JSON;
 }
 
-ErrCode OsAccountSubspaceDataDeal::ScanSubspaceIdsWithFilter(int32_t osAccountId,
+int32_t OsAccountSubProfileDataDeal::ParseDirEntryAsSubProfileId(
+    const struct dirent *entry, int32_t osAccountId, int32_t base)
+{
+    if (entry->d_type != DT_DIR) {
+        return -1;
+    }
+    std::string name(entry->d_name);
+    if (name == "." || name == "..") {
+        return -1;
+    }
+    bool isDigit = !name.empty() && std::all_of(name.begin(), name.end(),
+        [](unsigned char c) { return std::isdigit(c) != 0; });
+    if (!isDigit) {
+        return -1;
+    }
+    char *endPtr = nullptr;
+    errno = 0;
+    long val = std::strtol(name.c_str(), &endPtr, 10);
+    if (errno != 0 || endPtr == name.c_str() || *endPtr != '\0' ||
+        val < INT32_MIN || val > INT32_MAX) {
+        ACCOUNT_LOGW("Skip invalid directory name=%{public}s under osAccountId=%{public}d",
+            name.c_str(), osAccountId);
+        return -1;
+    }
+    int32_t subspaceId = static_cast<int32_t>(val);
+    int32_t index = subspaceId - base;
+    if (index < OS_ACCOUNT_SUB_PROFILE_INDEX_MIN || index > OS_ACCOUNT_SUB_PROFILE_INDEX_MAX) {
+        return -1;
+    }
+    return subspaceId;
+}
+
+ErrCode OsAccountSubProfileDataDeal::ScanSubProfileIds(int32_t osAccountId,
     std::function<bool(const OsAccountSubspaceInfo &)> filter,
     std::set<int32_t> &resultIds) const
 {
@@ -98,34 +153,18 @@ ErrCode OsAccountSubspaceDataDeal::ScanSubspaceIdsWithFilter(int32_t osAccountId
     int32_t base = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
     struct dirent *entry = nullptr;
     while ((entry = readdir(dir)) != nullptr) {
-        if (entry->d_type != DT_DIR) {
+        int32_t subspaceId = ParseDirEntryAsSubProfileId(entry, osAccountId, base);
+        if (subspaceId < 0) {
             continue;
         }
-        std::string name(entry->d_name);
-        if (name == "." || name == "..") {
-            continue;
-        }
-        bool isDigit = !name.empty() && std::all_of(name.begin(), name.end(), ::isdigit);
-        if (!isDigit) {
-            continue;
-        }
-        char *endPtr = nullptr;
-        errno = 0;
-        long val = std::strtol(name.c_str(), &endPtr, 10);
-        if (errno != 0 || endPtr == name.c_str() || *endPtr != '\0' ||
-            val < INT32_MIN || val > INT32_MAX) {
-            ACCOUNT_LOGE("Invalid directory name=%{public}s under osAccountId=%{public}d", name.c_str(), osAccountId);
-            closedir(dir);
-            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-        }
-        int32_t subspaceId = static_cast<int32_t>(val);
-        int32_t index = subspaceId - base;
-        if (index < OS_ACCOUNT_SUBSPACE_INDEX_MIN || index > OS_ACCOUNT_SUBSPACE_INDEX_MAX) {
+
+        if (!filter) {
+            resultIds.insert(subspaceId);
             continue;
         }
 
         OsAccountSubspaceInfo info;
-        ErrCode ret = LoadSubspaceInfo(osAccountId, subspaceId, info);
+        ErrCode ret = LoadSubProfileInfo(osAccountId, subspaceId, info);
         if (ret != ERR_OK) {
             continue;
         }
@@ -137,34 +176,34 @@ ErrCode OsAccountSubspaceDataDeal::ScanSubspaceIdsWithFilter(int32_t osAccountId
     return ERR_OK;
 }
 
-ErrCode OsAccountSubspaceDataDeal::ScanOsAccountSubspaceIds(
+ErrCode OsAccountSubProfileDataDeal::ScanOsAccountSubProfileIds(
     int32_t osAccountId, std::set<int32_t> &validIds) const
 {
-    return ScanSubspaceIdsWithFilter(osAccountId,
+    return ScanSubProfileIds(osAccountId,
         [](const OsAccountSubspaceInfo &info) {
             return info.isCreateCompleted && !info.toBeRemoved;
         }, validIds);
 }
 
-ErrCode OsAccountSubspaceDataDeal::ScanOrphanedSubspaceIds(
+ErrCode OsAccountSubProfileDataDeal::ScanOrphanedSubProfileIds(
     int32_t osAccountId, std::set<int32_t> &orphanIds) const
 {
-    return ScanSubspaceIdsWithFilter(osAccountId,
+    return ScanSubProfileIds(osAccountId,
         [](const OsAccountSubspaceInfo &info) {
             return !info.isCreateCompleted;
         }, orphanIds);
 }
 
-ErrCode OsAccountSubspaceDataDeal::ScanPendingRemovalSubspaceIds(
+ErrCode OsAccountSubProfileDataDeal::ScanPendingRemovalSubProfileIds(
     int32_t osAccountId, std::set<int32_t> &pendingRemoveIds) const
 {
-    return ScanSubspaceIdsWithFilter(osAccountId,
+    return ScanSubProfileIds(osAccountId,
         [](const OsAccountSubspaceInfo &info) {
             return info.toBeRemoved;
         }, pendingRemoveIds);
 }
 
-std::string OsAccountSubspaceDataDeal::SerializeSubspaceInfoToJson(
+std::string OsAccountSubProfileDataDeal::SerializeSubProfileInfoToJson(
     const OsAccountSubspaceInfo &info) const
 {
     auto jsonObj = CreateJson();
@@ -180,12 +219,11 @@ std::string OsAccountSubspaceDataDeal::SerializeSubspaceInfoToJson(
     AddIntToJson(jsonObj, JSON_KEY_OHOSACCOUNT_STATUS, static_cast<int32_t>(info.ohosAccountInfo_.status_));
     AddIntToJson(jsonObj, JSON_KEY_OHOSACCOUNT_CALLINGUID, info.ohosAccountInfo_.callingUid_);
     AddStringToJson(jsonObj, JSON_KEY_OHOSACCOUNT_NICKNAME, info.ohosAccountInfo_.nickname_);
-    AddStringToJson(jsonObj, JSON_KEY_OHOSACCOUNT_AVATAR, info.ohosAccountInfo_.avatar_);
     AddStringToJson(jsonObj, JSON_KEY_OHOSACCOUNT_SCALABLEDATA, info.ohosAccountInfo_.scalableData_);
     return PackJsonToString(jsonObj);
 }
 
-ErrCode OsAccountSubspaceDataDeal::ParseSubspaceInfoFromJson(
+ErrCode OsAccountSubProfileDataDeal::ParseSubProfileInfoFromJson(
     const std::string &jsonStr, OsAccountSubspaceInfo &info) const
 {
     auto jsonObj = CreateJsonFromString(jsonStr);
@@ -213,14 +251,13 @@ ErrCode OsAccountSubspaceDataDeal::ParseSubspaceInfoFromJson(
     }
     GetDataByType<int32_t>(jsonObj.get(), JSON_KEY_OHOSACCOUNT_CALLINGUID, info.ohosAccountInfo_.callingUid_);
     GetDataByType<std::string>(jsonObj.get(), JSON_KEY_OHOSACCOUNT_NICKNAME, info.ohosAccountInfo_.nickname_);
-    GetDataByType<std::string>(jsonObj.get(), JSON_KEY_OHOSACCOUNT_AVATAR, info.ohosAccountInfo_.avatar_);
     GetDataByType<std::string>(jsonObj.get(), JSON_KEY_OHOSACCOUNT_SCALABLEDATA, info.ohosAccountInfo_.scalableData_);
     return ERR_OK;
 }
 
-ErrCode OsAccountSubspaceDataDeal::SaveSubspaceInfo(const OsAccountSubspaceInfo &info)
+ErrCode OsAccountSubProfileDataDeal::SaveSubProfileInfo(const OsAccountSubspaceInfo &info)
 {
-    std::string subspaceDir = GetSubspaceDir(info.userId_, info.subspaceId);
+    std::string subspaceDir = GetSubProfileDir(info.userId_, info.subspaceId);
     if (!fileOperator_->IsExistDir(subspaceDir)) {
         ErrCode ret = fileOperator_->CreateDir(subspaceDir);
         if (ret != ERR_OK) {
@@ -229,21 +266,27 @@ ErrCode OsAccountSubspaceDataDeal::SaveSubspaceInfo(const OsAccountSubspaceInfo 
             return ret;
         }
     }
-    std::string filePath = GetSubspaceFilePath(info.userId_, info.subspaceId);
-    std::string content = SerializeSubspaceInfoToJson(info);
-    ErrCode ret = fileOperator_->InputFileByPathAndContentWithTransaction(filePath, content);
+    std::string avatarFile = GetSubProfileDir(info.userId_, info.subspaceId) + SUBSPACE_ACCOUNT_AVATAR;
+    ErrCode ret = fileOperator_->InputFileByPathAndContentWithTransaction(
+        avatarFile, info.ohosAccountInfo_.avatar_);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Failed to save avatar! ret = %{public}d", ret);
+        return ret;
+    }
+    std::string filePath = GetSubProfileFilePath(info.userId_, info.subspaceId);
+    std::string content = SerializeSubProfileInfoToJson(info);
+    ret = fileOperator_->InputFileByPathAndContentWithTransaction(filePath, content);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("Write subspace failed, osId=%{public}d, subId=%{public}d, ret=%{public}d",
             info.userId_, info.subspaceId, ret);
-        return ret;
     }
-    return ERR_OK;
+    return ret;
 }
 
-ErrCode OsAccountSubspaceDataDeal::LoadSubspaceInfo(
+ErrCode OsAccountSubProfileDataDeal::LoadSubProfileInfo(
     int32_t osAccountId, int32_t subspaceId, OsAccountSubspaceInfo &info) const
 {
-    std::string filePath = GetSubspaceFilePath(osAccountId, subspaceId);
+    std::string filePath = GetSubProfileFilePath(osAccountId, subspaceId);
     if (!fileOperator_->IsExistFile(filePath)) {
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
@@ -254,12 +297,21 @@ ErrCode OsAccountSubspaceDataDeal::LoadSubspaceInfo(
             osAccountId, subspaceId, ret);
         return ret;
     }
-    return ParseSubspaceInfoFromJson(content, info);
+    ret = ParseSubProfileInfoFromJson(content, info);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+    std::string avatarFile = GetSubProfileDir(osAccountId, subspaceId) + SUBSPACE_ACCOUNT_AVATAR;
+    std::string avatarData;
+    if (fileOperator_->GetFileContentByPath(avatarFile, avatarData) == ERR_OK) {
+        info.ohosAccountInfo_.avatar_ = avatarData;
+    }
+    return ERR_OK;
 }
 
-ErrCode OsAccountSubspaceDataDeal::RemoveSubspaceDir(int32_t osAccountId, int32_t subspaceId)
+ErrCode OsAccountSubProfileDataDeal::RemoveSubProfileDir(int32_t osAccountId, int32_t subspaceId)
 {
-    std::string subspaceDir = GetSubspaceDir(osAccountId, subspaceId);
+    std::string subspaceDir = GetSubProfileDir(osAccountId, subspaceId);
     if (!fileOperator_->IsExistDir(subspaceDir)) {
         return ERR_OK;
     }
@@ -279,11 +331,11 @@ ErrCode OsAccountSubspaceDataDeal::RemoveSubspaceDir(int32_t osAccountId, int32_
     return ret;
 }
 
-bool OsAccountSubspaceDataDeal::IsValidSubspaceExists(
+bool OsAccountSubProfileDataDeal::IsValidSubProfileExists(
     int32_t osAccountId, int32_t subspaceId) const
 {
     OsAccountSubspaceInfo info;
-    ErrCode ret = LoadSubspaceInfo(osAccountId, subspaceId, info);
+    ErrCode ret = LoadSubProfileInfo(osAccountId, subspaceId, info);
     if (ret != ERR_OK) {
         return false;
     }

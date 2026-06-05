@@ -329,7 +329,7 @@ static ErrCode ProcDistributedAccountSpaceStateChange(
         ACCOUNT_LOGE("GetOsAccountInfoByLocalId failed, userId=%{public}d", userId);
         return ret;
     }
-    int32_t subspaceId = osAccountInfo.GetForegroundSubspaceId();
+    int32_t subspaceId = osAccountInfo.GetForegroundSubProfileId();
 
     static const std::map<std::string, OhosAccountEventFunc> eventFuncMap = {
         {
@@ -578,16 +578,16 @@ ErrCode OhosAccountManager::GetAccountInfoByUserId(std::int32_t userId, AccountI
     OsAccountInfo osAccountInfo;
     ErrCode getInfoRet = IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(userId, osAccountInfo);
     if (getInfoRet == ERR_OK) {
-        int32_t fgSubspaceId = osAccountInfo.GetForegroundSubspaceId();
-        if (fgSubspaceId != -1) {
+        int32_t fgSubProfileId = osAccountInfo.GetForegroundSubProfileId();
+        if (fgSubProfileId != -1) {
             OsAccountSubspaceInfo subspaceInfo;
-            ErrCode loadRet = GetDistributedAccountSpaceInfo(userId, fgSubspaceId, subspaceInfo);
+            ErrCode loadRet = GetDistributedAccountSpaceInfo(userId, fgSubProfileId, subspaceInfo);
             if (loadRet == ERR_OK) {
                 info = subspaceInfo;  // Copy AccountInfo base fields from subspace info
                 return ERR_OK;
             }
-            ACCOUNT_LOGW("load subspace info failed, fgSubspaceId=%{public}d, ret=%{public}d, "
-                         "fallback to base subspace.", fgSubspaceId, loadRet);
+            ACCOUNT_LOGW("load subspace info failed, fgSubProfileId=%{public}d, ret=%{public}d, "
+                         "fallback to base subspace.", fgSubProfileId, loadRet);
         }
     } else {
         ACCOUNT_LOGW("GetOsAccountInfoById failed for userId=%{public}d, ret=%{public}d, "
@@ -637,10 +637,11 @@ static void SendMultiSubSpaceCommonEvt(const std::int32_t userId, const int32_t 
 }
 #endif // HAS_CES_PART
 
-void OhosAccountManager::InitOsAccountSubspaceManager(const std::string &rootPath)
+void OhosAccountManager::InitOsAccountSubProfileManager(const std::string &rootPath)
 {
-    OsAccountSubspaceManager::GetInstance().Init(rootPath);
-    auto task = []() { OsAccountSubspaceManager::GetInstance().CleanupOrphanedSubspaces(); };
+    OsAccountSubProfileManager::GetInstance().Init(rootPath);
+#ifndef ACCOUNT_TEST
+    auto task = []() { OsAccountSubProfileManager::GetInstance().CleanupOrphanedSubProfiles(); };
 #ifdef FUZZ_TEST
     task();
 #else
@@ -648,12 +649,13 @@ void OhosAccountManager::InitOsAccountSubspaceManager(const std::string &rootPat
     pthread_setname_np(taskThread.native_handle(), "DistAccSpaceCln");
     taskThread.detach();
 #endif
+#endif
 }
 
 ErrCode OhosAccountManager::CreateOsAccountSubspace(int32_t osAccountId, OsAccountSubspaceResult &result)
 {
     int32_t newSubspaceId = 0;
-    ErrCode ret = OsAccountSubspaceManager::GetInstance().CreateSubspace(osAccountId, newSubspaceId);
+    ErrCode ret = OsAccountSubProfileManager::GetInstance().CreateSubProfile(osAccountId, newSubspaceId);
     if (ret != ERR_OK) {
         REPORT_OS_ACCOUNT_FAIL(osAccountId, "subspace_create", ret,
             "CreateOsAccountSubspace failed");
@@ -677,7 +679,7 @@ ErrCode OhosAccountManager::CreateOsAccountSubspace(int32_t osAccountId, OsAccou
 
 ErrCode OhosAccountManager::DeleteOsAccountSubspace(int32_t osAccountId, int32_t subspaceId)
 {
-    ErrCode ret = OsAccountSubspaceManager::GetInstance().RemoveSubspace(osAccountId, subspaceId);
+    ErrCode ret = OsAccountSubProfileManager::GetInstance().RemoveSubProfile(osAccountId, subspaceId);
     if (ret != ERR_OK) {
         REPORT_OS_ACCOUNT_FAIL(osAccountId, "subspace_delete", ret,
             "DeleteOsAccountSubspace failed");
@@ -698,15 +700,21 @@ ErrCode OhosAccountManager::DeleteOsAccountSubspace(int32_t osAccountId, int32_t
 ErrCode OhosAccountManager::SwitchOsAccountSubspace(
     int32_t osAccountId, int32_t subspaceId, int32_t &fromSubspaceId)
 {
-    // index-0 active session check: mgrMutex_ + dataDealer_->AccountInfoFromJson() reads the
-    // distributed account LOGIN state — this data is owned exclusively by OhosAccountManager.
-    // Foreground checks for non-0 spaces are handled internally inside SwitchSubspace.
-    int32_t base = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
     OsAccountInfo osAccountInfo;
     ErrCode err = IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(osAccountId, osAccountInfo);
+    if (err == ERR_OK && osAccountInfo.GetForegroundSubProfileId() == subspaceId) {
+        fromSubspaceId = subspaceId;
+        ACCOUNT_LOGI("Target subspace is already foreground, no switch needed, osAccountId=%{public}d, "
+            "subspaceId=%{public}d", osAccountId, subspaceId);
+        return ERR_OK;
+    }
+    // index-0 active session check: mgrMutex_ + dataDealer_->AccountInfoFromJson() reads the
+    // distributed account LOGIN state — this data is owned exclusively by OhosAccountManager.
+    // Foreground checks for non-0 spaces are handled internally inside SwitchSubProfile.
+    int32_t base = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
     if (err != ERR_OK) {
         ACCOUNT_LOGW("GetOsAccountInfoById failed, skip base subspace check and proceed");
-    } else if (osAccountInfo.GetForegroundSubspaceId() == base) {
+    } else if (osAccountInfo.GetForegroundSubProfileId() == base) {
         std::lock_guard<std::mutex> lock(mgrMutex_);
         AccountInfo currentAccountInfo;
         if (dataDealer_->AccountInfoFromJson(currentAccountInfo, osAccountId) == ERR_OK &&
@@ -716,7 +724,7 @@ ErrCode OhosAccountManager::SwitchOsAccountSubspace(
         }
     }
 
-    ErrCode ret = OsAccountSubspaceManager::GetInstance().SwitchSubspace(
+    ErrCode ret = OsAccountSubProfileManager::GetInstance().SwitchSubProfile(
         osAccountId, subspaceId, fromSubspaceId);
     if (ret != ERR_OK) {
         REPORT_OS_ACCOUNT_FAIL(osAccountId, "subspace_switch", ret,
@@ -758,7 +766,7 @@ ErrCode OhosAccountManager::GetOsAccountForegroundSubProfileId(
         ACCOUNT_LOGE("GetOsAccountInfoById failed, osAccountId=%{public}d, ret=%{public}d", osAccountId, ret);
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
-    subProfileId = osAccountInfo.GetForegroundSubspaceId();
+    subProfileId = osAccountInfo.GetForegroundSubProfileId();
     return ERR_OK;
 }
 
@@ -767,7 +775,7 @@ ErrCode OhosAccountManager::GetOsAccountSubProfileIds(
 {
     subProfileIds.clear();
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-    return OsAccountSubspaceManager::GetInstance().GetSubProfileIds(osAccountId, subProfileIds);
+    return OsAccountSubProfileManager::GetInstance().GetSubProfileIds(osAccountId, subProfileIds);
 #else
     int32_t subProfileId = 0;
     ErrCode ret = GetOsAccountForegroundSubProfileId(osAccountId, subProfileId);
@@ -782,7 +790,7 @@ ErrCode OhosAccountManager::GetOsAccountLocalIdForSubProfile(
     int32_t subProfileId, int32_t &osAccountId)
 {
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-    ErrCode res = OsAccountSubspaceManager::GetInstance().GetLocalIdForSubProfile(subProfileId, osAccountId);
+    ErrCode res = OsAccountSubProfileManager::GetInstance().GetLocalIdForSubProfile(subProfileId, osAccountId);
     if (res != ERR_OK) {
         return res;
     }
@@ -820,7 +828,7 @@ ErrCode OhosAccountManager::GetOsAccountSubProfile(int32_t osAccountId, int32_t 
         distributedInfo = accountInfo.ohosAccountInfo_;
     } else {
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-        ret = OsAccountSubspaceManager::GetInstance().GetSubProfile(
+        ret = OsAccountSubProfileManager::GetInstance().GetSubProfile(
             osAccountId, subProfileId, subspaceResult, distributedInfo);
         if (ret != ERR_OK) {
             return ret;
@@ -1219,9 +1227,9 @@ void OhosAccountManager::ClearMainAccountIfMatch(int32_t localId, const std::int
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 void OhosAccountManager::ClearDistributedAccountSpacesIfMatch(int32_t localId, const std::int32_t bundleUid)
 {
-    auto &spaceManager = OsAccountSubspaceManager::GetInstance();
+    auto &spaceManager = OsAccountSubProfileManager::GetInstance();
     std::set<int32_t> spaceIds;
-    if (spaceManager.ScanOsAccountSubspaceIds(localId, spaceIds) != ERR_OK) {
+    if (spaceManager.ScanOsAccountSubProfileIds(localId, spaceIds) != ERR_OK) {
         return;
     }
     for (int32_t spaceId : spaceIds) {
@@ -1585,7 +1593,7 @@ ErrCode OhosAccountManager::GetDistributedAccountSpaceInfo(int32_t userId,
         spaceInfo.version_ = curInfo.version_;
         return ERR_OK;
     }
-    return OsAccountSubspaceManager::GetInstance().LoadSubspaceInfo(userId, subspaceId, spaceInfo);
+    return OsAccountSubProfileManager::GetInstance().LoadSubProfileInfo(userId, subspaceId, spaceInfo);
 }
 
 ErrCode OhosAccountManager::SetDistributedAccountSpaceInfo(const OsAccountSubspaceInfo &spaceInfo)
@@ -1599,16 +1607,16 @@ ErrCode OhosAccountManager::SetDistributedAccountSpaceInfo(const OsAccountSubspa
         curInfo.digest_ = "";
         return dataDealer_->AccountInfoToJson(curInfo);
     }
-    return OsAccountSubspaceManager::GetInstance().SaveSubspaceInfo(spaceInfo);
+    return OsAccountSubProfileManager::GetInstance().SaveSubProfileInfo(spaceInfo);
 }
 
 ErrCode OhosAccountManager::SendMultiSpaceLogoutOnDelOsAccount(int32_t localId)
 {
     std::lock_guard<std::mutex> mutexLock(mgrMutex_);
     std::set<int32_t> subSpaceIds;
-    ErrCode ret = OsAccountSubspaceManager::GetInstance().ScanOsAccountSubspaceIds(localId, subSpaceIds);
+    ErrCode ret = OsAccountSubProfileManager::GetInstance().ScanOsAccountSubProfileIds(localId, subSpaceIds);
     if (ret != ERR_OK) {
-        ACCOUNT_LOGE("ScanOsAccountSubspaceIds failed, localId=%{public}d", localId);
+        ACCOUNT_LOGE("ScanOsAccountSubProfileIds failed, localId=%{public}d", localId);
         return ret;
     }
     subSpaceIds.insert(localId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER); // include base space

@@ -729,7 +729,7 @@ ErrCode AccountMgrService::GetOsAccountSubspaceService(sptr<IRemoteObject>& func
     std::lock_guard<std::mutex> lock(serviceMutex_);
     funcResult = distributedAccountSpaceService_.promote();
     if (funcResult == nullptr) {
-        funcResult = new (std::nothrow) OsAccountSubspaceManagerService();
+        funcResult = new (std::nothrow) OsAccountSubProfileManagerService();
         distributedAccountSpaceService_ = funcResult;
     }
     return ERR_OK;
@@ -909,7 +909,7 @@ bool AccountMgrService::Init()
     StartOsAccountTypeMigrationAsync();
 #endif // SUPPORT_AUTHORIZATION
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-    OhosAccountManager::GetInstance().InitOsAccountSubspaceManager(ACCOUNT_CFG_DIR_ROOT_PATH);
+    OhosAccountManager::GetInstance().InitOsAccountSubProfileManager(ACCOUNT_CFG_DIR_ROOT_PATH);
 #endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
     state_ = ServiceRunningState::STATE_RUNNING;
     if (!registerToService_) {

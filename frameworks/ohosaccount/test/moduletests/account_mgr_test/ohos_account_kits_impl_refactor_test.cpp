@@ -554,10 +554,10 @@ HWTEST_F(OhosAccountKitsImplNotLoggedInTest, User0_NotLoggedIn_Dvid_WithParams_E
 }
 
 // ======================================================================
-// OsAccountSubspaceClient — newly added interfaces test
+// OsAccountSubProfileClient — newly added interfaces test
 // ======================================================================
 
-class OsAccountSubspaceClientTest : public testing::Test {
+class OsAccountSubProfileClientTest : public testing::Test {
 public:
     static void SetUpTestCase()
     {
@@ -582,51 +582,51 @@ public:
 
 // ===== A. GetOsAccountForegroundSubProfileId =====
 
-HWTEST_F(OsAccountSubspaceClientTest, FgSubProfileId_NoParam_NotSystemApp, TestSize.Level0)
+HWTEST_F(OsAccountSubProfileClientTest, FgSubProfileId_NoParam_NotSystemApp, TestSize.Level0)
 {
     uint64_t tokenId = 0;
     uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
     ASSERT_TRUE(AllocPermission({}, tokenId, false));
     int32_t subProfileId = -1;
-    ErrCode ret = OsAccountSubspaceClient::GetInstance().GetOsAccountForegroundSubProfileId(subProfileId);
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountForegroundSubProfileId(subProfileId);
     EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
     ASSERT_TRUE(RecoveryPermission(tokenId, selfTokenId));
 }
 
-HWTEST_F(OsAccountSubspaceClientTest, FgSubProfileId_NoParam_Success, TestSize.Level0)
+HWTEST_F(OsAccountSubProfileClientTest, FgSubProfileId_NoParam_Success, TestSize.Level0)
 {
     ASSERT_EQ(0, setuid(UID_USER_100));
     int32_t subProfileId = -1;
-    ErrCode ret = OsAccountSubspaceClient::GetInstance().GetOsAccountForegroundSubProfileId(subProfileId);
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountForegroundSubProfileId(subProfileId);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(subProfileId, TEST_SUB_PROFILE_ID_BASE);
 }
 
-HWTEST_F(OsAccountSubspaceClientTest, FgSubProfileId_WithParam_NotSystemApp, TestSize.Level0)
+HWTEST_F(OsAccountSubProfileClientTest, FgSubProfileId_WithParam_NotSystemApp, TestSize.Level0)
 {
     ASSERT_EQ(0, setuid(UID_USER_0));
     uint64_t tokenId = 0;
     uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
     ASSERT_TRUE(AllocPermission({}, tokenId, false));
     int32_t subProfileId = -1;
-    ErrCode ret = OsAccountSubspaceClient::GetInstance().GetOsAccountForegroundSubProfileId(
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountForegroundSubProfileId(
         TEST_OS_ACCOUNT_ID, subProfileId);
     EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
     ASSERT_TRUE(RecoveryPermission(tokenId, selfTokenId));
 }
 
-HWTEST_F(OsAccountSubspaceClientTest, FgSubProfileId_WithParam_AccountNotExist, TestSize.Level0)
+HWTEST_F(OsAccountSubProfileClientTest, FgSubProfileId_WithParam_AccountNotExist, TestSize.Level0)
 {
     int32_t subProfileId = -1;
-    ErrCode ret = OsAccountSubspaceClient::GetInstance().GetOsAccountForegroundSubProfileId(
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountForegroundSubProfileId(
         TEST_NON_EXIST_ACCOUNT_ID, subProfileId);
     EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
-HWTEST_F(OsAccountSubspaceClientTest, FgSubProfileId_WithParam_Success, TestSize.Level0)
+HWTEST_F(OsAccountSubProfileClientTest, FgSubProfileId_WithParam_Success, TestSize.Level0)
 {
     int32_t subProfileId = -1;
-    ErrCode ret = OsAccountSubspaceClient::GetInstance().GetOsAccountForegroundSubProfileId(
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountForegroundSubProfileId(
         TEST_OS_ACCOUNT_ID, subProfileId);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(subProfileId, TEST_SUB_PROFILE_ID_BASE);
@@ -634,94 +634,94 @@ HWTEST_F(OsAccountSubspaceClientTest, FgSubProfileId_WithParam_Success, TestSize
 
 // ===== B. GetOsAccountSubProfileIds =====
 
-HWTEST_F(OsAccountSubspaceClientTest, SubProfileIds_NoParam_NotSystemApp, TestSize.Level0)
+HWTEST_F(OsAccountSubProfileClientTest, SubProfileIds_NoParam_NotSystemApp, TestSize.Level0)
 {
     uint64_t tokenId = 0;
     uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
     ASSERT_TRUE(AllocPermission({}, tokenId, false));
     std::vector<int32_t> subProfileIds;
-    ErrCode ret = OsAccountSubspaceClient::GetInstance().GetOsAccountSubProfileIds(subProfileIds);
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfileIds(subProfileIds);
     EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
     ASSERT_TRUE(RecoveryPermission(tokenId, selfTokenId));
 }
 
-HWTEST_F(OsAccountSubspaceClientTest, SubProfileIds_NoParam_NoPermission, TestSize.Level0)
+HWTEST_F(OsAccountSubProfileClientTest, SubProfileIds_NoParam_NoPermission, TestSize.Level0)
 {
     uint64_t tokenId = 0;
     uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
     ASSERT_TRUE(AllocPermission({"ohos.permission.GET_LOCAL_ACCOUNTS"}, tokenId, true));
     ASSERT_EQ(0, setuid(UID_USER_100));
     std::vector<int32_t> subProfileIds;
-    ErrCode ret = OsAccountSubspaceClient::GetInstance().GetOsAccountSubProfileIds(subProfileIds);
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfileIds(subProfileIds);
     EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
     ASSERT_EQ(0, setuid(UID_USER_0));
     ASSERT_TRUE(RecoveryPermission(tokenId, selfTokenId));
 }
 
-HWTEST_F(OsAccountSubspaceClientTest, SubProfileIds_NoParam_Success, TestSize.Level0)
+HWTEST_F(OsAccountSubProfileClientTest, SubProfileIds_NoParam_Success, TestSize.Level0)
 {
     ASSERT_EQ(0, setuid(UID_USER_100));
     std::vector<int32_t> subProfileIds;
-    ErrCode ret = OsAccountSubspaceClient::GetInstance().GetOsAccountSubProfileIds(subProfileIds);
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfileIds(subProfileIds);
     EXPECT_EQ(ret, ERR_OK);
     ASSERT_EQ(0, setuid(UID_USER_0));
 }
 
-HWTEST_F(OsAccountSubspaceClientTest, SubProfileIds_WithParam_NotSystemApp, TestSize.Level0)
+HWTEST_F(OsAccountSubProfileClientTest, SubProfileIds_WithParam_NotSystemApp, TestSize.Level0)
 {
     uint64_t tokenId = 0;
     uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
     ASSERT_TRUE(AllocPermission({}, tokenId, false));
     std::vector<int32_t> subProfileIds;
-    ErrCode ret = OsAccountSubspaceClient::GetInstance().GetOsAccountSubProfileIds(TEST_OS_ACCOUNT_ID, subProfileIds);
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfileIds(TEST_OS_ACCOUNT_ID, subProfileIds);
     EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
     ASSERT_TRUE(RecoveryPermission(tokenId, selfTokenId));
 }
 
-HWTEST_F(OsAccountSubspaceClientTest, SubProfileIds_WithParam_NoPermission, TestSize.Level0)
+HWTEST_F(OsAccountSubProfileClientTest, SubProfileIds_WithParam_NoPermission, TestSize.Level0)
 {
     uint64_t tokenId = 0;
     uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
     ASSERT_TRUE(AllocPermission({"ohos.permission.GET_LOCAL_ACCOUNTS"}, tokenId, true));
     std::vector<int32_t> subProfileIds;
-    ErrCode ret = OsAccountSubspaceClient::GetInstance().GetOsAccountSubProfileIds(TEST_OS_ACCOUNT_ID, subProfileIds);
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfileIds(TEST_OS_ACCOUNT_ID, subProfileIds);
     EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
     ASSERT_TRUE(RecoveryPermission(tokenId, selfTokenId));
 }
 
-HWTEST_F(OsAccountSubspaceClientTest, SubProfileIds_WithParam_AccountNotExist, TestSize.Level0)
+HWTEST_F(OsAccountSubProfileClientTest, SubProfileIds_WithParam_AccountNotExist, TestSize.Level0)
 {
     std::vector<int32_t> subProfileIds;
-    ErrCode ret = OsAccountSubspaceClient::GetInstance().GetOsAccountSubProfileIds(
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfileIds(
         TEST_NON_EXIST_ACCOUNT_ID, subProfileIds);
     EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
-HWTEST_F(OsAccountSubspaceClientTest, SubProfileIds_WithParam_Success, TestSize.Level0)
+HWTEST_F(OsAccountSubProfileClientTest, SubProfileIds_WithParam_Success, TestSize.Level0)
 {
     std::vector<int32_t> subProfileIds;
-    ErrCode ret = OsAccountSubspaceClient::GetInstance().GetOsAccountSubProfileIds(TEST_OS_ACCOUNT_ID, subProfileIds);
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfileIds(TEST_OS_ACCOUNT_ID, subProfileIds);
     EXPECT_EQ(ret, ERR_OK);
 }
 
 // ===== C. GetOsAccountLocalIdForSubProfile =====
 
-HWTEST_F(OsAccountSubspaceClientTest, LocalIdForSubProfile_NotSystemApp, TestSize.Level0)
+HWTEST_F(OsAccountSubProfileClientTest, LocalIdForSubProfile_NotSystemApp, TestSize.Level0)
 {
     uint64_t tokenId = 0;
     uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
     ASSERT_TRUE(AllocPermission({}, tokenId, false));
     int32_t osAccountId = -1;
-    ErrCode ret = OsAccountSubspaceClient::GetInstance().GetOsAccountLocalIdForSubProfile(
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountLocalIdForSubProfile(
         TEST_SUB_PROFILE_ID_BASE, osAccountId);
     EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
     ASSERT_TRUE(RecoveryPermission(tokenId, selfTokenId));
 }
 
-HWTEST_F(OsAccountSubspaceClientTest, LocalIdForSubProfile_Success, TestSize.Level0)
+HWTEST_F(OsAccountSubProfileClientTest, LocalIdForSubProfile_Success, TestSize.Level0)
 {
     int32_t osAccountId = -1;
-    ErrCode ret = OsAccountSubspaceClient::GetInstance().GetOsAccountLocalIdForSubProfile(
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountLocalIdForSubProfile(
         TEST_SUB_PROFILE_ID_BASE, osAccountId);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(osAccountId, TEST_OS_ACCOUNT_ID);
@@ -729,20 +729,20 @@ HWTEST_F(OsAccountSubspaceClientTest, LocalIdForSubProfile_Success, TestSize.Lev
 
 // ===== D. GetOsAccountSubProfile (2-param overload) =====
 
-HWTEST_F(OsAccountSubspaceClientTest, SubProfile_TwoParam_NotSystemApp, TestSize.Level0)
+HWTEST_F(OsAccountSubProfileClientTest, SubProfile_TwoParam_NotSystemApp, TestSize.Level0)
 {
     uint64_t tokenId = 0;
     uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
     ASSERT_TRUE(AllocPermission({}, tokenId, false));
     OsAccountSubspaceResult subspaceResult;
     OhosAccountInfo distributedInfo;
-    ErrCode ret = OsAccountSubspaceClient::GetInstance().GetOsAccountSubProfile(
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfile(
         TEST_SUB_PROFILE_ID_BASE, subspaceResult, distributedInfo);
     EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
     ASSERT_TRUE(RecoveryPermission(tokenId, selfTokenId));
 }
 
-HWTEST_F(OsAccountSubspaceClientTest, SubProfile_TwoParam_NoPermission, TestSize.Level0)
+HWTEST_F(OsAccountSubProfileClientTest, SubProfile_TwoParam_NoPermission, TestSize.Level0)
 {
     uint64_t tokenId = 0;
     uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
@@ -750,30 +750,30 @@ HWTEST_F(OsAccountSubspaceClientTest, SubProfile_TwoParam_NoPermission, TestSize
     ASSERT_EQ(0, setuid(UID_USER_100));
     OsAccountSubspaceResult subspaceResult;
     OhosAccountInfo distributedInfo;
-    ErrCode ret = OsAccountSubspaceClient::GetInstance().GetOsAccountSubProfile(
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfile(
         TEST_SUB_PROFILE_ID_BASE, subspaceResult, distributedInfo);
     EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
     ASSERT_EQ(0, setuid(UID_USER_0));
     ASSERT_TRUE(RecoveryPermission(tokenId, selfTokenId));
 }
 
-HWTEST_F(OsAccountSubspaceClientTest, SubProfile_TwoParam_OwnershipMismatch, TestSize.Level0)
+HWTEST_F(OsAccountSubProfileClientTest, SubProfile_TwoParam_OwnershipMismatch, TestSize.Level0)
 {
     ASSERT_EQ(0, setuid(UID_USER_100));
     OsAccountSubspaceResult subspaceResult;
     OhosAccountInfo distributedInfo;
-    ErrCode ret = OsAccountSubspaceClient::GetInstance().GetOsAccountSubProfile(
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfile(
         TEST_SUB_PROFILE_ID_MISMATCH, subspaceResult, distributedInfo);
     EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
     ASSERT_EQ(0, setuid(UID_USER_0));
 }
 
-HWTEST_F(OsAccountSubspaceClientTest, SubProfile_TwoParam_Success, TestSize.Level0)
+HWTEST_F(OsAccountSubProfileClientTest, SubProfile_TwoParam_Success, TestSize.Level0)
 {
     ASSERT_EQ(0, setuid(UID_USER_100));
     OsAccountSubspaceResult subspaceResult;
     OhosAccountInfo distributedInfo;
-    ErrCode ret = OsAccountSubspaceClient::GetInstance().GetOsAccountSubProfile(
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfile(
         TEST_SUB_PROFILE_ID_BASE, subspaceResult, distributedInfo);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(subspaceResult.id, TEST_SUB_PROFILE_ID_BASE);
@@ -787,72 +787,72 @@ HWTEST_F(OsAccountSubspaceClientTest, SubProfile_TwoParam_Success, TestSize.Leve
 
 // ===== D. GetOsAccountSubProfile (4-param overload) =====
 
-HWTEST_F(OsAccountSubspaceClientTest, SubProfile_FourParam_NotSystemApp, TestSize.Level0)
+HWTEST_F(OsAccountSubProfileClientTest, SubProfile_FourParam_NotSystemApp, TestSize.Level0)
 {
     uint64_t tokenId = 0;
     uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
     ASSERT_TRUE(AllocPermission({}, tokenId, false));
     OsAccountSubspaceResult subspaceResult;
     OhosAccountInfo distributedInfo;
-    ErrCode ret = OsAccountSubspaceClient::GetInstance().GetOsAccountSubProfile(
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfile(
         TEST_OS_ACCOUNT_ID, TEST_SUB_PROFILE_ID_BASE, subspaceResult, distributedInfo);
     EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
     ASSERT_TRUE(RecoveryPermission(tokenId, selfTokenId));
 }
 
-HWTEST_F(OsAccountSubspaceClientTest, SubProfile_FourParam_BothPermsDenied, TestSize.Level0)
+HWTEST_F(OsAccountSubProfileClientTest, SubProfile_FourParam_BothPermsDenied, TestSize.Level0)
 {
     uint64_t tokenId = 0;
     uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
     ASSERT_TRUE(AllocPermission({}, tokenId, true));
     OsAccountSubspaceResult subspaceResult;
     OhosAccountInfo distributedInfo;
-    ErrCode ret = OsAccountSubspaceClient::GetInstance().GetOsAccountSubProfile(
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfile(
         TEST_OS_ACCOUNT_ID, TEST_SUB_PROFILE_ID_BASE, subspaceResult, distributedInfo);
     EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
     ASSERT_TRUE(RecoveryPermission(tokenId, selfTokenId));
 }
 
-HWTEST_F(OsAccountSubspaceClientTest, SubProfile_FourParam_OnlyGetLocalAccounts, TestSize.Level0)
+HWTEST_F(OsAccountSubProfileClientTest, SubProfile_FourParam_OnlyGetLocalAccounts, TestSize.Level0)
 {
     uint64_t tokenId = 0;
     uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
     ASSERT_TRUE(AllocPermission({"ohos.permission.GET_LOCAL_ACCOUNTS"}, tokenId, true));
     OsAccountSubspaceResult subspaceResult;
     OhosAccountInfo distributedInfo;
-    ErrCode ret = OsAccountSubspaceClient::GetInstance().GetOsAccountSubProfile(
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfile(
         TEST_OS_ACCOUNT_ID, TEST_SUB_PROFILE_ID_BASE, subspaceResult, distributedInfo);
     EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
     ASSERT_TRUE(RecoveryPermission(tokenId, selfTokenId));
 }
 
-HWTEST_F(OsAccountSubspaceClientTest, SubProfile_FourParam_OnlyInteractAcross, TestSize.Level0)
+HWTEST_F(OsAccountSubProfileClientTest, SubProfile_FourParam_OnlyInteractAcross, TestSize.Level0)
 {
     uint64_t tokenId = 0;
     uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
     ASSERT_TRUE(AllocPermission({"ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS"}, tokenId, true));
     OsAccountSubspaceResult subspaceResult;
     OhosAccountInfo distributedInfo;
-    ErrCode ret = OsAccountSubspaceClient::GetInstance().GetOsAccountSubProfile(
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfile(
         TEST_OS_ACCOUNT_ID, TEST_SUB_PROFILE_ID_BASE, subspaceResult, distributedInfo);
     EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
     ASSERT_TRUE(RecoveryPermission(tokenId, selfTokenId));
 }
 
-HWTEST_F(OsAccountSubspaceClientTest, SubProfile_FourParam_OwnershipMismatch, TestSize.Level0)
+HWTEST_F(OsAccountSubProfileClientTest, SubProfile_FourParam_OwnershipMismatch, TestSize.Level0)
 {
     OsAccountSubspaceResult subspaceResult;
     OhosAccountInfo distributedInfo;
-    ErrCode ret = OsAccountSubspaceClient::GetInstance().GetOsAccountSubProfile(
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfile(
         TEST_OS_ACCOUNT_ID, TEST_SUB_PROFILE_ID_MISMATCH, subspaceResult, distributedInfo);
     EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
 }
 
-HWTEST_F(OsAccountSubspaceClientTest, SubProfile_FourParam_Success, TestSize.Level0)
+HWTEST_F(OsAccountSubProfileClientTest, SubProfile_FourParam_Success, TestSize.Level0)
 {
     OsAccountSubspaceResult subspaceResult;
     OhosAccountInfo distributedInfo;
-    ErrCode ret = OsAccountSubspaceClient::GetInstance().GetOsAccountSubProfile(
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfile(
         TEST_OS_ACCOUNT_ID, TEST_SUB_PROFILE_ID_BASE, subspaceResult, distributedInfo);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(subspaceResult.id, TEST_SUB_PROFILE_ID_BASE);
