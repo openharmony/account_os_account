@@ -422,7 +422,7 @@ ErrCode AccountMgrService::SubscribeDistributedAccountEvent(int32_t typeInt, con
         ACCOUNT_LOGE("eventListener is nullptr.");
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
-    ErrCode res = AccountPermissionManager::CheckSystemApp(false);
+    ErrCode res = AccountPermissionManager::CheckSystemApp();
     if (res != ERR_OK) {
         ACCOUNT_LOGE("Check systemApp failed.");
         return res;
@@ -438,7 +438,7 @@ ErrCode AccountMgrService::UnsubscribeDistributedAccountEvent(int32_t typeInt, c
         ACCOUNT_LOGE("eventListener is nullptr.");
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
-    ErrCode res = AccountPermissionManager::CheckSystemApp(false);
+    ErrCode res = AccountPermissionManager::CheckSystemApp();
     if (res != ERR_OK) {
         ACCOUNT_LOGE("Check systemApp failed.");
         return res;
