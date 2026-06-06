@@ -334,7 +334,7 @@
         "OHOS::AccountSA::OsAccountSubProfileClient::GetOsAccountSubProfileIds(int, std::__h::vector<int, std::__h::allocator<int>>&)";
         "OHOS::AccountSA::OsAccountSubProfileClient::GetOsAccountSubProfileIds(std::__h::vector<int, std::__h::allocator<int>>&)";
         "OHOS::AccountSA::OsAccountSubProfileClient::GetOsAccountLocalIdForSubProfile(int, int&)";
-        "OHOS::AccountSA::OsAccountSubProfileClient::GetOsAccountSubProfile(int, OHOS::AccountSA::OsAccountSubspaceResult&)";
+        "OHOS::AccountSA::OsAccountSubProfileClient::GetOsAccountSubProfile(int, OHOS::AccountSA::OsAccountSubspaceResult&, OHOS::AccountSA::OhosAccountInfo&)";
         "OHOS::AccountSA::OsAccountSubProfileClient::GetOsAccountSubProfile(int, int, OHOS::AccountSA::OsAccountSubspaceResult&, OHOS::AccountSA::OhosAccountInfo&)";
         "OHOS::AccountSA::OhosAccountInfo::Unmarshalling(OHOS::Parcel&)";
     };

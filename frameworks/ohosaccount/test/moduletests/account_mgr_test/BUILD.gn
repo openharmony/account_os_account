@@ -296,7 +296,6 @@ ohos_moduletest("OhosAccountKitsImplRefactorModuleTest") {
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_innerkits",
-    "${os_account_subspace_framework_path}:os_account_subspace_client",
   ]
 
   external_deps = [

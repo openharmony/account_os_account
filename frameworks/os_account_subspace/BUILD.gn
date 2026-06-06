@@ -70,35 +70,21 @@ config("os_account_subspace_innerkits_public_config") {
   ]
 }
 
-ohos_source_set("os_account_subspace_client") {
+ohos_source_set("os_account_subspace_proxy_source") {
   sanitize = {
     cfi = true
     cfi_cross_dso = true
     debug = false
   }
-
-  sources = [ "src/os_account_subspace_client.cpp" ]
-  if (os_account_enable_multiple_os_account_subspace) {
-    output_values = get_target_outputs(":frameworks_os_account_subspace_interface")
-    sources += filter_include(output_values, [ "*os_account_sub_profile_proxy.cpp" ])
-  }
-
   configs = [ ":os_account_subspace_innerkits_config" ]
   public_configs = [ ":os_account_subspace_innerkits_public_config" ]
-
-  deps = [
-    ":frameworks_os_account_subspace_interface",
-    "${common_path}:libaccount_common",
-    "${innerkits_native_path}:libaccountkits",
-  ]
-
+  output_values = get_target_outputs(":frameworks_os_account_subspace_interface")
+  sources = filter_include(output_values, [ "*os_account_sub_profile_proxy.cpp" ])
+  deps = [ ":frameworks_os_account_subspace_interface" ]
   external_deps = [
-    "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
-    "samgr:samgr_proxy",
   ]
-
   subsystem_name = "account"
   part_name = "os_account"
 }

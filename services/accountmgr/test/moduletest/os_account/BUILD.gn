@@ -797,7 +797,7 @@ ohos_moduletest("os_account_subspace_module_test") {
     "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager.cpp",
     "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager_service.cpp",
     "${services_path}/accountmgr/src/ability_manager_adapter/ability_manager_adapter.cpp",
-    "${os_account_subspace_framework_path}/src/os_account_subspace_client.cpp",
+    "${os_account_innerkits_native_path}/src/os_account_subprofile_client.cpp",
     "${os_account_core_path}/src/os_account_constraint_subscriber_manager.cpp",
     "${os_account_core_path}/src/os_account.cpp",
     "${os_account_core_path}/src/os_account_death_recipient.cpp",

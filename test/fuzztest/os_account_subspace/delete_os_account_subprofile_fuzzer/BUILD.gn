@@ -22,7 +22,10 @@ ohos_fuzztest("DeleteOsAccountSubProfileFuzzTest") {
   module_out_path = fuzz_output_path
 
   fuzz_config_file = "."
-  include_dirs = [ "${os_account_path}/test/fuzztest/appaccount/common" ]
+  include_dirs = [
+    "${os_account_path}/test/fuzztest/appaccount/common",
+    "${os_account_subspace_interfaces_native_path}/include",
+  ]
   cflags = [
     "-g",
     "-O0",
@@ -32,8 +35,8 @@ ohos_fuzztest("DeleteOsAccountSubProfileFuzzTest") {
   sources = [ "delete_os_account_subprofile_fuzzer.cpp" ]
 
   deps = [
-    "${os_account_subspace_framework_path}:os_account_subspace_client",
     "${common_path}:libaccount_common",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
   ]
 
   external_deps = [

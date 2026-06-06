@@ -701,7 +701,7 @@ ohos_unittest("OsAccountSubspaceCoverageTest") {
     "${services_path}/accountmgr/src/common/database/kvstore/kvstore_adapter_impl.cpp",
   ]
   sources += [
-    "${os_account_subspace_framework_path}/src/os_account_subspace_client.cpp",
+    "${os_account_innerkits_native_path}/src/os_account_subprofile_client.cpp",
     "${services_path}/accountmgr/test/mock/src/mock_account_mgr_service.cpp",
     "mock/mock_space_dependencies.cpp",
   ]

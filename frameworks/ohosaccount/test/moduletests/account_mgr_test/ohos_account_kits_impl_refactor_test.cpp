@@ -24,7 +24,7 @@
 #include "ohos_account_kits.h"
 #include "ohos_account_kits_impl.h"
 #undef private
-#include "os_account_subspace_client.h"
+#include "os_account_subprofile_client.h"
 #include "token_setproc.h"
 
 using namespace testing::ext;
