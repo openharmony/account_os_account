@@ -173,7 +173,7 @@
           "header": {
             "header_base":"//base/account/os_account/interfaces/innerkits/os_account_subspace/native/include",
             "header_files": [
-              "os_account_subspace_client.h"
+              "os_account_subprofile_client.h"
             ]
           },
           "name": "//base/account/os_account/frameworks/osaccount/native:os_account_innerkits"

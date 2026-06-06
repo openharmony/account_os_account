@@ -25,7 +25,7 @@
 #include "napi_os_account_common.h"
 #include "napi/native_common.h"
 #include "os_account_manager.h"
-#include "os_account_subspace_client.h"
+#include "os_account_subprofile_client.h"
 #include "want.h"
 
 using namespace OHOS::AccountSA;

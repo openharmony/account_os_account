@@ -17,7 +17,7 @@
 #include <gtest/gtest.h>
 
 #define private public
-#include "os_account_subspace_client.h"
+#include "os_account_subprofile_client.h"
 #undef private
 
 #include "account_error_no.h"

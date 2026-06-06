@@ -57,7 +57,6 @@ ohos_shared_library("osaccount") {
     "${domain_account_napi_path}:domain_account_napi",
     "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_innerkits",
-    "${os_account_subspace_framework_path}:os_account_subspace_client",
   ]
 
   relative_install_dir = "module/account"

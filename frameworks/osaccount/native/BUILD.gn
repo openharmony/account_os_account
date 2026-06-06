@@ -40,8 +40,12 @@ config("osaccountinterface_config") {
     "${innerkits_path}/include",
     "${os_account_core_path}/include",
     "${os_account_interfaces_native_path}/include",
+    "${os_account_subspace_interfaces_native_path}/include",
     "${innerkits_common}/include",
     "${target_gen_dir}",
+    get_label_info(
+        "//base/account/os_account/frameworks/os_account_subspace:frameworks_os_account_subspace_interface",
+        "target_gen_dir"),
   ]
   cflags = []
   if (target_cpu == "arm") {
@@ -79,6 +83,7 @@ ohos_shared_library("os_account_innerkits") {
     "src/os_account_info.cpp",
     "src/os_account_info_parcel.cpp",
     "src/os_account_manager.cpp",
+    "src/os_account_subprofile_client.cpp",
     "src/os_account_subscribe_info.cpp",
     "src/os_account_subscriber.cpp",
     "${innerkits_native_path}/src/account_info.cpp",
@@ -112,10 +117,11 @@ ohos_shared_library("os_account_innerkits") {
     "${common_path}:libaccount_common",
     "${domain_account_framework_path}:domain_account_innerkits",
     "${innerkits_native_path}:libaccountkits",
+    "//base/account/os_account/frameworks/os_account_subspace:frameworks_os_account_subspace_interface",
   ]
 
   if (os_account_enable_multiple_os_account_subspace) {
-    deps += [ "${os_account_subspace_framework_path}:os_account_subspace_client" ]
+    deps += [ "//base/account/os_account/frameworks/os_account_subspace:os_account_subspace_proxy_source" ]
   }
 
   if (!use_clang_coverage) {

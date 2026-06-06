@@ -77,7 +77,6 @@ ohos_fuzztest("CmdSwitchOsAccountSubspaceStubFuzzTest") {
     "${os_account_innerkits_native_path}:os_account_state_reply_callback_stub",
     "${os_account_innerkits_native_path}:os_account_proxy",
     "${os_account_innerkits_native_path}:os_account_stub",
-    "${os_account_subspace_framework_path}:os_account_subspace_client",
     "${os_account_subspace_framework_path}:os_account_subspace_stub",
     "${os_account_path}/frameworks/appaccount/native:app_account_innerkits",
     "${os_account_path}/frameworks/common:libaccount_common",

@@ -22,7 +22,7 @@
 #include "account_log_wrapper.h"
 #include "fuzz_data.h"
 #include "nativetoken_kit.h"
-#include "os_account_subspace_client.h"
+#include "os_account_subprofile_client.h"
 #include "token_setproc.h"
 
 using namespace std;
