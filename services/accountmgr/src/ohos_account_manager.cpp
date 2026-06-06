@@ -802,12 +802,6 @@ ErrCode OhosAccountManager::GetOsAccountLocalIdForSubProfile(
     }
     osAccountId = id;
 #endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-    OsAccountInfo osAccountInfo;
-    ErrCode ret = IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(osAccountId, osAccountInfo);
-    if (ret != ERR_OK) {
-        ACCOUNT_LOGE("OsAccount %{public}d not found for subProfileId=%{public}d", osAccountId, subProfileId);
-        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
-    }
     return ERR_OK;
 }
 

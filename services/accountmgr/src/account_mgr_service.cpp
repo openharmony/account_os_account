@@ -569,8 +569,8 @@ int32_t AccountMgrService::GetOsAccountSubProfileIds(
         ACCOUNT_LOGE("OsAccount not exist, osAccountId=%{public}d, ret=%{public}d", osAccountId, ret);
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
-    ErrCode restrictedRet = IInnerOsAccountManager::GetInstance().CheckLocalIdRestricted(osAccountId);
-    if (restrictedRet != ERR_OK) {
+    ret = IInnerOsAccountManager::GetInstance().CheckLocalIdRestricted(osAccountId);
+    if (ret != ERR_OK) {
         return ERR_OK;
     }
     return OhosAccountManager::GetInstance().GetOsAccountSubProfileIds(osAccountId, subProfileIds);
@@ -583,6 +583,16 @@ int32_t AccountMgrService::GetOsAccountLocalIdForSubProfile(
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("Caller is not system app, ret=%{public}d", ret);
         return ret;
+    }
+    auto id = subProfileId / Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
+    OsAccountInfo osAccountInfo;
+    ret = IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(id, osAccountInfo);
+    if (ret != ERR_OK) {
+        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+    }
+    ret = IInnerOsAccountManager::GetInstance().CheckLocalIdRestricted(id);
+    if (ret != ERR_OK) {
+        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
     }
 
     return OhosAccountManager::GetInstance().GetOsAccountLocalIdForSubProfile(subProfileId, osAccountId);
@@ -607,6 +617,10 @@ int32_t AccountMgrService::GetOsAccountSubProfile(
     if (subProfileId / Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER != osAccountId) {
         ACCOUNT_LOGE("subProfileId %{public}d does not belong to osAccountId %{public}d",
             subProfileId, osAccountId);
+        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+    }
+    ret = IInnerOsAccountManager::GetInstance().CheckLocalIdRestricted(osAccountId);
+    if (ret != ERR_OK) {
         return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
     }
     return OhosAccountManager::GetInstance().GetOsAccountSubProfile(
@@ -636,6 +650,15 @@ int32_t AccountMgrService::GetOsAccountSubProfile(
     if (subProfileId / Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER != osAccountId) {
         ACCOUNT_LOGE("subProfileId %{public}d does not belong to osAccountId %{public}d",
             subProfileId, osAccountId);
+        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+    }
+    OsAccountInfo osAccountInfo;
+    ret = IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(osAccountId, osAccountInfo);
+    if (ret != ERR_OK) {
+        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+    }
+    ret = IInnerOsAccountManager::GetInstance().CheckLocalIdRestricted(osAccountId);
+    if (ret != ERR_OK) {
         return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
     }
     return OhosAccountManager::GetInstance().GetOsAccountSubProfile(
