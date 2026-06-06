@@ -1715,17 +1715,15 @@ HWTEST_F(SubProfileQueryOhosMgrTest, GetOsAccountSubProfileIds_Success_001, Test
     EXPECT_EQ(subProfileIds[0], OHOS_QUERY_BASE);
 }
 
-// 2.4 GetOsAccountLocalIdForSubProfile: SubspaceManager succeeds but account not found
-HWTEST_F(SubProfileQueryOhosMgrTest, GetOsAccountLocalIdForSubProfile_ValidSubProfile_AccountNotFound_001,
+// 2.4 GetOsAccountLocalIdForSubProfile: SubspaceManager succeeds
+HWTEST_F(SubProfileQueryOhosMgrTest, GetOsAccountLocalIdForSubProfile_ValidSubProfileID,
     TestSize.Level1)
 {
     int32_t osAccountId = -1;
-    // SubProfileManager resolves the ID, but then IInnerOsAccountManager check fails
-    // because test account 100 does not exist in the OS account database
+    // SubProfileManager resolves the ID, and IInnerOsAccountManager check succeed
     ErrCode ret = OhosAccountManager::GetInstance().GetOsAccountLocalIdForSubProfile(
         OHOS_QUERY_BASE, osAccountId);
-    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
-    // SubspaceManager already computed the correct ID before the account check failed
+    EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(osAccountId, OHOS_QUERY_USER_ID);
 }
 
@@ -1972,8 +1970,8 @@ HWTEST_F(SubProfileQueryServiceTest, GetOsAccountLocalIdForSubProfile_Success_00
     auto ret = OhosAccountManager::GetInstance().GetOsAccountLocalIdForSubProfile(
         SVC_TEST_BASE, osAccountId);
     // SubspaceManager GetLocalIdForSubProfile succeeds (base subspace always valid),
-    // then OhosAccountManager checks IInnerOsAccountManager → NOT_EXIST for test account
-    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    // then OhosAccountManager checks IInnerOsAccountManager
+    EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(osAccountId, SVC_TEST_USER_ID);
 }
 

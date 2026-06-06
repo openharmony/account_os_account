@@ -623,6 +623,14 @@ HWTEST_F(OsAccountSubProfileClientTest, FgSubProfileId_WithParam_AccountNotExist
     EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
+HWTEST_F(OsAccountSubProfileClientTest, FgSubProfileId_WithParam_U0, TestSize.Level0)
+{
+    int32_t subProfileId = -1;
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountForegroundSubProfileId(
+        0, subProfileId);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+}
+
 HWTEST_F(OsAccountSubProfileClientTest, FgSubProfileId_WithParam_Success, TestSize.Level0)
 {
     int32_t subProfileId = -1;
@@ -697,6 +705,15 @@ HWTEST_F(OsAccountSubProfileClientTest, SubProfileIds_WithParam_AccountNotExist,
     EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
+HWTEST_F(OsAccountSubProfileClientTest, SubProfileIds_WithParam_AccountRestricted, TestSize.Level0)
+{
+    std::vector<int32_t> subProfileIds;
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfileIds(
+        0, subProfileIds);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_TRUE(subProfileIds.empty());
+}
+
 HWTEST_F(OsAccountSubProfileClientTest, SubProfileIds_WithParam_Success, TestSize.Level0)
 {
     std::vector<int32_t> subProfileIds;
@@ -725,6 +742,21 @@ HWTEST_F(OsAccountSubProfileClientTest, LocalIdForSubProfile_Success, TestSize.L
         TEST_SUB_PROFILE_ID_BASE, osAccountId);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(osAccountId, TEST_OS_ACCOUNT_ID);
+}
+
+HWTEST_F(OsAccountSubProfileClientTest, LocalIdForSubProfile_NotExistSubProfileID, TestSize.Level0)
+{
+    int32_t osAccountId = -1;
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountLocalIdForSubProfile(
+        TEST_SUB_PROFILE_ID_MISMATCH, osAccountId);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+}
+
+HWTEST_F(OsAccountSubProfileClientTest, LocalIdForSubProfile_RestrictedAccount, TestSize.Level0)
+{
+    int32_t osAccountId = -1;
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountLocalIdForSubProfile(0, osAccountId);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
 }
 
 // ===== D. GetOsAccountSubProfile (2-param overload) =====
@@ -764,6 +796,16 @@ HWTEST_F(OsAccountSubProfileClientTest, SubProfile_TwoParam_OwnershipMismatch, T
     OhosAccountInfo distributedInfo;
     ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfile(
         TEST_SUB_PROFILE_ID_MISMATCH, subspaceResult, distributedInfo);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    ASSERT_EQ(0, setuid(UID_USER_0));
+}
+
+HWTEST_F(OsAccountSubProfileClientTest, SubProfile_TwoParam_SubProfileZeroOwnershipMismatch, TestSize.Level0)
+{
+    ASSERT_EQ(0, setuid(UID_USER_100));
+    OsAccountSubspaceResult subspaceResult;
+    OhosAccountInfo distributedInfo;
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfile(0, subspaceResult, distributedInfo);
     EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
     ASSERT_EQ(0, setuid(UID_USER_0));
 }
@@ -845,6 +887,15 @@ HWTEST_F(OsAccountSubProfileClientTest, SubProfile_FourParam_OwnershipMismatch, 
     OhosAccountInfo distributedInfo;
     ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfile(
         TEST_OS_ACCOUNT_ID, TEST_SUB_PROFILE_ID_MISMATCH, subspaceResult, distributedInfo);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+}
+
+HWTEST_F(OsAccountSubProfileClientTest, SubProfile_FourParam_AccountRestricted, TestSize.Level0)
+{
+    OsAccountSubspaceResult subspaceResult;
+    OhosAccountInfo distributedInfo;
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfile(0, 0,
+        subspaceResult, distributedInfo);
     EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
 }
 
