@@ -75,7 +75,8 @@
         "openssl",
         "config_policy",
         "icu",
-        "tee_client"
+        "tee_client",
+        "taihe_ffi_gen"
       ],
       "third_party": []
     },
