@@ -419,14 +419,14 @@ HWTEST_F(DeviceAccountInfoTest, DistributedAccountSubscribeCallbackTest_001, Tes
 
 /**
  * @tc.name: DistributedAccountSpaceEventDataTest_001
- * @tc.desc: test DistributedAccountSpaceEventData Marshalling and Unmarshalling
+ * @tc.desc: test DistributedAccountSubProfileEventData Marshalling and Unmarshalling
  * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(DeviceAccountInfoTest, DistributedAccountSpaceEventDataTest_001, TestSize.Level3)
 {
-    DistributedAccountSpaceEventData eventDataSrc;
-    eventDataSrc.type_ = DistributedAccountSpaceEventType::CREATED;
+    DistributedAccountSubProfileEventData eventDataSrc;
+    eventDataSrc.type_ = DistributedAccountSubProfileEventType::CREATED;
     eventDataSrc.osAccountId_ = TEST_ACCOUNT_ID;
     eventDataSrc.subspaceId_ = 200;
     eventDataSrc.previousSubspaceId_ = 150;
@@ -434,10 +434,10 @@ HWTEST_F(DeviceAccountInfoTest, DistributedAccountSpaceEventDataTest_001, TestSi
     Parcel parcel;
     EXPECT_TRUE(eventDataSrc.Marshalling(parcel));
 
-    DistributedAccountSpaceEventData *eventDataTar =
-        DistributedAccountSpaceEventData::Unmarshalling(parcel);
+    DistributedAccountSubProfileEventData *eventDataTar =
+        DistributedAccountSubProfileEventData::Unmarshalling(parcel);
     EXPECT_NE(eventDataTar, nullptr);
-    EXPECT_EQ(eventDataTar->type_, DistributedAccountSpaceEventType::CREATED);
+    EXPECT_EQ(eventDataTar->type_, DistributedAccountSubProfileEventType::CREATED);
     EXPECT_EQ(eventDataTar->osAccountId_, TEST_ACCOUNT_ID);
     EXPECT_EQ(eventDataTar->subspaceId_, 200);
     EXPECT_EQ(eventDataTar->previousSubspaceId_, 150);
@@ -446,36 +446,36 @@ HWTEST_F(DeviceAccountInfoTest, DistributedAccountSpaceEventDataTest_001, TestSi
 
 /**
  * @tc.name: DistributedAccountSpaceEventDataTest_002
- * @tc.desc: test DistributedAccountSpaceEventData operator==
+ * @tc.desc: test DistributedAccountSubProfileEventData operator==
  * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(DeviceAccountInfoTest, DistributedAccountSpaceEventDataTest_002, TestSize.Level3)
 {
-    DistributedAccountSpaceEventData eventData1;
-    eventData1.type_ = DistributedAccountSpaceEventType::CREATED;
+    DistributedAccountSubProfileEventData eventData1;
+    eventData1.type_ = DistributedAccountSubProfileEventType::CREATED;
     eventData1.osAccountId_ = TEST_ACCOUNT_ID;
     eventData1.subspaceId_ = 200;
     eventData1.previousSubspaceId_ = 150;
 
-    DistributedAccountSpaceEventData eventData2;
-    eventData2.type_ = DistributedAccountSpaceEventType::SWITCHED;
+    DistributedAccountSubProfileEventData eventData2;
+    eventData2.type_ = DistributedAccountSubProfileEventType::SWITCHED;
     eventData2.osAccountId_ = TEST_ACCOUNT_ID;
     eventData2.subspaceId_ = 200;
     eventData2.previousSubspaceId_ = 150;
 
     EXPECT_FALSE(eventData1 == eventData2);
 
-    DistributedAccountSpaceEventData eventData3;
-    eventData3.type_ = DistributedAccountSpaceEventType::CREATED;
+    DistributedAccountSubProfileEventData eventData3;
+    eventData3.type_ = DistributedAccountSubProfileEventType::CREATED;
     eventData3.osAccountId_ = 999;
     eventData3.subspaceId_ = 200;
     eventData3.previousSubspaceId_ = 150;
 
     EXPECT_FALSE(eventData1 == eventData3);
 
-    DistributedAccountSpaceEventData eventData4;
-    eventData4.type_ = DistributedAccountSpaceEventType::CREATED;
+    DistributedAccountSubProfileEventData eventData4;
+    eventData4.type_ = DistributedAccountSubProfileEventType::CREATED;
     eventData4.osAccountId_ = TEST_ACCOUNT_ID;
     eventData4.subspaceId_ = 200;
     eventData4.previousSubspaceId_ = 150;
@@ -485,21 +485,21 @@ HWTEST_F(DeviceAccountInfoTest, DistributedAccountSpaceEventDataTest_002, TestSi
 
 /**
  * @tc.name: DistributedAccountSpaceEventDataTest_003
- * @tc.desc: test DistributedAccountSpaceEventData Marshalling for all event types
+ * @tc.desc: test DistributedAccountSubProfileEventData Marshalling for all event types
  * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(DeviceAccountInfoTest, DistributedAccountSpaceEventDataTest_003, TestSize.Level3)
 {
-    std::vector<DistributedAccountSpaceEventType> allTypes = {
-        DistributedAccountSpaceEventType::CREATED,
-        DistributedAccountSpaceEventType::DELETED,
-        DistributedAccountSpaceEventType::SWITCHING,
-        DistributedAccountSpaceEventType::SWITCHED
+    std::vector<DistributedAccountSubProfileEventType> allTypes = {
+        DistributedAccountSubProfileEventType::CREATED,
+        DistributedAccountSubProfileEventType::DELETED,
+        DistributedAccountSubProfileEventType::SWITCHING,
+        DistributedAccountSubProfileEventType::SWITCHED
     };
 
     for (const auto& eventType : allTypes) {
-        DistributedAccountSpaceEventData eventDataSrc;
+        DistributedAccountSubProfileEventData eventDataSrc;
         eventDataSrc.type_ = eventType;
         eventDataSrc.osAccountId_ = TEST_ACCOUNT_ID;
         eventDataSrc.subspaceId_ = 200;
@@ -508,8 +508,8 @@ HWTEST_F(DeviceAccountInfoTest, DistributedAccountSpaceEventDataTest_003, TestSi
         Parcel parcel;
         EXPECT_TRUE(eventDataSrc.Marshalling(parcel));
 
-        DistributedAccountSpaceEventData *eventDataTar =
-            DistributedAccountSpaceEventData::Unmarshalling(parcel);
+        DistributedAccountSubProfileEventData *eventDataTar =
+            DistributedAccountSubProfileEventData::Unmarshalling(parcel);
         EXPECT_NE(eventDataTar, nullptr);
         EXPECT_EQ(eventDataTar->type_, eventType);
         EXPECT_EQ(eventDataTar->osAccountId_, TEST_ACCOUNT_ID);
@@ -521,20 +521,20 @@ HWTEST_F(DeviceAccountInfoTest, DistributedAccountSpaceEventDataTest_003, TestSi
 
 /**
  * @tc.name: DistributedAccountSpaceEventData_operatorEqual001
- * @tc.desc: Test DistributedAccountSpaceEventData operator== with equal data
+ * @tc.desc: Test DistributedAccountSubProfileEventData operator== with equal data
  * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(DeviceAccountInfoTest, SpaceEventData_operatorEqual001, TestSize.Level3)
 {
-    DistributedAccountSpaceEventData eventData1;
-    eventData1.type_ = DistributedAccountSpaceEventType::CREATED;
+    DistributedAccountSubProfileEventData eventData1;
+    eventData1.type_ = DistributedAccountSubProfileEventType::CREATED;
     eventData1.osAccountId_ = 100;
     eventData1.subspaceId_ = 200;
     eventData1.previousSubspaceId_ = 150;
 
-    DistributedAccountSpaceEventData eventData2;
-    eventData2.type_ = DistributedAccountSpaceEventType::CREATED;
+    DistributedAccountSubProfileEventData eventData2;
+    eventData2.type_ = DistributedAccountSubProfileEventType::CREATED;
     eventData2.osAccountId_ = 100;
     eventData2.subspaceId_ = 200;
     eventData2.previousSubspaceId_ = 150;
@@ -544,20 +544,20 @@ HWTEST_F(DeviceAccountInfoTest, SpaceEventData_operatorEqual001, TestSize.Level3
 
 /**
  * @tc.name: DistributedAccountSpaceEventData_operatorEqual002
- * @tc.desc: Test DistributedAccountSpaceEventData operator== with different type - cover line 107
+ * @tc.desc: Test DistributedAccountSubProfileEventData operator== with different type - cover line 107
  * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(DeviceAccountInfoTest, SpaceEventData_operatorEqual002, TestSize.Level3)
 {
-    DistributedAccountSpaceEventData eventData1;
-    eventData1.type_ = DistributedAccountSpaceEventType::CREATED;
+    DistributedAccountSubProfileEventData eventData1;
+    eventData1.type_ = DistributedAccountSubProfileEventType::CREATED;
     eventData1.osAccountId_ = 100;
     eventData1.subspaceId_ = 200;
     eventData1.previousSubspaceId_ = 150;
 
-    DistributedAccountSpaceEventData eventData2;
-    eventData2.type_ = DistributedAccountSpaceEventType::SWITCHED;
+    DistributedAccountSubProfileEventData eventData2;
+    eventData2.type_ = DistributedAccountSubProfileEventType::SWITCHED;
     eventData2.osAccountId_ = 100;
     eventData2.subspaceId_ = 200;
     eventData2.previousSubspaceId_ = 150;
@@ -573,14 +573,14 @@ HWTEST_F(DeviceAccountInfoTest, SpaceEventData_operatorEqual002, TestSize.Level3
  */
 HWTEST_F(DeviceAccountInfoTest, SpaceEventData_operatorEqual003, TestSize.Level3)
 {
-    DistributedAccountSpaceEventData eventData1;
-    eventData1.type_ = DistributedAccountSpaceEventType::CREATED;
+    DistributedAccountSubProfileEventData eventData1;
+    eventData1.type_ = DistributedAccountSubProfileEventType::CREATED;
     eventData1.osAccountId_ = 100;
     eventData1.subspaceId_ = 200;
     eventData1.previousSubspaceId_ = 150;
 
-    DistributedAccountSpaceEventData eventData2;
-    eventData2.type_ = DistributedAccountSpaceEventType::CREATED;
+    DistributedAccountSubProfileEventData eventData2;
+    eventData2.type_ = DistributedAccountSubProfileEventType::CREATED;
     eventData2.osAccountId_ = 200;
     eventData2.subspaceId_ = 200;
     eventData2.previousSubspaceId_ = 150;
@@ -596,14 +596,14 @@ HWTEST_F(DeviceAccountInfoTest, SpaceEventData_operatorEqual003, TestSize.Level3
  */
 HWTEST_F(DeviceAccountInfoTest, SpaceEventData_operatorEqual004, TestSize.Level3)
 {
-    DistributedAccountSpaceEventData eventData1;
-    eventData1.type_ = DistributedAccountSpaceEventType::CREATED;
+    DistributedAccountSubProfileEventData eventData1;
+    eventData1.type_ = DistributedAccountSubProfileEventType::CREATED;
     eventData1.osAccountId_ = 100;
     eventData1.subspaceId_ = 200;
     eventData1.previousSubspaceId_ = 150;
 
-    DistributedAccountSpaceEventData eventData2;
-    eventData2.type_ = DistributedAccountSpaceEventType::CREATED;
+    DistributedAccountSubProfileEventData eventData2;
+    eventData2.type_ = DistributedAccountSubProfileEventType::CREATED;
     eventData2.osAccountId_ = 100;
     eventData2.subspaceId_ = 300;
     eventData2.previousSubspaceId_ = 150;
@@ -619,14 +619,14 @@ HWTEST_F(DeviceAccountInfoTest, SpaceEventData_operatorEqual004, TestSize.Level3
  */
 HWTEST_F(DeviceAccountInfoTest, SpaceEventData_operatorEqual005, TestSize.Level3)
 {
-    DistributedAccountSpaceEventData eventData1;
-    eventData1.type_ = DistributedAccountSpaceEventType::CREATED;
+    DistributedAccountSubProfileEventData eventData1;
+    eventData1.type_ = DistributedAccountSubProfileEventType::CREATED;
     eventData1.osAccountId_ = 100;
     eventData1.subspaceId_ = 200;
     eventData1.previousSubspaceId_ = 150;
 
-    DistributedAccountSpaceEventData eventData2;
-    eventData2.type_ = DistributedAccountSpaceEventType::CREATED;
+    DistributedAccountSubProfileEventData eventData2;
+    eventData2.type_ = DistributedAccountSubProfileEventType::CREATED;
     eventData2.osAccountId_ = 100;
     eventData2.subspaceId_ = 200;
     eventData2.previousSubspaceId_ = 250;
@@ -636,14 +636,14 @@ HWTEST_F(DeviceAccountInfoTest, SpaceEventData_operatorEqual005, TestSize.Level3
 
 /**
  * @tc.name: DistributedAccountSpaceEventData_Unmarshalling001
- * @tc.desc: Test DistributedAccountSpaceEventData Unmarshalling success
+ * @tc.desc: Test DistributedAccountSubProfileEventData Unmarshalling success
  * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(DeviceAccountInfoTest, SpaceEventData_Unmarshalling001, TestSize.Level3)
 {
-    DistributedAccountSpaceEventData eventData;
-    eventData.type_ = DistributedAccountSpaceEventType::CREATED;
+    DistributedAccountSubProfileEventData eventData;
+    eventData.type_ = DistributedAccountSubProfileEventType::CREATED;
     eventData.osAccountId_ = 100;
     eventData.subspaceId_ = 200;
     eventData.previousSubspaceId_ = 150;
@@ -651,7 +651,7 @@ HWTEST_F(DeviceAccountInfoTest, SpaceEventData_Unmarshalling001, TestSize.Level3
     Parcel parcel;
     EXPECT_TRUE(eventData.Marshalling(parcel));
 
-    DistributedAccountSpaceEventData *result = DistributedAccountSpaceEventData::Unmarshalling(parcel);
+    DistributedAccountSubProfileEventData *result = DistributedAccountSubProfileEventData::Unmarshalling(parcel);
     ASSERT_NE(result, nullptr);
     EXPECT_EQ(result->type_, eventData.type_);
     EXPECT_EQ(result->osAccountId_, eventData.osAccountId_);
@@ -670,7 +670,7 @@ HWTEST_F(DeviceAccountInfoTest, SpaceEventData_Unmarshalling002, TestSize.Level3
 {
     Parcel parcel;
 
-    DistributedAccountSpaceEventData *result = DistributedAccountSpaceEventData::Unmarshalling(parcel);
+    DistributedAccountSubProfileEventData *result = DistributedAccountSubProfileEventData::Unmarshalling(parcel);
     EXPECT_EQ(result, nullptr);
 }
 
@@ -683,9 +683,9 @@ HWTEST_F(DeviceAccountInfoTest, SpaceEventData_Unmarshalling002, TestSize.Level3
 HWTEST_F(DeviceAccountInfoTest, SpaceEventData_Unmarshalling003, TestSize.Level3)
 {
     Parcel parcel;
-    parcel.WriteInt32(static_cast<int32_t>(DistributedAccountSpaceEventType::CREATED));
+    parcel.WriteInt32(static_cast<int32_t>(DistributedAccountSubProfileEventType::CREATED));
 
-    DistributedAccountSpaceEventData *result = DistributedAccountSpaceEventData::Unmarshalling(parcel);
+    DistributedAccountSubProfileEventData *result = DistributedAccountSubProfileEventData::Unmarshalling(parcel);
     EXPECT_EQ(result, nullptr);
 }
 
@@ -698,10 +698,10 @@ HWTEST_F(DeviceAccountInfoTest, SpaceEventData_Unmarshalling003, TestSize.Level3
 HWTEST_F(DeviceAccountInfoTest, SpaceEventData_Unmarshalling004, TestSize.Level3)
 {
     Parcel parcel;
-    parcel.WriteInt32(static_cast<int32_t>(DistributedAccountSpaceEventType::CREATED));
+    parcel.WriteInt32(static_cast<int32_t>(DistributedAccountSubProfileEventType::CREATED));
     parcel.WriteInt32(100);
 
-    DistributedAccountSpaceEventData *result = DistributedAccountSpaceEventData::Unmarshalling(parcel);
+    DistributedAccountSubProfileEventData *result = DistributedAccountSubProfileEventData::Unmarshalling(parcel);
     EXPECT_EQ(result, nullptr);
 }
 
@@ -714,11 +714,11 @@ HWTEST_F(DeviceAccountInfoTest, SpaceEventData_Unmarshalling004, TestSize.Level3
 HWTEST_F(DeviceAccountInfoTest, SpaceEventData_Unmarshalling005, TestSize.Level3)
 {
     Parcel parcel;
-    parcel.WriteInt32(static_cast<int32_t>(DistributedAccountSpaceEventType::CREATED));
+    parcel.WriteInt32(static_cast<int32_t>(DistributedAccountSubProfileEventType::CREATED));
     parcel.WriteInt32(100);
     parcel.WriteInt32(200);
 
-    DistributedAccountSpaceEventData *result = DistributedAccountSpaceEventData::Unmarshalling(parcel);
+    DistributedAccountSubProfileEventData *result = DistributedAccountSubProfileEventData::Unmarshalling(parcel);
     EXPECT_EQ(result, nullptr);
 }
 

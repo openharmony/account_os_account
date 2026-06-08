@@ -47,7 +47,7 @@ public:
         OsAccountSubspaceResult &subspaceResult, OhosAccountInfo &distributedInfo);
 
     ErrCode SubscribeOsAccountSubProfileEvents(
-        const std::set<DistributedAccountSpaceEventType>& types,
+        const std::set<DistributedAccountSubProfileEventType>& types,
         const std::shared_ptr<DistributedAccountSubscribeCallback>& callback);
     ErrCode UnsubscribeOsAccountSubProfileEvents(
         const std::shared_ptr<DistributedAccountSubscribeCallback>& callback);

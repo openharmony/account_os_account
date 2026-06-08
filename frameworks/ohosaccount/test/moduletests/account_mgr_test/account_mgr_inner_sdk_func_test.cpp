@@ -862,7 +862,7 @@ class MockDistributedAccountSpaceSubscribeCallback final : public DistributedAcc
 public:
     explicit MockDistributedAccountSpaceSubscribeCallback() {}
     MOCK_METHOD1(OnAccountsChanged, void(const DistributedAccountEventData &eventData));
-    MOCK_METHOD1(OnSpaceAccountsChanged, void(const DistributedAccountSpaceEventData &eventData));
+    MOCK_METHOD1(OnSpaceAccountsChanged, void(const DistributedAccountSubProfileEventData &eventData));
 };
 
 /**
@@ -873,7 +873,7 @@ public:
  */
 HWTEST_F(AccountMgrInnerSdkFuncTest, SubscribeDistributedAccountSpaceEventsTest001, TestSize.Level3)
 {
-    std::set<DistributedAccountSpaceEventType> types = {DistributedAccountSpaceEventType::CREATED};
+    std::set<DistributedAccountSubProfileEventType> types = {DistributedAccountSubProfileEventType::CREATED};
     std::shared_ptr<DistributedAccountSubscribeCallback> callback = nullptr;
 
     ErrCode result = OhosAccountKits::GetInstance().SubscribeDistributedAccountSpaceEvents(types, callback);
@@ -888,7 +888,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SubscribeDistributedAccountSpaceEventsTest0
  */
 HWTEST_F(AccountMgrInnerSdkFuncTest, SubscribeDistributedAccountSpaceEventsTest002, TestSize.Level3)
 {
-    std::set<DistributedAccountSpaceEventType> types;
+    std::set<DistributedAccountSubProfileEventType> types;
     auto callback = std::make_shared<MockDistributedAccountSpaceSubscribeCallback>();
     ASSERT_NE(callback, nullptr);
 
@@ -935,7 +935,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, UnsubscribeDistributedAccountSpaceEventsTes
 HWTEST_F(AccountMgrInnerSdkFuncTest, CreateDistributedAccountSpaceEventServiceTest001, TestSize.Level3)
 {
     sptr<IRemoteObject> listener = nullptr;
-    std::set<DistributedAccountSpaceEventType> types = {DistributedAccountSpaceEventType::CREATED};
+    std::set<DistributedAccountSubProfileEventType> types = {DistributedAccountSubProfileEventType::CREATED};
     std::shared_ptr<DistributedAccountSubscribeCallback> callback = nullptr;
 
     ErrCode result = OhosAccountKitsImpl::GetInstance().CreateDistributedAccountSpaceEventService(
@@ -953,7 +953,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, CreateDistributedAccountSpaceEventServiceTe
 HWTEST_F(AccountMgrInnerSdkFuncTest, CreateDistributedAccountSpaceEventServiceTest002, TestSize.Level3)
 {
     sptr<IRemoteObject> listener = nullptr;
-    std::set<DistributedAccountSpaceEventType> types = {DistributedAccountSpaceEventType::CREATED};
+    std::set<DistributedAccountSubProfileEventType> types = {DistributedAccountSubProfileEventType::CREATED};
     auto callback = std::make_shared<MockDistributedAccountSpaceSubscribeCallback>();
     ASSERT_NE(callback, nullptr);
 
@@ -974,7 +974,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, CreateDistributedAccountSpaceEventServiceTe
 HWTEST_F(AccountMgrInnerSdkFuncTest, CreateDistributedAccountSpaceEventServiceTest003, TestSize.Level3)
 {
     sptr<IRemoteObject> listener = nullptr;
-    std::set<DistributedAccountSpaceEventType> types = {DistributedAccountSpaceEventType::CREATED};
+    std::set<DistributedAccountSubProfileEventType> types = {DistributedAccountSubProfileEventType::CREATED};
     auto callback = std::make_shared<MockDistributedAccountSpaceSubscribeCallback>();
     ASSERT_NE(callback, nullptr);
 
@@ -992,7 +992,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, CreateDistributedAccountSpaceEventServiceTe
  */
 HWTEST_F(AccountMgrInnerSdkFuncTest, SubscribeDistributedAccountSpaceEventsTest003, TestSize.Level3)
 {
-    std::set<DistributedAccountSpaceEventType> types = {DistributedAccountSpaceEventType::CREATED};
+    std::set<DistributedAccountSubProfileEventType> types = {DistributedAccountSubProfileEventType::CREATED};
     auto callback1 = std::make_shared<MockDistributedAccountSpaceSubscribeCallback>();
     ASSERT_NE(callback1, nullptr);
     auto callback2 = std::make_shared<MockDistributedAccountSpaceSubscribeCallback>();
@@ -1015,14 +1015,14 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SubscribeDistributedAccountSpaceEventsTest0
  */
 HWTEST_F(AccountMgrInnerSdkFuncTest, SubscribeDistributedAccountSpaceEventsTest005, TestSize.Level0)
 {
-    std::set<DistributedAccountSpaceEventType> types = {DistributedAccountSpaceEventType::CREATED};
+    std::set<DistributedAccountSubProfileEventType> types = {DistributedAccountSubProfileEventType::CREATED};
     auto callback1 = std::make_shared<MockDistributedAccountSpaceSubscribeCallback>();
     ASSERT_NE(callback1, nullptr);
     ErrCode result = OhosAccountKitsImpl::GetInstance().SubscribeDistributedAccountSpaceEvents(types, callback1);
     EXPECT_EQ(result, ERR_OK);
     uint64_t tokenId;
     ASSERT_TRUE(AllocPermission({}, tokenId, false));
-    types.insert(DistributedAccountSpaceEventType::DELETED);
+    types.insert(DistributedAccountSubProfileEventType::DELETED);
     result = OhosAccountKitsImpl::GetInstance().SubscribeDistributedAccountSpaceEvents(types, callback1);
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
     result = OhosAccountKitsImpl::GetInstance().UnsubscribeDistributedAccountSpaceEvents(callback1);
@@ -1038,7 +1038,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SubscribeDistributedAccountSpaceEventsTest0
  */
 HWTEST_F(AccountMgrInnerSdkFuncTest, SubscribeDistributedAccountSpaceEventsTest004, TestSize.Level3)
 {
-    std::set<DistributedAccountSpaceEventType> types = {DistributedAccountSpaceEventType::CREATED};
+    std::set<DistributedAccountSubProfileEventType> types = {DistributedAccountSubProfileEventType::CREATED};
     std::vector<std::shared_ptr<MockDistributedAccountSpaceSubscribeCallback>> vec;
     for (int i = 0; i < Constants::DISTRIBUTED_SUBSCRIBER_MAX_SIZE; i++) {
         auto callback = std::make_shared<MockDistributedAccountSpaceSubscribeCallback>();
@@ -1064,7 +1064,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SubscribeDistributedAccountSpaceEventsTest0
  */
 HWTEST_F(AccountMgrInnerSdkFuncTest, UnsubscribeDistributedAccountSpaceEventsTest003, TestSize.Level3)
 {
-    std::set<DistributedAccountSpaceEventType> types = {DistributedAccountSpaceEventType::CREATED};
+    std::set<DistributedAccountSubProfileEventType> types = {DistributedAccountSubProfileEventType::CREATED};
     auto callback1 = std::make_shared<MockDistributedAccountSpaceSubscribeCallback>();
     ASSERT_NE(callback1, nullptr);
     auto callback2 = std::make_shared<MockDistributedAccountSpaceSubscribeCallback>();

@@ -177,7 +177,7 @@ ErrCode OsAccountSubProfileClient::GetOsAccountSubProfile(
 }
 
 ErrCode OsAccountSubProfileClient::SubscribeOsAccountSubProfileEvents(
-    const std::set<DistributedAccountSpaceEventType>& types,
+    const std::set<DistributedAccountSubProfileEventType>& types,
     const std::shared_ptr<DistributedAccountSubscribeCallback>& callback)
 {
     return OhosAccountKitsImpl::GetInstance().SubscribeDistributedAccountSpaceEvents(types, callback);

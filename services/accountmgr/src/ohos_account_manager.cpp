@@ -666,7 +666,7 @@ ErrCode OhosAccountManager::CreateOsAccountSubspace(int32_t osAccountId, OsAccou
     result.index = newSubspaceId - osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
 
     ErrCode publishRet = subscribeManager_.Publish(
-        DistributedAccountSpaceEventType::CREATED, osAccountId, newSubspaceId);
+        DistributedAccountSubProfileEventType::CREATED, osAccountId, newSubspaceId);
     if (publishRet != ERR_OK) {
         ACCOUNT_LOGW("Failed to publish CREATE event for distId=%{public}d, ret=%{public}d (space is still valid)",
             newSubspaceId, publishRet);
@@ -686,7 +686,7 @@ ErrCode OhosAccountManager::DeleteOsAccountSubspace(int32_t osAccountId, int32_t
         return ret;
     }
     ErrCode publishRet = subscribeManager_.Publish(
-        DistributedAccountSpaceEventType::DELETED, osAccountId, subspaceId);
+        DistributedAccountSubProfileEventType::DELETED, osAccountId, subspaceId);
     if (publishRet != ERR_OK) {
         ACCOUNT_LOGW("Failed to publish DELETED event for distId=%{public}d, ret=%{public}d",
             subspaceId, publishRet);
@@ -732,7 +732,7 @@ ErrCode OhosAccountManager::SwitchOsAccountSubspace(
         return ret;
     }
     ErrCode publishRet = subscribeManager_.Publish(
-        DistributedAccountSpaceEventType::SWITCHED, osAccountId, subspaceId, fromSubspaceId);
+        DistributedAccountSubProfileEventType::SWITCHED, osAccountId, subspaceId, fromSubspaceId);
     if (publishRet != ERR_OK) {
         ACCOUNT_LOGW("Failed to publish SWITCHED event for distId=%{public}d, ret=%{public}d",
             subspaceId, publishRet);
@@ -745,13 +745,13 @@ ErrCode OhosAccountManager::SwitchOsAccountSubspace(
 #endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 
 ErrCode OhosAccountManager::SubscribeDistributedAccountSpaceEvents(
-    const std::set<DistributedAccountSpaceEventType> &types, const sptr<IRemoteObject> &eventListener)
+    const std::set<DistributedAccountSubProfileEventType> &types, const sptr<IRemoteObject> &eventListener)
 {
     return subscribeManager_.SubscribeDistributedAccountSpaceEvents(types, eventListener);
 }
 
 ErrCode OhosAccountManager::UnsubscribeDistributedAccountSpaceEvents(
-    const std::set<DistributedAccountSpaceEventType> &types, const sptr<IRemoteObject> &eventListener)
+    const std::set<DistributedAccountSubProfileEventType> &types, const sptr<IRemoteObject> &eventListener)
 {
     return subscribeManager_.UnsubscribeDistributedAccountSpaceEvents(types, eventListener);
 }

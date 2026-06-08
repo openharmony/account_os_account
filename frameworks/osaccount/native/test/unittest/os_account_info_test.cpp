@@ -199,6 +199,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_OsAccountInfo_0200, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo(INT_ID, STRING_NAME, INT_TYPE, STRING_SERIAL_NUMBER);
     EXPECT_EQ(STRING_NAME, osAccountInfo.GetLocalName());
+    EXPECT_EQ(0, osAccountInfo.GetVersion());
 }
 
 /**

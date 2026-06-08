@@ -30,7 +30,7 @@ class TestDistributedAccountSpaceSubscribeCallback final : public DistributedAcc
 public:
     explicit TestDistributedAccountSpaceSubscribeCallback() {}
     void OnAccountsChanged(const DistributedAccountEventData &eventData) {}
-    void OnSpaceAccountsChanged(const DistributedAccountSpaceEventData &eventData) {}
+    void OnSpaceAccountsChanged(const DistributedAccountSubProfileEventData &eventData) {}
 };
 
 bool SubscribeDistributedAccountSpaceEventsFuzzTest(const uint8_t* data, size_t size)
@@ -39,10 +39,10 @@ bool SubscribeDistributedAccountSpaceEventsFuzzTest(const uint8_t* data, size_t 
         return false;
     }
     FuzzData fuzzData(data, size);
-    std::set<DistributedAccountSpaceEventType> types;
+    std::set<DistributedAccountSubProfileEventType> types;
     int32_t typeCount = fuzzData.GetData<int32_t>() % ENUM_SIZE + 1;
     for (int32_t i = 0; i < typeCount && i < ENUM_SIZE; i++) {
-        DistributedAccountSpaceEventType type = static_cast<DistributedAccountSpaceEventType>(
+        DistributedAccountSubProfileEventType type = static_cast<DistributedAccountSubProfileEventType>(
             fuzzData.GetData<int32_t>() % ENUM_SIZE);
         types.insert(type);
     }

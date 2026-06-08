@@ -171,7 +171,7 @@ public:
      * @param callback subscribe callback
      * @return error code, see account_error_no.h
      */
-    virtual ErrCode SubscribeDistributedAccountSpaceEvents(const std::set<DistributedAccountSpaceEventType>& types,
+    virtual ErrCode SubscribeDistributedAccountSpaceEvents(const std::set<DistributedAccountSubProfileEventType>& types,
         const std::shared_ptr<DistributedAccountSubscribeCallback> &callback)
     {
         return ERR_OK;

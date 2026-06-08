@@ -364,7 +364,7 @@ ErrCode OhosAccountKitsImpl::CreateDistributedAccountEventService(const DISTRIBU
 }
 
 ErrCode OhosAccountKitsImpl::CreateDistributedAccountSpaceEventService(
-    const std::set<DistributedAccountSpaceEventType> &types,
+    const std::set<DistributedAccountSubProfileEventType> &types,
     const std::shared_ptr<DistributedAccountSubscribeCallback> &callback,
     sptr<IRemoteObject> &subscribeListener)
 {
@@ -406,7 +406,7 @@ void OhosAccountKitsImpl::RestoreSubscribe()
             ACCOUNT_LOGE("Restore subscribe failed, res=%{public}d.", subscribeState);
         }
     }
-    std::set<DistributedAccountSpaceEventType> existingTypes;
+    std::set<DistributedAccountSubProfileEventType> existingTypes;
     DistributedAccountEventService::GetInstance()->GetAllSpaceType(existingTypes);
     if (existingTypes.empty()) {
         return;
@@ -526,7 +526,7 @@ sptr<IRemoteObject> OhosAccountKitsImpl::GetOsAccountSubspaceService()
 }
 
 ErrCode OhosAccountKitsImpl::SubscribeDistributedAccountSpaceEvents(
-    const std::set<DistributedAccountSpaceEventType> &types,
+    const std::set<DistributedAccountSubProfileEventType> &types,
     const std::shared_ptr<DistributedAccountSubscribeCallback> &callback)
 {
     ACCOUNT_LOGI("Batch subscribe distributed account space events in client.");
@@ -544,9 +544,9 @@ ErrCode OhosAccountKitsImpl::SubscribeDistributedAccountSpaceEvents(
     sptr<IRemoteObject> listener = nullptr;
     std::lock_guard<std::mutex> lock(eventListenersMutex_);
 
-    std::set<DistributedAccountSpaceEventType> existingTypes;
+    std::set<DistributedAccountSubProfileEventType> existingTypes;
     DistributedAccountEventService::GetInstance()->GetAllSpaceType(existingTypes);
-    std::set<DistributedAccountSpaceEventType> newTypes;
+    std::set<DistributedAccountSubProfileEventType> newTypes;
     for (auto type : types) {
         if (existingTypes.find(type) == existingTypes.end()) {
             newTypes.insert(type);
@@ -605,7 +605,7 @@ ErrCode OhosAccountKitsImpl::UnsubscribeDistributedAccountSpaceEvents(
 
     std::lock_guard<std::mutex> lock(eventListenersMutex_);
 
-    std::set<DistributedAccountSpaceEventType> removedTypes;
+    std::set<DistributedAccountSubProfileEventType> removedTypes;
     DistributedAccountEventService::GetInstance()->GetSpaceTypesToRemove(callback, removedTypes);
 
     if (removedTypes.empty()) {

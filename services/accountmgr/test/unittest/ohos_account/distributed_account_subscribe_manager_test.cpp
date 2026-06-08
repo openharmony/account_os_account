@@ -30,8 +30,8 @@ namespace {
 constexpr int32_t TEST_LOCAL_ID = 100;
 constexpr int32_t TEST_DISTRIBUTED_ACCOUNT_ID = 200;
 constexpr int32_t TEST_PREVIOUS_DISTRIBUTED_ACCOUNT_ID = 150;
-const DistributedAccountSpaceEventType TEST_SPACE_EVENT_TYPE = DistributedAccountSpaceEventType::CREATED;
-const DistributedAccountSpaceEventType TEST_SPACE_EVENT_TYPE_2 = DistributedAccountSpaceEventType::SWITCHED;
+const DistributedAccountSubProfileEventType TEST_SPACE_EVENT_TYPE = DistributedAccountSubProfileEventType::CREATED;
+const DistributedAccountSubProfileEventType TEST_SPACE_EVENT_TYPE_2 = DistributedAccountSubProfileEventType::SWITCHED;
 }
 
 class DistributedAccountSubscribeManagerTest : public testing::Test {
@@ -69,7 +69,7 @@ void DistributedAccountSubscribeManagerTest::TearDown()
  */
 HWTEST_F(DistributedAccountSubscribeManagerTest, SubscribeDistributedAccountSpaceEvents001, TestSize.Level1)
 {
-    std::set<DistributedAccountSpaceEventType> types = {TEST_SPACE_EVENT_TYPE};
+    std::set<DistributedAccountSubProfileEventType> types = {TEST_SPACE_EVENT_TYPE};
     sptr<IRemoteObject> eventListener = new (std::nothrow) DistributedAccountEventService();
     ASSERT_NE(eventListener, nullptr);
 
@@ -90,7 +90,7 @@ HWTEST_F(DistributedAccountSubscribeManagerTest, SubscribeDistributedAccountSpac
  */
 HWTEST_F(DistributedAccountSubscribeManagerTest, SubscribeDistributedAccountSpaceEvents002, TestSize.Level1)
 {
-    std::set<DistributedAccountSpaceEventType> types = {TEST_SPACE_EVENT_TYPE, TEST_SPACE_EVENT_TYPE_2};
+    std::set<DistributedAccountSubProfileEventType> types = {TEST_SPACE_EVENT_TYPE, TEST_SPACE_EVENT_TYPE_2};
     sptr<IRemoteObject> eventListener = new (std::nothrow) DistributedAccountEventService();
     ASSERT_NE(eventListener, nullptr);
 
@@ -111,7 +111,7 @@ HWTEST_F(DistributedAccountSubscribeManagerTest, SubscribeDistributedAccountSpac
  */
 HWTEST_F(DistributedAccountSubscribeManagerTest, SubscribeDistributedAccountSpaceEvents003, TestSize.Level1)
 {
-    std::set<DistributedAccountSpaceEventType> types = {TEST_SPACE_EVENT_TYPE};
+    std::set<DistributedAccountSubProfileEventType> types = {TEST_SPACE_EVENT_TYPE};
     sptr<IRemoteObject> eventListener = nullptr;
 
     ErrCode result = DistributedAccountSubscribeManager::GetInstance().SubscribeDistributedAccountSpaceEvents(
@@ -127,7 +127,7 @@ HWTEST_F(DistributedAccountSubscribeManagerTest, SubscribeDistributedAccountSpac
  */
 HWTEST_F(DistributedAccountSubscribeManagerTest, SubscribeDistributedAccountSpaceEvents004, TestSize.Level1)
 {
-    std::set<DistributedAccountSpaceEventType> types;
+    std::set<DistributedAccountSubProfileEventType> types;
     sptr<IRemoteObject> eventListener = new (std::nothrow) DistributedAccountEventService();
     ASSERT_NE(eventListener, nullptr);
 
@@ -144,7 +144,7 @@ HWTEST_F(DistributedAccountSubscribeManagerTest, SubscribeDistributedAccountSpac
  */
 HWTEST_F(DistributedAccountSubscribeManagerTest, SubscribeDistributedAccountSpaceEvents005, TestSize.Level1)
 {
-    std::set<DistributedAccountSpaceEventType> types = {TEST_SPACE_EVENT_TYPE};
+    std::set<DistributedAccountSubProfileEventType> types = {TEST_SPACE_EVENT_TYPE};
     sptr<IRemoteObject> eventListener = new (std::nothrow) DistributedAccountEventService();
     ASSERT_NE(eventListener, nullptr);
 
@@ -169,7 +169,7 @@ HWTEST_F(DistributedAccountSubscribeManagerTest, SubscribeDistributedAccountSpac
  */
 HWTEST_F(DistributedAccountSubscribeManagerTest, UnsubscribeDistributedAccountSpaceEvents001, TestSize.Level1)
 {
-    std::set<DistributedAccountSpaceEventType> types = {TEST_SPACE_EVENT_TYPE};
+    std::set<DistributedAccountSubProfileEventType> types = {TEST_SPACE_EVENT_TYPE};
     sptr<IRemoteObject> eventListener = new (std::nothrow) DistributedAccountEventService();
     ASSERT_NE(eventListener, nullptr);
 
@@ -190,7 +190,7 @@ HWTEST_F(DistributedAccountSubscribeManagerTest, UnsubscribeDistributedAccountSp
  */
 HWTEST_F(DistributedAccountSubscribeManagerTest, UnsubscribeDistributedAccountSpaceEvents002, TestSize.Level1)
 {
-    std::set<DistributedAccountSpaceEventType> types = {TEST_SPACE_EVENT_TYPE};
+    std::set<DistributedAccountSubProfileEventType> types = {TEST_SPACE_EVENT_TYPE};
     sptr<IRemoteObject> eventListener = nullptr;
 
     ErrCode result = DistributedAccountSubscribeManager::GetInstance().UnsubscribeDistributedAccountSpaceEvents(
@@ -206,7 +206,7 @@ HWTEST_F(DistributedAccountSubscribeManagerTest, UnsubscribeDistributedAccountSp
  */
 HWTEST_F(DistributedAccountSubscribeManagerTest, UnsubscribeDistributedAccountSpaceEvents003, TestSize.Level1)
 {
-    std::set<DistributedAccountSpaceEventType> types;
+    std::set<DistributedAccountSubProfileEventType> types;
     sptr<IRemoteObject> eventListener = new (std::nothrow) DistributedAccountEventService();
     ASSERT_NE(eventListener, nullptr);
 
@@ -223,7 +223,7 @@ HWTEST_F(DistributedAccountSubscribeManagerTest, UnsubscribeDistributedAccountSp
  */
 HWTEST_F(DistributedAccountSubscribeManagerTest, UnsubscribeDistributedAccountSpaceEvents004, TestSize.Level1)
 {
-    std::set<DistributedAccountSpaceEventType> types = {TEST_SPACE_EVENT_TYPE};
+    std::set<DistributedAccountSubProfileEventType> types = {TEST_SPACE_EVENT_TYPE};
     sptr<IRemoteObject> eventListener = new (std::nothrow) DistributedAccountEventService();
     ASSERT_NE(eventListener, nullptr);
 
@@ -240,7 +240,7 @@ HWTEST_F(DistributedAccountSubscribeManagerTest, UnsubscribeDistributedAccountSp
  */
 HWTEST_F(DistributedAccountSubscribeManagerTest, UnsubscribeDistributedAccountSpaceEvents005, TestSize.Level1)
 {
-    std::set<DistributedAccountSpaceEventType> types = {TEST_SPACE_EVENT_TYPE, TEST_SPACE_EVENT_TYPE_2};
+    std::set<DistributedAccountSubProfileEventType> types = {TEST_SPACE_EVENT_TYPE, TEST_SPACE_EVENT_TYPE_2};
     sptr<IRemoteObject> eventListener = new (std::nothrow) DistributedAccountEventService();
     ASSERT_NE(eventListener, nullptr);
 
@@ -248,7 +248,7 @@ HWTEST_F(DistributedAccountSubscribeManagerTest, UnsubscribeDistributedAccountSp
         types, eventListener);
     EXPECT_EQ(result, ERR_OK);
 
-    std::set<DistributedAccountSpaceEventType> partialTypes = {TEST_SPACE_EVENT_TYPE};
+    std::set<DistributedAccountSubProfileEventType> partialTypes = {TEST_SPACE_EVENT_TYPE};
     result = DistributedAccountSubscribeManager::GetInstance().UnsubscribeDistributedAccountSpaceEvents(
         partialTypes, eventListener);
     EXPECT_EQ(result, ERR_OK);
@@ -266,7 +266,7 @@ HWTEST_F(DistributedAccountSubscribeManagerTest, UnsubscribeDistributedAccountSp
  */
 HWTEST_F(DistributedAccountSubscribeManagerTest, PublishSpaceEvent001, TestSize.Level1)
 {
-    std::set<DistributedAccountSpaceEventType> types = {TEST_SPACE_EVENT_TYPE};
+    std::set<DistributedAccountSubProfileEventType> types = {TEST_SPACE_EVENT_TYPE};
     sptr<IRemoteObject> eventListener = new (std::nothrow) DistributedAccountEventService();
     ASSERT_NE(eventListener, nullptr);
     sptr<IRemoteObject> eventListener2 = new (std::nothrow) DistributedAccountEventService();
@@ -300,8 +300,8 @@ HWTEST_F(DistributedAccountSubscribeManagerTest, PublishSpaceEvent001, TestSize.
  */
 HWTEST_F(DistributedAccountSubscribeManagerTest, PublishSpaceEvent003, TestSize.Level1)
 {
-    std::set<DistributedAccountSpaceEventType> types = {TEST_SPACE_EVENT_TYPE, TEST_SPACE_EVENT_TYPE_2};
-    std::set<DistributedAccountSpaceEventType> types2 = {TEST_SPACE_EVENT_TYPE_2};
+    std::set<DistributedAccountSubProfileEventType> types = {TEST_SPACE_EVENT_TYPE, TEST_SPACE_EVENT_TYPE_2};
+    std::set<DistributedAccountSubProfileEventType> types2 = {TEST_SPACE_EVENT_TYPE_2};
     sptr<IRemoteObject> eventListener1 = new (std::nothrow) DistributedAccountEventService();
     ASSERT_NE(eventListener1, nullptr);
     sptr<IRemoteObject> eventListener2 = new (std::nothrow) DistributedAccountEventService();
@@ -337,8 +337,8 @@ HWTEST_F(DistributedAccountSubscribeManagerTest, PublishSpaceEvent003, TestSize.
  */
 HWTEST_F(DistributedAccountSubscribeManagerTest, PublishSpaceEvent004, TestSize.Level1)
 {
-    std::set<DistributedAccountSpaceEventType> types1 = {TEST_SPACE_EVENT_TYPE};
-    std::set<DistributedAccountSpaceEventType> types2 = {TEST_SPACE_EVENT_TYPE_2};
+    std::set<DistributedAccountSubProfileEventType> types1 = {TEST_SPACE_EVENT_TYPE};
+    std::set<DistributedAccountSubProfileEventType> types2 = {TEST_SPACE_EVENT_TYPE_2};
     sptr<IRemoteObject> eventListener1 = new (std::nothrow) DistributedAccountEventService();
     ASSERT_NE(eventListener1, nullptr);
     sptr<IRemoteObject> eventListener2 = new (std::nothrow) DistributedAccountEventService();
@@ -377,7 +377,7 @@ HWTEST_F(DistributedAccountSubscribeManagerTest, PublishSpaceEvent004, TestSize.
  */
 HWTEST_F(DistributedAccountSubscribeManagerTest, MixedSubscribeTest001, TestSize.Level1)
 {
-    std::set<DistributedAccountSpaceEventType> spaceTypes = {TEST_SPACE_EVENT_TYPE};
+    std::set<DistributedAccountSubProfileEventType> spaceTypes = {TEST_SPACE_EVENT_TYPE};
     sptr<IRemoteObject> eventListener = new (std::nothrow) DistributedAccountEventService();
     ASSERT_NE(eventListener, nullptr);
 
@@ -406,7 +406,7 @@ HWTEST_F(DistributedAccountSubscribeManagerTest, MixedSubscribeTest001, TestSize
  */
 HWTEST_F(DistributedAccountSubscribeManagerTest, MixedSubscribeTest002, TestSize.Level1)
 {
-    std::set<DistributedAccountSpaceEventType> spaceTypes = {TEST_SPACE_EVENT_TYPE};
+    std::set<DistributedAccountSubProfileEventType> spaceTypes = {TEST_SPACE_EVENT_TYPE};
     sptr<IRemoteObject> eventListener = new (std::nothrow) DistributedAccountEventService();
     ASSERT_NE(eventListener, nullptr);
 
@@ -449,7 +449,7 @@ HWTEST_F(DistributedAccountSubscribeManagerTest, OnAccountsChanged001, TestSize.
     bool result = DistributedAccountSubscribeManager::GetInstance().OnAccountsChanged(nullptr,
         100, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGIN, -1);
     EXPECT_EQ(result, false);
-    DistributedAccountSpaceEventData data;
+    DistributedAccountSubProfileEventData data;
     result = DistributedAccountSubscribeManager::GetInstance().OnSpaceAccountsChanged(nullptr, data);
     EXPECT_EQ(result, false);
 }
@@ -467,7 +467,7 @@ HWTEST_F(DistributedAccountSubscribeManagerTest, OnSpaceAccountsChanged001, Test
     auto eventProxy = iface_cast<IDistributedAccountEvent>(eventListener);
     ASSERT_NE(eventProxy, nullptr);
 
-    DistributedAccountSpaceEventData eventData;
+    DistributedAccountSubProfileEventData eventData;
     eventData.type_ = TEST_SPACE_EVENT_TYPE;
     eventData.osAccountId_ = TEST_LOCAL_ID;
     eventData.subspaceId_ = TEST_DISTRIBUTED_ACCOUNT_ID;
@@ -485,7 +485,7 @@ HWTEST_F(DistributedAccountSubscribeManagerTest, OnSpaceAccountsChanged001, Test
  */
 HWTEST_F(DistributedAccountSubscribeManagerTest, OnSpaceAccountsChanged002, TestSize.Level1)
 {
-    DistributedAccountSpaceEventData eventData;
+    DistributedAccountSubProfileEventData eventData;
     eventData.type_ = TEST_SPACE_EVENT_TYPE;
     eventData.osAccountId_ = TEST_LOCAL_ID;
 
@@ -501,7 +501,7 @@ HWTEST_F(DistributedAccountSubscribeManagerTest, OnSpaceAccountsChanged002, Test
  */
 HWTEST_F(DistributedAccountSubscribeManagerTest, GetSubscribersToNotify_EventTypeNotFound001, TestSize.Level1)
 {
-    std::set<DistributedAccountSpaceEventType> types = {TEST_SPACE_EVENT_TYPE};
+    std::set<DistributedAccountSubProfileEventType> types = {TEST_SPACE_EVENT_TYPE};
     sptr<IRemoteObject> eventListener = new (std::nothrow) DistributedAccountEventService();
     ASSERT_NE(eventListener, nullptr);
 
@@ -526,8 +526,8 @@ HWTEST_F(DistributedAccountSubscribeManagerTest, GetSubscribersToNotify_EventTyp
  */
 HWTEST_F(DistributedAccountSubscribeManagerTest, GetSubscribersToNotify_EventTypeNotFound002, TestSize.Level1)
 {
-    std::set<DistributedAccountSpaceEventType> types1 = {TEST_SPACE_EVENT_TYPE};
-    std::set<DistributedAccountSpaceEventType> types2 = {TEST_SPACE_EVENT_TYPE_2};
+    std::set<DistributedAccountSubProfileEventType> types1 = {TEST_SPACE_EVENT_TYPE};
+    std::set<DistributedAccountSubProfileEventType> types2 = {TEST_SPACE_EVENT_TYPE_2};
     sptr<IRemoteObject> eventListener1 = new (std::nothrow) DistributedAccountEventService();
     ASSERT_NE(eventListener1, nullptr);
     sptr<IRemoteObject> eventListener2 = new (std::nothrow) DistributedAccountEventService();
@@ -548,7 +548,7 @@ HWTEST_F(DistributedAccountSubscribeManagerTest, GetSubscribersToNotify_EventTyp
     EXPECT_EQ(vec.size(), 1);
 
     vec = DistributedAccountSubscribeManager::GetInstance().GetSubscribersToNotify(
-        DistributedAccountSpaceEventType::DELETED, 100);
+        DistributedAccountSubProfileEventType::DELETED, 100);
     EXPECT_EQ(vec.size(), 0);
 
     DistributedAccountSubscribeManager::GetInstance().subscribeRecords_.clear();
@@ -562,7 +562,7 @@ HWTEST_F(DistributedAccountSubscribeManagerTest, GetSubscribersToNotify_EventTyp
  */
 HWTEST_F(DistributedAccountSubscribeManagerTest, GetSubscribersToNotify_SaCall001, TestSize.Level1)
 {
-    std::set<DistributedAccountSpaceEventType> types = {TEST_SPACE_EVENT_TYPE};
+    std::set<DistributedAccountSubProfileEventType> types = {TEST_SPACE_EVENT_TYPE};
     sptr<IRemoteObject> eventListener = new (std::nothrow) DistributedAccountEventService();
     ASSERT_NE(eventListener, nullptr);
 
@@ -590,7 +590,7 @@ HWTEST_F(DistributedAccountSubscribeManagerTest, GetSubscribersToNotify_SaCall00
  */
 HWTEST_F(DistributedAccountSubscribeManagerTest, GetSubscribersToNotify_AppCall001, TestSize.Level1)
 {
-    std::set<DistributedAccountSpaceEventType> types = {TEST_SPACE_EVENT_TYPE};
+    std::set<DistributedAccountSubProfileEventType> types = {TEST_SPACE_EVENT_TYPE};
     sptr<IRemoteObject> eventListener = new (std::nothrow) DistributedAccountEventService();
     ASSERT_NE(eventListener, nullptr);
 
@@ -618,7 +618,7 @@ HWTEST_F(DistributedAccountSubscribeManagerTest, GetSubscribersToNotify_AppCall0
  */
 HWTEST_F(DistributedAccountSubscribeManagerTest, GetSubscribersToNotify_MixedCall001, TestSize.Level1)
 {
-    std::set<DistributedAccountSpaceEventType> types = {TEST_SPACE_EVENT_TYPE};
+    std::set<DistributedAccountSubProfileEventType> types = {TEST_SPACE_EVENT_TYPE};
     sptr<IRemoteObject> eventListener1 = new (std::nothrow) DistributedAccountEventService();
     ASSERT_NE(eventListener1, nullptr);
     sptr<IRemoteObject> eventListener2 = new (std::nothrow) DistributedAccountEventService();
@@ -657,7 +657,7 @@ HWTEST_F(DistributedAccountSubscribeManagerTest, GetSubscribersToNotify_MixedCal
  */
 HWTEST_F(DistributedAccountSubscribeManagerTest, PublishSpaceEvent_IterateSubscribers001, TestSize.Level1)
 {
-    std::set<DistributedAccountSpaceEventType> types = {TEST_SPACE_EVENT_TYPE};
+    std::set<DistributedAccountSubProfileEventType> types = {TEST_SPACE_EVENT_TYPE};
     sptr<IRemoteObject> eventListener1 = new (std::nothrow) DistributedAccountEventService();
     ASSERT_NE(eventListener1, nullptr);
     sptr<IRemoteObject> eventListener2 = new (std::nothrow) DistributedAccountEventService();

@@ -357,7 +357,7 @@ HWTEST_F(AccountStubModuleTest, UnSubscribeDistributedAccountEvent_001, TestSize
  */
 HWTEST_F(AccountStubModuleTest, SubscribeDistributedAccountSpaceEvents001, TestSize.Level2)
 {
-    std::vector<int32_t> typeInts = {static_cast<int32_t>(DistributedAccountSpaceEventType::CREATED)};
+    std::vector<int32_t> typeInts = {static_cast<int32_t>(DistributedAccountSubProfileEventType::CREATED)};
     sptr<IRemoteObject> eventListener = nullptr;
 
     ErrCode result = accountService_->SubscribeDistributedAccountSpaceEvents(typeInts, eventListener);

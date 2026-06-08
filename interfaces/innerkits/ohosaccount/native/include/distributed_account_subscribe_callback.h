@@ -22,7 +22,7 @@
 namespace OHOS {
 namespace AccountSA {
 
-enum class DistributedAccountSpaceEventType : int32_t {
+enum class DistributedAccountSubProfileEventType : int32_t {
     CREATED = 0,
     DELETED = 1,
     SWITCHING = 2,
@@ -54,16 +54,16 @@ private:
     bool ReadFromParcel(Parcel &parcel);
 };
 
-class DistributedAccountSpaceEventData : public Parcelable {
+class DistributedAccountSubProfileEventData : public Parcelable {
 public:
-    DistributedAccountSpaceEventType type_ = DistributedAccountSpaceEventType::INVALID_TYPE;
+    DistributedAccountSubProfileEventType type_ = DistributedAccountSubProfileEventType::INVALID_TYPE;
     int32_t osAccountId_ = -1;
     int32_t subspaceId_ = -1;
     int32_t previousSubspaceId_ = -1;
 
     bool Marshalling(Parcel &parcel) const override;
-    static DistributedAccountSpaceEventData *Unmarshalling(Parcel &parcel);
-    bool operator==(const DistributedAccountSpaceEventData &eventData) const;
+    static DistributedAccountSubProfileEventData *Unmarshalling(Parcel &parcel);
+    bool operator==(const DistributedAccountSubProfileEventData &eventData) const;
 
 private:
     bool ReadFromParcel(Parcel &parcel);
@@ -97,7 +97,7 @@ public:
      * @param eventData Event data containing event type, OS account ID, space ID, and previous space ID.
      * @warning Must implement this method if subscribed via SubscribeDistributedAccountSpaceEvents.
      */
-    virtual void OnSpaceAccountsChanged(const DistributedAccountSpaceEventData &eventData) {};
+    virtual void OnSpaceAccountsChanged(const DistributedAccountSubProfileEventData &eventData) {};
 };
 }  // namespace AccountSA
 }  // namespace OHOS
