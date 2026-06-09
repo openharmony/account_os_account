@@ -17,7 +17,6 @@
 #include "account_log_wrapper.h"
 #include "account_permission_manager.h"
 #include "os_account.h"
-#include "ohos_account_kits_impl.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -463,19 +462,6 @@ ErrCode OsAccountManager::SetOsAccountToBeRemoved(int32_t localId, bool toBeRemo
 ErrCode OsAccountManager::GetOsAccountDomainInfo(const int32_t localId, DomainAccountInfo &domainInfo)
 {
     return OsAccount::GetInstance().GetOsAccountDomainInfo(localId, domainInfo);
-}
-
-ErrCode OsAccountManager::SubscribeDistributedAccountSpaceEvents(
-    const std::set<DistributedAccountSpaceEventType>& types,
-    const std::shared_ptr<DistributedAccountSubscribeCallback>& callback)
-{
-    return OhosAccountKitsImpl::GetInstance().SubscribeDistributedAccountSpaceEvents(types, callback);
-}
-
-ErrCode OsAccountManager::UnsubscribeDistributedAccountSpaceEvents(
-    const std::shared_ptr<DistributedAccountSubscribeCallback>& callback)
-{
-    return OhosAccountKitsImpl::GetInstance().UnsubscribeDistributedAccountSpaceEvents(callback);
 }
 
 ErrCode OsAccountManager::PublishOsAccountLockEvent(const int32_t localId, bool isLocking)

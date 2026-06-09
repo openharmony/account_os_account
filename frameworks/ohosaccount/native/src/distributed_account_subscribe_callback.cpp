@@ -78,7 +78,7 @@ bool DistributedAccountEventData::ReadFromParcel(Parcel &parcel)
     return true;
 }
 
-bool DistributedAccountSpaceEventData::Marshalling(Parcel &parcel) const
+bool DistributedAccountSubProfileEventData::Marshalling(Parcel &parcel) const
 {
     if (!parcel.WriteInt32(static_cast<int32_t>(type_))) {
         ACCOUNT_LOGE("Write type failed.");
@@ -99,9 +99,9 @@ bool DistributedAccountSpaceEventData::Marshalling(Parcel &parcel) const
     return true;
 }
 
-DistributedAccountSpaceEventData *DistributedAccountSpaceEventData::Unmarshalling(Parcel &parcel)
+DistributedAccountSubProfileEventData *DistributedAccountSubProfileEventData::Unmarshalling(Parcel &parcel)
 {
-    DistributedAccountSpaceEventData *eventData = new (std::nothrow) DistributedAccountSpaceEventData();
+    DistributedAccountSubProfileEventData *eventData = new (std::nothrow) DistributedAccountSubProfileEventData();
 
     if (eventData != nullptr && !eventData->ReadFromParcel(parcel)) {
         ACCOUNT_LOGE("Read from parcel failed.");
@@ -112,7 +112,7 @@ DistributedAccountSpaceEventData *DistributedAccountSpaceEventData::Unmarshallin
     return eventData;
 }
 
-bool DistributedAccountSpaceEventData::operator==(const DistributedAccountSpaceEventData &eventData) const
+bool DistributedAccountSubProfileEventData::operator==(const DistributedAccountSubProfileEventData &eventData) const
 {
     if (this->type_ != eventData.type_) {
         return false;
@@ -125,14 +125,14 @@ bool DistributedAccountSpaceEventData::operator==(const DistributedAccountSpaceE
     return true;
 }
 
-bool DistributedAccountSpaceEventData::ReadFromParcel(Parcel &parcel)
+bool DistributedAccountSubProfileEventData::ReadFromParcel(Parcel &parcel)
 {
     int32_t type = 0;
     if (!parcel.ReadInt32(type)) {
         ACCOUNT_LOGE("Read type failed.");
         return false;
     }
-    type_ = static_cast<DistributedAccountSpaceEventType>(type);
+    type_ = static_cast<DistributedAccountSubProfileEventType>(type);
 
     int32_t osAccountId = -1;
     if (!parcel.ReadInt32(osAccountId)) {

@@ -25,7 +25,7 @@ namespace AccountSA {
 struct DistributedSubscribeRecord {
     sptr<IRemoteObject> eventListener_;
     std::set<DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE> types_;
-    std::set<DistributedAccountSpaceEventType> spaceTypes_;
+    std::set<DistributedAccountSubProfileEventType> spaceTypes_;
     int32_t localId_ = -1;
     bool isSaCall_ = false;
 
@@ -35,8 +35,8 @@ struct DistributedSubscribeRecord {
         : eventListener_(eventListener), localId_(localId), isSaCall_(isSaCall)
     {}
 
-    void AddSpaceTypes(const std::set<DistributedAccountSpaceEventType> &newTypes);
-    void RemoveSpaceTypes(const std::set<DistributedAccountSpaceEventType> &types);
+    void AddSpaceTypes(const std::set<DistributedAccountSubProfileEventType> &newTypes);
+    void RemoveSpaceTypes(const std::set<DistributedAccountSubProfileEventType> &types);
 };
 
 using DistributedSubscribeRecordPtr = std::shared_ptr<DistributedSubscribeRecord>;
@@ -48,14 +48,14 @@ public:
     virtual ErrCode UnsubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
         const sptr<IRemoteObject> &eventListener) = 0;
     virtual ErrCode UnsubscribeDistributedAccountEvent(const sptr<IRemoteObject> &eventListener) = 0;
-    virtual ErrCode SubscribeDistributedAccountSpaceEvents(const std::set<DistributedAccountSpaceEventType> &types,
+    virtual ErrCode SubscribeDistributedAccountSpaceEvents(const std::set<DistributedAccountSubProfileEventType> &types,
         const sptr<IRemoteObject> &eventListener) = 0;
-    virtual ErrCode UnsubscribeDistributedAccountSpaceEvents(const std::set<DistributedAccountSpaceEventType> &types,
-        const sptr<IRemoteObject> &eventListener) = 0;
+    virtual ErrCode UnsubscribeDistributedAccountSpaceEvents(
+        const std::set<DistributedAccountSubProfileEventType> &types, const sptr<IRemoteObject> &eventListener) = 0;
     virtual ErrCode Publish(const int id, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE subscribeType,
         int32_t subProfileId = -1) = 0;
 
-    virtual ErrCode Publish(DistributedAccountSpaceEventType eventType, int32_t localId,
+    virtual ErrCode Publish(DistributedAccountSubProfileEventType eventType, int32_t localId,
         int32_t distributedAccountId, int32_t previousDistributedAccountId = -1) = 0;
 };
 }  // namespace AccountSA

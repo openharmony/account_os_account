@@ -23,6 +23,7 @@
 #include "nocopyable.h"
 #endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 #include "account_error_no.h"
+#include "distributed_account_subscribe_callback.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -45,6 +46,11 @@ public:
     ErrCode GetOsAccountSubProfile(int32_t osAccountId, int32_t subProfileId,
         OsAccountSubspaceResult &subspaceResult, OhosAccountInfo &distributedInfo);
 
+    ErrCode SubscribeOsAccountSubProfileEvents(
+        const std::set<DistributedAccountSubProfileEventType>& types,
+        const std::shared_ptr<DistributedAccountSubscribeCallback>& callback);
+    ErrCode UnsubscribeOsAccountSubProfileEvents(
+        const std::shared_ptr<DistributedAccountSubscribeCallback>& callback);
 private:
     OsAccountSubProfileClient();
     ~OsAccountSubProfileClient() = default;

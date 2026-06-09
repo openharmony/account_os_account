@@ -130,7 +130,7 @@ public:
      * @param eventListener event listener
      * @return subscribe result.
      */
-    ErrCode SubscribeDistributedAccountSpaceEvents(const std::set<DistributedAccountSpaceEventType> &types,
+    ErrCode SubscribeDistributedAccountSpaceEvents(const std::set<DistributedAccountSubProfileEventType> &types,
         const sptr<IRemoteObject> &eventListener);
 
     /**
@@ -140,7 +140,7 @@ public:
      * @param eventListener event listener
      * @return unsubscribe result.
      */
-    ErrCode UnsubscribeDistributedAccountSpaceEvents(const std::set<DistributedAccountSpaceEventType> &types,
+    ErrCode UnsubscribeDistributedAccountSpaceEvents(const std::set<DistributedAccountSubProfileEventType> &types,
         const sptr<IRemoteObject> &eventListener);
 
     /**

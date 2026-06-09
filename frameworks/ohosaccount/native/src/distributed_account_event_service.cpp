@@ -130,7 +130,7 @@ DistributedAccountEventService *DistributedAccountEventService::GetInstance()
     return instance.GetRefPtr();
 }
 
-void DistributedAccountEventService::AddSpaceTypes(const std::set<DistributedAccountSpaceEventType>& types,
+void DistributedAccountEventService::AddSpaceTypes(const std::set<DistributedAccountSubProfileEventType>& types,
     const std::shared_ptr<DistributedAccountSubscribeCallback> &callback)
 {
     if (callback == nullptr || types.empty()) {
@@ -185,7 +185,7 @@ void DistributedAccountEventService::DeleteSpaceCallback(
 
 void DistributedAccountEventService::GetSpaceTypesToRemove(
     const std::shared_ptr<DistributedAccountSubscribeCallback> &callback,
-    std::set<DistributedAccountSpaceEventType> &removedTypes)
+    std::set<DistributedAccountSubProfileEventType> &removedTypes)
 {
     if (callback == nullptr) {
         return;
@@ -209,7 +209,7 @@ void DistributedAccountEventService::GetSpaceTypesToRemove(
         removedTypes.size());
 }
 
-void DistributedAccountEventService::GetAllSpaceType(std::set<DistributedAccountSpaceEventType> &typeList)
+void DistributedAccountEventService::GetAllSpaceType(std::set<DistributedAccountSubProfileEventType> &typeList)
 {
     std::lock_guard<std::mutex> lock(spaceMapLock_);
     for (auto &item : spaceTypeMap_) {
@@ -217,7 +217,7 @@ void DistributedAccountEventService::GetAllSpaceType(std::set<DistributedAccount
     }
 }
 
-bool DistributedAccountEventService::IsAllSpaceTypeExist(const std::set<DistributedAccountSpaceEventType>& types,
+bool DistributedAccountEventService::IsAllSpaceTypeExist(const std::set<DistributedAccountSubProfileEventType>& types,
     const std::shared_ptr<DistributedAccountSubscribeCallback> &callback)
 {
     if (callback == nullptr || types.empty()) {
@@ -236,7 +236,7 @@ bool DistributedAccountEventService::IsAllSpaceTypeExist(const std::set<Distribu
     return true;
 }
 
-ErrCode DistributedAccountEventService::OnSpaceAccountsChanged(const DistributedAccountSpaceEventData &eventData)
+ErrCode DistributedAccountEventService::OnSpaceAccountsChanged(const DistributedAccountSubProfileEventData &eventData)
 {
     std::lock_guard<std::mutex> lock(spaceMapLock_);
     auto it = spaceTypeMap_.find(eventData.type_);

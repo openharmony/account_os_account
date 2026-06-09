@@ -460,9 +460,9 @@ ErrCode AccountMgrService::SubscribeDistributedAccountSpaceEvents(
         ACCOUNT_LOGE("Invalid parameter, eventListener null or typeInts empty.");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
-    std::set<DistributedAccountSpaceEventType> types;
+    std::set<DistributedAccountSubProfileEventType> types;
     for (auto typeInt : typeInts) {
-        types.insert(static_cast<DistributedAccountSpaceEventType>(typeInt));
+        types.insert(static_cast<DistributedAccountSubProfileEventType>(typeInt));
     }
     return OhosAccountManager::GetInstance().SubscribeDistributedAccountSpaceEvents(types, eventListener);
 }
@@ -480,9 +480,9 @@ ErrCode AccountMgrService::UnsubscribeDistributedAccountSpaceEvents(
         ACCOUNT_LOGE("Invalid parameter, eventListener null or typeInts empty.");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
-    std::set<DistributedAccountSpaceEventType> types;
+    std::set<DistributedAccountSubProfileEventType> types;
     for (auto typeInt : typeInts) {
-        types.insert(static_cast<DistributedAccountSpaceEventType>(typeInt));
+        types.insert(static_cast<DistributedAccountSubProfileEventType>(typeInt));
     }
     return OhosAccountManager::GetInstance().UnsubscribeDistributedAccountSpaceEvents(types, eventListener);
 }

@@ -30,13 +30,13 @@ class SubspaceSubscriber final : public AccountSA::DistributedAccountSubscribeCa
 public:
     explicit SubspaceSubscriber(napi_env &env, napi_ref &ref);
     ~SubspaceSubscriber();
-    void OnSpaceAccountsChanged(const AccountSA::DistributedAccountSpaceEventData &eventData) override;
+    void OnSpaceAccountsChanged(const AccountSA::DistributedAccountSubProfileEventData &eventData) override;
     std::shared_ptr<NapiCallbackRef> callback = nullptr;
     napi_env env = nullptr;
 };
 
 struct SubspaceEventWorker : public CommonAsyncContext {
-    AccountSA::DistributedAccountSpaceEventData eventData;
+    AccountSA::DistributedAccountSubProfileEventData eventData;
     std::shared_ptr<NapiCallbackRef> callback = nullptr;
     std::shared_ptr<SubspaceSubscriber> subscriber = nullptr;
 };

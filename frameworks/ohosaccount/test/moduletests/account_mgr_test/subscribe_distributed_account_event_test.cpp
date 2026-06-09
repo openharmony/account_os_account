@@ -87,7 +87,7 @@ public:
     {}
 
     MOCK_METHOD1(OnAccountsChanged, void(const DistributedAccountEventData &eventData));
-    MOCK_METHOD1(OnSpaceAccountsChanged, void(const DistributedAccountSpaceEventData &eventData));
+    MOCK_METHOD1(OnSpaceAccountsChanged, void(const DistributedAccountSubProfileEventData &eventData));
 };
 
 /**
@@ -316,7 +316,7 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountSpace
 {
     auto callback1 = std::make_shared<MockDistributedAccountSubscribeCallback>();
     ASSERT_NE(callback1, nullptr);
-    std::set<DistributedAccountSpaceEventType> types = {DistributedAccountSpaceEventType::CREATED};
+    std::set<DistributedAccountSubProfileEventType> types = {DistributedAccountSubProfileEventType::CREATED};
 
     EXPECT_EQ(ERR_OK, OhosAccountKits::GetInstance().SubscribeDistributedAccountSpaceEvents(types, callback1));
     EXPECT_EQ(ERR_OK, OhosAccountKits::GetInstance().UnsubscribeDistributedAccountSpaceEvents(callback1));
@@ -333,7 +333,7 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, AddSpaceTypes001, TestSize.Level
     auto callback = std::make_shared<MockDistributedAccountSubscribeCallback>();
     ASSERT_NE(callback, nullptr);
 
-    std::set<DistributedAccountSpaceEventType> types = {DistributedAccountSpaceEventType::CREATED};
+    std::set<DistributedAccountSubProfileEventType> types = {DistributedAccountSubProfileEventType::CREATED};
     DistributedAccountEventService::GetInstance()->AddSpaceTypes(types, callback);
 
     EXPECT_TRUE(DistributedAccountEventService::GetInstance()->IsAllSpaceTypeExist(types, callback));
@@ -351,7 +351,7 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, AddSpaceTypes001, TestSize.Level
 HWTEST_F(SubscribeDistributedAccountModuleTest, AddSpaceTypes002, TestSize.Level3)
 {
     std::shared_ptr<DistributedAccountSubscribeCallback> callback = nullptr;
-    std::set<DistributedAccountSpaceEventType> types = {DistributedAccountSpaceEventType::CREATED};
+    std::set<DistributedAccountSubProfileEventType> types = {DistributedAccountSubProfileEventType::CREATED};
 
     DistributedAccountEventService::GetInstance()->AddSpaceTypes(types, callback);
     EXPECT_EQ(DistributedAccountEventService::GetInstance()->GetSpaceCallbackSize(), 0);
@@ -368,7 +368,7 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, DeleteSpaceTypes001, TestSize.Le
     auto callback = std::make_shared<MockDistributedAccountSubscribeCallback>();
     ASSERT_NE(callback, nullptr);
 
-    std::set<DistributedAccountSpaceEventType> types = {DistributedAccountSpaceEventType::CREATED};
+    std::set<DistributedAccountSubProfileEventType> types = {DistributedAccountSubProfileEventType::CREATED};
     DistributedAccountEventService::GetInstance()->AddSpaceTypes(types, callback);
 
     DistributedAccountEventService::GetInstance()->DeleteSpaceCallback(callback);
@@ -387,7 +387,7 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, AddSpaceTypes003, TestSize.Level
     auto callback = std::make_shared<MockDistributedAccountSubscribeCallback>();
     ASSERT_NE(callback, nullptr);
 
-    std::set<DistributedAccountSpaceEventType> types;
+    std::set<DistributedAccountSubProfileEventType> types;
     DistributedAccountEventService::GetInstance()->AddSpaceTypes(types, callback);
     EXPECT_EQ(DistributedAccountEventService::GetInstance()->GetSpaceCallbackSize(), 0);
 }
@@ -403,16 +403,16 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, AddSpaceTypes004, TestSize.Level
     auto callback = std::make_shared<MockDistributedAccountSubscribeCallback>();
     ASSERT_NE(callback, nullptr);
 
-    std::set<DistributedAccountSpaceEventType> types1 = {DistributedAccountSpaceEventType::CREATED};
+    std::set<DistributedAccountSubProfileEventType> types1 = {DistributedAccountSubProfileEventType::CREATED};
     DistributedAccountEventService::GetInstance()->AddSpaceTypes(types1, callback);
     EXPECT_EQ(DistributedAccountEventService::GetInstance()->GetSpaceCallbackSize(), 1);
 
-    std::set<DistributedAccountSpaceEventType> types2 = {DistributedAccountSpaceEventType::SWITCHED};
+    std::set<DistributedAccountSubProfileEventType> types2 = {DistributedAccountSubProfileEventType::SWITCHED};
     DistributedAccountEventService::GetInstance()->AddSpaceTypes(types2, callback);
     EXPECT_EQ(DistributedAccountEventService::GetInstance()->GetSpaceCallbackSize(), 1);
 
-    std::set<DistributedAccountSpaceEventType> allTypes = {DistributedAccountSpaceEventType::CREATED,
-        DistributedAccountSpaceEventType::SWITCHED};
+    std::set<DistributedAccountSubProfileEventType> allTypes = {DistributedAccountSubProfileEventType::CREATED,
+        DistributedAccountSubProfileEventType::SWITCHED};
     EXPECT_TRUE(DistributedAccountEventService::GetInstance()->IsAllSpaceTypeExist(allTypes, callback));
 
     DistributedAccountEventService::GetInstance()->DeleteSpaceCallback(callback);
@@ -431,7 +431,7 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, AddSpaceTypes005, TestSize.Level
     auto callback2 = std::make_shared<MockDistributedAccountSubscribeCallback>();
     ASSERT_NE(callback2, nullptr);
 
-    std::set<DistributedAccountSpaceEventType> types = {DistributedAccountSpaceEventType::CREATED};
+    std::set<DistributedAccountSubProfileEventType> types = {DistributedAccountSubProfileEventType::CREATED};
     DistributedAccountEventService::GetInstance()->AddSpaceTypes(types, callback1);
     EXPECT_EQ(DistributedAccountEventService::GetInstance()->GetSpaceCallbackSize(), 1);
 
@@ -481,7 +481,7 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, DeleteSpaceCallback002, TestSize
 HWTEST_F(SubscribeDistributedAccountModuleTest, GetSpaceTypesToRemove001, TestSize.Level3)
 {
     std::shared_ptr<DistributedAccountSubscribeCallback> callback = nullptr;
-    std::set<DistributedAccountSpaceEventType> removedTypes;
+    std::set<DistributedAccountSubProfileEventType> removedTypes;
     DistributedAccountEventService::GetInstance()->GetSpaceTypesToRemove(callback, removedTypes);
     EXPECT_TRUE(removedTypes.empty());
 }
@@ -497,7 +497,7 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, GetSpaceTypesToRemove002, TestSi
     auto callback = std::make_shared<MockDistributedAccountSubscribeCallback>();
     ASSERT_NE(callback, nullptr);
 
-    std::set<DistributedAccountSpaceEventType> removedTypes;
+    std::set<DistributedAccountSubProfileEventType> removedTypes;
     DistributedAccountEventService::GetInstance()->GetSpaceTypesToRemove(callback, removedTypes);
     EXPECT_TRUE(removedTypes.empty());
 }
@@ -513,13 +513,13 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, GetSpaceTypesToRemove003, TestSi
     auto callback = std::make_shared<MockDistributedAccountSubscribeCallback>();
     ASSERT_NE(callback, nullptr);
 
-    std::set<DistributedAccountSpaceEventType> types = {DistributedAccountSpaceEventType::CREATED};
+    std::set<DistributedAccountSubProfileEventType> types = {DistributedAccountSubProfileEventType::CREATED};
     DistributedAccountEventService::GetInstance()->AddSpaceTypes(types, callback);
 
-    std::set<DistributedAccountSpaceEventType> removedTypes;
+    std::set<DistributedAccountSubProfileEventType> removedTypes;
     DistributedAccountEventService::GetInstance()->GetSpaceTypesToRemove(callback, removedTypes);
     EXPECT_EQ(removedTypes.size(), 1);
-    EXPECT_NE(removedTypes.find(DistributedAccountSpaceEventType::CREATED), removedTypes.end());
+    EXPECT_NE(removedTypes.find(DistributedAccountSubProfileEventType::CREATED), removedTypes.end());
 
     DistributedAccountEventService::GetInstance()->DeleteSpaceCallback(callback);
 }
@@ -537,11 +537,11 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, GetSpaceTypesToRemove004, TestSi
     auto callback2 = std::make_shared<MockDistributedAccountSubscribeCallback>();
     ASSERT_NE(callback2, nullptr);
 
-    std::set<DistributedAccountSpaceEventType> types = {DistributedAccountSpaceEventType::CREATED};
+    std::set<DistributedAccountSubProfileEventType> types = {DistributedAccountSubProfileEventType::CREATED};
     DistributedAccountEventService::GetInstance()->AddSpaceTypes(types, callback1);
     DistributedAccountEventService::GetInstance()->AddSpaceTypes(types, callback2);
 
-    std::set<DistributedAccountSpaceEventType> removedTypes;
+    std::set<DistributedAccountSubProfileEventType> removedTypes;
     DistributedAccountEventService::GetInstance()->GetSpaceTypesToRemove(callback1, removedTypes);
     EXPECT_TRUE(removedTypes.empty());
 
@@ -557,20 +557,20 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, GetSpaceTypesToRemove004, TestSi
  */
 HWTEST_F(SubscribeDistributedAccountModuleTest, GetAllSpaceType001, TestSize.Level3)
 {
-    std::set<DistributedAccountSpaceEventType> typeList;
+    std::set<DistributedAccountSubProfileEventType> typeList;
     DistributedAccountEventService::GetInstance()->GetAllSpaceType(typeList);
     EXPECT_TRUE(typeList.empty());
 
     auto callback = std::make_shared<MockDistributedAccountSubscribeCallback>();
     ASSERT_NE(callback, nullptr);
 
-    std::set<DistributedAccountSpaceEventType> types = {DistributedAccountSpaceEventType::CREATED};
+    std::set<DistributedAccountSubProfileEventType> types = {DistributedAccountSubProfileEventType::CREATED};
     DistributedAccountEventService::GetInstance()->AddSpaceTypes(types, callback);
 
     typeList.clear();
     DistributedAccountEventService::GetInstance()->GetAllSpaceType(typeList);
     EXPECT_EQ(typeList.size(), 1);
-    EXPECT_NE(typeList.find(DistributedAccountSpaceEventType::CREATED), typeList.end());
+    EXPECT_NE(typeList.find(DistributedAccountSubProfileEventType::CREATED), typeList.end());
 
     DistributedAccountEventService::GetInstance()->DeleteSpaceCallback(callback);
 }
@@ -584,7 +584,7 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, GetAllSpaceType001, TestSize.Lev
 HWTEST_F(SubscribeDistributedAccountModuleTest, IsAllSpaceTypeExist001, TestSize.Level3)
 {
     std::shared_ptr<DistributedAccountSubscribeCallback> callback = nullptr;
-    std::set<DistributedAccountSpaceEventType> types = {DistributedAccountSpaceEventType::CREATED};
+    std::set<DistributedAccountSubProfileEventType> types = {DistributedAccountSubProfileEventType::CREATED};
     EXPECT_FALSE(DistributedAccountEventService::GetInstance()->IsAllSpaceTypeExist(types, callback));
 }
 
@@ -599,7 +599,7 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, IsAllSpaceTypeExist002, TestSize
     auto callback = std::make_shared<MockDistributedAccountSubscribeCallback>();
     ASSERT_NE(callback, nullptr);
 
-    std::set<DistributedAccountSpaceEventType> types;
+    std::set<DistributedAccountSubProfileEventType> types;
     EXPECT_FALSE(DistributedAccountEventService::GetInstance()->IsAllSpaceTypeExist(types, callback));
 }
 
@@ -614,11 +614,11 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, IsAllSpaceTypeExist003, TestSize
     auto callback = std::make_shared<MockDistributedAccountSubscribeCallback>();
     ASSERT_NE(callback, nullptr);
 
-    std::set<DistributedAccountSpaceEventType> addedTypes = {DistributedAccountSpaceEventType::CREATED};
+    std::set<DistributedAccountSubProfileEventType> addedTypes = {DistributedAccountSubProfileEventType::CREATED};
     DistributedAccountEventService::GetInstance()->AddSpaceTypes(addedTypes, callback);
 
-    std::set<DistributedAccountSpaceEventType> checkTypes = {DistributedAccountSpaceEventType::CREATED,
-        DistributedAccountSpaceEventType::SWITCHED};
+    std::set<DistributedAccountSubProfileEventType> checkTypes = {DistributedAccountSubProfileEventType::CREATED,
+        DistributedAccountSubProfileEventType::SWITCHED};
     EXPECT_FALSE(DistributedAccountEventService::GetInstance()->IsAllSpaceTypeExist(checkTypes, callback));
 
     DistributedAccountEventService::GetInstance()->DeleteSpaceCallback(callback);
@@ -632,8 +632,8 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, IsAllSpaceTypeExist003, TestSize
  */
 HWTEST_F(SubscribeDistributedAccountModuleTest, OnSpaceAccountsChanged001, TestSize.Level3)
 {
-    DistributedAccountSpaceEventData eventData;
-    eventData.type_ = DistributedAccountSpaceEventType::CREATED;
+    DistributedAccountSubProfileEventData eventData;
+    eventData.type_ = DistributedAccountSubProfileEventType::CREATED;
     eventData.osAccountId_ = 100;
     eventData.subspaceId_ = 200;
 
@@ -652,11 +652,11 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, OnSpaceAccountsChanged002, TestS
     auto callback = std::make_shared<MockDistributedAccountSubscribeCallback>();
     ASSERT_NE(callback, nullptr);
 
-    std::set<DistributedAccountSpaceEventType> types = {DistributedAccountSpaceEventType::CREATED};
+    std::set<DistributedAccountSubProfileEventType> types = {DistributedAccountSubProfileEventType::CREATED};
     DistributedAccountEventService::GetInstance()->AddSpaceTypes(types, callback);
 
-    DistributedAccountSpaceEventData eventData;
-    eventData.type_ = DistributedAccountSpaceEventType::CREATED;
+    DistributedAccountSubProfileEventData eventData;
+    eventData.type_ = DistributedAccountSubProfileEventType::CREATED;
     eventData.osAccountId_ = 100;
     eventData.subspaceId_ = 200;
 
@@ -680,12 +680,12 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, OnSpaceAccountsChanged003, TestS
     auto callback2 = std::make_shared<MockDistributedAccountSubscribeCallback>();
     ASSERT_NE(callback2, nullptr);
 
-    std::set<DistributedAccountSpaceEventType> types = {DistributedAccountSpaceEventType::CREATED};
+    std::set<DistributedAccountSubProfileEventType> types = {DistributedAccountSubProfileEventType::CREATED};
     DistributedAccountEventService::GetInstance()->AddSpaceTypes(types, callback1);
     DistributedAccountEventService::GetInstance()->AddSpaceTypes(types, callback2);
 
-    DistributedAccountSpaceEventData eventData;
-    eventData.type_ = DistributedAccountSpaceEventType::CREATED;
+    DistributedAccountSubProfileEventData eventData;
+    eventData.type_ = DistributedAccountSubProfileEventType::CREATED;
     eventData.osAccountId_ = 100;
     eventData.subspaceId_ = 200;
 
@@ -709,10 +709,10 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, GetSpaceTypesToRemove005, TestSi
     auto callback1 = std::make_shared<MockDistributedAccountSubscribeCallback>();
     ASSERT_NE(callback1, nullptr);
 
-    std::set<DistributedAccountSpaceEventType> types = {DistributedAccountSpaceEventType::CREATED};
+    std::set<DistributedAccountSubProfileEventType> types = {DistributedAccountSubProfileEventType::CREATED};
     DistributedAccountEventService::GetInstance()->AddSpaceTypes(types, callback1);
     DistributedAccountEventService::GetInstance()->spaceTypeMap_.clear();
-    std::set<DistributedAccountSpaceEventType> removeTypes;
+    std::set<DistributedAccountSubProfileEventType> removeTypes;
     DistributedAccountEventService::GetInstance()->GetSpaceTypesToRemove(callback1, removeTypes);
     EXPECT_EQ(removeTypes.size(), 0);
     DistributedAccountEventService::GetInstance()->DeleteSpaceCallback(callback1);

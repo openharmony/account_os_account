@@ -244,20 +244,20 @@ public:
         : callback_(cb) {}
     ~TaiheSubspaceCallback() {}
 
-    void OnSpaceAccountsChanged(const AccountSA::DistributedAccountSpaceEventData &eventData) override
+    void OnSpaceAccountsChanged(const AccountSA::DistributedAccountSubProfileEventData &eventData) override
     {
         OsAccountSubProfileEvent::key_t eventKey;
         switch (eventData.type_) {
-            case AccountSA::DistributedAccountSpaceEventType::CREATED:
+            case AccountSA::DistributedAccountSubProfileEventType::CREATED:
                 eventKey = OsAccountSubProfileEvent::key_t::CREATED;
                 break;
-            case AccountSA::DistributedAccountSpaceEventType::DELETED:
+            case AccountSA::DistributedAccountSubProfileEventType::DELETED:
                 eventKey = OsAccountSubProfileEvent::key_t::DELETED;
                 break;
-            case AccountSA::DistributedAccountSpaceEventType::SWITCHING:
+            case AccountSA::DistributedAccountSubProfileEventType::SWITCHING:
                 eventKey = OsAccountSubProfileEvent::key_t::SWITCHING;
                 break;
-            case AccountSA::DistributedAccountSpaceEventType::SWITCHED:
+            case AccountSA::DistributedAccountSubProfileEventType::SWITCHED:
                 eventKey = OsAccountSubProfileEvent::key_t::SWITCHED;
                 break;
             default:
@@ -1744,15 +1744,15 @@ public:
             return;
         }
 
-        std::set<AccountSA::DistributedAccountSpaceEventType> types;
+        std::set<AccountSA::DistributedAccountSubProfileEventType> types;
         for (size_t i = 0; i < events.size(); i++) {
             int32_t eventValue = events[i].get_value();
-            if (eventValue < static_cast<int32_t>(AccountSA::DistributedAccountSpaceEventType::CREATED) ||
-                eventValue >= static_cast<int32_t>(AccountSA::DistributedAccountSpaceEventType::INVALID_TYPE)) {
+            if (eventValue < static_cast<int32_t>(AccountSA::DistributedAccountSubProfileEventType::CREATED) ||
+                eventValue >= static_cast<int32_t>(AccountSA::DistributedAccountSubProfileEventType::INVALID_TYPE)) {
                 SetTaiheBusinessErrorFromNativeCode(ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
                 return;
             }
-            types.insert(static_cast<AccountSA::DistributedAccountSpaceEventType>(eventValue));
+            types.insert(static_cast<AccountSA::DistributedAccountSubProfileEventType>(eventValue));
         }
 
         TaiheSubProfileCallback call = callback;
@@ -1773,7 +1773,8 @@ public:
             subscribeCallback = std::make_shared<TaiheSubspaceCallback>(cb);
         }
 
-        ErrCode errCode = AccountSA::OsAccountManager::SubscribeDistributedAccountSpaceEvents(types, subscribeCallback);
+        ErrCode errCode = AccountSA::OsAccountSubProfileClient::GetInstance().SubscribeOsAccountSubProfileEvents(types,
+            subscribeCallback);
         if (errCode == ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR) {
             SetTaiheBusinessErrorFromNativeCode(ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
             return;
@@ -1811,7 +1812,8 @@ public:
                 continue;
             }
 
-            ErrCode errCode = AccountSA::OsAccountManager::UnsubscribeDistributedAccountSpaceEvents(*it);
+            ErrCode errCode =
+                AccountSA::OsAccountSubProfileClient::GetInstance().UnsubscribeOsAccountSubProfileEvents(*it);
             if (errCode == ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR) {
                 SetTaiheBusinessErrorFromNativeCode(ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
                 return;
@@ -1828,7 +1830,7 @@ public:
         }
         ACCOUNT_LOGI("Unsubscribe subspace events succeed");
     }
-    
+
     int32_t GetOsAccountForegroundSubProfileIdSync()
     {
         int32_t subProfileId = 0;

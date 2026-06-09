@@ -835,7 +835,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchOsAccountSubspace_GetOsAccountInfoFa
  * @tc.name: SwitchOsAccountSubspace_Publish_001
  * @tc.desc: Branch F — after successful SwitchSubspace, Publish is called.
  *           Covers the subscribeManager_.Publish() branch (lines 632-638).
- *           NOTE: Publish(DistributedAccountSpaceEventType,...) always returns
+ *           NOTE: Publish(DistributedAccountSubProfileEventType,...) always returns
  *           ERR_OK (dead code for failure branch), so only the success path is
  *           exercised here. SwitchSubspaceLocked may fail with NOT_EXIST_ERROR
  *           on device if OS account 200 is not initialized.

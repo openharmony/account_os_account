@@ -19,12 +19,11 @@ import("//build/test.gni")
 ohos_fuzztest("SubscribeDistributedAccountSpaceEventsFuzzTest") {
   module_out_path = fuzz_output_path
 
-  fuzz_config_file = "${os_account_path}/test/fuzztest/osaccount/subscribedistributedaccountspaceevents_fuzzer"
+  fuzz_config_file =
+    "${os_account_path}/test/fuzztest/os_account_subspace/subscribedistributedaccountspaceevents_fuzzer"
   include_dirs = [
-    "${innerkits_native_path}/include",
-    "${innerkits_path}/include",
-    "${os_account_interfaces_native_path}/include",
-    "${os_account_path}/test/fuzztest/osaccount/common",
+    "${os_account_path}/test/fuzztest/appaccount/common",
+    "${os_account_subspace_interfaces_native_path}/include",
   ]
   cflags = [
     "-g",
@@ -36,19 +35,21 @@ ohos_fuzztest("SubscribeDistributedAccountSpaceEventsFuzzTest") {
 
   deps = [
     "${common_path}:libaccount_common",
-    "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_innerkits",
   ]
 
   external_deps = [
-    "ability_base:want",
+    "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken_shared",
+    "access_token:libtokenid_sdk",
+    "access_token:libtokensetproc_shared",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
   ]
 
   defines = [
-    "ACCOUNT_LOG_TAG = \"OsAccountFuzzTest\"",
+    "ACCOUNT_LOG_TAG = \"OsAcSubProfileFuzz\"",
     "LOG_DOMAIN = 0xD001B00",
   ]
 }

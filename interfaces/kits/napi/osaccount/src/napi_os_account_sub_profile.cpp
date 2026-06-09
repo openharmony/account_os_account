@@ -262,7 +262,7 @@ static void OnDistributedAccountEnvCleanup(void* data)
         while (it != g_subspaceSubscribers.end()) {
             if ((*it)->env == cleanupEnv) {
                 ACCOUNT_LOGW("Removing subscriber for destroyed environment");
-                ErrCode errCode = OsAccountManager::UnsubscribeDistributedAccountSpaceEvents(*it);
+                ErrCode errCode = OsAccountSubProfileClient::GetInstance().UnsubscribeOsAccountSubProfileEvents(*it);
                 if (errCode != ERR_OK) {
                     ACCOUNT_LOGE("Unsubscribe failed during env cleanup, errCode=%{public}d", errCode);
                 }
@@ -355,7 +355,7 @@ std::function<void()> SubspaceEventNotifyTask(const std::shared_ptr<SubspaceEven
     };
 }
 
-void SubspaceSubscriber::OnSpaceAccountsChanged(const DistributedAccountSpaceEventData &eventData)
+void SubspaceSubscriber::OnSpaceAccountsChanged(const DistributedAccountSubProfileEventData &eventData)
 {
     std::shared_ptr<SubspaceEventWorker> worker = std::make_shared<SubspaceEventWorker>();
     if (worker == nullptr) {
@@ -374,7 +374,7 @@ void SubspaceSubscriber::OnSpaceAccountsChanged(const DistributedAccountSpaceEve
 }
 
 static bool ParseSubspaceEventArray(napi_env env, napi_value array,
-    std::set<DistributedAccountSpaceEventType> &types)
+    std::set<DistributedAccountSubProfileEventType> &types)
 {
     bool isArray = false;
     NAPI_CALL_BASE(env, napi_is_array(env, array, &isArray), false);
@@ -403,21 +403,21 @@ static bool ParseSubspaceEventArray(napi_env env, napi_value array,
             AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
             return false;
         }
-        if (eventValue < static_cast<int32_t>(DistributedAccountSpaceEventType::CREATED) ||
-            eventValue >= static_cast<int32_t>(DistributedAccountSpaceEventType::INVALID_TYPE)) {
+        if (eventValue < static_cast<int32_t>(DistributedAccountSubProfileEventType::CREATED) ||
+            eventValue >= static_cast<int32_t>(DistributedAccountSubProfileEventType::INVALID_TYPE)) {
             ACCOUNT_LOGE("Invalid event value %{public}d", eventValue);
             std::string errMsg = "Parameter error. The event value at index " + std::to_string(i) +
                 " must be a valid OsAccountSubspaceEvent";
             AccountNapiThrow(env, ERR_JS_INVALID_PARAMETER, errMsg, true);
             return false;
         }
-        types.insert(static_cast<DistributedAccountSpaceEventType>(eventValue));
+        types.insert(static_cast<DistributedAccountSubProfileEventType>(eventValue));
     }
     return true;
 }
 
 static bool ParseParaOnOsAccountSubspaceEvent(napi_env env, napi_callback_info cbInfo,
-    napi_ref &tempRef, std::set<DistributedAccountSpaceEventType> &types)
+    napi_ref &tempRef, std::set<DistributedAccountSubProfileEventType> &types)
 {
     size_t argc = ARGS_SIZE_TWO;
     napi_value argv[ARGS_SIZE_TWO] = {nullptr};
@@ -448,7 +448,7 @@ napi_value NapiOsAccountSubProfileManager::onOsAccountSubProfileEvent(napi_env e
         return nullptr;
     }
     napi_ref tempRef = nullptr;
-    std::set<DistributedAccountSpaceEventType> types;
+    std::set<DistributedAccountSubProfileEventType> types;
     if (!ParseParaOnOsAccountSubspaceEvent(env, cbInfo, tempRef, types)) {
         ACCOUNT_LOGE("Parse parameters for onOsAccountSubProfileEvent failed");
         return nullptr;
@@ -473,7 +473,7 @@ napi_value NapiOsAccountSubProfileManager::onOsAccountSubProfileEvent(napi_env e
         subscriber = newSubscriber;
     }
 
-    ErrCode errCode = OsAccountManager::SubscribeDistributedAccountSpaceEvents(types, subscriber);
+    ErrCode errCode = OsAccountSubProfileClient::GetInstance().SubscribeOsAccountSubProfileEvents(types, subscriber);
     if (errCode == ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR) {
         AccountNapiThrow(env, ERR_JS_IS_NOT_SYSTEM_APP);
         return nullptr;
@@ -534,7 +534,7 @@ napi_value NapiOsAccountSubProfileManager::offOsAccountSubProfileEvent(napi_env 
             continue;
         }
 
-        ErrCode errCode = OsAccountManager::UnsubscribeDistributedAccountSpaceEvents(*it);
+        ErrCode errCode = OsAccountSubProfileClient::GetInstance().UnsubscribeOsAccountSubProfileEvents(*it);
         if (errCode == ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR) {
             AccountNapiThrow(env, ERR_JS_IS_NOT_SYSTEM_APP);
             return nullptr;
@@ -920,13 +920,13 @@ napi_value NapiOsAccountSubProfileManager::Init(napi_env env, napi_value exports
     napi_value osAccountSubProfileEvent = nullptr;
     napi_create_object(env, &osAccountSubProfileEvent);
     SetEnumProperty(env, osAccountSubProfileEvent,
-        static_cast<int>(DistributedAccountSpaceEventType::CREATED), "CREATED");
+        static_cast<int>(DistributedAccountSubProfileEventType::CREATED), "CREATED");
     SetEnumProperty(env, osAccountSubProfileEvent,
-        static_cast<int>(DistributedAccountSpaceEventType::DELETED), "DELETED");
+        static_cast<int>(DistributedAccountSubProfileEventType::DELETED), "DELETED");
     SetEnumProperty(env, osAccountSubProfileEvent,
-        static_cast<int>(DistributedAccountSpaceEventType::SWITCHING), "SWITCHING");
+        static_cast<int>(DistributedAccountSubProfileEventType::SWITCHING), "SWITCHING");
     SetEnumProperty(env, osAccountSubProfileEvent,
-        static_cast<int>(DistributedAccountSpaceEventType::SWITCHED), "SWITCHED");
+        static_cast<int>(DistributedAccountSubProfileEventType::SWITCHED), "SWITCHED");
 
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("createOsAccountSubProfile", CreateOsAccountSubProfile),

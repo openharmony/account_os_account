@@ -23,5 +23,7 @@ group("fuzztest") {
     "cmd_delete_os_account_subspace_stub_fuzzer:CmdDeleteOsAccountSubspaceStubFuzzTest",
     "cmd_switch_os_account_subspace_stub_fuzzer:CmdSwitchOsAccountSubspaceStubFuzzTest",
     "subspace_result_unmarshalling_fuzzer:SubspaceResultUnmarshallingFuzzTest",
+    "subscribedistributedaccountspaceevents_fuzzer:SubscribeDistributedAccountSpaceEventsFuzzTest",
+    "unsubscribedistributedaccountspaceevents_fuzzer:UnsubscribeDistributedAccountSpaceEventsFuzzTest",
   ]
 }

@@ -49,7 +49,7 @@ public:
         const std::shared_ptr<DistributedAccountSubscribeCallback> &callback) final;
     ErrCode UnsubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
         const std::shared_ptr<DistributedAccountSubscribeCallback> &callback) final;
-    ErrCode SubscribeDistributedAccountSpaceEvents(const std::set<DistributedAccountSpaceEventType>& types,
+    ErrCode SubscribeDistributedAccountSpaceEvents(const std::set<DistributedAccountSubProfileEventType>& types,
         const std::shared_ptr<DistributedAccountSubscribeCallback> &callback) final;
     ErrCode UnsubscribeDistributedAccountSpaceEvents(
         const std::shared_ptr<DistributedAccountSubscribeCallback> &callback) final;
@@ -89,7 +89,7 @@ private:
     ErrCode CreateDistributedAccountEventService(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
         const std::shared_ptr<DistributedAccountSubscribeCallback> &callback,
         sptr<IRemoteObject> &DistributedAccountEventService);
-    ErrCode CreateDistributedAccountSpaceEventService(const std::set<DistributedAccountSpaceEventType> &types,
+    ErrCode CreateDistributedAccountSpaceEventService(const std::set<DistributedAccountSubProfileEventType> &types,
         const std::shared_ptr<DistributedAccountSubscribeCallback> &callback,
         sptr<IRemoteObject> &DistributedAccountEventService);
 

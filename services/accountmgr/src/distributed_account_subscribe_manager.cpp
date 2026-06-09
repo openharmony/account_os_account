@@ -32,12 +32,12 @@ const char THREAD_DISTRIBUTED_ACCOUNT_EVENT[] = "distributedAccountEvent";
 #endif
 }
 
-void DistributedSubscribeRecord::AddSpaceTypes(const std::set<DistributedAccountSpaceEventType> &newTypes)
+void DistributedSubscribeRecord::AddSpaceTypes(const std::set<DistributedAccountSubProfileEventType> &newTypes)
 {
     spaceTypes_.insert(newTypes.begin(), newTypes.end());
 }
 
-void DistributedSubscribeRecord::RemoveSpaceTypes(const std::set<DistributedAccountSpaceEventType> &types)
+void DistributedSubscribeRecord::RemoveSpaceTypes(const std::set<DistributedAccountSubProfileEventType> &types)
 {
     for (auto type : types) {
         spaceTypes_.erase(type);
@@ -69,7 +69,7 @@ DistributedSubscribeRecordPtr DistributedAccountSubscribeManager::FindSubscribeR
 }
 
 std::vector<sptr<IRemoteObject>> DistributedAccountSubscribeManager::GetSubscribersToNotify(
-    DistributedAccountSpaceEventType eventType, int32_t eventLocalId)
+    DistributedAccountSubProfileEventType eventType, int32_t eventLocalId)
 {
     std::vector<sptr<IRemoteObject>> subscribersToNotify;
     std::lock_guard<std::mutex> lock(subscribeRecordMutex_);
@@ -123,7 +123,7 @@ ErrCode DistributedAccountSubscribeManager::SubscribeDistributedAccountEvent(
 }
 
 ErrCode DistributedAccountSubscribeManager::SubscribeDistributedAccountSpaceEvents(
-    const std::set<DistributedAccountSpaceEventType> &types, const sptr<IRemoteObject> &eventListener)
+    const std::set<DistributedAccountSubProfileEventType> &types, const sptr<IRemoteObject> &eventListener)
 {
     ACCOUNT_LOGI("Batch subscribe distributed account space events.");
     if (eventListener == nullptr || types.empty()) {
@@ -154,7 +154,7 @@ ErrCode DistributedAccountSubscribeManager::SubscribeDistributedAccountSpaceEven
 }
 
 ErrCode DistributedAccountSubscribeManager::UnsubscribeDistributedAccountSpaceEvents(
-    const std::set<DistributedAccountSpaceEventType> &types, const sptr<IRemoteObject> &eventListener)
+    const std::set<DistributedAccountSubProfileEventType> &types, const sptr<IRemoteObject> &eventListener)
 {
     ACCOUNT_LOGI("Batch unsubscribe distributed account space events.");
     if (eventListener == nullptr || types.empty()) {
@@ -303,7 +303,7 @@ bool DistributedAccountSubscribeManager::OnAccountsChanged(
 }
 
 bool DistributedAccountSubscribeManager::OnSpaceAccountsChanged(
-    const sptr<IDistributedAccountEvent> &eventProxy, const DistributedAccountSpaceEventData &eventData)
+    const sptr<IDistributedAccountEvent> &eventProxy, const DistributedAccountSubProfileEventData &eventData)
 {
     if (eventProxy == nullptr) {
         ACCOUNT_LOGE("Event proxy is nullptr.");
@@ -320,14 +320,14 @@ bool DistributedAccountSubscribeManager::OnSpaceAccountsChanged(
     return true;
 }
 
-ErrCode DistributedAccountSubscribeManager::Publish(DistributedAccountSpaceEventType eventType,
+ErrCode DistributedAccountSubscribeManager::Publish(DistributedAccountSubProfileEventType eventType,
     int32_t localId, int32_t distributedAccountId, int32_t previousDistributedAccountId)
 {
     ACCOUNT_LOGI("Publish distributed account space event, eventType=%{public}d, localId=%{public}d",
         static_cast<int32_t>(eventType), localId);
     auto subscribersToNotify = GetSubscribersToNotify(eventType, localId);
 
-    DistributedAccountSpaceEventData eventData;
+    DistributedAccountSubProfileEventData eventData;
     eventData.type_ = eventType;
     eventData.osAccountId_ = localId;
     eventData.subspaceId_ = distributedAccountId;
