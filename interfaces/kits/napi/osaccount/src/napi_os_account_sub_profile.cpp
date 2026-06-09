@@ -432,6 +432,10 @@ static bool ParseParaOnOsAccountSubspaceEvent(napi_env env, napi_callback_info c
         return false;
     }
     if (!GetCallbackPropertyWithoutNull(env, argv[PARAMONE], tempRef, 1)) {
+        if (tempRef != nullptr) {
+            napi_delete_reference(env, tempRef);
+            tempRef = nullptr;
+        }
         ACCOUNT_LOGE("Get callbackRef failed");
         std::string errMsg = "Parameter error. The type of \"callback\" must be function";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
@@ -499,6 +503,10 @@ static bool ParseParaOffOsAccountSubspaceEvent(napi_env env, napi_callback_info 
         return true;
     }
     if (!GetCallbackProperty(env, argv[PARAMZERO], tempRef, 1)) {
+        if (tempRef != nullptr) {
+            napi_delete_reference(env, tempRef);
+            tempRef = nullptr;
+        }
         ACCOUNT_LOGE("Get callback property failed");
         std::string errMsg = "Parameter error. The type of \"callback\" must be function";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
