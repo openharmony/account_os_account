@@ -13,20 +13,19 @@
  * limitations under the License.
  */
 #include "account_hisysevent_adapter.h"
+#include <map>
 #include "account_log_wrapper.h"
 #ifdef HAS_HISYSEVENT_PART
 #include "hisysevent.h"
 #endif // HAS_HISYSEVENT_PART
 #include "account_info.h"
+#include "os_account_constants.h"
 
 namespace OHOS {
 namespace AccountSA {
-namespace {
 #ifdef HAS_HISYSEVENT_PART
 using namespace OHOS::HiviewDFX;
-#endif // HAS_HISYSEVENT_PART
-}
-#ifdef HAS_HISYSEVENT_PART
+
 std::string AnonymizeName(const std::string& nameStr)
 {
     if (nameStr == DEFAULT_OHOS_ACCOUNT_NAME || nameStr.empty()) {
@@ -47,18 +46,6 @@ void ReportServiceStartFail(int32_t errCode, const std::string& errMsg)
     }
 }
 
-void ReportPermissionFail(int32_t callerUid, int32_t callerPid, const std::string& permName)
-{
-    int ret = HiSysEventWrite(HiSysEvent::Domain::ACCOUNT, "PERMISSION_EXCEPTION",
-        HiSysEvent::EventType::SECURITY,
-        "CALLER_UID", callerUid,
-        "CALLER_PID", callerPid,
-        "PERMISSION_NAME", permName);
-    if (ret != 0) {
-        ACCOUNT_LOGE("hisysevent write failed! ret %{public}d. uid %{public}d, pid %{public}d permName %{public}s.",
-            ret, callerUid, callerPid, permName.c_str());
-    }
-}
 
 void ReportOsAccountOperationFail(
     int32_t id, const std::string& operationStr, int32_t errCode, const std::string& errMsg)
@@ -155,7 +142,7 @@ void ReportDomainAccountOperationStatistic(const DomainHisysEventInfo &info)
         HiSysEvent::EventType::STATISTIC,
         "OS_ACCOUNT_ID", info.domainBindLocalId,
         "DOMAIN_ACCOUNT", "",
-        "OPERATION_TYPE", info.operationStr,
+        "OPERATE_TYPE", info.operationStr,
         "OLD_STATE", "",
         "NEW_STATE", "",
         "CALLER_INFO", "");

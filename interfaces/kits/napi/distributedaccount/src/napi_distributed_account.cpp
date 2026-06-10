@@ -138,7 +138,9 @@ static bool GetAccountInfo(napi_env env, napi_value object, DistributedAccountAs
             }
         }
     }
-    asyncContext->ohosAccountInfo.scalableData_.SetParams(params);
+    AAFwk::Want want;
+    want.SetParams(params);
+    asyncContext->ohosAccountInfo.scalableData_ = want.ToString();
     return true;
 }
 
@@ -205,6 +207,21 @@ void ProcessCallbackOrPromise(
     }
 }
 
+static napi_value DeserializeScalableData(napi_env env, const std::string &scalableData)
+{
+    AAFwk::WantParams params;
+    if (!scalableData.empty()) {
+        std::string scalableDataCopy = scalableData;
+        std::unique_ptr<AAFwk::Want> want(AAFwk::Want::FromString(scalableDataCopy));
+        if (want != nullptr) {
+            params = want->GetParams();
+        } else {
+            ACCOUNT_LOGW("Failed to deserialize scalableData, it will be empty");
+        }
+    }
+    return AppExecFwk::WrapWantParams(env, params);
+}
+
 void ProcessSetNamedProperty(napi_env env, const DistributedAccountAsyncContext *asyncContext)
 {
     napi_value result[RESULT_COUNT] = {0};
@@ -232,9 +249,7 @@ void ProcessSetNamedProperty(napi_env env, const DistributedAccountAsyncContext 
         napi_set_named_property(env, result[1], PROPERTY_KEY_AVATAR.c_str(), value);
         napi_create_int32(env, asyncContext->ohosAccountInfo.status_, &value);
         napi_set_named_property(env, result[1], PROPERTY_KEY_STATUS.c_str(), value);
-        napi_value scalable = nullptr;
-        napi_create_object(env, &scalable);
-        scalable = AppExecFwk::WrapWantParams(env, (asyncContext->ohosAccountInfo.scalableData_).GetParams());
+        napi_value scalable = DeserializeScalableData(env, asyncContext->ohosAccountInfo.scalableData_);
         napi_set_named_property(env, result[1], PROPERTY_KEY_SCALABLE.c_str(), scalable);
     } else {
         if (asyncContext->throwErr) {
@@ -576,6 +591,7 @@ napi_value NapiDistributedAccount::UpdateOhosAccountInfo(napi_env env, napi_call
     contextPtr.release();
     return result;
 }
+
 } // namespace AccountJsKit
 } // namespace OHOS
 

@@ -32,6 +32,9 @@ namespace AccountSA {
 namespace {
 const std::u16string ABILITY_MGR_DESCRIPTOR = u"ohos.aafwk.AbilityManager";
 constexpr int32_t INVALID_ID = -1;
+#ifdef SUPPORT_AUTHORIZATION
+const int32_t MAX_SIZE = 1000;
+#endif
 }
 using namespace AAFwk;
 AbilityManagerAdapter *AbilityManagerAdapter::GetInstance()
@@ -93,6 +96,63 @@ ErrCode AbilityManagerAdapter::DisconnectAbility(const sptr<AAFwk::IAbilityConne
     }
     return reply.ReadInt32();
 }
+
+#ifdef SUPPORT_AUTHORIZATION
+ErrCode AbilityManagerAdapter::GetExtensionRunningInfos(std::vector<ExtensionRunningInfo> &infos, int upperLimit)
+{
+    auto abms = GetAbilityManager();
+    if (abms == nullptr) {
+        ACCOUNT_LOGE("ability manager proxy is nullptr.");
+        return ERR_ACCOUNT_COMMON_CONNECT_ABILITY_MANAGER_SERVICE_ERROR;
+    }
+
+    int error;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(ABILITY_MGR_DESCRIPTOR)) {
+        ACCOUNT_LOGE("write interface token failed.");
+        return INNER_ERR;
+    }
+    if (!data.WriteInt32(upperLimit)) {
+        ACCOUNT_LOGE("upperLimit write failed.");
+        return ERR_INVALID_VALUE;
+    }
+
+    error = abms->SendRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::GET_EXTENSION_RUNNING_INFO), data, reply, option);
+    if (error != NO_ERROR) {
+        ACCOUNT_LOGE("Send request error: %{public}d", error);
+        return error;
+    }
+    error = GetParcelableInfos<ExtensionRunningInfo>(reply, infos);
+    if (error != NO_ERROR) {
+        ACCOUNT_LOGE("GetParcelableInfos fail, error: %{public}d", error);
+        return error;
+    }
+    return reply.ReadInt32();
+}
+
+template <typename T>
+int AbilityManagerAdapter::GetParcelableInfos(MessageParcel &reply, std::vector<T> &parcelableInfos)
+{
+    int32_t infoSize = reply.ReadInt32();
+    if (infoSize > MAX_SIZE) {
+        ACCOUNT_LOGE("InfoSize large");
+        return ERR_INVALID_VALUE;
+    }
+    for (int32_t i = 0; i < infoSize; i++) {
+        std::unique_ptr<T> info(reply.ReadParcelable<T>());
+        if (!info) {
+            ACCOUNT_LOGE("ReadParcelable fail");
+            return ERR_INVALID_VALUE;
+        }
+        parcelableInfos.emplace_back(*info);
+    }
+    return NO_ERROR;
+}
+#endif
 
 void AbilityManagerAdapter::Connect()
 {

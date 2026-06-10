@@ -20,6 +20,7 @@
 #include <vector>
 #include "authorization_callback.h"
 #include "authorization_common.h"
+#include "authorization_ui_extension_callback.h"
 #include "napi/native_api.h"
 #include "napi_account_common.h"
 #include "ui_content.h"
@@ -49,28 +50,43 @@ struct HasAuthorizationContext : public CommonAsyncContext {
     bool isAuthorized = false;
 };
 
-class UIExtensionCallback {
+/**
+ * @brief NAPI UI Extension callback for authorization.
+ *
+ * Inherits from UIExtensionCallbackBase and implements platform-specific methods
+ * for NAPI environment.
+ */
+class UIExtensionCallback : public AccountSA::UIExtensionCallbackBase {
 public:
     explicit UIExtensionCallback(const std::shared_ptr<AcquireAuthorizationContext> &context);
     ~UIExtensionCallback() = default;
-    void SetSessionId(int32_t sessionId);
-    void SetCallBack(const sptr<IRemoteObject> &callback);
-    void OnRelease(int32_t releaseCode);
-    void OnResult(int32_t resultCode, const OHOS::AAFwk::Want &result);
-    void OnReceive(const OHOS::AAFwk::WantParams &request);
-    void OnError(int32_t code, const std::string &name, const std::string &message);
-    void OnRemoteReady(const std::shared_ptr<OHOS::Ace::ModalUIExtensionProxy> &uiProxy);
-    void OnDestroy();
-    void ReleaseHandler(int32_t code,
+    /**
+     * @brief Gets the UIContent from authorization context.
+     * @return The UIContent pointer for creating/closing UI Extension.
+     */
+    OHOS::Ace::UIContent* GetUIContent() override;
+
+    /**
+     * @brief Closes the UI Extension for authorization.
+     */
+    void CloseUIExtension() override;
+
+protected:
+    /**
+     * @brief Handles authorization result release through IPC.
+     * @param errCode The error code.
+     * @param resultCode The authorization result code.
+     * @param iamToken The IAM token for authentication.
+     * @param accountId The account ID.
+     */
+    void ReleaseHandler(int32_t errCode,
         AccountSA::AuthorizationResultCode resultCode = AccountSA::AuthorizationResultCode::AUTHORIZATION_SUCCESS,
-        const std::vector<uint8_t> &iamToken = std::vector<uint8_t>(), int32_t accountId = -1);
+        const std::vector<uint8_t> &iamToken = std::vector<uint8_t>(),
+        int32_t accountId = -1) override;
 
 private:
-    int32_t sessionId_ = 0;
-    std::atomic<bool> isOnResult_;
-    std::vector<uint8_t> token_;
+    /** Authorization context containing UI context and options */
     std::shared_ptr<AcquireAuthorizationContext> context_ = nullptr;
-    sptr<IRemoteObject> callback_ = nullptr;
 };
 
 class NapiAuthorizationResultCallback final : public AccountSA::AuthorizationCallback {

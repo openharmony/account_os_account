@@ -26,7 +26,7 @@ void DomainAccountPluginDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &
         ACCOUNT_LOGE("remote object is nullptr");
         return;
     }
-    InnerDomainAccountManager::GetInstance().UnregisterPlugin();
+    InnerDomainAccountManager::GetInstance().OnPluginDied();
 }
 }  // namespace AccountSA
 }  // namespace OHOS

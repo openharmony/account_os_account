@@ -38,12 +38,60 @@ interface AuthorizationManager {
     HasAuthorizationSync(privilege: String): bool;
 }
 
+@overload("getOsAccountSubProfileManager")
+function GetOsAccountSubProfileManager(): OsAccountSubProfileManager;
+
+interface OsAccountSubProfileManager {
+    @gen_promise("createOsAccountSubProfile")
+    CreateOsAccountSubProfileSync(osAccountId: i32): OsAccountSubProfile;
+
+    @gen_promise("deleteOsAccountSubProfile")
+    DeleteOsAccountSubProfileSync(osAccountId: i32, subProfileId: i32);
+
+    @gen_promise("switchOsAccountSubProfile")
+    SwitchOsAccountSubProfileSync(osAccountId: i32, subProfileId: i32);
+
+    @rename("onOsAccountSubProfileEvent")
+    OnOsAccountSubProfileEvent(events: Array<OsAccountSubProfileEvent>, callback: (data: OsAccountSubProfileEventData) => void): void;
+
+    @rename("offOsAccountSubProfileEvent")
+    OffOsAccountSubProfileEvent(callback: Optional<(data: OsAccountSubProfileEventData) => void>): void;
+    
+    @gen_promise("getOsAccountForegroundSubProfileId")
+    GetOsAccountForegroundSubProfileIdSync(): i32;
+
+    @gen_promise("getOsAccountForegroundSubProfileId")
+    GetOsAccountForegroundSubProfileIdWithIdSync(osAccountId: i32): i32;
+
+    @gen_promise("getOsAccountSubProfileIds")
+    GetOsAccountSubProfileIdsSync(): Array<i32>;
+
+    @gen_promise("getOsAccountSubProfileIds")
+    GetOsAccountSubProfileIdsWithIdSync(osAccountId: i32): Array<i32>;
+
+    @gen_promise("getOsAccountLocalIdForSubProfile")
+    GetOsAccountLocalIdForSubProfileSync(subProfileId: i32): i32;
+
+    @gen_promise("getOsAccountSubProfile")
+    GetOsAccountSubProfileSync(subProfileId: i32): OsAccountSubProfile;
+
+    @gen_promise("getOsAccountSubProfile")
+    GetOsAccountSubProfileWithIdSync(osAccountId: i32, subProfileId: i32): OsAccountSubProfile;
+}
+
 @overload("getAccountManager")
 function GetAccountManager(): AccountManager;
 
 @gen_promise("isDomainAccountSupported")
 function IsDomainAccountSupportedSync(): bool;
 
+
+struct OsAccountSubProfile {
+    id: i32;
+    osAccountLocalId: i32;
+    index: i32;
+    distributedInfo: Optional<distributedAccount.DistributedInfo>;
+}
 interface AccountManager {
     @gen_async("isMainOsAccount")
     @gen_promise("isMainOsAccount")
@@ -440,6 +488,20 @@ struct OsAccountSwitchEventData {
     fromAccountId: i32;
     toAccountId: i32;
     displayId: Optional<i64>;
+}
+
+enum OsAccountSubProfileEvent : i32 {
+    CREATED = 0,
+    DELETED = 1,
+    SWITCHING = 2,
+    SWITCHED = 3
+}
+
+struct OsAccountSubProfileEventData {
+    event: OsAccountSubProfileEvent;
+    osAccountLocalId: i32;
+    subProfileId: i32;
+    previousSubProfileId: Optional<i32>;
 }
 
 struct ConstraintChangeInfo  {

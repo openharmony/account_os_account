@@ -33,7 +33,9 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
+#ifndef FUZZ_TEST
 const char THREAD_OS_ACCOUNT_EVENT[] = "osAccountEvent";
+#endif
 constexpr int32_t DEACTIVATION_WAIT_SECONDS = 5;
 }
 
@@ -111,9 +113,13 @@ bool SwitchSubscribeInfo::ProductTask(const sptr<IOsAccountEvent> &eventProxy, O
     auto work = std::make_shared<SwitchSubcribeWork>(eventProxy, stateParcel);
     workDeque_.push_back(work);
     if (workThread_ == nullptr) {
+#ifdef FUZZ_TEST
+        ConsumerTask(weak_from_this());
+#else
         workThread_ = std::make_unique<std::thread>(&ConsumerTask, weak_from_this());
         pthread_setname_np(workThread_->native_handle(), THREAD_OS_ACCOUNT_EVENT);
         workThread_->detach();
+#endif
     }
     return true;
 }
@@ -290,12 +296,16 @@ bool OsAccountSubscribeManager::OnStateChanged(
         }
         callback->SetStartTime(std::chrono::system_clock::now());
         if (errCode != ERR_OK) {
-            callback->OnComplete();
+            callback->ForceComplete();
         }
     };
+#ifdef FUZZ_TEST
+    task();
+#else
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), THREAD_OS_ACCOUNT_EVENT);
     taskThread.detach();
+#endif
     return true;
 }
 
@@ -326,9 +336,13 @@ bool OsAccountSubscribeManager::OnAccountsChanged(
         ACCOUNT_LOGI("Publish end, state=%{public}d to uid=%{public}d asynch, accountId=%{public}d",
             state, targetUid, id);
     };
+#ifdef FUZZ_TEST
+    task();
+#else
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), THREAD_OS_ACCOUNT_EVENT);
     taskThread.detach();
+#endif
     return true;
 }
 
@@ -344,12 +358,12 @@ static bool IsStateNeedHandShake(const OsAccountState& state)
 ErrCode OsAccountSubscribeManager::Publish(int32_t fromId, OsAccountState state,
     int32_t toId, std::optional<uint64_t> displayId)
 {
-    std::lock_guard<std::mutex> lock(subscribeRecordMutex_);
     auto cvPtr = std::make_shared<std::condition_variable>();
     auto safeQueue = std::make_shared<SafeQueue<uint8_t>>();
-    
-    PublishToAllSubscribers(fromId, state, toId, displayId, cvPtr, safeQueue);
-    
+    {
+        std::lock_guard<std::mutex> lock(subscribeRecordMutex_);
+        PublishToAllSubscribers(fromId, state, toId, displayId, cvPtr, safeQueue);
+    }
     if ((state == SWITCHING || state == SWITCHED) && displayId.has_value()) {
         ACCOUNT_LOGI("End, state: %{public}d, fromId: %{public}d, toId: %{public}d, displayId: %{public}d",
             state, fromId, toId, static_cast<int>(displayId.value()));

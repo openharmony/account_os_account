@@ -240,5 +240,52 @@ HWTEST_F(OsAccountStateReplyCallbackServiceTest, OsAccountStateReplyCallbackServ
     EXPECT_EQ(service.OnComplete(), ERR_OK);
     EXPECT_EQ(g_resultCodeStr, "");
 }
+
+/**
+ * @tc.name: ForceComplete_Normal
+ * @tc.desc: ForceComplete pops the queue and notifies the condition variable.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountStateReplyCallbackServiceTest, ForceComplete_Normal, TestSize.Level1)
+{
+    auto cv = std::make_shared<std::condition_variable>();
+    auto queue = std::make_shared<SafeQueue<uint8_t>>();
+    queue->Push(1);
+    OsAccountStateReplyCallbackService service(100, OsAccountState::STOPPING, cv, queue, 99);
+    service.ForceComplete();
+    EXPECT_EQ(queue->Size(), 0);
+}
+
+/**
+ * @tc.name: ForceComplete_Idempotent
+ * @tc.desc: A second ForceComplete call is a no-op (queue size remains 0).
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountStateReplyCallbackServiceTest, ForceComplete_Idempotent, TestSize.Level1)
+{
+    auto cv = std::make_shared<std::condition_variable>();
+    auto queue = std::make_shared<SafeQueue<uint8_t>>();
+    queue->Push(1);
+    OsAccountStateReplyCallbackService service(100, OsAccountState::STOPPING, cv, queue, 99);
+    service.ForceComplete();
+    service.ForceComplete(); // second call should be no-op
+    EXPECT_EQ(queue->Size(), 0);
+}
+
+/**
+ * @tc.name: ForceComplete_NullQueue
+ * @tc.desc: ForceComplete with nullptr queue/cv hits the early-return branch in CompleteInner.
+ *           isCompleted_ must still be set to true.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountStateReplyCallbackServiceTest, ForceComplete_NullQueue, TestSize.Level1)
+{
+    OsAccountStateReplyCallbackService service(100, OsAccountState::STOPPING, nullptr, nullptr, 99);
+    service.ForceComplete(); // CompleteInner: nullptr branch, logs and returns early
+    EXPECT_TRUE(service.isCompleted_);
+}
 }
 }

@@ -37,6 +37,7 @@
 #ifndef OS_ACCOUNT_INTERFACES_INNERKITS_OS_ACCOUNT_MANAGER_H
 #define OS_ACCOUNT_INTERFACES_INNERKITS_OS_ACCOUNT_MANAGER_H
 
+#include <map>
 #include <string>
 #include <vector>
 #include "domain_account_callback.h"
@@ -44,6 +45,7 @@
 #include "os_account_info.h"
 #include "os_account_subscriber.h"
 #include "account_error_no.h"
+
 namespace OHOS {
 namespace AccountSA {
 class OsAccountManager {

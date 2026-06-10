@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -34,17 +34,33 @@ public:
         const std::shared_ptr<DistributedAccountSubscribeCallback> &callback);
     void GetAllType(std::set<DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE> &typeList);
     int32_t GetCallbackSize();
-
+    int32_t GetSpaceCallbackSize();
+    void AddSpaceTypes(const std::set<DistributedAccountSubProfileEventType>& types,
+        const std::shared_ptr<DistributedAccountSubscribeCallback> &callback);
+    void DeleteSpaceCallback(const std::shared_ptr<DistributedAccountSubscribeCallback> &callback);
+    void GetSpaceTypesToRemove(const std::shared_ptr<DistributedAccountSubscribeCallback> &callback,
+        std::set<DistributedAccountSubProfileEventType> &removedTypes);
+    void GetAllSpaceType(std::set<DistributedAccountSubProfileEventType> &typeList);
+    bool IsAllSpaceTypeExist(const std::set<DistributedAccountSubProfileEventType>& types,
+        const std::shared_ptr<DistributedAccountSubscribeCallback> &callback);
     ErrCode OnAccountsChanged(const DistributedAccountEventData &eventData) override;
+    ErrCode OnSpaceAccountsChanged(const DistributedAccountSubProfileEventData &eventData) override;
     static DistributedAccountEventService *GetInstance();
 
 private:
     std::mutex mapLock_;
+    std::mutex spaceMapLock_;
     std::map<std::shared_ptr<DistributedAccountSubscribeCallback>,
         std::set<DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE>> callbackMap_;
 
     std::map<DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE,
         std::set<std::shared_ptr<DistributedAccountSubscribeCallback>>> typeMap_;
+
+    std::map<std::shared_ptr<DistributedAccountSubscribeCallback>,
+        std::set<DistributedAccountSubProfileEventType>> spaceCallbackMap_;
+
+    std::map<DistributedAccountSubProfileEventType,
+        std::set<std::shared_ptr<DistributedAccountSubscribeCallback>>> spaceTypeMap_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

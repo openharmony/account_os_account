@@ -137,11 +137,11 @@ void OhosAccountDataDeal::DealWithFileDeleteEvent(const std::string &fileName, c
             accountFileWatcherMgr_.RemoveFileWatcher(id, fileName);
             return;
         }
-        std::string fileDir = configFileDir_ + std::to_string(id);
-        if (!accountFileOperator_->IsExistDir(fileDir)) {
-            ACCOUNT_LOGI("this id is already removed.");
-            return;
-        }
+    }
+    std::string fileDir = configFileDir_ + std::to_string(id);
+    if (!accountFileOperator_->IsExistDir(fileDir)) {
+        ACCOUNT_LOGI("this id is already removed.");
+        return;
     }
     ReportOsAccountDataTampered(id, fileName, "DISTRIBUTED_ACCOUT_INFO");
 }
@@ -218,7 +218,7 @@ ErrCode OhosAccountDataDeal::SaveAccountInfo(const AccountInfo &accountInfo)
 {
     std::lock_guard<std::mutex> lock(accountInfoFileLock_);
 
-    std::string scalableDataStr = (accountInfo.ohosAccountInfo_.scalableData_).ToString();
+    std::string scalableDataStr = accountInfo.ohosAccountInfo_.scalableData_;
     auto jsonData = CreateJson();
     AddIntToJson(jsonData, DATADEAL_JSON_KEY_OHOSACCOUNT_VERSION, accountInfo.version_);
     AddIntToJson(jsonData, DATADEAL_JSON_KEY_BIND_TIME, accountInfo.bindTime_);
@@ -355,10 +355,7 @@ ErrCode OhosAccountDataDeal::GetAccountInfoFromJson(
     });
 
     GetJsonField<std::string>(jsonData, DATADEAL_JSON_KEY_OHOSACCOUNT_SCALABLEDATA, [&](std::string &value) {
-        sptr<AAFwk::Want> want = AAFwk::Want::FromString(value);
-        if (want != nullptr) {
-            accountInfo.ohosAccountInfo_.scalableData_ = *want;
-        }
+        accountInfo.ohosAccountInfo_.scalableData_ = value;
     });
 
     accountInfo.userId_ = userId;

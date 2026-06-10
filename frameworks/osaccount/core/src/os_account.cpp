@@ -147,7 +147,7 @@ void OsAccount::RestoreListenerRecords()
 ErrCode OsAccount::CreateOsAccount(const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo)
 {
     size_t localNameSize = name.size();
-    if (localNameSize == 0 || localNameSize > Constants::LOCAL_NAME_MAX_SIZE) {
+    if (localNameSize == 0 || localNameSize >= Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("CreateOsAccount local name length %{public}zu is invalid!", localNameSize);
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
@@ -170,7 +170,7 @@ ErrCode OsAccount::CreateOsAccount(const std::string& localName, const std::stri
     const OsAccountType& type, OsAccountInfo& osAccountInfo, const CreateOsAccountOptions &options)
 {
     size_t localNameSize = localName.size();
-    if (localNameSize == 0 || localNameSize > Constants::LOCAL_NAME_MAX_SIZE) {
+    if (localNameSize == 0 || localNameSize >= Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("CreateOsAccount local name length %{public}zu is invalid!", localNameSize);
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
@@ -235,7 +235,7 @@ ErrCode OsAccount::CreateOsAccountForDomain(const OsAccountType &type, const Dom
     }
 
     if (domainInfo.accountName_.empty() ||
-        domainInfo.accountName_.size() > Constants::LOCAL_NAME_MAX_SIZE) {
+        domainInfo.accountName_.size() >= Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("Account name is empty or too long, len=%{public}zu.", domainInfo.accountName_.size());
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
@@ -414,7 +414,7 @@ ErrCode OsAccount::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domain
     }
 
     if (domainInfo.accountName_.empty() ||
-        domainInfo.accountName_.size() > Constants::LOCAL_NAME_MAX_SIZE) {
+        domainInfo.accountName_.size() >= Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("invalid domain account name length %{public}zu.", domainInfo.accountName_.size());
         NativeErrMsg() = "Invalid domainInfo.accountName."
             "The length of domainInfo.accountName must be greater than 0, and less than or equal to LOGIN_NAME_MAX";
@@ -607,7 +607,7 @@ ErrCode OsAccount::SetOsAccountName(const int id, const std::string &localName)
     if (result != ERR_OK) {
         return result;
     }
-    if (localName.size() > Constants::LOCAL_NAME_MAX_SIZE) {
+    if (localName.size() >= Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("name length %{public}zu too long!", localName.size());
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
@@ -822,13 +822,17 @@ ErrCode OsAccount::UnsubscribeOsAccount(const std::shared_ptr<OsAccountSubscribe
     if (listenerManager_ == nullptr) {
         return ERR_OSACCOUNT_KIT_NO_SPECIFIED_SUBSCRIBER_HAS_BEEN_REGISTERED;
     }
-    listenerManager_->RemoveRecord(subscriber);
     auto proxy = GetOsAccountProxy();
     if (proxy == nullptr) {
+        ACCOUNT_LOGE("failed to get os account proxy");
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
+    listenerManager_->RemoveRecord(subscriber);
     if (listenerManager_->Size() != 0) {
         result = proxy->SubscribeOsAccount(listenerManager_->GetTotalSubscribeInfo(), listenerManager_);
+        if (result != ERR_OK) {
+            listenerManager_->InsertRecord(subscriber);
+        }
         return result;
     }
 
@@ -1364,7 +1368,7 @@ ErrCode OsAccount::BindDomainAccount(
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
-    if (domainInfo.accountName_.empty() || domainInfo.accountName_.size() > Constants::LOCAL_NAME_MAX_SIZE) {
+    if (domainInfo.accountName_.empty() || domainInfo.accountName_.size() >= Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("Account name is empty or too long, len=%{public}zu.", domainInfo.accountName_.size());
         NativeErrMsg() = "Invalid domainInfo.accountName. "
                           "The length of the domainInfo.accountName must be greater than 0 and less than or equal to "

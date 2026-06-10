@@ -260,6 +260,9 @@ ErrCode BundleManagerAdapter::Connect()
 void BundleManagerAdapter::ResetProxy(const wptr<IRemoteObject>& remote)
 {
     std::lock_guard<std::mutex> lock(proxyMutex_);
+    if (proxy_ == nullptr) {
+        return;
+    }
     auto serviceRemote = proxy_->AsObject();
     if ((serviceRemote != nullptr) && (serviceRemote == remote.promote())) {
         serviceRemote->RemoveDeathRecipient(deathRecipient_);

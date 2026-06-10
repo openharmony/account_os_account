@@ -23,7 +23,10 @@
         "OHOS::AccountSA::OhosAccountKitsImpl::GetOsAccountService()";
         "OHOS::AccountSA::OhosAccountKitsImpl::GetAccountIAMService()";
         "OHOS::AccountSA::OhosAccountKitsImpl::GetAuthorizationService()";
+        "OHOS::AccountSA::OhosAccountKitsImpl::GetOsAccountSubspaceService()";
         "OHOS::AccountSA::OhosAccountKitsImpl::QueryOhosAccountInfo(OHOS::AccountSA::OhosAccountInfo&)";
+        "OHOS::AccountSA::OhosAccountKitsImpl::SubscribeDistributedAccountSpaceEvents(std::__h::set<OHOS::AccountSA::DistributedAccountSubProfileEventType, std::__h::less<OHOS::AccountSA::DistributedAccountSubProfileEventType>, std::__h::allocator<OHOS::AccountSA::DistributedAccountSubProfileEventType>> const&, std::__h::shared_ptr<OHOS::AccountSA::DistributedAccountSubscribeCallback> const&)";
+        "OHOS::AccountSA::OhosAccountKitsImpl::UnsubscribeDistributedAccountSpaceEvents(std::__h::shared_ptr<OHOS::AccountSA::DistributedAccountSubscribeCallback> const&)";
         OHOS::AccountSA::OhosAccountKitsImpl::QueryDistributedVirtualDeviceId*;
         "OHOS::AccountSA::WriteOhosAccountInfo(OHOS::MessageParcel&, OHOS::AccountSA::OhosAccountInfo const&)";
         "OHOS::AccountSA::ReadOhosAccountInfo(OHOS::MessageParcel&, OHOS::AccountSA::OhosAccountInfo&)";
@@ -37,12 +40,20 @@
         "OHOS::AccountSA::DistributedAccountEventService::GetAllType(std::__h::set<OHOS::AccountSA::DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE, std::__h::less<OHOS::AccountSA::DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE>, std::__h::allocator<OHOS::AccountSA::DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE>>&)";
         "OHOS::AccountSA::DistributedAccountEventService::DistributedAccountEventService()";
         "OHOS::AccountSA::DistributedAccountEventService::AddType(OHOS::AccountSA::DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE, std::__h::shared_ptr<OHOS::AccountSA::DistributedAccountSubscribeCallback> const&)";
+        "OHOS::AccountSA::DistributedAccountEventService::AddSpaceTypes(std::__h::set<OHOS::AccountSA::DistributedAccountSubProfileEventType, std::__h::less<OHOS::AccountSA::DistributedAccountSubProfileEventType>, std::__h::allocator<OHOS::AccountSA::DistributedAccountSubProfileEventType>> const&, std::__h::shared_ptr<OHOS::AccountSA::DistributedAccountSubscribeCallback> const&)";
+        "OHOS::AccountSA::DistributedAccountEventService::DeleteSpaceCallback(std::__h::shared_ptr<OHOS::AccountSA::DistributedAccountSubscribeCallback> const&)";
+        "OHOS::AccountSA::DistributedAccountEventService::GetSpaceTypesToRemove(std::__h::shared_ptr<OHOS::AccountSA::DistributedAccountSubscribeCallback> const&, std::__h::set<OHOS::AccountSA::DistributedAccountSubProfileEventType, std::__h::less<OHOS::AccountSA::DistributedAccountSubProfileEventType>, std::__h::allocator<OHOS::AccountSA::DistributedAccountSubProfileEventType>>&)";
+        "OHOS::AccountSA::DistributedAccountEventService::GetAllSpaceType(std::__h::set<OHOS::AccountSA::DistributedAccountSubProfileEventType, std::__h::less<OHOS::AccountSA::DistributedAccountSubProfileEventType>, std::__h::allocator<OHOS::AccountSA::DistributedAccountSubProfileEventType>>&)";
+        "OHOS::AccountSA::DistributedAccountEventService::IsAllSpaceTypeExist(std::__h::set<OHOS::AccountSA::DistributedAccountSubProfileEventType, std::__h::less<OHOS::AccountSA::DistributedAccountSubProfileEventType>, std::__h::allocator<OHOS::AccountSA::DistributedAccountSubProfileEventType>> const&, std::__h::shared_ptr<OHOS::AccountSA::DistributedAccountSubscribeCallback> const&)";
         "OHOS::AccountSA::DistributedAccountEventService::GetCallbackSize()";
+        "OHOS::AccountSA::DistributedAccountEventService::GetSpaceCallbackSize()";
         "OHOS::AccountSA::DistributedAccountEventData::operator==(OHOS::AccountSA::DistributedAccountEventData const&) const";
         "VTT for OHOS::AccountSA::OhosAccountInfo";
         "vtable for OHOS::AccountSA::OhosAccountInfo";
         "OHOS::AccountSA::OhosAccountInfo::Unmarshalling(OHOS::Parcel&)";
         "OHOS::AccountSA::OhosAccountInfo::Marshalling(OHOS::Parcel&) const";
+        "OHOS::AccountSA::OsAccountSubspaceResult::Unmarshalling(OHOS::Parcel&)";
+        "OHOS::AccountSA::DistributedAccountEventStub::OnRemoteRequest(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
     };
   local:
     *;

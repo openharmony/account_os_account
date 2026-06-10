@@ -38,7 +38,7 @@ constexpr size_t TOKEN_CRYPTO_SIGN_SIZE = 32;
 
 typedef struct {
     uint8_t permission[PERMISSION_MAX_LEN + 1];
-    uint8_t permissionSize;
+    size_t permissionSize;
 } __attribute__((__packed__)) VerifyTokenParam;
 
 typedef struct {
@@ -79,7 +79,7 @@ struct VerifyGrantTimeResult {
 typedef struct ApplyUserTokenParam {
     uint32_t pid;
     uint8_t permission[PERMISSION_MAX_LEN + 1];
-    uint8_t permissionSize;
+    size_t permissionSize;
     int32_t grantValidityPeriod;
     int32_t grantUserId;
     uint8_t authToken[AUTH_TOKEN_LEN];
@@ -222,14 +222,6 @@ public:
      * @return ERR_OK on success, error code on failure (see account_error_no.h)
      */
     ErrCode TaAcquireAuthorization(const ApplyUserTokenParam &param, ApplyUserTokenResult &result);
-
-    /**
-     * @brief Get bin and cert for EDM authentication.
-     * @param binData The bin file data for authentication
-     * @param certData The certificate data for authentication
-     * @return ERR_OK on success, error code on failure
-     */
-    ErrCode GetEdmBinAndCert(std::vector<uint8_t> &binData, std::vector<uint8_t> &certData);
 
 private:
     // pImpl pattern - hide all implementation details including TEE types

@@ -18,12 +18,16 @@ config("osaccount_kit_config") {
   include_dirs = [ "include" ]
 
   cflags = []
+  cflags_cc = []
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
 
   cflags += [ "-pipe" ]
-  cflags_cc = [
+  if (os_account_enable_multiple_os_account_subspace) {
+    cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE" ]
+  }
+  cflags_cc += [
     "-Wdate-time",
     "-Wformat=2",
     "-Wshadow",
@@ -41,6 +45,8 @@ ohos_shared_library("osaccount") {
     "${os_account_kits_path}/src/napi_init.cpp",
     "${os_account_kits_path}/src/napi_os_account.cpp",
     "${os_account_kits_path}/src/napi_os_account_common.cpp",
+    "${os_account_kits_path}/src/napi_os_account_sub_profile.cpp",
+    "${os_account_kits_path}/src/napi_os_account_sub_profile_module.cpp",
   ]
 
   deps = [
@@ -57,9 +63,11 @@ ohos_shared_library("osaccount") {
 
   external_deps = [
     "ability_base:want",
+    "ability_runtime:napi_common",
     "cJSON:cjson",
     "c_utils:utils",
     "hilog:libhilog",
+    "ipc:ipc_single",
     "napi:ace_napi",
     "samgr:samgr_proxy",
   ]

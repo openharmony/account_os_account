@@ -452,6 +452,10 @@ public:
         ani_env *env = get_env();
         if (options.parameters.has_value()) {
             ani_ref parametersRef = reinterpret_cast<ani_ref>(options.parameters.value());
+            if (parametersRef == nullptr) {
+                ACCOUNT_LOGE("parametersRef is nullptr");
+                return;
+            }
             auto status = AppExecFwk::UnwrapWantParams(env, parametersRef, params);
             if (!status) {
                 ACCOUNT_LOGE("Failed to UnwrapWant options status = %{public}d", status);
@@ -1143,6 +1147,10 @@ public:
         AAFwk::WantParams params;
         ani_env *env = get_env();
         ani_ref parametersRef = reinterpret_cast<ani_ref>(options);
+        if (parametersRef == nullptr) {
+            ACCOUNT_LOGE("parametersRef is nullptr");
+            return;
+        }
         auto status = AppExecFwk::UnwrapWantParams(env, parametersRef, params);
         if (!status) {
             int32_t jsErrCode = GenerateBusinessErrorCode(JSErrorCode::ERR_JS_PARAMETER_ERROR);
@@ -1643,14 +1651,25 @@ private:
 
 class AuthenticatorImpl {
 public:
-    explicit AuthenticatorImpl(const Authenticator &self): self_(self)
+    AuthenticatorImpl() = default;
+    ~AuthenticatorImpl()
     {
+        if (remoteObject_ != 0) {
+            remoteObject_ = 0;
+        }
+    }
+
+    void EtsBind(weak::Authenticator authenticator)
+    {
+        if (remoteObject_ != 0) {
+            return;
+        }
         auto runner = AppExecFwk::EventRunner::GetMainEventRunner();
         if (runner == nullptr) {
             return;
         }
         auto handler = std::make_shared<AppExecFwk::EventHandler>(runner);
-        authenticator_ = std::make_shared<TaiheAppAccountAuthenticator>(self, handler);
+        authenticator_ = std::make_shared<TaiheAppAccountAuthenticator>(authenticator, handler);
         ani_env* env = get_env();
         if (env == nullptr) {
             authenticator_.reset();
@@ -1664,12 +1683,6 @@ public:
             return;
         }
         remoteObject_ = reinterpret_cast<uintptr_t>(aniRemoteObj);
-    }
-    ~AuthenticatorImpl()
-    {
-        if (remoteObject_ != 0) {
-            remoteObject_ = 0;
-        }
     }
 
     void CreateAccountImplicitly(::ohos::account::appAccount::CreateAccountImplicitlyOptions const& options,
@@ -1712,14 +1725,13 @@ public:
     }
 
 private:
-    uintptr_t remoteObject_;
-    Authenticator self_;
+    uintptr_t remoteObject_ = 0;
     std::shared_ptr<TaiheAppAccountAuthenticator> authenticator_ = nullptr;
 };
 
-Authenticator MakeAuthenticator(weak::Authenticator self)
+Authenticator MakeAuthenticator()
 {
-    return taihe::make_holder<AuthenticatorImpl, Authenticator>(self);
+    return taihe::make_holder<AuthenticatorImpl, Authenticator>();
 }
 
 AppAccountManager createAppAccountManager()

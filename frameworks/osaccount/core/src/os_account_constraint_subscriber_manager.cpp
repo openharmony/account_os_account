@@ -24,7 +24,9 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
+#ifndef FUZZ_TEST
 const char THREAD_OS_ACCOUNT_CONSTRAINT_EVENT[] = "OsAccountConstraintEvent";
+#endif
 
 ErrCode ConvertToAccountErrCode(ErrCode idlErrCode)
 {
@@ -56,9 +58,13 @@ ErrCode OsAccountConstraintSubscriberManager::OnConstraintChanged(
             auto task = [subscriber, data]() mutable {
                 subscriber->OnConstraintChanged(data);
             };
+#ifdef FUZZ_TEST
+            task();
+#else
             std::thread taskThread(task);
             pthread_setname_np(taskThread.native_handle(), THREAD_OS_ACCOUNT_CONSTRAINT_EVENT);
             taskThread.detach();
+#endif
         }
     }
     return ERR_OK;
@@ -126,7 +132,6 @@ ErrCode OsAccountConstraintSubscriberManager::SubscribeOsAccountConstraints(
         }
     }
     needAcross = subscriber->needAcross;
-    localId = subscriber->localId;
     constraintSet.insert(constraintSet_.begin(), constraintSet_.end());
     if (constraintSet.size() == constraintSet_.size()) {
         ACCOUNT_LOGI("No need to sync data service.");
@@ -135,7 +140,6 @@ ErrCode OsAccountConstraintSubscriberManager::SubscribeOsAccountConstraints(
     }
     OsAccountConstraintSubscribeInfo subscribeInfo(constraintSet);
     subscribeInfo.needAcross = subscriber->needAcross;
-    subscribeInfo.localId = subscriber->localId;
     ErrCode errCode = proxy->SubscribeOsAccountConstraints(subscribeInfo, GetInstance()->AsObject());
     errCode = ConvertToAccountErrCode(errCode);
     if (errCode != ERR_OK) {
@@ -177,7 +181,6 @@ ErrCode OsAccountConstraintSubscriberManager::UnsubscribeOsAccountConstraints(
     }
     OsAccountConstraintSubscribeInfo info(syncData);
     info.needAcross = subscriber->needAcross;
-    info.localId = subscriber->localId;
     ErrCode errCode =  proxy->UnsubscribeOsAccountConstraints(info, GetInstance()->AsObject());
     errCode = ConvertToAccountErrCode(errCode);
     if (errCode != ERR_OK) {
@@ -201,7 +204,6 @@ void OsAccountConstraintSubscriberManager::RestoreConstraintSubscriberRecords(sp
     }
     OsAccountConstraintSubscribeInfo subscribeInfo(constraintSet_);
     subscribeInfo.needAcross = needAcross;
-    subscribeInfo.localId = localId;
     ErrCode errCode = proxy->SubscribeOsAccountConstraints(subscribeInfo, GetInstance()->AsObject());
     errCode = ConvertToAccountErrCode(errCode);
     if (errCode != ERR_OK) {

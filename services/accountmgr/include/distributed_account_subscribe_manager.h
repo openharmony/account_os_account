@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,6 +18,7 @@
 
 #include <map>
 #include <set>
+#include "distributed_account_subscribe_callback.h"
 #include "idistributed_account_event.h"
 #include "idistributed_account_subscribe.h"
 #include "singleton.h"
@@ -32,14 +33,25 @@ public:
     ErrCode UnsubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
         const sptr<IRemoteObject> &eventListener) override;
     ErrCode UnsubscribeDistributedAccountEvent(const sptr<IRemoteObject> &eventListener) override;
-    ErrCode Publish(const int id, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE subscribeType) override;
+    ErrCode Publish(const int id, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE subscribeType, int32_t subProfileId = -1) override;
+    ErrCode SubscribeDistributedAccountSpaceEvents(const std::set<DistributedAccountSubProfileEventType> &types,
+        const sptr<IRemoteObject> &eventListener) override;
+    ErrCode UnsubscribeDistributedAccountSpaceEvents(const std::set<DistributedAccountSubProfileEventType> &types,
+        const sptr<IRemoteObject> &eventListener) override;
+    ErrCode Publish(DistributedAccountSubProfileEventType eventType, int32_t localId,
+        int32_t distributedAccountId, int32_t previousDistributedAccountId = -1) override;
 
 private:
     DistributedAccountSubscribeManager();
     ~DistributedAccountSubscribeManager() = default;
     DISALLOW_COPY_AND_MOVE(DistributedAccountSubscribeManager);
     bool OnAccountsChanged(const sptr<IDistributedAccountEvent> &eventProxy,
-        const int id, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE subscribeType);
+        const int id, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE subscribeType, const int32_t subProfileId);
+    bool OnSpaceAccountsChanged(const sptr<IDistributedAccountEvent> &eventProxy,
+        const DistributedAccountSubProfileEventData &eventData);
+    DistributedSubscribeRecordPtr FindSubscribeRecordByEventListener(const sptr<IRemoteObject> &eventListener);
+    std::vector<sptr<IRemoteObject>> GetSubscribersToNotify(
+        DistributedAccountSubProfileEventType eventType, int32_t eventLocalId);
 
 private:
     sptr<IRemoteObject::DeathRecipient> subscribeDeathRecipient_;

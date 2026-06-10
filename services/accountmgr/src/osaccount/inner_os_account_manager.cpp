@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -72,6 +72,9 @@ namespace {
 const char OPERATION_UPDATE[] = "update";
 #ifdef SUPPORT_AUTHORIZATION
 const char OPERATION_GET_TYPE[] = "getType";
+#ifndef IS_EMULATOR
+const char MANAGE_LOCAL_ACCOUNTS[] = "ohos.permission.MANAGE_LOCAL_ACCOUNTS";
+#endif // IS_EMULATOR
 #endif // SUPPORT_AUTHORIZATION
 const char OPERATION_SET_TYPE[] = "setType";
 const char OPERATION_SET_TO_BE_REMOVED[] = "setToBeRemoved";
@@ -127,6 +130,7 @@ static ErrCode ResetForegroundBeforeRemove(OsAccountInfo &osAccountInfo, int32_t
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_REMOVING_FOREGROUND_OS_ACCOUNT));
 #else
+        OsAccountInterface::SendToSamgrUserState(id, OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPING);
         ACCOUNT_LOGI("Remove foreground account id=%{public}d.", id);
         ErrCode errCode = OsAccountInterface::SendToAMSAccountDeactivate(osAccountInfo);
         if (errCode != ERR_OK) {
@@ -193,10 +197,8 @@ IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManager_(OsAccountSu
         defaultActivatedIds_.EnsureInsert(displayId, localId);
     }
     osAccountControl_->GetOsAccountConfig(config_);
-    SetParameter(PARAM_LOGIN_NAME_MAX, std::to_string(Constants::LOCAL_NAME_MAX_SIZE).c_str());
-#ifdef SUPPORT_AUTHORIZATION
-    osAccountCacheManager_ = std::make_unique<OsAccountCacheManager>();
-#endif // SUPPORT_AUTHORIZATION
+    SetParameter(PARAM_LOGIN_NAME_MAX, std::to_string(Constants::LOCAL_NAME_MAX_SIZE - 1).c_str());
+
     ACCOUNT_LOGI("Init end, maxOsAccountNum: %{public}d, maxLoggedInOsAccountNum: %{public}d",
         config_.maxOsAccountNum, config_.maxLoggedInOsAccountNum);
 }
@@ -208,10 +210,11 @@ IInnerOsAccountManager &IInnerOsAccountManager::GetInstance()
 }
 
 #ifdef SUPPORT_AUTHORIZATION
-ErrCode IInnerOsAccountManager::RefreshAccountTypeInCache(int32_t id, OsAccountType localType, OsAccountType &outType)
+ErrCode IInnerOsAccountManager::RefreshAccountTypeInCache(
+    int32_t id, OsAccountType localType, std::pair<OsAccountType, bool> &outType)
 {
     std::lock_guard<std::mutex> refreshLock(refreshTypeCacheLock_);
-    auto cachedType = osAccountCacheManager_->GetAccountTypeFromCache(id);
+    auto cachedType = osAccountCacheManager_.GetAccountTypeFromCache(id);
     if (cachedType.has_value()) {
         outType = cachedType.value();
         return ERR_OK;
@@ -220,13 +223,13 @@ ErrCode IInnerOsAccountManager::RefreshAccountTypeInCache(int32_t id, OsAccountT
     ErrCode errCode = teeAdapter_.GetOsAccountType(id, typeTee);
     if (errCode == ERR_OK) {
         OsAccountType realType = static_cast<OsAccountType>(typeTee);
-        osAccountCacheManager_->SetAccountTypeInCache(id, realType);
-        outType = realType;
+        outType = {realType, false};
+        osAccountCacheManager_.SetAccountTypeInCache(id, outType);
         return ERR_OK;
     }
     if (errCode == ERR_ACCOUNT_COMMON_TEE_ACCOUNT_NOT_EXIST) {
-        osAccountCacheManager_->SetAccountTypeInCache(id, localType);
-        outType = localType;
+        outType = {localType, true};
+        osAccountCacheManager_.SetAccountTypeInCache(id, outType);
         ReportOsAccountOperationFail(id, OPERATION_GET_TYPE, errCode, "TEE account does not exist");
         return ERR_OK;
     }
@@ -297,7 +300,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivateInBackground(OsAccountI
     subscribeManager_.Publish(osAccountInfo.GetLocalId(), OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING);
     (void)SendToStorageAccountStart(osAccountInfo);
     // StorageManager failture does not block boot, continue!
-    ErrCode errCode = SendToAMSAccountStart(osAccountInfo, Constants::INVALID_DISPLAY_ID, true);
+    ErrCode errCode = SendToAMSAndSamgrAccountStart(osAccountInfo, Constants::INVALID_DISPLAY_ID, true);
     if (errCode != ERR_OK) {
         return errCode;
     }
@@ -371,6 +374,7 @@ bool IInnerOsAccountManager::CreateBaseStandardAccount(OsAccountInfo &osAccountI
     osAccountInfo.SetCreateTime(time);
     osAccountInfo.SetIsCreateCompleted(false);
     osAccountInfo.SetIsDataRemovable(false);
+    osAccountInfo.SetVersion(OS_ACCOUNT_INFO_LATEST_VERSION);
     errCode = RetryToInsertOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Fail to insert account %{public}d, errCode %{public}d.", osAccountInfo.GetLocalId(), errCode);
@@ -422,18 +426,23 @@ ErrCode IInnerOsAccountManager::GetRealOsAccountInfoById(const int id, OsAccount
     }
 
 #if defined(SUPPORT_AUTHORIZATION) && !defined(IS_EMULATOR)
-    // Try to get account type from cache for performance optimization
-    if (osAccountCacheManager_ != nullptr) {
-        auto cachedType = osAccountCacheManager_->GetAccountTypeFromCache(id);
-        if (cachedType.has_value()) {
-            osAccountInfo.SetType(cachedType.value());
-        } else {
-            OsAccountType teeType = osAccountInfo.GetType();
-            errCode = RefreshAccountTypeInCache(id, osAccountInfo.GetType(), teeType);
-            if (errCode == ERR_OK) {
-                osAccountInfo.SetType(teeType);
-            }
+    // Try to get account type from cache first; if absent, refresh from TEE/local and reuse the result.
+    auto cachedType = osAccountCacheManager_.GetAccountTypeFromCache(id);
+    std::pair<OsAccountType, bool> refreshedCachedType = {osAccountInfo.GetType(), false};
+    if (!cachedType.has_value()) {
+        errCode = RefreshAccountTypeInCache(id, osAccountInfo.GetType(), refreshedCachedType);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("Failed to refresh AccountType in cache, error: %{public}d", errCode);
         }
+    } else {
+        refreshedCachedType = cachedType.value();
+    }
+    const auto &[type, restricted] = refreshedCachedType;
+    if (restricted && type == OsAccountType::ADMIN &&
+        (AccountPermissionManager::VerifyPermission(MANAGE_LOCAL_ACCOUNTS) == ERR_OK)) {
+        osAccountInfo.SetType(OsAccountType::RESTRICTED_ADMIN);
+    } else {
+        osAccountInfo.SetType(type);
     }
 #endif // SUPPORT_AUTHORIZATION
 
@@ -624,10 +633,6 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfo(const std::string &localNam
         ACCOUNT_LOGE("Insert os account info err, errCode %{public}d.", errCode);
         return errCode;
     }
-    errCode = osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Update account index failed, errCode = %{public}d", errCode);
-    }
 
     errCode = osAccountControl_->UpdateBaseOAConstraints(std::to_string(osAccountInfo.GetLocalId()),
         osAccountInfo.GetConstraints(), true);
@@ -670,6 +675,7 @@ ErrCode IInnerOsAccountManager::FillOsAccountInfo(const std::string &localName, 
         osAccountInfo.SetCreatorType(TOKEN_NATIVE);
     }
     osAccountInfo.SetConstraints(constraints);
+    osAccountInfo.SetVersion(OS_ACCOUNT_INFO_LATEST_VERSION);
     int64_t time =
         std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     osAccountInfo.SetCreateTime(time);
@@ -691,6 +697,7 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfoWithFullInfo(OsAccountInfo &
     osAccountInfo.SetSerialNumber(serialNumber);
     osAccountInfo.SetIsCreateCompleted(false);
     osAccountInfo.SetIsDataRemovable(false);
+    osAccountInfo.SetVersion(OS_ACCOUNT_INFO_LATEST_VERSION);
     errCode = osAccountControl_->SetNextLocalId(osAccountInfo.GetLocalId() + 1);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Failed to SetNextLocalId, errCode %{public}d.", errCode);
@@ -700,11 +707,6 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfoWithFullInfo(OsAccountInfo &
     if ((errCode != ERR_OK) && (errCode != ERR_OSACCOUNT_SERVICE_CONTROL_INSERT_FILE_EXISTS_ERROR)) {
         ACCOUNT_LOGE("Insert os account info err, errCode %{public}d.", errCode);
         return errCode;
-    }
-
-    errCode = osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Update account index failed, errCode = %{public}d", errCode);
     }
 
     std::vector<std::string> constraints;
@@ -750,16 +752,15 @@ bool IInnerOsAccountManager::CheckAndCleanOsAccounts()
 void IInnerOsAccountManager::RollbackOsAccount(OsAccountInfo &osAccountInfo, bool needDelStorage, bool needDelBms)
 {
 #ifdef SUPPORT_AUTHORIZATION
-    if (osAccountInfo.GetLocalId() != Constants::MAINTENANCE_MODE_ID) {
-        OsAccountTeeAdapter teeAdapter;
-        ErrCode res = teeAdapter.DelOsAccountType(osAccountInfo.GetLocalId());
-        if (res != ERR_OK) {
-            ACCOUNT_LOGE("Failed to delete account type from TEE, errCode=%{public}d", res);
-            REPORT_OS_ACCOUNT_FAIL(osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE,
-                res, "Failed to rollback type from TEE");
-            return;
-        }
+    OsAccountTeeAdapter teeAdapter;
+    ErrCode res = teeAdapter.DelOsAccountType(osAccountInfo.GetLocalId());
+    if (res != ERR_OK) {
+        ACCOUNT_LOGE("Failed to delete account type from TEE, errCode=%{public}d", res);
+        REPORT_OS_ACCOUNT_FAIL(osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE,
+            res, "Failed to rollback type from TEE");
+        return;
     }
+    osAccountCacheManager_.ClearAccountCache(osAccountInfo.GetLocalId());
 #endif // SUPPORT_AUTHORIZATION
     if (!osAccountInfo.GetIsDataRemovable()) {
         (void)osAccountControl_->DelOsAccount(osAccountInfo.GetLocalId());
@@ -897,26 +898,33 @@ ErrCode IInnerOsAccountManager::UpdateFirstOsAccountInfo(OsAccountInfo& accountI
             "Failed to update OS account");
         return code;
     }
-    code = osAccountControl_->UpdateAccountIndex(accountInfoOld, false);
-    if (code != ERR_OK) {
-        ACCOUNT_LOGE("Update account index failed, errCode = %{public}d", code);
-    }
     osAccountInfo = accountInfoOld;
     return ERR_OK;
 }
 
 #ifdef SUPPORT_AUTHORIZATION
-static ErrCode TeeSetOsAccountType(const int32_t localId, const OsAccountType &type,
-    const CreateOsAccountOptions &options)
+ErrCode IInnerOsAccountManager::InsertOsAccountTypeToTee(const int32_t localId, const OsAccountType &type,
+    const std::vector<uint8_t>& token)
 {
-    ErrCode errCode = ERR_OK;
     OsAccountTeeAdapter teeAdapter;
-    if (options.isEdmCalling) {
-        errCode = teeAdapter.SetOsAccountType(localId, type, options.binData, options.certData);
-    } else {
-        errCode = teeAdapter.SetOsAccountType(localId, type, options.token.value());
+    ErrCode errCode = teeAdapter.SetOsAccountType(localId, type, token);
+    if (errCode == ERR_ACCOUNT_COMMON_TEE_REACH_LIMIT) {
+        ACCOUNT_LOGE("Failed to set account type to TEE, try to clean garbage accounts and retry");
+        REPORT_OS_ACCOUNT_FAIL(localId, Constants::OPERATION_CREATE,
+            errCode, "Failed to set type since TEE reach limit");
+        if (CleanGarbageOsAccounts() > 0) {
+            errCode = teeAdapter.SetOsAccountType(localId, type, token);
+        } else {
+            ACCOUNT_LOGE("The number of OS accounts is still too large after cleaning");
+        }
     }
-    return errCode;
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to set account type to TEE, errCode:%{public}d", errCode);
+        REPORT_OS_ACCOUNT_FAIL(localId, Constants::OPERATION_CREATE,
+            errCode, "Failed to set account type to TEE");
+        return errCode;
+    }
+    return ERR_OK;
 }
 #endif // SUPPORT_AUTHORIZATION
 
@@ -942,24 +950,20 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(const std::string &localName, co
         return errCode;
     }
 #ifdef SUPPORT_AUTHORIZATION
-    errCode = TeeSetOsAccountType(osAccountInfo.GetLocalId(), type, options);
-    if (errCode == ERR_ACCOUNT_COMMON_TEE_REACH_LIMIT) {
-        ACCOUNT_LOGE("Failed to set account type to TEE, try to clean garbage accounts and retry");
-        REPORT_OS_ACCOUNT_FAIL(osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE,
-            errCode, "Failed to set type since TEE reach limit");
-        if (CleanGarbageOsAccounts() > 0) {
-            errCode = TeeSetOsAccountType(osAccountInfo.GetLocalId(), type, options);
-        } else {
-            ACCOUNT_LOGE("The number of OS accounts is still too large after cleaning");
+    if (options.token.has_value()) {
+        errCode = InsertOsAccountTypeToTee(osAccountInfo.GetLocalId(), osAccountInfo.GetType(), options.token.value());
+        if (errCode != ERR_OK) {
+            RemoveLocalIdToOperating(osAccountInfo.GetLocalId());
+            return errCode;
         }
-    }
-    if (errCode != ERR_OK) {
+        UpdateAccountTypeCache(osAccountInfo.GetLocalId(), osAccountInfo.GetType(), false);
+    } else if (options.isEdmCalling) {
+        ACCOUNT_LOGI("EDM calling, no need to set OsAccount type to Tee.");
+        UpdateAccountTypeCache(osAccountInfo.GetLocalId(), osAccountInfo.GetType(), true);
+    } else {
+        ACCOUNT_LOGE("Token is required for non-EDM calling.");
         RemoveLocalIdToOperating(osAccountInfo.GetLocalId());
-        ACCOUNT_LOGE("Failed to set account type to TEE, errCode:%{public}d, isEdmCalling:%{public}d",
-            errCode, options.isEdmCalling);
-        REPORT_OS_ACCOUNT_FAIL(osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE,
-            errCode, "Failed to set type to TEE");
-        return errCode;
+        return ERR_AUTHORIZATION_PRIVILEGE_DENIED;
     }
 #endif // SUPPORT_AUTHORIZATION
     errCode = SendMsgForAccountCreate(osAccountInfo, options);
@@ -1010,14 +1014,16 @@ ErrCode IInnerOsAccountManager::CreateOsAccountWithFullInfo(OsAccountInfo &osAcc
         return errCode;
     }
 #ifdef SUPPORT_AUTHORIZATION
-    if ((osAccountInfo.GetLocalId() != Constants::MAINTENANCE_MODE_ID)) {
-        OsAccountTeeAdapter teeAdap;
-        errCode = teeAdap.SetOsAccountType(osAccountInfo.GetLocalId(), osAccountInfo.GetType(), options.token.value());
+    if (options.token.has_value()) {
+        errCode = InsertOsAccountTypeToTee(osAccountInfo.GetLocalId(), osAccountInfo.GetType(), options.token.value());
         if (errCode != ERR_OK) {
             RemoveLocalIdToOperating(osAccountInfo.GetLocalId());
             ACCOUNT_LOGE("Failed to set account type to TEE, errCode:%{public}d", errCode);
             return errCode;
         }
+        UpdateAccountTypeCache(osAccountInfo.GetLocalId(), osAccountInfo.GetType(), false);
+    } else {
+        UpdateAccountTypeCache(osAccountInfo.GetLocalId(), osAccountInfo.GetType(), true);
     }
 #endif // SUPPORT_AUTHORIZATION
     errCode = SendMsgForAccountCreate(osAccountInfo, options);
@@ -1065,7 +1071,6 @@ ErrCode IInnerOsAccountManager::UpdateOsAccountWithFullInfo(OsAccountInfo &newIn
     oldInfo.SetPhoto(newInfo.GetPhoto());
     oldInfo.SetConstraints(newInfo.GetConstraints());
     errCode = osAccountControl_->UpdateOsAccount(oldInfo);
-    osAccountControl_->UpdateAccountIndex(oldInfo, false);
     newInfo = oldInfo;
     if (errCode != ERR_OK) {
         ReportOsAccountOperationFail(localId, OPERATION_UPDATE, errCode, "UpdateOsAccount failed!");
@@ -1190,11 +1195,6 @@ ErrCode IInnerOsAccountManager::BindDomainAccount(const OsAccountType &type,
         ACCOUNT_LOGW("Multiple os accounts feature not enabled");
         return ERR_OSACCOUNT_SERVICE_MANAGER_NOT_ENABLE_MULTI_ERROR;
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
-    }
-    errCode = osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Update account index failed, errCode = %{public}d", errCode);
-        return errCode;
     }
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
@@ -1350,19 +1350,15 @@ ErrCode IInnerOsAccountManager::RemoveOsAccountOperate(const int id, OsAccountIn
         return ERR_OK;
     }
 #ifdef SUPPORT_AUTHORIZATION
-    if (osAccountInfo.GetLocalId() != Constants::MAINTENANCE_MODE_ID) {
-        OsAccountTeeAdapter teeAdapter;
-        ErrCode res = teeAdapter.DelOsAccountType(id);
-        if (res != ERR_OK) {
-            ACCOUNT_LOGE("Failed to delete account type from TEE, errCode=%{public}d", res);
-            REPORT_OS_ACCOUNT_FAIL(id, Constants::OPERATION_REMOVE, res, "Failed to delete type from TEE");
-            return res;
-        }
-        // Clear cache after successful TEE deletion
-        if (osAccountCacheManager_ != nullptr) {
-            osAccountCacheManager_->ClearAccountCache(id);
-        }
+    OsAccountTeeAdapter teeAdapter;
+    ErrCode res = teeAdapter.DelOsAccountType(id);
+    if (res != ERR_OK) {
+        ACCOUNT_LOGE("Failed to delete account type from TEE, errCode=%{public}d", res);
+        REPORT_OS_ACCOUNT_FAIL(id, Constants::OPERATION_REMOVE, res, "Failed to delete type from TEE");
+        return res;
     }
+    // Clear cache after successful TEE deletion
+    osAccountCacheManager_.ClearAccountCache(id);
 #endif // SUPPORT_AUTHORIZATION
     ErrCode errCode = PrepareRemoveOsAccount(osAccountInfo, isCleanGarbage);
     if (errCode != ERR_OK) {
@@ -1377,18 +1373,7 @@ ErrCode IInnerOsAccountManager::RemoveOsAccountOperate(const int id, OsAccountIn
             id, DomainAccountEvent::LOG_OUT, DomainAccountStatus::LOGOUT, domainAccountInfo);
     }
 #endif // SUPPORT_DOMAIN_ACCOUNTS
-    AccountInfo ohosInfo;
-    (void)OhosAccountManager::GetInstance().GetAccountInfoByUserId(id, ohosInfo);
-    if (ohosInfo.ohosAccountInfo_.name_ != DEFAULT_OHOS_ACCOUNT_NAME) {
-#ifdef HAS_CES_PART
-        AccountEventProvider::EventPublishAsUser(
-            EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOUT, id);
-        AccountEventProvider::EventPublishAsUser(
-            EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOUT, id);
-#else  // HAS_CES_PART
-        ACCOUNT_LOGI("No common event part! Publish nothing!");
-#endif // HAS_CES_PART
-    }
+    (void)OhosAccountManager::GetInstance().SendLogoutEventOnDelOsAccount(id);
     errCode = SendMsgForAccountRemove(osAccountInfo);
     if (errCode != ERR_OK) {
         return errCode;
@@ -1466,6 +1451,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountDeactivate(OsAccountInfo &osAcc
 {
     int32_t localId = osAccountInfo.GetLocalId();
     CleanForegroundAccountMap(osAccountInfo);
+    OsAccountInterface::SendToSamgrUserState(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPING);
     ErrCode errCode = OsAccountInterface::SendToAMSAccountDeactivate(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("SendToAMSAccountDeactivate failed, id %{public}d, errCode %{public}d", localId, errCode);
@@ -1492,9 +1478,13 @@ void IInnerOsAccountManager::SendMsgForAccountUnlocked(OsAccountInfo &osAccountI
         OsAccountInterface::SendToBMSAccountUnlockedWithTimeout(osAccountInfo);
         OsAccountInterface::SendToStorageAccountUnlocked(osAccountInfo);
     };
+#ifdef FUZZ_TEST
+    task();
+#else
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), "SendMsgForAccountUnlocked");
     taskThread.detach();
+#endif
 }
 
 void IInnerOsAccountManager::SendMsgForAccountSwitched(OsAccountInfo &osAccountInfo)
@@ -1502,19 +1492,36 @@ void IInnerOsAccountManager::SendMsgForAccountSwitched(OsAccountInfo &osAccountI
     auto task = [osAccountInfo]() {
         OsAccountInterface::SendToStorageAccountSwitched(osAccountInfo);
     };
+#ifdef FUZZ_TEST
+    task();
+#else
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), "SendMsgForAccountSwitched");
     taskThread.detach();
+#endif
 }
 
-bool IInnerOsAccountManager::IsToBeRemoved(int32_t localId)
+ErrCode IInnerOsAccountManager::CheckLocalIdRestricted(int32_t localId)
 {
-    OsAccountInfo osAccountInfo;
-    ErrCode ret = GetRealOsAccountInfoById(localId, osAccountInfo);
-    if (ret == ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR) {
-        return true;
+    if (localId == Constants::ADMIN_LOCAL_ID) {
+        ACCOUNT_LOGW("Os account is admin account");
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
-    return osAccountInfo.GetToBeRemoved();
+    if (localId >= Constants::START_USER_ID) {
+        return ERR_OK;
+    }
+    bool hasAccount = false;
+    ErrCode ret = IsOsAccountExists(localId, hasAccount);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("IsOsAccountExists failed, ret=%{public}d, localId=%{public}d", ret, localId);
+        return ret;
+    }
+    if (hasAccount) {
+        ACCOUNT_LOGW("Os account is restricted, localId=%{public}d", localId);
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
+    ACCOUNT_LOGW("Os account not exists, localId=%{public}d", localId);
+    return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
 }
 
 ErrCode IInnerOsAccountManager::ValidateOsAccount(const OsAccountInfo &osAccountInfo)
@@ -1522,32 +1529,21 @@ ErrCode IInnerOsAccountManager::ValidateOsAccount(const OsAccountInfo &osAccount
     if (osAccountInfo.GetType() == OsAccountType::PRIVATE) {
         return ERR_OK;
     }
-    auto accountIndexJson = CreateJson();
-    ErrCode result = osAccountControl_->GetAccountIndexFromFile(accountIndexJson);
+    std::vector<OsAccountInfo> osAccountInfos;
+    ErrCode result = osAccountControl_->GetOsAccountList(osAccountInfos);
     if (result != ERR_OK) {
         return result;
     }
     int32_t id = osAccountInfo.GetLocalId();
-    cJSON *element = nullptr;
-    cJSON_ArrayForEach(element, accountIndexJson) {
-        int32_t localId = 0;
-        std::string key(element->string);
-        if (!StrToInt(key, localId)) {
-            ACCOUNT_LOGE("Convert localId failed");
+    for (const auto &info : osAccountInfos) {
+        if ((info.GetType() == OsAccountType::PRIVATE) || (info.GetLocalId() == id) || info.GetToBeRemoved()) {
             continue;
         }
-        cJSON *nameObj = GetObjFromJson(accountIndexJson, key);
-        std::string localName;
-        if (GetStringFromJson(nameObj, Constants::LOCAL_NAME, localName) &&
-            (osAccountInfo.GetLocalName() == localName) && (localId != id) && !IsToBeRemoved(localId)) {
-                return ERR_ACCOUNT_COMMON_NAME_HAD_EXISTED;
+        if (osAccountInfo.GetLocalName() == info.GetLocalName()) {
+            return ERR_ACCOUNT_COMMON_NAME_HAD_EXISTED;
         }
-        if (!osAccountInfo.GetShortName().empty()) {
-            std::string shortName;
-            if (GetStringFromJson(nameObj, Constants::SHORT_NAME, shortName) &&
-                (osAccountInfo.GetShortName() == shortName) && (localId != id) && !IsToBeRemoved(localId)) {
-                    return ERR_ACCOUNT_COMMON_SHORT_NAME_HAD_EXISTED;
-            }
+        if (!osAccountInfo.GetShortName().empty() && (osAccountInfo.GetShortName() == info.GetShortName())) {
+            return ERR_ACCOUNT_COMMON_SHORT_NAME_HAD_EXISTED;
         }
     }
     return ERR_OK;
@@ -2165,7 +2161,7 @@ ErrCode IInnerOsAccountManager::GetOsAccountLocalIdFromDomain(const DomainAccoun
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
-    if (domainInfo.accountName_.size() > Constants::LOCAL_NAME_MAX_SIZE) {
+    if (domainInfo.accountName_.size() >= Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("Invalid domain account name length %{public}zu.", domainInfo.accountName_.size());
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
@@ -2212,8 +2208,10 @@ ErrCode IInnerOsAccountManager::GetOsAccountName(const int id, std::string &name
     }
 #ifdef ENABLE_ACCOUNT_NAME_PRIVACY_CONTROL
     OsAccountType type = osAccountInfo.GetType();
+    bool isFirstOsAccountV0 =
+        (id == Constants::START_USER_ID) && (osAccountInfo.GetVersion() == OS_ACCOUNT_INFO_DEFAULT_VERSION);
     if (type != OsAccountType::PRIVATE && id != Constants::MAINTENANCE_MODE_ID &&
-        id != Constants::START_USER_ID && AccountPermissionManager::CheckSystemApp() != ERR_OK) {
+        !isFirstOsAccountV0 && AccountPermissionManager::CheckSystemApp() != ERR_OK) {
 #ifdef ENABLE_DEFAULT_ADMIN_NAME
         name = STANDARD_LOCAL_NAME;
 #endif // ENABLE_DEFAULT_ADMIN_NAME
@@ -2255,18 +2253,16 @@ ErrCode IInnerOsAccountManager::GetOsAccountType(const int id, OsAccountType &ty
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
 #if defined(SUPPORT_AUTHORIZATION) && !defined(IS_EMULATOR)
-    if (osAccountCacheManager_ != nullptr) {
-        auto cachedType = osAccountCacheManager_->GetAccountTypeFromCache(id);
-        if (cachedType.has_value()) {
-            type = cachedType.value();
-            return ERR_OK;
-        }
-        OsAccountType teeType = osAccountInfo.GetType();
-        errCode = RefreshAccountTypeInCache(id, osAccountInfo.GetType(), teeType);
-        if (errCode == ERR_OK) {
-            type = teeType;
-            return ERR_OK;
-        }
+    auto cachedType = osAccountCacheManager_.GetAccountTypeFromCache(id);
+    if (cachedType.has_value()) {
+        type = cachedType.value().first;
+        return ERR_OK;
+    }
+    std::pair<OsAccountType, bool> refreshedCachedType = {osAccountInfo.GetType(), false};
+    errCode = RefreshAccountTypeInCache(id, osAccountInfo.GetType(), refreshedCachedType);
+    if (errCode == ERR_OK) {
+        type = refreshedCachedType.first;
+        return ERR_OK;
     }
 #endif // SUPPORT_AUTHORIZATION
     type = osAccountInfo.GetType();
@@ -2306,8 +2302,9 @@ ErrCode IInnerOsAccountManager::SetOsAccountType(const int id,
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR;
     }
 
-    // 4. TEE sensitive operations (token verification and security zone synchronization)
-    errCode = VerifyAndSetOsAccountTypeInTEE(id, type, options.token);
+    // 4. TEE sensitive operations (security zone synchronization)
+    // Note: token privilege check is done in OsAccountManagerService::ValidateToken
+    errCode = SetOsAccountTypeInTEE(id, type, options.token);
     // Clear token after use to prevent leakage
     if (options.token.has_value()) {
         std::vector<uint8_t> &tokenData = const_cast<std::vector<uint8_t>&>(options.token.value());
@@ -2320,7 +2317,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountType(const int id,
         return errCode;
     }
 
-    UpdateAccountTypeCache(id, type);
+    UpdateAccountTypeCache(id, type, false);
 
     // 5. Update local persistent data (for fallback and recovery purposes)
     osAccountInfo.SetType(type);
@@ -2341,24 +2338,13 @@ ErrCode IInnerOsAccountManager::SetOsAccountType(const int id,
     return ERR_OK;
 }
 
-ErrCode IInnerOsAccountManager::VerifyAndSetOsAccountTypeInTEE(
+ErrCode IInnerOsAccountManager::SetOsAccountTypeInTEE(
     int32_t id, OsAccountType type, const std::optional<std::vector<uint8_t>>& token)
 {
 #ifdef SUPPORT_AUTHORIZATION
     // token is guaranteed to have value by the caller
     const std::vector<uint8_t>& tokenData = token.value();
-    std::vector<uint8_t> unusedResult(sizeof(VerifyUserTokenResult), 0);
-    ErrCode errCode = teeAdapter_.VerifyToken(tokenData, "", unusedResult);
-    if (!unusedResult.empty()) {
-        (void)memset_s(unusedResult.data(), unusedResult.size(), 0, unusedResult.size());
-    }
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("VerifyToken failed, id: %{public}d, errCode: %{public}d", id, errCode);
-        ReportOsAccountOperationFail(id, OPERATION_SET_TYPE, errCode, "VerifyToken failed!");
-        return errCode;
-    }
-
-    errCode = teeAdapter_.SetOsAccountType(id, static_cast<int32_t>(type), tokenData);
+    ErrCode errCode = teeAdapter_.SetOsAccountType(id, static_cast<int32_t>(type), tokenData);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("SetOsAccountType in TEE failed, id: %{public}d, errCode: %{public}d", id, errCode);
         ReportOsAccountOperationFail(id, OPERATION_SET_TYPE, errCode, "SetOsAccountType in TEE failed!");
@@ -2371,13 +2357,11 @@ ErrCode IInnerOsAccountManager::VerifyAndSetOsAccountTypeInTEE(
 #endif // SUPPORT_AUTHORIZATION
 }
 
-void IInnerOsAccountManager::UpdateAccountTypeCache(int32_t id, OsAccountType type)
+void IInnerOsAccountManager::UpdateAccountTypeCache(int32_t id, OsAccountType type, bool isRestricted)
 {
 #ifdef SUPPORT_AUTHORIZATION
     // Cache + TEE is the source of truth when authorization is enabled.
-    if (osAccountCacheManager_ != nullptr) {
-        osAccountCacheManager_->SetAccountTypeInCache(id, type);
-    }
+    osAccountCacheManager_.SetAccountTypeInCache(id, {type, isRestricted});
 #endif // SUPPORT_AUTHORIZATION
 }
 
@@ -2438,7 +2422,7 @@ ErrCode IInnerOsAccountManager::MigrateOsAccountTypesToTEE()
         ACCOUNT_LOGI("No valid accounts to migrate");
     }
 
-    return ERR_OK;
+    return errCode;
 #else
     // If TEE is not supported, migration is not needed
     ACCOUNT_LOGI("TEE is not supported, skip migration");
@@ -2458,12 +2442,12 @@ ErrCode IInnerOsAccountManager::PreloadAccountTypesFromTee(const std::vector<int
 
     // Query each account type from TEE (as TEE is the single source of truth)
     // and preload into cache
-    std::map<int32_t, OsAccountType> typeMap;
+    std::map<int32_t, std::pair<OsAccountType, bool>> typeMap;
     for (int32_t id : ids) {
         int32_t typeTee = 0;
         if (teeAdapter_.GetOsAccountType(id, typeTee) == ERR_OK) {
             OsAccountType realType = static_cast<OsAccountType>(typeTee);
-            typeMap[id] = realType;
+            typeMap[id] = {realType, false};
             ACCOUNT_LOGD("Preloaded account %{public}d type from TEE: %{public}d", id, typeTee);
         } else {
             // If TEE query fails for a specific account, log warning but continue with others
@@ -2473,10 +2457,8 @@ ErrCode IInnerOsAccountManager::PreloadAccountTypesFromTee(const std::vector<int
 
     // Batch update cache with all successfully queried types
     if (!typeMap.empty()) {
-        if (osAccountCacheManager_ != nullptr) {
-            osAccountCacheManager_->SetAccountTypesInCache(typeMap);
-            ACCOUNT_LOGI("Preloaded %{public}zu account types from TEE to cache", typeMap.size());
-        }
+        osAccountCacheManager_.SetAccountTypesInCache(typeMap);
+        ACCOUNT_LOGI("Preloaded %{public}zu account types from TEE to cache", typeMap.size());
     } else {
         ACCOUNT_LOGW("No account types were successfully preloaded from TEE");
     }
@@ -2544,15 +2526,10 @@ ErrCode IInnerOsAccountManager::SetOsAccountName(const int id, const std::string
         ACCOUNT_LOGE("Account name already exist, errCode %{public}d.", errCode);
         return errCode;
     }
-
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Update osaccount info error %{public}d, id: %{public}d", errCode, osAccountInfo.GetLocalId());
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
-    }
-    errCode = osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Update account index failed, errCode = %{public}d", errCode);
     }
     ReportAccountOperationEvent(ACCOUNT_OPERATION_TYPE_UPDATE_NAME, name, id);
     OsAccountInterface::PublishCommonEvent(
@@ -3109,12 +3086,11 @@ ErrCode IInnerOsAccountManager::SendToStorageAndAMSAccountStart(OsAccountInfo &o
         }
     }
 
-    ErrCode errCode = SendToAMSAccountStart(osAccountInfo, displayId, isAppRecovery);
+    ErrCode errCode = SendToAMSAndSamgrAccountStart(osAccountInfo, displayId, isAppRecovery);
     if (errCode != ERR_OK) {
         RollBackToEarlierAccount(localId, oldId, displayId);
         return errCode;
     }
-
     return ERR_OK;
 }
 
@@ -3140,6 +3116,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
     }
 
     if (switched) {
+        OsAccountInterface::SendToSamgrUserState(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING);
         OsAccountInterface::PublishCommonEvent(osAccountInfo,
             OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_FOREGROUND, Constants::OPERATION_SWITCH);
     }
@@ -3212,7 +3189,7 @@ ErrCode  IInnerOsAccountManager::SendToStorageAccountStart(OsAccountInfo &osAcco
     return ERR_OK;
 }
 
-ErrCode  IInnerOsAccountManager::SendToAMSAccountStart(OsAccountInfo &osAccountInfo,
+ErrCode  IInnerOsAccountManager::SendToAMSAndSamgrAccountStart(OsAccountInfo &osAccountInfo,
     uint64_t displayId, const bool isAppRecovery)
 {
     OsAccountStartCallbackFunc callbackFunc = [this, displayId](int32_t localId) {
@@ -3235,7 +3212,7 @@ ErrCode  IInnerOsAccountManager::SendToAMSAccountStart(OsAccountInfo &osAccountI
             osAccountInfo.GetLocalId(), errCode);
         return errCode;
     }
-
+    OsAccountInterface::SendToSamgrUserState(osAccountInfo.GetLocalId(), OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING);
     return ERR_OK;
 }
 
@@ -4053,5 +4030,46 @@ OsAccountControlFileManager &IInnerOsAccountManager::GetFileController()
 {
     return *std::reinterpret_pointer_cast<OsAccountControlFileManager>(osAccountControl_);
 }
+
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+ErrCode IInnerOsAccountManager::SetOsAccountForegroundSubspaceId(
+    int32_t localId, int32_t subspaceId)
+{
+    std::lock_guard<std::mutex> lock(*GetOrInsertUpdateLock(localId));
+    OsAccountInfo osAccountInfo;
+    ErrCode errCode = osAccountControl_->GetOsAccountInfoById(localId, osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("GetOsAccountInfoById failed for localId=%{public}d, errCode=%{public}d", localId, errCode);
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
+    osAccountInfo.SetForegroundSubProfileId(subspaceId);
+    errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("UpdateOsAccount failed, errCode=%{public}d, localId=%{public}d", errCode, localId);
+        return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
+    }
+    return ERR_OK;
+}
+
+ErrCode IInnerOsAccountManager::UpdateOsAccountSubspaceInfo(
+    int32_t localId, int32_t nextSubProfileId, const std::vector<std::string> &subProfileIdList)
+{
+    std::lock_guard<std::mutex> lock(*GetOrInsertUpdateLock(localId));
+    OsAccountInfo osAccountInfo;
+    ErrCode errCode = osAccountControl_->GetOsAccountInfoById(localId, osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("GetOsAccountInfoById failed for localId=%{public}d, errCode=%{public}d", localId, errCode);
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
+    osAccountInfo.SetNextSubProfileId(nextSubProfileId);
+    osAccountInfo.SetSubProfileIdList(subProfileIdList);
+    errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("UpdateOsAccount failed, errCode=%{public}d, localId=%{public}d", errCode, localId);
+        return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
+    }
+    return ERR_OK;
+}
+#endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 }  // namespace AccountSA
 }  // namespace OHOS

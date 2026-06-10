@@ -17,12 +17,16 @@
 #define OS_ACCOUNT_INTERFACES_INNERKITS_OS_ACCOUNT_INFO_H
 #include <optional>
 #include <vector>
+#include "account_error_no.h"
 #include "domain_account_common.h"
 #include "iaccount_info.h"
 #include "parcel.h"
 namespace OHOS {
 namespace AccountSA {
+const int32_t OS_ACCOUNT_INFO_DEFAULT_VERSION = 0;
+const int32_t OS_ACCOUNT_INFO_LATEST_VERSION = 1;
 typedef enum {
+    RESTRICTED_ADMIN = -1, //external specification is not supported.
     ADMIN = 0,
     NORMAL,
     GUEST,
@@ -204,6 +208,19 @@ public:
 
     bool IsTypeOutOfRange() const;
 
+    int32_t GetVersion() const;
+
+    void SetVersion(int32_t version);
+
+    int32_t GetForegroundSubProfileId() const;
+    void SetForegroundSubProfileId(int32_t foregroundSubProfileId);
+
+    int32_t GetNextSubProfileId() const;
+    void SetNextSubProfileId(int32_t nextSubProfileId);
+
+    std::vector<std::string> GetSubProfileIdList() const;
+    void SetSubProfileIdList(const std::vector<std::string> &subProfileIdList);
+
 public:
     int localId_ = -1;
     std::string localName_;
@@ -225,6 +242,10 @@ public:
     bool isLoggedIn_ = false;
     bool isDataRemovable_ = true;
     int32_t creatorType_ = 0;
+    int32_t version_ = OS_ACCOUNT_INFO_DEFAULT_VERSION;  // Track account info modification version
+    int32_t foregroundSubProfileId_ = -1;
+    int32_t nextSubProfileId_ = -1;
+    std::vector<std::string> subProfileIdList_;  // default: localId_ * 1000 (initialized lazily)
 };
 
 typedef enum {

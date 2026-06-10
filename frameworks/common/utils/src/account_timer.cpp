@@ -14,6 +14,7 @@
  */
 #include "account_timer.h"
 
+#include "account_log_wrapper.h"
 #include "xcollie/xcollie.h"
 
 namespace OHOS {
@@ -32,6 +33,11 @@ AccountTimer::~AccountTimer()
 
 void AccountTimer::Init(int32_t timeout)
 {
+    if (timerId_ != -1) {
+        ACCOUNT_LOGW("AccountTimer::Init called again, canceling previous timer id: %{public}lld",
+            static_cast<long long>(timerId_));
+        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId_);
+    }
     timerId_ = HiviewDFX::XCollie::GetInstance().SetTimer(
         TIMER_NAME, timeout, nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
 }

@@ -29,6 +29,7 @@
 #include "ohos.account.osAccount.proj.hpp"
 #include "ohos_account_kits.h"
 #include "os_account_info.h"
+#include "os_account_subprofile_client.h"
 #include "taihe_distributed_account_converter.h"
 #include "taihe/runtime.hpp"
 #include "taihe_common.h"
@@ -41,6 +42,7 @@
 #include <optional>
 #include <stdexcept>
 #include <vector>
+#include <thread>
 
 using namespace taihe;
 using namespace OHOS;
@@ -53,6 +55,10 @@ const bool DEFAULT_BOOL = false;
 const AccountSA::OsAccountType DEFAULT_ACCOUNT_TYPE = AccountSA::OsAccountType::END;
 constexpr std::int32_t MAX_SUBSCRIBER_NAME_LEN = 1024;
 constexpr std::int32_t MAX_CHALLENGE_LEN = 32;
+const int E_IPC_ERROR = 29189;
+const int E_IPC_SA_DIED = 32;
+const int MAX_RETRY_TIMES = 3;
+const int DELAY_FOR_EXCEPTION = 100;
 std::mutex g_lockForOsAccountSubscribers;
 std::mutex g_lockForConstraintChangeSubscribers;
 std::vector<std::shared_ptr<AccountSA::TaiheConstraintSubscriberPtr>> g_osAccountConstraintChangeSubscribers;
@@ -229,6 +235,64 @@ public:
         cv_.notify_one();
     }
 };
+
+using TaiheSubProfileCallback = taihe::callback<void(OsAccountSubProfileEventData const&)>;
+
+class TaiheSubspaceCallback final : public AccountSA::DistributedAccountSubscribeCallback {
+public:
+    explicit TaiheSubspaceCallback(std::shared_ptr<TaiheSubProfileCallback> &cb)
+        : callback_(cb) {}
+    ~TaiheSubspaceCallback() {}
+
+    void OnSpaceAccountsChanged(const AccountSA::DistributedAccountSubProfileEventData &eventData) override
+    {
+        OsAccountSubProfileEvent::key_t eventKey;
+        switch (eventData.type_) {
+            case AccountSA::DistributedAccountSubProfileEventType::CREATED:
+                eventKey = OsAccountSubProfileEvent::key_t::CREATED;
+                break;
+            case AccountSA::DistributedAccountSubProfileEventType::DELETED:
+                eventKey = OsAccountSubProfileEvent::key_t::DELETED;
+                break;
+            case AccountSA::DistributedAccountSubProfileEventType::SWITCHING:
+                eventKey = OsAccountSubProfileEvent::key_t::SWITCHING;
+                break;
+            case AccountSA::DistributedAccountSubProfileEventType::SWITCHED:
+                eventKey = OsAccountSubProfileEvent::key_t::SWITCHED;
+                break;
+            default:
+                ACCOUNT_LOGE("Unknown space event type: %{public}d", static_cast<int32_t>(eventData.type_));
+                return;
+        }
+        OsAccountSubProfileEventData data = OsAccountSubProfileEventData {
+            .event = OsAccountSubProfileEvent(eventKey),
+            .osAccountLocalId = eventData.osAccountId_,
+            .subProfileId = eventData.subspaceId_,
+        };
+        if (eventData.previousSubspaceId_ != -1) {
+            data.previousSubProfileId =
+                optional<int32_t>(std::in_place_t{}, static_cast<int32_t>(eventData.previousSubspaceId_));
+        }
+        if (callback_ != nullptr) {
+            TaiheSubProfileCallback call = *callback_;
+            call(data);
+        }
+    }
+
+    bool IsSameCallback(std::shared_ptr<TaiheSubProfileCallback> &callback)
+    {
+        if (callback_ != nullptr && callback != nullptr) {
+            return *callback_ == *callback;
+        }
+        return false;
+    }
+
+private:
+    std::shared_ptr<TaiheSubProfileCallback> callback_ = nullptr;
+};
+
+std::mutex g_lockForSubspaceSubscribers;
+std::vector<std::shared_ptr<TaiheSubspaceCallback>> g_subspaceSubscribers;
 
 class AccountManagerImpl {
 private:
@@ -987,13 +1051,14 @@ public:
 
     bool IsOsAccountConstraintEnabledSync(string_view constraint)
     {
-        bool isConsEnabled;
+        bool isConsEnabled = false;
         std::string innerConstraint(constraint.data(), constraint.size());
         std::vector<int> ids;
         ErrCode idErrCode = AccountSA::OsAccountManager::QueryActiveOsAccountIds(ids);
         if (idErrCode != ERR_OK) {
             ACCOUNT_LOGE("IsOsAccountActivatedSync Get id failed with idErrCode: %{public}d", idErrCode);
             SetTaiheBusinessErrorFromNativeCode(idErrCode);
+            return isConsEnabled;
         }
         if (ids.empty()) {
             ACCOUNT_LOGE("No Active OsAccount Ids");
@@ -1401,10 +1466,17 @@ ErrCode TaiheAuthorizationResultCallback::OnConnectAbility(const AccountSA::Conn
         return ERR_OK;
     }
     std::vector<uint8_t> iamToken;
-
-    ErrCode callbackRet = connectCallback->OnResult(errCode, iamToken, -1, -1);
-    if (callbackRet != ERR_OK) {
-        ACCOUNT_LOGW("Failed to call OnResult, errCode: %{public}d", callbackRet);
+    ErrCode ret = ERR_OK;
+    int retryTimes = 0;
+    while (retryTimes < MAX_RETRY_TIMES) {
+        ret = connectCallback->OnResult(errCode, iamToken, -1, -1);
+        if (ret == ERR_OK || (ret != E_IPC_ERROR && ret != E_IPC_SA_DIED)) {
+            break;
+        }
+        retryTimes++;
+        ACCOUNT_LOGE("Send iConnectAbilityCallback onResult failed, code=%{public}d, retryTimes=%{public}d",
+            ret, retryTimes);
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_EXCEPTION));
     }
     ACCOUNT_LOGI("Post authorizationCallback OnConnectAbility finish.");
     return ERR_OK;
@@ -1627,11 +1699,248 @@ AuthorizationManager GetAuthorizationManager()
     return make_holder<AuthorizationManagerImpl, AuthorizationManager>();
 }
 
+class OsAccountSubProfileManagerImpl {
+public:
+    OsAccountSubProfileManagerImpl() {}
+
+    OsAccountSubProfile CreateOsAccountSubProfileSync(int32_t osAccountId)
+    {
+        AccountSA::OsAccountSubspaceResult cppResult;
+        ErrCode err = AccountSA::OsAccountSubProfileClient::GetInstance().CreateOsAccountSubProfile(
+            osAccountId, cppResult);
+        if (err != ERR_OK) {
+            SetTaiheBusinessErrorFromNativeCode(err);
+        }
+        OsAccountSubProfile result;
+        result.id = cppResult.id;
+        result.osAccountLocalId = cppResult.osAccountId;
+        result.index = cppResult.index;
+        return result;
+    }
+
+    void DeleteOsAccountSubProfileSync(int32_t osAccountId, int32_t subProfileId)
+    {
+        ErrCode err = AccountSA::OsAccountSubProfileClient::GetInstance().DeleteOsAccountSubProfile(
+            osAccountId, subProfileId);
+        if (err != ERR_OK) {
+            SetTaiheBusinessErrorFromNativeCode(err);
+        }
+    }
+
+    void SwitchOsAccountSubProfileSync(int32_t osAccountId, int32_t subProfileId)
+    {
+        ErrCode err = AccountSA::OsAccountSubProfileClient::GetInstance().SwitchOsAccountSubProfile(
+            osAccountId, subProfileId);
+        if (err != ERR_OK) {
+            SetTaiheBusinessErrorFromNativeCode(err);
+        }
+    }
+
+    void OnOsAccountSubProfileEvent(array_view<OsAccountSubProfileEvent> events,
+        callback_view<void(OsAccountSubProfileEventData const&)> callback)
+    {
+        if (events.size() == 0) {
+            SetTaiheBusinessErrorFromNativeCode(ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+            return;
+        }
+
+        std::set<AccountSA::DistributedAccountSubProfileEventType> types;
+        for (size_t i = 0; i < events.size(); i++) {
+            int32_t eventValue = events[i].get_value();
+            if (eventValue < static_cast<int32_t>(AccountSA::DistributedAccountSubProfileEventType::CREATED) ||
+                eventValue >= static_cast<int32_t>(AccountSA::DistributedAccountSubProfileEventType::INVALID_TYPE)) {
+                SetTaiheBusinessErrorFromNativeCode(ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+                return;
+            }
+            types.insert(static_cast<AccountSA::DistributedAccountSubProfileEventType>(eventValue));
+        }
+
+        TaiheSubProfileCallback call = callback;
+        auto cb = std::make_shared<TaiheSubProfileCallback>(call);
+        std::shared_ptr<TaiheSubspaceCallback> subscribeCallback = nullptr;
+        bool hasExistingRecord = false;
+
+        std::lock_guard<std::mutex> lock(g_lockForSubspaceSubscribers);
+        for (const auto &existing : g_subspaceSubscribers) {
+            if (existing->IsSameCallback(cb)) {
+                hasExistingRecord = true;
+                subscribeCallback = existing;
+                break;
+            }
+        }
+
+        if (!hasExistingRecord) {
+            subscribeCallback = std::make_shared<TaiheSubspaceCallback>(cb);
+        }
+
+        ErrCode errCode = AccountSA::OsAccountSubProfileClient::GetInstance().SubscribeOsAccountSubProfileEvents(types,
+            subscribeCallback);
+        if (errCode == ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR) {
+            SetTaiheBusinessErrorFromNativeCode(ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+            return;
+        }
+        if (errCode != ERR_OK) {
+            SetTaiheBusinessErrorFromNativeCode(ERR_JS_SYSTEM_SERVICE_EXCEPTION);
+            return;
+        }
+        if (!hasExistingRecord) {
+            g_subspaceSubscribers.emplace_back(subscribeCallback);
+        }
+        ACCOUNT_LOGI("Subspace subscriber added, total=%zu", g_subspaceSubscribers.size());
+    }
+
+    void OffOsAccountSubProfileEvent(optional_view<callback<void(OsAccountSubProfileEventData const&)>> callback)
+    {
+        if (AccountSA::AccountPermissionManager::CheckSystemApp(false) != ERR_OK) {
+            SetTaiheBusinessErrorFromNativeCode(ERR_JS_IS_NOT_SYSTEM_APP);
+            return;
+        }
+        std::shared_ptr<TaiheSubspaceCallback> targetCallback = nullptr;
+        std::shared_ptr<TaiheSubProfileCallback> cb = nullptr;
+        if (callback.has_value()) {
+            cb = std::make_shared<TaiheSubProfileCallback>(callback.value());
+        }
+
+        std::lock_guard<std::mutex> lock(g_lockForSubspaceSubscribers);
+
+        auto it = g_subspaceSubscribers.begin();
+        while (it != g_subspaceSubscribers.end()) {
+            auto currentCallback = std::static_pointer_cast<TaiheSubspaceCallback>(*it);
+            bool isMatched = (cb == nullptr) || currentCallback->IsSameCallback(cb);
+            if (!isMatched) {
+                ++it;
+                continue;
+            }
+
+            ErrCode errCode =
+                AccountSA::OsAccountSubProfileClient::GetInstance().UnsubscribeOsAccountSubProfileEvents(*it);
+            if (errCode == ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR) {
+                SetTaiheBusinessErrorFromNativeCode(ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+                return;
+            }
+            if (errCode != ERR_OK) {
+                SetTaiheBusinessErrorFromNativeCode(ERR_JS_SYSTEM_SERVICE_EXCEPTION);
+                return;
+            }
+            it = g_subspaceSubscribers.erase(it);
+            if (cb != nullptr) {
+                ACCOUNT_LOGI("Unsubscribe specific callback succeed");
+                return;
+            }
+        }
+        ACCOUNT_LOGI("Unsubscribe subspace events succeed");
+    }
+
+    int32_t GetOsAccountForegroundSubProfileIdSync()
+    {
+        int32_t subProfileId = 0;
+        ErrCode err = AccountSA::OsAccountSubProfileClient::GetInstance().GetOsAccountForegroundSubProfileId(
+            subProfileId);
+        if (err != ERR_OK) {
+            SetTaiheBusinessErrorFromNativeCode(err);
+        }
+        return subProfileId;
+    }
+
+    int32_t GetOsAccountForegroundSubProfileIdWithIdSync(int32_t osAccountId)
+    {
+        int32_t subProfileId = 0;
+        ErrCode err = AccountSA::OsAccountSubProfileClient::GetInstance().GetOsAccountForegroundSubProfileId(
+            osAccountId, subProfileId);
+        if (err != ERR_OK) {
+            SetTaiheBusinessErrorFromNativeCode(err);
+        }
+        return subProfileId;
+    }
+
+    taihe::array<int32_t> GetOsAccountSubProfileIdsSync()
+    {
+        std::vector<int32_t> subProfileIds;
+        ErrCode err = AccountSA::OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfileIds(
+            subProfileIds);
+        if (err != ERR_OK) {
+            SetTaiheBusinessErrorFromNativeCode(err);
+        }
+        return taihe::array<int32_t>(taihe::copy_data_t{}, subProfileIds.data(), subProfileIds.size());
+    }
+
+    taihe::array<int32_t> GetOsAccountSubProfileIdsWithIdSync(int32_t osAccountId)
+    {
+        std::vector<int32_t> subProfileIds;
+        ErrCode err = AccountSA::OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfileIds(
+            osAccountId, subProfileIds);
+        if (err != ERR_OK) {
+            SetTaiheBusinessErrorFromNativeCode(err);
+        }
+        return taihe::array<int32_t>(taihe::copy_data_t{}, subProfileIds.data(), subProfileIds.size());
+    }
+
+    int32_t GetOsAccountLocalIdForSubProfileSync(int32_t subProfileId)
+    {
+        int32_t osAccountId = 0;
+        ErrCode err = AccountSA::OsAccountSubProfileClient::GetInstance().GetOsAccountLocalIdForSubProfile(
+            subProfileId, osAccountId);
+        if (err != ERR_OK) {
+            SetTaiheBusinessErrorFromNativeCode(err);
+        }
+        return osAccountId;
+    }
+
+    OsAccountSubProfile GetOsAccountSubProfileSync(int32_t subProfileId)
+    {
+        AccountSA::OsAccountSubspaceResult cppResult;
+        AccountSA::OhosAccountInfo distInfo;
+        ErrCode err = AccountSA::OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfile(
+            subProfileId, cppResult, distInfo);
+        if (err != ERR_OK) {
+            SetTaiheBusinessErrorFromNativeCode(err);
+        }
+        OsAccountSubProfile result;
+        result.id = cppResult.id;
+        result.osAccountLocalId = cppResult.osAccountId;
+        result.index = cppResult.index;
+        if (distInfo.status_ != AccountSA::ACCOUNT_STATE_UNBOUND) {
+            result.distributedInfo = taihe::optional<ohos::account::distributedAccount::DistributedInfo>(
+                std::in_place_t{}, AccountSA::ConvertToDistributedInfoTH(distInfo));
+        }
+        return result;
+    }
+
+    OsAccountSubProfile GetOsAccountSubProfileWithIdSync(int32_t osAccountId, int32_t subProfileId)
+    {
+        AccountSA::OsAccountSubspaceResult cppResult;
+        AccountSA::OhosAccountInfo distInfo;
+        ErrCode err = AccountSA::OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfile(
+            osAccountId, subProfileId, cppResult, distInfo);
+        if (err != ERR_OK) {
+            SetTaiheBusinessErrorFromNativeCode(err);
+        }
+        OsAccountSubProfile result;
+        result.id = cppResult.id;
+        result.osAccountLocalId = cppResult.osAccountId;
+        result.index = cppResult.index;
+        if (distInfo.status_ != AccountSA::ACCOUNT_STATE_UNBOUND) {
+            result.distributedInfo = taihe::optional<ohos::account::distributedAccount::DistributedInfo>(
+                std::in_place_t{}, AccountSA::ConvertToDistributedInfoTH(distInfo));
+        }
+        return result;
+    }
+};
+
+OsAccountSubProfileManager GetOsAccountSubProfileManager()
+{
+    if (AccountSA::AccountPermissionManager::CheckSystemApp(false) != ERR_OK) {
+        SetTaiheBusinessErrorFromNativeCode(ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+    }
+    return make_holder<OsAccountSubProfileManagerImpl, OsAccountSubProfileManager>();
+}
+
 
 } // namespace
 
 TH_EXPORT_CPP_API_GetAccountManager(GetAccountManager);
 TH_EXPORT_CPP_API_GetAuthorizationManager(GetAuthorizationManager);
+TH_EXPORT_CPP_API_GetOsAccountSubProfileManager(GetOsAccountSubProfileManager);
 
 namespace OHOS {
 namespace AccountSA {

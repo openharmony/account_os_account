@@ -363,6 +363,31 @@ ErrCode OhosAccountKitsImpl::CreateDistributedAccountEventService(const DISTRIBU
     return ERR_OK;
 }
 
+ErrCode OhosAccountKitsImpl::CreateDistributedAccountSpaceEventService(
+    const std::set<DistributedAccountSubProfileEventType> &types,
+    const std::shared_ptr<DistributedAccountSubscribeCallback> &callback,
+    sptr<IRemoteObject> &subscribeListener)
+{
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("Callback is nullptr");
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+    }
+
+    if (DistributedAccountEventService::GetInstance()->IsAllSpaceTypeExist(types, callback)) {
+        ACCOUNT_LOGI("Callback already has distributed account space event listener.");
+        return ERR_OHOSACCOUNT_KIT_CALLBACK_ALREADY_REGISTERED_ERROR;
+    }
+
+    if (DistributedAccountEventService::GetInstance()->GetCallbackSize() ==
+        Constants::DISTRIBUTED_SUBSCRIBER_MAX_SIZE) {
+        ACCOUNT_LOGE("The maximum number of eventListeners has been reached.");
+        return ERR_OHOSACCOUNT_KIT_SUBSCRIBE_MAX_SIZE_ERROR;
+    }
+
+    subscribeListener = DistributedAccountEventService::GetInstance()->AsObject();
+    return ERR_OK;
+}
+
 void OhosAccountKitsImpl::RestoreSubscribe()
 {
     auto accountProxy = GetService();
@@ -380,6 +405,20 @@ void OhosAccountKitsImpl::RestoreSubscribe()
         if (subscribeState != ERR_OK) {
             ACCOUNT_LOGE("Restore subscribe failed, res=%{public}d.", subscribeState);
         }
+    }
+    std::set<DistributedAccountSubProfileEventType> existingTypes;
+    DistributedAccountEventService::GetInstance()->GetAllSpaceType(existingTypes);
+    if (existingTypes.empty()) {
+        return;
+    }
+    std::vector<int32_t> typeInts;
+    for (auto type : existingTypes) {
+        typeInts.push_back(static_cast<int32_t>(type));
+    }
+    auto result = accountProxy->SubscribeDistributedAccountSpaceEvents(typeInts,
+        DistributedAccountEventService::GetInstance()->AsObject());
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Subscribe to service space failed, result=%{public}d.", result);
     }
 }
 
@@ -472,6 +511,206 @@ sptr<IRemoteObject> OhosAccountKitsImpl::GetAuthorizationService()
     sptr<IRemoteObject> result = nullptr;
     accountProxy->GetAuthorizationService(result);
     return result;
+}
+
+sptr<IRemoteObject> OhosAccountKitsImpl::GetOsAccountSubspaceService()
+{
+    auto accountProxy = GetService();
+    if (accountProxy == nullptr) {
+        ACCOUNT_LOGE("Get proxy failed");
+        return nullptr;
+    }
+    sptr<IRemoteObject> result = nullptr;
+    accountProxy->GetOsAccountSubspaceService(result);
+    return result;
+}
+
+ErrCode OhosAccountKitsImpl::SubscribeDistributedAccountSpaceEvents(
+    const std::set<DistributedAccountSubProfileEventType> &types,
+    const std::shared_ptr<DistributedAccountSubscribeCallback> &callback)
+{
+    ACCOUNT_LOGI("Batch subscribe distributed account space events in client.");
+    if (callback == nullptr || types.empty()) {
+        ACCOUNT_LOGE("Invalid parameter, callback null or types empty.");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    auto accountProxy = GetService();
+    if (accountProxy == nullptr) {
+        ACCOUNT_LOGE("Get proxy failed.");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+
+    sptr<IRemoteObject> listener = nullptr;
+    std::lock_guard<std::mutex> lock(eventListenersMutex_);
+
+    std::set<DistributedAccountSubProfileEventType> existingTypes;
+    DistributedAccountEventService::GetInstance()->GetAllSpaceType(existingTypes);
+    std::set<DistributedAccountSubProfileEventType> newTypes;
+    for (auto type : types) {
+        if (existingTypes.find(type) == existingTypes.end()) {
+            newTypes.insert(type);
+        }
+    }
+
+    ErrCode result = CreateDistributedAccountSpaceEventService(types, callback, listener);
+    if (result == ERR_OHOSACCOUNT_KIT_CALLBACK_ALREADY_REGISTERED_ERROR) {
+        ACCOUNT_LOGI("Callback already subscribed all space types.");
+        return ERR_OK;
+    }
+    if (listener == nullptr) {
+        ACCOUNT_LOGE("Create space event service failed.");
+        return ERR_OHOSACCOUNT_KIT_SUBSCRIBE_ERROR;
+    }
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Create space event service failed, result=%{public}d.", result);
+        return result;
+    }
+    if (newTypes.empty()) {
+        DistributedAccountEventService::GetInstance()->AddSpaceTypes(types, callback);
+        return ERR_OK;
+    }
+
+    std::vector<int32_t> typeInts;
+    for (auto type : newTypes) {
+        typeInts.push_back(static_cast<int32_t>(type));
+    }
+    result = accountProxy->SubscribeDistributedAccountSpaceEvents(typeInts, listener);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Subscribe space events to service failed, result=%{public}d.", result);
+        return result;
+    }
+
+    DistributedAccountEventService::GetInstance()->AddSpaceTypes(types, callback);
+    return ERR_OK;
+}
+
+ErrCode OhosAccountKitsImpl::UnsubscribeDistributedAccountSpaceEvents(
+    const std::shared_ptr<DistributedAccountSubscribeCallback> &callback)
+{
+    ACCOUNT_LOGI("Unsubscribe distributed account space events in client.");
+
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("Callback is nullptr.");
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+    }
+
+    auto accountProxy = GetService();
+    if (accountProxy == nullptr) {
+        ACCOUNT_LOGE("Get proxy failed.");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+
+    sptr<IRemoteObject> listener = DistributedAccountEventService::GetInstance()->AsObject();
+
+    std::lock_guard<std::mutex> lock(eventListenersMutex_);
+
+    std::set<DistributedAccountSubProfileEventType> removedTypes;
+    DistributedAccountEventService::GetInstance()->GetSpaceTypesToRemove(callback, removedTypes);
+
+    if (removedTypes.empty()) {
+        ACCOUNT_LOGI("All space types still have other subscribers, only delete client data.");
+        DistributedAccountEventService::GetInstance()->DeleteSpaceCallback(callback);
+        return ERR_OK;
+    }
+
+    std::vector<int32_t> typeInts;
+    for (auto type : removedTypes) {
+        typeInts.push_back(static_cast<int32_t>(type));
+    }
+    ErrCode result = accountProxy->UnsubscribeDistributedAccountSpaceEvents(typeInts, listener);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Unsubscribe space events from service failed, result=%{public}d.", result);
+        return result;
+    }
+
+    DistributedAccountEventService::GetInstance()->DeleteSpaceCallback(callback);
+    return ERR_OK;
+}
+
+ErrCode OhosAccountKitsImpl::GetOsAccountForegroundSubProfileId(
+    int32_t &subProfileId)
+{
+    auto accountProxy = GetService();
+    if (accountProxy == nullptr) {
+        ACCOUNT_LOGE("Get proxy failed");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return accountProxy->GetOsAccountForegroundSubProfileId(subProfileId);
+}
+
+ErrCode OhosAccountKitsImpl::GetOsAccountForegroundSubProfileId(
+    int32_t osAccountId, int32_t &subProfileId)
+{
+    auto accountProxy = GetService();
+    if (accountProxy == nullptr) {
+        ACCOUNT_LOGE("Get proxy failed");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return accountProxy->GetOsAccountForegroundSubProfileId(osAccountId, subProfileId);
+}
+
+ErrCode OhosAccountKitsImpl::GetOsAccountSubProfileIds(
+    std::vector<int32_t> &subProfileIds)
+{
+    auto accountProxy = GetService();
+    if (accountProxy == nullptr) {
+        ACCOUNT_LOGE("Get proxy failed");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return accountProxy->GetOsAccountSubProfileIds(subProfileIds);
+}
+
+ErrCode OhosAccountKitsImpl::GetOsAccountSubProfileIds(
+    int32_t osAccountId, std::vector<int32_t> &subProfileIds)
+{
+    auto accountProxy = GetService();
+    if (accountProxy == nullptr) {
+        ACCOUNT_LOGE("Get proxy failed");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return accountProxy->GetOsAccountSubProfileIds(osAccountId, subProfileIds);
+}
+
+ErrCode OhosAccountKitsImpl::GetOsAccountLocalIdForSubProfile(
+    int32_t subProfileId, int32_t &osAccountId)
+{
+    auto accountProxy = GetService();
+    if (accountProxy == nullptr) {
+        ACCOUNT_LOGE("Get proxy failed");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return accountProxy->GetOsAccountLocalIdForSubProfile(subProfileId, osAccountId);
+}
+
+ErrCode OhosAccountKitsImpl::GetOsAccountSubProfile(
+    int32_t subProfileId, OsAccountSubspaceResult &subspaceResult,
+    OhosAccountInfo &distributedInfo)
+{
+    auto accountProxy = GetService();
+    if (accountProxy == nullptr) {
+        ACCOUNT_LOGE("Get proxy failed");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    AccountSA::OhosAccountInfo distInfo;
+    ErrCode ret = accountProxy->GetOsAccountSubProfile(subProfileId, subspaceResult, distInfo);
+    distributedInfo = distInfo;
+    return ret;
+}
+
+ErrCode OhosAccountKitsImpl::GetOsAccountSubProfile(
+    int32_t osAccountId, int32_t subProfileId, OsAccountSubspaceResult &subspaceResult,
+    OhosAccountInfo &distributedInfo)
+{
+    auto accountProxy = GetService();
+    if (accountProxy == nullptr) {
+        ACCOUNT_LOGE("Get proxy failed");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    AccountSA::OhosAccountInfo distInfo;
+    ErrCode ret = accountProxy->GetOsAccountSubProfile(osAccountId, subProfileId, subspaceResult, distInfo);
+    distributedInfo = distInfo;
+    return ret;
 }
 } // namespace AccountSA
 } // namespace OHOS

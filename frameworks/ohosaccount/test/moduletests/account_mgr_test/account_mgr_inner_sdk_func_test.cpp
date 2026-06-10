@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include "file_ex.h"
@@ -43,6 +44,7 @@
 #ifdef BUNDLE_ADAPTER_MOCK
 #define private public
 #include "ohos_account_kits_impl.h"
+#include "distributed_account_event_service.h"
 #include "os_account.h"
 #include "os_account_manager_service.h"
 #include "os_account_proxy.h"
@@ -50,6 +52,8 @@
 #endif
 #include "system_ability_definition.h"
 #include "token_setproc.h"
+#include "want.h"
+#include "int_wrapper.h"
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -66,6 +70,13 @@ const std::string KEY_ACCOUNT_EVENT_LOGOUT = "LOGOUT";
 const std::string KEY_ACCOUNT_EVENT_TOKEN_INVALID = "TOKEN_INVALID";
 const std::string KEY_ACCOUNT_EVENT_LOGOFF = "LOGOFF";
 const std::string KEY_ACCOUNT_INFO_SCALABLEDATA = "age";
+static const std::string TEST_SCALABLE_DATA_STR = []() {
+    AAFwk::WantParams wantParams;
+    wantParams.SetParam(KEY_ACCOUNT_INFO_SCALABLEDATA, AAFwk::Integer::Box(123));
+    AAFwk::Want want;
+    want.SetParams(wantParams);
+    return want.ToString();
+}();
 std::string g_eventLogin = OHOS_ACCOUNT_EVENT_LOGIN;
 std::string g_eventLogout = OHOS_ACCOUNT_EVENT_LOGOUT;
 std::string g_eventTokenInvalid = OHOS_ACCOUNT_EVENT_TOKEN_INVALID;
@@ -232,7 +243,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo002, TestSize.Level3)
     accountInfo.uid_ = TEST_ACCOUNT_UID;
     accountInfo.nickname_ = TEST_NICKNAME;
     accountInfo.avatar_ = TEST_AVATAR;
-    accountInfo.scalableData_.SetParam(KEY_ACCOUNT_INFO_SCALABLEDATA, 123);
+    accountInfo.scalableData_ = TEST_SCALABLE_DATA_STR;
 
     auto ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogin);
     EXPECT_EQ(ret, ERR_OK);
@@ -243,15 +254,14 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo002, TestSize.Level3)
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_LOGIN);
     EXPECT_EQ(accountInfoget.nickname_, TEST_NICKNAME);
     EXPECT_EQ(accountInfoget.avatar_, TEST_AVATAR);
-    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA),
-        accountInfo.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA));
+    EXPECT_EQ(accountInfoget.scalableData_, accountInfo.scalableData_);
 
     ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogin);
     EXPECT_EQ(ret, ERR_OK);
     accountInfo.name_ = TEST_DIFF_ACCOUNT_NAME;
     accountInfo.uid_ = TEST_DIFF_ACCOUNT_UID;
     ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogin);
-    EXPECT_EQ(ret, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
     // logout
     accountInfo.name_ = TEST_ACCOUNT_NAME;
     accountInfo.uid_ = TEST_ACCOUNT_UID;
@@ -282,23 +292,21 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo004, TestSize.Level3)
     accountInfo.uid_ = TEST_ACCOUNT_UID;
     accountInfo.nickname_ = TEST_NICKNAME;
     accountInfo.avatar_ = TEST_AVATAR;
-    accountInfo.scalableData_.SetParam(KEY_ACCOUNT_INFO_SCALABLEDATA, 123);
+    accountInfo.scalableData_ = TEST_SCALABLE_DATA_STR;
 
     EXPECT_EQ(OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogin), ERR_OK);
     EXPECT_EQ(OhosAccountKits::GetInstance().GetOhosAccountInfo(accountInfoget), ERR_OK);
     EXPECT_EQ(accountInfoget.uid_, TEST_EXPECTED_UID);
     EXPECT_EQ(accountInfoget.nickname_, TEST_NICKNAME);
     EXPECT_EQ(accountInfoget.avatar_, TEST_AVATAR);
-    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA),
-        accountInfo.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA));
+    EXPECT_EQ(accountInfoget.scalableData_, accountInfo.scalableData_);
 
     EXPECT_EQ(OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventTokenInvalid), ERR_OK);
     EXPECT_EQ(OhosAccountKits::GetInstance().GetOhosAccountInfo(accountInfoget), ERR_OK);
     EXPECT_EQ(accountInfoget.uid_, TEST_EXPECTED_UID);
     EXPECT_EQ(accountInfoget.nickname_, TEST_NICKNAME);
     EXPECT_EQ(accountInfoget.avatar_, TEST_AVATAR);
-    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA),
-        accountInfo.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA));
+    EXPECT_EQ(accountInfoget.scalableData_, accountInfo.scalableData_);
 
     EXPECT_EQ(OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogin), ERR_OK);
     EXPECT_EQ(OhosAccountKits::GetInstance().GetOhosAccountInfo(accountInfoget), ERR_OK);
@@ -307,15 +315,14 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo004, TestSize.Level3)
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_LOGIN);
     EXPECT_EQ(accountInfoget.nickname_, TEST_NICKNAME);
     EXPECT_EQ(accountInfoget.avatar_, TEST_AVATAR);
-    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA),
-        accountInfo.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA));
+    EXPECT_EQ(accountInfoget.scalableData_, accountInfo.scalableData_);
 
     EXPECT_EQ(OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogoff), ERR_OK);
     EXPECT_EQ(OhosAccountKits::GetInstance().GetOhosAccountInfo(accountInfoget), ERR_OK);
     EXPECT_EQ(accountInfoget.uid_, DEFAULT_OHOS_ACCOUNT_UID);
     EXPECT_EQ(accountInfoget.name_, DEFAULT_OHOS_ACCOUNT_NAME);
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_UNBOUND);
-    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA), TEST_EMPTY_STRING);
+    EXPECT_EQ(accountInfoget.scalableData_, TEST_EMPTY_STRING);
     RemoveOsAccountWithPermission(osAccountInfoOne.GetLocalId());
 }
 
@@ -336,7 +343,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo005, TestSize.Level3)
     accountInfo.status_ = ACCOUNT_STATE_UNBOUND;
     accountInfo.uid_ = TEST_ACCOUNT_UID;
     accountInfo.avatar_ = TEST_AVATAR;
-    accountInfo.scalableData_.SetParam(KEY_ACCOUNT_INFO_SCALABLEDATA, 123);
+    accountInfo.scalableData_ = "";
     accountInfo.nickname_ = "";
     for (std::size_t i = 0; i < Constants::NICKNAME_MAX_SIZE + 1; i++) {
         accountInfo.nickname_.push_back('a');
@@ -369,7 +376,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo006, TestSize.Level3)
     accountInfo.uid_ = TEST_ACCOUNT_UID;
     accountInfo.nickname_ = TEST_NICKNAME;
     accountInfo.avatar_ = ""; // 10*1024*1024
-    accountInfo.scalableData_.SetParam(KEY_ACCOUNT_INFO_SCALABLEDATA, 123);
+    accountInfo.scalableData_ = "";
     for (std::size_t i = 0; i < Constants::AVATAR_MAX_SIZE + 1; i++) {
         accountInfo.avatar_.push_back('a');
     }
@@ -400,7 +407,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo007, TestSize.Level0)
     accountInfo.uid_ = TEST_DIFF_ACCOUNT_UID;
     accountInfo.nickname_ = TEST_NICKNAME;
     accountInfo.avatar_ = TEST_AVATAR;
-    accountInfo.scalableData_.SetParam(KEY_ACCOUNT_INFO_SCALABLEDATA, 123);
+    accountInfo.scalableData_ = "";
 
     std::string eventStr = "invalid_test_event";
 
@@ -426,7 +433,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo008, TestSize.Level3)
     accountInfo.uid_ = TEST_ACCOUNT_UID;
     accountInfo.nickname_ = TEST_NICKNAME;
     accountInfo.avatar_ = TEST_AVATAR;
-    accountInfo.scalableData_.SetParam(KEY_ACCOUNT_INFO_SCALABLEDATA, 123);
+    accountInfo.scalableData_ = TEST_SCALABLE_DATA_STR;
 
     auto ret = OhosAccountKits::GetInstance().SetOsAccountDistributedInfo(
         osAccountInfoOne.GetLocalId(), accountInfo, g_eventLogin);
@@ -438,8 +445,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo008, TestSize.Level3)
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_LOGIN);
     EXPECT_EQ(accountInfoget.nickname_, TEST_NICKNAME);
     EXPECT_EQ(accountInfoget.avatar_, TEST_AVATAR);
-    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA),
-        accountInfo.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA));
+    EXPECT_EQ(accountInfoget.scalableData_, accountInfo.scalableData_);
 
     ret = OhosAccountKits::GetInstance().SetOsAccountDistributedInfo(
         osAccountInfoOne.GetLocalId(), accountInfo, g_eventLogoff);
@@ -452,7 +458,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo008, TestSize.Level3)
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_UNBOUND);
     EXPECT_EQ(accountInfoget.nickname_, TEST_EMPTY_STRING);
     EXPECT_EQ(accountInfoget.avatar_, TEST_EMPTY_STRING);
-    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA), TEST_EMPTY_STRING);
+    EXPECT_EQ(accountInfoget.scalableData_, TEST_EMPTY_STRING);
     RemoveOsAccountWithPermission(osAccountInfoOne.GetLocalId());
 }
 
@@ -473,7 +479,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo009, TestSize.Level3)
     accountInfo.uid_ = TEST_ACCOUNT_UID;
     accountInfo.nickname_ = TEST_NICKNAME;
     accountInfo.avatar_ = TEST_AVATAR;
-    accountInfo.scalableData_.SetParam(KEY_ACCOUNT_INFO_SCALABLEDATA, 123);
+    accountInfo.scalableData_ = TEST_SCALABLE_DATA_STR;
 
     auto ret = OhosAccountKits::GetInstance().SetOsAccountDistributedInfo(
         osAccountInfoOne.GetLocalId(), accountInfo, g_eventLogin);
@@ -485,8 +491,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo009, TestSize.Level3)
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_LOGIN);
     EXPECT_EQ(accountInfoget.nickname_, TEST_NICKNAME);
     EXPECT_EQ(accountInfoget.avatar_, TEST_AVATAR);
-    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA),
-        accountInfo.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA));
+    EXPECT_EQ(accountInfoget.scalableData_, accountInfo.scalableData_);
 
     ret = OhosAccountKits::GetInstance().SetOsAccountDistributedInfo(
         osAccountInfoOne.GetLocalId(), accountInfo, g_eventLogin);
@@ -495,7 +500,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo009, TestSize.Level3)
     accountInfo.uid_ = TEST_DIFF_ACCOUNT_UID;
     ret = OhosAccountKits::GetInstance().SetOsAccountDistributedInfo(
         osAccountInfoOne.GetLocalId(), accountInfo, g_eventLogin);
-    EXPECT_EQ(ret, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
     // logout
     accountInfo.name_ = TEST_ACCOUNT_NAME;
     accountInfo.uid_ = TEST_ACCOUNT_UID;
@@ -509,7 +514,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo009, TestSize.Level3)
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_UNBOUND);
     EXPECT_EQ(accountInfoget.nickname_, TEST_EMPTY_STRING);
     EXPECT_EQ(accountInfoget.avatar_, TEST_EMPTY_STRING);
-    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA), TEST_EMPTY_STRING);
+    EXPECT_EQ(accountInfoget.scalableData_, TEST_EMPTY_STRING);
     RemoveOsAccountWithPermission(osAccountInfoOne.GetLocalId());
 }
 
@@ -530,7 +535,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo010, TestSize.Level3)
     accountInfo.uid_ = TEST_DIFF_ACCOUNT_UID;
     accountInfo.nickname_ = TEST_NICKNAME;
     accountInfo.avatar_ = TEST_AVATAR;
-    accountInfo.scalableData_.SetParam(KEY_ACCOUNT_INFO_SCALABLEDATA, 123);
+    accountInfo.scalableData_ = TEST_SCALABLE_DATA_STR;
 
     auto ret = OhosAccountKits::GetInstance().SetOsAccountDistributedInfo(
         osAccountInfoOne.GetLocalId(), accountInfo, g_eventLogin);
@@ -542,8 +547,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo010, TestSize.Level3)
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_LOGIN);
     EXPECT_EQ(accountInfoget.nickname_, TEST_NICKNAME);
     EXPECT_EQ(accountInfoget.avatar_, TEST_AVATAR);
-    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA),
-        accountInfo.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA));
+    EXPECT_EQ(accountInfoget.scalableData_, accountInfo.scalableData_);
 
     ret = OhosAccountKits::GetInstance().SetOsAccountDistributedInfo(
         osAccountInfoOne.GetLocalId(), accountInfo, g_eventLogoff);
@@ -555,7 +559,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo010, TestSize.Level3)
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_UNBOUND);
     EXPECT_EQ(accountInfoget.nickname_, TEST_EMPTY_STRING);
     EXPECT_EQ(accountInfoget.avatar_, TEST_EMPTY_STRING);
-    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA), TEST_EMPTY_STRING);
+    EXPECT_EQ(accountInfoget.scalableData_, TEST_EMPTY_STRING);
     RemoveOsAccountWithPermission(osAccountInfoOne.GetLocalId());
 }
 
@@ -577,15 +581,14 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo011, TestSize.Level3)
     accountInfo.uid_ = TEST_ACCOUNT_UID;
     accountInfo.nickname_ = TEST_NICKNAME;
     accountInfo.avatar_ = TEST_AVATAR;
-    accountInfo.scalableData_.SetParam(KEY_ACCOUNT_INFO_SCALABLEDATA, 123);
+    accountInfo.scalableData_ = TEST_SCALABLE_DATA_STR;
 
     EXPECT_EQ(OhosAccountKits::GetInstance().SetOsAccountDistributedInfo(localId, accountInfo, g_eventLogin), ERR_OK);
     EXPECT_EQ(OhosAccountKits::GetInstance().GetOsAccountDistributedInfo(localId, accountInfoget), ERR_OK);
     EXPECT_EQ(accountInfoget.uid_, TEST_EXPECTED_UID);
     EXPECT_EQ(accountInfoget.nickname_, TEST_NICKNAME);
     EXPECT_EQ(accountInfoget.avatar_, TEST_AVATAR);
-    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA),
-        accountInfo.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA));
+    EXPECT_EQ(accountInfoget.scalableData_, accountInfo.scalableData_);
 
     EXPECT_EQ(
         OhosAccountKits::GetInstance().SetOsAccountDistributedInfo(localId, accountInfo, g_eventTokenInvalid), ERR_OK);
@@ -594,8 +597,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo011, TestSize.Level3)
     EXPECT_EQ(accountInfoget.nickname_, TEST_NICKNAME);
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_UNBOUND);
     EXPECT_EQ(accountInfoget.avatar_, TEST_AVATAR);
-    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA),
-        accountInfo.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA));
+    EXPECT_EQ(accountInfoget.scalableData_, accountInfo.scalableData_);
 
     EXPECT_EQ(OhosAccountKits::GetInstance().SetOsAccountDistributedInfo(localId, accountInfo, g_eventLogin), ERR_OK);
     EXPECT_EQ(OhosAccountKits::GetInstance().GetOsAccountDistributedInfo(localId, accountInfoget), ERR_OK);
@@ -604,15 +606,14 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo011, TestSize.Level3)
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_LOGIN);
     EXPECT_EQ(accountInfoget.nickname_, TEST_NICKNAME);
     EXPECT_EQ(accountInfoget.avatar_, TEST_AVATAR);
-    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA),
-        accountInfo.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA));
+    EXPECT_EQ(accountInfoget.scalableData_, accountInfo.scalableData_);
 
     EXPECT_EQ(OhosAccountKits::GetInstance().SetOsAccountDistributedInfo(localId, accountInfo, g_eventLogoff), ERR_OK);
     EXPECT_EQ(OhosAccountKits::GetInstance().GetOsAccountDistributedInfo(localId, accountInfoget), ERR_OK);
     EXPECT_EQ(accountInfoget.uid_, DEFAULT_OHOS_ACCOUNT_UID);
     EXPECT_EQ(accountInfoget.name_, DEFAULT_OHOS_ACCOUNT_NAME);
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_UNBOUND);
-    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA), TEST_EMPTY_STRING);
+    EXPECT_EQ(accountInfoget.scalableData_, TEST_EMPTY_STRING);
     RemoveOsAccountWithPermission(localId);
 }
 
@@ -634,7 +635,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo012, TestSize.Level3)
     accountInfo.uid_ = TEST_ACCOUNT_UID;
     accountInfo.nickname_ = TEST_NICKNAME;
     accountInfo.avatar_ = ""; // 10*1024*1024
-    accountInfo.scalableData_.SetParam(KEY_ACCOUNT_INFO_SCALABLEDATA, 123);
+    accountInfo.scalableData_ = "";
     for (std::size_t i = 0; i < Constants::AVATAR_MAX_SIZE - 1; i++) {
         accountInfo.avatar_.push_back('a');
     }
@@ -695,16 +696,16 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo015, TestSize.Level3)
     accountInfo.uid_ = TEST_ACCOUNT_UID;
     accountInfo.nickname_ = TEST_NICKNAME;
     accountInfo.avatar_ = "";
-    accountInfo.scalableData_.SetParam(KEY_ACCOUNT_INFO_SCALABLEDATA, 123);
+    accountInfo.scalableData_ = "";
     auto ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogin);
-    EXPECT_EQ(ret, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 
     accountInfo.name_ = TEST_ACCOUNT_NAME;
     for (std::size_t i = 0; i < 512 + 1; i++) { // The max value of uid_ is 512
         accountInfo.uid_.push_back('a');
     }
     ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogin);
-    EXPECT_EQ(ret, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 
     std::string eventLogin;
     for (std::size_t i = 0; i < 1024 + 1; i++) { // The max value of eventLogin is 1024
@@ -748,7 +749,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserId002, TestSize.Lev
     EXPECT_EQ(accountInfo.status_, ACCOUNT_STATE_UNBOUND);
     EXPECT_EQ(accountInfo.nickname_, TEST_EMPTY_STRING);
     EXPECT_EQ(accountInfo.avatar_, TEST_EMPTY_STRING);
-    EXPECT_EQ(accountInfo.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA), TEST_EMPTY_STRING);
+    EXPECT_EQ(accountInfo.scalableData_, TEST_EMPTY_STRING);
     RemoveOsAccountWithPermission(osAccountInfoOne.GetLocalId());
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
@@ -856,3 +857,225 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserIdPermissionTest004
     setuid(0);
     ASSERT_EQ(0, SetSelfTokenID(selfTokenId));
 }
+
+class MockDistributedAccountSpaceSubscribeCallback final : public DistributedAccountSubscribeCallback {
+public:
+    explicit MockDistributedAccountSpaceSubscribeCallback() {}
+    MOCK_METHOD1(OnAccountsChanged, void(const DistributedAccountEventData &eventData));
+    MOCK_METHOD1(OnSpaceAccountsChanged, void(const DistributedAccountSubProfileEventData &eventData));
+};
+
+/**
+ * @tc.name: SubscribeDistributedAccountSpaceEventsTest001
+ * @tc.desc: Test SubscribeDistributedAccountSpaceEvents with nullptr callback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountMgrInnerSdkFuncTest, SubscribeDistributedAccountSpaceEventsTest001, TestSize.Level3)
+{
+    std::set<DistributedAccountSubProfileEventType> types = {DistributedAccountSubProfileEventType::CREATED};
+    std::shared_ptr<DistributedAccountSubscribeCallback> callback = nullptr;
+
+    ErrCode result = OhosAccountKits::GetInstance().SubscribeDistributedAccountSpaceEvents(types, callback);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: SubscribeDistributedAccountSpaceEventsTest002
+ * @tc.desc: Test SubscribeDistributedAccountSpaceEvents with empty types
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountMgrInnerSdkFuncTest, SubscribeDistributedAccountSpaceEventsTest002, TestSize.Level3)
+{
+    std::set<DistributedAccountSubProfileEventType> types;
+    auto callback = std::make_shared<MockDistributedAccountSpaceSubscribeCallback>();
+    ASSERT_NE(callback, nullptr);
+
+    ErrCode result = OhosAccountKits::GetInstance().SubscribeDistributedAccountSpaceEvents(types, callback);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: UnsubscribeDistributedAccountSpaceEventsTest001
+ * @tc.desc: Test UnsubscribeDistributedAccountSpaceEvents with nullptr callback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountMgrInnerSdkFuncTest, UnsubscribeDistributedAccountSpaceEventsTest001, TestSize.Level3)
+{
+    std::shared_ptr<DistributedAccountSubscribeCallback> callback = nullptr;
+
+    ErrCode result = OhosAccountKits::GetInstance().UnsubscribeDistributedAccountSpaceEvents(callback);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
+}
+
+/**
+ * @tc.name: UnsubscribeDistributedAccountSpaceEventsTest002
+ * @tc.desc: Test UnsubscribeDistributedAccountSpaceEvents without subscription
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountMgrInnerSdkFuncTest, UnsubscribeDistributedAccountSpaceEventsTest002, TestSize.Level3)
+{
+    auto callback = std::make_shared<MockDistributedAccountSpaceSubscribeCallback>();
+    ASSERT_NE(callback, nullptr);
+
+    ErrCode result = OhosAccountKits::GetInstance().UnsubscribeDistributedAccountSpaceEvents(callback);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+#ifdef BUNDLE_ADAPTER_MOCK
+/**
+ * @tc.name: CreateDistributedAccountSpaceEventServiceTest001
+ * @tc.desc: Test CreateDistributedAccountSpaceEventService with nullptr callback - cover line 371
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountMgrInnerSdkFuncTest, CreateDistributedAccountSpaceEventServiceTest001, TestSize.Level3)
+{
+    sptr<IRemoteObject> listener = nullptr;
+    std::set<DistributedAccountSubProfileEventType> types = {DistributedAccountSubProfileEventType::CREATED};
+    std::shared_ptr<DistributedAccountSubscribeCallback> callback = nullptr;
+
+    ErrCode result = OhosAccountKitsImpl::GetInstance().CreateDistributedAccountSpaceEventService(
+        types, callback, listener);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
+    EXPECT_EQ(listener, nullptr);
+}
+
+/**
+ * @tc.name: CreateDistributedAccountSpaceEventServiceTest002
+ * @tc.desc: Test CreateDistributedAccountSpaceEventService with already registered callback - cover line 376
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountMgrInnerSdkFuncTest, CreateDistributedAccountSpaceEventServiceTest002, TestSize.Level3)
+{
+    sptr<IRemoteObject> listener = nullptr;
+    std::set<DistributedAccountSubProfileEventType> types = {DistributedAccountSubProfileEventType::CREATED};
+    auto callback = std::make_shared<MockDistributedAccountSpaceSubscribeCallback>();
+    ASSERT_NE(callback, nullptr);
+
+    DistributedAccountEventService::GetInstance()->AddSpaceTypes(types, callback);
+    ErrCode result = OhosAccountKitsImpl::GetInstance().CreateDistributedAccountSpaceEventService(
+        types, callback, listener);
+    EXPECT_EQ(result, ERR_OHOSACCOUNT_KIT_CALLBACK_ALREADY_REGISTERED_ERROR);
+
+    DistributedAccountEventService::GetInstance()->DeleteSpaceCallback(callback);
+}
+
+/**
+ * @tc.name: CreateDistributedAccountSpaceEventServiceTest003
+ * @tc.desc: Test CreateDistributedAccountSpaceEventService success
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountMgrInnerSdkFuncTest, CreateDistributedAccountSpaceEventServiceTest003, TestSize.Level3)
+{
+    sptr<IRemoteObject> listener = nullptr;
+    std::set<DistributedAccountSubProfileEventType> types = {DistributedAccountSubProfileEventType::CREATED};
+    auto callback = std::make_shared<MockDistributedAccountSpaceSubscribeCallback>();
+    ASSERT_NE(callback, nullptr);
+
+    ErrCode result = OhosAccountKitsImpl::GetInstance().CreateDistributedAccountSpaceEventService(
+        types, callback, listener);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_NE(listener, nullptr);
+}
+
+/**
+ * @tc.name: SubscribeDistributedAccountSpaceEventsTest003
+ * @tc.desc: Test SubscribeDistributedAccountSpaceEvents with already subscribed all types - cover line 555
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountMgrInnerSdkFuncTest, SubscribeDistributedAccountSpaceEventsTest003, TestSize.Level3)
+{
+    std::set<DistributedAccountSubProfileEventType> types = {DistributedAccountSubProfileEventType::CREATED};
+    auto callback1 = std::make_shared<MockDistributedAccountSpaceSubscribeCallback>();
+    ASSERT_NE(callback1, nullptr);
+    auto callback2 = std::make_shared<MockDistributedAccountSpaceSubscribeCallback>();
+    ASSERT_NE(callback2, nullptr);
+    OhosAccountKitsImpl::GetInstance().RestoreSubscribe();
+    DistributedAccountEventService::GetInstance()->AddSpaceTypes(types, callback1);
+
+    ErrCode result = OhosAccountKitsImpl::GetInstance().SubscribeDistributedAccountSpaceEvents(types, callback2);
+    EXPECT_EQ(result, ERR_OK);
+    OhosAccountKitsImpl::GetInstance().RestoreSubscribe();
+    DistributedAccountEventService::GetInstance()->DeleteSpaceCallback(callback1);
+    DistributedAccountEventService::GetInstance()->DeleteSpaceCallback(callback2);
+}
+
+/**
+ * @tc.name: SubscribeDistributedAccountSpaceEventsTest005
+ * @tc.desc: Test GetOhosAccountInfoByUserId with hap permission
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountMgrInnerSdkFuncTest, SubscribeDistributedAccountSpaceEventsTest005, TestSize.Level0)
+{
+    std::set<DistributedAccountSubProfileEventType> types = {DistributedAccountSubProfileEventType::CREATED};
+    auto callback1 = std::make_shared<MockDistributedAccountSpaceSubscribeCallback>();
+    ASSERT_NE(callback1, nullptr);
+    ErrCode result = OhosAccountKitsImpl::GetInstance().SubscribeDistributedAccountSpaceEvents(types, callback1);
+    EXPECT_EQ(result, ERR_OK);
+    uint64_t tokenId;
+    ASSERT_TRUE(AllocPermission({}, tokenId, false));
+    types.insert(DistributedAccountSubProfileEventType::DELETED);
+    result = OhosAccountKitsImpl::GetInstance().SubscribeDistributedAccountSpaceEvents(types, callback1);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+    result = OhosAccountKitsImpl::GetInstance().UnsubscribeDistributedAccountSpaceEvents(callback1);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+    ASSERT_TRUE(RecoveryPermission(tokenId, 0));
+}
+
+/**
+ * @tc.name: SubscribeDistributedAccountSpaceEventsTest004
+ * @tc.desc: Test SubscribeDistributedAccountSpaceEvents with callback already registered - cover line 543
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountMgrInnerSdkFuncTest, SubscribeDistributedAccountSpaceEventsTest004, TestSize.Level3)
+{
+    std::set<DistributedAccountSubProfileEventType> types = {DistributedAccountSubProfileEventType::CREATED};
+    std::vector<std::shared_ptr<MockDistributedAccountSpaceSubscribeCallback>> vec;
+    for (int i = 0; i < Constants::DISTRIBUTED_SUBSCRIBER_MAX_SIZE; i++) {
+        auto callback = std::make_shared<MockDistributedAccountSpaceSubscribeCallback>();
+        ASSERT_NE(callback, nullptr);
+        vec.emplace_back(callback);
+        DistributedAccountEventService::GetInstance()->AddSpaceTypes(types, callback);
+    }
+    auto callback = std::make_shared<MockDistributedAccountSpaceSubscribeCallback>();
+    ASSERT_NE(callback, nullptr);
+    auto result = OhosAccountKitsImpl::GetInstance().SubscribeDistributedAccountSpaceEvents(types, callback);
+    EXPECT_EQ(result, ERR_OK);
+    DistributedAccountEventService::GetInstance()->DeleteSpaceCallback(callback);
+    for (auto callback1 : vec) {
+        DistributedAccountEventService::GetInstance()->DeleteSpaceCallback(callback1);
+    }
+}
+
+/**
+ * @tc.name: UnsubscribeDistributedAccountSpaceEventsTest003
+ * @tc.desc: Test UnsubscribeDistributedAccountSpaceEvents with multiple subscribers - cover line 597
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountMgrInnerSdkFuncTest, UnsubscribeDistributedAccountSpaceEventsTest003, TestSize.Level3)
+{
+    std::set<DistributedAccountSubProfileEventType> types = {DistributedAccountSubProfileEventType::CREATED};
+    auto callback1 = std::make_shared<MockDistributedAccountSpaceSubscribeCallback>();
+    ASSERT_NE(callback1, nullptr);
+    auto callback2 = std::make_shared<MockDistributedAccountSpaceSubscribeCallback>();
+    ASSERT_NE(callback2, nullptr);
+
+    DistributedAccountEventService::GetInstance()->AddSpaceTypes(types, callback1);
+    DistributedAccountEventService::GetInstance()->AddSpaceTypes(types, callback2);
+
+    ErrCode result = OhosAccountKitsImpl::GetInstance().UnsubscribeDistributedAccountSpaceEvents(callback1);
+    EXPECT_EQ(result, ERR_OK);
+
+    DistributedAccountEventService::GetInstance()->DeleteSpaceCallback(callback2);
+}
+#endif // BUNDLE_ADAPTER_MOCK

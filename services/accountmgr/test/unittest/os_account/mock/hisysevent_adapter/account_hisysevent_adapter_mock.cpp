@@ -30,9 +30,6 @@ using namespace OHOS::HiviewDFX;
 void ReportServiceStartFail(int32_t errCode, const std::string& errMsg)
 {}
 
-void ReportPermissionFail(int32_t callerUid, int32_t callerPid, const std::string& permName)
-{}
-
 void ReportOsAccountOperationFail(
     int32_t id, const std::string& operationStr, int32_t errCode, const std::string& errMsg)
 {

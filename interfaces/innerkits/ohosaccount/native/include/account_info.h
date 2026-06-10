@@ -23,7 +23,6 @@
 #include "ohos_account_constants.h"
 #include "parcel.h"
 #include "string_ex.h"
-#include "want.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -42,6 +41,8 @@ typedef enum : std::int32_t {
     ACCOUNT_STATE_NOTLOGIN,
     // account logoff, all the data of this account will be deleted in the network
     ACCOUNT_STATE_LOGOFF,
+    // local token of account expired, need to re-authenticate
+    ACCOUNT_STATE_TOKEN_EXPIRED,
 } OHOS_ACCOUNT_STATE;
 
 // event string
@@ -49,7 +50,10 @@ const char EVENT_PUBLISH[]                    = "event publish";
 const char OHOS_ACCOUNT_EVENT_LOGIN[]         = "Ohos.account.event.LOGIN";
 const char OHOS_ACCOUNT_EVENT_LOGOUT[]        = "Ohos.account.event.LOGOUT";
 const char OHOS_ACCOUNT_EVENT_TOKEN_INVALID[] = "Ohos.account.event.TOKEN_INVALID";
-const char OHOS_ACCOUNT_EVENT_LOGOFF[]        = "Ohos.account.event.LOGOFF";
+const char OHOS_ACCOUNT_EVENT_LOGOFF[]           = "Ohos.account.event.LOGOFF";
+const char OHOS_ACCOUNT_EVENT_DISTRIBUTED_SPACE_CREATE[]    = "Ohos.account.event.DISTRIBUTED_SPACE_CREATE";
+const char OHOS_ACCOUNT_EVENT_DISTRIBUTED_SPACE_DELETED[]   = "Ohos.account.event.DISTRIBUTED_SPACE_DELETE";
+const char OHOS_ACCOUNT_EVENT_DISTRIBUTED_SPACE_SWITCHED[]  = "Ohos.account.event.DISTRIBUTED_SPACE_SWITCH";
 const char OPERATION_INIT_OPEN_FILE_TO_READ[] = "InitOpenFileToRead";
 const char OPERATION_REMOVE_FILE[] = "RemoveFile";
 const char OPERATION_OPEN_FILE_TO_READ[] = "OpenFileToRead";
@@ -71,6 +75,9 @@ typedef enum : std::int32_t {
     ACCOUNT_MANUAL_LOGOUT_EVT, // account logout manually
     ACCOUNT_MANUAL_UNBOUND_EVT, // account unbound manually
     ACCOUNT_MANUAL_LOGOFF_EVT, // account logoff manually
+    ACCOUNT_DISTRIBUTED_SPACE_CREATE_EVT, // distributed account space created
+    ACCOUNT_DISTRIBUTED_SPACE_DELETED_EVT, // distributed account space deleted
+    ACCOUNT_DISTRIBUTED_SPACE_SWITCHED_EVT, // distributed account space switched
 } ACCOUNT_INNER_EVENT_TYPE;
 
 const char DEFAULT_OHOS_ACCOUNT_NAME[] = "ohosAnonymousName"; // default name
@@ -88,14 +95,14 @@ public:
     std::int32_t callingUid_ = DEFAULT_CALLING_UID;
     std::string nickname_;
     std::string avatar_;
-    AAFwk::Want scalableData_;
+    std::string scalableData_;
 
     OhosAccountInfo(const std::string &name, const std::string &id, std::int32_t status)
         : name_(name), uid_(id), status_(status), rawUid_(id)
     {
         nickname_ = "";
         avatar_ = "";
-        scalableData_ = {};
+        scalableData_ = "";
     }
 
     OhosAccountInfo()
@@ -104,32 +111,16 @@ public:
         uid_ = "";
         nickname_ = "";
         avatar_ = "";
-        scalableData_ = {};
+        scalableData_ = "";
         status_ = ACCOUNT_STATE_UNBOUND;
     }
 
     ~OhosAccountInfo() {};
 
-    // filtering the input scalableData only
-    static std::string GetScalableDataString(const AAFwk::Want &scalableData)
-    {
-        std::string result = "";
-        AAFwk::WantParams wantParams = scalableData.GetParams();
-        for (auto it : wantParams.GetParams()) {
-            if (it.first != "moduleName") {
-                result += it.first;
-                int typeId = AAFwk::WantParams::GetDataType(it.second);
-                result += wantParams.GetStringByType(it.second, typeId);
-            }
-        }
-        return result;
-    }
-
     bool IsValid() const
     {
-        std::string str = GetScalableDataString(scalableData_);
         return (nickname_.size() <= Constants::NICKNAME_MAX_SIZE) && (avatar_.size() <= Constants::AVATAR_MAX_SIZE) &&
-            (str.size() <= Constants::SCALABLEDATA_MAX_SIZE);
+            (scalableData_.size() <= Constants::SCALABLEDATA_MAX_SIZE);
     }
 
     std::string GetRawUid() const
@@ -151,6 +142,18 @@ private:
 
 private:
     std::string rawUid_;
+};
+
+struct OsAccountSubspaceResult : public Parcelable {
+    int32_t id = 0;
+    int32_t osAccountId = 0;
+    int32_t index = 0;
+
+    bool Marshalling(Parcel &parcel) const override
+    {
+        return parcel.WriteInt32(id) && parcel.WriteInt32(osAccountId) && parcel.WriteInt32(index);
+    }
+    static OsAccountSubspaceResult* Unmarshalling(Parcel &parcel);
 };
 
 class AccountInfo {
@@ -189,7 +192,7 @@ public:
         ohosAccountInfo_.status_ = clrStatus;
         ohosAccountInfo_.nickname_ = "";
         ohosAccountInfo_.avatar_ = "";
-        ohosAccountInfo_.scalableData_ = {};
+        ohosAccountInfo_.scalableData_ = "";
         ohosAccountInfo_.callingUid_ = DEFAULT_CALLING_UID;
         ohosAccountInfo_.SetRawUid("");
         digest_.clear();
@@ -198,6 +201,14 @@ public:
 
     ~AccountInfo() {}
 };
+
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+struct OsAccountSubspaceInfo : AccountInfo {
+    int32_t subspaceId = 0;
+    bool isCreateCompleted = false;
+    bool toBeRemoved = false;
+};
+#endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 } // namespace AccountSA
 } // namespace OHOS
 

@@ -16,6 +16,7 @@
 #define OS_ACCOUNT_INTERFACES_INNERKITS_OS_ACCOUNT_CONSTANT_H
 
 #include <string>
+#include <unistd.h>
 #include <sys/sysinfo.h>
 #include "os_account_info.h"
 
@@ -34,7 +35,6 @@ const std::string OS_ACCOUNT_CONSTRAINT_CONFIG_PATH =
 const std::string OS_ACCOUNT_CONSTRAINT_DEFINITION_PATH =
     SYSTEM_ETC_BASE + PATH_SEPARATOR + "os_account_constraint_definition.json";
 const std::string ACCOUNT_LIST_FILE_JSON_PATH = USER_INFO_BASE + PATH_SEPARATOR + "account_list.json";
-const std::string ACCOUNT_INDEX_JSON_PATH = USER_INFO_BASE + PATH_SEPARATOR + "account_index_info.json";
 const std::string ACCOUNT_INFO_DIGEST_FILE_PATH = USER_INFO_BASE + PATH_SEPARATOR + "account_info_digest.json";
 const std::string BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH =
     USER_INFO_BASE + PATH_SEPARATOR + "base_os_account_constraints.json";
@@ -140,6 +140,8 @@ const OS_ACCOUNT_SWITCH_MOD NOW_OS_ACCOUNT_SWITCH_MOD = OS_ACCOUNT_SWITCH_MOD::H
 #ifdef SUPPORT_AUTHORIZATION
 const size_t MAX_TOKEN_SIZE = 1024 + 116 + 8;
 #endif
+// Multiplier for computing subspaceId = osAccountId * MULTIPLIER + index, index in [1, 999]
+constexpr int32_t OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER = 1000;
 };  // namespace Constants
 }  // namespace AccountSA
 }  // namespace OHOS

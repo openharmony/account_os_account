@@ -26,8 +26,10 @@ namespace OHOS {
 namespace AccountSA {
 namespace {
 constexpr int32_t WAIT_SECONDS = 5;
+#ifndef FUZZ_TEST
 const char THREAD_OS_ACCOUNT_EVENT[] = "OsAccountEvent";
 const char THREAD_WAIT_COMPLETE[] = "WaitComplete";
+#endif
 const uid_t ACCOUNT_UID = 3058;
 }
 OsAccountEventListener::OsAccountEventListener()
@@ -104,19 +106,28 @@ ErrCode OsAccountEventListener::OnStateChanged(const OsAccountStateParcel &parce
             auto task = [subscriber = it.first, data, cvPtr, pendingCounter]() mutable {
                 NotifySubscriber(subscriber, data, cvPtr, pendingCounter);
             };
+#ifdef FUZZ_TEST
+            task();
+#else
             std::thread taskThread(task);
             pthread_setname_np(taskThread.native_handle(), THREAD_OS_ACCOUNT_EVENT);
             taskThread.detach();
+#endif
         }
     }
     if (parcel.callback == nullptr) {
         return ERR_OK;
     }
-    std::thread waitThread([callback = parcel.callback, cvPtr, pendingCounter]() mutable {
+    auto waitTask = [callback = parcel.callback, cvPtr, pendingCounter]() mutable {
         WaitForComplete(callback, cvPtr, pendingCounter);
-    });
+    };
+#ifdef FUZZ_TEST
+    waitTask();
+#else
+    std::thread waitThread(waitTask);
     pthread_setname_np(waitThread.native_handle(), THREAD_WAIT_COMPLETE);
     waitThread.detach();
+#endif
     return ERR_OK;
 }
 

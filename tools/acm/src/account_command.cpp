@@ -20,8 +20,6 @@
 #include "singleton.h"
 #include "string_ex.h"
 
-using namespace OHOS::AAFwk;
-
 namespace OHOS {
 namespace AccountSA {
 namespace {

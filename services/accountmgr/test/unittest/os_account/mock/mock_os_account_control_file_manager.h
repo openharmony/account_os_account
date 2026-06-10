@@ -34,7 +34,7 @@ public:
     virtual ~MockOsAccountControlFileManager() {}
     MOCK_METHOD1(GetOsAccountConfig, ErrCode(OsAccountConfig &config));
     MOCK_METHOD1(GetOsAccountIdList, ErrCode(std::vector<int32_t> &idList));
-    MOCK_METHOD1(GetOsAccountList, ErrCode(std::vector<OsAccountInfo> &osAccountList));
+    MOCK_METHOD2(GetOsAccountList, ErrCode(std::vector<OsAccountInfo> &osAccountList, bool needPhoto));
     MOCK_METHOD2(GetConstraintsByType, ErrCode(const OsAccountType type, std::vector<std::string> &constraints));
     MOCK_METHOD2(GetOsAccountInfoById, ErrCode(const int id, OsAccountInfo &osAccountInfo));
     MOCK_METHOD1(GetSerialNumber, ErrCode(int64_t &serialNumber));
@@ -62,7 +62,6 @@ public:
         const std::vector<std::string>& ConstraintStr, bool isAdd));
     MOCK_METHOD1(SetNextLocalId, ErrCode(const int32_t &nextLocalId));
     void Init() {}
-    ErrCode GetAccountIndexFromFile(CJsonUnique &accountIndexJson) { return ERR_OK; }
     ErrCode IsOsAccountExists(const int id, bool &isExists) { return ERR_OK; }
     ErrCode IsAllowedCreateAdmin(bool &isAllowedCreateAdmin) { return ERR_OK; }
     ErrCode GetCreatedOsAccountNumFromDatabase(const std::string& storeID,
@@ -84,7 +83,6 @@ public:
     ErrCode GetDefaultActivatedOsAccount(int32_t &id) { return ERR_OK; }
     ErrCode GetDefaultActivatedOsAccount(const uint64_t displayId, int32_t &id) { return ERR_OK; }
     ErrCode GetAllDefaultActivatedOsAccounts(std::map<uint64_t, int32_t> &ids) { return ERR_OK; }
-    ErrCode UpdateAccountIndex(const OsAccountInfo &osAccountInfo, const bool isDelete) { return ERR_OK; }
     ErrCode SetDomainBoundFlag(
         const int32_t localId, const bool isBoundCompleted, const DomainAccountInfo domainInfo = {}) { return ERR_OK; }
     ErrCode GetDomainBoundFlag(const int32_t localId,

@@ -163,6 +163,9 @@ void SetDataParameters(CArrParameters parameters, WantParams &wantP)
 {
     for (int i = 0; i < parameters.size; i++) {
         auto head = parameters.head + i;
+        if (head->key == nullptr) {
+            continue;
+        }
         auto key = std::string(head->key);
         if (head->valueType == I32_TYPE) { // int32_t
             wantP.SetParam(key, OHOS::AAFwk::Integer::Box(*static_cast<int32_t *>(head->value)));
@@ -261,27 +264,49 @@ int32_t InnerWrapWantParamsT(WantParams &wantParams, CParameters *p)
     return NO_ERROR;
 }
 
+static void ClearCharArray(char **arr, size_t count)
+{
+    for (size_t i = 0; i < count; i++) {
+        free(arr[i]);
+    }
+    free(arr);
+}
+
+static int32_t GetStringFromArray(sptr<AAFwk::IArray> &ao, long index, char **out)
+{
+    sptr<AAFwk::IInterface> iface = nullptr;
+    if (ao->Get(index, iface) != ERR_OK) {
+        *out = nullptr;
+        return ERR_CES_FAILED;
+    }
+    AAFwk::IString *iValue = AAFwk::IString::Query(iface);
+    if (iValue == nullptr) {
+        *out = nullptr;
+        return ERR_CES_FAILED;
+    }
+    auto val = AAFwk::String::Unbox(iValue);
+    *out = MallocCString(val);
+    if (*out == nullptr) {
+        return ERR_NO_MEMORY;
+    }
+    return NO_ERROR;
+}
+
 int32_t InnerWrapWantParamsArrayString(sptr<AAFwk::IArray> &ao, CParameters *p)
 {
     long size = 0;
-    if (ao->GetLength(size) != ERR_OK) {
+    if (ao->GetLength(size) != ERR_OK || size == 0) {
         return ERR_CES_FAILED;
     }
-    if (size == 0) {
-        return ERR_CES_FAILED;
-    }
-    char **arrP = static_cast<char **>(malloc(sizeof(char *) * size));
+    char **arrP = static_cast<char **>(calloc(size, sizeof(char *)));
     if (arrP == nullptr) {
         return ERR_NO_MEMORY;
     }
     for (long i = 0; i < size; i++) {
-        sptr<AAFwk::IInterface> iface = nullptr;
-        if (ao->Get(i, iface) == ERR_OK) {
-            AAFwk::IString *iValue = AAFwk::IString::Query(iface);
-            if (iValue != nullptr) {
-                auto val = AAFwk::String::Unbox(iValue);
-                arrP[i] = MallocCString(val);
-            }
+        int32_t ret = GetStringFromArray(ao, i, &arrP[i]);
+        if (ret != NO_ERROR) {
+            ClearCharArray(arrP, static_cast<size_t>(i));
+            return ret;
         }
     }
     p->size = size;

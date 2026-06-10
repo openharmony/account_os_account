@@ -17,6 +17,7 @@
 #include "napi_account_iam_module.h"
 #include "napi_authorization_module.h"
 #include "napi_domain_account_module.h"
+#include "napi_os_account_sub_profile_module.h"
 
 namespace OHOS {
 namespace AccountJsKit {
@@ -34,6 +35,7 @@ static napi_value Init(napi_env env, napi_value exports)
     AccountIAMInit(env, exports);
     DomainAccountInit(env, exports);
     AuthorizationInit(env, exports);
+    OsAccountSubProfileInit(env, exports);
     return exports;
 }
 EXTERN_C_END

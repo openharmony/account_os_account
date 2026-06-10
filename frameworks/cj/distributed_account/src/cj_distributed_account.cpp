@@ -39,14 +39,16 @@ CJDistributedInfo convertToCJInfo(AccountSA::OhosAccountInfo ohosInfo)
     cjInfo.nickname = MallocCString(ohosInfo.nickname_);
     cjInfo.avatar = MallocCString(ohosInfo.avatar_);
     cjInfo.status = ohosInfo.status_;
-    cjInfo.scalableData = MallocCString(ohosInfo.scalableData_.ToString());
+    cjInfo.scalableData = MallocCString(ohosInfo.scalableData_);
     return cjInfo;
 }
 
-AccountSA::OhosAccountInfo getOhosInfoFromCJInfo(CJDistributedInfo cjInfo)
+ErrCode getOhosInfoFromCJInfo(CJDistributedInfo cjInfo, AccountSA::OhosAccountInfo &ohosInfo)
 {
-    AccountSA::OhosAccountInfo ohosInfo;
-    OhosAccountKits::GetInstance().GetOhosAccountInfo(ohosInfo);
+    ErrCode errCode = OhosAccountKits::GetInstance().GetOhosAccountInfo(ohosInfo);
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
     if (cjInfo.name != nullptr) {
         ohosInfo.name_ = cjInfo.name;
     }
@@ -62,12 +64,9 @@ AccountSA::OhosAccountInfo getOhosInfoFromCJInfo(CJDistributedInfo cjInfo)
     ohosInfo.status_ = cjInfo.status;
     if (cjInfo.scalableData != nullptr) {
         std::string scalableStr = std ::string(cjInfo.scalableData);
-        auto scalableWant = AAFwk::Want::FromString(scalableStr);
-        if (scalableWant != nullptr) {
-            ohosInfo.scalableData_ = *scalableWant;
-        }
+        ohosInfo.scalableData_ = scalableStr;
     }
-    return ohosInfo;
+    return ERR_OK;
 }
 
 extern "C"
@@ -84,8 +83,13 @@ extern "C"
 
     void FfiOHOSDistributedAccountUnitSetOsAccountDistributedInfo(CJDistributedInfo cjInfo, int32_t *errCode)
     {
-        AccountSA::OhosAccountInfo ohosAccountInfo = getOhosInfoFromCJInfo(cjInfo);
         if (errCode == nullptr) {
+            return;
+        }
+        AccountSA::OhosAccountInfo ohosAccountInfo;
+        ErrCode result = getOhosInfoFromCJInfo(cjInfo, ohosAccountInfo);
+        if (result != ERR_OK) {
+            *errCode = ConvertToJSErrCode(result);
             return;
         }
         *errCode = ConvertToJSErrCode(

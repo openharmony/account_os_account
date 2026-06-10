@@ -403,6 +403,12 @@ static void CreateExecutorProperty(
     if (!context.isGetById && context.errCode == ERR_IAM_NOT_ENROLLED) {
         context.errCode = ERR_OK;
     }
+    // When domain account is not supported or bound,
+    // map it to ERR_IAM_TYPE_NOT_SUPPORT so the caller receives a valid IAM result field.
+    if (!context.isGetById && context.errCode == ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT) {
+        context.errCode = ERR_OK;
+        context.propertyInfo.result = ERR_IAM_TYPE_NOT_SUPPORT;
+    }
     if (context.errCode != ERR_OK) {
         int32_t jsErrCode = AccountIAMConvertToJSErrCode(context.propertyInfo.result);
         errJs = GenerateBusinessError(env, jsErrCode, ConvertToJsErrMsg(jsErrCode));

@@ -67,14 +67,13 @@ public:
     void Init() override;
     void FileInit();
     ErrCode GetOsAccountConfig(OsAccountConfig &config) override;
-    ErrCode GetOsAccountList(std::vector<OsAccountInfo> &osAccountList) override;
+    ErrCode GetOsAccountList(std::vector<OsAccountInfo> &osAccountList, bool needPhoto = false) override;
     ErrCode GetOsAccountIdList(std::vector<int32_t> &idList) override;
     ErrCode GetOsAccountInfoById(const int id, OsAccountInfo &osAccountInfo) override;
     ErrCode GetConstraintsByType(const OsAccountType type, std::vector<std::string> &constraints) override;
     ErrCode InsertOsAccount(OsAccountInfo &osAccountInfo) override;
     ErrCode DelOsAccount(const int id) override;
     ErrCode UpdateOsAccount(OsAccountInfo &osAccountInfo) override;
-    ErrCode GetAccountIndexFromFile(CJsonUnique &accountIndexJson) override;
     ErrCode GetSerialNumber(int64_t &serialNumber) override;
     ErrCode GetAllowCreateId(int &id) override;
     ErrCode IsOsAccountExists(const int id, bool &isExists) override;
@@ -119,24 +118,20 @@ public:
     ErrCode GenerateAccountInfoDigestStr(
         const std::string &userInfoPath, const std::string &accountInfoStr, std::string &digestStr);
     ErrCode DeleteAccountInfoDigest(const std::string &userInfoPath);
-    ErrCode UpdateAccountIndex(const OsAccountInfo &osAccountInfo, const bool isDelete) override;
     ErrCode SetNextLocalId(const int32_t &nextLocalId) override;
     ErrCode SetDomainBoundFlag(
         const int32_t localId, const bool isBoundCompleted, const DomainAccountInfo domainInfo = {}) override;
     ErrCode GetDomainBoundFlag(const int32_t localId, bool &isBoundCompleted, DomainAccountInfo &domainInfo) override;
 private:
     ErrCode GetDefaultOsAccountConfig(OsAccountConfig &config);
-    ErrCode RemoveAccountIndex(const int32_t id);
     int32_t GetNextLocalId(const std::vector<std::string> &accountIdList, int32_t startId);
     ErrCode UpdateAccountList(const std::string &idStr, bool isAdd);
     ErrCode GetAccountListFromFile(CJsonUnique &accountListJson);
-    ErrCode GetAccountIndexInfo(std::string &accountIndexInfo);
     ErrCode SaveAccountListToFile(const CJsonUnique &accountListJson);
     ErrCode SaveAccountListToFileAndDataBase(const CJsonUnique &accountListJson);
     void BuildAndSaveAccountListJsonFile(const std::vector<std::string>& accounts);
     void RecoverAccountListJsonFile();
     void RecoverAccountInfoDigestJsonFile();
-    void BuildAndSaveOsAccountIndexJsonFile();
     void BuildAndSaveBaseOAConstraintsJsonFile();
     void BuildAndSaveGlobalOAConstraintsJsonFile();
     void BuildAndSaveSpecificOAConstraintsJsonFile();

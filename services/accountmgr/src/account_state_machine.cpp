@@ -59,16 +59,48 @@ void AccountStateMachine::OnInitialize()
             // normal event, transform to logout state
             std::make_pair(ACCOUNT_AUTHENTICATE_FAILED_EVT, nullptr),
             // expected event, transform to logout state
+#ifndef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
             std::make_pair(ACCOUNT_TOKEN_EXPIRED_EVT, new (std::nothrow) LogoutAction(ACCOUNT_STATE_UNBOUND)),
+#else
+            std::make_pair(ACCOUNT_TOKEN_EXPIRED_EVT, new (std::nothrow) LogoutAction(ACCOUNT_STATE_TOKEN_EXPIRED)),
+#endif
             // expected event, transform to logout state
             std::make_pair(ACCOUNT_PASSWORD_CHANGED_EVT, new (std::nothrow) LogoutAction(ACCOUNT_STATE_UNBOUND)),
             // expected event, transform to logout state
+#ifndef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
             std::make_pair(ACCOUNT_MANUAL_LOGOUT_EVT, new (std::nothrow) LogoutAction(ACCOUNT_STATE_UNBOUND)),
+#else
+            std::make_pair(ACCOUNT_MANUAL_LOGOUT_EVT, new (std::nothrow) LogoutAction(ACCOUNT_STATE_NOTLOGIN)),
+#endif
             // expected event, transform to unbound state
             std::make_pair(ACCOUNT_MANUAL_UNBOUND_EVT, new (std::nothrow) UnboundAction(ACCOUNT_STATE_UNBOUND)),
             // expected event, transform to logoff state
+#ifndef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
             std::make_pair(ACCOUNT_MANUAL_LOGOFF_EVT, new (std::nothrow) LogoffAction(ACCOUNT_STATE_UNBOUND))}
+#else
+            std::make_pair(ACCOUNT_MANUAL_LOGOFF_EVT, new (std::nothrow) LogoffAction(ACCOUNT_STATE_LOGOFF))}
+#endif
         ),
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+        std::make_pair(ACCOUNT_STATE_NOTLOGIN, std::map<int, AccountStateAction *> {
+            std::make_pair(ACCOUNT_BIND_SUCCESS_EVT, new (std::nothrow) LoginAction(ACCOUNT_STATE_LOGIN)),
+            std::make_pair(ACCOUNT_MANUAL_LOGOUT_EVT, new (std::nothrow) LogoutAction(ACCOUNT_STATE_NOTLOGIN)),
+            std::make_pair(ACCOUNT_TOKEN_EXPIRED_EVT, new (std::nothrow) LogoutAction(ACCOUNT_STATE_TOKEN_EXPIRED)),
+            std::make_pair(ACCOUNT_MANUAL_LOGOFF_EVT, new (std::nothrow) LogoffAction(ACCOUNT_STATE_LOGOFF)),
+        }),
+        std::make_pair(ACCOUNT_STATE_TOKEN_EXPIRED, std::map<int, AccountStateAction *> {
+            std::make_pair(ACCOUNT_BIND_SUCCESS_EVT, new (std::nothrow) LoginAction(ACCOUNT_STATE_LOGIN)),
+            std::make_pair(ACCOUNT_MANUAL_LOGOUT_EVT, new (std::nothrow) LogoutAction(ACCOUNT_STATE_NOTLOGIN)),
+            std::make_pair(ACCOUNT_TOKEN_EXPIRED_EVT, new (std::nothrow) LogoutAction(ACCOUNT_STATE_TOKEN_EXPIRED)),
+            std::make_pair(ACCOUNT_MANUAL_LOGOFF_EVT, new (std::nothrow) LogoffAction(ACCOUNT_STATE_LOGOFF)),
+        }),
+        std::make_pair(ACCOUNT_STATE_LOGOFF, std::map<int, AccountStateAction *> {
+            std::make_pair(ACCOUNT_BIND_SUCCESS_EVT, new (std::nothrow) LoginAction(ACCOUNT_STATE_LOGIN)),
+            std::make_pair(ACCOUNT_MANUAL_LOGOUT_EVT, new (std::nothrow) LogoutAction(ACCOUNT_STATE_NOTLOGIN)),
+            std::make_pair(ACCOUNT_TOKEN_EXPIRED_EVT, new (std::nothrow) LogoutAction(ACCOUNT_STATE_TOKEN_EXPIRED)),
+            std::make_pair(ACCOUNT_MANUAL_LOGOFF_EVT, new (std::nothrow) LogoffAction(ACCOUNT_STATE_LOGOFF)),
+        }),
+#endif
     };
 }
 

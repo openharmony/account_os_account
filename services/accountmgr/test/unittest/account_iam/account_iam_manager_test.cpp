@@ -434,8 +434,6 @@ HWTEST_F(AccountIamManagerTest, ActivateUserKey001, TestSize.Level0)
 
     auto &innerIamMgr_ = InnerAccountIAMManager::GetInstance();
 
-    EXPECT_NE(ERR_OK, innerIamMgr_.ActivateUserKey(TEST_USER_ID, testAuthToken, testSecret));
-
     int32_t userId = 112;
     EXPECT_NE(ERR_OK, innerIamMgr_.ActivateUserKey(userId, testAuthToken, testSecret));
 

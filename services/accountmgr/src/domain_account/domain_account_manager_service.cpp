@@ -14,7 +14,7 @@
  */
 
 #include "domain_account_manager_service.h"
-
+#include <securec.h>
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "account_permission_manager.h"
@@ -175,7 +175,12 @@ ErrCode DomainAccountManagerService::Auth(const DomainAccountInfo &info, const s
     if (result != ERR_OK) {
         return result;
     }
-    return InnerDomainAccountManager::GetInstance().Auth(info, password, callback);
+    result = InnerDomainAccountManager::GetInstance().Auth(info, password, callback);
+    if (!password.empty()) {
+        std::vector<uint8_t> &passwordRef = const_cast<std::vector<uint8_t> &>(password);
+        (void)memset_s(passwordRef.data(), passwordRef.size(), 0, passwordRef.size());
+    }
+    return result;
 }
 
 ErrCode DomainAccountManagerService::AuthWithParameters(const DomainAccountInfo &info,
@@ -187,7 +192,12 @@ ErrCode DomainAccountManagerService::AuthWithParameters(const DomainAccountInfo 
         ACCOUNT_LOGE("auth with parameters, check permission failed.");
         return result;
     }
-    return InnerDomainAccountManager::GetInstance().AuthWithParameters(info, password, authOptions, callback);
+    result = InnerDomainAccountManager::GetInstance().AuthWithParameters(info, password, authOptions, callback);
+    if (!password.empty()) {
+        std::vector<uint8_t> &passwordRef = const_cast<std::vector<uint8_t> &>(password);
+        (void)memset_s(passwordRef.data(), passwordRef.size(), 0, passwordRef.size());
+    }
+    return result;
 }
 
 ErrCode DomainAccountManagerService::AuthUser(int32_t userId, const std::vector<uint8_t> &password,
@@ -198,10 +208,15 @@ ErrCode DomainAccountManagerService::AuthUser(int32_t userId, const std::vector<
         return result;
     }
     if (userId < START_USER_ID) {
-        ACCOUNT_LOGE("invalid userId");
+        ACCOUNT_LOGE("invalid userId, userId=%{public}d", userId);
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
-    return InnerDomainAccountManager::GetInstance().AuthUser(userId, password, callback);
+    result = InnerDomainAccountManager::GetInstance().AuthUser(userId, password, callback);
+    if (!password.empty()) {
+        std::vector<uint8_t> &passwordRef = const_cast<std::vector<uint8_t> &>(password);
+        (void)memset_s(passwordRef.data(), passwordRef.size(), 0, passwordRef.size());
+    }
+    return result;
 }
 
 ErrCode DomainAccountManagerService::CancelAuth(const sptr<IDomainAccountCallback> &callback)
@@ -220,7 +235,7 @@ ErrCode DomainAccountManagerService::AuthWithPopup(int32_t userId, const sptr<ID
         return result;
     }
     if (userId < 0) {
-        ACCOUNT_LOGE("invalid userId");
+        ACCOUNT_LOGE("invalid userId, userId=%{public}d", userId);
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     return InnerDomainAccountManager::GetInstance().AuthWithPopup(userId, callback);
@@ -347,7 +362,7 @@ ErrCode DomainAccountManagerService::CheckPermission(IDomainAccountIpcCode code)
     }
     const auto& it = PERMISSIONMAP.find(code);
     if (it == PERMISSIONMAP.end()) {
-        ACCOUNT_LOGE("No specific permission defined for code %{public}d, returning OK", static_cast<int>(code));
+        ACCOUNT_LOGI("No specific permission defined for code %{public}d, returning OK", static_cast<int>(code));
         return ERR_OK;
     }
     const auto& requiredPermissions = it->second;
@@ -359,6 +374,7 @@ ErrCode DomainAccountManagerService::CheckPermission(IDomainAccountIpcCode code)
             return AccountPermissionManager::VerifyPermission(permission) == ERR_OK;
         });
     if (!hasAnyPermission) {
+        ACCOUNT_LOGE("Permission denied, code = %{public}d.", static_cast<int>(code));
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     return ERR_OK;

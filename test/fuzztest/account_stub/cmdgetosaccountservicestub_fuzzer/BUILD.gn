@@ -71,7 +71,6 @@ ohos_fuzztest("CmdGetOsAccountServiceStubFuzzTest") {
     "kv_store:distributeddata_inner",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
-    "selinux:libselinux",
   ]
 
   defines = [

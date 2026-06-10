@@ -17,6 +17,7 @@
 #include <vector>
 #include "account_error_no.h"
 #include "os_account_info.h"
+#include "os_account_subscribe_info.h"
 #include "os_account_user_callback.h"
 namespace OHOS {
 namespace AccountSA {
@@ -47,6 +48,7 @@ public:
     static ErrCode SendToStorageAccountRemove(OsAccountInfo &osAccountInfo);
     static ErrCode SendToStorageAccountStart(OsAccountInfo &osAccountInfo);
     static ErrCode SendToStorageAccountStop(OsAccountInfo &osAccountInfo);
+    static ErrCode SendToSamgrUserState(int32_t localId, OsAccountState state);
     static void PublishCommonEvent(
         const OsAccountInfo &osAccountInfo, const std::string &commonEvent, const std::string &operation);
     static ErrCode CheckAllAppDied(int32_t accountId);

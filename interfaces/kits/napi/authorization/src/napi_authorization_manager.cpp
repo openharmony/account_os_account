@@ -18,8 +18,11 @@
 #include <uv.h>
 #include <memory>
 #include <mutex>
+#include <thread>
+#include "account_constants.h"
 #include "account_log_wrapper.h"
 #include "authorization_client.h"
+#include "authorization_ui_extension_callback.h"
 #include "iconnect_ability_callback.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
@@ -33,19 +36,37 @@ using namespace OHOS::AccountSA;
 namespace OHOS {
 namespace AccountJsKit {
 namespace {
-const int32_t CANCEL_ERROR = 1;
-const int32_t DENIED_ERROR = 2;
 const size_t ARG_SIZE_ONE = 1;
 const size_t ARG_SIZE_TWO = 2;
 const size_t PARAM_ONE = 1;
 const size_t PARAM_ZERO = 0;
 static thread_local napi_ref authorizationRef_ = nullptr;
-const std::string EXTENSION_TYPE_KEY = "ability.want.params.uiExtensionType";
-const std::string UI_EXTENSION_TYPE = "sys/commonUI";
-const std::string TOKEN_KEY = "authResultToken";
-const std::string ACCOUNTID_KEY = "authResultAccountID";
-const std::string CODE_KEY = "authResultCode";
-const int32_t BACKGROUNT_ERROR = 1011;
+
+static ErrCode NotifyAuthorizationResultWithRetry(const sptr<IRemoteObject>& callback, int32_t errCode,
+    const std::vector<uint8_t>& iamToken = std::vector<uint8_t>(), int32_t accountId = -1,
+    int32_t resultCode = -1)
+{
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("Callback is nullptr");
+        return ERR_JS_INVALID_PARAMETER;
+    }
+    auto callbackProxy = iface_cast<AccountSA::IConnectAbilityCallback>(callback);
+    if (callbackProxy == nullptr) {
+        ACCOUNT_LOGE("ConnectAbilityCallback proxy is nullptr");
+        return ERR_JS_INVALID_PARAMETER;
+    }
+    int retryTimes = 0;
+    ErrCode ret = ERR_OK;
+    while (retryTimes < AccountSA::AuthorizationConstants::MAX_RETRY_TIME) {
+        ret = callbackProxy->OnResult(errCode, iamToken, accountId, resultCode);
+        if (ret == ERR_OK || (ret != Constants::E_IPC_ERROR && ret != Constants::E_IPC_SA_DIED)) {
+            break;
+        }
+        retryTimes++;
+        ACCOUNT_LOGE("UIExtensionCallback send result failed, code=%{public}d, retryTimes=%{public}d", ret, retryTimes);
+        std::this_thread::sleep_for(std::chrono::milliseconds(Constants::DELAY_FOR_EXCEPTION));
+    }
+    return ret;
 }
 
 static Ace::UIContent* GetUIContent(const std::shared_ptr<AcquireAuthorizationContext> &context)
@@ -65,188 +86,13 @@ static Ace::UIContent* GetUIContent(const std::shared_ptr<AcquireAuthorizationCo
 
     return uiContent;
 }
+} // namespace
 
-static ErrCode CreateUIExtensionMainThread(const std::shared_ptr<AcquireAuthorizationContext> &context,
-    const AAFwk::Want& want, const Ace::ModalUIExtensionCallbacks& uiExtensionCallbacks,
-    const std::shared_ptr<UIExtensionCallback>& uiExtCallback)
+UIExtensionCallback::UIExtensionCallback(const std::shared_ptr<AcquireAuthorizationContext>& context)
+    : context_(context)
 {
-    Ace::UIContent* uiContent = GetUIContent(context);
-    if (uiContent == nullptr) {
-        ACCOUNT_LOGE("Get ui content failed!");
-        return ERR_AUTHORIZATION_GET_CONTENT_ERROR;
-    }
-
-    Ace::ModalUIExtensionConfig config;
-    int32_t sessionId = uiContent->CreateModalUIExtension(want, uiExtensionCallbacks, config);
-    if (sessionId == 0) {
-        ACCOUNT_LOGE("Create component failed, sessionId is 0");
-        return ERR_AUTHORIZATION_CREATE_UI_EXTENSION_ERROR;
-    }
-    uiExtCallback->SetSessionId(sessionId);
-    context->sessionId = sessionId;
-    return ERR_OK;
-}
-
-static ErrCode CreateUIExtension(const std::shared_ptr<AcquireAuthorizationContext> &context,
-    const ConnectAbilityInfo &info, const sptr<IRemoteObject> &callback)
-{
-    if (context == nullptr) {
-        ACCOUNT_LOGE("Context is nullptr");
-        return ERR_AUTHORIZATION_CREATE_UI_EXTENSION_ERROR;
-    }
-    AAFwk::Want want;
-    want.SetElementName(info.bundleName, info.abilityName);
-    want.SetParam(EXTENSION_TYPE_KEY, UI_EXTENSION_TYPE);
-    std::string challengeStr;
-    TransVectorU8ToString(info.challenge, challengeStr);
-    want.SetParam("challenge", challengeStr);
-    std::fill(challengeStr.begin(), challengeStr.end(), '\0');
-    want.SetParam("privilege", info.privilege);
-    want.SetParam("description", info.description);
-    auto uiExtCallback = std::make_shared<UIExtensionCallback>(context);
-    Ace::ModalUIExtensionCallbacks uiExtensionCallbacks = {
-        [uiExtCallback](int32_t releaseCode) {
-            uiExtCallback->OnRelease(releaseCode);
-        },
-        [uiExtCallback](int32_t resultCode, const AAFwk::Want &result) {
-            uiExtCallback->OnResult(resultCode, result);
-        },
-        [uiExtCallback](const AAFwk::WantParams &receive) {
-            uiExtCallback->OnReceive(receive);
-        },
-        [uiExtCallback](int32_t code, const std::string &name, const std::string &message) {
-            uiExtCallback->OnError(code, name, message);
-        },
-        [uiExtCallback](const std::shared_ptr<Ace::ModalUIExtensionProxy> &uiProxy) {
-            uiExtCallback->OnRemoteReady(uiProxy);
-        },
-        [uiExtCallback]() {
-            uiExtCallback->OnDestroy();
-        },
-    };
-    uiExtCallback->SetCallBack(callback);
-    return CreateUIExtensionMainThread(context, want, uiExtensionCallbacks, uiExtCallback);
-}
-
-
-static ErrCode CloseUIExtension(const std::shared_ptr<AcquireAuthorizationContext> &asyncContext, int32_t sessionId)
-{
-    Ace::UIContent* uiContent = GetUIContent(asyncContext);
-    if (uiContent == nullptr) {
-        ACCOUNT_LOGE("Get ui content failed!");
-        return ERR_OK;
-    }
-    uiContent->CloseModalUIExtension(sessionId);
-    ACCOUNT_LOGI("Close end, sessionId: %{public}d", sessionId);
-    return ERR_OK;
-}
-
-UIExtensionCallback::UIExtensionCallback(const std::shared_ptr<AcquireAuthorizationContext> &context)
-{
-    context_ = context;
     isOnResult_.exchange(false);
-}
-
-void UIExtensionCallback::SetSessionId(int32_t sessionId)
-{
-    sessionId_ = sessionId;
-}
-
-void UIExtensionCallback::SetCallBack(const sptr<IRemoteObject> &callback)
-{
-    callback_ = callback;
-}
-
-/*
- * when UIExtensionAbility disconnect or use terminate or process die
- * releaseCode is 0 when process normal exit
- */
-void UIExtensionCallback::OnRelease(int32_t releaseCode)
-{
-    ACCOUNT_LOGI("enter OnRelease releaseCode:%{public}d", releaseCode);
-    if (!isOnResult_.load()) {
-        ReleaseHandler(ERR_AUTHORIZATION_CREATE_UI_EXTENSION_ERROR);
-    }
-}
-
-/*
- * when UIExtensionComponent init or turn to background or destroy UIExtensionAbility occur error
- */
-void UIExtensionCallback::OnError(int32_t code, const std::string &name, const std::string &message)
-{
-    ACCOUNT_LOGI("enter OnError errCode:%{public}d, name:%{public}s, message:%{public}s", code, name.c_str(),
-        message.c_str());
-    if (isOnResult_.load()) {
-        return;
-    }
-    if (code == BACKGROUNT_ERROR) {
-        ReleaseHandler(ERR_OK, AUTHORIZATION_INTERACTION_NOT_ALLOWED);
-    } else {
-        ReleaseHandler(ERR_AUTHORIZATION_CREATE_UI_EXTENSION_ERROR);
-    }
-}
-
-/*
- * when UIExtensionAbility use terminateSelfWithResult
- */
-void UIExtensionCallback::OnResult(int32_t resultCode, const OHOS::AAFwk::Want &result)
-{
-    ACCOUNT_LOGI("enter OnResult resultCode:%{public}d", resultCode);
-    if (this->context_ == nullptr) {
-        ACCOUNT_LOGE("Request context is null.");
-        return;
-    }
-    isOnResult_.exchange(true);
-    // terminal when error or cancel
-    if (resultCode == CANCEL_ERROR) {
-        return ReleaseHandler(ERR_OK, AUTHORIZATION_CANCELED);
-    }
-    if (resultCode == DENIED_ERROR) {
-        return ReleaseHandler(ERR_OK, AUTHORIZATION_DENIED);
-    }
-    if (resultCode != ERR_OK) {
-        return ReleaseHandler(ERR_AUTHORIZATION_CREATE_UI_EXTENSION_ERROR);
-    }
-    ACCOUNT_LOGI("ResultCode is %{public}d", resultCode);
-    std::vector<int> iamToken = result.GetIntArrayParam(TOKEN_KEY);
-    std::vector<uint8_t> tokenVec(iamToken.begin(), iamToken.end());
-    std::fill(iamToken.begin(), iamToken.end(), 0);
-    int32_t accountId = result.GetIntParam(ACCOUNTID_KEY, -1);
-    if (accountId == -1) {
-        ACCOUNT_LOGI("AccountId is %{public}d", accountId);
-        std::fill(tokenVec.begin(), tokenVec.end(), 0);
-        return ReleaseHandler(ERR_AUTHORIZATION_CREATE_UI_EXTENSION_ERROR);
-    }
-    ReleaseHandler(ERR_OK, AUTHORIZATION_SUCCESS, tokenVec, accountId);
-    std::fill(tokenVec.begin(), tokenVec.end(), 0);
-}
-
-/*
- * when UIExtensionAbility send message to UIExtensionComponent
- */
-void UIExtensionCallback::OnReceive(const OHOS::AAFwk::WantParams &request)
-{
-    ACCOUNT_LOGI("enter OnReceive");
-}
-
-/*
- * when UIExtensionComponent connect to UIExtensionAbility, ModalUIExtensionProxy will init,
- * UIExtensionComponent can send message to UIExtensionAbility by ModalUIExtensionProxy
- */
-void UIExtensionCallback::OnRemoteReady(const std::shared_ptr<OHOS::Ace::ModalUIExtensionProxy> &uiProxy)
-{
-    ACCOUNT_LOGI("enter OnRemoteReady");
-}
-
-/*
- * when UIExtensionComponent destructed
- */
-void UIExtensionCallback::OnDestroy()
-{
-    ACCOUNT_LOGI("enter OnDestroy");
-    if (!isOnResult_.load()) {
-        ReleaseHandler(ERR_AUTHORIZATION_CREATE_UI_EXTENSION_ERROR);
-    }
+    isReleased_.exchange(false);
 }
 
 void UIExtensionCallback::ReleaseHandler(int32_t errCode, AuthorizationResultCode resultCode,
@@ -254,24 +100,41 @@ void UIExtensionCallback::ReleaseHandler(int32_t errCode, AuthorizationResultCod
 {
     ACCOUNT_LOGI("enter ReleaseHandler code:%{public}d, resultCode:%{public}d", errCode,
         static_cast<int32_t>(resultCode));
-    if (callback_ == nullptr) {
-        CloseUIExtension(context_, sessionId_);
-        ACCOUNT_LOGE("Context or callback is nullptr");
-        return;
-    }
-    auto callbackProxy = iface_cast<IConnectAbilityCallback>(callback_);
-    if (callbackProxy == nullptr) {
-        CloseUIExtension(context_, sessionId_);
-        ACCOUNT_LOGE("ConnectAbilityCallback proxy is nullptr");
-        return;
-    }
     int32_t resultCodeInt = static_cast<int32_t>(resultCode);
-    ErrCode ret = callbackProxy->OnResult(errCode, iamToken, accountId, resultCodeInt);
-    if (ret != ERR_OK) {
-        ACCOUNT_LOGE("Failed to call iConnectAbilityCallback onResult, errCode:%{public}d", ret);
-    }
-    CloseUIExtension(context_, sessionId_);
+    NotifyAuthorizationResultWithRetry(callback_, errCode, iamToken, accountId, resultCodeInt);
+    CloseUIExtension();
     context_ = nullptr;
+}
+
+OHOS::Ace::UIContent* UIExtensionCallback::GetUIContent()
+{
+    if (context_ == nullptr) {
+        ACCOUNT_LOGE("Context is nullptr");
+        return nullptr;
+    }
+
+    OHOS::Ace::UIContent* uiContent = nullptr;
+    if (context_->uiAbilityFlag) {
+        if (context_->abilityContext != nullptr) {
+            uiContent = context_->abilityContext->GetUIContent();
+        }
+    } else if (context_->uiExtensionContext != nullptr) {
+        uiContent = context_->uiExtensionContext->GetUIContent();
+    }
+
+    return uiContent;
+}
+
+void UIExtensionCallback::CloseUIExtension()
+{
+    OHOS::Ace::UIContent* uiContent = GetUIContent();
+    if (uiContent == nullptr) {
+        ACCOUNT_LOGE("Get ui content failed!");
+        return;
+    }
+
+    uiContent->CloseModalUIExtension(sessionId_);
+    ACCOUNT_LOGI("Close end, sessionId: %{public}d", sessionId_);
 }
 
 static void AuthorizationResultToJs(napi_env env, const AuthorizationResult& result, napi_value &resultJs)
@@ -324,7 +187,7 @@ ErrCode NapiAuthorizationResultCallback::OnResult(int32_t errCode, const Authori
     asyncContextPtr->deferred = deferred_;
     asyncContextPtr->authorizationResult = result;
     if (context_ != nullptr && context_->hasOptions && context_->options.hasContext) {
-        CloseUIExtension(context_, context_->sessionId);
+        UIExtensionCallbackBase::CloseUIExtension(GetUIContent(context_), context_->sessionId);
     }
     auto task = OnAuthorizationResultTask(asyncContextPtr);
     if (napi_ok != napi_send_event(asyncContextPtr->env, task, napi_eprio_vip, "AuthorizationCallback OnResult")) {
@@ -339,19 +202,40 @@ std::function<void()> OnConnectAbilityTask(const std::shared_ptr<AcquireAuthoriz
     const ConnectAbilityInfo &info, const sptr<IRemoteObject> &callback)
 {
     return [context, info = std::move(info), callback] {
-        ErrCode errCode = CreateUIExtension(context, info, callback);
-        if (errCode == ERR_OK) {
+        if (context == nullptr) {
+            ACCOUNT_LOGE("Context is nullptr");
             return;
         }
-        auto connectCallback = iface_cast<IConnectAbilityCallback>(callback);
-        if (connectCallback == nullptr) {
-            ACCOUNT_LOGE("ConnectAbilityCallback proxy is nullptr");
-            std::string errMsg = "ConnectAbilityCallback proxy is nullptr.";
-            AccountNapiThrow(context->env, ERR_JS_SYSTEM_SERVICE_EXCEPTION, errMsg, context->throwErr);
+
+        auto uiExtCallback = std::make_shared<UIExtensionCallback>(context);
+        AAFwk::Want want = UIExtensionCallbackBase::BuildWantFromConnectInfo(info);
+        Ace::ModalUIExtensionCallbacks uiExtensionCallbacks =
+            UIExtensionCallbackBase::CreateUIExtensionCallbacks(uiExtCallback);
+
+        uiExtCallback->SetCallBack(callback);
+
+        OHOS::Ace::UIContent* uiContent = uiExtCallback->GetUIContent();
+        if (uiContent == nullptr) {
+            ACCOUNT_LOGE("Get ui content failed!");
+            auto connectCallback = iface_cast<AccountSA::IConnectAbilityCallback>(callback);
+            if (connectCallback != nullptr) {
+                std::vector<uint8_t> iamToken;
+                connectCallback->OnResult(ERR_AUTHORIZATION_GET_CONTENT_ERROR, iamToken, -1, -1);
+            }
             return;
         }
-        std::vector<uint8_t> iamToken;
-        connectCallback->OnResult(errCode, iamToken, -1, -1);
+
+        Ace::ModalUIExtensionConfig config;
+        int32_t sessionId = uiContent->CreateModalUIExtension(want, uiExtensionCallbacks, config);
+        if (sessionId == 0) {
+            ACCOUNT_LOGE("Create component failed, sessionId is 0");
+            NotifyAuthorizationResultWithRetry(callback, ERR_AUTHORIZATION_CREATE_UI_EXTENSION_ERROR);
+            return;
+        }
+
+        uiExtCallback->SetSessionId(sessionId);
+        context->sessionId = sessionId;
+        ACCOUNT_LOGI("CreateUIExtension success, sessionId: %{public}d", sessionId);
     };
 }
 

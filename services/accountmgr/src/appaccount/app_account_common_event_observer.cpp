@@ -35,7 +35,9 @@ namespace OHOS {
 namespace AccountSA {
 #ifdef HAS_CES_PART
 namespace {
+#ifndef FUZZ_TEST
 const char THREAD_COMMON_EVENT[] = "commonEvent";
+#endif
 constexpr int32_t DELAY_FOR_TIME_INTERVAL = 1 * 1000;
 constexpr int32_t MAX_TRY_TIMES = 10;
 }
@@ -66,9 +68,13 @@ AppAccountCommonEventObserver::AppAccountCommonEventObserver()
         this->SubscribeOsAccountEvent();
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
     };
+#ifdef FUZZ_TEST
+    task();
+#else
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), THREAD_COMMON_EVENT);
     taskThread.detach();
+#endif
 }
 
 AppAccountCommonEventObserver::~AppAccountCommonEventObserver()

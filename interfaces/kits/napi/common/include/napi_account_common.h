@@ -115,6 +115,7 @@ void ProcessCallbackOrPromise(napi_env env, const NapiAsyncContext *asyncContext
 void ReturnCallbackOrPromise(napi_env env, const CommonAsyncContext *asyncContext, napi_value err, napi_value data);
 void ReturnPromise(napi_env env, const CommonAsyncContext *asyncContext, napi_value err, napi_value data);
 bool GetCallbackProperty(napi_env env, napi_value obj, napi_ref &property, int argNum);
+bool GetCallbackPropertyWithoutNull(napi_env env, napi_value obj, napi_ref &property, int argNum);
 bool GetIntProperty(napi_env env, napi_value obj, int32_t &property);
 bool GetOptionIntProperty(napi_env env, napi_value obj, int32_t &property, bool &hasProperty);
 bool GetLongIntProperty(napi_env env, napi_value obj, int64_t &property);

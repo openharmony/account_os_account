@@ -20,6 +20,7 @@
       "os_account_multiple_active_accounts",
       "os_account_support_deactivate_main_os_account",
       "os_account_distributed_feature",
+      "os_account_enable_multiple_os_account_subspace",
       "os_account_enable_multiple_foreground_os_accounts",
       "os_account_enable_multiple_os_accounts",
       "os_account_enable_default_admin_name",
@@ -58,6 +59,7 @@
         "huks",
         "init",
         "ipc",
+        "json",
         "napi",
         "pin_auth",
         "runtime_core",
@@ -166,6 +168,15 @@
             ]
           },
           "name": "//base/account/os_account/frameworks/domain_account:domain_account_innerkits"
+        },
+        {
+          "header": {
+            "header_base":"//base/account/os_account/interfaces/innerkits/os_account_subspace/native/include",
+            "header_files": [
+              "os_account_subprofile_client.h"
+            ]
+          },
+          "name": "//base/account/os_account/frameworks/osaccount/native:os_account_innerkits"
         },
         {
           "header": {

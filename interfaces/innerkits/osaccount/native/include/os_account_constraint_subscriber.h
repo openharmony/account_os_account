@@ -40,7 +40,6 @@ public:
     void GetConstraintSet(std::set<std::string> &constraintSet) const;
     void SetConstraintSet(const std::set<std::string> &constraintSet);
     bool needAcross = true;
-    int32_t localId = -1;
 private:
     std::set<std::string> constraintSet_;
 };

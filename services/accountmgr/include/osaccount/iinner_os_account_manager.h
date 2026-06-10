@@ -95,6 +95,11 @@ public:
     ErrCode SetOsAccountIsLoggedIn(const int32_t id, const bool isLoggedIn) override;
     ErrCode GetOsAccountCredentialId(const int id, uint64_t &credentialId) override;
     ErrCode SetOsAccountCredentialId(const int id, uint64_t credentialId) override;
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    ErrCode SetOsAccountForegroundSubspaceId(int32_t localId, int32_t subspaceId);
+    ErrCode UpdateOsAccountSubspaceInfo(int32_t localId, int32_t nextSubProfileId,
+        const std::vector<std::string> &subProfileIdList);
+#endif
     ErrCode IsAllowedCreateAdmin(bool &isAllowedCreateAdmin) override;
     ErrCode GetCreatedOsAccountNumFromDatabase(const std::string& storeID,
         int &createdOsAccountNum) override;
@@ -128,6 +133,7 @@ public:
     ErrCode SetOsAccountToBeRemoved(int32_t localId, bool toBeRemoved) override;
     ErrCode SendMsgForAccountCreate(OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options = {});
     ErrCode GetOsAccountInfoById(const int id, OsAccountInfo &osAccountInfo);
+    ErrCode CheckLocalIdRestricted(int32_t localId);
     ErrCode GetTypeNumber(const OsAccountType& type, int32_t& typeNumber) override;
     ErrCode CheckTypeNumber(const OsAccountType& type) override;
     ErrCode ActivateDefaultOsAccount() override;
@@ -161,6 +167,7 @@ public:
     void RemoveLocalIdToOperating(int32_t localId);
     bool CheckAndAddLocalIdOperating(int32_t localId);
     OsAccountControlFileManager &GetFileController();
+    void UpdateAccountTypeCache(int32_t id, OsAccountType type, bool isRestricted);
 private:
     IInnerOsAccountManager();
     ~IInnerOsAccountManager() = default;
@@ -189,7 +196,8 @@ private:
     ErrCode SendMsgForAccountActivate(OsAccountInfo &osAccountInfo, const bool startStorage = true,
                                       const uint64_t dispalyId = 0, const bool isAppRecovery = false);
     ErrCode SendToStorageAccountStart(OsAccountInfo &osAccountInfo);
-    ErrCode SendToAMSAccountStart(OsAccountInfo &osAccountInfo, const uint64_t dispalyId, const bool isAppRecovery);
+    ErrCode SendToAMSAndSamgrAccountStart(OsAccountInfo &osAccountInfo, const uint64_t dispalyId,
+        const bool isAppRecovery);
     ErrCode SendMsgForAccountDeactivate(OsAccountInfo &osAccountInfo, bool isStopStorage = true);
     void SendMsgForAccountUnlocked(OsAccountInfo &osAccountInfo);
     void SendMsgForAccountSwitched(OsAccountInfo &osAccountInfo);
@@ -200,7 +208,6 @@ private:
     void CheckAndRefreshLocalIdRecord(const int id);
     void RollBackToEarlierAccount(int32_t fromId, int32_t toId, uint64_t displayId = 0);
     void RollbackOsAccount(OsAccountInfo &osAccountInfo, bool needDelStorage, bool needDelBms);
-    bool IsToBeRemoved(const int32_t localId);
     // operations for active list
     void PushIdIntoActiveList(int32_t id);
     void EraseIdFromActiveList(int32_t id);
@@ -213,11 +220,12 @@ private:
     ErrCode RetryToInsertOsAccount(OsAccountInfo &osAccountInfo);
     bool JudgeOsAccountUpdate(cJSON *accountIndexJson);
     std::shared_ptr<std::mutex> GetOrInsertUpdateLock(int32_t id);
-    ErrCode VerifyAndSetOsAccountTypeInTEE(int32_t id, OsAccountType type,
+    ErrCode SetOsAccountTypeInTEE(int32_t id, OsAccountType type,
         const std::optional<std::vector<uint8_t>>& token);
-    void UpdateAccountTypeCache(int32_t id, OsAccountType type);
 #ifdef SUPPORT_AUTHORIZATION
-    ErrCode RefreshAccountTypeInCache(int32_t id, OsAccountType localType, OsAccountType &outType);
+    ErrCode InsertOsAccountTypeToTee(int32_t localId, const OsAccountType &type, const std::vector<uint8_t>& token);
+    ErrCode RefreshAccountTypeInCache(
+        int32_t id, OsAccountType localType, std::pair<OsAccountType, bool> &outType);
 #endif // SUPPORT_AUTHORIZATION
     ErrCode UpdateAccountToBackground(int32_t oldId);
     ErrCode IsValidOsAccount(const OsAccountInfo &osAccountInfo);
@@ -253,7 +261,7 @@ private:
     mutable std::mutex createOsAccountMutex_;
     SafeMap<uint64_t, int32_t> foregroundAccountMap_;
 #ifdef SUPPORT_AUTHORIZATION
-    std::unique_ptr<OsAccountCacheManager> osAccountCacheManager_;  // Cache for OS account types
+    OsAccountCacheManager osAccountCacheManager_;  // Cache for OS account types
     OsAccountTeeAdapter teeAdapter_;  // TEE adapter for secure account operations
     std::mutex refreshTypeCacheLock_;
 #endif // SUPPORT_AUTHORIZATION
@@ -268,7 +276,7 @@ private:
     SafeMap<int32_t, bool> lockingAccounts_;
 #endif
     std::map<int32_t, std::shared_ptr<std::mutex>> updateLocks_;
-    
+
     // Helper functions for ActivateDefaultOsAccount
     ErrCode ActivateU1Account();
     ErrCode PrepareForDefaultAccount(int32_t activatedId, OsAccountInfo &osAccountInfo);

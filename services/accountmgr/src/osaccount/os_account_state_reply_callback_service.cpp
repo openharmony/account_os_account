@@ -58,6 +58,17 @@ OsAccountStateReplyCallbackService::OsAccountStateReplyCallbackService(int32_t a
     : accountId_(accountId), state_(state), cvPtr_(cvPtr), safeQueue_(safeQueue), subscriberUid_(subscriberUid)
 {}
 
+void OsAccountStateReplyCallbackService::CompleteInner()
+{
+    if (cvPtr_ == nullptr || safeQueue_ == nullptr) {
+        ACCOUNT_LOGE("CvPtr or SafeQueue is nullptr");
+        return;
+    }
+    uint8_t tmp;
+    safeQueue_->Pop(tmp);
+    cvPtr_->notify_one();
+}
+
 ErrCode OsAccountStateReplyCallbackService::OnComplete()
 {
     std::lock_guard lock(mutex_);
@@ -87,14 +98,20 @@ ErrCode OsAccountStateReplyCallbackService::OnComplete()
             + ", state=" + std::to_string(state_));
     }
     ACCOUNT_LOGI("Done, subscriberUid: %{public}d, state: %{public}d", subscriberUid_, state_);
-    if (cvPtr_ == nullptr || safeQueue_ == nullptr) {
-        ACCOUNT_LOGE("CvPtr or SafeQueue is nullptr");
-        return ERR_OK;
-    }
-    uint8_t tmp;
-    safeQueue_->Pop(tmp);
-    cvPtr_->notify_one();
+    CompleteInner();
     return ERR_OK;
+}
+
+void OsAccountStateReplyCallbackService::ForceComplete()
+{
+    std::lock_guard lock(mutex_);
+    if (isCompleted_) {
+        ACCOUNT_LOGE("Already completed, subscriberUid: %{public}d", subscriberUid_);
+        return;
+    }
+    isCompleted_ = true;
+    ACCOUNT_LOGI("ForceComplete, subscriberUid: %{public}d, state: %{public}d", subscriberUid_, state_);
+    CompleteInner();
 }
 
 void OsAccountStateReplyCallbackService::SetStartTime(const std::chrono::system_clock::time_point &startTime)

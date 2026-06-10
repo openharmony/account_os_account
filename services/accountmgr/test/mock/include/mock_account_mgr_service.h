@@ -79,8 +79,14 @@ public:
         funcResult = nullptr;
         return 0;
     }
-    
+
     ErrCode GetAuthorizationService(sptr<IRemoteObject>& funcResult) override
+    {
+        funcResult = nullptr;
+        return 0;
+    }
+
+    ErrCode GetOsAccountSubspaceService(sptr<IRemoteObject>& funcResult) override
     {
         funcResult = nullptr;
         return 0;
@@ -100,7 +106,56 @@ public:
     {
         return ERR_OK;
     }
+    ErrCode SubscribeDistributedAccountSpaceEvents(
+        const std::vector<int32_t>& typeInts, const sptr<IRemoteObject>& eventListener) override
+    {
+        return ERR_OK;
+    }
+    ErrCode UnsubscribeDistributedAccountSpaceEvents(
+        const std::vector<int32_t>& typeInts, const sptr<IRemoteObject>& eventListener) override
+    {
+        return ERR_OK;
+    }
 
+    ErrCode GetOsAccountForegroundSubProfileId(int32_t& subProfileId) override
+    {
+        subProfileId = 0;
+        return ERR_OK;
+    }
+
+    ErrCode GetOsAccountForegroundSubProfileId(int32_t osAccountId, int32_t& subProfileId) override
+    {
+        subProfileId = 0;
+        return ERR_OK;
+    }
+
+    ErrCode GetOsAccountSubProfileIds(std::vector<int32_t>& subProfileIds) override
+    {
+        return ERR_OK;
+    }
+
+    ErrCode GetOsAccountSubProfileIds(int32_t osAccountId, std::vector<int32_t>& subProfileIds) override
+    {
+        return ERR_OK;
+    }
+
+    ErrCode GetOsAccountLocalIdForSubProfile(int32_t subProfileId, int32_t& osAccountId) override
+    {
+        osAccountId = 0;
+        return ERR_OK;
+    }
+
+    ErrCode GetOsAccountSubProfile(int32_t subProfileId,
+        OsAccountSubspaceResult& subspaceResult, OhosAccountInfo& distributedInfo) override
+    {
+        return ERR_OK;
+    }
+
+    ErrCode GetOsAccountSubProfile(int32_t osAccountId, int32_t subProfileId,
+        OsAccountSubspaceResult& subspaceResult, OhosAccountInfo& distributedInfo) override
+    {
+        return ERR_OK;
+    }
 private:
     std::int32_t devAccountId_;
 };

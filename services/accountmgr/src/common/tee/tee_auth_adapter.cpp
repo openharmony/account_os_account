@@ -15,9 +15,7 @@
 
 #include "tee_auth_adapter.h"
 
-#include <fstream>
 #include <mutex>
-#include "account_file_operator.h"
 #include "account_log_wrapper.h"
 #include "tee_client_api.h"  // TEE API only included in .cpp file
 
@@ -35,6 +33,8 @@ namespace {
     constexpr TEEC_Result TEEC_ERROR_USER_TOKEN_INVALID = static_cast<TEEC_Result>(0x10000004);
     constexpr TEEC_Result TEEC_ERROR_USER_TOKEN_EXPIRED = static_cast<TEEC_Result>(0x10000005);
     constexpr TEEC_Result TEEC_ERROR_REACH_LIMIT = static_cast<TEEC_Result>(0xFFFF7108);
+    constexpr TEEC_Result TEEC_ERROR_NOT_ALLOW_RECOVERY = static_cast<TEEC_Result>(0x10000008);
+    constexpr TEEC_Result TEEC_ERROR_USER_ROLE_FAIL = static_cast<TEEC_Result>(0x10000009);
     uint8_t g_taPATH[] = "/vendor/bin/edab8b4f-3bfd-486d-863c-ca04744e49d0.sec";
     const TEEC_UUID ACCOUNT_TA_UUID = {
         0xedab8b4f, 0x3bfd, 0x486d,
@@ -75,7 +75,6 @@ public:
     ErrCode CheckTimestampExpired(const uint32_t grantTime, const int32_t period,
         int32_t &remainTimeSec, bool &isValid);
     ErrCode TaAcquireAuthorization(const ApplyUserTokenParam &param, ApplyUserTokenResult &result);
-    ErrCode GetEdmBinAndCert(std::vector<uint8_t> &binData, std::vector<uint8_t> &certData);
 
 private:
     /**
@@ -196,6 +195,10 @@ ErrCode OsAccountTeeAdapter::Impl::ConvertTeecErrCode(TEEC_Result teeResult)
             return ERR_ACCOUNT_COMMON_TEE_REACH_LIMIT;
         case TEEC_ERROR_USER_NOT_FOUND:
             return ERR_ACCOUNT_COMMON_TEE_ACCOUNT_NOT_EXIST;
+        case TEEC_ERROR_NOT_ALLOW_RECOVERY:
+            return ERR_ACCOUNT_COMMON_TEE_NOT_ALLOW_RECOVERY;
+        case TEEC_ERROR_USER_ROLE_FAIL:
+            return ERR_ACCOUNT_COMMON_TEE_USER_ROLE_FAIL;
         default:
             return ERR_ACCOUNT_COMMON_OPERATION_FAIL;
     }
@@ -459,41 +462,6 @@ ErrCode OsAccountTeeAdapter::Impl::TaAcquireAuthorization(
     return ERR_OK;
 }
 
-static ErrCode GetFileContextWithNoLock(const std::string &path, std::vector<uint8_t> &byteData)
-{
-    AccountFileOperator fileOperator;
-    ErrCode err = fileOperator.CheckFileExistence(path);
-    if (err != ERR_OK) {
-        ACCOUNT_LOGE("Check file existence failed, path=%{public}s, ret=%{public}d", path.c_str(), err);
-        return err;
-    }
-    byteData.clear();
-    std::ifstream file(path);
-    if (!file.is_open()) {
-        ACCOUNT_LOGE("Open file failed");
-        return ERR_ACCOUNT_COMMON_FILE_OPEN_FAILED;
-    }
-    std::copy(
-        std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>(), std::back_inserter(byteData));
-    return ERR_OK;
-}
-
-ErrCode OsAccountTeeAdapter::Impl::GetEdmBinAndCert(std::vector<uint8_t> &binData, std::vector<uint8_t> &certData)
-{
-    std::string binPath = "/data/service/el1/public/cust/enterprise/eda.bin";
-    std::string certPath = "/etc/edm/cacert.pem";
-    ErrCode errCode = GetFileContextWithNoLock(binPath, binData);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Failed to get eda.bin, errCode: %{public}d", errCode);
-        return errCode;
-    }
-    errCode = GetFileContextWithNoLock(certPath, certData);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Failed to get cacert.pem, errCode: %{public}d", errCode);
-    }
-    return errCode;
-}
-
 // Public interface implementation - delegates to pImpl
 OsAccountTeeAdapter::OsAccountTeeAdapter() : impl_(std::make_unique<Impl>()) {}
 OsAccountTeeAdapter::~OsAccountTeeAdapter() = default;
@@ -540,11 +508,6 @@ ErrCode OsAccountTeeAdapter::CheckTimestampExpired(const uint32_t grantTime, con
 ErrCode OsAccountTeeAdapter::TaAcquireAuthorization(const ApplyUserTokenParam &param, ApplyUserTokenResult &result)
 {
     return impl_->TaAcquireAuthorization(param, result);
-}
-
-ErrCode OsAccountTeeAdapter::GetEdmBinAndCert(std::vector<uint8_t> &binData, std::vector<uint8_t> &certData)
-{
-    return impl_->GetEdmBinAndCert(binData, certData);
 }
 } // namespace AccountSA
 } // namespace OHOS

@@ -394,7 +394,7 @@ HWTEST_F(OsAccountControlFileManagerUnitTest, OsAccountControlFileManagerTest018
     EXPECT_EQ(photo, STRING_PHOTO);
 
     std::vector<OsAccountInfo> osAccountInfos;
-    EXPECT_EQ(g_controlManager->GetOsAccountList(osAccountInfos), ERR_OK);
+    EXPECT_EQ(g_controlManager->GetOsAccountList(osAccountInfos, true), ERR_OK);
     for (auto info: osAccountInfos) {
         if (info.GetLocalId() == id) {
             EXPECT_EQ(info.GetPhoto(), STRING_PHOTO);

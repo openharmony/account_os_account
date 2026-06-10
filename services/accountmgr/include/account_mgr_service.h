@@ -31,6 +31,10 @@
 #include "singleton.h"
 #include "system_ability.h"
 
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+#include "os_account_subspace_manager_service.h"
+#endif
+
 namespace OHOS {
 namespace AccountSA {
 enum ServiceRunningState { STATE_NOT_START, STATE_RUNNING };
@@ -60,11 +64,29 @@ public:
     ErrCode QueryDeviceAccountId(std::int32_t &accountId) override;
     ErrCode SubscribeDistributedAccountEvent(int32_t typeInt, const sptr<IRemoteObject>& eventListener) override;
     ErrCode UnsubscribeDistributedAccountEvent(int32_t typeInt, const sptr<IRemoteObject>& eventListener) override;
+
+    ErrCode SubscribeDistributedAccountSpaceEvents(
+        const std::vector<int32_t>& typeInts, const sptr<IRemoteObject>& eventListener) override;
+    ErrCode UnsubscribeDistributedAccountSpaceEvents(
+        const std::vector<int32_t>& typeInts, const sptr<IRemoteObject>& eventListener) override;
+    int32_t GetOsAccountForegroundSubProfileId(int32_t &subProfileId) override;
+    int32_t GetOsAccountForegroundSubProfileId(int32_t osAccountId,
+        int32_t &subProfileId) override;
+    int32_t GetOsAccountSubProfileIds(std::vector<int32_t> &subProfileIds) override;
+    int32_t GetOsAccountSubProfileIds(int32_t osAccountId,
+        std::vector<int32_t> &subProfileIds) override;
+    int32_t GetOsAccountLocalIdForSubProfile(int32_t subProfileId,
+        int32_t &osAccountId) override;
+    int32_t GetOsAccountSubProfile(int32_t subProfileId,
+        OsAccountSubspaceResult &subspaceResult, OhosAccountInfo &distributedInfo) override;
+    int32_t GetOsAccountSubProfile(int32_t osAccountId, int32_t subProfileId,
+        OsAccountSubspaceResult &subspaceResult, OhosAccountInfo &distributedInfo) override;
     ErrCode GetAppAccountService(sptr<IRemoteObject>& funcResult) override;
     ErrCode GetOsAccountService(sptr<IRemoteObject>& funcResult) override;
     ErrCode GetAccountIAMService(sptr<IRemoteObject>& funcResult) override;
     ErrCode GetDomainAccountService(sptr<IRemoteObject>& funcResult) override;
     ErrCode GetAuthorizationService(sptr<IRemoteObject>& funcResult) override;
+    ErrCode GetOsAccountSubspaceService(sptr<IRemoteObject>& funcResult) override;
 
     void OnStart() override;
     void OnStop() override;
@@ -112,6 +134,7 @@ private:
     wptr<IRemoteObject> accountIAMService_ = nullptr;
     wptr<IRemoteObject> domainAccountMgrService_ = nullptr;
     wptr<IRemoteObject> authorizationManagerService_ = nullptr;
+    wptr<IRemoteObject> distributedAccountSpaceService_ = nullptr;
 
     std::mutex statusMutex_;
     bool isStorageReady_ = false;

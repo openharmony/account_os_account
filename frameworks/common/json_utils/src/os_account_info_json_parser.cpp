@@ -44,6 +44,15 @@ CJsonUnique ToJson(const OsAccountInfo &accountInfo)
     AddBoolToJson(jsonObject, IS_LOGGED_IN, accountInfo.isLoggedIn_);
     AddBoolToJson(jsonObject, IS_DATA_REMOVABLE, accountInfo.isDataRemovable_);
     AddIntToJson(jsonObject, CREATOR_TYPE, accountInfo.creatorType_);
+    AddIntToJson(jsonObject, VERSION, accountInfo.version_);
+
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    int32_t fgSubProfileId = (accountInfo.foregroundSubProfileId_ == -1) ?
+        accountInfo.localId_ * 1000 : accountInfo.foregroundSubProfileId_;
+    AddIntToJson(jsonObject, FOREGROUND_SUBPROFILE_ID, fgSubProfileId);
+    AddIntToJson(jsonObject, NEXT_SUBPROFILE_ID, accountInfo.nextSubProfileId_);
+    AddVectorStringToJson(jsonObject, SUBPROFILE_ID_LIST, accountInfo.subProfileIdList_);
+#endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 
     auto domainInfoObject = CreateJson();
     AddStringToJson(domainInfoObject, DOMAIN_NAME, accountInfo.domainInfo_.domain_);
@@ -82,6 +91,15 @@ bool FromJson(cJSON *jsonObject, OsAccountInfo &accountInfo)
     GetDataByType<bool>(jsonObject, IS_LOGGED_IN, accountInfo.isLoggedIn_);
     GetDataByType<bool>(jsonObject, IS_DATA_REMOVABLE, accountInfo.isDataRemovable_);
     GetDataByType<int32_t>(jsonObject, CREATOR_TYPE, accountInfo.creatorType_);
+    GetDataByType<int32_t>(jsonObject, VERSION, accountInfo.version_);
+
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    int32_t fgSubProfileId = accountInfo.localId_ * 1000;
+    GetDataByType<int32_t>(jsonObject, FOREGROUND_SUBPROFILE_ID, fgSubProfileId);
+    accountInfo.foregroundSubProfileId_ = fgSubProfileId;
+    GetDataByType<int32_t>(jsonObject, NEXT_SUBPROFILE_ID, accountInfo.nextSubProfileId_);
+    GetDataByType<std::vector<std::string>>(jsonObject, SUBPROFILE_ID_LIST, accountInfo.subProfileIdList_);
+#endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 
     CJson *typeJson = nullptr;
     GetDataByType<CJson *>(jsonObject, DOMAIN_INFO, typeJson);

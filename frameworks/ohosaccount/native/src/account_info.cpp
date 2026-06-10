@@ -54,7 +54,7 @@ bool OhosAccountInfo::Marshalling(Parcel& parcel) const
         ACCOUNT_LOGE("write avatar failed!");
         return false;
     }
-    if (!parcel.WriteParcelable(&(scalableData_))) {
+    if (!parcel.WriteString16(Str8ToStr16(scalableData_))) {
         ACCOUNT_LOGE("write scalableData failed!");
         return false;
     }
@@ -104,18 +104,32 @@ bool OhosAccountInfo::ReadFromParcel(Parcel& parcel)
         ACCOUNT_LOGE("read avatar failed");
         return false;
     }
-    sptr<AAFwk::Want> want = parcel.ReadParcelable<AAFwk::Want>();
-    if (want == nullptr) {
-        ACCOUNT_LOGE("read want failed");
+    std::u16string scalableData;
+    if (!parcel.ReadString16(scalableData)) {
+        ACCOUNT_LOGE("read scalableData failed");
         return false;
     }
     name_ = Str16ToStr8(name);
     uid_ = Str16ToStr8(uid);
     status_ = status;
     nickname_ = Str16ToStr8(nickname);
-    scalableData_ = *want;
+    scalableData_ = Str16ToStr8(scalableData);
     rawUid_ = Str16ToStr8(rawUid);
     return true;
+}
+
+OsAccountSubspaceResult* OsAccountSubspaceResult::Unmarshalling(Parcel &parcel)
+{
+    auto *info = new (std::nothrow) OsAccountSubspaceResult();
+    if (info == nullptr) {
+        return nullptr;
+    }
+    if (!parcel.ReadInt32(info->id) || !parcel.ReadInt32(info->osAccountId) ||
+        !parcel.ReadInt32(info->index)) {
+        delete info;
+        return nullptr;
+    }
+    return info;
 }
 
 bool OhosAccountInfo::ReadAvatarData(Parcel& parcel)

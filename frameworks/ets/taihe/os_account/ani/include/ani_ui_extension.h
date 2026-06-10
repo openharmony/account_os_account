@@ -24,6 +24,7 @@
 #include "ani.h"
 #include "authorization_callback.h"
 #include "authorization_common.h"
+#include "authorization_ui_extension_callback.h"
 #include "refbase.h"
 #include "ui_content.h"
 #include "ui_extension_context.h"
@@ -77,7 +78,7 @@ struct TaiheAcquireAuthorizationContext {
  * This class handles callbacks from the UI Extension during the
  * authorization process, managing lifecycle events and result handling.
  */
-class UIExtensionCallback {
+class UIExtensionCallback : public UIExtensionCallbackBase {
 public:
     /**
      * @brief Constructor with authorization context.
@@ -97,55 +98,16 @@ public:
     UIExtensionCallback& operator=(UIExtensionCallback&&) = delete;
 
     /**
-     * @brief Set the session ID.
-     * @param sessionId The session ID to set
+     * @brief Gets the UIContent from stage context.
+     * @return The UIContent pointer for creating/closing UI Extension.
      */
-    void SetSessionId(int32_t sessionId);
-
+    OHOS::Ace::UIContent* GetUIContent() override;
     /**
-     * @brief Set the callback object.
-     * @param callback The callback remote object
+     * @brief Closes the UI Extension for authorization.
      */
-    void SetCallBack(const sptr<IRemoteObject> &callback);
+    void CloseUIExtension() override;
 
-    /**
-     * @brief Handle release event.
-     * @param releaseCode The release code
-     */
-    void OnRelease(int32_t releaseCode);
-
-    /**
-     * @brief Handle result event.
-     * @param resultCode The result code
-     * @param result The result data
-     */
-    void OnResult(int32_t resultCode, const OHOS::AAFwk::Want &result);
-
-    /**
-     * @brief Handle receive event.
-     * @param request The received request parameters
-     */
-    void OnReceive(const OHOS::AAFwk::WantParams &request);
-
-    /**
-     * @brief Handle error event.
-     * @param code Error code
-     * @param name Error name
-     * @param message Error message
-     */
-    void OnError(int32_t code, const std::string &name, const std::string &message);
-
-    /**
-     * @brief Handle remote ready event.
-     * @param uiProxy The UI Extension proxy
-     */
-    void OnRemoteReady(const std::shared_ptr<OHOS::Ace::ModalUIExtensionProxy> &uiProxy);
-
-    /**
-     * @brief Handle destroy event.
-     */
-    void OnDestroy();
-
+protected:
     /**
      * @brief Release handler with authorization result.
      * @param code Release code
@@ -153,24 +115,21 @@ public:
      * @param iamToken IAM token
      * @param accountId Account ID
      */
-    void ReleaseHandler(int32_t code,
+    void ReleaseHandler(int32_t errCode,
         AccountSA::AuthorizationResultCode resultCode = AccountSA::AuthorizationResultCode::AUTHORIZATION_SUCCESS,
         const std::vector<uint8_t> &iamToken = std::vector<uint8_t>(),
-        int32_t accountId = -1);
+        int32_t accountId = -1) override;
 
 private:
-    int32_t sessionId_ = 0;
-    std::atomic<bool> isOnResult_{false};
-    std::vector<uint8_t> token_;
+    /** Authorization context containing stage context and options */
     std::shared_ptr<TaiheAcquireAuthorizationContext> context_ = nullptr;
-    sptr<IRemoteObject> callback_ = nullptr;
 };
 
 /**
  * @brief Close the UI Extension and release resources.
  * @param asyncContext The authorization context to close
  */
-void CloseUIExtension(std::shared_ptr<TaiheAcquireAuthorizationContext> &asyncContext);
+void CloseUIExtension(std::shared_ptr<TaiheAcquireAuthorizationContext>& asyncContext);
 
 /**
  * @brief Create a UI Extension for authorization.

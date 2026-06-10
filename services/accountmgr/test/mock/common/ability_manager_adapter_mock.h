@@ -17,8 +17,12 @@
 #define OS_ACCOUNT_SERVICE_ABILITY_MANAGER_ADAPTER_H
 
 #include <mutex>
+#include <vector>
 
 #include "ability_connect_callback_interface.h"
+#ifdef SUPPORT_AUTHORIZATION
+#include "extension_running_info.h"
+#endif
 #include "user_callback.h"
 #include "want.h"
 
@@ -91,11 +95,19 @@ public:
 
     /**
      * @brief all app is died.
-     * @param accountId accountId.
+     * * @param accountId accountId.
      *
      * @return Returns true on success, false on failure.
      */
     bool IsAllAppDied(int32_t accountId);
+#ifdef SUPPORT_AUTHORIZATION
+    ErrCode GetExtensionRunningInfos(std::vector<ExtensionRunningInfo> &infos, int upperLimit = 1000);
+#endif
+private:
+#ifdef SUPPORT_AUTHORIZATION
+    template <typename T>
+    int GetParcelableInfos(MessageParcel &reply, std::vector<T> &parcelableInfos);
+#endif
 };
 }  // namespace AAFwk
 }  // namespace OHOS

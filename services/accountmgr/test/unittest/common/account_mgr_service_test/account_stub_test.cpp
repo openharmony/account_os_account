@@ -23,6 +23,7 @@
 #undef private
 #include "account_info.h"
 #include "account_test_common.h"
+#include "distributed_account_event_service.h"
 #include "iaccount.h"
 #include "ipc_skeleton.h"
 #include "os_account_manager.h"
@@ -346,4 +347,37 @@ HWTEST_F(AccountStubModuleTest, UnSubscribeDistributedAccountEvent_001, TestSize
     sptr<IRemoteObject> eventListener = nullptr;
     EXPECT_EQ(accountService_->UnsubscribeDistributedAccountEvent(TEST_UID, eventListener),
         ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
+}
+
+/**
+ * @tc.name: AccountMgrServiceSubscribeDistributedAccountSpaceEvents001
+ * @tc.desc: Test SubscribeDistributedAccountSpaceEvents with nullptr eventListener - cover line 456
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountStubModuleTest, SubscribeDistributedAccountSpaceEvents001, TestSize.Level2)
+{
+    std::vector<int32_t> typeInts = {static_cast<int32_t>(DistributedAccountSubProfileEventType::CREATED)};
+    sptr<IRemoteObject> eventListener = nullptr;
+
+    ErrCode result = accountService_->SubscribeDistributedAccountSpaceEvents(typeInts, eventListener);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    result = accountService_->UnsubscribeDistributedAccountSpaceEvents(typeInts, eventListener);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    std::vector<int32_t> typeInts2;
+    result = accountService_->SubscribeDistributedAccountSpaceEvents(typeInts2, eventListener);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    result = accountService_->UnsubscribeDistributedAccountSpaceEvents(typeInts2, eventListener);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    eventListener = new (std::nothrow) DistributedAccountEventService();
+    result = accountService_->SubscribeDistributedAccountSpaceEvents(typeInts2, eventListener);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    result = accountService_->UnsubscribeDistributedAccountSpaceEvents(typeInts2, eventListener);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    result = accountService_->UnsubscribeDistributedAccountSpaceEvents(typeInts, eventListener);
+    EXPECT_NE(result, ERR_OK);
+    result = accountService_->SubscribeDistributedAccountSpaceEvents(typeInts, eventListener);
+    EXPECT_EQ(result, ERR_OK);
+    result = accountService_->UnsubscribeDistributedAccountSpaceEvents(typeInts, eventListener);
+    EXPECT_EQ(result, ERR_OK);
 }

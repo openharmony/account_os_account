@@ -37,7 +37,8 @@ public:
      * @param callback The inner authorization callback to forward events to
      * @param afterOnResult The cleanup function to call after OnResult completes
      */
-    AuthorizationCallbackService(const std::shared_ptr<AuthorizationCallback> &callback);
+    AuthorizationCallbackService(const std::shared_ptr<AuthorizationCallback> &callback,
+        std::function<void()> afterOnResult);
 
     /**
      * @brief Destructor.
@@ -72,6 +73,8 @@ public:
 private:
     /// The inner authorization callback to forward events to
     std::shared_ptr<AuthorizationCallback> innerCallback_ = nullptr;
+
+    std::function<void()> afterOnResult_ = nullptr;
 
     DISALLOW_COPY_AND_MOVE(AuthorizationCallbackService);
 };

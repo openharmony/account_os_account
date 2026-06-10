@@ -20,6 +20,7 @@
 #include "domain_account_common.h"
 #undef private
 #include "domain_account_client.h"
+#include "os_account_info_json_parser.h"
 #include "parcel.h"
 #include "want.h"
 using namespace testing;
@@ -76,8 +77,7 @@ void DomainAccountCommonModuleTest::TearDown(void)
  */
 HWTEST_F(DomainAccountCommonModuleTest, DomainAccountCommonModuleTest_GetAccessTokenOptions_001, TestSize.Level3)
 {
-    AAFwk::WantParams parameters;
-    GetAccessTokenOptions option(CALLING_UID, parameters);
+    GetAccessTokenOptions option(CALLING_UID, "");
     Parcel parcel;
     option.Marshalling(parcel);
     GetAccessTokenOptions *getAccessTokenOptions = option.Unmarshalling(parcel);
@@ -145,6 +145,49 @@ HWTEST_F(DomainAccountCommonModuleTest, DomainAccountInfo_ReadFromParcel_0100, T
     parcel.WriteString(test);
     parcel.WriteString(test);
     EXPECT_TRUE(info.ReadFromParcel(parcel));
+}
+
+/**
+ * @tc.name: DomainAccountCommonModuleTest_CreateOsAccountForDomainOptions_004
+ * @tc.desc: CreateOsAccountForDomainOptions Marshalling with disallowedHapList exceed max size.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountCommonModuleTest, DomainAccountCommonModuleTest_CreateOsAccountForDomainOptions_004,
+    TestSize.Level3)
+{
+    CreateOsAccountForDomainOptions options;
+    std::vector<std::string> disallowedHapList;
+    for (int32_t i = 0; i < DISALLOWED_HAP_LIST_MAX_SIZE + 1; i++) {
+        disallowedHapList.push_back("com.test.hap" + std::to_string(i));
+    }
+    options.disallowedHapList = disallowedHapList;
+    Parcel parcel;
+    EXPECT_FALSE(options.Marshalling(parcel));
+}
+
+/**
+ * @tc.name: DomainAccountCommonModuleTest_CreateOsAccountForDomainOptions_005
+ * @tc.desc: CreateOsAccountForDomainOptions ReadFromParcel with disallowedHapList exceed max size.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountCommonModuleTest, DomainAccountCommonModuleTest_CreateOsAccountForDomainOptions_005,
+    TestSize.Level3)
+{
+    Parcel parcel;
+    parcel.WriteInt32(0);
+    std::vector<std::string> disallowedHapList;
+    for (int32_t i = 0; i < DISALLOWED_HAP_LIST_MAX_SIZE + 1; i++) {
+        disallowedHapList.push_back("com.test.hap" + std::to_string(i));
+    }
+    parcel.WriteStringVector(disallowedHapList);
+    parcel.WriteString("testShortName");
+    parcel.WriteBool(true);
+    std::vector<uint8_t> token = {1, 2, 3, 4, 5};
+    parcel.WriteUInt8Vector(token);
+    CreateOsAccountForDomainOptions result;
+    EXPECT_FALSE(result.ReadFromParcel(parcel));
 }
 
 /**

@@ -95,9 +95,6 @@ ani_ref AniOsAccountTransfer::GenerateDynamic(ani_env *aniEnv, int64_t ptr)
     auto inputerData = std::shared_ptr<AccountSA::IInputerData>(
         rawPtr,
         [](AccountSA::IInputerData *p) {
-            if (p != nullptr) {
-                delete p;
-            }
         }
     );
     napi_env jsEnv;
@@ -108,12 +105,14 @@ ani_ref AniOsAccountTransfer::GenerateDynamic(ani_env *aniEnv, int64_t ptr)
     napi_value cons = AccountJsKit::GetCtorIInputerData(jsEnv, inputerData);
     if (cons == nullptr) {
         ACCOUNT_LOGD("failed to GetCtorIInputerData");
+        arkts_napi_scope_close_n(jsEnv, 0, nullptr, nullptr);
         return nullptr;
     }
     napi_value inputerDataVarCtor;
     napi_status napiStatus = napi_new_instance(jsEnv, cons, 0, nullptr, &inputerDataVarCtor);
     if (napi_status::napi_ok != napiStatus) {
         ACCOUNT_LOGE("Failed to napi_new_instance, status=%{public}d", napiStatus);
+        arkts_napi_scope_close_n(jsEnv, 0, nullptr, nullptr);
         return nullptr;
     }
     ani_ref outObj;

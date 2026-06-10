@@ -29,6 +29,10 @@
             "description":"Erase device data and system partitions"
         },
         {
+            "name":"ohos.privilege.manage_domain_account_server_configs",
+            "description":"Manage domain account server configs"
+        },
+        {
             "name":"ohos.privilege.format_data_disk",
             "description":"Formatting Data Disk"
         }

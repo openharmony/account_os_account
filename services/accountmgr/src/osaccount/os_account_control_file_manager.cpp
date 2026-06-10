@@ -149,7 +149,7 @@ void OsAccountControlFileManager::GetU1Config(const CJsonUnique &configJson, OsA
         config.u1AccountType = static_cast<OsAccountType>(type);
     }
     GetDataByType<std::string>(u1Json, SYSTEM_ACCOUNT_NAME, config.u1AccountName);
-    if (config.u1AccountName.length() > Constants::LOCAL_NAME_MAX_SIZE) {
+    if (config.u1AccountName.length() >= Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("Fail to get name:%{public}s from config.", config.u1AccountName.c_str());
         config.u1AccountName = "";
     }
@@ -406,13 +406,6 @@ void OsAccountControlFileManager::FileInit()
 #ifdef ENABLE_FILE_WATCHER
     accountFileWatcherMgr_.AddFileWatcher(-1, eventCallbackFunc_, Constants::ACCOUNT_LIST_FILE_JSON_PATH);
 #endif // ENABLE_FILE_WATCHER
-    if (!accountFileOperator_->IsJsonFileReady(Constants::ACCOUNT_INDEX_JSON_PATH)) {
-        ACCOUNT_LOGI("OsAccountControlFileManager there is no valid account index file, create!");
-        BuildAndSaveOsAccountIndexJsonFile();
-    }
-#ifdef ENABLE_FILE_WATCHER
-    accountFileWatcherMgr_.AddFileWatcher(-1, eventCallbackFunc_, Constants::ACCOUNT_INDEX_JSON_PATH);
-#endif // ENABLE_FILE_WATCHER
     if (!accountFileOperator_->IsJsonFileReady(Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH)) {
         ACCOUNT_LOGI("OsAccountControlFileManager there is no valid account list, create!");
         BuildAndSaveBaseOAConstraintsJsonFile();
@@ -516,22 +509,6 @@ void OsAccountControlFileManager::BuildAndSaveSpecificOAConstraintsJsonFile()
     }
 }
 
-void OsAccountControlFileManager::BuildAndSaveOsAccountIndexJsonFile()
-{
-    std::string accountIndex;
-    ErrCode result = GetAccountIndexInfo(accountIndex);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("Get account index info error code %{public}d.", result);
-        return;
-    }
-    std::lock_guard<std::mutex> lock(accountInfoFileLock_);
-    result = accountFileOperator_->InputFileByPathAndContent(Constants::ACCOUNT_INDEX_JSON_PATH, accountIndex);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("Failed to input account index info to file!");
-    }
-    return;
-}
-
 void OsAccountControlFileManager::RecoverAccountInfoDigestJsonFile()
 {
     std::string listInfoStr;
@@ -630,7 +607,7 @@ ErrCode OsAccountControlFileManager::GetOsAccountIdList(std::vector<int32_t> &id
     return errCode;
 }
 
-ErrCode OsAccountControlFileManager::GetOsAccountList(std::vector<OsAccountInfo> &osAccountList)
+ErrCode OsAccountControlFileManager::GetOsAccountList(std::vector<OsAccountInfo> &osAccountList, bool needPhoto)
 {
     osAccountList.clear();
     CJsonUnique accountListJson = nullptr;
@@ -661,7 +638,7 @@ ErrCode OsAccountControlFileManager::GetOsAccountList(std::vector<OsAccountInfo>
             continue;
         }
         if (GetOsAccountInfoById(id, osAccountInfo) == ERR_OK) {
-            if (osAccountInfo.GetPhoto() != "") {
+            if (needPhoto && (osAccountInfo.GetPhoto() != "")) {
                 std::string photo = osAccountInfo.GetPhoto();
                 GetPhotoById(osAccountInfo.GetLocalId(), photo);
                 osAccountInfo.SetPhoto(photo);
@@ -1133,47 +1110,6 @@ ErrCode OsAccountControlFileManager::UpdateAccountList(const std::string& idStr,
     return SaveAccountListToFileAndDataBase(accountListJson);
 }
 
-ErrCode OsAccountControlFileManager::UpdateAccountIndex(const OsAccountInfo &osAccountInfo, const bool isDelete)
-{
-    // private type account not write index to index file, don't check name in ValidateOsAccount
-    if (osAccountInfo.GetType() == OsAccountType::PRIVATE) {
-        return ERR_OK;
-    }
-    std::lock_guard<std::mutex> lock(accountInfoFileLock_);
-    CJsonUnique accountIndexJson = nullptr;
-    ErrCode result = GetAccountIndexFromFile(accountIndexJson);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("Get account index failed!");
-        return result;
-    }
-    std::string localIdStr = std::to_string(osAccountInfo.GetLocalId());
-    if (isDelete) {
-        if (!IsObject(accountIndexJson)) {
-            ACCOUNT_LOGE("Get os account index json data failed");
-            return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
-        }
-        DeleteItemFromJson(accountIndexJson, localIdStr);
-    } else {
-        auto accountBaseInfo = CreateJson();
-        AddStringToJson(accountBaseInfo, Constants::LOCAL_NAME, osAccountInfo.GetLocalName());
-        AddStringToJson(accountBaseInfo, Constants::SHORT_NAME, osAccountInfo.GetShortName());
-        AddObjToJson(accountIndexJson, localIdStr, accountBaseInfo);
-    }
-    std::string lastAccountIndexStr = PackJsonToString(accountIndexJson);
-    result = accountFileOperator_->InputFileByPathAndContent(Constants::ACCOUNT_INDEX_JSON_PATH, lastAccountIndexStr);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("Failed to input account index info to file!");
-        return result;
-    }
-#ifdef ENABLE_FILE_WATCHER
-    result = accountFileWatcherMgr_.AddAccountInfoDigest(lastAccountIndexStr, Constants::ACCOUNT_INDEX_JSON_PATH);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("Add digest for updating account index failed, result = %{public}d", result);
-    }
-#endif // ENABLE_FILE_WATCHER
-    return ERR_OK;
-}
-
 ErrCode OsAccountControlFileManager::SetNextLocalId(const int32_t &nextLocalId)
 {
     std::lock_guard<std::mutex> lock(operatingIdMutex_);
@@ -1194,35 +1130,6 @@ ErrCode OsAccountControlFileManager::SetNextLocalId(const int32_t &nextLocalId)
         ACCOUNT_LOGE("SetNextLocalId save accountListJson error.");
     }
     return result;
-}
-
-ErrCode OsAccountControlFileManager::RemoveAccountIndex(const int32_t id)
-{
-    CJsonUnique accountIndexJson = nullptr;
-    ErrCode result = GetAccountIndexFromFile(accountIndexJson);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("Get account index failed!");
-        return result;
-    }
-    std::string localIdStr = std::to_string(id);
-    if (!IsObject(accountIndexJson)) {
-        ACCOUNT_LOGE("Get os account index data failed");
-        return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
-    }
-    DeleteItemFromJson(accountIndexJson, localIdStr);
-    std::string lastAccountIndexStr = PackJsonToString(accountIndexJson);
-    result = accountFileOperator_->InputFileByPathAndContent(Constants::ACCOUNT_INDEX_JSON_PATH, lastAccountIndexStr);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("Failed to input account index info to file!");
-        return result;
-    }
-#ifdef ENABLE_FILE_WATCHER
-    result = accountFileWatcherMgr_.AddAccountInfoDigest(lastAccountIndexStr, Constants::ACCOUNT_INDEX_JSON_PATH);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("Add digest for account index failed, result = %{public}d", result);
-    }
-#endif // ENABLE_FILE_WATCHER
-    return ERR_OK;
 }
 
 ErrCode OsAccountControlFileManager::InsertOsAccount(OsAccountInfo &osAccountInfo)
@@ -1305,7 +1212,6 @@ ErrCode OsAccountControlFileManager::DelOsAccount(const int id)
         ACCOUNT_LOGE("Delete digest for distributed account failed, result = %{public}d", result);
     }
 #endif // ENABLE_FILE_WATCHER
-    RemoveAccountIndex(id);
     return UpdateAccountList(std::to_string(id), false);
 }
 
@@ -1489,53 +1395,6 @@ ErrCode OsAccountControlFileManager::GetAccountListFromFile(CJsonUnique &account
 #endif // defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
     }
     ACCOUNT_LOGD("End");
-    return ERR_OK;
-}
-
-ErrCode OsAccountControlFileManager::GetAccountIndexFromFile(CJsonUnique &accountIndexJson)
-{
-    std::string accountIndex;
-    if (!accountFileOperator_->IsJsonFileReady(Constants::ACCOUNT_INDEX_JSON_PATH)) {
-        ErrCode result = GetAccountIndexInfo(accountIndex);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("GetAccountIndexInfo error code %{public}d.", result);
-            return result;
-        }
-    } else {
-        ErrCode errCode = accountFileOperator_->GetFileContentByPath(Constants::ACCOUNT_INDEX_JSON_PATH, accountIndex);
-        if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("GetFileContentByPath failed! error code %{public}d.", errCode);
-            return errCode;
-        }
-    }
-    accountIndexJson = CreateJsonFromString(accountIndex);
-    if (accountIndexJson == nullptr) {
-        ACCOUNT_LOGE("parse os account info json data failed");
-        return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
-    }
-    return ERR_OK;
-}
-
-ErrCode OsAccountControlFileManager::GetAccountIndexInfo(std::string &accountIndexInfo)
-{
-    std::vector<OsAccountInfo> osAccountInfos;
-    ErrCode result = GetOsAccountList(osAccountInfos);
-    if (result != ERR_OK) {
-        return result;
-    }
-    auto accountIndexJson = osAccountInfos.empty() ? CreateJsonNull() : CreateJson();
-    for (auto account = osAccountInfos.begin(); account != osAccountInfos.end(); account++) {
-        // private account don't check name
-        if (account->GetType() == OsAccountType::PRIVATE) {
-            continue;
-        }
-        std::string localIdStr = std::to_string(account->GetLocalId());
-        auto accountIndexElement = CreateJson();
-        AddStringToJson(accountIndexElement, Constants::LOCAL_NAME, account->GetLocalName());
-        AddStringToJson(accountIndexElement, Constants::SHORT_NAME, account->GetShortName());
-        AddObjToJson(accountIndexJson, localIdStr, accountIndexElement);
-    }
-    accountIndexInfo = PackJsonToString(accountIndexJson);
     return ERR_OK;
 }
 

@@ -14,6 +14,7 @@
  */
 
 sequenceable AccountInfo..OHOS.AccountSA.OhosAccountInfo;
+sequenceable OsAccountSubspaceResult..OHOS.AccountSA.OsAccountSubspaceResult;
 sequenceable OHOS.IRemoteObject;
 
 option_stub_hooks on;
@@ -55,4 +56,25 @@ interface OHOS.AccountSA.IAccount {
     IRemoteObject GetDomainAccountService();
 
     IRemoteObject GetAuthorizationService();
+
+    IRemoteObject GetOsAccountSubspaceService();
+    void SubscribeDistributedAccountSpaceEvents([in] int[] typeInts, [in] IRemoteObject eventListener);
+
+    void UnsubscribeDistributedAccountSpaceEvents([in] int[] typeInts, [in] IRemoteObject eventListener);
+
+    void GetOsAccountForegroundSubProfileId([out] int subProfileId);
+
+    void GetOsAccountForegroundSubProfileId([in] int osAccountId, [out] int subProfileId);
+
+    void GetOsAccountSubProfileIds([out] int[] subProfileIds);
+
+    void GetOsAccountSubProfileIds([in] int osAccountId, [out] int[] subProfileIds);
+
+    void GetOsAccountLocalIdForSubProfile([in] int subProfileId, [out] int osAccountId);
+
+    void GetOsAccountSubProfile([in] int subProfileId,
+        [out] OsAccountSubspaceResult subspaceResult, [out] OhosAccountInfo distributedInfo);
+
+    void GetOsAccountSubProfile([in] int osAccountId, [in] int subProfileId,
+        [out] OsAccountSubspaceResult subspaceResult, [out] OhosAccountInfo distributedInfo);
 }

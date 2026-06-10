@@ -53,7 +53,9 @@ AccountSA::OhosAccountInfo ConvertToOhosAccountInfoTH(const DistributedInfo &inf
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
             return ret;
         }
-        ret.scalableData_.SetParams(params);
+        AAFwk::Want want;
+        want.SetParams(params);
+        ret.scalableData_ = want.ToString();
     }
     return ret;
 }
@@ -118,7 +120,6 @@ DistributedInfo CreateDistributedInfoFromAccountInfo(const OhosAccountInfo &info
 {
     return ConvertToDistributedInfoTH(info);
 }
-
 } // namespace AccountSA
 } // namespace OHOS
 

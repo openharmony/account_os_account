@@ -38,6 +38,7 @@ ohos_fuzztest("GetForegroundOsAccountLocalIdFuzzTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "ipc:ipc_single",
   ]
 
   defines = [

@@ -168,9 +168,52 @@ void OsAccountInfo::SetCreatorType(int32_t creatorType)
     creatorType_ = creatorType;
 }
 
+int32_t OsAccountInfo::GetVersion() const
+{
+    return version_;
+}
+
+void OsAccountInfo::SetVersion(int32_t version)
+{
+    version_ = version;
+}
+
+int32_t OsAccountInfo::GetForegroundSubProfileId() const
+{
+    if (foregroundSubProfileId_ == -1) {
+        return localId_ * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
+    }
+    return foregroundSubProfileId_;
+}
+
+void OsAccountInfo::SetForegroundSubProfileId(int32_t foregroundSubProfileId)
+{
+    foregroundSubProfileId_ = foregroundSubProfileId;
+}
+
+int32_t OsAccountInfo::GetNextSubProfileId() const
+{
+    return nextSubProfileId_;
+}
+
+void OsAccountInfo::SetNextSubProfileId(int32_t nextSubProfileId)
+{
+    nextSubProfileId_ = nextSubProfileId;
+}
+
+std::vector<std::string> OsAccountInfo::GetSubProfileIdList() const
+{
+    return subProfileIdList_;
+}
+
+void OsAccountInfo::SetSubProfileIdList(const std::vector<std::string> &subProfileIdList)
+{
+    subProfileIdList_ = subProfileIdList;
+}
+
 bool OsAccountInfo::SetDomainInfo(const DomainAccountInfo &domainInfo)
 {
-    if (domainInfo.accountName_.size() > Constants::LOCAL_NAME_MAX_SIZE) {
+    if (domainInfo.accountName_.size() >= Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("domain account name too long! %{public}zu.", domainInfo.accountName_.size());
         return false;
     }
@@ -304,7 +347,7 @@ ErrCode OsAccountInfo::ParamCheck()
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
-    if (localName_.size() > Constants::LOCAL_NAME_MAX_SIZE) {
+    if (localName_.size() >= Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("local name length %{public}zu is too long!", localName_.size());
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }

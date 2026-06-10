@@ -166,6 +166,7 @@ void InnerAccountIAMManager::UpdateCredential(
     if ((deathRecipient == nullptr) || object == nullptr ||
         ((object->IsProxyObject()) && (!object->AddDeathRecipient(deathRecipient)))) {
         ACCOUNT_LOGE("Failed to add death recipient for UpdateCred");
+        callback->OnResult(ResultCode::GENERAL_ERROR, emptyResult.Serialize());
         return;
     }
 
@@ -395,7 +396,7 @@ ErrCode InnerAccountIAMManager::GetDomainAuthStatusInfo(
     osAccountInfo.GetDomainInfo(domainAccountInfo);
     if (domainAccountInfo.accountName_.empty()) {
         ACCOUNT_LOGE("the target user is not a domain account");
-        return ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE;
+        return ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT;
     }
     std::shared_ptr<DomainAccountCallback> statusCallback =
         std::make_shared<GetDomainAuthStatusInfoCallback>(request, callback);
@@ -444,8 +445,9 @@ void InnerAccountIAMManager::GetProperty(
         callback->OnResult(result, attributes.Serialize());
     }
 #else
+    ACCOUNT_LOGW("Domain auth is not supported");
     Attributes attributes;
-    callback->OnResult(ResultCode::NOT_ENROLLED, attributes.Serialize());
+    callback->OnResult(ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT, attributes.Serialize());
 #endif // SUPPORT_DOMAIN_ACCOUNTS
 }
 

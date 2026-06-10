@@ -24,33 +24,33 @@ extern "C" {
 #endif
 static int32_t g_testErrCode = 123456;
 typedef void (*PluginAuthResultInfoCallback)(
-    uint64_t contextId, PluginAuthResultInfo *authResultInfo, PluginBussnessError *error);
-PluginBussnessError *Auth(const PluginDomainAccountInfo *domainAccountInfo, const PluginUint8Vector *credential,
+    uint64_t contextId, PluginAuthResultInfo *authResultInfo, PluginBusinessError *error);
+PluginBusinessError *Auth(const PluginDomainAccountInfo *domainAccountInfo, const PluginUint8Vector *credential,
     const int32_t callerLocalId, PluginAuthResultInfoCallback callback, uint64_t *contextId);
-PluginBussnessError *BindAccount(const PluginDomainAccountInfo *domainAccountInfo, const int32_t localId);
-PluginBussnessError *BindAccountError(const PluginDomainAccountInfo *domainAccountInfo, const int32_t localId);
-PluginBussnessError *GetAccountInfo(const PluginGetDomainAccountInfoOptions *options, const int32_t callerLocalId,
+PluginBusinessError *BindAccount(const PluginDomainAccountInfo *domainAccountInfo, const int32_t localId);
+PluginBusinessError *BindAccountError(const PluginDomainAccountInfo *domainAccountInfo, const int32_t localId);
+PluginBusinessError *GetAccountInfo(const PluginGetDomainAccountInfoOptions *options, const int32_t callerLocalId,
                                     PluginDomainAccountInfo **domainAccountInfo);
-PluginBussnessError *GetAccountServerConfig(const PluginDomainAccountInfo *domainAccountInfo,
+PluginBusinessError *GetAccountServerConfig(const PluginDomainAccountInfo *domainAccountInfo,
     PluginServerConfigInfo **serverConfigInfo);
-PluginBussnessError *GetAccountInfoError(const PluginGetDomainAccountInfoOptions *options, const int32_t callerLocalId,
+PluginBusinessError *GetAccountInfoError(const PluginGetDomainAccountInfoOptions *options, const int32_t callerLocalId,
     PluginDomainAccountInfo **domainAccountInfo);
-PluginBussnessError *IsAuthenticationExpired(const PluginDomainAccountInfo *domainAccountInfo,
+PluginBusinessError *IsAuthenticationExpired(const PluginDomainAccountInfo *domainAccountInfo,
                                              const PluginUint8Vector *token, int32_t *isValid);
-PluginBussnessError *SetAccountPolicy(const PluginString *parameters,
+PluginBusinessError *SetAccountPolicy(const PluginString *parameters,
     const PluginDomainAccountInfo *domainAccountInfo, const int32_t callerLocalId);
-PluginBussnessError *GetAccountPolicy(const PluginDomainAccountInfo *domainAccountInfo,
+PluginBusinessError *GetAccountPolicy(const PluginDomainAccountInfo *domainAccountInfo,
     const int32_t callerLocalId, PluginDomainAccountPolicy **domainAccountPolicy);
-PluginBussnessError *UpdateAccountInfo(const PluginDomainAccountInfo *domainAccountInfo,
+PluginBusinessError *UpdateAccountInfo(const PluginDomainAccountInfo *domainAccountInfo,
                                        const PluginDomainAccountInfo *newDomainAccountInfo);
-PluginBussnessError* UpdateServerConfig(const PluginString *serverConfigId, const PluginString *parameters,
+PluginBusinessError* UpdateServerConfig(const PluginString *serverConfigId, const PluginString *parameters,
     const int32_t localId, PluginServerConfigInfo **serverConfigInfo);
-PluginBussnessError *UnBindAccount(const PluginDomainAccountInfo *domainAccountInfo, const int32_t localId);
-PluginBussnessError *UnBindAccountError(const PluginDomainAccountInfo *domainAccountInfo, const int32_t localId);
-PluginBussnessError *AuthBlocking(const PluginDomainAccountInfo *domainAccountInfo, const PluginUint8Vector *credential,
+PluginBusinessError *UnBindAccount(const PluginDomainAccountInfo *domainAccountInfo, const int32_t localId);
+PluginBusinessError *UnBindAccountError(const PluginDomainAccountInfo *domainAccountInfo, const int32_t localId);
+PluginBusinessError *AuthBlocking(const PluginDomainAccountInfo *domainAccountInfo, const PluginUint8Vector *credential,
     const int32_t callerLocalId, PluginAuthResultInfoCallback callback, uint64_t *contextId);
-PluginBussnessError *CancelAuth(const uint64_t contextId);
-PluginBussnessError *AuthWithServerConfig(const PluginString *parameters,
+PluginBusinessError *CancelAuth(const uint64_t contextId);
+PluginBusinessError *AuthWithServerConfig(const PluginString *parameters,
     const PluginDomainAccountInfo *domainAccountInfo, const PluginUint8Vector *credential, const int32_t callerLocalId);
 
 int32_t GetCallingLocalId();

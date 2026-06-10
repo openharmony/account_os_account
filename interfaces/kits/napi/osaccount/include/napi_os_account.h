@@ -23,6 +23,7 @@
 #include <optional>
 #include <securec.h>
 #include "os_account_info.h"
+#include "account_info.h"
 #include "os_account_manager.h"
 #include "os_account_constraint_subscriber.h"
 #include "account_log_wrapper.h"
@@ -154,6 +155,13 @@ struct GetForegroundOALocalIdAsyncContext : public CommonAsyncContext {
 struct GetForegroundOADisplayIdAsyncContext : public CommonAsyncContext {
     int id = 0;
     uint64_t displayId = -1ull;
+};
+
+struct SubProfileAsyncContext : public CommonAsyncContext {
+    SubProfileAsyncContext() : CommonAsyncContext(nullptr, true) {}
+    int32_t osAccountId = 0;
+    int32_t subProfileId = 0;
+    OsAccountSubspaceResult result;
 };
 
 struct GetOAPhotoAsyncContext : public CommonAsyncContext {
@@ -295,6 +303,22 @@ struct BindDomainAccountAsyncContext : public CommonAsyncContext {
     int32_t localID = -1;
     DomainAccountInfo domainInfo;
 };
+
+struct GetOsAccountSubProfileInfoAsyncContext : public CommonAsyncContext {
+    int32_t localId = -1;
+    int32_t subProfileId = -1;
+    bool hasLocalId = false;
+    std::vector<int32_t> subProfileIds = {};
+};
+
+struct GetOsAccountSubProfileAsyncContext : public CommonAsyncContext {
+    int32_t localId = -1;
+    int32_t subProfileId = -1;
+    bool hasLocalId = false;
+    OsAccountSubspaceResult subspaceResult;
+    OhosAccountInfo distributedInfo;
+};
+
 
 napi_value OsAccountInit(napi_env env, napi_value exports);
 

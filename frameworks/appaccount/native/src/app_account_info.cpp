@@ -20,11 +20,76 @@
 #ifdef HAS_ASSET_PART
 #include <iomanip>
 #include <sstream>
+#include <dlfcn.h>
+#ifndef DLOPEN_OPENSSL
+#include <mutex>
 #include <openssl/sha.h>
 #endif
+#endif
 
+#ifdef DLOPEN_OPENSSL
+#ifdef __cplusplus
+extern "C" {
+#endif
+#define SHA_LBLOCK 16
+#define SHA256_CBLOCK (SHA_LBLOCK*4)
+
+struct sha256_state_st {
+    uint32_t h[8];
+    uint32_t Nl, Nh;
+    uint8_t data[SHA256_CBLOCK];
+    unsigned num, md_len;
+};
+
+#ifdef __cplusplus
+}
+#endif
+using SHA256_CTX = struct sha256_state_st;
+#endif // DLOPEN_OPENSSL
 namespace OHOS {
 namespace AccountSA {
+namespace {
+#ifdef DLOPEN_OPENSSL
+using SHA256_InitFunc = int (*)(SHA256_CTX *);
+using SHA256_UpdateFunc = int (*)(SHA256_CTX *, const void *, size_t);
+using SHA256_FinalFunc = int (*)(unsigned char *, SHA256_CTX *);
+using Clean_Func = void (*)();
+
+static std::mutex g_mutex;
+static void *g_opensslLib = nullptr;
+static SHA256_InitFunc SHA256_Init = nullptr;
+static SHA256_UpdateFunc SHA256_Update = nullptr;
+static SHA256_FinalFunc SHA256_Final = nullptr;
+static Clean_Func g_OpensslCleanFunc = nullptr;
+
+static bool LoadOpenSSL()
+{
+    if (g_opensslLib != nullptr) {
+        return true;
+    }
+    g_opensslLib = dlopen("libcrypto_openssl.z.so", RTLD_NOW);
+    if (g_opensslLib == nullptr) {
+        ACCOUNT_LOGE("Failed to load libcrypto.so: %{public}s", dlerror());
+        return false;
+    }
+    SHA256_Init = reinterpret_cast<SHA256_InitFunc>(dlsym(g_opensslLib, "SHA256_Init"));
+    SHA256_Update = reinterpret_cast<SHA256_UpdateFunc>(dlsym(g_opensslLib, "SHA256_Update"));
+    SHA256_Final = reinterpret_cast<SHA256_FinalFunc>(dlsym(g_opensslLib, "SHA256_Final"));
+    g_OpensslCleanFunc = reinterpret_cast<Clean_Func>(dlsym(g_opensslLib, "OPENSSL_cleanup"));
+    if (SHA256_Init == nullptr || SHA256_Update == nullptr || SHA256_Final == nullptr ||
+        g_OpensslCleanFunc == nullptr) {
+        ACCOUNT_LOGE("Failed to load OpenSSL functions");
+        if (g_OpensslCleanFunc != nullptr) {
+            g_OpensslCleanFunc();
+        }
+        dlclose(g_opensslLib);
+        g_opensslLib = nullptr;
+        return false;
+    }
+    return true;
+}
+#endif
+}
 
 bool OAuthTokenInfo::Marshalling(Parcel &parcel) const
 {
@@ -194,11 +259,24 @@ AppAccountAuthenticatorStringInfo* AppAccountAuthenticatorStringInfo::Unmarshall
 static void ComputeHash(const std::string &input, std::string &output)
 {
     unsigned char hash[HASH_LENGTH] = {0};
+#ifdef DLOPEN_OPENSSL
+    std::lock_guard<std::mutex> mutexLock(g_mutex);
+    if (!LoadOpenSSL()) {
+        ACCOUNT_LOGE("LoadOpenSSL failed in ComputeHash");
+        return;
+    }
+#endif
     SHA256_CTX sha256;
     SHA256_Init(&sha256);
     SHA256_Update(&sha256, input.c_str(), input.size());
     SHA256_Final(hash, &sha256);
-
+#ifdef DLOPEN_OPENSSL
+    if (g_opensslLib != nullptr) {
+        g_OpensslCleanFunc();
+        dlclose(g_opensslLib);
+        g_opensslLib = nullptr;
+    }
+#endif
     std::stringstream ss;
     for (std::uint32_t i = 0; i < HASH_LENGTH; ++i) {
         ss << std::hex << std::uppercase << std::setw(WIDTH_FOR_HEX) << std::setfill('0') << std::uint16_t(hash[i]);

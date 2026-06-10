@@ -181,7 +181,7 @@ DomainAccountAuthOptions *DomainAccountAuthOptions::Unmarshalling(Parcel &parcel
     return authOptions;
 }
 
-GetAccessTokenOptions::GetAccessTokenOptions(const int32_t &callingUid, const AAFwk::WantParams &getTokenParams)
+GetAccessTokenOptions::GetAccessTokenOptions(const int32_t &callingUid, const std::string &getTokenParams)
     : callingUid_(callingUid), getTokenParams_(getTokenParams)
 {}
 
@@ -194,13 +194,10 @@ bool GetAccessTokenOptions::ReadFromParcel(Parcel &parcel)
         ACCOUNT_LOGE("Failed to read callingUid");
         return false;
     }
-    auto param = parcel.ReadParcelable<AAFwk::WantParams>();
-    if (param == nullptr) {
-        ACCOUNT_LOGE("Failed to read wantParams");
+    if (!parcel.ReadString(getTokenParams_)) {
+        ACCOUNT_LOGE("Failed to read getTokenParams");
         return false;
     }
-    getTokenParams_ = (*param);
-    delete param;
     return true;
 }
 
@@ -210,7 +207,7 @@ bool GetAccessTokenOptions::Marshalling(Parcel &parcel) const
         ACCOUNT_LOGE("Failed to write callingUid");
         return false;
     }
-    if (!parcel.WriteParcelable(&getTokenParams_)) {
+    if (!parcel.WriteString(getTokenParams_)) {
         ACCOUNT_LOGE("Failed to write getTokenParams");
         return false;
     }
@@ -457,6 +454,10 @@ bool CreateOsAccountForDomainOptions::Marshalling(Parcel &parcel) const
             return false;
         }
     }
+    if (disallowedHapList.size() > DISALLOWED_HAP_LIST_MAX_SIZE) {
+        ACCOUNT_LOGE("Abnormal disallowedHapList data size, size %{public}zu", disallowedHapList.size());
+        return false;
+    }
     if (!parcel.WriteStringVector(disallowedHapList)) {
         ACCOUNT_LOGE("Failed to write disallowedHapList");
         return false;
@@ -512,6 +513,11 @@ bool CreateOsAccountForDomainOptions::ReadFromParcel(Parcel &parcel)
     }
     if (!parcel.ReadStringVector(&disallowedHapList)) {
         ACCOUNT_LOGE("Failed to read disallowedHapList.");
+        return false;
+    }
+    if (disallowedHapList.size() > DISALLOWED_HAP_LIST_MAX_SIZE) {
+        ACCOUNT_LOGE("Abnormal disallowedHapList data size reading from parcel, size %{public}zu",
+            disallowedHapList.size());
         return false;
     }
     if (!parcel.ReadString(shortName)) {
