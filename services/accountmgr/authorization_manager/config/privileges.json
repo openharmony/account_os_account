@@ -34,7 +34,7 @@
         },
         {
             "name":"ohos.privilege.format_data_disk",
-            "description":"Formatting Data Disk"
+            "description":"Formatting data disk"
         }
     ]
 }
