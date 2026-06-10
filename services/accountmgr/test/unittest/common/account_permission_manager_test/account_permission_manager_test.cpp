@@ -62,3 +62,36 @@ HWTEST_F(AccountPermissionManagerTest, AccountPermissionManager_VerifyPermission
     ErrCode result = AccountPermissionManager::VerifyPermission(DISTRIBUTED_DATASYNC);
     EXPECT_EQ(result, ERR_OK);
 }
+
+namespace {
+constexpr uint32_t TEST_TOKEN_ID_PERMISSION_GRANTED = 123456;
+constexpr uint32_t TEST_TOKEN_ID_PERMISSION_DENIED = 999999;
+}
+
+/**
+ * @tc.name: AccountPermissionManager_VerifyPermission_0200
+ * @tc.desc: Verify permission with valid tokenId and permission granted.
+ * @tc.type: FUNC
+ * @tc.require: issueNumber
+ */
+HWTEST_F(AccountPermissionManagerTest, AccountPermissionManager_VerifyPermission_0200, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AccountPermissionManager_VerifyPermission_0200");
+    const std::string permissionName = "ohos.permission.MANAGE_LOCAL_ACCOUNTS";
+    ErrCode result = AccountPermissionManager::VerifyPermission(TEST_TOKEN_ID_PERMISSION_GRANTED, permissionName);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AccountPermissionManager_VerifyPermission_0300
+ * @tc.desc: Verify permission with tokenId that has permission denied.
+ * @tc.type: FUNC
+ * @tc.require: issueNumber
+ */
+HWTEST_F(AccountPermissionManagerTest, AccountPermissionManager_VerifyPermission_0300, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AccountPermissionManager_VerifyPermission_0300");
+    const std::string permissionName = "ohos.permission.MANAGE_LOCAL_ACCOUNTS";
+    ErrCode result = AccountPermissionManager::VerifyPermission(TEST_TOKEN_ID_PERMISSION_DENIED, permissionName);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+}

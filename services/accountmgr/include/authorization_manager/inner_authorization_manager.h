@@ -16,6 +16,9 @@
 #ifndef OS_ACCOUNT_SERVICES_AUTHORIZATION_INCLUDE_INNER_AUTHORIZATION_MANAGER_H
 #define OS_ACCOUNT_SERVICES_AUTHORIZATION_INCLUDE_INNER_AUTHORIZATION_MANAGER_H
 
+#include <atomic>
+
+#include "account_iam_callback.h"
 #include "account_iam_client_callback.h"
 #include "authorization_common.h"
 #include "connect_ability_callback_stub.h"
@@ -24,7 +27,6 @@
 #include "ios_account_control.h"
 #include "privileges_map.h"
 #include "tee_auth_adapter.h"
-#include "account_iam_callback.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -69,7 +71,10 @@ public:
      */
     ErrCode OnResult(int32_t resultCode, const std::vector<uint8_t> &iamToken, int32_t accountId,
         int32_t iamResultCode) override;
-
+    void GetConnectInfo(ConnectAbilityInfo &info);
+    void UpdateAuthorizationResult(ErrCode errCode, AuthorizationResultCode &resultCode,
+        const std::vector<uint8_t> &taToken, int32_t remainValidityTime);
+    bool IsSameSession(std::string &sessionId);
 private:
     /// The callback function to invoke
     AcquireOnResultfunc func_ = nullptr;
@@ -77,6 +82,8 @@ private:
     AuthorizationResult result_;
     /// The connection ability information
     ConnectAbilityInfo info_;
+    ErrCode errCode_ = ERR_OK;
+    std::atomic<bool> hasUpdateAuthInfo_{false};
 };
 
 class AdminAuthCallback : public AuthenticationCallback {
@@ -141,8 +148,11 @@ public:
      * @param callingUid The UID of the calling process
      * @return ERR_OK on success, error code on failure
      */
-    ErrCode UpdateAuthInfo(const std::vector<uint8_t> &iamToken, int32_t accountId, int32_t callingPid);
+    ErrCode UpdateAuthInfo(const std::vector<uint8_t> &iamToken, int32_t accountId, int32_t callingPid,
+        const std::string &sessionId);
     bool HasExtensionConnect();
+    bool GetAuthSessionInfo(const std::vector<uint8_t> &inputChallenge, std::string &outSessionId,
+        std::vector<uint8_t> &outChallenge, int32_t widgetPid);
     /**
      * @brief Applies TA authorization and updates privilege cache.
      *
@@ -261,8 +271,9 @@ private:
      * @param options The authorization options
      * @param config The OS account configuration
      * @param info Output connect ability information
+     * @return ERR_OK on success, error code on failure
      */
-    void InitializeConnectAbilityInfo(const PrivilegeBriefDef &pdef, const AcquireAuthorizationOptions &options,
+    ErrCode InitializeConnectAbilityInfo(const PrivilegeBriefDef &pdef, const AcquireAuthorizationOptions &options,
         const OsAccountConfig &config, ConnectAbilityInfo &info);
 
     /**
@@ -277,7 +288,6 @@ private:
     ErrCode StartUIExtensionConnection(const ConnectAbilityInfo &info, const std::string &uiAbilityName,
         const sptr<IAuthorizationCallback> &callback, const AuthorizationResult &result,
         const sptr<IRemoteObject> &requestRemoteObj);
-    
     ErrCode ValidateUIExtensionParams(const ConnectAbilityInfo &info,
         const sptr<IAuthorizationCallback> &callback, const sptr<IRemoteObject> &requestRemoteObj);
     ErrCode StartUIExtensionTask(const ConnectAbilityInfo &uiInfo,
@@ -286,7 +296,7 @@ private:
     void ExecuteUIExtensionTask(const ConnectAbilityInfo &uiInfo,
         const sptr<ConnectAbilityCallback> &connectCallback, const sptr<IAuthorizationCallback> &callback,
         const sptr<IRemoteObject> &requestRemoteObj);
-    void StoreCallbackMaps(const ConnectAbilityInfo &uiInfo,
+    bool StoreCallbackMaps(const ConnectAbilityInfo &uiInfo,
         const sptr<IAuthorizationCallback> &callback, const sptr<ConnectAbilityCallback> &connectCallback,
         const sptr<IRemoteObject> &requestRemoteObj);
 
@@ -302,6 +312,8 @@ private:
     ErrCode StartServiceExtensionConnection(ConnectAbilityInfo &info, const std::string &serviceAbilityName,
         sptr<IAuthorizationCallback> &callback, AuthorizationResult &result,
         const sptr<IRemoteObject> &requestRemoteObj);
+
+    bool VerifyWidget(const std::string &bundleName);
 
     DISALLOW_COPY_AND_MOVE(InnerAuthorizationManager);
 };

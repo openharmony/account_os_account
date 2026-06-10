@@ -19,7 +19,10 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
+const std::string TEST_AUTH_APP_BUNDLE = "com.example.authapp";
+const std::string PERMISSION_START_SYSTEM_DIALOG = "ohos.permission.START_SYSTEM_DIALOG";
 const std::string STRING_BUNDLE_NAME_NOT_INSTALLED = "com.example.not_installed";
+const std::string STRING_BUNDLE_GET_FAIL = "com.example.get_fail";
 const std::string STRING_OWNER = "com.example.owner";
 const std::string STRING_NORMAL_BUNDLENAME = "com.example.normal.bundle";
 const std::string STRING_BUNDLEINFO_WITH_NO_VALID_EXTENSION = "com.bundleInfo.noExtension";
@@ -30,6 +33,9 @@ const std::string STRING_ABILITY_NAME_TWO = "com.example.owner.MainAbility2";
 const std::string STRING_ABILITY_NAME_WITH_NO_INFO = "com.example.owner.MainAbilityWithNoInfo";
 const std::string STRING_ABILITY_NAME_WITH_CONNECT_FAILED = "com.example.MainAbilityWithConnectFailed";
 const std::string STRING_ABILITY_NAME_WITH_NO_PROXY = "com.example.MainAbilityWithNoProxy";
+constexpr int32_t TEST_ACCESS_TOKEN_ID_NORMAL_BUNDLE = 789012;
+constexpr int32_t TEST_ACCESS_TOKEN_ID_AUTH_APP = 100001;
+constexpr int32_t TEST_ACCESS_TOKEN_ID_OWNER = 123456;
 }  // namespace
 
 BundleManagerAdapter *BundleManagerAdapter::GetInstance()
@@ -78,11 +84,12 @@ ErrCode BundleManagerAdapter::CreateNewBundleDir(int32_t userId)
 bool BundleManagerAdapter::GetBundleInfo(const std::string &bundleName, const AppExecFwk::BundleFlag flag,
     AppExecFwk::BundleInfo &bundleInfo, int32_t userId)
 {
-    ACCOUNT_LOGI("mock enter, bundleName = %{public}s", bundleName.c_str());
+    ACCOUNT_LOGI("mock enter, bundleName = %{public}s, userId = %{public}d.", bundleName.c_str(), userId);
     if (bundleName == STRING_BUNDLE_NAME_NOT_INSTALLED) {
         return false;
     }
     if (bundleName == STRING_NORMAL_BUNDLENAME) {
+        bundleInfo.applicationInfo.accessTokenId = TEST_ACCESS_TOKEN_ID_NORMAL_BUNDLE;
         AppExecFwk::ExtensionAbilityInfo extensionInfo;
         extensionInfo.name = STRING_ABILITY_NAME;
         extensionInfo.type = AppExecFwk::ExtensionAbilityType::APP_ACCOUNT_AUTHORIZATION;
@@ -107,6 +114,20 @@ bool BundleManagerAdapter::GetBundleInfo(const std::string &bundleName, const Ap
         extensionInfo2.name = STRING_ABILITY_NAME_TWO;
         extensionInfo2.type = AppExecFwk::ExtensionAbilityType::APP_ACCOUNT_AUTHORIZATION;
         bundleInfo.extensionInfos.emplace_back(extensionInfo2);
+        return true;
+    }
+    if (bundleName == TEST_AUTH_APP_BUNDLE) {
+        std::vector<std::string> reqPermissions;
+        reqPermissions.emplace_back(PERMISSION_START_SYSTEM_DIALOG);
+        bundleInfo.reqPermissions = reqPermissions;
+        bundleInfo.applicationInfo.accessTokenId = TEST_ACCESS_TOKEN_ID_AUTH_APP;
+        return true;
+    }
+    if (bundleName == STRING_BUNDLE_GET_FAIL) {
+        return false;
+    }
+    if (bundleName == STRING_OWNER) {
+        bundleInfo.applicationInfo.accessTokenId = TEST_ACCESS_TOKEN_ID_OWNER;
         return true;
     }
     return true;

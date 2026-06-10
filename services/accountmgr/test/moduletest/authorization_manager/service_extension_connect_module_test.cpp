@@ -108,6 +108,11 @@ bool AddStringToJson(CJsonUnique& jsonObj, const std::string& key, const std::st
     return g_addStringToJson;
 }
 
+ErrCode OpenSmartPidFd(const int32_t pid, SmartPidFd &fdPtr)
+{
+    return ERR_OK;
+}
+
 bool AddIntToJson(CJsonUnique& jsonObj, const std::string& key, int32_t value)
 {
     g_addIntToJsonCallCount++;

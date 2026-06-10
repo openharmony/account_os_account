@@ -98,8 +98,8 @@ bool ConnectAbilityInfo::ReadFromParcel(Parcel &parcel)
         ACCOUNT_LOGE("Read callingPid failed.");
         return false;
     }
-    if (!parcel.ReadUInt8Vector(&challenge)) {
-        ACCOUNT_LOGE("Read challenge failed.");
+    if (!parcel.ReadString(sessionId)) {
+        ACCOUNT_LOGE("Read sessionId failed.");
         return false;
     }
     return true;
@@ -138,8 +138,8 @@ bool ConnectAbilityInfo::Marshalling(Parcel &parcel) const
         ACCOUNT_LOGE("Failed to write callingPid.");
         return false;
     }
-    if (!parcel.WriteUInt8Vector(challenge)) {
-        ACCOUNT_LOGE("Failed to write bundleName.");
+    if (!parcel.WriteString(sessionId)) {
+        ACCOUNT_LOGE("Failed to write sessionId.");
         return false;
     }
     return true;
@@ -155,6 +155,7 @@ ConnectAbilityInfo& ConnectAbilityInfo::operator=(const ConnectAbilityInfo& othe
         callingUid = other.callingUid;
         callingPid = other.callingPid;
         challenge = other.challenge;
+        sessionId = other.sessionId;
         timeout = other.timeout;
         callingBundleName = other.callingBundleName;
     }

@@ -113,11 +113,7 @@ AAFwk::Want UIExtensionCallbackBase::BuildWantFromConnectInfo(const ConnectAbili
     want.SetElementName(info.bundleName, info.abilityName);
     want.SetParam(AuthorizationConstants::EXTENSION_TYPE_KEY, AuthorizationConstants::UI_EXTENSION_TYPE);
 
-    std::string challengeStr;
-    TransVectorU8ToString(info.challenge, challengeStr);
-    want.SetParam("challenge", challengeStr);
-    std::fill(challengeStr.begin(), challengeStr.end(), '\0');
-
+    want.SetParam("challenge", info.sessionId);
     want.SetParam("privilege", info.privilege);
     want.SetParam("description", info.description);
 

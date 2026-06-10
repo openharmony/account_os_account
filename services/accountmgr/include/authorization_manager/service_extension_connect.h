@@ -22,6 +22,7 @@
 #include <condition_variable>
 #include "ability_connection.h"
 #include "iauthorization_callback.h"
+#include "privilege_utils.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -256,6 +257,7 @@ private:
     ErrCode CreateStubAndConnect(const ConnectAbilityInfo &info,
         const sptr<IAuthorizationCallback> &callback, const AuthorizationResult &authorizationResult);
 
+    void ClearMemberVariables();
     DISALLOW_COPY_AND_MOVE(SessionAbilityConnection);
 
     ErrCode errCode_ = ERR_OK;
@@ -279,6 +281,7 @@ private:
     int32_t localId_ = -1;
     /// Flag indicating whether authorization callback is registered
     std::atomic<bool> hasAuthCallback_ = false;
+    SmartPidFd pidFdPtr_ = nullptr;
 };
 }
 }

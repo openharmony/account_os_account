@@ -80,13 +80,13 @@ protected:
 #ifdef SUPPORT_AUTHORIZATION
 class AuthorizationAuthCallback : public AuthCallback {
 public:
-    AuthorizationAuthCallback(uint32_t userId, AuthType authType, AuthIntent authIntent,
-        const sptr<IIDMCallback> &callback);
+    AuthorizationAuthCallback(AuthParam &authParam, const sptr<IIDMCallback> &callback, const std::string &sessionId);
     virtual ~AuthorizationAuthCallback() = default;
 
     void OnResult(int32_t result, const Attributes &extraInfo) override;
 
 private:
+    std::string sessionId_;
     int32_t callingUid_ = -1;
     int32_t callingPid_ = -1;
 };

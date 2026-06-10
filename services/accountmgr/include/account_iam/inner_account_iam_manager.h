@@ -82,6 +82,8 @@ public:
 private:
     InnerAccountIAMManager();
     ~InnerAccountIAMManager() = default;
+    std::shared_ptr<AuthCallback> CreateAuthCallbackWrapper(
+        AuthParam &authParam, const sptr<IIDMCallback> &callback);
     DISALLOW_COPY_AND_MOVE(InnerAccountIAMManager);
 #ifdef HAS_STORAGE_PART
     sptr<StorageManager::IStorageManager> GetStorageManagerProxy();

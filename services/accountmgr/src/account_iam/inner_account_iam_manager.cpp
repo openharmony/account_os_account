@@ -22,6 +22,9 @@
 #include "domain_account_callback_service.h"
 #include "account_hisysevent_adapter.h"
 #include "iinner_os_account_manager.h"
+#ifdef SUPPORT_AUTHORIZATION
+#include "inner_authorization_manager.h"
+#endif // SUPPORT_AUTHORIZATION
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
 #include "inner_domain_account_manager.h"
 #endif // SUPPORT_DOMAIN_ACCOUNTS
@@ -332,16 +335,10 @@ int32_t InnerAccountIAMManager::AuthUser(
         ACCOUNT_LOGE("failed to add death recipient for auth callback");
         return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
     }
-    std::shared_ptr<AuthCallback> callbackWrapper= nullptr;
-#ifdef SUPPORT_AUTHORIZATION
-    if (static_cast<int32_t>(authParam.authIntent) == AUTHORIZATION_INTENT_NUM) {
-        callbackWrapper = std::make_shared<AuthorizationAuthCallback>(authParam.userId,
-            authParam.authType, authParam.authIntent, callback);
-    }
-#endif // SUPPORT_AUTHORIZATION
+    std::shared_ptr<AuthCallback> callbackWrapper = CreateAuthCallbackWrapper(authParam, callback);
     if (callbackWrapper == nullptr) {
-        callbackWrapper = std::make_shared<AuthCallback>(authParam.userId,
-            authParam.authType, authParam.authIntent, (authParam.remoteAuthParam != std::nullopt), callback);
+        ACCOUNT_LOGE("CreateAuthCallbackWrapper failed, authIntent=%{public}d", authParam.authIntent);
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     callbackWrapper->SetDeathRecipient(deathRecipient);
     UserIam::UserAuth::AuthParam iamAuthParam;
@@ -350,6 +347,28 @@ int32_t InnerAccountIAMManager::AuthUser(
     contextId = UserAuthClient::GetInstance().BeginAuthentication(iamAuthParam, callbackWrapper);
     deathRecipient->SetContextId(contextId);
     return ERR_OK;
+}
+
+std::shared_ptr<AuthCallback> InnerAccountIAMManager::CreateAuthCallbackWrapper(
+    AuthParam &authParam, const sptr<IIDMCallback> &callback)
+{
+#ifdef SUPPORT_AUTHORIZATION
+    if (static_cast<int32_t>(authParam.authIntent) == AUTHORIZATION_INTENT_NUM) {
+        std::string sessionId;
+        std::vector<uint8_t> challenge;
+        bool ret = InnerAuthorizationManager::GetInstance().GetAuthSessionInfo(
+            authParam.challenge, sessionId, challenge, IPCSkeleton::GetCallingPid());
+        if (!ret) {
+            ACCOUNT_LOGE("GetAuthSessionInfo failed, sessionId=%{private}s", sessionId.c_str());
+            return nullptr;
+        }
+        authParam.challenge = challenge;
+        std::fill(challenge.begin(), challenge.end(), 0);
+        return std::make_shared<AuthorizationAuthCallback>(authParam, callback, sessionId);
+    }
+#endif // SUPPORT_AUTHORIZATION
+    return std::make_shared<AuthCallback>(authParam.userId,
+        authParam.authType, authParam.authIntent, (authParam.remoteAuthParam != std::nullopt), callback);
 }
 
 int32_t InnerAccountIAMManager::CancelAuth(uint64_t contextId)
