@@ -91,8 +91,8 @@ std::string TransformIntoAccountOperationJson(
     int64_t happenTime = wallTimeNS / NANO_TO_MILLI;
     int64_t happenTimeNS = wallTimeNS % NANO_TO_MILLI;
     AddStringToJson(jsonResult, "bootTime", std::to_string(bootTime));
-    AddStringToJson(jsonResult, "happenTime", std::to_string(happenTime));
-    AddStringToJson(jsonResult, "happenTimeNS", std::to_string(happenTimeNS));
+    AddDoubleToJson(jsonResult, "happenTime", static_cast<double>(happenTime));
+    AddDoubleToJson(jsonResult, "happenTimeNS", static_cast<double>(happenTimeNS));
     return PackJsonToString(jsonResult);
 #else
     return "";

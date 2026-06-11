@@ -22,14 +22,22 @@ namespace AccountSA {
 
 static void ParseTokenInfosFromJson(const cJSON *jsonObject, AppAccountInfo &accountInfo)
 {
+    if (jsonObject == nullptr) {
+        return;
+    }
+    uint32_t tokenCount = 0;
     cJSON *item = nullptr;
     cJSON_ArrayForEach(item, jsonObject) {
+        if (tokenCount >= MAX_TOKEN_NUMBER) {
+            break;
+        }
         OAuthTokenInfo tokenInfo;
         tokenInfo.token = GetStringFromJson(item, OAUTH_TOKEN);
         tokenInfo.status = GetBoolFromJson(item, OAUTH_TOKEN_STATUS);
         tokenInfo.authType = GetStringFromJson(item, OAUTH_TYPE);
         GetSetStringFromJson(item, OAUTH_AUTH_LIST, tokenInfo.authList);
         accountInfo.oauthTokens_.emplace(tokenInfo.authType, tokenInfo);
+        ++tokenCount;
     }
 }
 

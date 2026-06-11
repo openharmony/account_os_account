@@ -736,6 +736,60 @@ HWTEST_F(JsonUtilsTest, Uint64StringToJsonTest006, TestSize.Level4)
 }
 
 /*
+ * @tc.name: AddDoubleToJsonTest001
+ * @tc.desc: AddDoubleToJson
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(JsonUtilsTest, AddDoubleToJsonTest001, TestSize.Level4)
+{
+    std::string key = "test_key";
+    uint64_t value = 1234567890;
+    EXPECT_FALSE(AddDoubleToJson(nullptr, key, value));
+
+    auto jsonObj = CreateJson();
+    EXPECT_TRUE(AddDoubleToJson(jsonObj, key, value));
+    uint64_t retrievedValue = 0;
+    EXPECT_TRUE(GetUint64FromJson(jsonObj.get(), key, retrievedValue));
+    EXPECT_EQ(retrievedValue, value);
+
+    uint64_t maxValue = UINT64_MAX;
+    EXPECT_TRUE(AddDoubleToJson(jsonObj, "max_key", maxValue));
+    GetUint64FromJson(jsonObj.get(), "max_key", retrievedValue);
+    EXPECT_EQ(retrievedValue, maxValue);
+
+    uint64_t zeroValue = 0;
+    EXPECT_TRUE(AddDoubleToJson(jsonObj, "zero_key", zeroValue));
+    GetUint64FromJson(jsonObj.get(), "zero_key", retrievedValue);
+    EXPECT_EQ(retrievedValue, zeroValue);
+
+    EXPECT_FALSE(AddDoubleToJson(jsonObj, "", value));
+}
+
+/*
+ * @tc.name: AddDoubleToJsonTest002
+ * @tc.desc: AddDoubleToJson with existing key
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(JsonUtilsTest, AddDoubleToJsonTest002, TestSize.Level4)
+{
+    auto jsonObj = CreateJson();
+    std::string key = "existing_key";
+    uint64_t oldValue = 123;
+    uint64_t newValue = 456;
+
+    EXPECT_TRUE(AddDoubleToJson(jsonObj, key, oldValue));
+    uint64_t retrievedValue = 0;
+    GetUint64FromJson(jsonObj.get(), key, retrievedValue);
+    EXPECT_EQ(retrievedValue, oldValue);
+
+    EXPECT_TRUE(AddDoubleToJson(jsonObj, key, newValue));
+    GetUint64FromJson(jsonObj.get(), key, retrievedValue);
+    EXPECT_EQ(retrievedValue, newValue);
+}
+
+/*
  * @tc.name: GetIntFromJsonTest001
  * @tc.desc: GetIntFromJson
  * @tc.type: FUNC

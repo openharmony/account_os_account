@@ -166,14 +166,18 @@ static ErrCode GetDomainAccountStatus(OsAccountInfo &osAccountInfo)
 #endif // SUPPORT_DOMAIN_ACCOUNTS
 
 static void ReportAccountOperationEvent(AccountOperationType operationType, const std::string &targetUserName,
-    int32_t targetUserId)
+    int32_t targetUserId, const std::string &sourceUserName = "")
 {
     AccountOperationInfo accountOperationInfo;
     accountOperationInfo.pid = IPCSkeleton::GetCallingPid();
     accountOperationInfo.uid = IPCSkeleton::GetCallingUid();
     accountOperationInfo.sourceUserId = accountOperationInfo.uid / UID_TRANSFORM_DIVISOR;
-    (void)IInnerOsAccountManager::GetInstance().GetOsAccountName(
-        accountOperationInfo.sourceUserId, accountOperationInfo.sourceUserName);
+    if (!sourceUserName.empty() && accountOperationInfo.sourceUserId == targetUserId) {
+        accountOperationInfo.sourceUserName = sourceUserName;
+    } else {
+        (void)IInnerOsAccountManager::GetInstance().GetOsAccountName(
+            accountOperationInfo.sourceUserId, accountOperationInfo.sourceUserName);
+    }
 
     accountOperationInfo.targetUserName = targetUserName;
     accountOperationInfo.targetUserId = targetUserId;
@@ -2531,7 +2535,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountName(const int id, const std::string
         ACCOUNT_LOGE("Update osaccount info error %{public}d, id: %{public}d", errCode, osAccountInfo.GetLocalId());
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
-    ReportAccountOperationEvent(ACCOUNT_OPERATION_TYPE_UPDATE_NAME, name, id);
+    ReportAccountOperationEvent(ACCOUNT_OPERATION_TYPE_UPDATE_NAME, name, id, localName);
     OsAccountInterface::PublishCommonEvent(
         osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, OPERATION_UPDATE);
     return ERR_OK;

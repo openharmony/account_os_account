@@ -188,7 +188,7 @@ ErrCode OsAccountTeeAdapter::Impl::ConvertTeecErrCode(TEEC_Result teeResult)
         case TEEC_ERROR_BAD_PARAMETERS:
             return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
         case TEEC_ERROR_USER_TOKEN_INVALID:
-            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+            return ERR_JS_AUTHORIZATION_DENIED;
         case TEEC_ERROR_USER_TOKEN_EXPIRED:
             return ERR_JS_AUTHORIZATION_DENIED;
         case TEEC_ERROR_REACH_LIMIT:
