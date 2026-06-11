@@ -18,6 +18,7 @@
 
 #include <map>
 #include <mutex>
+#include <memory>
 #include "account_error_no.h"
 #include "os_account_subscribe_info.h"
 
@@ -45,7 +46,7 @@ private:
     DISALLOW_COPY_AND_MOVE(OsAccountStaticSubscriberManager);
 
 private:
-    std::mutex mutex_;
+    std::recursive_mutex mutex_;
     std::map<std::string, std::shared_ptr<StaticSubscriber>> staticSubscribers_;
     std::map<OsAccountState, std::set<std::shared_ptr<StaticSubscriber>>> state2Subscribers_;
 };
