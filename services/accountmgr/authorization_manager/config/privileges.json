@@ -31,6 +31,10 @@
         {
             "name":"ohos.privilege.manage_domain_account_server_configs",
             "description":"Manage domain account server configs"
+        },
+        {
+            "name":"ohos.privilege.format_data_disk",
+            "description":"Formatting data disk"
         }
     ]
 }
