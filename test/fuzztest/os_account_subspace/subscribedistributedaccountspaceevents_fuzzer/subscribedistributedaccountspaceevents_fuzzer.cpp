@@ -30,7 +30,7 @@ class TestDistributedAccountSpaceSubscribeCallback final : public DistributedAcc
 public:
     explicit TestDistributedAccountSpaceSubscribeCallback() {}
     void OnAccountsChanged(const DistributedAccountEventData &eventData) {}
-    void OnSpaceAccountsChanged(const DistributedAccountSubProfileEventData &eventData) {}
+    void OnSubProfileAccountsChanged(const DistributedAccountSubProfileEventData &eventData) {}
 };
 
 bool SubscribeDistributedAccountSpaceEventsFuzzTest(const uint8_t* data, size_t size)

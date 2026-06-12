@@ -76,7 +76,7 @@ private:
  * - If subscribed to original distributed account events (LOGIN/LOGOUT/LOGOFF/TOKEN_INVALID),
  *   must implement OnAccountsChanged
  * - If subscribed to space events (CREATED/DELETED/BOUND/UNBOUND/SWITCHING/SWITCHED),
- *   must implement OnSpaceAccountsChanged
+ *   must implement OnSubProfileAccountsChanged
  * - If subscribed to both types of events, must implement both callback methods
  *
  * Warning: Failing to implement the corresponding callback method will result in
@@ -97,7 +97,7 @@ public:
      * @param eventData Event data containing event type, OS account ID, space ID, and previous space ID.
      * @warning Must implement this method if subscribed via SubscribeDistributedAccountSpaceEvents.
      */
-    virtual void OnSpaceAccountsChanged(const DistributedAccountSubProfileEventData &eventData) {};
+    virtual void OnSubProfileAccountsChanged(const DistributedAccountSubProfileEventData &eventData) {};
 };
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -44,7 +44,7 @@ public:
     bool IsAllSpaceTypeExist(const std::set<DistributedAccountSubProfileEventType>& types,
         const std::shared_ptr<DistributedAccountSubscribeCallback> &callback);
     ErrCode OnAccountsChanged(const DistributedAccountEventData &eventData) override;
-    ErrCode OnSpaceAccountsChanged(const DistributedAccountSubProfileEventData &eventData) override;
+    ErrCode OnSubProfileAccountsChanged(const DistributedAccountSubProfileEventData &eventData) override;
     static DistributedAccountEventService *GetInstance();
 
 private:

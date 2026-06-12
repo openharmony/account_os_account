@@ -450,13 +450,13 @@ HWTEST_F(DistributedAccountSubscribeManagerTest, OnAccountsChanged001, TestSize.
         100, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGIN, -1);
     EXPECT_EQ(result, false);
     DistributedAccountSubProfileEventData data;
-    result = DistributedAccountSubscribeManager::GetInstance().OnSpaceAccountsChanged(nullptr, data);
+    result = DistributedAccountSubscribeManager::GetInstance().OnSubProfileAccountsChanged(nullptr, data);
     EXPECT_EQ(result, false);
 }
 
 /**
  * @tc.name: OnSpaceAccountsChanged001
- * @tc.desc: Test OnSpaceAccountsChanged with valid eventProxy returns true
+ * @tc.desc: Test OnSubProfileAccountsChanged with valid eventProxy returns true
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -473,13 +473,13 @@ HWTEST_F(DistributedAccountSubscribeManagerTest, OnSpaceAccountsChanged001, Test
     eventData.subspaceId_ = TEST_DISTRIBUTED_ACCOUNT_ID;
     eventData.previousSubspaceId_ = TEST_PREVIOUS_DISTRIBUTED_ACCOUNT_ID;
 
-    bool result = DistributedAccountSubscribeManager::GetInstance().OnSpaceAccountsChanged(eventProxy, eventData);
+    bool result = DistributedAccountSubscribeManager::GetInstance().OnSubProfileAccountsChanged(eventProxy, eventData);
     EXPECT_EQ(result, true);
 }
 
 /**
  * @tc.name: OnSpaceAccountsChanged002
- * @tc.desc: Test OnSpaceAccountsChanged with nullptr eventProxy returns false
+ * @tc.desc: Test OnSubProfileAccountsChanged with nullptr eventProxy returns false
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -489,7 +489,7 @@ HWTEST_F(DistributedAccountSubscribeManagerTest, OnSpaceAccountsChanged002, Test
     eventData.type_ = TEST_SPACE_EVENT_TYPE;
     eventData.osAccountId_ = TEST_LOCAL_ID;
 
-    bool result = DistributedAccountSubscribeManager::GetInstance().OnSpaceAccountsChanged(nullptr, eventData);
+    bool result = DistributedAccountSubscribeManager::GetInstance().OnSubProfileAccountsChanged(nullptr, eventData);
     EXPECT_EQ(result, false);
 }
 

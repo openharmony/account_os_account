@@ -236,7 +236,8 @@ bool DistributedAccountEventService::IsAllSpaceTypeExist(const std::set<Distribu
     return true;
 }
 
-ErrCode DistributedAccountEventService::OnSpaceAccountsChanged(const DistributedAccountSubProfileEventData &eventData)
+ErrCode DistributedAccountEventService::OnSubProfileAccountsChanged(
+    const DistributedAccountSubProfileEventData &eventData)
 {
     std::lock_guard<std::mutex> lock(spaceMapLock_);
     auto it = spaceTypeMap_.find(eventData.type_);
@@ -244,7 +245,7 @@ ErrCode DistributedAccountEventService::OnSpaceAccountsChanged(const Distributed
         return ERR_OK;
     }
     for (const auto &callback : it->second) {
-        callback->OnSpaceAccountsChanged(eventData);
+        callback->OnSubProfileAccountsChanged(eventData);
     }
     return ERR_OK;
 }

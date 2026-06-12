@@ -87,7 +87,7 @@ public:
     {}
 
     MOCK_METHOD1(OnAccountsChanged, void(const DistributedAccountEventData &eventData));
-    MOCK_METHOD1(OnSpaceAccountsChanged, void(const DistributedAccountSubProfileEventData &eventData));
+    MOCK_METHOD1(OnSubProfileAccountsChanged, void(const DistributedAccountSubProfileEventData &eventData));
 };
 
 /**
@@ -626,7 +626,7 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, IsAllSpaceTypeExist003, TestSize
 
 /**
  * @tc.name: DistributedAccountEventService_OnSpaceAccountsChanged001
- * @tc.desc: Test OnSpaceAccountsChanged with no subscriber
+ * @tc.desc: Test OnSubProfileAccountsChanged with no subscriber
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -637,13 +637,13 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, OnSpaceAccountsChanged001, TestS
     eventData.osAccountId_ = 100;
     eventData.subspaceId_ = 200;
 
-    ErrCode result = DistributedAccountEventService::GetInstance()->OnSpaceAccountsChanged(eventData);
+    ErrCode result = DistributedAccountEventService::GetInstance()->OnSubProfileAccountsChanged(eventData);
     EXPECT_EQ(result, ERR_OK);
 }
 
 /**
  * @tc.name: DistributedAccountEventService_OnSpaceAccountsChanged002
- * @tc.desc: Test OnSpaceAccountsChanged with subscriber - cover line 246-249
+ * @tc.desc: Test OnSubProfileAccountsChanged with subscriber - cover line 246-249
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -660,8 +660,8 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, OnSpaceAccountsChanged002, TestS
     eventData.osAccountId_ = 100;
     eventData.subspaceId_ = 200;
 
-    EXPECT_CALL(*callback, OnSpaceAccountsChanged(testing::_)).Times(1);
-    ErrCode result = DistributedAccountEventService::GetInstance()->OnSpaceAccountsChanged(eventData);
+    EXPECT_CALL(*callback, OnSubProfileAccountsChanged(testing::_)).Times(1);
+    ErrCode result = DistributedAccountEventService::GetInstance()->OnSubProfileAccountsChanged(eventData);
     EXPECT_EQ(result, ERR_OK);
 
     DistributedAccountEventService::GetInstance()->DeleteSpaceCallback(callback);
@@ -669,7 +669,7 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, OnSpaceAccountsChanged002, TestS
 
 /**
  * @tc.name: DistributedAccountEventService_OnSpaceAccountsChanged003
- * @tc.desc: Test OnSpaceAccountsChanged with multiple subscribers - cover line 246-249
+ * @tc.desc: Test OnSubProfileAccountsChanged with multiple subscribers - cover line 246-249
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -689,9 +689,9 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, OnSpaceAccountsChanged003, TestS
     eventData.osAccountId_ = 100;
     eventData.subspaceId_ = 200;
 
-    EXPECT_CALL(*callback1, OnSpaceAccountsChanged(testing::_)).Times(1);
-    EXPECT_CALL(*callback2, OnSpaceAccountsChanged(testing::_)).Times(1);
-    ErrCode result = DistributedAccountEventService::GetInstance()->OnSpaceAccountsChanged(eventData);
+    EXPECT_CALL(*callback1, OnSubProfileAccountsChanged(testing::_)).Times(1);
+    EXPECT_CALL(*callback2, OnSubProfileAccountsChanged(testing::_)).Times(1);
+    ErrCode result = DistributedAccountEventService::GetInstance()->OnSubProfileAccountsChanged(eventData);
     EXPECT_EQ(result, ERR_OK);
 
     DistributedAccountEventService::GetInstance()->DeleteSpaceCallback(callback1);
@@ -700,7 +700,7 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, OnSpaceAccountsChanged003, TestS
 
 /**
  * @tc.name: GetSpaceTypesToRemove005
- * @tc.desc: Test OnSpaceAccountsChanged with multiple subscribers - cover line 246-249
+ * @tc.desc: Test OnSubProfileAccountsChanged with multiple subscribers - cover line 246-249
  * @tc.type: FUNC
  * @tc.require:
  */

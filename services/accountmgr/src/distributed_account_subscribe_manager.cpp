@@ -302,7 +302,7 @@ bool DistributedAccountSubscribeManager::OnAccountsChanged(
     return true;
 }
 
-bool DistributedAccountSubscribeManager::OnSpaceAccountsChanged(
+bool DistributedAccountSubscribeManager::OnSubProfileAccountsChanged(
     const sptr<IDistributedAccountEvent> &eventProxy, const DistributedAccountSubProfileEventData &eventData)
 {
     if (eventProxy == nullptr) {
@@ -311,7 +311,7 @@ bool DistributedAccountSubscribeManager::OnSpaceAccountsChanged(
     }
 
     ErrCode result = SendDistributedAccountEventNotify(
-        [&]() { return eventProxy->OnSpaceAccountsChanged(eventData); }, "Send space event request");
+        [&]() { return eventProxy->OnSubProfileAccountsChanged(eventData); }, "Send space event request");
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest for space account changed failed, result=%{public}d osAccountId=%{public}d.",
             result, eventData.osAccountId_);
@@ -340,7 +340,7 @@ ErrCode DistributedAccountSubscribeManager::Publish(DistributedAccountSubProfile
             continue;
         }
         auto task = [this, eventProxy, eventData] {
-            this->OnSpaceAccountsChanged(eventProxy, eventData);
+            this->OnSubProfileAccountsChanged(eventProxy, eventData);
         };
         ExecuteDistributedAccountEventNotifyAsync(task);
     }

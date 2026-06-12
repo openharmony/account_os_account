@@ -355,7 +355,7 @@ std::function<void()> SubspaceEventNotifyTask(const std::shared_ptr<SubspaceEven
     };
 }
 
-void SubspaceSubscriber::OnSpaceAccountsChanged(const DistributedAccountSubProfileEventData &eventData)
+void SubspaceSubscriber::OnSubProfileAccountsChanged(const DistributedAccountSubProfileEventData &eventData)
 {
     std::shared_ptr<SubspaceEventWorker> worker = std::make_shared<SubspaceEventWorker>();
     if (worker == nullptr) {
@@ -367,7 +367,7 @@ void SubspaceSubscriber::OnSpaceAccountsChanged(const DistributedAccountSubProfi
     worker->subscriber = shared_from_this();
     worker->callback = callback;
     auto task = SubspaceEventNotifyTask(worker);
-    if (napi_ok != napi_send_event(env, task, napi_eprio_vip, "OnSpaceAccountsChanged")) {
+    if (napi_ok != napi_send_event(env, task, napi_eprio_vip, "OnSubProfileAccountsChanged")) {
         ACCOUNT_LOGE("napi_send_event failed");
     }
     ACCOUNT_LOGI("Post task finish");
