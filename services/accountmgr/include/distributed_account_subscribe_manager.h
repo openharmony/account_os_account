@@ -47,7 +47,7 @@ private:
     DISALLOW_COPY_AND_MOVE(DistributedAccountSubscribeManager);
     bool OnAccountsChanged(const sptr<IDistributedAccountEvent> &eventProxy,
         const int id, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE subscribeType, const int32_t subProfileId);
-    bool OnSpaceAccountsChanged(const sptr<IDistributedAccountEvent> &eventProxy,
+    bool OnSubProfileAccountsChanged(const sptr<IDistributedAccountEvent> &eventProxy,
         const DistributedAccountSubProfileEventData &eventData);
     DistributedSubscribeRecordPtr FindSubscribeRecordByEventListener(const sptr<IRemoteObject> &eventListener);
     std::vector<sptr<IRemoteObject>> GetSubscribersToNotify(

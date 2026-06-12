@@ -30,7 +30,7 @@ class SubspaceSubscriber final : public AccountSA::DistributedAccountSubscribeCa
 public:
     explicit SubspaceSubscriber(napi_env &env, napi_ref &ref);
     ~SubspaceSubscriber();
-    void OnSpaceAccountsChanged(const AccountSA::DistributedAccountSubProfileEventData &eventData) override;
+    void OnSubProfileAccountsChanged(const AccountSA::DistributedAccountSubProfileEventData &eventData) override;
     std::shared_ptr<NapiCallbackRef> callback = nullptr;
     napi_env env = nullptr;
 };

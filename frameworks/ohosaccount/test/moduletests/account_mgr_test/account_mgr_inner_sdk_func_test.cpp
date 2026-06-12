@@ -862,7 +862,7 @@ class MockDistributedAccountSpaceSubscribeCallback final : public DistributedAcc
 public:
     explicit MockDistributedAccountSpaceSubscribeCallback() {}
     MOCK_METHOD1(OnAccountsChanged, void(const DistributedAccountEventData &eventData));
-    MOCK_METHOD1(OnSpaceAccountsChanged, void(const DistributedAccountSubProfileEventData &eventData));
+    MOCK_METHOD1(OnSubProfileAccountsChanged, void(const DistributedAccountSubProfileEventData &eventData));
 };
 
 /**

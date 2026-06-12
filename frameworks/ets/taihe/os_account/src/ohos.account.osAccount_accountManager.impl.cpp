@@ -244,7 +244,7 @@ public:
         : callback_(cb) {}
     ~TaiheSubspaceCallback() {}
 
-    void OnSpaceAccountsChanged(const AccountSA::DistributedAccountSubProfileEventData &eventData) override
+    void OnSubProfileAccountsChanged(const AccountSA::DistributedAccountSubProfileEventData &eventData) override
     {
         OsAccountSubProfileEvent::key_t eventKey;
         switch (eventData.type_) {
