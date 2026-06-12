@@ -66,6 +66,47 @@ DomainPluginAdapter& DomainPluginAdapter::GetInstance()
     return instance;
 }
 
+/**
+ * Convert error codes for bindDomainAccount API.
+ * ERR_JS_ACCOUNT_NOT_FOUND is NOT converted because it is defined in bindDomainAccount API.
+ *
+ * Error code conversion table:
+ * | Error Code | Description | bindDomainAccount API | Conversion |
+ * |------------|-------------|----------------------|------------|
+ * | 12300003   | Account not found | Defined | No conversion |
+ * | 12300013   | Network exception | Not defined | -> 12300002 |
+ * | 12300014   | Not authenticated | Not defined | -> 12300002 |
+ * | 12300111   | Timeout | Not defined | -> 12300002 |
+ * | 12300114   | Auth service exception | Not defined | -> 12300002 |
+ * | 12300211   | Server unreachable | Not defined | -> 12300002 |
+ */
+ErrCode DomainPluginAdapter::ConvertToBindDomainAccountErrCode(int32_t errCode)
+{
+    switch (errCode) {
+        case ERR_JS_PLUGIN_NETWORK_EXCEPTION:
+        case ERR_JS_ACCOUNT_NOT_AUTHENTICATED:
+        case ERR_JS_AUTH_TIMEOUT:
+        case ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION:
+        case ERR_JS_SERVER_UNREACHABLE:
+            return ERR_JS_INVALID_PARAMETER;
+        default:
+            return errCode;
+    }
+}
+
+/**
+ * Convert error codes for createOsAccountForDomain API.
+ * ERR_JS_ACCOUNT_NOT_FOUND IS converted because it is NOT defined in createOsAccountForDomain API.
+ * This function wraps ConvertToBindDomainAccountErrCode and adds ERR_JS_ACCOUNT_NOT_FOUND conversion.
+ */
+ErrCode DomainPluginAdapter::ConvertToCreateOsAccountForDomainErrCode(int32_t errCode)
+{
+    if (errCode == ERR_JS_ACCOUNT_NOT_FOUND) {
+        return ERR_JS_INVALID_PARAMETER;
+    }
+    return ConvertToBindDomainAccountErrCode(errCode);
+}
+
 bool DomainPluginAdapter::LoadPlugin(void** libHandle, std::map<PluginMethodEnum, void*>* methodMap,
     const std::string& path, const std::string& libName)
 {
