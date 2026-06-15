@@ -21,10 +21,10 @@
 #include "access_token.h"
 #include "accesstoken_kit.h"
 #include "account_constants.h"
+#include "account_iam_hisysevent_utils.h"
 #include "account_iam_info.h"
 #include "account_info_report.h"
 #include "account_log_wrapper.h"
-#include "account_hisysevent_adapter.h"
 #include "iinner_os_account_manager.h"
 #include "inner_account_iam_manager.h"
 #ifdef SUPPORT_AUTHORIZATION
@@ -47,7 +47,6 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
-const char OPERATION_REENROLL[] = "reenroll";
 #ifdef HICOLLIE_ENABLE
 const int32_t REENROLL_TIME_OUT = 6;
 #endif // HICOLLIE_ENABLE
@@ -191,7 +190,7 @@ void AuthCallback::HandleReEnroll(const Attributes &extraInfo, int32_t accountId
         ErrCode result = InnerHandleReEnroll(token);
         if (result != ERR_OK) {
             ACCOUNT_LOGE("ReEnroll: UpdateCredential failed, result is %{public}d", result);
-            ReportOsAccountOperationFail(accountId, "ReEnroll", result, "UpdateCredential failed");
+            ReportOsAccountOperationFail(accountId, OPERATION_REENROLL, result, "UpdateCredential failed");
         } else {
             ACCOUNT_LOGI("ReEnroll: UpdateCredential successful");
             ReportOsAccountLifeCycle(accountId, OPERATION_REENROLL);
@@ -219,7 +218,8 @@ ErrCode AuthCallback::UnlockAccount(int32_t accountId, const std::vector<uint8_t
         if (isVerified) {
             ret = InnerAccountIAMManager::GetInstance().CheckNeedReactivateUserKey(accountId, needActivateKey);
             if (ret != ERR_OK) {
-                ReportOsAccountOperationFail(accountId, "unlock", ret, "Failed to check need reactivate user key");
+                ReportOsAccountOperationFail(accountId, Constants::OPERATION_UNLOCK, ret,
+                    "Failed to check need reactivate user key");
                 ACCOUNT_LOGE("Failed to check need reactivate key, ret = %{public}d.", ret);
             }
         }
@@ -229,7 +229,8 @@ ErrCode AuthCallback::UnlockAccount(int32_t accountId, const std::vector<uint8_t
             ret = InnerAccountIAMManager::GetInstance().ActivateUserKey(accountId, token, secret);
             if ((ret != ERR_OK) && (ret != ErrNo::E_PARAMS_NULLPTR_ERR)) {
                 ACCOUNT_LOGE("Failed to activate user key");
-                ReportOsAccountOperationFail(accountId, "unlock", ret, "Failed to activate user key");
+                ReportOsAccountOperationFail(accountId, Constants::OPERATION_UNLOCK, ret,
+                    "Failed to activate user key");
             }
             // only catch el2 activation error
             if (ret == ErrNo::E_ACTIVE_EL2_FAILED) {
@@ -239,7 +240,8 @@ ErrCode AuthCallback::UnlockAccount(int32_t accountId, const std::vector<uint8_t
             ret = InnerAccountIAMManager::GetInstance().PrepareStartUser(accountId);
             if (ret != ERR_OK) {
                 ACCOUNT_LOGE("Failed to prepare start user");
-                ReportOsAccountOperationFail(accountId, "unlock", ret, "Failed to prepare start user");
+                ReportOsAccountOperationFail(accountId, Constants::OPERATION_UNLOCK, ret,
+                    "Failed to prepare start user");
             }
             isUpdateVerifiedStatus = true;
         }
@@ -260,14 +262,15 @@ ErrCode AuthCallback::UnlockUserScreen(int32_t accountId, const std::vector<uint
         bool lockScreenStatus = false;
         ret = InnerAccountIAMManager::GetInstance().GetLockScreenStatus(accountId, lockScreenStatus);
         if (ret != 0) {
-            ReportOsAccountOperationFail(accountId, "unlockEnhancedKeys", ret, "Failed to get lock status");
+            ReportOsAccountOperationFail(accountId, OPERATION_UNLOCK_ENHANCE, ret, "Failed to get lock status");
         }
         if (!lockScreenStatus) {
             ACCOUNT_LOGI("start unlock user screen");
             // el3\4 file decryption
             ret = InnerAccountIAMManager::GetInstance().UnlockUserScreen(accountId, token, secret);
             if (ret != 0) {
-                ReportOsAccountOperationFail(accountId, "unlockEnhancedKeys", ret, "Failed to unlock user");
+                ReportOsAccountOperationFail(accountId, OPERATION_UNLOCK_ENHANCE, ret,
+                    "Failed to unlock user enhanced key");
                 return ret;
             }
         }
@@ -375,7 +378,7 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
     if (result != 0) {
         innerCallback_->OnResult(result, extraInfo.Serialize());
         if (result != AUTH_CANCEL_ERRCODE) {
-            ReportOsAccountOperationFail(authedAccountId, "auth", result,
+            ReportOsAccountOperationFail(authedAccountId, OPERATION_AUTH_CRED, result,
                 "Failed to auth, type:" + std::to_string(authType_));
         }
         return AccountInfoReport::ReportSecurityInfo("", authedAccountId, ReportEvent::EVENT_LOGIN, result);
@@ -488,12 +491,12 @@ static ErrCode AddUserKey(int32_t userId, uint64_t secureUid, const std::vector<
     ErrCode errCode = InnerAccountIAMManager::GetInstance().UpdateStorageUserAuth(
         userId, secureUid, token, oldSecret, newSecret);
     if (errCode != ERR_OK) {
-        ReportOsAccountOperationFail(userId, "addCredential", errCode, "Failed to update user auth");
+        ReportOsAccountOperationFail(userId, OPERATION_ADD_CRED, errCode, "Failed to update user auth");
         return errCode;
     }
     errCode = InnerAccountIAMManager::GetInstance().UpdateStorageKeyContext(userId);
     if (errCode != ERR_OK) {
-        ReportOsAccountOperationFail(userId, "addCredential", errCode, "Failed to update key context");
+        ReportOsAccountOperationFail(userId, OPERATION_ADD_CRED, errCode, "Failed to update key context");
     }
     return errCode;
 }
@@ -538,20 +541,19 @@ void AddCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
         std::fill(token.begin(), token.end(), 0);
         std::fill(oldSecret.begin(), oldSecret.end(), 0);
         if (code == ERR_OK) {
-            DeleteSecretFlag(userId_, "addCredential");
+            DeleteSecretFlag(userId_, OPERATION_ADD_CRED);
         }
     }
     if (result != 0) {
         if (result != AUTH_CANCEL_ERRCODE) {
-            ReportOsAccountOperationFail(userId_, "addCredential", result,
+            ReportOsAccountOperationFail(userId_, OPERATION_ADD_CRED, result,
                 "Failed to add credential, type: " + std::to_string(credInfo_.authType));
         }
         if (credInfo_.authType == AuthType::PIN) {
-            DeleteSecretFlag(userId_, "addCredential");
+            DeleteSecretFlag(userId_, OPERATION_ADD_CRED);
         }
     } else {
-        ReportOsAccountLifeCycle(userId_,
-            std::string(Constants::OPERATION_ADD_CRED) + "_" + std::to_string(credInfo_.authType));
+        ReportOsAccountLifeCycle(userId_, ConstructSubOperationStr(OPERATION_ADD_CRED, credInfo_.authType));
     }
     innerIamMgr.SetState(userId_, AFTER_OPEN_SESSION);
     innerCallback_->OnResult(result, extraInfo.Serialize());
@@ -599,11 +601,10 @@ void UpdateCredCallback::InnerOnResult(int32_t result, const Attributes &extraIn
     innerCallback_->AsObject()->RemoveDeathRecipient(deathRecipient_);
     auto &innerIamMgr = InnerAccountIAMManager::GetInstance();
     if (result != 0) {
-        ReportOsAccountOperationFail(userId_, "updateCredential", result,
+        ReportOsAccountOperationFail(userId_, OPERATION_UPDATE_CRED, result,
             "Failed to update credential, type: " + std::to_string(credInfo_.authType));
     } else {
-        ReportOsAccountLifeCycle(userId_,
-            std::string(Constants::OPERATION_UPDATE_CRED) + "_" + std::to_string(credInfo_.authType));
+        ReportOsAccountLifeCycle(userId_, ConstructSubOperationStr(OPERATION_UPDATE_CRED, credInfo_.authType));
     }
     if ((result != 0) || (credInfo_.authType != AuthType::PIN)) {
         ACCOUNT_LOGE("UpdateCredCallback fail code=%{public}d, authType=%{public}d", result, credInfo_.authType);
@@ -622,7 +623,7 @@ void UpdateCredCallback::InnerOnResult(int32_t result, const Attributes &extraIn
     }
     if (code != ERR_OK) {
         DeleteCredential(userId_, updateCredInfo.credentialId, credInfo_.token);
-        ReportOsAccountOperationFail(userId_, "updateCredential", code,
+        ReportOsAccountOperationFail(userId_, OPERATION_UPDATE_CRED, code,
             updateCredInfo.oldSecret.empty() ? "Failed to update user auth with recovery key"
                 : "Failed to update user auth");
         innerCallback_->OnResult(code, extraInfo.Serialize());
@@ -677,8 +678,9 @@ void VerifyTokenCallbackWrapper::OnResult(int32_t result, const Attributes &extr
 void VerifyTokenCallbackWrapper::InnerOnResult(int32_t result, const Attributes &extraInfo)
 {
     ACCOUNT_LOGI("Verify token result = %{public}d, userId = %{public}d", result, userId_);
+    std::string scene = ConstructSubOperationStr(OPERATION_DELETE_CRED, AuthType::PIN);
     if (result != ERR_OK) {
-        ReportOsAccountOperationFail(userId_, "deleteCredential", result, "Failed to verify token");
+        ReportOsAccountOperationFail(userId_, scene, result, "Failed to verify token");
         innerCallback_->OnResult(result, extraInfo.Serialize());
         return;
     }
@@ -692,15 +694,15 @@ void VerifyTokenCallbackWrapper::InnerOnResult(int32_t result, const Attributes 
     auto accountFileOperator = std::make_shared<AccountFileOperator>();
     ErrCode code = accountFileOperator->InputFileByPathAndContent(path, "");
     if (code != ERR_OK) {
-        ReportOsAccountOperationFail(userId_, "deleteCredential", code, "Failed to write iam_fault file");
+        ReportOsAccountOperationFail(userId_, scene, code, "Failed to write iam_fault file");
         ACCOUNT_LOGE("Input file fail, path=%{public}s", path.c_str());
     }
     auto &innerIamMgr = InnerAccountIAMManager::GetInstance();
     ErrCode errCode = innerIamMgr.UpdateStorageUserAuth(userId_, secureUid, token_, rootSecret, {});
     std::fill(rootSecret.begin(), rootSecret.end(), 0);
     if (errCode != ERR_OK) {
-        ReportOsAccountOperationFail(userId_, "deleteCredential", errCode, "Failed to update user auth");
-        DeleteSecretFlag(userId_, "deleteCredential");
+        ReportOsAccountOperationFail(userId_, scene, errCode, "Failed to update user auth");
+        DeleteSecretFlag(userId_, scene);
         Attributes emptyExtraInfo;
         innerCallback_->OnResult(ResultCode::FAIL, emptyExtraInfo.Serialize());
         return;
@@ -720,16 +722,18 @@ CommitDelCredCallback::CommitDelCredCallback(uint32_t userId, const sptr<IIDMCal
 void CommitDelCredCallback::OnResult(int32_t result, const UserIam::UserAuth::Attributes &extraInfo)
 {
     std::unique_lock<std::mutex> lock(mutex_);
+    std::string scene = ConstructSubOperationStr(OPERATION_DELETE_CRED, AuthType::PIN);
     ACCOUNT_LOGI("Commit delete user result = %{public}d, userId = %{public}d", result, userId_);
     isCalled_ = true;
     if (result != ERR_OK) {
-        ReportOsAccountOperationFail(userId_, "deleteCredential", result, "Failed to delete user's credential");
+        ReportOsAccountOperationFail(userId_, scene, result, "Failed to delete user's credential");
     } else {
-        DeleteSecretFlag(userId_, "deleteCredential");
-        ReportOsAccountLifeCycle(userId_, std::string(Constants::OPERATION_DELETE_CRED) + "_0" + "_commit");
+        DeleteSecretFlag(userId_, scene);
+        ReportOsAccountLifeCycle(userId_, ConstructSubOperationStr(OPERATION_DELETE_CRED,
+            OPERATION_COMMIT, AuthType::PIN));
         ErrCode errCode = InnerAccountIAMManager::GetInstance().UpdateStorageKeyContext(userId_);
         if (errCode != ERR_OK) {
-            ReportOsAccountOperationFail(userId_, "deleteCredential", errCode, "Failed to update key context");
+            ReportOsAccountOperationFail(userId_, scene, errCode, "Failed to update key context");
         }
         (void)IInnerOsAccountManager::GetInstance().SetOsAccountCredentialId(userId_, 0);
     }
@@ -759,14 +763,14 @@ void CommitCredUpdateCallback::InnerOnResult(int32_t result, const Attributes &e
     auto &innerIamMgr = InnerAccountIAMManager::GetInstance();
     if (result != 0) {
         ACCOUNT_LOGE("CommitCredUpdateCallback fail code=%{public}d", result);
-        ReportOsAccountOperationFail(userId_, std::string(Constants::OPERATION_UPDATE_CRED) + "_commit",
+        ReportOsAccountOperationFail(userId_, ConstructSubOperationStr(OPERATION_UPDATE_CRED, OPERATION_COMMIT),
             result, "Failed to commit credential update");
         innerCallback_->OnResult(result, extraInfo.Serialize());
         innerIamMgr.SetState(userId_, AFTER_OPEN_SESSION);
         return;
     } else {
-        ReportOsAccountLifeCycle(userId_,
-            std::string(Constants::OPERATION_UPDATE_CRED) + "_" + std::to_string(AuthType::PIN) + "_commit");
+        ReportOsAccountLifeCycle(userId_, ConstructSubOperationStr(OPERATION_UPDATE_CRED,
+            OPERATION_COMMIT, AuthType::PIN));
     }
     (void)IInnerOsAccountManager::GetInstance().SetOsAccountCredentialId(userId_, extraUpdateInfo_.credentialId);
     Attributes extraInfoResult;
@@ -775,10 +779,10 @@ void CommitCredUpdateCallback::InnerOnResult(int32_t result, const Attributes &e
     innerCallback_->OnResult(result, extraInfoResult.Serialize());
     ErrCode updateRet = innerIamMgr.UpdateStorageKeyContext(userId_);
     if (updateRet != ERR_OK) {
-        ReportOsAccountOperationFail(userId_, std::string(Constants::OPERATION_UPDATE_CRED) + "_commit",
-            updateRet, "Failed to update key context");
+        ReportOsAccountOperationFail(userId_, ConstructSubOperationStr(OPERATION_UPDATE_CRED,
+            OPERATION_COMMIT), updateRet, "Failed to update key context");
     } else {
-        DeleteSecretFlag(userId_, std::string(Constants::OPERATION_UPDATE_CRED) + "_commit");
+        DeleteSecretFlag(userId_, ConstructSubOperationStr(OPERATION_UPDATE_CRED, OPERATION_COMMIT));
     }
 }
 
@@ -824,18 +828,18 @@ void DelCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
         std::fill(newSecret.begin(), newSecret.end(), 0);
         std::fill(oldSecret.begin(), oldSecret.end(), 0);
         if (updateRet != ERR_OK) {
-            ReportOsAccountOperationFail(userId_, "deleteCredential", updateRet, "Failed to update user auth");
+            ReportOsAccountOperationFail(userId_, OPERATION_DELETE_CRED, updateRet, "Failed to update user auth");
         }
         updateRet = innerIamMgr.UpdateStorageKeyContext(userId_);
         if (updateRet != ERR_OK) {
-            ReportOsAccountOperationFail(userId_, "deleteCredential", updateRet, "Failed to update key context");
+            ReportOsAccountOperationFail(userId_, OPERATION_DELETE_CRED, updateRet, "Failed to update key context");
         }
     }
     if (result != 0) {
         ACCOUNT_LOGE("DelCredCallback fail code=%{public}d, userId=%{public}d", result, userId_);
-        ReportOsAccountOperationFail(userId_, "deleteCredential", result, "Failed to delete credential");
+        ReportOsAccountOperationFail(userId_, OPERATION_DELETE_CRED, result, "Failed to delete credential");
     } else {
-        ReportOsAccountLifeCycle(userId_, std::string(Constants::OPERATION_DELETE_CRED));
+        ReportOsAccountLifeCycle(userId_, OPERATION_DELETE_CRED);
     }
 
     innerIamMgr.SetState(userId_, AFTER_OPEN_SESSION);

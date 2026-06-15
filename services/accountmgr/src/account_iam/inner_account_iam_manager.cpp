@@ -18,9 +18,9 @@
 #include <thread>
 #include "account_constants.h"
 #include "account_iam_callback.h"
+#include "account_iam_hisysevent_utils.h"
 #include "account_log_wrapper.h"
 #include "domain_account_callback_service.h"
-#include "account_hisysevent_adapter.h"
 #include "iinner_os_account_manager.h"
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
 #include "inner_domain_account_manager.h"
@@ -93,7 +93,7 @@ void InnerAccountIAMManager::OpenSession(int32_t userId, std::vector<uint8_t> &c
     challenge = UserIDMClient::GetInstance().OpenSession(userId);
     if (challenge.empty()) {
         ACCOUNT_LOGE("Failed to open session, userId:%{public}d", userId);
-        REPORT_OS_ACCOUNT_FAIL(userId, "openSession", -1, "Failed to open session");
+        REPORT_OS_ACCOUNT_FAIL(userId, OPERATION_OPEN_SESSION, -1, "Failed to open session");
     }
     std::lock_guard<std::mutex> lock(mutex_);
     userStateMap_[userId] = AFTER_OPEN_SESSION;
@@ -132,7 +132,7 @@ void InnerAccountIAMManager::AddCredential(
         auto accountFileOperator = std::make_shared<AccountFileOperator>();
         ErrCode code = accountFileOperator->InputFileByPathAndContent(path, "");
         if (code != ERR_OK) {
-            ReportOsAccountOperationFail(userId, "addCredential", code, "Failed to write iam_fault file");
+            ReportOsAccountOperationFail(userId, OPERATION_ADD_CRED, code, "Failed to write iam_fault file");
             ACCOUNT_LOGE("Input file fail, path=%{public}s", path.c_str());
         }
     }
@@ -507,7 +507,7 @@ void InnerAccountIAMManager::HandleFileKeyException(int32_t userId, const std::v
     ErrCode code = UserIDMClient::GetInstance().GetSecUserInfo(userId, callback);
     if (code != ERR_OK) {
         ACCOUNT_LOGE("Failed to get secure uid, userId: %{public}d", userId);
-        ReportOsAccountOperationFail(userId, "readdCredential", code,
+        ReportOsAccountOperationFail(userId, OPERATION_READD_CRED, code,
             "Failed to get secure uid when restoring key context");
         return;
     }
@@ -518,7 +518,7 @@ void InnerAccountIAMManager::HandleFileKeyException(int32_t userId, const std::v
     if (!status) {
         ACCOUNT_LOGE("GetSecureUidCallback time out");
         ReportOsAccountOperationFail(
-            userId, "readdCredential", -1, "Get secure uid timeout when restoring key context");
+            userId, OPERATION_READD_CRED, -1, "Get secure uid timeout when restoring key context");
         return;
     }
 
@@ -526,28 +526,28 @@ void InnerAccountIAMManager::HandleFileKeyException(int32_t userId, const std::v
     if (!userLock->try_lock()) {
         ACCOUNT_LOGE("Failed to get user lock");
         ReportOsAccountOperationFail(
-            userId, "readdCredential", ERR_ACCOUNT_COMMON_BUSY, "Failed to get user lock");
+            userId, OPERATION_READD_CRED, ERR_ACCOUNT_COMMON_BUSY, "Failed to get user lock");
         return;
     }
     code = UpdateStorageUserAuth(userId, callback->secureUid_, token, {}, secret);
     if (code != ERR_OK) {
         ACCOUNT_LOGE("Restore user auth fail, userId: %{public}d", userId);
-        ReportOsAccountOperationFail(userId, "readdCredential", code, "Failed to restore user auth");
+        ReportOsAccountOperationFail(userId, OPERATION_READD_CRED, code, "Failed to restore user auth");
         userLock->unlock();
         return;
     }
     code = UpdateStorageKeyContext(userId);
     if (code != ERR_OK) {
         ACCOUNT_LOGE("Restore key context fail, userId:%{public}d", userId);
-        ReportOsAccountOperationFail(userId, "readdCredential", code, "Failed to restore key context");
+        ReportOsAccountOperationFail(userId, OPERATION_READD_CRED, code, "Failed to restore key context");
         userLock->unlock();
         return;
     }
     ACCOUNT_LOGI("Restore key context successfully, userId:%{public}d", userId);
-    ReportOsAccountLifeCycle(userId, Constants::OPERATION_READD_CRED);
+    ReportOsAccountLifeCycle(userId, OPERATION_READD_CRED);
     code = accountFileOperator->DeleteDirOrFile(path);
     if (code != ERR_OK) {
-        ReportOsAccountOperationFail(userId, "readdCredential", code,
+        ReportOsAccountOperationFail(userId, OPERATION_READD_CRED, code,
             "Failed to delete iam_fault file after restoring key context");
     }
     userLock->unlock();

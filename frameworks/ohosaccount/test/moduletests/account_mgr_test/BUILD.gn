@@ -60,11 +60,9 @@ ohos_moduletest("AccountInnerSdkModuleMockTest") {
     "${innerkits_native_path}/src/distributed_account_event_service.cpp",
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
-    "${services_path}/accountmgr/src/account_iam/account_iam_callback.cpp",
-    "${services_path}/accountmgr/src/account_iam/account_iam_service.cpp",
-    "${services_path}/accountmgr/src/account_iam/inner_account_iam_manager.cpp",
     "${services_path}/accountmgr/src/appaccount/app_account_control_manager.cpp",
   ]
+  sources += account_iam_source
   sources += account_service_sources
   sources += [ "account_mgr_inner_sdk_func_test.cpp" ]
 

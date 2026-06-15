@@ -64,9 +64,6 @@ ohos_moduletest("domain_account_frameworks_module_mock_test") {
     "${app_account_services_path}/test/mock/common/bundle_manager_adapter.cpp",
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
-    "${services_path}/accountmgr/src/account_iam/account_iam_callback.cpp",
-    "${services_path}/accountmgr/src/account_iam/account_iam_service.cpp",
-    "${services_path}/accountmgr/src/account_iam/inner_account_iam_manager.cpp",
     "${services_path}/accountmgr/src/appaccount/app_account_control_manager.cpp",
     "src/domain_account_client_module_test.cpp",
     "src/mock_domain_auth_callback.cpp",
@@ -76,6 +73,7 @@ ohos_moduletest("domain_account_frameworks_module_mock_test") {
     "src/mock_domain_has_domain_info_callback.cpp",
     "src/mock_domain_plugin.cpp",
   ]
+  sources += account_iam_source
   sources += account_service_sources
   configs = [ ":domain_account_frameworks_config_moduletest" ]
   configs += [
@@ -208,15 +206,13 @@ ohos_moduletest("domain_account_client_mock_plugin_so_module_test") {
     "${app_account_services_path}/test/mock/common/bundle_manager_adapter.cpp",
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
-    "${services_path}/accountmgr/src/account_iam/account_iam_callback.cpp",
-    "${services_path}/accountmgr/src/account_iam/account_iam_service.cpp",
-    "${services_path}/accountmgr/src/account_iam/inner_account_iam_manager.cpp",
     "${services_path}/accountmgr/src/appaccount/app_account_control_manager.cpp",
     "src/domain_account_client_mock_plugin_so_module_test.cpp",
     "src/mock_domain_get_access_token_callback.cpp",
     "src/mock_domain_has_domain_info_callback.cpp",
     "src/mock_domain_so_plugin.cpp",
   ]
+  sources += account_iam_source
   sources += account_service_sources
   configs = [ ":domain_account_frameworks_config_moduletest" ]
   configs += [

@@ -150,12 +150,10 @@ ohos_moduletest("os_account_frameworks_module_mock_test") {
     "${innerkits_native_path}/src/ohos_account_kits_impl.cpp",
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
-    "${services_path}/accountmgr/src/account_iam/account_iam_callback.cpp",
-    "${services_path}/accountmgr/src/account_iam/account_iam_service.cpp",
-    "${services_path}/accountmgr/src/account_iam/inner_account_iam_manager.cpp",
     "${services_path}/accountmgr/src/appaccount/app_account_control_manager.cpp",
     "os_account_manager_module_test.cpp",
   ]
+  sources += account_iam_source
   sources += account_service_sources
   configs = [
     ":os_account_frameworks_config_unittest",

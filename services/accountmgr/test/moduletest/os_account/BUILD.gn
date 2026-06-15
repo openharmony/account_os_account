@@ -927,11 +927,7 @@ ohos_moduletest("os_account_subspace_module_test") {
       "-DHAS_USER_AUTH_PART",
       "-DHAS_USER_IDM_PART",
     ]
-    sources += [
-      "${services_path}/accountmgr/src/account_iam/account_iam_callback.cpp",
-      "${services_path}/accountmgr/src/account_iam/account_iam_service.cpp",
-      "${services_path}/accountmgr/src/account_iam/inner_account_iam_manager.cpp",
-    ]
+    sources += account_iam_source
     external_deps += [ "user_auth_framework:userauth_client" ]
   }
 
