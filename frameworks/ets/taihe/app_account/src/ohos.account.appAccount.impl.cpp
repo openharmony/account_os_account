@@ -212,6 +212,10 @@ public:
     {
         taihe::env_guard guard;
         ani_env *env = guard.get_env();
+        if (env == nullptr) {
+            ACCOUNT_LOGE("ani_env is nullptr.");
+            return ERR_JS_SYSTEM_SERVICE_EXCEPTION;
+        }
         auto requestObj = AppExecFwk::WrapWant(env, request);
         auto requestPtr = reinterpret_cast<uintptr_t>(requestObj);
         taiheCallback_.onRequestRedirected(requestPtr);
@@ -975,6 +979,12 @@ public:
         std::string innerOwner(owner.data(), owner.size());
         AccountSA::VerifyCredentialOptions innerOptions;
         ani_env *env = get_env();
+        if (env == nullptr) {
+            ACCOUNT_LOGE("ani_env is nullptr.");
+            int32_t jsErrCode = GenerateBusinessErrorCode(JSErrorCode::ERR_JS_SYSTEM_SERVICE_EXCEPTION);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            return;
+        }
         if (!ParseVerifyCredentialOptions(env, options, innerOptions)) {
             ACCOUNT_LOGE("Failed to parse verifyCredentialOptions");
             int32_t jsErrCode = GenerateBusinessErrorCode(JSErrorCode::ERR_JS_PARAMETER_ERROR);
@@ -1059,6 +1069,12 @@ public:
         std::string innerOwner(owner.data(), owner.size());
         AccountSA::SetPropertiesOptions innerOptions;
         ani_env *env = get_env();
+        if (env == nullptr) {
+            ACCOUNT_LOGE("ani_env is nullptr.");
+            int32_t jsErrCode = GenerateBusinessErrorCode(JSErrorCode::ERR_JS_SYSTEM_SERVICE_EXCEPTION);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            return;
+        }
         if (!ParseSetPropertiesOptions(env, options, innerOptions)) {
             ACCOUNT_LOGE("Failed to parse setPropertiesOptions");
             int32_t jsErrCode = GenerateBusinessErrorCode(JSErrorCode::ERR_JS_PARAMETER_ERROR);
