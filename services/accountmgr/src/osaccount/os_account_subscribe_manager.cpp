@@ -209,7 +209,7 @@ ErrCode OsAccountSubscribeManager::RemoveSubscribeRecord(const sptr<IRemoteObjec
             int32_t callingUid = (*it)->callingUid_;
             std::set<OsAccountState> states;
             (*it)->subscribeInfoPtr_->GetStates(states);
-            subscribeRecords_.erase(it);
+            it = subscribeRecords_.erase(it);
             if (states.find(SWITCHING) == states.end() && states.find(SWITCHED) == states.end()) {
                 break;
             }

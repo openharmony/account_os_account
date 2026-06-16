@@ -62,7 +62,7 @@ OsAccountStaticSubscriberManager &OsAccountStaticSubscriberManager::GetInstance(
 void OsAccountStaticSubscriberManager::Init(
     const std::map<OsAccountState, std::set<std::string>> &staticSubscriberConfig)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     for (const auto &it : staticSubscriberConfig) {
         std::set<std::shared_ptr<StaticSubscriber>> subscribers;
         for (const auto &path : it.second) {
@@ -79,6 +79,7 @@ void OsAccountStaticSubscriberManager::Init(
 
 std::shared_ptr<StaticSubscriber> OsAccountStaticSubscriberManager::ParseStaticSubscriber(const std::string &path)
 {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     auto subIt = staticSubscribers_.find(path);
     if (subIt != staticSubscribers_.end()) {
         ACCOUNT_LOGE("Subscriber already exists");
@@ -132,7 +133,7 @@ ErrCode OsAccountStaticSubscriberManager::PublishToSubscriber(
 ErrCode OsAccountStaticSubscriberManager::Publish(int32_t fromId, OsAccountState state,
     int32_t toId, uint64_t displayId)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     auto it = state2Subscribers_.find(state);
     if (it == state2Subscribers_.end()) {
         ACCOUNT_LOGI("No subscriber, state: %{public}d", state);
