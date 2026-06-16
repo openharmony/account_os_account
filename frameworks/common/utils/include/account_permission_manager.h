@@ -24,6 +24,7 @@ namespace AccountSA {
 class AccountPermissionManager {
 public:
     static ErrCode VerifyPermission(const std::string &permissionName);
+    static ErrCode VerifyPermission(const uint32_t tokenId, const std::string &permissionName);
     static ErrCode CheckSystemApp(bool isCallStub = true);
     static bool CheckSaCall();
     static bool CheckShellCall();

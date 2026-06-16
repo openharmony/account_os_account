@@ -50,6 +50,7 @@ public:
         callingPid = other.callingPid;
         challenge = other.challenge;
         timeout = other.timeout;
+        sessionId = other.sessionId;
         callingBundleName = other.callingBundleName;
     }
     ~ConnectAbilityInfo();
@@ -73,7 +74,7 @@ public:
     int32_t timeout = -1;
     /// Challenge data for the authorization request
     std::vector<uint8_t> challenge;
-
+    std::string sessionId = "";
     bool ReadFromParcel(Parcel &parcel);
     bool Marshalling(Parcel &parcel) const override;
     static ConnectAbilityInfo *Unmarshalling(Parcel &parcel);

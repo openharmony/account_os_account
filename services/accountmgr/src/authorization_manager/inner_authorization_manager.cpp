@@ -16,11 +16,13 @@
 #include "inner_authorization_manager.h"
 
 #include <cstdint>
+#include <fcntl.h>
 #include <map>
 #include <mutex>
 #include <securec.h>
 #include <set>
 #include <string>
+#include <sstream>
 #include <utility>
 #include <vector>
 
@@ -28,15 +30,18 @@
 #include "account_hisysevent_adapter.h"
 #include "account_iam_info.h"
 #include "account_log_wrapper.h"
+#include "account_permission_manager.h"
 #include "authorization_common.h"
 #include "bundle_manager_adapter.h"
 #include "iadmin_authorization_callback.h"
 #include "iinner_os_account_manager.h"
 #include "inner_account_iam_manager.h"
 #include "ipc_skeleton.h"
+#include "os_account_constants.h"
 #include "os_account_info.h"
 #include "privilege_cache_manager.h"
 #include "privilege_hisysevent_utils.h"
+#include "privilege_utils.h"
 #include "privileges_map.h"
 #include "service_extension_connect.h"
 #include "singleton.h"
@@ -52,7 +57,103 @@ static std::map<int32_t, sptr<IAuthorizationCallback>> g_callbackMap;
 static std::map<int32_t, sptr<IRemoteObject>> g_requestRemoteObjectMap;
 static std::map<int32_t, sptr<ConnectAbilityCallback>> g_connectbackMap;
 static std::map<int32_t, int32_t> g_pidToUidMap;
+std::map<int32_t, SmartPidFd> g_pidFdMap;
+static std::map<std::string, int32_t> g_sessionIdToPidMap;  // sessionId → callingPid (modal app only)
 static const std::int32_t GRANT_VALIDITY_PERIOD = 300;
+const std::int32_t START_USER_ID = 100;
+const std::string PERMISSION_START_SYSTEM_DIALOG = "ohos.permission.START_SYSTEM_DIALOG";
+const std::string RANDOM_DEVICE_PATH = "/dev/urandom";
+constexpr int HEX_WIDTH_UINT64 = 16;
+constexpr int HEX_WIDTH_UINT8 = 2;
+static std::atomic<uint64_t> g_sessionIdCounter{0};
+static std::atomic<bool> g_sessionIdCounterInitialized{false};
+static std::mutex g_sessionIdInitMutex;
+
+static ErrCode InitSessionIdCounterOnce()
+{
+    if (g_sessionIdCounterInitialized.load(std::memory_order_acquire)) {
+        return ERR_OK;
+    }
+    std::lock_guard<std::mutex> lock(g_sessionIdInitMutex);
+    if (g_sessionIdCounterInitialized.load(std::memory_order_relaxed)) {
+        return ERR_OK;
+    }
+    int64_t bootTimeMs = 0;
+    ErrCode ret = GetUptimeMs(bootTimeMs);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Failed to get boot time, errCode=%{public}d", ret);
+        return ret;
+    }
+    g_sessionIdCounter.store(static_cast<uint64_t>(bootTimeMs), std::memory_order_release);
+    g_sessionIdCounterInitialized.store(true, std::memory_order_release);
+    return ERR_OK;
+}
+}
+
+static void CleanupAuthorizationSessionMaps(int32_t requesterPid)
+{
+    auto connectIt = g_connectbackMap.find(requesterPid);
+    if (connectIt != g_connectbackMap.end()) {
+        ConnectAbilityInfo info;
+        connectIt->second->GetConnectInfo(info);
+        g_sessionIdToPidMap.erase(info.sessionId);
+    }
+    g_connectbackMap.erase(requesterPid);
+    g_requestRemoteObjectMap.erase(requesterPid);
+    g_pidToUidMap.erase(requesterPid);
+    g_pidFdMap.erase(requesterPid);
+}
+
+static std::string GetHexString(uint64_t num)
+{
+    std::stringstream ss;
+    ss << std::hex << std::setw(HEX_WIDTH_UINT64) << std::setfill('0') << num;
+    return ss.str();
+}
+
+static std::string GenerateRandom64()
+{
+    uint64_t randomValue = 0;
+    int fd = open(RANDOM_DEVICE_PATH.c_str(), O_RDONLY);
+    if (fd < 0) {
+        ACCOUNT_LOGW("Failed to open %{public}s", RANDOM_DEVICE_PATH.c_str());
+        return "";
+    }
+    ssize_t readSize = read(fd, &randomValue, sizeof(uint64_t));
+    if (readSize != sizeof(uint64_t)) {
+        ACCOUNT_LOGW("Failed to read random data, readSize=%{public}zd", readSize);
+        close(fd);
+        return "";
+    }
+    close(fd);
+    return GetHexString(randomValue);
+}
+
+static std::string GenerateSessionId()
+{
+    ErrCode ret = InitSessionIdCounterOnce();
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Failed to init sessionId counter, errCode=%{public}d", ret);
+        return "";
+    }
+    std::string randomStr = GenerateRandom64();
+    if (randomStr.empty()) {
+        ACCOUNT_LOGE("Failed to generate random part for sessionId");
+        return "";
+    }
+
+    uint64_t counter = g_sessionIdCounter.fetch_add(1);
+    std::string counterStr = GetHexString(counter);
+    return randomStr + counterStr;
+}
+
+static std::string VectorToString(const std::vector<uint8_t>& vec)
+{
+    std::stringstream ss;
+    for (uint8_t b : vec) {
+        ss << std::hex << std::setw(HEX_WIDTH_UINT8) << std::setfill('0') << static_cast<int>(b);
+    }
+    return ss.str();
 }
 
 ConnectAbilityCallback::ConnectAbilityCallback(ConnectAbilityInfo &info,
@@ -86,12 +187,31 @@ std::function<ErrCode(int32_t,  AuthorizationResult &, int32_t)> acquireAuthoriz
             REPORT_OS_ACCOUNT_FAIL(-1, PRIVILEGE_OPT_ACQUIRE_AUTH,
                 errCode, "Return uiextension result failed");
         }
+        CleanupAuthorizationSessionMaps(callingPid);
         g_callbackMap.erase(it);
-        g_connectbackMap.erase(callingPid);
-        g_requestRemoteObjectMap.erase(callingPid);
-        g_pidToUidMap.erase(callingPid);
         return errCode;
     };
+}
+
+void ConnectAbilityCallback::GetConnectInfo(ConnectAbilityInfo &info)
+{
+    info = info_;
+}
+
+void ConnectAbilityCallback::UpdateAuthorizationResult(ErrCode errCode, AuthorizationResultCode &resultCode,
+    const std::vector<uint8_t> &taToken, int32_t remainValidityTime)
+{
+    errCode_ = errCode;
+    result_.privilege = info_.privilege;
+    result_.resultCode = resultCode;
+    result_.validityPeriod = remainValidityTime;
+    result_.token = taToken;
+    hasUpdateAuthInfo_.store(true, std::memory_order_release);
+}
+
+bool ConnectAbilityCallback::IsSameSession(std::string &sessionId)
+{
+    return info_.sessionId == sessionId;
 }
 
 ErrCode ConnectAbilityCallback::OnResult(int32_t errorCode, const std::vector<uint8_t> &iamToken, int32_t accountId,
@@ -104,22 +224,19 @@ ErrCode ConnectAbilityCallback::OnResult(int32_t errorCode, const std::vector<ui
             "Func_ is nullptr");
         return ERR_AUTHORIZATION_GET_PROXY_ERROR;
     }
-    result_.resultCode = static_cast<AuthorizationResultCode>(iamResultCode);
+    AuthorizationResult result;
     if (errorCode != ERR_OK) {
-        return func_(errorCode, result_, info_.callingPid);
+        return func_(errorCode, result, info_.callingPid);
     }
+    result.resultCode = static_cast<AuthorizationResultCode>(iamResultCode);
     if (iamResultCode != ERR_OK) {
-        return func_(ERR_OK, result_, info_.callingPid);
+        return func_(ERR_OK, result, info_.callingPid);
     }
-    ApplyUserTokenResult tokenResult;
-    auto [errCode, resultCode] =
-        InnerAuthorizationManager::GetInstance().ApplyTaAuthorization(iamToken, accountId, tokenResult, info_);
-    result_.resultCode = resultCode;
-    if (errCode == ERR_OK && resultCode == AuthorizationResultCode::AUTHORIZATION_SUCCESS) {
-        result_.validityPeriod = tokenResult.remainValidityTime;
-        result_.token.assign(tokenResult.userToken, tokenResult.userToken + tokenResult.userTokenSize);
+    if (hasUpdateAuthInfo_.load(std::memory_order_acquire)) {
+        return func_(errCode_, result_, info_.callingPid);
     }
-    return func_(errCode, result_, info_.callingPid);
+    result.resultCode = AuthorizationResultCode::AUTHORIZATION_CANCELED;
+    return func_(ERR_OK, result, info_.callingPid);
 }
 
 std::pair<ErrCode, AuthorizationResultCode> InnerAuthorizationManager::ApplyTaAuthorization(
@@ -164,9 +281,7 @@ void InnerAuthorizationManager::AppDeathRecipient::OnRemoteDied(const wptr<IRemo
         if (object == it->second->AsObject()) {
             ACCOUNT_LOGI("remove remote.");
             int32_t callingPid = it->first;
-            g_connectbackMap.erase(callingPid);
-            g_requestRemoteObjectMap.erase(callingPid);
-            g_pidToUidMap.erase(callingPid);
+            CleanupAuthorizationSessionMaps(callingPid);
             g_callbackMap.erase(it);
             break;
         }
@@ -296,8 +411,17 @@ ErrCode InnerAuthorizationManager::AcquireAuthorization(const PrivilegeBriefDef 
     result.isReused = options.isReuseNeeded;
 
     ConnectAbilityInfo info;
-    InitializeConnectAbilityInfo(pdef, options, config, info);
-
+    ErrCode errCode = InitializeConnectAbilityInfo(pdef, options, config, info);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("InitializeConnectAbilityInfo failed, errCode=%{public}d", errCode);
+        return errCode;
+    }
+    if (!VerifyWidget(info.bundleName)) {
+        ACCOUNT_LOGE("Check bundleName legal failed");
+        REPORT_OS_ACCOUNT_FAIL(IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR, PRIVILEGE_OPT_ACQUIRE_AUTH,
+            ERR_AUTHORIZATION_EXTENSION_ILLEGAL, "Check bundleName legal failed");
+        return ERR_AUTHORIZATION_EXTENSION_ILLEGAL;
+    }
     if (options.hasContext) {
         return StartUIExtensionConnection(info, config.authAppUIExtensionAbilityName,
             callback, result, requestRemoteObj);
@@ -306,23 +430,116 @@ ErrCode InnerAuthorizationManager::AcquireAuthorization(const PrivilegeBriefDef 
         callback, result, requestRemoteObj);
 }
 
+bool InnerAuthorizationManager::VerifyWidget(const std::string &bundleName)
+{
+    int32_t localId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
+    if (localId < START_USER_ID) {
+        auto errCode = IInnerOsAccountManager::GetInstance().GetForegroundOsAccountLocalId(
+            Constants::DEFAULT_DISPLAY_ID, localId);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("Get foreground local id failed");
+            REPORT_OS_ACCOUNT_FAIL(IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR, PRIVILEGE_OPT_ACQUIRE_AUTH,
+                errCode, "Get foreground local id failed");
+            return false;
+        }
+    }
+    AppExecFwk::BundleInfo bundleInfo;
+    bool ret = BundleManagerAdapter::GetInstance()->GetBundleInfo(
+        bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_WITH_ABILITIES, bundleInfo, localId);
+    if (!ret) {
+        ACCOUNT_LOGE("Failed to get bundleInfo");
+        REPORT_OS_ACCOUNT_FAIL(localId, PRIVILEGE_OPT_ACQUIRE_AUTH, -1, "Failed to get bundleInfo");
+        return false;
+    }
+    auto result = AccountPermissionManager::VerifyPermission(bundleInfo.applicationInfo.accessTokenId,
+        PERMISSION_START_SYSTEM_DIALOG);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Failed to verify auth permission, result = %{public}d", result);
+        REPORT_OS_ACCOUNT_FAIL(localId, PRIVILEGE_OPT_ACQUIRE_AUTH, result, "Failed to verify auth permission");
+        return false;
+    }
+    return true;
+}
+
+bool InnerAuthorizationManager::GetAuthSessionInfo(const std::vector<uint8_t> &inputChallenge,
+    std::string &outSessionId, std::vector<uint8_t> &outChallenge, int32_t widgetPid)
+{
+    ConnectAbilityInfo info;
+    outSessionId = VectorToString(inputChallenge);
+    // Modal system: query SessionAbilityConnection singleton (single connection, internal mutex protection)
+    if (SessionAbilityConnection::GetInstance().GetConnectInfo(widgetPid, info)) {
+        if (outSessionId == info.sessionId) {
+            ACCOUNT_LOGD("GetConnectInfo success for modal system");
+            outChallenge = info.challenge;
+            return true;
+        }
+    }
+    // Non-modal application: query global g_connectbackMap (multiple connections, external mutex protection)
+    std::lock_guard<std::mutex> lock(g_mutex);
+    for (auto it = g_connectbackMap.begin(); it != g_connectbackMap.end(); ++it) {
+        if (it->second->IsSameSession(outSessionId)) {
+            it->second->GetConnectInfo(info);
+            outChallenge = info.challenge;
+            ACCOUNT_LOGD("GetConnectInfo success for non-modal system");
+            return true;
+        }
+    }
+    ACCOUNT_LOGE("Fail to getConnectInfo, sessionId not found");
+    return false;
+}
+
 ErrCode InnerAuthorizationManager::UpdateAuthInfo(const std::vector<uint8_t> &iamToken, int32_t accountId,
-    int32_t callingPid)
+    int32_t callingPid, const std::string &sessionId)
 {
     ConnectAbilityInfo info;
     ApplyUserTokenResult tokenResult;
     std::vector<uint8_t> token;
-    if (!SessionAbilityConnection::GetInstance().GetConnectInfo(callingPid, info)) {
-        ACCOUNT_LOGI("Fail to getConnectInfo");
-        return ERR_OK;
+    bool isModalSystem = false;
+    // Determine if this is a modal system request by checking SessionAbilityConnection
+    if (SessionAbilityConnection::GetInstance().GetConnectInfo(callingPid, info)) {
+        if (sessionId == info.sessionId) {
+            isModalSystem = true;
+        }
+    }
+    // Non-modal system: lookup sessionId -> callingPid -> connectIt chain with lock protection
+    if (!isModalSystem) {
+        std::lock_guard<std::mutex> lock(g_mutex);
+        auto it = g_sessionIdToPidMap.find(sessionId);
+        if (it == g_sessionIdToPidMap.end()) {
+            ACCOUNT_LOGI("Fail to pid");
+            return ERR_AUTHORIZATION_UPDATE_INFO_ERROR;
+        }
+        auto connectIt = g_connectbackMap.find(it->second);
+        if (connectIt == g_connectbackMap.end()) {
+            ACCOUNT_LOGI("Fail to getConnectInfo");
+            return ERR_AUTHORIZATION_UPDATE_INFO_ERROR;
+        }
+        connectIt->second->GetConnectInfo(info);
     }
     auto [errCode, resultCode] = ApplyTaAuthorization(iamToken, accountId, tokenResult, info);
     if (errCode == ERR_OK && resultCode == AuthorizationResultCode::AUTHORIZATION_SUCCESS) {
         token.assign(tokenResult.userToken, tokenResult.userToken + tokenResult.userTokenSize);
     }
-    ErrCode ret = SessionAbilityConnection::GetInstance().SaveAuthorizationResult(errCode, resultCode, token,
-        tokenResult.remainValidityTime);
-    std::fill(token.begin(), token.end(), 0);
+    ErrCode ret = ERR_OK;
+    if (isModalSystem) {
+        ret = SessionAbilityConnection::GetInstance().SaveAuthorizationResult(errCode, resultCode, token,
+            tokenResult.remainValidityTime);
+    } else {
+        std::lock_guard<std::mutex> lock(g_mutex);
+        auto it = g_connectbackMap.find(info.callingPid);
+        // Callback not found is not an error - client may have disconnected, return ERR_OK
+        if (it == g_connectbackMap.end()) {
+            ACCOUNT_LOGE("Can not find AuthorizationResultCallback.");
+            REPORT_OS_ACCOUNT_FAIL(accountId, PRIVILEGE_OPT_ACQUIRE_AUTH, ERR_AUTHORIZATION_GET_PROXY_ERROR,
+                "Can not find AuthorizationResultCallback.");
+            return ERR_OK;
+        }
+        it->second->UpdateAuthorizationResult(errCode, resultCode, token, tokenResult.remainValidityTime);
+    }
+    // Security practice: clear sensitive token data after use
+    if (!token.empty()) {
+        std::fill(token.begin(), token.end(), 0);
+    }
     return ret;
 }
 
@@ -338,7 +555,7 @@ bool InnerAuthorizationManager::HasExtensionConnect()
     return false;
 }
 
-void InnerAuthorizationManager::InitializeConnectAbilityInfo(const PrivilegeBriefDef &pdef,
+ErrCode InnerAuthorizationManager::InitializeConnectAbilityInfo(const PrivilegeBriefDef &pdef,
     const AcquireAuthorizationOptions &options, const OsAccountConfig &config, ConnectAbilityInfo &info)
 {
     info.privilege = pdef.privilegeName;
@@ -348,6 +565,14 @@ void InnerAuthorizationManager::InitializeConnectAbilityInfo(const PrivilegeBrie
     info.challenge = options.challenge;
     info.callingUid = IPCSkeleton::GetCallingUid();
     info.callingPid = IPCSkeleton::GetCallingPid();
+    info.sessionId = GenerateSessionId();
+    if (info.sessionId.empty()) {
+        ACCOUNT_LOGE("Failed to generate sessionId");
+        REPORT_OS_ACCOUNT_FAIL(IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR, PRIVILEGE_OPT_ACQUIRE_AUTH,
+            ERR_AUTHORIZATION_GET_CONTENT_ERROR, "Failed to generate sessionId");
+        return ERR_AUTHORIZATION_GET_CONTENT_ERROR;
+    }
+    return ERR_OK;
 }
 
 ErrCode InnerAuthorizationManager::StartUIExtensionConnection(const ConnectAbilityInfo &info,
@@ -453,10 +678,21 @@ void InnerAuthorizationManager::ExecuteUIExtensionTask(const ConnectAbilityInfo 
         return;
     }
 
-    StoreCallbackMaps(uiInfo, callback, connectCallback, requestRemoteObj);
+    bool ret = StoreCallbackMaps(uiInfo, callback, connectCallback, requestRemoteObj);
+    if (!ret) {
+        ACCOUNT_LOGE("StoreCallbackMaps failed.");
+        AuthorizationResult result;
+        errCode = callback->OnResult(ERR_AUTHORIZATION_CREATE_UI_EXTENSION_ERROR, result);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("OnResult failed, errCode:%{public}d", errCode);
+            REPORT_OS_ACCOUNT_FAIL(uiInfo.callingUid / UID_TRANSFORM_DIVISOR, PRIVILEGE_OPT_ACQUIRE_AUTH,
+                errCode, "ExecuteUIExtensionTask call OnResult failed");
+        }
+        return;
+    }
 }
 
-void InnerAuthorizationManager::StoreCallbackMaps(const ConnectAbilityInfo &uiInfo,
+bool InnerAuthorizationManager::StoreCallbackMaps(const ConnectAbilityInfo &uiInfo,
     const sptr<IAuthorizationCallback> &callback, const sptr<ConnectAbilityCallback> &connectCallback,
     const sptr<IRemoteObject> &requestRemoteObj)
 {
@@ -465,17 +701,25 @@ void InnerAuthorizationManager::StoreCallbackMaps(const ConnectAbilityInfo &uiIn
     auto it = g_callbackMap.find(uiInfo.callingPid);
     if (it != g_callbackMap.end()) {
         ACCOUNT_LOGI("Removing old callback for uid:%{public}d", uiInfo.callingPid);
+        CleanupAuthorizationSessionMaps(uiInfo.callingPid);
         g_callbackMap.erase(it);
-        g_connectbackMap.erase(uiInfo.callingPid);
-        g_requestRemoteObjectMap.erase(uiInfo.callingPid);
-        g_pidToUidMap.erase(uiInfo.callingPid);
     }
-
+    SmartPidFd fdPtr = nullptr;
+    auto ret = OpenSmartPidFd(uiInfo.callingPid, fdPtr);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("OpenSmartPidFd failed, ret = %{public}d", ret);
+        REPORT_OS_ACCOUNT_FAIL(uiInfo.callingUid / UID_TRANSFORM_DIVISOR, PRIVILEGE_OPT_ACQUIRE_AUTH, ret,
+            "OpenSmartPidFd failed");
+        return false;
+    }
+    g_pidFdMap[uiInfo.callingPid] = std::move(fdPtr);
     g_pidToUidMap[uiInfo.callingPid] = uiInfo.callingUid;
     g_callbackMap[uiInfo.callingPid] = callback;
     g_connectbackMap[uiInfo.callingPid] = connectCallback;
     g_requestRemoteObjectMap[uiInfo.callingPid] = requestRemoteObj;
+    g_sessionIdToPidMap[uiInfo.sessionId] = uiInfo.callingPid;
     ACCOUNT_LOGI("Successfully stored callback maps for uid:%{public}d", uiInfo.callingPid);
+    return true;
 }
 
 ErrCode InnerAuthorizationManager::StartServiceExtensionConnection(ConnectAbilityInfo &info,

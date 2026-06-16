@@ -14,7 +14,7 @@
  */
 
 #include "account_permission_manager.h"
-
+#include <cstdint>
 #include "accesstoken_kit.h"
 #include "account_log_wrapper.h"
 #include "account_constants.h"
@@ -29,6 +29,15 @@ ErrCode AccountPermissionManager::VerifyPermission(const std::string &permission
 {
     AccessTokenID callingToken = IPCSkeleton::GetCallingTokenID();
     ErrCode result = AccessTokenKit::VerifyAccessToken(callingToken, permissionName);
+    if (result == TypePermissionState::PERMISSION_DENIED) {
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+    return ERR_OK;
+}
+
+ErrCode AccountPermissionManager::VerifyPermission(const uint32_t tokenId, const std::string &permissionName)
+{
+    ErrCode result = AccessTokenKit::VerifyAccessToken(tokenId, permissionName);
     if (result == TypePermissionState::PERMISSION_DENIED) {
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }

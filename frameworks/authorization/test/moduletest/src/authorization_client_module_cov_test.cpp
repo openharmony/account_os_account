@@ -77,6 +77,26 @@ public:
     }
 };
 
+/**
+ * @tc.name: ConnectAbilityInfo_ReadFromParcel_0200
+ * @tc.desc: ConnectAbilityInfo ReadFromParcel with missing sessionId.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AuthorizationClientModuleCovTest, ConnectAbilityInfo_ReadFromParcel_0200, TestSize.Level3)
+{
+    Parcel parcel;
+    std::string test = PRIVILEGE_NAME_TEST;
+    parcel.WriteString(test);
+    parcel.WriteString(test);
+    parcel.WriteString(test);
+    parcel.WriteString(test);
+    parcel.WriteInt32(0);
+    parcel.WriteInt32(0);
+    ConnectAbilityInfo info;
+    EXPECT_FALSE(info.ReadFromParcel(parcel));
+}
+
 #ifdef SUPPORT_AUTHORIZATION
 /**
  * @tc.name: CheckAuthorization001

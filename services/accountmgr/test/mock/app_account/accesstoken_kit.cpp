@@ -22,10 +22,17 @@ using namespace OHOS::AccountSA;
 namespace OHOS {
 namespace Security {
 namespace AccessToken {
+namespace {
+constexpr unsigned int TEST_TOKEN_ID_PERMISSION_DENIED = 999999;
+}
+
 int AccessTokenKit::VerifyAccessToken(unsigned int tokenID, const std::string &permissionName)
 {
     ACCOUNT_LOGI("mock permissionName = %{public}s", permissionName.c_str());
 
+    if (tokenID == TEST_TOKEN_ID_PERMISSION_DENIED) {
+        return PERMISSION_DENIED;
+    }
     return PERMISSION_GRANTED;
 }
 

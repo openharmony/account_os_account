@@ -407,17 +407,17 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
 }
 
 #ifdef SUPPORT_AUTHORIZATION
-AuthorizationAuthCallback::AuthorizationAuthCallback(
-    uint32_t userId, AuthType authType, AuthIntent authIntent, const sptr<IIDMCallback> &callback)
-    : AuthCallback(userId, authType, authIntent, callback)
+AuthorizationAuthCallback::AuthorizationAuthCallback(AuthParam &authParam, const sptr<IIDMCallback> &callback,
+    const std::string &sessionId)
+    : AuthCallback(authParam.userId, authParam.authType, authParam.authIntent, callback)
 {
-    // save caller tokenId for pin re-enroll
-    if (authType == AuthType::PIN) {
+    if (authParam.authType == AuthType::PIN) {
         callerTokenId_ = IPCSkeleton::GetCallingTokenID();
     }
     authIntent_ = AuthIntent::DEFAULT;
     callingUid_ = IPCSkeleton::GetCallingUid();
     callingPid_ = IPCSkeleton::GetCallingPid();
+    sessionId_ = sessionId;
 }
 
 void AuthorizationAuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
@@ -436,7 +436,8 @@ void AuthorizationAuthCallback::OnResult(int32_t result, const Attributes &extra
     if (result == ERR_OK || result == NO_CRED_ERRCODE) {
         std::vector<uint8_t> token;
         extraInfo.GetUint8ArrayValue(Attributes::ATTR_SIGNATURE, token);
-        ErrCode errCode = InnerAuthorizationManager::GetInstance().UpdateAuthInfo(token, authedAccountId, callingPid_);
+        ErrCode errCode = InnerAuthorizationManager::GetInstance().UpdateAuthInfo(token, authedAccountId, callingPid_,
+            sessionId_);
         if (errCode != ERR_OK) {
             innerCallback_->OnResult(errCode, extraInfo.Serialize());
             return;

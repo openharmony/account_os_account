@@ -47,6 +47,7 @@ public:
     ~IInnerOsAccountManager() = default;
 
     ErrCode GetOsAccountType(const int id, OsAccountType &type);
+    ErrCode GetForegroundOsAccountLocalId(const uint64_t displayId, int32_t &localId);
 
     ErrCode QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos)
     {

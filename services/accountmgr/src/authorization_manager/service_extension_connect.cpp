@@ -136,9 +136,7 @@ bool SessionAbilityConnection::SessionAbilityConnectionStub::GenerateParameters(
         ACCOUNT_LOGE("Fail to add uid to json");
         return false;
     }
-    std::string challengeStr;
-    TransVectorU8ToString(info_.challenge, challengeStr);
-    if (!AddStringToJson(json, "challenge", challengeStr)) {
+    if (!AddStringToJson(json, "challenge", info_.sessionId)) {
         ACCOUNT_LOGE("Fail to add challenge to json");
         return false;
     }
@@ -322,6 +320,13 @@ void SessionAbilityConnection::SessionDisconnectExtension()
             "AbilityConnectionStub is nullptr");
         return;
     }
+    auto ret = AAFwk::ExtensionManagerClient::GetInstance().DisconnectAbility(abilityConnectionStub_);
+    ClearMemberVariables();
+    ACCOUNT_LOGI("Session ability disconnected, ret: %{public}d", ret);
+}
+
+void SessionAbilityConnection::ClearMemberVariables()
+{
     if (authDeathRecipient_ != nullptr && authAppRemoteObj_ != nullptr) {
         authAppRemoteObj_->RemoveDeathRecipient(authDeathRecipient_);
         authDeathRecipient_ = nullptr;
@@ -329,7 +334,6 @@ void SessionAbilityConnection::SessionDisconnectExtension()
     if (authAppRemoteObj_ != nullptr) {
         authAppRemoteObj_ = nullptr;
     }
-    auto ret = AAFwk::ExtensionManagerClient::GetInstance().DisconnectAbility(abilityConnectionStub_);
     if (abilityConnectionStub_ != nullptr) {
         abilityConnectionStub_.clear();
         abilityConnectionStub_ = nullptr;
@@ -345,7 +349,8 @@ void SessionAbilityConnection::SessionDisconnectExtension()
     }
     hasAuthCallback_.exchange(false);
     errCode_ = ERR_OK;
-    ACCOUNT_LOGI("Session ability disconnected, ret: %{public}d", ret);
+    pidFdPtr_ = nullptr;
+    abilityConnectionStub_ = nullptr;
 }
 
 void SessionAbilityConnection::OnAuthAppRemoteDeath(const wptr<IRemoteObject> &remote)
@@ -426,12 +431,20 @@ ErrCode SessionAbilityConnection::CreateStubAndConnect(const ConnectAbilityInfo 
     info_ = info;
     callback_ = callback;
     authResult_ = authorizationResult;
-
+    SmartPidFd fdPtr = nullptr;
+    auto ret = OpenSmartPidFd(info.callingPid, fdPtr);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("OpenSmartPidFd failed, ret = %{public}d", ret);
+        REPORT_OS_ACCOUNT_FAIL(localId_, PRIVILEGE_OPT_ACQUIRE_AUTH, ret, "OpenSmartPidFd failed");
+        ClearMemberVariables();
+        return ERR_AUTHORIZATION_CREATE_SYS_EXTENSION_ERROR;
+    }
+    pidFdPtr_ = std::move(fdPtr);
     AAFwk::Want want;
     want.SetElementName(SYSTEM_SCENEBOARD_BUNDLE_NAME, SYSTEM_SCENEBOARD_ABILITY_NAME);
 
     std::string identity = IPCSkeleton::ResetCallingIdentity();
-    auto ret = AAFwk::ExtensionManagerClient::GetInstance().ConnectServiceExtensionAbility(
+    ret = AAFwk::ExtensionManagerClient::GetInstance().ConnectServiceExtensionAbility(
         want, abilityConnectionStub_, nullptr, DEFAULT_VALUE);
     IPCSkeleton::SetCallingIdentity(identity);
 
@@ -439,7 +452,7 @@ ErrCode SessionAbilityConnection::CreateStubAndConnect(const ConnectAbilityInfo 
         ACCOUNT_LOGE("ConnectServiceExtensionAbility failed, result: %{public}d", ret);
         REPORT_OS_ACCOUNT_FAIL(localId_, PRIVILEGE_OPT_ACQUIRE_AUTH, ret,
             "ConnectServiceExtensionAbility failed");
-        abilityConnectionStub_ = nullptr;
+        ClearMemberVariables();
         return ERR_AUTHORIZATION_CREATE_SYS_EXTENSION_ERROR;
     }
 

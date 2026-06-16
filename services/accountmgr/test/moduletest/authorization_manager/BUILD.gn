@@ -159,7 +159,6 @@ if (os_account_support_authorization) {
       "ipc:ipc_single",
     ]
 
-
     cflags_cc = [
       "-DACCOUNT_TEST",
     "-DSUPPORT_AUTHORIZATION"
