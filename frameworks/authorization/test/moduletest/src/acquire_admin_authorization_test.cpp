@@ -180,7 +180,7 @@ HWTEST_F(AcquireAdminAuthorizationTest, AcquireAdminAuthorization005, TestSize.L
 
     ErrCode errCode = AuthorizationClient::GetInstance().AcquireAdminAuthorization(
         adminName, challenge, callback);
-    EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
     ASSERT_TRUE(RecoveryPermission(tokenID, selfTokenId));
 }
 
@@ -205,7 +205,7 @@ HWTEST_F(AcquireAdminAuthorizationTest, AcquireAdminAuthorization006, TestSize.L
 
     ErrCode errCode = AuthorizationClient::GetInstance().AcquireAdminAuthorization(
         adminName, challenge, callback);
-    EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
     ASSERT_TRUE(RecoveryPermission(tokenID, selfTokenId));
 }
 
@@ -222,7 +222,8 @@ HWTEST_F(AcquireAdminAuthorizationTest, AcquireAdminAuthorization007, TestSize.L
     auto callback = std::make_shared<MockAdminAuthorizationCallback>();
 
     std::vector<std::string> permissionList {
-        "ohos.permission.ACCESS_USER_AUTH_INTERNAL"
+        "ohos.permission.ACCESS_USER_AUTH_INTERNAL",
+        "ohos.permission.ACQUIRE_LOCAL_ACCOUNT_AUTHORIZATION"
     };
     uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
     uint64_t tokenID;
