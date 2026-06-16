@@ -27,12 +27,12 @@ struct DistributedSubscribeRecord {
     std::set<DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE> types_;
     std::set<DistributedAccountSubProfileEventType> spaceTypes_;
     int32_t localId_ = -1;
-    bool isSaCall_ = false;
+    bool isNotifyAllUsers_ = false;
 
-    DistributedSubscribeRecord() : eventListener_(nullptr), localId_(-1), isSaCall_(false)
+    DistributedSubscribeRecord() : eventListener_(nullptr), localId_(-1), isNotifyAllUsers_(false)
     {}
-    DistributedSubscribeRecord(sptr<IRemoteObject> eventListener, int32_t localId = -1, bool isSaCall = false)
-        : eventListener_(eventListener), localId_(localId), isSaCall_(isSaCall)
+    DistributedSubscribeRecord(sptr<IRemoteObject> eventListener, int32_t localId = -1, bool isNotifyAllUsers = false)
+        : eventListener_(eventListener), localId_(localId), isNotifyAllUsers_(isNotifyAllUsers)
     {}
 
     void AddSpaceTypes(const std::set<DistributedAccountSubProfileEventType> &newTypes);

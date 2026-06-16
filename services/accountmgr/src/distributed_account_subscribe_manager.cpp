@@ -78,10 +78,10 @@ std::vector<sptr<IRemoteObject>> DistributedAccountSubscribeManager::GetSubscrib
             continue;
         }
         bool shouldNotify = false;
-        // isSaCall_ indicates whether the caller is from sa or application:
-        // - If true (from sa): notify for any user's events
-        // - If false (from application): only notify for events from the user where the application resides
-        if ((*it)->isSaCall_) {
+        // isNotifyAllUsers_ indicates whether to notify for all users' events:
+        // - If true (from sa or app on U0): notify for any user's events
+        // - If false (from app on non-U0): only notify for events from the user where the application resides
+        if ((*it)->isNotifyAllUsers_) {
             shouldNotify = true;
         } else if ((*it)->localId_ == eventLocalId) {
             shouldNotify = true;
@@ -135,7 +135,7 @@ ErrCode DistributedAccountSubscribeManager::SubscribeDistributedAccountSpaceEven
 
     int32_t callingUid = IPCSkeleton::GetCallingUid();
     int32_t localId = callingUid / UID_TRANSFORM_DIVISOR;
-    int32_t isSaCall = AccountPermissionManager::CheckSaCall();
+    bool isNotifyAllUsers = AccountPermissionManager::CheckSaCall() || (localId == 0);
     std::lock_guard<std::mutex> lock(subscribeRecordMutex_);
     auto record = FindSubscribeRecordByEventListener(eventListener);
     if (record != nullptr) {
@@ -144,7 +144,7 @@ ErrCode DistributedAccountSubscribeManager::SubscribeDistributedAccountSpaceEven
         return ERR_OK;
     }
 
-    auto subscribeRecordPtr = std::make_shared<DistributedSubscribeRecord>(eventListener, localId, isSaCall);
+    auto subscribeRecordPtr = std::make_shared<DistributedSubscribeRecord>(eventListener, localId, isNotifyAllUsers);
     if (subscribeDeathRecipient_ != nullptr) {
         eventListener->AddDeathRecipient(subscribeDeathRecipient_);
     }
