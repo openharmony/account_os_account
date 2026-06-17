@@ -40,8 +40,9 @@ extern const int32_t MAX_OS_ACCOUNT_SUB_PROFILE_COUNT;
  */
 class OsAccountSubProfileDataDeal {
 public:
-    static constexpr int32_t OS_ACCOUNT_SUB_PROFILE_INDEX_MIN = 1;
-    static constexpr int32_t OS_ACCOUNT_SUB_PROFILE_INDEX_MAX = 999;
+    static constexpr int32_t OS_ACCOUNT_SUB_PROFILE_ID_MIN = 1;
+    static constexpr int32_t OS_ACCOUNT_SUB_PROFILE_ID_MAX = 999;
+    static constexpr int32_t HEADLESS_SUBPROFILE_INDEX = 0;
 public:
     explicit OsAccountSubProfileDataDeal(const std::string &configRootDir);
     ~OsAccountSubProfileDataDeal() = default;
@@ -55,12 +56,15 @@ public:
      *
      * @param osAccountId       the OS account ID
      * @param nextSubProfileId  hint from OsAccountInfo.nextSubProfileId_ (-1 if first)
-     * @param subProfileIdStrList existing subspace IDs from OsAccountInfo.subProfileIdList_
+     * @param subProfileIdList existing subspace IDs from OsAccountInfo.subProfileIdList_
      * @param outId              output: the allocated subspaceId
      * @return ERR_OK on success, ERR_OS_ACCOUNT_SUBSPACE_LIMIT if all indices exhausted
      */
     ErrCode AllocateOsAccountSubProfileId(int32_t osAccountId, int32_t nextSubProfileId,
-        const std::vector<std::string> &subProfileIdStrList, int32_t &outId);
+        const std::vector<int32_t> &subProfileIdList, int32_t &outId);
+
+    ErrCode AllocateSubProfileIndex(int32_t nextSubProfileIndex,
+        const std::map<int32_t, int32_t> &subProfileIndexMap, int32_t &outIndex);
 
     /**
      * @brief Scan non-0 OS account subspace directories under osAccountId.
@@ -125,12 +129,15 @@ public:
      */
     bool IsValidSubProfileExists(int32_t osAccountId, int32_t subspaceId) const;
 
+    std::string SerializeSubProfileInfoToJson(const OsAccountSubspaceInfo &info) const;
+    ErrCode ScanRawSubProfileIds(int32_t osAccountId, std::set<int32_t> &rawIds) const;
+    ErrCode SaveSubProfileFiles(const OsAccountSubspaceInfo &info, const std::string &serializedContent);
+
 private:
     static int32_t ParseDirEntryAsSubProfileId(const struct dirent *entry, int32_t osAccountId, int32_t base);
     std::string GetSubProfileDir(int32_t osAccountId, int32_t subspaceId) const;
     std::string GetSubProfileFilePath(int32_t osAccountId, int32_t subspaceId) const;
     ErrCode ParseSubProfileInfoFromJson(const std::string &jsonStr, OsAccountSubspaceInfo &info) const;
-    std::string SerializeSubProfileInfoToJson(const OsAccountSubspaceInfo &info) const;
     ErrCode ScanSubProfileIds(int32_t osAccountId,
         std::function<bool(const OsAccountSubspaceInfo &)> filter,
         std::set<int32_t> &resultIds) const;

@@ -180,35 +180,12 @@ void OsAccountInfo::SetVersion(int32_t version)
 
 int32_t OsAccountInfo::GetForegroundSubProfileId() const
 {
-    if (foregroundSubProfileId_ == -1) {
-        return localId_ * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
-    }
     return foregroundSubProfileId_;
 }
 
 void OsAccountInfo::SetForegroundSubProfileId(int32_t foregroundSubProfileId)
 {
     foregroundSubProfileId_ = foregroundSubProfileId;
-}
-
-int32_t OsAccountInfo::GetNextSubProfileId() const
-{
-    return nextSubProfileId_;
-}
-
-void OsAccountInfo::SetNextSubProfileId(int32_t nextSubProfileId)
-{
-    nextSubProfileId_ = nextSubProfileId;
-}
-
-std::vector<std::string> OsAccountInfo::GetSubProfileIdList() const
-{
-    return subProfileIdList_;
-}
-
-void OsAccountInfo::SetSubProfileIdList(const std::vector<std::string> &subProfileIdList)
-{
-    subProfileIdList_ = subProfileIdList;
 }
 
 bool OsAccountInfo::SetDomainInfo(const DomainAccountInfo &domainInfo)

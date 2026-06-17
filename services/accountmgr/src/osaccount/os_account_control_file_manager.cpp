@@ -1985,6 +1985,51 @@ ErrCode OsAccountControlFileManager::GetDomainBoundFlag(
     return ERR_OK;
 }
 
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+ErrCode OsAccountControlFileManager::ReadSubProfileContext(int32_t id, SubProfileContext &data)
+{
+    std::string subPath = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(id) +
+                          Constants::PATH_SEPARATOR + Constants::SUBPROFILE_INFO_FILE_NAME;
+    std::string subProfileStr;
+    ErrCode ret = accountFileOperator_->GetFileContentByPath(subPath, subProfileStr);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGI("subprofile_info.json not found for id=%{public}d, ret=%{public}d", id, ret);
+        return ERR_ACCOUNT_COMMON_FILE_NOT_EXIST;
+    }
+    auto subProfileJson = CreateJsonFromString(subProfileStr);
+    if (subProfileJson == nullptr) {
+        ACCOUNT_LOGE("Failed to parse subprofile_info.json for id=%{public}d", id);
+        return ERR_ACCOUNT_COMMON_FILE_OPEN_FAILED;
+    }
+    FromJsonSubProfile(subProfileJson.get(), data);
+    return ERR_OK;
+}
+
+ErrCode OsAccountControlFileManager::WriteSubProfileContext(int32_t id, const SubProfileContext &data)
+{
+    std::lock_guard<std::mutex> lock(accountInfoFileLock_);
+    auto subProfileJson = ToJsonSubProfile(data);
+    std::string subProfileStr = PackJsonToString(subProfileJson);
+    if (subProfileStr.empty()) {
+        ACCOUNT_LOGE("PackJsonToString for subprofile_info.json returned empty");
+        return ERR_ACCOUNT_COMMON_FILE_WRITE_FAILED;
+    }
+    std::string subPath = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR +
+        std::to_string(id) + Constants::PATH_SEPARATOR + Constants::SUBPROFILE_INFO_FILE_NAME;
+    return accountFileOperator_->InputFileByPathAndContent(subPath, subProfileStr);
+}
+
+ErrCode OsAccountControlFileManager::DeleteSubProfileContextFile(int32_t id)
+{
+    std::string subPath = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR +
+        std::to_string(id) + Constants::PATH_SEPARATOR + Constants::SUBPROFILE_INFO_FILE_NAME;
+    if (!accountFileOperator_->IsExistFile(subPath)) {
+        return ERR_OK;
+    }
+    return accountFileOperator_->DeleteFile(subPath);
+}
+#endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+
 #ifdef SUPPORT_POSIX_ADAPTER
 void OsAccountControlFileManager::CheckAndFlushPosixFile()
 {

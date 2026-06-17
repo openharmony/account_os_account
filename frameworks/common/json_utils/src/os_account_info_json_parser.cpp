@@ -16,10 +16,48 @@
 #include "os_account_info_json_parser.h"
 #include <string>
 #include "json_utils.h"
+#include "os_account_constants.h"
 #include "os_account_info.h"
 
 namespace OHOS {
 namespace AccountSA {
+
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+namespace {
+void SerializeSubProfileToJson(CJson *jsonObject, const SubProfileContext &data)
+{
+    AddIntToJson(jsonObject, NEXT_SUBPROFILE_ID, data.nextSubProfileId);
+    AddVectorIntToJson(jsonObject, SUBPROFILE_ID_LIST, data.subProfileIdList);
+    AddIntToJson(jsonObject, NEXT_SUBPROFILE_INDEX, data.nextSubProfileIndex);
+    auto indexMapJson = CreateJson();
+    for (const auto &[index, subspaceId] : data.subProfileIndexMap) {
+        AddIntToJson(indexMapJson, std::to_string(index), subspaceId);
+    }
+    AddObjToJson(jsonObject, SUBPROFILE_INDEX_MAP, indexMapJson.get());
+}
+
+SubProfileContext DeserializeSubProfileFromJson(CJson *jsonObject)
+{
+    SubProfileContext data;
+    GetDataByType<int32_t>(jsonObject, NEXT_SUBPROFILE_ID, data.nextSubProfileId);
+    GetDataByType<std::vector<int32_t>>(jsonObject, SUBPROFILE_ID_LIST, data.subProfileIdList);
+    GetDataByType<int32_t>(jsonObject, NEXT_SUBPROFILE_INDEX, data.nextSubProfileIndex);
+    CJson *indexMapJson = nullptr;
+    GetDataByType<CJson *>(jsonObject, SUBPROFILE_INDEX_MAP, indexMapJson);
+    if (indexMapJson != nullptr) {
+        data.subProfileIndexMap.clear();
+        auto tempMap = PackJsonToMapUint64Int32(indexMapJson);
+        for (const auto &[key, val] : tempMap) {
+            if (key <= static_cast<uint64_t>(INT32_MAX)) {
+                data.subProfileIndexMap[static_cast<int32_t>(key)] = val;
+            }
+        }
+    }
+    return data;
+}
+}  // anonymous namespace
+#endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+
 CJsonUnique ToJson(const OsAccountInfo &accountInfo)
 {
     auto jsonObject = CreateJson();
@@ -45,15 +83,6 @@ CJsonUnique ToJson(const OsAccountInfo &accountInfo)
     AddBoolToJson(jsonObject, IS_DATA_REMOVABLE, accountInfo.isDataRemovable_);
     AddIntToJson(jsonObject, CREATOR_TYPE, accountInfo.creatorType_);
     AddIntToJson(jsonObject, VERSION, accountInfo.version_);
-
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-    int32_t fgSubProfileId = (accountInfo.foregroundSubProfileId_ == -1) ?
-        accountInfo.localId_ * 1000 : accountInfo.foregroundSubProfileId_;
-    AddIntToJson(jsonObject, FOREGROUND_SUBPROFILE_ID, fgSubProfileId);
-    AddIntToJson(jsonObject, NEXT_SUBPROFILE_ID, accountInfo.nextSubProfileId_);
-    AddVectorStringToJson(jsonObject, SUBPROFILE_ID_LIST, accountInfo.subProfileIdList_);
-#endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-
     auto domainInfoObject = CreateJson();
     AddStringToJson(domainInfoObject, DOMAIN_NAME, accountInfo.domainInfo_.domain_);
     AddStringToJson(domainInfoObject, DOMAIN_ACCOUNT_NAME, accountInfo.domainInfo_.accountName_);
@@ -62,6 +91,9 @@ CJsonUnique ToJson(const OsAccountInfo &accountInfo)
     AddStringToJson(domainInfoObject, DOMAIN_ACCOUNT_CONFIG, accountInfo.domainInfo_.serverConfigId_);
     AddStringToJson(domainInfoObject, DOMAIN_ACCOUNT_ADDITION, accountInfo.domainInfo_.additionInfo_);
     AddObjToJson(jsonObject, DOMAIN_INFO, domainInfoObject);
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    AddIntToJson(jsonObject, FOREGROUND_SUBPROFILE_ID, accountInfo.foregroundSubProfileId_);
+#endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 
     return jsonObject;
 }
@@ -92,15 +124,6 @@ bool FromJson(cJSON *jsonObject, OsAccountInfo &accountInfo)
     GetDataByType<bool>(jsonObject, IS_DATA_REMOVABLE, accountInfo.isDataRemovable_);
     GetDataByType<int32_t>(jsonObject, CREATOR_TYPE, accountInfo.creatorType_);
     GetDataByType<int32_t>(jsonObject, VERSION, accountInfo.version_);
-
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-    int32_t fgSubProfileId = accountInfo.localId_ * 1000;
-    GetDataByType<int32_t>(jsonObject, FOREGROUND_SUBPROFILE_ID, fgSubProfileId);
-    accountInfo.foregroundSubProfileId_ = fgSubProfileId;
-    GetDataByType<int32_t>(jsonObject, NEXT_SUBPROFILE_ID, accountInfo.nextSubProfileId_);
-    GetDataByType<std::vector<std::string>>(jsonObject, SUBPROFILE_ID_LIST, accountInfo.subProfileIdList_);
-#endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-
     CJson *typeJson = nullptr;
     GetDataByType<CJson *>(jsonObject, DOMAIN_INFO, typeJson);
     if (typeJson != nullptr) {
@@ -111,6 +134,9 @@ bool FromJson(cJSON *jsonObject, OsAccountInfo &accountInfo)
         GetDataByType<std::string>(typeJson, DOMAIN_ACCOUNT_CONFIG, accountInfo.domainInfo_.serverConfigId_);
         GetDataByType<std::string>(typeJson, DOMAIN_ACCOUNT_ADDITION, accountInfo.domainInfo_.additionInfo_);
     }
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    GetDataByType<int32_t>(jsonObject, FOREGROUND_SUBPROFILE_ID, accountInfo.foregroundSubProfileId_);
+#endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
     return parseSuccess;
 }
 
@@ -140,5 +166,24 @@ bool FromJson(cJSON *jsonObject, DomainAccountInfo &domainInfo)
     result &= GetDataByType<std::string>(jsonObject, DOMAIN_ACCOUNT_ADDITION, domainInfo.additionInfo_);
     return result;
 }
+
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+CJsonUnique ToJsonSubProfile(const SubProfileContext &data)
+{
+    auto jsonObject = CreateJson();
+    SerializeSubProfileToJson(jsonObject.get(), data);
+    return jsonObject;
+}
+
+bool FromJsonSubProfile(cJSON *jsonObject, SubProfileContext &data)
+{
+    if (jsonObject == nullptr) {
+        return false;
+    }
+    data = DeserializeSubProfileFromJson(jsonObject);
+    return true;
+}
+#endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+
 } // namespace AccountSA
 } // namespace OHOS

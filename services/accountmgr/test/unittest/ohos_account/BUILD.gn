@@ -414,6 +414,7 @@ ohos_unittest("OsAccountSubProfileManagerTest") {
     "${common_path}/account_error/src/account_error_no.cpp",
     "${common_path}/file_operator/src/account_file_operator.cpp",
     "${common_path}/json_utils/src/json_utils.cpp",
+    "${common_path}/json_utils/src/os_account_info_json_parser.cpp",
     "${common_path}/log/src/account_log_wrapper.cpp",
     "${os_account_dfx_path}/hisysevent_adapter/account_hisysevent_adapter.cpp",
     "${account_iam_framework_path}/src/account_iam_info.cpp",
@@ -671,12 +672,15 @@ ohos_unittest("OsAccountSubspaceCoverageTest") {
   sources = [
     "os_account_subspace_client_test.cpp",
     "os_account_subspace_coverage_test.cpp",
+    "os_account_subspace_client_and_service_test.cpp",
+    "os_account_subspace_query_test.cpp",
   ]
 
   sources += [
     "${common_path}/account_error/src/account_error_no.cpp",
     "${common_path}/file_operator/src/account_file_operator.cpp",
     "${common_path}/json_utils/src/json_utils.cpp",
+    "${common_path}/json_utils/src/os_account_info_json_parser.cpp",
     "${common_path}/log/src/account_log_wrapper.cpp",
     "${os_account_dfx_path}/hisysevent_adapter/account_hisysevent_adapter.cpp",
     "${account_iam_framework_path}/src/account_iam_info.cpp",

@@ -32,5 +32,11 @@ void MockForceGetOsAccountInfoByIdFail(ErrCode errCode) {}
 
 void MockClearForceFailFlags() {}
 
+void MockInsertForegroundSubspaceId(int32_t localId, int32_t subspaceId) {}
+
+void MockEraseForegroundSubspaceId(int32_t localId) {}
+
+bool MockFindForegroundSubspaceId(int32_t localId, int32_t &subspaceId) { return false; }
+
 } // namespace AccountSA
 } // namespace OHOS

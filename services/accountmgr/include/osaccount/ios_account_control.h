@@ -15,6 +15,7 @@
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_IOS_ACCOUNT_CONTROL_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_IOS_ACCOUNT_CONTROL_H
 #include "os_account_info.h"
+#include "sub_profile_context.h"
 #include "account_error_no.h"
 #include <map>
 #include <stdint.h>
@@ -91,6 +92,11 @@ public:
     virtual ErrCode SetDomainBoundFlag(
         const int32_t localId, const bool flag, const DomainAccountInfo domainInfo = {}) = 0;
     virtual ErrCode GetDomainBoundFlag(const int32_t localId, bool &flag, DomainAccountInfo &domainInfo) = 0;
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    virtual ErrCode WriteSubProfileContext(int32_t localId, const SubProfileContext &data) = 0;
+    virtual ErrCode ReadSubProfileContext(int32_t localId, SubProfileContext &data) = 0;
+    virtual ErrCode DeleteSubProfileContextFile(int32_t localId) = 0;
+#endif
 };
 }  // namespace AccountSA
 }  // namespace OHOS

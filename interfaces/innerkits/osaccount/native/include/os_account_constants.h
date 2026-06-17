@@ -45,6 +45,9 @@ const std::string SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH =
 const std::string IS_DOMAIN_BOUND_COMPLETED_FILE_NAME = "isDomainAccountBoundCompleted";
 const char USER_PHOTO_FILE_TXT_NAME[] = "photo.txt";
 const char USER_INFO_FILE_NAME[] = "account_info.json";
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+const char SUBPROFILE_INFO_FILE_NAME[] = "subprofile_info.json";
+#endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 const char USER_SECRET_FLAG_FILE_NAME[] = "iam_fault";
 const char OPERATION_BOOT_ACTIVATED[] = "boot_activated";
 const char OPERATION_BOOT_CREATE[] = "boot_create";
@@ -78,6 +81,11 @@ const char OPERATION_POSIX_FILE[] = "posixFileOperate";
 const char OPERATION_BIND_DOMAIN_ACCOUNT[] = "bindDomainAccount";
 const char OPERATION_RECOVER_BIND_DOMAIN_ACCOUNT[] = "recoverBindDomainAccount";
 const char OPERATION_BOOT_RECOVER_BIND_DOMAIN_ACCOUNT[] = "boot_recoverBindDomainAccount";
+// Subprofile DFX flag
+const char OPERATION_SUBPROFILE_CREATE[] = "subprofileCreate";
+const char OPERATION_SUBPROFILE_DELETE[] = "subprofileDelete";
+const char OPERATION_SUBPROFILE_SWITCH[] = "subprofileSwitch";
+const char OPERATION_SUBPROFILE_QUERY[] = "subprofileQuery";
 // distributed database
 const bool SYNC_OS_ACCOUNT_DATABASE = false;
 const std::uint32_t DEVICE_UUID_LENGTH = 65;
@@ -140,7 +148,9 @@ const OS_ACCOUNT_SWITCH_MOD NOW_OS_ACCOUNT_SWITCH_MOD = OS_ACCOUNT_SWITCH_MOD::H
 #ifdef SUPPORT_AUTHORIZATION
 const size_t MAX_TOKEN_SIZE = 1024 + 116 + 8;
 #endif
-// Multiplier for computing subspaceId = osAccountId * MULTIPLIER + index, index in [1, 999]
+// SubspaceId encoding base.  subspaceId is independently allocated in [osAccountId*MULTIPLIER+1,
+// osAccountId*MULTIPLIER+MAX], index is independently allocated in [0, MAX-1] and stored in
+// OsAccountInfo.subProfileIndexMap_ as index→subspaceId mapping.
 constexpr int32_t OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER = 1000;
 };  // namespace Constants
 }  // namespace AccountSA

@@ -89,11 +89,11 @@ uint64_t OsAccountSubspaceTest::allPermTokenId_ = 0;
  */
 HWTEST_F(OsAccountSubspaceTest, AllocateOsAccountSubProfileId_001, TestSize.Level1)
 {
-    std::vector<std::string> subProfileIdStrList;
+    std::vector<int32_t> subProfileIdList;
     int32_t nextSubProfileId = -1;
     int32_t outId = 0;
     ErrCode ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
+        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdList, outId);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(outId, TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 1);
 }
@@ -105,11 +105,11 @@ HWTEST_F(OsAccountSubspaceTest, AllocateOsAccountSubProfileId_001, TestSize.Leve
  */
 HWTEST_F(OsAccountSubspaceTest, AllocateOsAccountSubProfileId_002, TestSize.Level1)
 {
-    std::vector<std::string> subProfileIdStrList = {"100001", "100002", "100003"};
+    std::vector<int32_t> subProfileIdList = {100001, 100002, 100003};
     int32_t nextSubProfileId = -1;
     int32_t outId = 0;
     ErrCode ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
+        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdList, outId);
     EXPECT_EQ(ret, ERR_OK);
     int32_t base = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
     EXPECT_EQ(outId, base + 4);
@@ -122,15 +122,15 @@ HWTEST_F(OsAccountSubspaceTest, AllocateOsAccountSubProfileId_002, TestSize.Leve
  */
 HWTEST_F(OsAccountSubspaceTest, AllocateOsAccountSubProfileId_003, TestSize.Level1)
 {
-    std::vector<std::string> subProfileIdStrList;
+    std::vector<int32_t> subProfileIdList;
     int32_t base = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
-    for (int32_t i = 1; i <= MAX_OS_ACCOUNT_SUB_PROFILE_COUNT; ++i) {
-        subProfileIdStrList.push_back(std::to_string(base + i));
+    for (int32_t i = 1; i <= OsAccountSubProfileDataDeal::OS_ACCOUNT_SUB_PROFILE_ID_MAX; ++i) {
+        subProfileIdList.push_back(base + i);
     }
     int32_t nextSubProfileId = -1;
     int32_t outId = 0;
     ErrCode ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
+        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdList, outId);
     EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_LIMIT);
 }
 
@@ -144,34 +144,34 @@ HWTEST_F(OsAccountSubspaceTest, AllocateOsAccountSubProfileId_IncrementPattern_0
     int32_t outId = 0;
     int32_t base = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
 
-    std::vector<std::string> subProfileIdStrList;
+    std::vector<int32_t> subProfileIdList;
     int32_t nextSubProfileId = -1;
     ErrCode ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
+        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdList, outId);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(outId, base + 1);
 
-    subProfileIdStrList = {"100001"};
+    subProfileIdList = {100001};
     nextSubProfileId = base + 2;
     ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
+        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdList, outId);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(outId, base + 2);
 
-    subProfileIdStrList = {"100001", "100002"};
+    subProfileIdList = {100001, 100002};
     nextSubProfileId = base + 3;
     ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
+        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdList, outId);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(outId, base + 3);
 
-    subProfileIdStrList.clear();
+    subProfileIdList.clear();
     for (int32_t i = 1; i <= 10; ++i) {
-        subProfileIdStrList.push_back(std::to_string(base + i));
+        subProfileIdList.push_back(base + i);
     }
     nextSubProfileId = base + 4;
     ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
+        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdList, outId);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(outId, base + 11);
 }
@@ -186,24 +186,24 @@ HWTEST_F(OsAccountSubspaceTest, AllocateOsAccountSubProfileId_HoleBelowHint_005,
     int32_t outId = 0;
     int32_t base = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
 
-    std::vector<std::string> subProfileIdStrList = {"100001", "100003"};
+    std::vector<int32_t> subProfileIdList = {100001, 100003};
     int32_t nextSubProfileId = base + 4;
     ErrCode ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
+        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdList, outId);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(outId, base + 4);
 
-    subProfileIdStrList = {"100001", "100005", "100010"};
+    subProfileIdList = {100001, 100005, 100010};
     nextSubProfileId = base + 11;
     ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
+        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdList, outId);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(outId, base + 11);
 
-    subProfileIdStrList = {"100001", "100002", "100004", "100006", "100008"};
+    subProfileIdList = {100001, 100002, 100004, 100006, 100008};
     nextSubProfileId = base + 9;
     ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
+        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdList, outId);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(outId, base + 9);
 }
@@ -218,24 +218,24 @@ HWTEST_F(OsAccountSubspaceTest, AllocateOsAccountSubProfileId_WrapAroundFreedSma
     int32_t outId = 0;
     int32_t base = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
 
-    std::vector<std::string> subProfileIdStrList;
-    for (int32_t i = 2; i <= MAX_OS_ACCOUNT_SUB_PROFILE_COUNT; ++i) {
-        subProfileIdStrList.push_back(std::to_string(base + i));
+    std::vector<int32_t> subProfileIdList;
+    for (int32_t i = 2; i <= OsAccountSubProfileDataDeal::OS_ACCOUNT_SUB_PROFILE_ID_MAX; ++i) {
+        subProfileIdList.push_back(base + i);
     }
     int32_t nextSubProfileId = base + 1;
     ErrCode ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
+        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdList, outId);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(outId, base + 1);
 
-    subProfileIdStrList.clear();
-    for (int32_t i = 3; i <= MAX_OS_ACCOUNT_SUB_PROFILE_COUNT; ++i) {
-        subProfileIdStrList.push_back(std::to_string(base + i));
+    subProfileIdList.clear();
+    for (int32_t i = 3; i <= OsAccountSubProfileDataDeal::OS_ACCOUNT_SUB_PROFILE_ID_MAX; ++i) {
+        subProfileIdList.push_back(base + i);
     }
-    subProfileIdStrList.push_back(std::to_string(base + 1));
+    subProfileIdList.push_back(base + 1);
     nextSubProfileId = base + 2;
     ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
+        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdList, outId);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(outId, base + 2);
 }
@@ -251,27 +251,27 @@ HWTEST_F(OsAccountSubspaceTest, AllocateOsAccountSubProfileId_WrapAroundFreedMid
     int32_t outId = 0;
     int32_t base = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
 
-    std::vector<std::string> subProfileIdStrList;
-    for (int32_t i = 1; i <= MAX_OS_ACCOUNT_SUB_PROFILE_COUNT; ++i) {
+    std::vector<int32_t> subProfileIdList;
+    for (int32_t i = 1; i <= OsAccountSubProfileDataDeal::OS_ACCOUNT_SUB_PROFILE_ID_MAX; ++i) {
         if (i != 500) {
-            subProfileIdStrList.push_back(std::to_string(base + i));
+            subProfileIdList.push_back(base + i);
         }
     }
     int32_t nextSubProfileId = base + 1;
     ErrCode ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
+        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdList, outId);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(outId, base + 500);
 
-    subProfileIdStrList.clear();
-    for (int32_t i = 1; i <= MAX_OS_ACCOUNT_SUB_PROFILE_COUNT; ++i) {
+    subProfileIdList.clear();
+    for (int32_t i = 1; i <= OsAccountSubProfileDataDeal::OS_ACCOUNT_SUB_PROFILE_ID_MAX; ++i) {
         if (i != 100 && i != 500) {
-            subProfileIdStrList.push_back(std::to_string(base + i));
+            subProfileIdList.push_back(base + i);
         }
     }
     nextSubProfileId = base + 1;
     ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
+        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdList, outId);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(outId, base + 100);
 }
@@ -283,15 +283,15 @@ HWTEST_F(OsAccountSubspaceTest, AllocateOsAccountSubProfileId_WrapAroundFreedMid
  */
 HWTEST_F(OsAccountSubspaceTest, AllocateOsAccountSubProfileId_MaxReachedNoHoles_008, TestSize.Level1)
 {
-    std::vector<std::string> subProfileIdStrList;
-    for (int32_t i = 1; i <= MAX_OS_ACCOUNT_SUB_PROFILE_COUNT; ++i) {
-        subProfileIdStrList.push_back(
-            std::to_string(TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + i));
+    std::vector<int32_t> subProfileIdList;
+    for (int32_t i = 1; i <= OsAccountSubProfileDataDeal::OS_ACCOUNT_SUB_PROFILE_ID_MAX; ++i) {
+        subProfileIdList.push_back(
+            TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + i);
     }
     int32_t nextSubProfileId = -1;
     int32_t outId = 0;
     ErrCode ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
+        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdList, outId);
     EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_LIMIT);
 }
 
@@ -311,101 +311,76 @@ HWTEST_F(OsAccountSubspaceTest, AllocateOsAccountSubProfileId_DeleteAndWrapAroun
     int32_t osAccountId = TEST_OS_ACCOUNT_ID;
     int32_t base = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
 
-    std::vector<std::string> subProfileIdStrList = {
-        std::to_string(base + 1), std::to_string(base + 2),
-        std::to_string(base + 3), std::to_string(base + 4)};
+    std::vector<int32_t> subProfileIdList = {
+        base + 1, base + 2,
+        base + 3, base + 4};
     int32_t nextSubProfileId = base + 5;
 
     ErrCode ret = dataDeal_->AllocateOsAccountSubProfileId(
-        osAccountId, nextSubProfileId, subProfileIdStrList, outId);
+        osAccountId, nextSubProfileId, subProfileIdList, outId);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(outId, base + 5);
 
-    subProfileIdStrList.push_back(std::to_string(base + 5));
+    subProfileIdList.push_back(base + 5);
     nextSubProfileId = base + 6;
 
     ret = dataDeal_->AllocateOsAccountSubProfileId(
-        osAccountId, nextSubProfileId, subProfileIdStrList, outId);
+        osAccountId, nextSubProfileId, subProfileIdList, outId);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(outId, base + 6);
 
-    auto erase5 = std::find(subProfileIdStrList.begin(), subProfileIdStrList.end(), std::to_string(base + 5));
-    ASSERT_NE(erase5, subProfileIdStrList.end());
-    subProfileIdStrList.erase(erase5);
+    auto erase5 = std::find(subProfileIdList.begin(), subProfileIdList.end(), base + 5);
+    ASSERT_NE(erase5, subProfileIdList.end());
+    subProfileIdList.erase(erase5);
     nextSubProfileId = base + 7;
 
     ret = dataDeal_->AllocateOsAccountSubProfileId(
-        osAccountId, nextSubProfileId, subProfileIdStrList, outId);
+        osAccountId, nextSubProfileId, subProfileIdList, outId);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(outId, base + 7);  // MAX=999, no wrapping; base+7 is free (base+5 was deleted)
 
     // Final step: after step3 list=[1,2,3,4,6]. Allocate with nextId=1 fills freed hole 5.
     nextSubProfileId = base + 1;
     ret = dataDeal_->AllocateOsAccountSubProfileId(
-        osAccountId, nextSubProfileId, subProfileIdStrList, outId);
+        osAccountId, nextSubProfileId, subProfileIdList, outId);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(outId, base + 5);
 }
 
 /**
- * @tc.name: AllocateOsAccountSubProfileId_NonNumericStrList_010
- * @tc.desc: subProfileIdStrList with non-numeric strings never matches std::to_string(startId);
- *           allocation proceeds using only numeric IDs from subProfileIdStrList
- * @tc.type: FUNC
- */
-HWTEST_F(OsAccountSubspaceTest, AllocateOsAccountSubProfileId_NonNumericStrList_010, TestSize.Level1)
-{
-    int32_t base = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
-    std::vector<std::string> subProfileIdStrList = {"not_a_number", "abc", ""};
-    int32_t nextSubProfileId = -1;
-    int32_t outId = 0;
-    ErrCode ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(outId, base + 1);
-
-    subProfileIdStrList = {"invalid", std::to_string(base + 2)};
-    nextSubProfileId = base + 3;
-    ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(outId, base + 3);
-}
-
-/**
  * @tc.name: AllocateOsAccountSubProfileId_HintOutOfRange_011
  * @tc.desc: When nextSubProfileId yields hintIndex < MIN or > MAX,
- *           startIndex falls back to OS_ACCOUNT_SUB_PROFILE_INDEX_MIN
+ *           startIndex falls back to OS_ACCOUNT_SUB_PROFILE_ID_MIN
  * @tc.type: FUNC
  */
 HWTEST_F(OsAccountSubspaceTest, AllocateOsAccountSubProfileId_HintOutOfRange_011, TestSize.Level1)
 {
     int32_t base = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
-    std::vector<std::string> subProfileIdStrList;
+    std::vector<int32_t> subProfileIdList;
     int32_t outId = 0;
 
     int32_t nextSubProfileId = 0;
     ErrCode ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
+        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdList, outId);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(outId, base + 1);
 
-    nextSubProfileId = base + OsAccountSubProfileDataDeal::OS_ACCOUNT_SUB_PROFILE_INDEX_MAX + 1;
+    nextSubProfileId = base + OsAccountSubProfileDataDeal::OS_ACCOUNT_SUB_PROFILE_ID_MAX + 1;
     ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
+        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdList, outId);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(outId, base + 1);
 
     nextSubProfileId = base - 1;
     ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
+        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdList, outId);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(outId, base + 1);
 
-    subProfileIdStrList = {std::to_string(base + 1)};
+    subProfileIdList = {base + 1};
     nextSubProfileId = base + 1000;
     ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
+        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdList, outId);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(outId, base + 2);
 }
@@ -421,26 +396,26 @@ HWTEST_F(OsAccountSubspaceTest, AllocateOsAccountSubProfileId_HintOccupied_012, 
     int32_t base = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
     int32_t outId = 0;
 
-    std::vector<std::string> subProfileIdStrList = {std::to_string(base + 3),
-        std::to_string(base + 4), std::to_string(base + 5)};
+    std::vector<int32_t> subProfileIdList = {base + 3,
+        base + 4, base + 5};
     int32_t nextSubProfileId = base + 3;
     ErrCode ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
+        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdList, outId);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(outId, base + 6);
 
-    subProfileIdStrList = {std::to_string(base + 5), std::to_string(base + 6),
-        std::to_string(base + 7), std::to_string(base + 1), std::to_string(base + 2)};
+    subProfileIdList = {base + 5, base + 6,
+        base + 7, base + 1, base + 2};
     nextSubProfileId = base + 5;
     ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
+        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdList, outId);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(outId, base + 8);
 }
 
 /**
  * @tc.name: AllocateOsAccountSubProfileId_StrListOverlapUsedIndices_013
- * @tc.desc: subProfileIdStrList values are deduplicated by the set; allocation still
+ * @tc.desc: subProfileIdList values are deduplicated by the set; allocation still
  *           by the set; allocation still finds correct free index
  * @tc.type: FUNC
  */
@@ -449,10 +424,10 @@ HWTEST_F(OsAccountSubspaceTest, AllocateOsAccountSubProfileId_StrListOverlapUsed
     int32_t base = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
     int32_t outId = 0;
 
-    std::vector<std::string> subProfileIdStrList = {std::to_string(base + 1), std::to_string(base + 2)};
+    std::vector<int32_t> subProfileIdList = {base + 1, base + 2};
     int32_t nextSubProfileId = base + 3;
     ErrCode ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
+        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdList, outId);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(outId, base + 3);
 }
@@ -466,14 +441,14 @@ HWTEST_F(OsAccountSubspaceTest, AllocateOsAccountSubProfileId_StrListOverlapUsed
 HWTEST_F(OsAccountSubspaceTest, AllocateOsAccountSubProfileId_WrapExactBoundary_014, TestSize.Level1)
 {
     int32_t base = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
-    std::vector<std::string> subProfileIdStrList;
-    for (int32_t i = 2; i <= MAX_OS_ACCOUNT_SUB_PROFILE_COUNT; ++i) {
-        subProfileIdStrList.push_back(std::to_string(base + i));
+    std::vector<int32_t> subProfileIdList;
+    for (int32_t i = 2; i <= OsAccountSubProfileDataDeal::OS_ACCOUNT_SUB_PROFILE_ID_MAX; ++i) {
+        subProfileIdList.push_back(base + i);
     }
-    int32_t nextSubProfileId = base + OsAccountSubProfileDataDeal::OS_ACCOUNT_SUB_PROFILE_INDEX_MAX;
+    int32_t nextSubProfileId = base + OsAccountSubProfileDataDeal::OS_ACCOUNT_SUB_PROFILE_ID_MAX;
     int32_t outId = 0;
     ErrCode ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
+        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdList, outId);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(outId, base + 1);
 }

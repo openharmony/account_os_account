@@ -19,11 +19,15 @@
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 #include <memory>
 #include <mutex>
+#include <shared_mutex>
 #include <set>
 #include <string>
+#include <utility>
+#include <vector>
 #include "account_error_no.h"
 #include "account_info.h"
 #include "os_account_info.h"
+#include "sub_profile_context.h"
 #include "os_account_subspace_data_deal.h"
 
 namespace OHOS {
@@ -40,7 +44,7 @@ public:
     void Init(const std::string &rootPath);
     void CleanupOrphanedSubProfiles();
 
-    ErrCode CreateSubProfile(int32_t osAccountId, int32_t &newSubspaceId);
+    ErrCode CreateSubProfile(int32_t osAccountId, int32_t &newSubspaceId, int32_t &outIndex);
     ErrCode RemoveSubProfile(int32_t osAccountId, int32_t subspaceId);
     ErrCode SwitchSubProfile(int32_t osAccountId, int32_t subspaceId, int32_t &fromSubspaceId);
 
@@ -60,14 +64,28 @@ private:
     OsAccountSubProfileManager() = default;
     ~OsAccountSubProfileManager() = default;
 
-    OsAccountSubspaceInfo CreateDefaultSubProfileInfo(int32_t osAccountId, int32_t subspaceId);
-    ErrCode CreateSubProfileLocked(int32_t osAccountId, int32_t &newSubspaceId);
+    ErrCode CreateSubProfileLocked(int32_t osAccountId, int32_t &newSubspaceId, int32_t &outIndex);
+    ErrCode AllocateAndPersistSubProfile(int32_t osAccountId, SubProfileContext &subprofileCtx,
+        int32_t newSubspaceId, int32_t &outIndex);
+    void RollbackSubProfileCreation(int32_t osAccountId, int32_t newSubspaceId,
+        int32_t allocatedIndex, SubProfileContext &subprofileCtx);
     ErrCode RemoveSubProfileLocked(int32_t osAccountId, int32_t subspaceId);
+    void UpdateContextAfterRemove(int32_t osAccountId, int32_t subspaceId);
     ErrCode SwitchSubProfileLocked(int32_t osAccountId, int32_t subspaceId, int32_t &fromSubspaceId);
     void RemoveOsAccountSubProfileInfo(int32_t osAccountId, int32_t subspaceId,
-        const OsAccountInfo &osAccountInfo);
+        const SubProfileContext &subprofileCtx);
+    ErrCode TryReclaimSubProfileSlots(int32_t osAccountId, SubProfileContext &subprofileCtx);
+    int32_t RemoveGarbageSubProfiles(int32_t osAccountId);
+    void PurgeGarbageIdsFromContext(int32_t osAccountId, const std::set<int32_t> &garbageIds);
+    ErrCode GetHeadlessSubProfile(int32_t osAccountId, int32_t subProfileId,
+        OsAccountSubspaceResult &subspaceResult, OhosAccountInfo &distributedInfo);
+    ErrCode ResolveSubProfileIndexFromContext(int32_t osAccountId, int32_t subProfileId,
+        int32_t &resolvedIndex);
+    ErrCode FilterValidSubProfileIdsLocked(int32_t base,
+        const std::vector<std::pair<int32_t, OsAccountSubspaceInfo>> &loadedProfiles,
+        std::vector<int32_t> &subProfileIds);
 
-    std::mutex subProfileOpMutex_;
+    std::shared_mutex subProfileOpMutex_;
     std::string rootPath_;
     std::unique_ptr<OsAccountSubProfileDataDeal> subProfileDataDeal_;
 };

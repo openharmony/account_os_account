@@ -124,6 +124,13 @@ std::vector<std::string> GetVectorStringFromJson(const CJsonUnique &jsonObj, con
 bool AddVectorStringToJson(CJson *jsonObj, const std::string &key, const std::vector<std::string> &vec);
 bool AddVectorStringToJson(CJsonUnique &jsonObj, const std::string &key, const std::vector<std::string> &vec);
 
+// int32 vector
+bool GetVectorIntFromJson(const CJson *jsonObj, const std::string &key, std::vector<int32_t> &value);
+std::vector<int32_t> GetVectorIntFromJson(const CJson *jsonObj, const std::string &key);
+std::vector<int32_t> GetVectorIntFromJson(const CJsonUnique &jsonObj, const std::string &key);
+bool AddVectorIntToJson(CJson *jsonObj, const std::string &key, const std::vector<int32_t> &vec);
+bool AddVectorIntToJson(CJsonUnique &jsonObj, const std::string &key, const std::vector<int32_t> &vec);
+
 // uint8 vector
 std::vector<uint8_t> GetVectorUint8FromJson(const CJson *jsonObj, const std::string &key);
 std::vector<uint8_t> GetVectorUint8FromJson(const CJsonUnique &jsonObj, const std::string &key);
@@ -156,7 +163,8 @@ bool GetDataByType(const CJson *jsonObject, const std::string &key, dataType &da
     static_assert(std::is_same_v<T, int> || std::is_same_v<T, int32_t> || std::is_same_v<T, uint32_t> ||
         std::is_same_v<T, int64_t> || std::is_same_v<T, uint64_t> || std::is_same_v<T, bool> ||
         std::is_same_v<T, std::string> || std::is_same_v<T, cJSON *> || std::is_enum_v<T> ||
-        std::is_same_v<T, std::vector<std::string>> || std::is_same_v<T, std::set<std::string>>,
+        std::is_same_v<T, std::vector<std::string>> || std::is_same_v<T, std::vector<int32_t>> ||
+        std::is_same_v<T, std::set<std::string>>,
         "Unsupported type for GetDataByType");
 
     if constexpr (std::is_same_v<T, int> || std::is_same_v<T, int32_t>) {
@@ -173,6 +181,8 @@ bool GetDataByType(const CJson *jsonObject, const std::string &key, dataType &da
         return GetObjFromJson(jsonObject, key, &data);
     } else if constexpr (std::is_same_v<T, std::vector<std::string>>) {
         return GetVectorStringFromJson(jsonObject, key, data);
+    } else if constexpr (std::is_same_v<T, std::vector<int32_t>>) {
+        return GetVectorIntFromJson(jsonObject, key, data);
     } else if constexpr (std::is_same_v<T, std::set<std::string>>) {
         return GetSetStringFromJson(jsonObject, key, data);
     } else if constexpr (std::is_enum_v<T> || std::is_same_v<T, uint32_t>) {

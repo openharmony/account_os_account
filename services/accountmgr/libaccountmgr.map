@@ -419,7 +419,7 @@
         "OHOS::AccountSA::OsAccountSubProfileManager::GetInstance()";
         "OHOS::AccountSA::OsAccountSubProfileManager::Init(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::AccountSA::OsAccountSubProfileManager::CheckActiveSessionStatus(OHOS::AccountSA::OsAccountSubProfileDataDeal*, int, int)";
-        "OHOS::AccountSA::OsAccountSubProfileManager::CreateSubProfile(int, int&)";
+        "OHOS::AccountSA::OsAccountSubProfileManager::CreateSubProfile(int, int&, int&)";
         "OHOS::AccountSA::OsAccountSubProfileManager::RemoveSubProfile(int, int)";
         "OHOS::AccountSA::OsAccountSubProfileManager::SwitchSubProfile(int, int, int&)";
         "OHOS::AccountSA::OsAccountSubProfileManager::CleanupOrphanedSubProfiles()";

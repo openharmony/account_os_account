@@ -103,7 +103,7 @@ ohos_shared_library("os_account_innerkits") {
   ]
 
   configs = [ ":osaccountinterface_config" ]
-  if (os_account_enable_multiple_os_account_subspace) {
+  if (os_account_enable_multiple_os_account_sub_profiles) {
     cflags = [ "-DENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE" ]
   }
 
@@ -120,7 +120,7 @@ ohos_shared_library("os_account_innerkits") {
     "//base/account/os_account/frameworks/os_account_subspace:frameworks_os_account_subspace_interface",
   ]
 
-  if (os_account_enable_multiple_os_account_subspace) {
+  if (os_account_enable_multiple_os_account_sub_profiles) {
     deps += [ "//base/account/os_account/frameworks/os_account_subspace:os_account_subspace_proxy_source" ]
   }
 

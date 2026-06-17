@@ -32,6 +32,7 @@
 #include "account_info.h"
 #include "os_account_constants.h"
 #include "os_account_info.h"
+#include "os_account_info_json_parser.h"
 #include "mock/mock_space_dependencies.h"
 #include "token_setproc.h"
 
@@ -78,8 +79,9 @@ public:
 
     void TearDown() override
     {
-        MockClearForceFailFlags();
-        MockSetCreatedOsAccounts({});
+        ResetMockState();
+        std::error_code ec;
+        std::filesystem::remove_all(TEST_ROOT_DIR, ec);
     }
 
     static uint64_t allPermTokenId_;
@@ -96,7 +98,8 @@ HWTEST_F(OsAccountSubProfileManagerTest, CreateSubspace_Success_001, TestSize.Le
 {
     auto &mgr = OsAccountSubProfileManager::GetInstance();
     int32_t newSubspaceId = 0;
-    ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, newSubspaceId);
+    int32_t index = 0;
+    ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, newSubspaceId, index);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(newSubspaceId, OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 1);
 
@@ -113,11 +116,13 @@ HWTEST_F(OsAccountSubProfileManagerTest, CreateSubspace_Multiple_002, TestSize.L
     auto &mgr = OsAccountSubProfileManager::GetInstance();
     int32_t distId1 = 0;
     int32_t distId2 = 0;
-    ErrCode ret1 = mgr.CreateSubProfile(OS_ACCOUNT_ID, distId1);
+    int32_t index1 = 0;
+    ErrCode ret1 = mgr.CreateSubProfile(OS_ACCOUNT_ID, distId1, index1);
     EXPECT_EQ(ret1, ERR_OK);
     EXPECT_EQ(distId1, OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 1);
 
-    ErrCode ret2 = mgr.CreateSubProfile(OS_ACCOUNT_ID, distId2);
+    int32_t index2 = 0;
+    ErrCode ret2 = mgr.CreateSubProfile(OS_ACCOUNT_ID, distId2, index2);
     EXPECT_EQ(ret2, ERR_OK);
     EXPECT_EQ(distId2, OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 2);
 
@@ -136,16 +141,20 @@ HWTEST_F(OsAccountSubProfileManagerTest, CreateSubspace_LimitReached_003, TestSi
     // Setup mock: account 100 with all 999 subspaces already allocated
     OsAccountInfo osAccountInfo;
     osAccountInfo.SetLocalId(OS_ACCOUNT_ID);
-    std::vector<std::string> fullList;
-    for (int32_t i = 1; i <= MAX_OS_ACCOUNT_SUB_PROFILE_COUNT; ++i) {
-        fullList.push_back(
-            std::to_string(OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + i));
-    }
-    osAccountInfo.SetSubProfileIdList(fullList);
     MockSetCreatedOsAccounts({osAccountInfo});
 
+    SubProfileContext subprofileCtx;
+    subprofileCtx.subProfileIdList.push_back(
+        OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER);
+    for (int32_t i = 1; i <= MAX_OS_ACCOUNT_SUB_PROFILE_COUNT - 1; ++i) {
+        subprofileCtx.subProfileIdList.push_back(
+            OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + i);
+    }
+    MockForceSubProfileContext(OS_ACCOUNT_ID, subprofileCtx);
+
     int32_t newSubspaceId = 0;
-    ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, newSubspaceId);
+    int32_t index = 0;
+    ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, newSubspaceId, index);
     EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_LIMIT);
 }
 
@@ -166,12 +175,16 @@ HWTEST_F(OsAccountSubProfileManagerTest, CreateSubspace_HintOccupied_004, TestSi
     //   → base+2 (occupied, ++startId/+searchCount) → base+3 (free, returns ERR_OK)
     OsAccountInfo osAccountInfo;
     osAccountInfo.SetLocalId(OS_ACCOUNT_ID);
-    osAccountInfo.SetNextSubProfileId(base + 1);
-    osAccountInfo.SetSubProfileIdList({std::to_string(base + 1), std::to_string(base + 2)});
     MockSetCreatedOsAccounts({osAccountInfo});
 
+    SubProfileContext subprofileCtx;
+    subprofileCtx.nextSubProfileId = base + 1;
+    subprofileCtx.subProfileIdList = {base + 1, base + 2};
+    MockForceSubProfileContext(OS_ACCOUNT_ID, subprofileCtx);
+
     int32_t distId = 0;
-    ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, distId);
+    int32_t index = 0;
+    ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, distId, index);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(distId, base + 3);
 }
@@ -191,17 +204,18 @@ HWTEST_F(OsAccountSubProfileManagerTest, CreateSubspace_WrapAround_005, TestSize
 
     OsAccountInfo osAccountInfo;
     osAccountInfo.SetLocalId(OS_ACCOUNT_ID);
-    // Fill all slots except index 1: subProfileIdList.size() = MAX - 1 < MAX → guard passes
-    std::vector<std::string> idList;
-    for (int32_t i = 2; i <= MAX_OS_ACCOUNT_SUB_PROFILE_COUNT; ++i) {
-        idList.push_back(std::to_string(base + i));
-    }
-    osAccountInfo.SetNextSubProfileId(base + OsAccountSubProfileDataDeal::OS_ACCOUNT_SUB_PROFILE_INDEX_MAX);
-    osAccountInfo.SetSubProfileIdList(idList);
     MockSetCreatedOsAccounts({osAccountInfo});
 
+    SubProfileContext subprofileCtx;
+    subprofileCtx.nextSubProfileId = base + OsAccountSubProfileDataDeal::OS_ACCOUNT_SUB_PROFILE_ID_MAX;
+    for (int32_t i = 2; i <= MAX_OS_ACCOUNT_SUB_PROFILE_COUNT - 1; ++i) {
+        subprofileCtx.subProfileIdList.push_back(base + i);
+    }
+    MockForceSubProfileContext(OS_ACCOUNT_ID, subprofileCtx);
+
     int32_t distId = 0;
-    ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, distId);
+    int32_t index = 0;
+    ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, distId, index);
     EXPECT_EQ(ret, ERR_OK);
     // After wrap: startId = base + MAX + 1 > maxId → wrap to minId = base + 1 → free
     EXPECT_EQ(distId, base + 1);
@@ -216,7 +230,8 @@ HWTEST_F(OsAccountSubProfileManagerTest, CreateSubspace_AtomicWrite_001, TestSiz
 {
     auto &mgr = OsAccountSubProfileManager::GetInstance();
     int32_t newSubspaceId = 0;
-    ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, newSubspaceId);
+    int32_t index = 0;
+    ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, newSubspaceId, index);
     EXPECT_EQ(ret, ERR_OK);
 
     OsAccountSubspaceInfo loaded;
@@ -252,8 +267,10 @@ HWTEST_F(OsAccountSubProfileManagerTest, CreateSubspace_Isolation_001, TestSize.
 
     int32_t distIdA = 0;
     int32_t distIdB = 0;
-    ErrCode retA = mgr.CreateSubProfile(OS_ACCOUNT_ID_A, distIdA);
-    ErrCode retB = mgr.CreateSubProfile(OS_ACCOUNT_ID_B, distIdB);
+    int32_t indexA = 0;
+    ErrCode retA = mgr.CreateSubProfile(OS_ACCOUNT_ID_A, distIdA, indexA);
+    int32_t indexB = 0;
+    ErrCode retB = mgr.CreateSubProfile(OS_ACCOUNT_ID_B, distIdB, indexB);
     EXPECT_EQ(retA, ERR_OK);
     EXPECT_EQ(retB, ERR_OK);
 
@@ -271,7 +288,8 @@ HWTEST_F(OsAccountSubProfileManagerTest, RemoveSpace_Success_001, TestSize.Level
 {
     auto &mgr = OsAccountSubProfileManager::GetInstance();
     int32_t distId = 0;
-    ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, distId);
+    int32_t index = 0;
+    ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, distId, index);
     EXPECT_EQ(ret, ERR_OK);
 
     ret = mgr.RemoveSubProfile(OS_ACCOUNT_ID, distId);
@@ -288,7 +306,8 @@ HWTEST_F(OsAccountSubProfileManagerTest, RemoveSpace_ToBeRemoved_001, TestSize.L
 {
     auto &mgr = OsAccountSubProfileManager::GetInstance();
     int32_t distId = 0;
-    ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, distId);
+    int32_t index = 0;
+    ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, distId, index);
     EXPECT_EQ(ret, ERR_OK);
 
     OsAccountSubspaceInfo info;
@@ -302,9 +321,8 @@ HWTEST_F(OsAccountSubProfileManagerTest, RemoveSpace_ToBeRemoved_001, TestSize.L
 
 /**
  * @tc.name: RemoveSpace_ZeroIndex_001
- * @tc.desc: R5 - SM层对0-index空间返回SUBSPACE_NOT_FOUND（index-0 subspace保护由SV层实现）
- *            SM层IsValidSubProfileExists对index-0 subspace目录路径返回false
-              因为index-0 subspace的文件在{osAccountId}/account.json而非子目录
+ * @tc.desc: R5 - Removing headless subprofile (index=0, subspaceId=base) is restricted.
+ *            The headless subprofile cannot be deleted.
  * @tc.type: FUNC
  */
 HWTEST_F(OsAccountSubProfileManagerTest, RemoveSpace_ZeroIndex_001, TestSize.Level1)
@@ -312,7 +330,7 @@ HWTEST_F(OsAccountSubProfileManagerTest, RemoveSpace_ZeroIndex_001, TestSize.Lev
     auto &mgr = OsAccountSubProfileManager::GetInstance();
     int32_t zeroDistId = OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
     ErrCode ret = mgr.RemoveSubProfile(OS_ACCOUNT_ID, zeroDistId);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED);
 }
 
 /**
@@ -328,13 +346,13 @@ HWTEST_F(OsAccountSubProfileManagerTest, RemoveSpace_ForegroundCheck_001, TestSi
 {
     auto &mgr = OsAccountSubProfileManager::GetInstance();
     int32_t distId = 0;
-    ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, distId);
+    int32_t index = 0;
+    ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, distId, index);
     EXPECT_EQ(ret, ERR_OK);
 
     // GetOsAccountInfoById succeeds → foregroundId=0 ≠ subspaceId → removal proceeds normally
     ret = mgr.RemoveSubProfile(OS_ACCOUNT_ID, distId);
-    // In developer_test with foreground subspace switched, this returns ERR_OS_ACCOUNT_SUBSPACE_IS_FOREGROUND
-    EXPECT_TRUE(ret == ERR_OK || ret == ERR_OS_ACCOUNT_SUBSPACE_IS_FOREGROUND);
+    EXPECT_EQ(ret, ERR_OK);
     EXPECT_FALSE(mgr.subProfileDataDeal_->IsValidSubProfileExists(OS_ACCOUNT_ID, distId));
 }
 
@@ -375,8 +393,10 @@ HWTEST_F(OsAccountSubProfileManagerTest, RemoveSpace_ToBeRemovedAndCleanup_001, 
     auto &mgr = OsAccountSubProfileManager::GetInstance();
     int32_t distId1 = 0;
     int32_t distId2 = 0;
-    ErrCode ret1 = mgr.CreateSubProfile(OS_ACCOUNT_ID, distId1);
-    ErrCode ret2 = mgr.CreateSubProfile(OS_ACCOUNT_ID, distId2);
+    int32_t index1 = 0;
+    ErrCode ret1 = mgr.CreateSubProfile(OS_ACCOUNT_ID, distId1, index1);
+    int32_t index2 = 0;
+    ErrCode ret2 = mgr.CreateSubProfile(OS_ACCOUNT_ID, distId2, index2);
     EXPECT_EQ(ret1, ERR_OK);
     EXPECT_EQ(ret2, ERR_OK);
 
@@ -404,7 +424,8 @@ HWTEST_F(OsAccountSubProfileManagerTest, RemoveSpace_UpdateOsAccountSubspaceInfo
 
     // Create normally first so mock state is correctly updated with the subspace ID
     int32_t subspaceId = 0;
-    ErrCode createRet = mgr.CreateSubProfile(OS_ACCOUNT_ID, subspaceId);
+    int32_t index = 0;
+    ErrCode createRet = mgr.CreateSubProfile(OS_ACCOUNT_ID, subspaceId, index);
     EXPECT_EQ(createRet, ERR_OK);
 
     // Force UpdateOsAccountSubspaceInfo to fail only for the removal path.

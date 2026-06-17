@@ -147,7 +147,9 @@ private:
 struct OsAccountSubspaceResult : public Parcelable {
     int32_t id = 0;
     int32_t osAccountId = 0;
-    int32_t index = 0;
+    // -1 means "not yet resolved"; 0 = HEADLESS_SUBPROFILE_INDEX; 1+ = normal sub-profile index.
+    // Do NOT treat 0 as "unset" — 0 is a valid index for headless.
+    int32_t index = -1;
 
     bool Marshalling(Parcel &parcel) const override
     {
@@ -205,8 +207,25 @@ public:
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 struct OsAccountSubspaceInfo : AccountInfo {
     int32_t subspaceId = 0;
+    int32_t index = 0;
+    int32_t subspaceOffset = 0;
     bool isCreateCompleted = false;
     bool toBeRemoved = false;
+
+    OsAccountSubspaceInfo() = default;
+    OsAccountSubspaceInfo(int32_t osAccountId, int32_t subId, int32_t idx = 0, int32_t offset = 0)
+        : AccountInfo(), subspaceId(subId), index(idx), subspaceOffset(offset),
+          isCreateCompleted(false), toBeRemoved(false)
+    {
+        userId_ = osAccountId;
+        version_ = ACCOUNT_VERSION_ANON;
+        bindTime_ = 0;
+        ohosAccountInfo_.name_ = DEFAULT_OHOS_ACCOUNT_NAME;
+        ohosAccountInfo_.uid_ = DEFAULT_OHOS_ACCOUNT_UID;
+        ohosAccountInfo_.SetRawUid(DEFAULT_OHOS_ACCOUNT_UID);
+        ohosAccountInfo_.status_ = ACCOUNT_STATE_UNBOUND;
+        ohosAccountInfo_.callingUid_ = DEFAULT_CALLING_UID;
+    }
 };
 #endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 } // namespace AccountSA

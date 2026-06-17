@@ -16,6 +16,7 @@
 #define OS_ACCOUNT_FRAMEWORK_OS_ACCOUNT_INFO_JSON_PARSER_H
 
 #include "json_utils.h"
+#include "sub_profile_context.h"
 #include "os_account_info.h"
 
 namespace OHOS {
@@ -52,6 +53,8 @@ const char DOMAIN_ACCOUNT_ADDITION[] = "domainAdditionInfo";
 const char FOREGROUND_SUBPROFILE_ID[] = "foregroundSubProfileId";
 const char NEXT_SUBPROFILE_ID[] = "nextSubProfileId";
 const char SUBPROFILE_ID_LIST[] = "subProfileList";
+const char NEXT_SUBPROFILE_INDEX[] = "nextSubProfileIndex";
+const char SUBPROFILE_INDEX_MAP[] = "subProfileIndexMap";
 #endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 constexpr int32_t ALLOWED_HAP_LIST_MAX_SIZE = 1000;
 constexpr int32_t DISALLOWED_HAP_LIST_MAX_SIZE = 1000;
@@ -60,6 +63,10 @@ CJsonUnique ToJson(const OsAccountInfo &accountInfo);
 bool FromJson(cJSON *jsonObject, OsAccountInfo &accountInfo);
 CJsonUnique ToJson(const DomainAccountInfo &domainInfo);
 bool FromJson(cJSON *jsonObject, DomainAccountInfo &domainInfo);
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+CJsonUnique ToJsonSubProfile(const SubProfileContext &data);
+bool FromJsonSubProfile(cJSON *jsonObject, SubProfileContext &data);
+#endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 } // namespace AccountSA
 } // namespace OHOS
 

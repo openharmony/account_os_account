@@ -20,6 +20,7 @@
 #include <memory>
 #include <mutex>
 #include "ios_account_control.h"
+#include "sub_profile_context.h"
 #include "os_account_database_operator.h"
 #include "os_account_file_operator.h"
 #include "os_account_photo_operator.h"
@@ -87,6 +88,11 @@ public:
         const int32_t localId, const bool isBoundCompleted, const DomainAccountInfo domainInfo = {}) { return ERR_OK; }
     ErrCode GetDomainBoundFlag(const int32_t localId,
         bool &isBoundCompleted, DomainAccountInfo &domainInfo) { return ERR_OK; }
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    MOCK_METHOD2(WriteSubProfileContext, ErrCode(int32_t localId, const SubProfileContext &data));
+    MOCK_METHOD2(ReadSubProfileContext, ErrCode(int32_t localId, SubProfileContext &data));
+    MOCK_METHOD1(DeleteSubProfileContextFile, ErrCode(int32_t localId));
+#endif
 };
 
 }  // namespace AccountSA

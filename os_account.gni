@@ -161,7 +161,7 @@ declare_args() {
 }
 
 declare_args() {
-  os_account_enable_multiple_os_account_subspace = false
+  os_account_enable_multiple_os_account_sub_profiles = false
 }
 
 if (!defined(global_parts_info) ||

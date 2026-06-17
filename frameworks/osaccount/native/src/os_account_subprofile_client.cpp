@@ -17,6 +17,7 @@
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "ohos_account_kits_impl.h"
+#include "os_account_constants.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -48,6 +49,11 @@ ErrCode OsAccountSubProfileClient::CreateOsAccountSubProfile(
 ErrCode OsAccountSubProfileClient::DeleteOsAccountSubProfile(
     int32_t osAccountId, int32_t subspaceId)
 {
+    // Headless subprofile (index=0) cannot be deleted
+    if (subspaceId == osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER) {
+        ACCOUNT_LOGE("Cannot delete headless subprofile (index=0), subspaceId=%{public}d", subspaceId);
+        return ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED;
+    }
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
     auto proxy = GetOsAccountSubProfileProxy();
     if (proxy == nullptr) {
@@ -58,13 +64,18 @@ ErrCode OsAccountSubProfileClient::DeleteOsAccountSubProfile(
 #else
     (void)osAccountId;
     (void)subspaceId;
-    return ERR_ACCOUNT_COMMON_ACCOUNT_IS_RESTRICTED;
+    return ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED;
 #endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 }
 
 ErrCode OsAccountSubProfileClient::SwitchOsAccountSubProfile(
     int32_t osAccountId, int32_t subspaceId)
 {
+    // Headless subprofile (index=0) cannot be switched to as foreground
+    if (subspaceId == osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER) {
+        ACCOUNT_LOGE("Cannot switch to headless subprofile (index=0), subspaceId=%{public}d", subspaceId);
+        return ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED;
+    }
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
     auto proxy = GetOsAccountSubProfileProxy();
     if (proxy == nullptr) {
@@ -75,7 +86,7 @@ ErrCode OsAccountSubProfileClient::SwitchOsAccountSubProfile(
 #else
     constexpr int32_t singleSubspaceMultiplier = 1000;
     return (subspaceId == osAccountId * singleSubspaceMultiplier) ? ERR_OK
-        : ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+        : ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
 #endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 }
 
