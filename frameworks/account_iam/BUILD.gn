@@ -164,6 +164,7 @@ ohos_source_set("account_iam_stub") {
 }
 
 ohos_source_set("account_iam_callback_proxy") {
+  branch_protector_ret = "pac_ret"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
