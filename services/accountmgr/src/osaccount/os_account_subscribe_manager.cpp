@@ -202,7 +202,7 @@ ErrCode OsAccountSubscribeManager::UnsubscribeOsAccount(const sptr<IRemoteObject
 
 ErrCode OsAccountSubscribeManager::RemoveSubscribeRecord(const sptr<IRemoteObject> &eventListener)
 {
-    for (auto it = subscribeRecords_.begin(); it != subscribeRecords_.end(); ++it) {
+    for (auto it = subscribeRecords_.begin(); it != subscribeRecords_.end();) {
         if (eventListener == (*it)->eventListener_) {
             ACCOUNT_LOGI("UnsubscribeOsAccount eventListener.");
             (*it)->eventListener_ = nullptr;
@@ -221,6 +221,8 @@ ErrCode OsAccountSubscribeManager::RemoveSubscribeRecord(const sptr<IRemoteObjec
                 switchRecordMap_.erase(callingUid);
             }
             break;
+        } else {
+            ++it;
         }
     }
     return ERR_OK;
