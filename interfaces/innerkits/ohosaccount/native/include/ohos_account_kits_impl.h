@@ -62,6 +62,9 @@ public:
         OsAccountSubspaceResult &subspaceResult, OhosAccountInfo &distributedInfo) final;
     ErrCode GetOsAccountSubProfile(int32_t osAccountId, int32_t subProfileId,
         OsAccountSubspaceResult &subspaceResult, OhosAccountInfo &distributedInfo) final;
+    ErrCode GetOsAccountSubProfileId(
+        int32_t osAccountId, int32_t appIndex, int32_t &subProfileId) final;
+    ErrCode GetOsAccountSubProfileId(uint32_t tokenId, int32_t &subProfileId) final;
     void RestoreSubscribe();
     ErrCode SubscribeSystemAbility(const DomainAccountSubscribeSACallbackFunc& callbackFunc);
     sptr<IRemoteObject> GetOsAccountService();

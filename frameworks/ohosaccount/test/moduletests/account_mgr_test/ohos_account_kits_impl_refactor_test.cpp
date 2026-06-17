@@ -580,6 +580,14 @@ public:
     void TearDown() override {}
 };
 
+HWTEST_F(OsAccountSubProfileClientTest, SubscribeOsAccountSubProfileEvents001, TestSize.Level0)
+{
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().SubscribeOsAccountSubProfileEvents({}, nullptr);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    ret = OsAccountSubProfileClient::GetInstance().UnsubscribeOsAccountSubProfileEvents(nullptr);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
+}
+
 // ===== A. GetOsAccountForegroundSubProfileId =====
 
 HWTEST_F(OsAccountSubProfileClientTest, FgSubProfileId_NoParam_NotSystemApp, TestSize.Level0)
@@ -599,7 +607,7 @@ HWTEST_F(OsAccountSubProfileClientTest, FgSubProfileId_NoParam_Success, TestSize
     int32_t subProfileId = -1;
     ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountForegroundSubProfileId(subProfileId);
     EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(subProfileId, TEST_SUB_PROFILE_ID_BASE);
+    EXPECT_EQ(subProfileId, TEST_SUB_PROFILE_ID_BASE + 1);
 }
 
 HWTEST_F(OsAccountSubProfileClientTest, FgSubProfileId_WithParam_NotSystemApp, TestSize.Level0)
@@ -637,7 +645,7 @@ HWTEST_F(OsAccountSubProfileClientTest, FgSubProfileId_WithParam_Success, TestSi
     ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountForegroundSubProfileId(
         TEST_OS_ACCOUNT_ID, subProfileId);
     EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(subProfileId, TEST_SUB_PROFILE_ID_BASE);
+    EXPECT_EQ(subProfileId, TEST_SUB_PROFILE_ID_BASE + 1);
 }
 
 // ===== B. GetOsAccountSubProfileIds =====
@@ -914,10 +922,135 @@ HWTEST_F(OsAccountSubProfileClientTest, SubProfile_FourParam_Success, TestSize.L
     EXPECT_EQ(distributedInfo.status_, ACCOUNT_STATE_LOGIN);
 }
 
-HWTEST_F(OsAccountSubProfileClientTest, SubscribeOsAccountSubProfileEvents001, TestSize.Level0)
+// ===== E. GetOsAccountSubProfileId (by localId and appIndex) =====
+
+HWTEST_F(OsAccountSubProfileClientTest, LocalIdAndIndex_NotSystemApp, TestSize.Level0)
 {
-    ErrCode ret = OsAccountSubProfileClient::GetInstance().SubscribeOsAccountSubProfileEvents({}, nullptr);
+    uint64_t tokenId = 0;
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    ASSERT_TRUE(AllocPermission({}, tokenId, false));
+    int32_t subProfileId = -1;
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfileId(
+        TEST_OS_ACCOUNT_ID, 0, subProfileId);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+    ASSERT_TRUE(RecoveryPermission(tokenId, selfTokenId));
+}
+
+HWTEST_F(OsAccountSubProfileClientTest, LocalIdAndIndex_AccountNotExist, TestSize.Level0)
+{
+    int32_t subProfileId = -1;
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfileId(
+        TEST_NON_EXIST_ACCOUNT_ID, 0, subProfileId);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+}
+
+HWTEST_F(OsAccountSubProfileClientTest, LocalIdAndIndex_InvalidAppIndex, TestSize.Level0)
+{
+    int32_t subProfileId = -1;
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfileId(
+        TEST_NON_EXIST_ACCOUNT_ID, -1, subProfileId);
     EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-    ret = OsAccountSubProfileClient::GetInstance().UnsubscribeOsAccountSubProfileEvents(nullptr);
-    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
+}
+
+HWTEST_F(OsAccountSubProfileClientTest, LocalIdAndIndex_BaseSuccess, TestSize.Level0)
+{
+    int32_t subProfileId = -1;
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfileId(
+        TEST_OS_ACCOUNT_ID, 0, subProfileId);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(subProfileId, TEST_SUB_PROFILE_ID_BASE);
+}
+
+HWTEST_F(OsAccountSubProfileClientTest, LocalIdAndIndex_SubspaceNotExist, TestSize.Level0)
+{
+    int32_t subProfileId = -1;
+    constexpr int32_t nonExistAppIndex = 999;
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfileId(
+        TEST_OS_ACCOUNT_ID, nonExistAppIndex, subProfileId);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+}
+
+HWTEST_F(OsAccountSubProfileClientTest, LocalIdAndIndex_AccountRestricted, TestSize.Level0)
+{
+    int32_t subProfileId = -1;
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfileId(
+        0, 0, subProfileId);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+}
+
+// ===== F. GetOsAccountSubProfileId (by tokenId) =====
+
+HWTEST_F(OsAccountSubProfileClientTest, TokenId_NotSystemApp, TestSize.Level0)
+{
+    uint64_t tokenId = 0;
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    ASSERT_TRUE(AllocPermission({}, tokenId, false));
+    int32_t subProfileId = -1;
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfileId(
+        IPCSkeleton::GetCallingTokenID(), subProfileId);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+    ASSERT_TRUE(RecoveryPermission(tokenId, selfTokenId));
+}
+
+HWTEST_F(OsAccountSubProfileClientTest, TokenId_InvalidToken, TestSize.Level0)
+{
+    int32_t subProfileId = -1;
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfileId(0, subProfileId);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+HWTEST_F(OsAccountSubProfileClientTest, TokenId_AccountNotExist, TestSize.Level0)
+{
+    uint64_t tokenId = 0;
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    ASSERT_TRUE(AllocPermission({}, tokenId, true));
+    int32_t subProfileId = -1;
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfileId(
+        tokenId, subProfileId);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    ASSERT_TRUE(RecoveryPermission(tokenId, selfTokenId));
+}
+
+
+HWTEST_F(OsAccountSubProfileClientTest, TokenId_AccountRestricted, TestSize.Level0)
+{
+    // Allocate a system-app HAP token for userID=0 (admin, restricted by CheckLocalIdRestricted)
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    ASSERT_TRUE(MockTokenId("foundation"));
+    HapInfoParams hapInfoParams = {
+        .userID = 0,
+        .bundleName = "account_test_restricted",
+        .instIndex = 0,
+        .appIDDesc = "account_test_restricted",
+        .apiVersion = 8,
+        .isSystemApp = true
+    };
+    HapPolicyParams hapPolicyParams = {
+        .apl = APL_NORMAL,
+        .domain = "test.domain",
+        .permList = {},
+        .permStateList = {}
+    };
+    AccessTokenIDEx tokenIdEx = AccessTokenKit::AllocHapToken(hapInfoParams, hapPolicyParams);
+    ASSERT_NE(INVALID_TOKENID, tokenIdEx.tokenIDEx);
+    ASSERT_EQ(0, SetSelfTokenID(tokenIdEx.tokenIDEx));
+    int32_t subProfileId = -1;
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfileId(
+        tokenIdEx.tokenIDEx, subProfileId);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    // Recover original token
+    ASSERT_TRUE(MockTokenId("foundation"));
+    EXPECT_EQ(ERR_OK, AccessTokenKit::DeleteToken(tokenIdEx.tokenIDEx));
+    EXPECT_EQ(0, SetSelfTokenID(selfTokenId));
+}
+
+HWTEST_F(OsAccountSubProfileClientTest, TokenId_Success, TestSize.Level0)
+{
+    ASSERT_EQ(0, setuid(UID_USER_100));
+    int32_t subProfileId = -1;
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfileId(
+        selfTokenId, subProfileId);
+    EXPECT_EQ(ret, ERR_OK);
+    ASSERT_EQ(0, setuid(UID_USER_0));
 }

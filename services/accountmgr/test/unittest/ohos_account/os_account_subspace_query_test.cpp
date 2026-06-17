@@ -321,6 +321,24 @@ HWTEST_F(SubProfileQuerySubspaceMgrTest, GetLocalIdForSubProfile_NotFound_001, T
     EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
 }
 
+HWTEST_F(SubProfileQuerySubspaceMgrTest, GetSubProfileIdByLocalIdAndAppIndex_OnlyBase_001, TestSize.Level1)
+{
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
+    int32_t subProfileId = -1;
+    ErrCode ret = mgr.GetSubProfileIdByLocalIdAndAppIndex(QUERY_USER_ID, 1, subProfileId);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+}
+
+HWTEST_F(SubProfileQuerySubspaceMgrTest, GetSubProfileIdByLocalIdAndAppIndex_NoMatch_001, TestSize.Level1)
+{
+    ASSERT_TRUE(CreateValidSubspace(QUERY_BASE + 1, QUERY_USER_ID));
+
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
+    int32_t subProfileId = -1;
+    ErrCode ret = mgr.GetSubProfileIdByLocalIdAndAppIndex(QUERY_USER_ID, 5, subProfileId);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+}
+
 HWTEST_F(SubProfileQuerySubspaceMgrTest, GetSubProfile_HeadlessSuccess_001, TestSize.Level1)
 {
     auto &mgr = OsAccountSubProfileManager::GetInstance();
@@ -645,6 +663,23 @@ HWTEST_F(SubProfileQueryOhosMgrTest, GetOsAccountSubProfile_DefaultUid_NoAnonymi
         OHOS_QUERY_USER_ID, distId, subspaceResult, distributedInfo);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(distributedInfo.GetRawUid(), DEFAULT_OHOS_ACCOUNT_UID);
+}
+
+HWTEST_F(SubProfileQueryOhosMgrTest, GetOsAccountSubProfileId_AppIndex0_001, TestSize.Level1)
+{
+    int32_t subProfileId = -1;
+    ErrCode ret = OhosAccountManager::GetInstance().GetOsAccountSubProfileId(
+        OHOS_QUERY_USER_ID, 0, subProfileId);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(subProfileId, OHOS_QUERY_BASE);
+}
+
+HWTEST_F(SubProfileQueryOhosMgrTest, GetOsAccountSubProfileId_NotFound_001, TestSize.Level1)
+{
+    int32_t subProfileId = -1;
+    ErrCode ret = OhosAccountManager::GetInstance().GetOsAccountSubProfileId(
+        OHOS_QUERY_USER_ID, 1, subProfileId);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
 }
 
 // ===== Task 12: AccountMgrService query methods =====

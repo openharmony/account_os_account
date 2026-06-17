@@ -156,6 +156,20 @@ public:
     {
         return ERR_OK;
     }
+
+    int32_t GetOsAccountSubProfileId(
+        int32_t osAccountId, int32_t appIndex, int32_t &subProfileId) override
+    {
+        subProfileId = 0;
+        return ERR_OK;
+    }
+
+    int32_t GetOsAccountSubProfileId(
+        uint32_t tokenId, int32_t &subProfileId) override
+    {
+        subProfileId = 0;
+        return ERR_OK;
+    }
 private:
     std::int32_t devAccountId_;
 };

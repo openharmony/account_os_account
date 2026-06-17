@@ -113,6 +113,8 @@ public:
     ErrCode GetOsAccountLocalIdForSubProfile(int32_t subProfileId, int32_t &osAccountId);
     ErrCode GetOsAccountSubProfile(int32_t osAccountId, int32_t subProfileId,
         OsAccountSubspaceResult &subspaceResult, OhosAccountInfo &distributedInfo);
+    ErrCode GetOsAccountSubProfileId(
+        int32_t osAccountId, int32_t appIndex, int32_t &subProfileId);
     ErrCode GetOhosAccountDistributedInfoFromSubspace(
         int32_t localId, int32_t fgSubProfileId, OhosAccountInfo &ohosAccountInfo);
 

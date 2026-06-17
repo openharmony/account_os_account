@@ -630,5 +630,38 @@ ErrCode OsAccountSubProfileManager::GetSubProfile(int32_t osAccountId, int32_t s
     return ERR_OK;
 }
 
+ErrCode OsAccountSubProfileManager::GetSubProfileIdByLocalIdAndAppIndex(
+    int32_t osAccountId, int32_t appIndex, int32_t &subProfileId)
+{
+    std::vector<int32_t> subProfileIds;
+    ErrCode ret = GetSubProfileIds(osAccountId, subProfileIds);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("GetSubProfileIds failed, osAccountId=%{public}d, ret=%{public}d",
+            osAccountId, ret);
+        return ret;
+    }
+
+    int32_t baseSubProfileId = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
+    for (const auto &id : subProfileIds) {
+        if (id == baseSubProfileId) {
+            continue;
+        }
+        OsAccountSubspaceResult subspaceResult;
+        OhosAccountInfo distributedInfo;
+        ret = GetSubProfile(osAccountId, id, subspaceResult, distributedInfo);
+        if (ret != ERR_OK) {
+            return ret;
+        }
+        if (subspaceResult.index == appIndex) {
+            subProfileId = id;
+            return ERR_OK;
+        }
+    }
+
+    ACCOUNT_LOGE("SubProfile with appIndex=%{public}d not found for osAccountId=%{public}d",
+        appIndex, osAccountId);
+    return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+}
+
 }  // namespace AccountSA
 }  // namespace OHOS
