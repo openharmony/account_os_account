@@ -35,6 +35,18 @@ ErrCode OsAccountStateSubscriber::OnStateChanged(const OsAccountStateParcel &par
         ACCOUNT_LOGI("Account stopping id=%{public}d", parcel.fromId);
         AppAccountControlManager::GetInstance().OnUserStopping(parcel.fromId);
     }
+    if (parcel.state == OsAccountState::CREATED) {
+        ACCOUNT_LOGI("Account created id=%{public}d", parcel.fromId);
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
+        AppAccountControlManager::GetInstance().SetOsAccountRemoved(parcel.fromId, false);
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
+    }
+    if (parcel.state == OsAccountState::REMOVED) {
+        ACCOUNT_LOGI("Account removed id=%{public}d", parcel.fromId);
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
+        AppAccountControlManager::GetInstance().SetOsAccountRemoved(parcel.fromId, true);
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
+    }
     auto callback = iface_cast<IOsAccountStateReplyCallback>(parcel.callback);
     if (callback == nullptr) {
         ACCOUNT_LOGE("Callback is nullptr");

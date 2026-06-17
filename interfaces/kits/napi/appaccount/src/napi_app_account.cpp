@@ -1790,6 +1790,8 @@ static void UnsubscribeSync(napi_env env, const AsyncContextForUnsubscribe *cont
             return;
         }
         delete subscribe->second[index];
+        subscribe->second[index] = nullptr;
+        item = nullptr;
         if (context->callbackRef != nullptr) {
             subscribe->second.erase(subscribe->second.begin() + index);
             break;

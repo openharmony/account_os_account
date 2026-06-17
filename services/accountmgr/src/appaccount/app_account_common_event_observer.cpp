@@ -88,7 +88,7 @@ AppAccountCommonEventObserver::~AppAccountCommonEventObserver()
 
 void AppAccountCommonEventObserver::SubscribeOsAccountEvent(void)
 {
-    std::set<OsAccountState> states = { OsAccountState::STOPPING };
+    std::set<OsAccountState> states = { OsAccountState::STOPPING, OsAccountState::CREATED, OsAccountState::REMOVED };
     OsAccountSubscribeInfo subscribeInfo(states, true);
     subscriberOsAccountPtr_ = (new (std::nothrow) OsAccountStateSubscriber());
     auto subscribeInfoPtr = std::make_shared<OsAccountSubscribeInfo>(subscribeInfo);

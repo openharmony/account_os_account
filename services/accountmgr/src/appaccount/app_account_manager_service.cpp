@@ -236,7 +236,7 @@ ErrCode AppAccountManagerService::GetAccountExtraInfo(
     ErrCode ret = GetCallingInfo(callingUid, bundleName, appIndex);
     if (ret != ERR_OK) {
         funcResult = ret;
-        REPORT_APP_ACCOUNT_FAIL(name, bundleName, Constants::APP_DFX_SET_EXTRAINFO,
+        REPORT_APP_ACCOUNT_FAIL(name, bundleName, Constants::APP_DFX_GET_EXTRAINFO,
             ret, "Get calling info failed");
         return ERR_OK;
     }
@@ -456,7 +456,7 @@ ErrCode AppAccountManagerService::GetAccountCredential(
     if (ret != ERR_OK) {
         funcResult = ret;
         REPORT_APP_ACCOUNT_FAIL(name, appAccountCallingInfo.bundleName,
-            Constants::APP_DFX_SET_CREDENTIAL, ret, "Get calling info failed");
+            Constants::APP_DFX_GET_CREDENTIAL, ret, "Get calling info failed");
         return ERR_OK;
     }
     std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(appAccountCallingInfo.callingUid);
@@ -531,7 +531,7 @@ ErrCode AppAccountManagerService::GetOAuthToken(
     ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
     if (result != ERR_OK) {
         funcResult = result;
-        REPORT_APP_ACCOUNT_FAIL(name, owner, Constants::APP_DFX_SET_AUTH_TOKEN,
+        REPORT_APP_ACCOUNT_FAIL(name, owner, Constants::APP_DFX_GET_OAUTH_TOKEN,
             result, "Get calling info failed");
         return ERR_OK;
     }
@@ -554,7 +554,7 @@ ErrCode AppAccountManagerService::GetAuthToken(
     ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
     if (result != ERR_OK) {
         funcResult = result;
-        REPORT_APP_ACCOUNT_FAIL(name, owner, Constants::APP_DFX_SET_AUTH_TOKEN,
+        REPORT_APP_ACCOUNT_FAIL(name, owner, Constants::APP_DFX_GET_AUTH_TOKEN,
             result, "Get calling info failed");
         return ERR_OK;
     }
@@ -926,7 +926,7 @@ ErrCode AppAccountManagerService::QueryAllAccessibleAccounts(
     bool ret = BundleManagerAdapter::GetInstance()->GetBundleInfo(
         owner, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId);
     if (!ret) {
-        REPORT_APP_ACCOUNT_FAIL("", owner, Constants::APP_DFX_SET_ACCESS,
+        REPORT_APP_ACCOUNT_FAIL("", owner, Constants::APP_DFX_GET_ALL_ACCOUNTS,
             ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO, "Get bundle info failed");
         funcResult = ERR_OK;
         return ERR_OK;
