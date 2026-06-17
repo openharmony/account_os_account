@@ -2589,7 +2589,7 @@ ErrCode InnerDomainAccountManager::BindDomainAccountWork(
     if (err != ERR_OK) {
         ACCOUNT_LOGW("Get domain account info failed, ret = %{public}d.", err);
         REPORT_DOMAIN_ACCOUNT_FAIL(err, "Get domain account failed", Constants::DOMAIN_OPT_BIND, localId, domainInfo);
-        return err;
+        return DomainPluginAdapter::ConvertToBindDomainAccountErrCode(err);
     }
     OsAccountControlFileManager &fileController = IInnerOsAccountManager::GetInstance().GetFileController();
     err = fileController.SetDomainBoundFlag(localId, false, fullInfo);

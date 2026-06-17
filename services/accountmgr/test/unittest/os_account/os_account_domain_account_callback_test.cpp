@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,7 @@
 #define private public
 #include "os_account_control_file_manager.h"
 #include "os_account_domain_account_callback.h"
+#include "domain_plugin_adapter.h"
 #include "os_account_info.h"
 #undef private
 #include "parcel.h"
@@ -186,4 +187,132 @@ HWTEST_F(DomainAccountCallbackTest, DomainAccountCallbackTest_OnResult_006, Test
     auto callbackRegular = std::make_shared<BindDomainAccountCallback>(testOsAccountControl, regularInfo, nullptr);
     callbackRegular->OnResult(0, parcel);
     EXPECT_EQ(callbackRegular->innerCallback_, nullptr);
+}
+
+/**
+ * @tc.name: DomainAccountCallbackTest_ConvertErrCode_001
+ * @tc.desc: Test ConvertToCreateOsAccountForDomainErrCode converts non-standard error codes.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountCallbackTest, DomainAccountCallbackTest_ConvertErrCode_001, TestSize.Level3)
+{
+    EXPECT_EQ(DomainPluginAdapter::ConvertToCreateOsAccountForDomainErrCode(ERR_JS_ACCOUNT_NOT_FOUND),
+        ERR_JS_INVALID_PARAMETER);
+    EXPECT_EQ(DomainPluginAdapter::ConvertToCreateOsAccountForDomainErrCode(ERR_JS_PLUGIN_NETWORK_EXCEPTION),
+        ERR_JS_INVALID_PARAMETER);
+    EXPECT_EQ(DomainPluginAdapter::ConvertToCreateOsAccountForDomainErrCode(ERR_JS_ACCOUNT_NOT_AUTHENTICATED),
+        ERR_JS_INVALID_PARAMETER);
+    EXPECT_EQ(DomainPluginAdapter::ConvertToCreateOsAccountForDomainErrCode(ERR_JS_AUTH_TIMEOUT),
+        ERR_JS_INVALID_PARAMETER);
+    EXPECT_EQ(
+        DomainPluginAdapter::ConvertToCreateOsAccountForDomainErrCode(ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION),
+        ERR_JS_INVALID_PARAMETER);
+    EXPECT_EQ(DomainPluginAdapter::ConvertToCreateOsAccountForDomainErrCode(ERR_JS_SERVER_UNREACHABLE),
+        ERR_JS_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: DomainAccountCallbackTest_ConvertErrCode_002
+ * @tc.desc: Test ConvertToCreateOsAccountForDomainErrCode keeps standard error codes unchanged.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountCallbackTest, DomainAccountCallbackTest_ConvertErrCode_002, TestSize.Level3)
+{
+    EXPECT_EQ(DomainPluginAdapter::ConvertToCreateOsAccountForDomainErrCode(ERR_JS_PERMISSION_DENIED),
+        ERR_JS_PERMISSION_DENIED);
+    EXPECT_EQ(DomainPluginAdapter::ConvertToCreateOsAccountForDomainErrCode(ERR_JS_IS_NOT_SYSTEM_APP),
+        ERR_JS_IS_NOT_SYSTEM_APP);
+    EXPECT_EQ(DomainPluginAdapter::ConvertToCreateOsAccountForDomainErrCode(ERR_JS_PARAMETER_ERROR),
+        ERR_JS_PARAMETER_ERROR);
+    EXPECT_EQ(DomainPluginAdapter::ConvertToCreateOsAccountForDomainErrCode(ERR_JS_CAPABILITY_NOT_SUPPORTED),
+        ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    EXPECT_EQ(DomainPluginAdapter::ConvertToCreateOsAccountForDomainErrCode(ERR_JS_SYSTEM_SERVICE_EXCEPTION),
+        ERR_JS_SYSTEM_SERVICE_EXCEPTION);
+    EXPECT_EQ(DomainPluginAdapter::ConvertToCreateOsAccountForDomainErrCode(ERR_JS_INVALID_PARAMETER),
+        ERR_JS_INVALID_PARAMETER);
+    EXPECT_EQ(DomainPluginAdapter::ConvertToCreateOsAccountForDomainErrCode(ERR_JS_ACCOUNT_ALREADY_EXIST),
+        ERR_JS_ACCOUNT_ALREADY_EXIST);
+    EXPECT_EQ(DomainPluginAdapter::ConvertToCreateOsAccountForDomainErrCode(ERR_JS_MULTI_USER_NOT_SUPPORT),
+        ERR_JS_MULTI_USER_NOT_SUPPORT);
+    EXPECT_EQ(DomainPluginAdapter::ConvertToCreateOsAccountForDomainErrCode(ERR_JS_ACCOUNT_TYPE_NOT_SUPPORT),
+        ERR_JS_ACCOUNT_TYPE_NOT_SUPPORT);
+    EXPECT_EQ(DomainPluginAdapter::ConvertToCreateOsAccountForDomainErrCode(ERR_JS_ACCOUNT_NUMBER_REACH_LIMIT),
+        ERR_JS_ACCOUNT_NUMBER_REACH_LIMIT);
+}
+
+/**
+ * @tc.name: DomainAccountCallbackTest_ConvertErrCode_003
+ * @tc.desc: Test ConvertToCreateOsAccountForDomainErrCode with ERR_OK.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountCallbackTest, DomainAccountCallbackTest_ConvertErrCode_003, TestSize.Level3)
+{
+    EXPECT_EQ(DomainPluginAdapter::ConvertToCreateOsAccountForDomainErrCode(ERR_OK), ERR_OK);
+}
+
+/**
+ * @tc.name: DomainAccountCallbackTest_ConvertErrCode_004
+ * @tc.desc: Test ConvertToCreateOsAccountForDomainErrCode with more defined error codes.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountCallbackTest, DomainAccountCallbackTest_ConvertErrCode_004, TestSize.Level3)
+{
+    EXPECT_EQ(DomainPluginAdapter::ConvertToCreateOsAccountForDomainErrCode(ERR_JS_ACCOUNT_RESTRICTED),
+        ERR_JS_ACCOUNT_RESTRICTED);
+    EXPECT_EQ(DomainPluginAdapter::ConvertToCreateOsAccountForDomainErrCode(ERR_JS_ACCOUNT_ALREADY_ACTIVATED),
+        ERR_JS_ACCOUNT_ALREADY_ACTIVATED);
+    EXPECT_EQ(DomainPluginAdapter::ConvertToCreateOsAccountForDomainErrCode(ERR_JS_ACCOUNT_SERVICE_BUSY),
+        ERR_JS_ACCOUNT_SERVICE_BUSY);
+    EXPECT_EQ(DomainPluginAdapter::ConvertToCreateOsAccountForDomainErrCode(ERR_JS_OS_ACCOUNT_ALREADY_BOUND),
+        ERR_JS_OS_ACCOUNT_ALREADY_BOUND);
+    EXPECT_EQ(DomainPluginAdapter::ConvertToCreateOsAccountForDomainErrCode(ERR_JS_DOMAIN_ACCOUNT_ALREADY_BOUND),
+        ERR_JS_DOMAIN_ACCOUNT_ALREADY_BOUND);
+}
+
+/**
+ * @tc.name: DomainAccountCallbackTest_ConvertErrCode_005
+ * @tc.desc: Test ConvertToCreateOsAccountForDomainErrCode with negative error codes.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountCallbackTest, DomainAccountCallbackTest_ConvertErrCode_005, TestSize.Level3)
+{
+    EXPECT_EQ(DomainPluginAdapter::ConvertToCreateOsAccountForDomainErrCode(-1), -1);
+    EXPECT_EQ(DomainPluginAdapter::ConvertToCreateOsAccountForDomainErrCode(-100), -100);
+}
+
+/**
+ * @tc.name: DomainAccountCallbackTest_ConvertBindErrCode_001
+ * @tc.desc: Test ConvertToBindDomainAccountErrCode converts non-standard error codes.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountCallbackTest, DomainAccountCallbackTest_ConvertBindErrCode_001, TestSize.Level3)
+{
+    EXPECT_EQ(DomainPluginAdapter::ConvertToBindDomainAccountErrCode(ERR_JS_PLUGIN_NETWORK_EXCEPTION),
+        ERR_JS_INVALID_PARAMETER);
+    EXPECT_EQ(DomainPluginAdapter::ConvertToBindDomainAccountErrCode(ERR_JS_ACCOUNT_NOT_AUTHENTICATED),
+        ERR_JS_INVALID_PARAMETER);
+    EXPECT_EQ(DomainPluginAdapter::ConvertToBindDomainAccountErrCode(ERR_JS_AUTH_TIMEOUT),
+        ERR_JS_INVALID_PARAMETER);
+    EXPECT_EQ(DomainPluginAdapter::ConvertToBindDomainAccountErrCode(ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION),
+        ERR_JS_INVALID_PARAMETER);
+    EXPECT_EQ(DomainPluginAdapter::ConvertToBindDomainAccountErrCode(ERR_JS_SERVER_UNREACHABLE),
+        ERR_JS_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: DomainAccountCallbackTest_ConvertBindErrCode_002
+ * @tc.desc: Test ConvertToBindDomainAccountErrCode keeps ERR_JS_ACCOUNT_NOT_FOUND unchanged.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountCallbackTest, DomainAccountCallbackTest_ConvertBindErrCode_002, TestSize.Level3)
+{
+    EXPECT_EQ(DomainPluginAdapter::ConvertToBindDomainAccountErrCode(ERR_JS_ACCOUNT_NOT_FOUND),
+        ERR_JS_ACCOUNT_NOT_FOUND);
 }

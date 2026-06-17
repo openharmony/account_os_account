@@ -35,7 +35,8 @@ std::string GetMethodNameByEnum(PluginMethodEnum methondEnum);
 class DomainPluginAdapter {
 public:
     static DomainPluginAdapter& GetInstance();
-
+    static ErrCode ConvertToBindDomainAccountErrCode(int32_t errCode);
+    static ErrCode ConvertToCreateOsAccountForDomainErrCode(int32_t errCode);
     bool LoadPlugin(void** libHandle, std::map<PluginMethodEnum, void*>* methodMap,
         const std::string& path, const std::string& libName);
     void ClosePlugin(void** libHandle, std::map<PluginMethodEnum, void*>* methodMap);

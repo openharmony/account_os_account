@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,6 +29,8 @@
 #include "tee_auth_adapter.h"
 #endif // SUPPORT_AUTHORIZATION
 
+#include "domain_plugin_adapter.h"
+
 namespace OHOS {
 namespace AccountSA {
 CheckAndCreateDomainAccountCallback::CheckAndCreateDomainAccountCallback(
@@ -57,8 +59,9 @@ ErrCode CheckAndCreateDomainAccountCallback::OnResult(int32_t errCode, const Dom
     Parcel resultParcel;
     osAccountInfo.Marshalling(resultParcel);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Check domain account failed");
-        return HandleErrorWithEmptyResult(errCode, resultParcel);
+        ACCOUNT_LOGE("Check domain account failed, original errCode: %{public}d", errCode);
+        ErrCode convertedErrCode = DomainPluginAdapter::ConvertToCreateOsAccountForDomainErrCode(errCode);
+        return HandleErrorWithEmptyResult(convertedErrCode, resultParcel);
     }
     std::shared_ptr<AAFwk::WantParams> parameters(AAFwk::WantParams::Unmarshalling(parcel));
     if (parameters == nullptr) {
