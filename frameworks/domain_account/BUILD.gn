@@ -130,6 +130,7 @@ ohos_shared_library("domain_account_innerkits") {
 }
 
 ohos_source_set("domain_account_callback_proxy") {
+  branch_protector_ret = "pac_ret"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -150,6 +151,7 @@ ohos_source_set("domain_account_callback_proxy") {
 }
 
 ohos_source_set("domain_account_callback_stub") {
+  branch_protector_ret = "pac_ret"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -171,6 +173,7 @@ ohos_source_set("domain_account_callback_stub") {
 }
 
 ohos_source_set("domain_account_plugin_proxy") {
+  branch_protector_ret = "pac_ret"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -193,6 +196,7 @@ ohos_source_set("domain_account_plugin_proxy") {
 }
 
 ohos_source_set("domain_account_plugin_stub") {
+  branch_protector_ret = "pac_ret"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -214,6 +218,7 @@ ohos_source_set("domain_account_plugin_stub") {
 }
 
 ohos_source_set("domain_account_proxy") {
+  branch_protector_ret = "pac_ret"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -235,6 +240,7 @@ ohos_source_set("domain_account_proxy") {
 }
 
 ohos_source_set("domain_account_stub") {
+  branch_protector_ret = "pac_ret"
   sanitize = {
     cfi = true
     cfi_cross_dso = true

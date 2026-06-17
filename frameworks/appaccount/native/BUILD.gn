@@ -141,6 +141,7 @@ ohos_shared_library("app_account_innerkits") {
 }
 
 ohos_source_set("app_account_authenticator_proxy") {
+  branch_protector_ret = "pac_ret"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -163,6 +164,7 @@ ohos_source_set("app_account_authenticator_proxy") {
 }
 
 ohos_source_set("app_account_authenticator_stub") {
+  branch_protector_ret = "pac_ret"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -185,6 +187,7 @@ ohos_source_set("app_account_authenticator_stub") {
 }
 
 ohos_source_set("app_account_event_proxy") {
+  branch_protector_ret = "pac_ret"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -206,6 +209,7 @@ ohos_source_set("app_account_event_proxy") {
 }
 
 ohos_source_set("app_account_event_stub") {
+  branch_protector_ret = "pac_ret"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -227,6 +231,7 @@ ohos_source_set("app_account_event_stub") {
 }
 
 ohos_source_set("app_account_authenticator_callback_proxy") {
+  branch_protector_ret = "pac_ret"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -249,6 +254,7 @@ ohos_source_set("app_account_authenticator_callback_proxy") {
 }
 
 ohos_source_set("app_account_authenticator_callback_stub") {
+  branch_protector_ret = "pac_ret"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -271,6 +277,7 @@ ohos_source_set("app_account_authenticator_callback_stub") {
 }
 
 ohos_source_set("app_account_proxy") {
+  branch_protector_ret = "pac_ret"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -292,6 +299,7 @@ ohos_source_set("app_account_proxy") {
 }
 
 ohos_source_set("app_account_stub") {
+  branch_protector_ret = "pac_ret"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
