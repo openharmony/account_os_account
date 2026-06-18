@@ -33,7 +33,6 @@
 #include "account_hisysevent_adapter.h"
 #include "data_size_report_adapter.h"
 #include "account_permission_manager.h"
-#include "app_account_control_manager.h"
 #include "ipc_skeleton.h"
 #include "ohos_account_kits.h"
 #include "os_account_constants.h"
@@ -853,9 +852,6 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
 ErrCode IInnerOsAccountManager::FinalizeAccountCreate(OsAccountInfo &osAccountInfo)
 {
     int32_t localId = osAccountInfo.GetLocalId();
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
-    AppAccountControlManager::GetInstance().SetOsAccountRemoved(osAccountInfo.GetLocalId(), false);
-#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
     int32_t foregroundSubProfileId = -1;
     ErrCode initSubspaceRet = InitOsAccountSubspaceForNewAccount(localId, foregroundSubProfileId);
@@ -1616,9 +1612,6 @@ ErrCode IInnerOsAccountManager::CheckTypeNumber(const OsAccountType& type)
 ErrCode IInnerOsAccountManager::SendMsgForAccountRemove(OsAccountInfo &osAccountInfo)
 {
     int32_t localId = osAccountInfo.GetLocalId();
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
-    AppAccountControlManager::GetInstance().SetOsAccountRemoved(localId, true);
-#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
     ErrCode errCode = OsAccountInterface::SendToBMSAccountDelete(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("SendToBMSAccountDelete failed, id %{public}d, errCode %{public}d", localId, errCode);

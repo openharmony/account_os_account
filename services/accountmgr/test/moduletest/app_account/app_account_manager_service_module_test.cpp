@@ -3103,6 +3103,42 @@ HWTEST_F(AppAccountManagerServiceModuleTest, CallbackExit01, TestSize.Level3)
 }
 
 /**
+ * @tc.name: OnStateChanged_001
+ * @tc.desc: Test OnStateChanged with null callback.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, OnStateChanged_001, TestSize.Level3)
+{
+    auto subscriber = std::make_shared<OsAccountStateSubscriber>();
+    OsAccountStateParcel parcel;
+    parcel.state = OsAccountState::CREATED;
+    parcel.fromId = TEST_USER_ID;
+    parcel.toId = TEST_USER_ID;
+    parcel.callback = nullptr;
+    ErrCode result = subscriber->OnStateChanged(parcel);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
+}
+
+/**
+ * @tc.name: OnStateChanged_002
+ * @tc.desc: Test OnStateChanged with null callback.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, OnStateChanged_002, TestSize.Level3)
+{
+    auto subscriber = std::make_shared<OsAccountStateSubscriber>();
+    OsAccountStateParcel parcel;
+    parcel.state = OsAccountState::REMOVED;
+    parcel.fromId = TEST_USER_ID;
+    parcel.toId = TEST_USER_ID;
+    parcel.callback = nullptr;
+    ErrCode result = subscriber->OnStateChanged(parcel);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
+}
+
+/**
  * @tc.name: MoveData_0100
  * @tc.desc: test MoveData.
  * @tc.type: FUNC

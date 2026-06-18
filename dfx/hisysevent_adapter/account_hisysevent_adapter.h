@@ -78,6 +78,10 @@ const char APP_DFX_BMS_ERR_LOG[] = "bmsErrorLog";
 const char APP_DFX_ASSET_ERR_LOG[] = "assetErrorLog";
 const char APP_DFX_AUTHENTICATOR_SESSION[] = "authenticatorSessionError";
 const char APP_DFX_GET_ALL_ACCOUNTS[] = "getAllAccounts";
+const char APP_DFX_GET_EXTRAINFO[] = "getExtraInfo";
+const char APP_DFX_GET_CREDENTIAL[] = "getCredential";
+const char APP_DFX_GET_OAUTH_TOKEN[] = "getOAuthToken";
+const char APP_DFX_GET_AUTH_TOKEN[] = "getAuthToken";
 const char APP_DFX_CONNECT_ABILITY[] = "connectAbility";
 }
 
