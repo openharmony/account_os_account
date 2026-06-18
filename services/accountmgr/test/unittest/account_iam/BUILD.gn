@@ -363,11 +363,9 @@ ohos_unittest("account_inner_iam_manager_mock_source_file_test") {
     "${innerkits_native_path}/src/account_info.cpp",
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
-    "${services_path}/accountmgr/src/account_iam/account_iam_callback.cpp",
-    "${services_path}/accountmgr/src/account_iam/account_iam_service.cpp",
-    "${services_path}/accountmgr/src/account_iam/inner_account_iam_manager.cpp",
     "account_inner_iam_manager_mock_source_file_test.cpp",
   ]
+  sources += account_iam_source
   sources += account_service_sources
   include_dirs = [
     "${app_account_innerkits_native_path}/include",

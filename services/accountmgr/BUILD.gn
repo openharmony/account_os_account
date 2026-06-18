@@ -140,10 +140,8 @@ if (has_kv_store_part) {
 if (has_user_auth_part) {
   account_iam_sources = [
     "${account_iam_framework_path}/src/account_iam_info.cpp",
-    "src/account_iam/account_iam_callback.cpp",
-    "src/account_iam/account_iam_service.cpp",
-    "src/account_iam/inner_account_iam_manager.cpp",
   ]
+  account_iam_sources += account_iam_source
 }
 
 bundle_manager_sources = [

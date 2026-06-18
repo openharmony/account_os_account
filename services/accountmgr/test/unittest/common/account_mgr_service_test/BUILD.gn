@@ -57,11 +57,7 @@ if (has_kv_store_part) {
 }
 
 if (has_user_auth_part) {
-  account_iam_sources = [
-    "${services_path}/accountmgr/src/account_iam/account_iam_callback.cpp",
-    "${services_path}/accountmgr/src/account_iam/account_iam_service.cpp",
-    "${services_path}/accountmgr/src/account_iam/inner_account_iam_manager.cpp",
-  ]
+  account_iam_sources = account_iam_source
 }
 
 ability_manager_sources = [ "${services_path}/accountmgr/src/ability_manager_adapter/ability_manager_adapter.cpp" ]

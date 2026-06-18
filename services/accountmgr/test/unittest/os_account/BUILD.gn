@@ -210,13 +210,11 @@ ohos_unittest("OsAccountFileManagerMultipleThreadTest") {
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
     "${os_account_innerkits_native_path}/src/os_account_constraint_subscriber.cpp",
-    "${services_path}/accountmgr/src/account_iam/account_iam_callback.cpp",
-    "${services_path}/accountmgr/src/account_iam/account_iam_service.cpp",
-    "${services_path}/accountmgr/src/account_iam/inner_account_iam_manager.cpp",
     "${services_path}/accountmgr/src/appaccount/app_account_control_manager.cpp",
     "${services_path}/accountmgr/src/common/database/kvstore/kvstore_adapter_impl.cpp",
     "os_account_file_manager_multiple_thread_test.cpp",
   ]
+  sources += account_iam_source
   sources += account_service_sources
   configs = [
     ":os_account_amgr_mock_config",
@@ -546,14 +544,12 @@ ohos_unittest("OsAccountInnerAccmgrCovTest") {
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
     "${os_account_innerkits_native_path}/src/os_account_constraint_subscriber.cpp",
-    "${services_path}/accountmgr/src/account_iam/account_iam_callback.cpp",
-    "${services_path}/accountmgr/src/account_iam/account_iam_service.cpp",
-    "${services_path}/accountmgr/src/account_iam/inner_account_iam_manager.cpp",
     "${services_path}/accountmgr/src/appaccount/app_account_control_manager.cpp",
     "${services_path}/accountmgr/src/common/database/kvstore/kvstore_adapter_impl.cpp",
     "os_account_inner_account_mgr_cov.cpp",
     "os_account_service_test.cpp",
   ]
+  sources += account_iam_source
   sources += account_service_sources
   configs = [
     ":os_account_amgr_test_config",
@@ -701,15 +697,13 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
     "${innerkits_native_path}/src/ohos_account_kits_impl.cpp",
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
-    "${services_path}/accountmgr/src/account_iam/account_iam_callback.cpp",
-    "${services_path}/accountmgr/src/account_iam/account_iam_service.cpp",
-    "${services_path}/accountmgr/src/account_iam/inner_account_iam_manager.cpp",
     "${services_path}/accountmgr/src/appaccount/app_account_control_manager.cpp",
     "${services_path}/accountmgr/src/common/database/kvstore/kvstore_adapter_impl.cpp",
     "${services_path}/accountmgr/test/mock/os_account/os_account_interface.cpp",
     "${services_path}/accountmgr/test/unittest/os_account/mock/mock_os_account_musl.cpp",
     "os_account_inner_account_mgr_mock.cpp",
   ]
+  sources += account_iam_source
   sources += account_service_sources
   sources -=
       [ "${services_path}/accountmgr/src/osaccount/os_account_interface.cpp" ]
@@ -850,15 +844,13 @@ ohos_unittest("OsAccountInnerAccmgrPluginMockTest") {
     "${innerkits_native_path}/src/ohos_account_kits_impl.cpp",
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
-    "${services_path}/accountmgr/src/account_iam/account_iam_callback.cpp",
-    "${services_path}/accountmgr/src/account_iam/account_iam_service.cpp",
-    "${services_path}/accountmgr/src/account_iam/inner_account_iam_manager.cpp",
     "${services_path}/accountmgr/src/appaccount/app_account_control_manager.cpp",
     "${services_path}/accountmgr/test/mock/os_account/os_account_activate_lock_plugin_manager.cpp",
     "${services_path}/accountmgr/test/mock/os_account/os_account_interface.cpp",
     "${services_path}/accountmgr/test/mock/os_account/os_account_plugin_manager.cpp",
     "os_account_inner_account_mgr_plugin_mock.cpp",
   ]
+  sources += account_iam_source
   if (os_account_support_lock_os_account) {
     sources += [ "${services_path}/accountmgr/test/mock/os_account/os_account_lock_os_account_plugin_manager.cpp" ]
   }
@@ -1002,14 +994,11 @@ ohos_unittest("OsAccountInnerAccmgrMockCovTest") {
     "${innerkits_native_path}/src/ohos_account_kits_impl.cpp",
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
-    "${services_path}/accountmgr/src/account_iam/account_iam_callback.cpp",
-    "${services_path}/accountmgr/src/account_iam/account_iam_service.cpp",
-    "${services_path}/accountmgr/src/account_iam/inner_account_iam_manager.cpp",
     "${services_path}/accountmgr/src/appaccount/app_account_control_manager.cpp",
     "${services_path}/accountmgr/test/mock/os_account/os_account_interface.cpp",
     "os_account_inner_account_mgr_mock_cov.cpp",
   ]
-
+  sources += account_iam_source
   sources += account_service_sources
   sources -=
       [ "${services_path}/accountmgr/src/osaccount/os_account_interface.cpp" ]
@@ -1146,12 +1135,10 @@ ohos_unittest("OsAccountEventManagerMultipleThreadTest") {
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
     "${os_account_innerkits_native_path}/src/os_account_constraint_subscriber.cpp",
-    "${services_path}/accountmgr/src/account_iam/account_iam_callback.cpp",
-    "${services_path}/accountmgr/src/account_iam/account_iam_service.cpp",
-    "${services_path}/accountmgr/src/account_iam/inner_account_iam_manager.cpp",
     "${services_path}/accountmgr/src/appaccount/app_account_control_manager.cpp",
     "os_account_event_manager_multiple_thread_test.cpp",
   ]
+  sources += account_iam_source
   sources += account_service_sources
   configs = [
     ":os_account_amgr_mock_config",
