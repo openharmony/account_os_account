@@ -81,6 +81,10 @@ public:
         OsAccountSubspaceResult &subspaceResult, OhosAccountInfo &distributedInfo) override;
     int32_t GetOsAccountSubProfile(int32_t osAccountId, int32_t subProfileId,
         OsAccountSubspaceResult &subspaceResult, OhosAccountInfo &distributedInfo) override;
+    int32_t GetOsAccountSubProfileId(
+        int32_t osAccountId, int32_t appIndex, int32_t &subProfileId) override;
+    int32_t GetOsAccountSubProfileId(
+        uint32_t tokenId, int32_t &subProfileId) override;
     ErrCode GetAppAccountService(sptr<IRemoteObject>& funcResult) override;
     ErrCode GetOsAccountService(sptr<IRemoteObject>& funcResult) override;
     ErrCode GetAccountIAMService(sptr<IRemoteObject>& funcResult) override;

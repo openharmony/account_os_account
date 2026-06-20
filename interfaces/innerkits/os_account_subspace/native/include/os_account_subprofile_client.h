@@ -51,6 +51,10 @@ public:
         const std::shared_ptr<DistributedAccountSubscribeCallback>& callback);
     ErrCode UnsubscribeOsAccountSubProfileEvents(
         const std::shared_ptr<DistributedAccountSubscribeCallback>& callback);
+    ErrCode GetOsAccountSubProfileId(
+        int32_t osAccountLocalId, int32_t appIndex, int32_t &subProfileId);
+    ErrCode GetOsAccountSubProfileId(uint32_t tokenId, int32_t &subProfileId);
+
 private:
     OsAccountSubProfileClient();
     ~OsAccountSubProfileClient() = default;

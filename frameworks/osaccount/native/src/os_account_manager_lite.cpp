@@ -29,6 +29,8 @@ const std::u16string ACCOUNT_DESCRIPTOR = u"ohos.accountfwk.IAccount";
 const std::u16string OS_ACCOUNT_DESCRIPTOR = u"ohos.accountfwk.IOsAccount";
 constexpr uint32_t COMMAND_GET_OS_ACCOUNT_SERVICE = 14;
 constexpr uint32_t COMMAND_GET_FOREGROUND_OS_ACCOUNT_LOCAL_ID_OUT_INT = 77;
+constexpr uint32_t COMMAND_GET_OS_ACCOUNT_SUB_PROFILE_ID_APP = 28;
+constexpr uint32_t COMMAND_GET_OS_ACCOUNT_SUB_PROFILE_ID_TOKEN = 29;
 
 ErrCode ConvertToAccountErrCode(ErrCode idlErrCode)
 {
@@ -41,14 +43,18 @@ ErrCode ConvertToAccountErrCode(ErrCode idlErrCode)
     return idlErrCode;
 }
 
-sptr<IRemoteObject> GetOsAccountService()
+sptr<IRemoteObject> GetAccountMgrService()
 {
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (samgr == nullptr) {
         return nullptr;
     }
+    return samgr->GetSystemAbility(SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN);
+}
 
-    auto accountMgrService = samgr->GetSystemAbility(SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN);
+sptr<IRemoteObject> GetOsAccountService()
+{
+    auto accountMgrService = GetAccountMgrService();
     if (accountMgrService == nullptr) {
         return nullptr;
     }
@@ -100,6 +106,79 @@ ErrCode OsAccountManagerLite::GetForegroundOsAccountLocalId(int32_t &localId)
         return ConvertToAccountErrCode(errCode);
     }
     if (!reply.ReadInt32(localId)) {
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    return ERR_OK;
+}
+
+ErrCode OsAccountManagerLite::GetOsAccountSubProfileId(
+    int32_t osAccountLocalId, int32_t appIndex, int32_t &subProfileId)
+{
+    auto accountMgrService = GetAccountMgrService();
+    if (accountMgrService == nullptr) {
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(ACCOUNT_DESCRIPTOR)) {
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteInt32(osAccountLocalId)) {
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteInt32(appIndex)) {
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    ErrCode errCode = accountMgrService->SendRequest(
+        COMMAND_GET_OS_ACCOUNT_SUB_PROFILE_ID_APP, data, reply, option);
+    if (errCode != ERR_NONE) {
+        return ERR_ACCOUNT_COMMON_REMOTE_DIED;
+    }
+
+    if (!reply.ReadInt32(errCode)) {
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    if (errCode != ERR_OK) {
+        return ConvertToAccountErrCode(errCode);
+    }
+    if (!reply.ReadInt32(subProfileId)) {
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    return ERR_OK;
+}
+
+ErrCode OsAccountManagerLite::GetOsAccountSubProfileId(
+    uint32_t tokenId, int32_t &subProfileId)
+{
+    auto accountMgrService = GetAccountMgrService();
+    if (accountMgrService == nullptr) {
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(ACCOUNT_DESCRIPTOR)) {
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteUint32(tokenId)) {
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    ErrCode errCode = accountMgrService->SendRequest(
+        COMMAND_GET_OS_ACCOUNT_SUB_PROFILE_ID_TOKEN, data, reply, option);
+    if (errCode != ERR_NONE) {
+        return ERR_ACCOUNT_COMMON_REMOTE_DIED;
+    }
+
+    if (!reply.ReadInt32(errCode)) {
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    if (errCode != ERR_OK) {
+        return ConvertToAccountErrCode(errCode);
+    }
+    if (!reply.ReadInt32(subProfileId)) {
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     return ERR_OK;

@@ -25,7 +25,10 @@
 namespace {
 constexpr uint32_t COMMAND_GET_OS_ACCOUNT_SERVICE = 14;
 constexpr uint32_t COMMAND_GET_FOREGROUND_OS_ACCOUNT_LOCAL_ID_OUT_INT = 77;
+constexpr uint32_t COMMAND_GET_SUB_PROFILE_ID_BY_LOCAL_APP = 28;
+constexpr uint32_t COMMAND_GET_SUB_PROFILE_ID_BY_TOKEN = 29;
 constexpr int32_t TEST_LOCAL_ID = 101;
+constexpr int32_t TEST_SUB_PROFILE_ID = 202;
 }
 
 using namespace testing::ext;
@@ -65,6 +68,41 @@ private:
     int sendRequestResult_;
     bool writeReplyErrCode_;
     bool writeLocalId_;
+};
+
+class MockAccountMgrSubProfileService final : public IPCObjectStub {
+public:
+    explicit MockAccountMgrSubProfileService(ErrCode replyErrCode = ERR_OK,
+        int32_t subProfileId = TEST_SUB_PROFILE_ID, int sendRequestResult = ERR_NONE,
+        bool writeReplyErrCode = true, bool writeSubProfileId = true)
+        : replyErrCode_(replyErrCode), subProfileId_(subProfileId), sendRequestResult_(sendRequestResult),
+          writeReplyErrCode_(writeReplyErrCode), writeSubProfileId_(writeSubProfileId)
+    {}
+
+    int SendRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override
+    {
+        if (code != COMMAND_GET_SUB_PROFILE_ID_BY_LOCAL_APP &&
+            code != COMMAND_GET_SUB_PROFILE_ID_BY_TOKEN) {
+            return sendRequestResult_;
+        }
+        if (sendRequestResult_ != ERR_NONE) {
+            return sendRequestResult_;
+        }
+        if (writeReplyErrCode_) {
+            reply.WriteInt32(replyErrCode_);
+        }
+        if (writeReplyErrCode_ && replyErrCode_ == ERR_OK && writeSubProfileId_) {
+            reply.WriteInt32(subProfileId_);
+        }
+        return ERR_NONE;
+    }
+
+private:
+    ErrCode replyErrCode_;
+    int32_t subProfileId_;
+    int sendRequestResult_;
+    bool writeReplyErrCode_;
+    bool writeSubProfileId_;
 };
 
 class MockAccountMgrService final : public IPCObjectStub {
@@ -556,6 +594,312 @@ HWTEST_F(OsAccountManagerLiteProxyMockTest, GetForegroundOsAccountLocalIdProxyMo
     int32_t localId = -1;
     EXPECT_EQ(OsAccountManagerLite::GetForegroundOsAccountLocalId(localId), ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR);
     EXPECT_EQ(localId, -1);
+}
+
+/**
+ * @tc.name: GetSubProfileIdByLocalIdAndAppIndexProxyMock001
+ * @tc.desc: Test GetSubProfileIdByLocalIdAndAppIndex returns get proxy error when proxy is unavailable.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteProxyMockTest, GetSubProfileIdByLocalIdAndAppIndexProxyMock001, TestSize.Level3)
+{
+    int32_t subProfileId = -1;
+    EXPECT_EQ(OsAccountManagerLite::GetOsAccountSubProfileId(
+        TEST_LOCAL_ID, 0, subProfileId), ERR_ACCOUNT_COMMON_GET_PROXY);
+    EXPECT_EQ(subProfileId, -1);
+}
+
+/**
+ * @tc.name: GetSubProfileIdByLocalIdAndAppIndexProxyMock002
+ * @tc.desc: Test GetSubProfileIdByLocalIdAndAppIndex returns get proxy error when SA 200 is unavailable.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteProxyMockTest, GetSubProfileIdByLocalIdAndAppIndexProxyMock002, TestSize.Level3)
+{
+    SetMockSystemAbilityManager(new MockSystemAbilityManager(nullptr));
+
+    int32_t subProfileId = -1;
+    EXPECT_EQ(OsAccountManagerLite::GetOsAccountSubProfileId(
+        TEST_LOCAL_ID, 0, subProfileId), ERR_ACCOUNT_COMMON_GET_PROXY);
+    EXPECT_EQ(subProfileId, -1);
+}
+
+/**
+ * @tc.name: GetSubProfileIdByLocalIdAndAppIndexProxyMock003
+ * @tc.desc: Test GetSubProfileIdByLocalIdAndAppIndex returns remote died when SendRequest fails.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(
+    OsAccountManagerLiteProxyMockTest, GetSubProfileIdByLocalIdAndAppIndexProxyMock003, TestSize.Level3)
+{
+    auto mockService = new MockAccountMgrSubProfileService(ERR_OK, TEST_SUB_PROFILE_ID, ERR_INVALID_VALUE);
+    SetMockSystemAbilityManager(new MockSystemAbilityManager(mockService));
+
+    int32_t subProfileId = -1;
+    EXPECT_EQ(OsAccountManagerLite::GetOsAccountSubProfileId(
+        TEST_LOCAL_ID, 0, subProfileId), ERR_ACCOUNT_COMMON_REMOTE_DIED);
+    EXPECT_EQ(subProfileId, -1);
+}
+
+/**
+ * @tc.name: GetSubProfileIdByLocalIdAndAppIndexProxyMock004
+ * @tc.desc: Test GetSubProfileIdByLocalIdAndAppIndex returns read parcel error when reply misses errCode.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(
+    OsAccountManagerLiteProxyMockTest, GetSubProfileIdByLocalIdAndAppIndexProxyMock004, TestSize.Level3)
+{
+    auto mockService = new MockAccountMgrSubProfileService(ERR_OK, TEST_SUB_PROFILE_ID, ERR_NONE, false);
+    SetMockSystemAbilityManager(new MockSystemAbilityManager(mockService));
+
+    int32_t subProfileId = -1;
+    EXPECT_EQ(OsAccountManagerLite::GetOsAccountSubProfileId(
+        TEST_LOCAL_ID, 0, subProfileId), ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR);
+    EXPECT_EQ(subProfileId, -1);
+}
+
+/**
+ * @tc.name: GetSubProfileIdByLocalIdAndAppIndexProxyMock005
+ * @tc.desc: Test GetSubProfileIdByLocalIdAndAppIndex converts invalid value to write descriptor error.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(
+    OsAccountManagerLiteProxyMockTest, GetSubProfileIdByLocalIdAndAppIndexProxyMock005, TestSize.Level3)
+{
+    auto mockService = new MockAccountMgrSubProfileService(ERR_INVALID_VALUE);
+    SetMockSystemAbilityManager(new MockSystemAbilityManager(mockService));
+
+    int32_t subProfileId = -1;
+    EXPECT_EQ(OsAccountManagerLite::GetOsAccountSubProfileId(
+        TEST_LOCAL_ID, 0, subProfileId), ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR);
+    EXPECT_EQ(subProfileId, -1);
+}
+
+/**
+ * @tc.name: GetSubProfileIdByLocalIdAndAppIndexProxyMock006
+ * @tc.desc: Test GetSubProfileIdByLocalIdAndAppIndex converts invalid data to write parcel error.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(
+    OsAccountManagerLiteProxyMockTest, GetSubProfileIdByLocalIdAndAppIndexProxyMock006, TestSize.Level3)
+{
+    auto mockService = new MockAccountMgrSubProfileService(ERR_INVALID_DATA);
+    SetMockSystemAbilityManager(new MockSystemAbilityManager(mockService));
+
+    int32_t subProfileId = -1;
+    EXPECT_EQ(OsAccountManagerLite::GetOsAccountSubProfileId(
+        TEST_LOCAL_ID, 0, subProfileId), ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
+    EXPECT_EQ(subProfileId, -1);
+}
+
+/**
+ * @tc.name: GetSubProfileIdByLocalIdAndAppIndexProxyMock007
+ * @tc.desc: Test GetSubProfileIdByLocalIdAndAppIndex transparently returns other service errors.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(
+    OsAccountManagerLiteProxyMockTest, GetSubProfileIdByLocalIdAndAppIndexProxyMock007, TestSize.Level3)
+{
+    auto mockService = new MockAccountMgrSubProfileService(ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    SetMockSystemAbilityManager(new MockSystemAbilityManager(mockService));
+
+    int32_t subProfileId = -1;
+    EXPECT_EQ(OsAccountManagerLite::GetOsAccountSubProfileId(
+        TEST_LOCAL_ID, 0, subProfileId), ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    EXPECT_EQ(subProfileId, -1);
+}
+
+/**
+ * @tc.name: GetSubProfileIdByLocalIdAndAppIndexProxyMock008
+ * @tc.desc: Test GetSubProfileIdByLocalIdAndAppIndex returns read parcel error when reply misses subProfileId.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(
+    OsAccountManagerLiteProxyMockTest, GetSubProfileIdByLocalIdAndAppIndexProxyMock008, TestSize.Level3)
+{
+    auto mockService = new MockAccountMgrSubProfileService(
+        ERR_OK, TEST_SUB_PROFILE_ID, ERR_NONE, true, false);
+    SetMockSystemAbilityManager(new MockSystemAbilityManager(mockService));
+
+    int32_t subProfileId = -1;
+    EXPECT_EQ(OsAccountManagerLite::GetOsAccountSubProfileId(
+        TEST_LOCAL_ID, 0, subProfileId), ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR);
+    EXPECT_EQ(subProfileId, -1);
+}
+
+/**
+ * @tc.name: GetSubProfileIdByLocalIdAndAppIndexProxyMock009
+ * @tc.desc: Test GetSubProfileIdByLocalIdAndAppIndex returns subProfileId when mocked service succeeds.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(
+    OsAccountManagerLiteProxyMockTest, GetSubProfileIdByLocalIdAndAppIndexProxyMock009, TestSize.Level3)
+{
+    auto mockService = new MockAccountMgrSubProfileService(ERR_OK, TEST_SUB_PROFILE_ID);
+    SetMockSystemAbilityManager(new MockSystemAbilityManager(mockService));
+
+    int32_t subProfileId = -1;
+    EXPECT_EQ(OsAccountManagerLite::GetOsAccountSubProfileId(
+        TEST_LOCAL_ID, 0, subProfileId), ERR_OK);
+    EXPECT_EQ(subProfileId, TEST_SUB_PROFILE_ID);
+}
+
+/**
+ * @tc.name: GetSubProfileIdByTokenIdProxyMock001
+ * @tc.desc: Test GetSubProfileIdByTokenId returns get proxy error when proxy is unavailable.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteProxyMockTest, GetSubProfileIdByTokenIdProxyMock001, TestSize.Level3)
+{
+    int32_t subProfileId = -1;
+    EXPECT_EQ(OsAccountManagerLite::GetOsAccountSubProfileId(
+        static_cast<uint32_t>(TEST_LOCAL_ID), subProfileId), ERR_ACCOUNT_COMMON_GET_PROXY);
+    EXPECT_EQ(subProfileId, -1);
+}
+
+/**
+ * @tc.name: GetSubProfileIdByTokenIdProxyMock002
+ * @tc.desc: Test GetSubProfileIdByTokenId returns get proxy error when SA 200 is unavailable.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteProxyMockTest, GetSubProfileIdByTokenIdProxyMock002, TestSize.Level3)
+{
+    SetMockSystemAbilityManager(new MockSystemAbilityManager(nullptr));
+
+    int32_t subProfileId = -1;
+    EXPECT_EQ(OsAccountManagerLite::GetOsAccountSubProfileId(
+        static_cast<uint32_t>(TEST_LOCAL_ID), subProfileId), ERR_ACCOUNT_COMMON_GET_PROXY);
+    EXPECT_EQ(subProfileId, -1);
+}
+
+/**
+ * @tc.name: GetSubProfileIdByTokenIdProxyMock003
+ * @tc.desc: Test GetSubProfileIdByTokenId returns remote died when SendRequest fails.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteProxyMockTest, GetSubProfileIdByTokenIdProxyMock003, TestSize.Level3)
+{
+    auto mockService = new MockAccountMgrSubProfileService(ERR_OK, TEST_SUB_PROFILE_ID, ERR_INVALID_VALUE);
+    SetMockSystemAbilityManager(new MockSystemAbilityManager(mockService));
+
+    int32_t subProfileId = -1;
+    EXPECT_EQ(OsAccountManagerLite::GetOsAccountSubProfileId(
+        static_cast<uint32_t>(TEST_LOCAL_ID), subProfileId), ERR_ACCOUNT_COMMON_REMOTE_DIED);
+    EXPECT_EQ(subProfileId, -1);
+}
+
+/**
+ * @tc.name: GetSubProfileIdByTokenIdProxyMock004
+ * @tc.desc: Test GetSubProfileIdByTokenId returns read parcel error when reply misses errCode.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteProxyMockTest, GetSubProfileIdByTokenIdProxyMock004, TestSize.Level3)
+{
+    auto mockService = new MockAccountMgrSubProfileService(ERR_OK, TEST_SUB_PROFILE_ID, ERR_NONE, false);
+    SetMockSystemAbilityManager(new MockSystemAbilityManager(mockService));
+
+    int32_t subProfileId = -1;
+    EXPECT_EQ(OsAccountManagerLite::GetOsAccountSubProfileId(
+        static_cast<uint32_t>(TEST_LOCAL_ID), subProfileId), ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR);
+    EXPECT_EQ(subProfileId, -1);
+}
+
+/**
+ * @tc.name: GetSubProfileIdByTokenIdProxyMock005
+ * @tc.desc: Test GetSubProfileIdByTokenId converts invalid value to write descriptor error.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteProxyMockTest, GetSubProfileIdByTokenIdProxyMock005, TestSize.Level3)
+{
+    auto mockService = new MockAccountMgrSubProfileService(ERR_INVALID_VALUE);
+    SetMockSystemAbilityManager(new MockSystemAbilityManager(mockService));
+
+    int32_t subProfileId = -1;
+    EXPECT_EQ(OsAccountManagerLite::GetOsAccountSubProfileId(
+        static_cast<uint32_t>(TEST_LOCAL_ID), subProfileId), ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR);
+    EXPECT_EQ(subProfileId, -1);
+}
+
+/**
+ * @tc.name: GetSubProfileIdByTokenIdProxyMock006
+ * @tc.desc: Test GetSubProfileIdByTokenId converts invalid data to write parcel error.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteProxyMockTest, GetSubProfileIdByTokenIdProxyMock006, TestSize.Level3)
+{
+    auto mockService = new MockAccountMgrSubProfileService(ERR_INVALID_DATA);
+    SetMockSystemAbilityManager(new MockSystemAbilityManager(mockService));
+
+    int32_t subProfileId = -1;
+    EXPECT_EQ(OsAccountManagerLite::GetOsAccountSubProfileId(
+        static_cast<uint32_t>(TEST_LOCAL_ID), subProfileId), ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
+    EXPECT_EQ(subProfileId, -1);
+}
+
+/**
+ * @tc.name: GetSubProfileIdByTokenIdProxyMock007
+ * @tc.desc: Test GetSubProfileIdByTokenId transparently returns other service errors.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteProxyMockTest, GetSubProfileIdByTokenIdProxyMock007, TestSize.Level3)
+{
+    auto mockService = new MockAccountMgrSubProfileService(ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    SetMockSystemAbilityManager(new MockSystemAbilityManager(mockService));
+
+    int32_t subProfileId = -1;
+    EXPECT_EQ(OsAccountManagerLite::GetOsAccountSubProfileId(
+        static_cast<uint32_t>(TEST_LOCAL_ID), subProfileId), ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    EXPECT_EQ(subProfileId, -1);
+}
+
+/**
+ * @tc.name: GetSubProfileIdByTokenIdProxyMock008
+ * @tc.desc: Test GetSubProfileIdByTokenId returns read parcel error when reply misses subProfileId.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteProxyMockTest, GetSubProfileIdByTokenIdProxyMock008, TestSize.Level3)
+{
+    auto mockService = new MockAccountMgrSubProfileService(ERR_OK, TEST_SUB_PROFILE_ID, ERR_NONE, true, false);
+    SetMockSystemAbilityManager(new MockSystemAbilityManager(mockService));
+
+    int32_t subProfileId = -1;
+    EXPECT_EQ(OsAccountManagerLite::GetOsAccountSubProfileId(
+        static_cast<uint32_t>(TEST_LOCAL_ID), subProfileId), ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR);
+    EXPECT_EQ(subProfileId, -1);
+}
+
+/**
+ * @tc.name: GetSubProfileIdByTokenIdProxyMock009
+ * @tc.desc: Test GetSubProfileIdByTokenId returns subProfileId when mocked service succeeds.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteProxyMockTest, GetSubProfileIdByTokenIdProxyMock009, TestSize.Level3)
+{
+    auto mockService = new MockAccountMgrSubProfileService(ERR_OK, TEST_SUB_PROFILE_ID);
+    SetMockSystemAbilityManager(new MockSystemAbilityManager(mockService));
+
+    int32_t subProfileId = -1;
+    EXPECT_EQ(OsAccountManagerLite::GetOsAccountSubProfileId(
+        static_cast<uint32_t>(TEST_LOCAL_ID), subProfileId), ERR_OK);
+    EXPECT_EQ(subProfileId, TEST_SUB_PROFILE_ID);
 }
 }  // namespace AccountTest
 }  // namespace OHOS

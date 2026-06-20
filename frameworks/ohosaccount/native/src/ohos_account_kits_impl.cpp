@@ -712,5 +712,27 @@ ErrCode OhosAccountKitsImpl::GetOsAccountSubProfile(
     distributedInfo = distInfo;
     return ret;
 }
+
+ErrCode OhosAccountKitsImpl::GetOsAccountSubProfileId(
+    int32_t osAccountId, int32_t appIndex, int32_t &subProfileId)
+{
+    auto accountProxy = GetService();
+    if (accountProxy == nullptr) {
+        ACCOUNT_LOGE("Get proxy failed");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return accountProxy->GetOsAccountSubProfileId(osAccountId, appIndex, subProfileId);
+}
+
+ErrCode OhosAccountKitsImpl::GetOsAccountSubProfileId(
+    uint32_t tokenId, int32_t &subProfileId)
+{
+    auto accountProxy = GetService();
+    if (accountProxy == nullptr) {
+        ACCOUNT_LOGE("Get proxy failed");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return accountProxy->GetOsAccountSubProfileId(tokenId, subProfileId);
+}
 } // namespace AccountSA
 } // namespace OHOS

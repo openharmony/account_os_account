@@ -225,6 +225,17 @@ public:
         return ERR_OK;
     }
 
+    virtual ErrCode GetOsAccountSubProfileId(
+        int32_t osAccountId, int32_t appIndex, int32_t &subProfileId)
+    {
+        return ERR_OK;
+    }
+
+    virtual ErrCode GetOsAccountSubProfileId(uint32_t tokenId, int32_t &subProfileId)
+    {
+        return ERR_OK;
+    }
+
 protected:
     OhosAccountKits() = default;
 };

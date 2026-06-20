@@ -25,6 +25,9 @@ namespace AccountSA {
 class OsAccountManagerLite final {
 public:
     static ErrCode GetForegroundOsAccountLocalId(int32_t &localId);
+    static ErrCode GetOsAccountSubProfileId(
+        int32_t osAccountLocalId, int32_t appIndex, int32_t &subProfileId);
+    static ErrCode GetOsAccountSubProfileId(uint32_t tokenId, int32_t &subProfileId);
 };
 }  // namespace AccountSA
 }  // namespace OHOS

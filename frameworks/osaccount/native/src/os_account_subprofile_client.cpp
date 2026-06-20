@@ -200,5 +200,17 @@ ErrCode OsAccountSubProfileClient::UnsubscribeOsAccountSubProfileEvents(
     return OhosAccountKitsImpl::GetInstance().UnsubscribeDistributedAccountSpaceEvents(callback);
 }
 
+ErrCode OsAccountSubProfileClient::GetOsAccountSubProfileId(
+    int32_t osAccountLocalId, int32_t appIndex, int32_t &subProfileId)
+{
+    return OhosAccountKits::GetInstance().GetOsAccountSubProfileId(
+        osAccountLocalId, appIndex, subProfileId);
+}
+
+ErrCode OsAccountSubProfileClient::GetOsAccountSubProfileId(
+    uint32_t tokenId, int32_t &subProfileId)
+{
+    return OhosAccountKits::GetInstance().GetOsAccountSubProfileId(tokenId, subProfileId);
+}
 }  // namespace AccountSA
 }  // namespace OHOS

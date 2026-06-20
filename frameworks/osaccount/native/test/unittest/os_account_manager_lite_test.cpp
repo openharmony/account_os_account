@@ -14,6 +14,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <unistd.h>
 
 #include "account_test_common.h"
 #include "ipc_skeleton.h"
@@ -26,6 +27,9 @@ using namespace OHOS::AccountSA;
 
 namespace {
 constexpr int32_t MAIN_ACCOUNT_ID = 100;
+constexpr int32_t TEST_NON_EXIST_ACCOUNT_ID = 200;
+constexpr int32_t TEST_UID_USER_100 = MAIN_ACCOUNT_ID * 200000;
+constexpr int32_t TEST_SUB_PROFILE_ID_BASE = MAIN_ACCOUNT_ID * 1000;
 uint64_t g_selfTokenId = 0;
 uint64_t g_accountTokenId = 0;
 }
@@ -89,6 +93,112 @@ HWTEST_F(OsAccountManagerLiteTest, GetForegroundOsAccountLocalIdCompare001, Test
 
     EXPECT_EQ(liteResult, managerResult);
     EXPECT_EQ(liteLocalId, managerLocalId);
+}
+
+/**
+ * @tc.name: GetOsAccountSubProfileIdByAppIndex001
+ * @tc.desc: Test GetOsAccountSubProfileId by localId and appIndex returns correct subProfileId on main account.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteTest, GetOsAccountSubProfileIdByAppIndex001, TestSize.Level1)
+{
+    int32_t subProfileId = -1;
+    EXPECT_EQ(OsAccountManagerLite::GetOsAccountSubProfileId(MAIN_ACCOUNT_ID, 0, subProfileId), ERR_OK);
+    EXPECT_EQ(subProfileId, TEST_SUB_PROFILE_ID_BASE);
+}
+
+/**
+ * @tc.name: GetOsAccountSubProfileIdByAppIndex002
+ * @tc.desc: Test GetOsAccountSubProfileId by localId and appIndex returns error on non-existent account.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteTest, GetOsAccountSubProfileIdByAppIndex002, TestSize.Level1)
+{
+    int32_t subProfileId = -1;
+    ErrCode ret = OsAccountManagerLite::GetOsAccountSubProfileId(TEST_NON_EXIST_ACCOUNT_ID, 0, subProfileId);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    EXPECT_EQ(subProfileId, -1);
+}
+
+/**
+ * @tc.name: GetOsAccountSubProfileIdByAppIndex003
+ * @tc.desc: Test GetOsAccountSubProfileId by localId and appIndex returns error on restricted account (user 0).
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteTest, GetOsAccountSubProfileIdByAppIndex003, TestSize.Level1)
+{
+    int32_t subProfileId = -1;
+    ErrCode ret = OsAccountManagerLite::GetOsAccountSubProfileId(0, 0, subProfileId);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+}
+
+/**
+ * @tc.name: GetOsAccountSubProfileIdByAppIndex004
+ * @tc.desc: Test GetOsAccountSubProfileId by localId and appIndex returns error on non-existent appIndex.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteTest, GetOsAccountSubProfileIdByAppIndex004, TestSize.Level1)
+{
+    int32_t subProfileId = -1;
+    ErrCode ret = OsAccountManagerLite::GetOsAccountSubProfileId(
+        MAIN_ACCOUNT_ID, -1, subProfileId);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: GetOsAccountSubProfileIdByTokenId001
+ * @tc.desc: Test GetOsAccountSubProfileId by tokenId returns correct subProfileId for user 100.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteTest, GetOsAccountSubProfileIdByTokenId001, TestSize.Level1)
+{
+    ASSERT_EQ(0, setuid(TEST_UID_USER_100));
+
+    int32_t subProfileId = -1;
+    EXPECT_EQ(OsAccountManagerLite::GetOsAccountSubProfileId(
+        static_cast<uint32_t>(IPCSkeleton::GetCallingTokenID()), subProfileId), ERR_OK);
+    EXPECT_EQ(subProfileId, TEST_SUB_PROFILE_ID_BASE);
+
+    ASSERT_EQ(0, setuid(0));
+}
+
+/**
+ * @tc.name: GetOsAccountSubProfileIdByTokenId002
+ * @tc.desc: Test GetOsAccountSubProfileId by tokenId returns error on invalid token (0).
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteTest, GetOsAccountSubProfileIdByTokenId002, TestSize.Level1)
+{
+    int32_t subProfileId = -1;
+    ErrCode ret = OsAccountManagerLite::GetOsAccountSubProfileId(static_cast<uint32_t>(0), subProfileId);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: GetOsAccountSubProfileIdConsistency001
+ * @tc.desc: Test lite interface result is consistent between localId+appIndex and tokenId overloads on main account.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteTest, GetOsAccountSubProfileIdConsistency001, TestSize.Level1)
+{
+    ASSERT_EQ(0, setuid(TEST_UID_USER_100));
+
+    int32_t subProfileIdByIndex = -1;
+    int32_t subProfileIdByToken = -1;
+    EXPECT_EQ(OsAccountManagerLite::GetOsAccountSubProfileId(MAIN_ACCOUNT_ID, 0, subProfileIdByIndex), ERR_OK);
+    EXPECT_EQ(OsAccountManagerLite::GetOsAccountSubProfileId(
+        static_cast<uint32_t>(IPCSkeleton::GetCallingTokenID()), subProfileIdByToken), ERR_OK);
+    EXPECT_EQ(subProfileIdByIndex, subProfileIdByToken);
+    EXPECT_EQ(subProfileIdByIndex, TEST_SUB_PROFILE_ID_BASE);
+
+    ASSERT_EQ(0, setuid(0));
 }
 
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS

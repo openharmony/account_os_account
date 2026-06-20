@@ -77,4 +77,9 @@ interface OHOS.AccountSA.IAccount {
 
     void GetOsAccountSubProfile([in] int osAccountId, [in] int subProfileId,
         [out] OsAccountSubspaceResult subspaceResult, [out] OhosAccountInfo distributedInfo);
+
+    void GetOsAccountSubProfileId([in] int osAccountId, [in] int appIndex,
+        [out] int subProfileId);
+
+    void GetOsAccountSubProfileId([in] unsigned int tokenId, [out] int subProfileId);
 }

@@ -665,6 +665,67 @@ int32_t AccountMgrService::GetOsAccountSubProfile(
         osAccountId, subProfileId, subspaceResult, distributedInfo);
 }
 
+int32_t AccountMgrService::GetOsAccountSubProfileId(
+    int32_t osAccountId, int32_t appIndex, int32_t &subProfileId)
+{
+    ErrCode ret = AccountPermissionManager::CheckSystemApp();
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Caller is not system app, ret=%{public}d", ret);
+        return ret;
+    }
+
+    if (appIndex < 0) {
+        ACCOUNT_LOGE("Invalid appIndex=%{public}d", appIndex);
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    OsAccountInfo osAccountInfo;
+    ret = IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(osAccountId, osAccountInfo);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("OsAccount not exist, osAccountId=%{public}d, ret=%{public}d", osAccountId, ret);
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
+    ret = IInnerOsAccountManager::GetInstance().CheckLocalIdRestricted(osAccountId);
+    if (ret != ERR_OK) {
+        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+    }
+    return OhosAccountManager::GetInstance().GetOsAccountSubProfileId(
+        osAccountId, appIndex, subProfileId);
+}
+
+int32_t AccountMgrService::GetOsAccountSubProfileId(
+    uint32_t tokenId, int32_t &subProfileId)
+{
+    ErrCode ret = AccountPermissionManager::CheckSystemApp();
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Caller is not system app, ret=%{public}d", ret);
+        return ret;
+    }
+
+    Security::AccessToken::HapTokenInfo hapTokenInfo;
+    int result = Security::AccessToken::AccessTokenKit::GetHapTokenInfo(
+        static_cast<Security::AccessToken::AccessTokenID>(tokenId), hapTokenInfo);
+    if (result != 0) {
+        ACCOUNT_LOGE("GetHapTokenInfo failed, tokenId invalid, result=%{public}d", result);
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    if (hapTokenInfo.instIndex < 0) {
+        ACCOUNT_LOGE("Invalid instIndex=%{public}d from tokenId", hapTokenInfo.instIndex);
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    OsAccountInfo osAccountInfo;
+    ret = IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(hapTokenInfo.userID, osAccountInfo);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("OsAccount not exist, osAccountId=%{public}d, ret=%{public}d", hapTokenInfo.userID, ret);
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
+    ret = IInnerOsAccountManager::GetInstance().CheckLocalIdRestricted(hapTokenInfo.userID);
+    if (ret != ERR_OK) {
+        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+    }
+    return OhosAccountManager::GetInstance().GetOsAccountSubProfileId(
+        hapTokenInfo.userID, static_cast<int32_t>(hapTokenInfo.instIndex), subProfileId);
+}
+
 ErrCode AccountMgrService::GetAppAccountService(sptr<IRemoteObject>& funcResult)
 {
     [[maybe_unused]] auto timerPtr = RequestTimer(Constants::OPERATION_GET_SERVICE);
