@@ -37,6 +37,10 @@
 #include "ipc_skeleton.h"
 #include "ohos_account_kits.h"
 #include "os_account_constants.h"
+
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+#include "os_account_sub_profile_id_counter.h"
+#endif
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
 #include "os_account_domain_account_callback.h"
 #endif // SUPPORT_DOMAIN_ACCOUNTS
@@ -379,6 +383,14 @@ bool IInnerOsAccountManager::CreateBaseStandardAccount(OsAccountInfo &osAccountI
     osAccountInfo.SetIsCreateCompleted(false);
     osAccountInfo.SetIsDataRemovable(false);
     osAccountInfo.SetVersion(OS_ACCOUNT_INFO_LATEST_VERSION);
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    int32_t bootCommonId = SubProfileIdCounter::GetInstance().GetNextId();
+    if (bootCommonId != Constants::INVALID_SUB_PROFILE_ID) {
+        osAccountInfo.SetCommonSubProfileId(bootCommonId);
+    } else {
+        ACCOUNT_LOGE("Failed to allocate common SubProfile ID during boot, commonSubProfileId stays default");
+    }
+#endif
     errCode = RetryToInsertOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Fail to insert account %{public}d, errCode %{public}d.", osAccountInfo.GetLocalId(), errCode);
@@ -680,6 +692,14 @@ ErrCode IInnerOsAccountManager::FillOsAccountInfo(const std::string &localName, 
     }
     osAccountInfo.SetConstraints(constraints);
     osAccountInfo.SetVersion(OS_ACCOUNT_INFO_LATEST_VERSION);
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    int32_t commonId = SubProfileIdCounter::GetInstance().GetNextId();
+    if (commonId == Constants::INVALID_SUB_PROFILE_ID) {
+        ACCOUNT_LOGE("Failed to allocate common SubProfile ID");
+        return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
+    }
+    osAccountInfo.SetCommonSubProfileId(commonId);
+#endif
     int64_t time =
         std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     osAccountInfo.SetCreateTime(time);

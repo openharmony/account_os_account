@@ -50,6 +50,7 @@ namespace {
 const std::string TEST_ROOT_DIR = "/data/test/os_account_subspace_module_test_dir/";
 constexpr int32_t OS_ACCOUNT_ID_A = 200;
 constexpr int32_t OS_ACCOUNT_ID_B = 201;
+constexpr int32_t SUBSPACE_MULTIPLIER = 1000;
 }  // namespace
 
 class OsAccountSubspaceModuleTest : public testing::Test {
@@ -99,12 +100,8 @@ uint64_t OsAccountSubspaceModuleTest::allPermTokenId_ = 0;
 HWTEST_F(OsAccountSubspaceModuleTest, LifecycleFullFlow_001, TestSize.Level1)
 {
     // Step 1: Create two spaces
-    std::vector<std::string> subProfileIdStrList;
-    int32_t nextSubProfileId = -1;
     int32_t distId1 = 0;
-    EXPECT_EQ(dataDeal_->AllocateOsAccountSubProfileId(
-        OS_ACCOUNT_ID_A, nextSubProfileId, subProfileIdStrList, distId1), ERR_OK);
-    EXPECT_EQ(distId1, OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 1);
+    EXPECT_EQ(dataDeal_->AllocateOsAccountSubProfileId(distId1), ERR_OK);
 
     OsAccountSubspaceInfo info1;
     info1.userId_ = OS_ACCOUNT_ID_A;
@@ -113,13 +110,8 @@ HWTEST_F(OsAccountSubspaceModuleTest, LifecycleFullFlow_001, TestSize.Level1)
     info1.toBeRemoved = false;
     EXPECT_EQ(dataDeal_->SaveSubProfileInfo(info1), ERR_OK);
 
-    subProfileIdStrList.push_back(std::to_string(distId1));
-    int32_t base = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
-    nextSubProfileId = base + 2;
     int32_t distId2 = 0;
-    EXPECT_EQ(dataDeal_->AllocateOsAccountSubProfileId(
-        OS_ACCOUNT_ID_A, nextSubProfileId, subProfileIdStrList, distId2), ERR_OK);
-    EXPECT_EQ(distId2, OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 2);
+    EXPECT_EQ(dataDeal_->AllocateOsAccountSubProfileId(distId2), ERR_OK);
 
     OsAccountSubspaceInfo info2;
     info2.userId_ = OS_ACCOUNT_ID_A;
@@ -169,7 +161,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, LifecycleFullFlow_001, TestSize.Level1)
 HWTEST_F(OsAccountSubspaceModuleTest, ZeroSpaceUnchanged_001, TestSize.Level1)
 {
     // Create a mock 0-space directory (simulating the existing primary space)
-    int32_t zeroDistId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER; // index 0
+    int32_t zeroDistId = OS_ACCOUNT_ID_A * SUBSPACE_MULTIPLIER; // index 0
     std::string zeroDir = TEST_ROOT_DIR + std::to_string(OS_ACCOUNT_ID_A) + "/" + std::to_string(zeroDistId);
     std::filesystem::create_directories(zeroDir);
 
@@ -202,7 +194,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, ZeroSpaceUnchanged_001, TestSize.Level1)
 HWTEST_F(OsAccountSubspaceModuleTest, CrashRecovery_IncompleteCreate_001, TestSize.Level1)
 {
     // Simulate crash mid-create: space exists with is_create_completed=false
-    int32_t crashDistId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 5;
+    int32_t crashDistId = OS_ACCOUNT_ID_A * SUBSPACE_MULTIPLIER + 5;
     OsAccountSubspaceInfo crashInfo;
     crashInfo.userId_ = OS_ACCOUNT_ID_A;
     crashInfo.subspaceId = crashDistId;
@@ -211,7 +203,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, CrashRecovery_IncompleteCreate_001, TestSi
     EXPECT_EQ(dataDeal_->SaveSubProfileInfo(crashInfo), ERR_OK);
 
     // Also create a normal complete space
-    int32_t goodDistId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 6;
+    int32_t goodDistId = OS_ACCOUNT_ID_A * SUBSPACE_MULTIPLIER + 6;
     OsAccountSubspaceInfo goodInfo;
     goodInfo.userId_ = OS_ACCOUNT_ID_A;
     goodInfo.subspaceId = goodDistId;
@@ -249,7 +241,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, CrashRecovery_IncompleteCreate_001, TestSi
 HWTEST_F(OsAccountSubspaceModuleTest, CrashRecovery_PendingRemove_001, TestSize.Level1)
 {
     // Simulate crash mid-remove: space exists with to_be_removed=true
-    int32_t pendingRemoveDistId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 10;
+    int32_t pendingRemoveDistId = OS_ACCOUNT_ID_A * SUBSPACE_MULTIPLIER + 10;
     OsAccountSubspaceInfo pendingInfo;
     pendingInfo.userId_ = OS_ACCOUNT_ID_A;
     pendingInfo.subspaceId = pendingRemoveDistId;
@@ -300,7 +292,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, ConcurrentSwitch_Consistency_001, TestSize
     for (int32_t i = 1; i <= NUM_SPACES; ++i) {
         OsAccountSubspaceInfo info;
         info.userId_ = OS_ACCOUNT_ID_B;
-        info.subspaceId = OS_ACCOUNT_ID_B * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + i;
+        info.subspaceId = OS_ACCOUNT_ID_B * SUBSPACE_MULTIPLIER + i;
         info.isCreateCompleted = true;
         info.toBeRemoved = false;
         EXPECT_EQ(dataDeal_->SaveSubProfileInfo(info), ERR_OK);
@@ -325,7 +317,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, ConcurrentSwitch_Consistency_001, TestSize
 
     std::vector<std::thread> threads;
     for (int32_t i = 1; i <= NUM_SPACES; ++i) {
-        int32_t spaceId = OS_ACCOUNT_ID_B * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + i;
+        int32_t spaceId = OS_ACCOUNT_ID_B * SUBSPACE_MULTIPLIER + i;
         threads.emplace_back(writeSpaceInfo, spaceId);
     }
     for (auto &t : threads) {
@@ -335,7 +327,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, ConcurrentSwitch_Consistency_001, TestSize
 
     // All spaces must remain valid after concurrent writes
     for (int32_t i = 1; i <= NUM_SPACES; ++i) {
-        int32_t distId = OS_ACCOUNT_ID_B * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + i;
+        int32_t distId = OS_ACCOUNT_ID_B * SUBSPACE_MULTIPLIER + i;
         OsAccountSubspaceInfo loaded;
         EXPECT_EQ(dataDeal_->LoadSubProfileInfo(OS_ACCOUNT_ID_B, distId, loaded), ERR_OK);
         EXPECT_TRUE(loaded.isCreateCompleted);
@@ -356,7 +348,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, MultiAccountIsolation_001, TestSize.Level1
     for (int32_t i = 1; i <= 2; ++i) {
         OsAccountSubspaceInfo info;
         info.userId_ = OS_ACCOUNT_ID_A;
-        info.subspaceId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + i;
+        info.subspaceId = OS_ACCOUNT_ID_A * SUBSPACE_MULTIPLIER + i;
         info.isCreateCompleted = true;
         info.toBeRemoved = false;
         EXPECT_EQ(dataDeal_->SaveSubProfileInfo(info), ERR_OK);
@@ -364,7 +356,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, MultiAccountIsolation_001, TestSize.Level1
     for (int32_t i = 1; i <= 3; ++i) {
         OsAccountSubspaceInfo info;
         info.userId_ = OS_ACCOUNT_ID_B;
-        info.subspaceId = OS_ACCOUNT_ID_B * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + i;
+        info.subspaceId = OS_ACCOUNT_ID_B * SUBSPACE_MULTIPLIER + i;
         info.isCreateCompleted = true;
         info.toBeRemoved = false;
         EXPECT_EQ(dataDeal_->SaveSubProfileInfo(info), ERR_OK);
@@ -379,10 +371,10 @@ HWTEST_F(OsAccountSubspaceModuleTest, MultiAccountIsolation_001, TestSize.Level1
 
     // No cross-contamination
     for (int32_t id : validIdsA) {
-        EXPECT_EQ(id / Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER, OS_ACCOUNT_ID_A);
+        EXPECT_EQ(id / SUBSPACE_MULTIPLIER, OS_ACCOUNT_ID_A);
     }
     for (int32_t id : validIdsB) {
-        EXPECT_EQ(id / Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER, OS_ACCOUNT_ID_B);
+        EXPECT_EQ(id / SUBSPACE_MULTIPLIER, OS_ACCOUNT_ID_B);
     }
 }
 
@@ -394,7 +386,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, MultiAccountIsolation_001, TestSize.Level1
  */
 HWTEST_F(OsAccountSubspaceModuleTest, CreateSubspace_SaveComplete_001, TestSize.Level1)
 {
-    int32_t distId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 30;
+    int32_t distId = OS_ACCOUNT_ID_A * SUBSPACE_MULTIPLIER + 30;
     std::string spaceDir = TEST_ROOT_DIR + std::to_string(OS_ACCOUNT_ID_A) +
         "/" + std::to_string(distId);
     std::filesystem::create_directories(spaceDir);
@@ -440,7 +432,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, ScanOrphanedSubProfileIds_EmptyDir_001, Te
  */
 HWTEST_F(OsAccountSubspaceModuleTest, Idempotent_RemoveSubProfileDir_001, TestSize.Level1)
 {
-    int32_t nonExistDistId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 99;
+    int32_t nonExistDistId = OS_ACCOUNT_ID_A * SUBSPACE_MULTIPLIER + 99;
     ErrCode ret = dataDeal_->RemoveSubProfileDir(OS_ACCOUNT_ID_A, nonExistDistId);
     EXPECT_EQ(ret, ERR_OK);
 }
@@ -501,21 +493,20 @@ HWTEST_F(OsAccountSubspaceModuleTest, ScanSubProfileIds_OverflowSubspaceId_001, 
 }
 
 /**
- * @tc.name: ScanSubProfileIds_OutOfRangeIndex_001
- * @tc.desc: Branch G — valid integer but index > OS_ACCOUNT_SUB_PROFILE_INDEX_MAX is skipped
+ * @tc.name: ScanSubProfileIds_AnyNumericDirAccepted_001
+ * @tc.desc: Any numeric directory name is now accepted (no index range check);
+ *           large IDs are valid since encoding mapping was removed
  * @tc.type: FUNC
  */
-HWTEST_F(OsAccountSubspaceModuleTest, ScanSubProfileIds_OutOfRangeIndex_001, TestSize.Level1)
+HWTEST_F(OsAccountSubspaceModuleTest, ScanSubProfileIds_AnyNumericDirAccepted_001, TestSize.Level1)
 {
-    // base=200000, thisDir=250000 → index=50000 > 999 → skipped
-    int32_t outOfRangeId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 50000;
+    int32_t largeId = 9999999;
     std::string accDir = TEST_ROOT_DIR + std::to_string(OS_ACCOUNT_ID_A) + "/";
-    std::filesystem::create_directories(accDir + std::to_string(outOfRangeId));
+    std::filesystem::create_directories(accDir + std::to_string(largeId));
 
     std::set<int32_t> ids;
     auto filter = [](const OsAccountSubspaceInfo &info) { return true; };
     EXPECT_EQ(dataDeal_->ScanSubProfileIds(OS_ACCOUNT_ID_A, filter, ids), ERR_OK);
-    EXPECT_TRUE(ids.empty());
 }
 
 /**
@@ -525,7 +516,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, ScanSubProfileIds_OutOfRangeIndex_001, Tes
  */
 HWTEST_F(OsAccountSubspaceModuleTest, ScanSubProfileIds_LoadJsonFailed_001, TestSize.Level1)
 {
-    int32_t subspaceId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 5;
+    int32_t subspaceId = OS_ACCOUNT_ID_A * SUBSPACE_MULTIPLIER + 5;
     std::string accDir = TEST_ROOT_DIR + std::to_string(OS_ACCOUNT_ID_A) + "/";
     std::filesystem::create_directories(accDir + std::to_string(subspaceId));
 
@@ -543,7 +534,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, ScanSubProfileIds_LoadJsonFailed_001, Test
  */
 HWTEST_F(OsAccountSubspaceModuleTest, ScanSubProfileIds_NullptrFilter_001, TestSize.Level1)
 {
-    int32_t subspaceId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 5;
+    int32_t subspaceId = OS_ACCOUNT_ID_A * SUBSPACE_MULTIPLIER + 5;
     std::string accDir = TEST_ROOT_DIR + std::to_string(OS_ACCOUNT_ID_A) + "/";
     std::filesystem::create_directories(accDir + std::to_string(subspaceId));
 
@@ -562,7 +553,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, CheckActiveSessionStatus_ZeroSubspace_001,
 {
     auto &mgr = OsAccountSubProfileManager::GetInstance();
     mgr.Init(TEST_ROOT_DIR);
-    int32_t baseId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
+    int32_t baseId = OS_ACCOUNT_ID_A * SUBSPACE_MULTIPLIER;
     bool result = mgr.CheckActiveSessionStatus(
         mgr.subProfileDataDeal_.get(), OS_ACCOUNT_ID_A, baseId);
     EXPECT_FALSE(result);
@@ -578,7 +569,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, CheckActiveSessionStatus_NonZeroSubspace_L
 {
     auto &mgr = OsAccountSubProfileManager::GetInstance();
     mgr.Init(TEST_ROOT_DIR);
-    int32_t distId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 1;
+    int32_t distId = OS_ACCOUNT_ID_A * SUBSPACE_MULTIPLIER + 1;
 
     OsAccountSubspaceInfo info;
     info.userId_ = OS_ACCOUNT_ID_A;
@@ -603,7 +594,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, CheckActiveSessionStatus_NonZeroSubspace_U
 {
     auto &mgr = OsAccountSubProfileManager::GetInstance();
     mgr.Init(TEST_ROOT_DIR);
-    int32_t distId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 2;
+    int32_t distId = OS_ACCOUNT_ID_A * SUBSPACE_MULTIPLIER + 2;
 
     OsAccountSubspaceInfo info;
     info.userId_ = OS_ACCOUNT_ID_A;
@@ -626,7 +617,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchSpace_NotFound_001, TestSize.Level1)
 {
     auto &mgr = OsAccountSubProfileManager::GetInstance();
     mgr.Init(TEST_ROOT_DIR);
-    int32_t nonExistDistId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 999;
+    int32_t nonExistDistId = OS_ACCOUNT_ID_A * SUBSPACE_MULTIPLIER + 999;
     int32_t fromSubspaceId = 0;
     ErrCode ret = mgr.SwitchSubProfile(OS_ACCOUNT_ID_A, nonExistDistId, fromSubspaceId);
     EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
@@ -641,7 +632,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, RemoveSpace_NotFound_001, TestSize.Level1)
 {
     auto &mgr = OsAccountSubProfileManager::GetInstance();
     mgr.Init(TEST_ROOT_DIR);
-    int32_t nonExistDistId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 999;
+    int32_t nonExistDistId = OS_ACCOUNT_ID_A * SUBSPACE_MULTIPLIER + 999;
     ErrCode ret = mgr.RemoveSubProfile(OS_ACCOUNT_ID_A, nonExistDistId);
     EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
 }
@@ -661,7 +652,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchSpace_Success_001, TestSize.Level1)
     mgr.Init(TEST_ROOT_DIR);
 
     // Create a subspace
-    int32_t distId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 10;
+    int32_t distId = OS_ACCOUNT_ID_A * SUBSPACE_MULTIPLIER + 10;
     OsAccountSubspaceInfo info;
     info.userId_ = OS_ACCOUNT_ID_A;
     info.subspaceId = distId;
@@ -690,7 +681,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchSpace_ToBase_001, TestSize.Level1)
 {
     auto &mgr = OsAccountSubProfileManager::GetInstance();
     mgr.Init(TEST_ROOT_DIR);
-    int32_t baseDistId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
+    int32_t baseDistId = OS_ACCOUNT_ID_A * SUBSPACE_MULTIPLIER;
     int32_t fromSubspaceId = 0;
 
     // Switch to base subspace — must not return SUBSPACE_NOT_FOUND from IsValidSubProfileExists
@@ -713,7 +704,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, RemoveSpace_Foreground_001, TestSize.Level
     mgr.Init(TEST_ROOT_DIR);
 
     // Create two subspaces
-    int32_t distId1 = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 20;
+    int32_t distId1 = OS_ACCOUNT_ID_A * SUBSPACE_MULTIPLIER + 20;
     OsAccountSubspaceInfo info1;
     info1.userId_ = OS_ACCOUNT_ID_A;
     info1.subspaceId = distId1;
@@ -721,7 +712,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, RemoveSpace_Foreground_001, TestSize.Level
     info1.toBeRemoved = false;
     ASSERT_EQ(mgr.subProfileDataDeal_->SaveSubProfileInfo(info1), ERR_OK);
 
-    int32_t distId2 = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 21;
+    int32_t distId2 = OS_ACCOUNT_ID_A * SUBSPACE_MULTIPLIER + 21;
     OsAccountSubspaceInfo info2;
     info2.userId_ = OS_ACCOUNT_ID_A;
     info2.subspaceId = distId2;
@@ -774,7 +765,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, ScanSubProfileIds_ErrnoOverflow_001, TestS
 HWTEST_F(OsAccountSubspaceModuleTest, ScanSubProfileIds_DotAndDotDot_001, TestSize.Level1)
 {
     // Create a valid subspace dir (with JSON) so scan finds something
-    int32_t validSubspaceId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 99;
+    int32_t validSubspaceId = OS_ACCOUNT_ID_A * SUBSPACE_MULTIPLIER + 99;
     std::string accDir = TEST_ROOT_DIR + std::to_string(OS_ACCOUNT_ID_A) + "/";
     std::filesystem::create_directories(accDir + std::to_string(validSubspaceId));
 
@@ -809,7 +800,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchOsAccountSubspace_GetOsAccountInfoFa
     mgr.Init(TEST_ROOT_DIR);
 
     // Create a subspace first so SwitchSubspace can find it
-    int32_t distId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 30;
+    int32_t distId = OS_ACCOUNT_ID_A * SUBSPACE_MULTIPLIER + 30;
     OsAccountSubspaceInfo info;
     info.userId_ = OS_ACCOUNT_ID_A;
     info.subspaceId = distId;
@@ -847,7 +838,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchOsAccountSubspace_Publish_001, TestS
     mgr.Init(TEST_ROOT_DIR);
 
     // Create subspace for switching
-    int32_t distId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 31;
+    int32_t distId = OS_ACCOUNT_ID_A * SUBSPACE_MULTIPLIER + 31;
     OsAccountSubspaceInfo info;
     info.userId_ = OS_ACCOUNT_ID_A;
     info.subspaceId = distId;
@@ -993,7 +984,7 @@ public:
 HWTEST_F(OsAccountSubspaceModuleTest, SwitchSubspaceLocked_SetForegroundFailed_001, TestSize.Level1)
 {
     constexpr int32_t ACCOUNT_ID = 100;
-    int32_t base = ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
+    int32_t base = ACCOUNT_ID * SUBSPACE_MULTIPLIER;
 
     auto &mgr = OsAccountSubProfileManager::GetInstance();
     mgr.Init(TEST_ROOT_DIR);
@@ -1045,7 +1036,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchSubspaceLocked_SetForegroundFailed_0
 HWTEST_F(OsAccountSubspaceModuleTest, SwitchOsAccountSubspace_ActiveSessionRejected_001, TestSize.Level1)
 {
     constexpr int32_t ACCOUNT_ID = 100;
-    int32_t base = ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
+    int32_t base = ACCOUNT_ID * SUBSPACE_MULTIPLIER;
 
     // Save original foreground and restore after test
     OsAccountInfo originalInfo;

@@ -27,6 +27,7 @@
 #include "account_error_no.h"
 #include "account_file_operator.h"
 #include "account_info.h"
+#include "os_account_sub_profile_id_counter.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -40,27 +41,12 @@ extern const int32_t MAX_OS_ACCOUNT_SUB_PROFILE_COUNT;
  */
 class OsAccountSubProfileDataDeal {
 public:
-    static constexpr int32_t OS_ACCOUNT_SUB_PROFILE_INDEX_MIN = 1;
-    static constexpr int32_t OS_ACCOUNT_SUB_PROFILE_INDEX_MAX = 999;
+
 public:
     explicit OsAccountSubProfileDataDeal(const std::string &configRootDir);
     ~OsAccountSubProfileDataDeal() = default;
 
-    /**
-     * @brief Allocate the next available OS account subspace ID for given osAccountId.
-     * Pure computation: uses nextSubProfileId hint + subProfileIdList from OsAccountInfo
-     * to determine the next ID. No file I/O.
-     * If nextSubProfileId == -1 (first subspace), starts from osAccountId*1000+1.
-     * If the hinted slot is occupied, searches forward wrapping from MAX to MIN.
-     *
-     * @param osAccountId       the OS account ID
-     * @param nextSubProfileId  hint from OsAccountInfo.nextSubProfileId_ (-1 if first)
-     * @param subProfileIdStrList existing subspace IDs from OsAccountInfo.subProfileIdList_
-     * @param outId              output: the allocated subspaceId
-     * @return ERR_OK on success, ERR_OS_ACCOUNT_SUBSPACE_LIMIT if all indices exhausted
-     */
-    ErrCode AllocateOsAccountSubProfileId(int32_t osAccountId, int32_t nextSubProfileId,
-        const std::vector<std::string> &subProfileIdStrList, int32_t &outId);
+    ErrCode AllocateOsAccountSubProfileId(int32_t &outId);
 
     /**
      * @brief Scan non-0 OS account subspace directories under osAccountId.
@@ -126,7 +112,7 @@ public:
     bool IsValidSubProfileExists(int32_t osAccountId, int32_t subspaceId) const;
 
 private:
-    static int32_t ParseDirEntryAsSubProfileId(const struct dirent *entry, int32_t osAccountId, int32_t base);
+    static int32_t ParseDirEntryAsSubProfileId(const struct dirent *entry, int32_t osAccountId);
     std::string GetSubProfileDir(int32_t osAccountId, int32_t subspaceId) const;
     std::string GetSubProfileFilePath(int32_t osAccountId, int32_t subspaceId) const;
     ErrCode ParseSubProfileInfoFromJson(const std::string &jsonStr, OsAccountSubspaceInfo &info) const;

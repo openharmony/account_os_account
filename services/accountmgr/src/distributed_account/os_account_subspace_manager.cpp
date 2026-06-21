@@ -15,12 +15,18 @@
 
 #include "os_account_subspace_manager.h"
 #include <algorithm>
+#include <chrono>
 #include "account_info.h"
 #include "account_log_wrapper.h"
 #include "account_state_machine.h"
 #include "iinner_os_account_manager.h"
 #include "os_account_constants.h"
 #include "os_account_info.h"
+#include "os_account_sub_profile_id_counter.h"
+#include "string_ex.h"
+#ifdef SUPPORT_AUTHORIZATION
+#include "tee_auth_adapter.h"
+#endif
 
 namespace OHOS {
 namespace AccountSA {
@@ -35,6 +41,33 @@ void OsAccountSubProfileManager::Init(const std::string &rootPath)
     std::lock_guard<std::mutex> lock(subProfileOpMutex_);
     rootPath_ = rootPath;
     subProfileDataDeal_ = std::make_unique<OsAccountSubProfileDataDeal>(rootPath);
+}
+
+void OsAccountSubProfileManager::BuildSubProfileCache()
+{
+    std::lock_guard<std::mutex> lock(subProfileOpMutex_);
+    subProfileCache_.clear();
+    std::vector<OsAccountInfo> osAccountInfos;
+    ErrCode ret = IInnerOsAccountManager::GetInstance().QueryAllCreatedOsAccounts(osAccountInfos);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("QueryAllCreatedOsAccounts failed, ret=%{public}d, skip cache build", ret);
+        return;
+    }
+    for (const auto &info : osAccountInfos) {
+        int32_t osAccountId = info.GetLocalId();
+        int32_t commonId = info.GetCommonSubProfileId();
+        if (commonId != Constants::INVALID_SUB_PROFILE_ID) {
+            subProfileCache_[commonId] = osAccountId;
+        }
+        const auto &subProfileIdList = info.GetSubProfileIdList();
+        for (const auto &idStr : subProfileIdList) {
+            int32_t id = 0;
+            if (StrToInt(idStr, id)) {
+                subProfileCache_[id] = osAccountId;
+            }
+        }
+    }
+    ACCOUNT_LOGI("SubProfile cache built, size=%{public}zu", subProfileCache_.size());
 }
 
 void OsAccountSubProfileManager::CleanupOrphanedSubProfiles()
@@ -115,44 +148,44 @@ ErrCode OsAccountSubProfileManager::CreateSubProfileLocked(int32_t osAccountId, 
         return ret;
     }
 
-    // Use subProfileIdList from OsAccountInfo for limit check (instead of disk scan)
     auto subProfileIdList = osAccountInfo.GetSubProfileIdList();
     if (static_cast<int32_t>(subProfileIdList.size()) >= MAX_OS_ACCOUNT_SUB_PROFILE_COUNT) {
         ACCOUNT_LOGE("Distributed account space count reached limit for osAccountId=%{public}d", osAccountId);
         return ERR_OS_ACCOUNT_SUBSPACE_LIMIT;
     }
 
-    // Allocate using only OsAccountInfo data (no disk scan needed)
-    ErrCode allocRet = subProfileDataDeal_->AllocateOsAccountSubProfileId(
-        osAccountId, osAccountInfo.GetNextSubProfileId(),
-        subProfileIdList, newSubspaceId);
+    ErrCode allocRet = subProfileDataDeal_->AllocateOsAccountSubProfileId(newSubspaceId);
     if (allocRet != ERR_OK) {
         ACCOUNT_LOGE("AllocateOsAccountSubProfileId failed for osAccountId=%{public}d, ret=%{public}d",
             osAccountId, allocRet);
         return allocRet;
     }
 
-    // Persist next subspace ID hint (id+1) and updated list.
-    // Wrapping/validity of the hint is handled by AllocateOsAccountSubProfileId on next call,
-    // following the same pattern as GetAllowCreateId / GetNextLocalId.
     subProfileIdList.push_back(std::to_string(newSubspaceId));
     ErrCode updateRet = IInnerOsAccountManager::GetInstance().UpdateOsAccountSubspaceInfo(
-        osAccountId, newSubspaceId + 1, subProfileIdList);
+        osAccountId, osAccountInfo.GetNextSubProfileId(), subProfileIdList);
     if (updateRet != ERR_OK) {
         ACCOUNT_LOGE("UpdateOsAccountSubspaceInfo failed for osAccountId=%{public}d, ret=%{public}d, aborting",
             osAccountId, updateRet);
         return updateRet;
     }
 
-    // Single-phase save: directory + account.json with isCreateCompleted=true
     OsAccountSubspaceInfo info = CreateDefaultSubProfileInfo(osAccountId, newSubspaceId);
     info.isCreateCompleted = true;
+    int64_t trustedTimeMs = 0;
+#ifdef SUPPORT_AUTHORIZATION
+    if (OsAccountTeeAdapter().GetTrustedTimeMs(trustedTimeMs) != ERR_OK)
+#endif
+    {
+        trustedTimeMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch()).count();
+    }
+    info.SetCreateTime(trustedTimeMs);
     ret = subProfileDataDeal_->SaveSubProfileInfo(info);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("SaveSubProfileInfo failed, subspaceId=%{public}d, ret=%{public}d",
             newSubspaceId, ret);
         subProfileDataDeal_->RemoveSubProfileDir(osAccountId, newSubspaceId);
-        // Rollback the OsAccountInfo update so the leaked subspaceId is reclaimed
         subProfileIdList.pop_back();
         ErrCode rollbackRet = IInnerOsAccountManager::GetInstance().UpdateOsAccountSubspaceInfo(
             osAccountId, osAccountInfo.GetNextSubProfileId(), subProfileIdList);
@@ -162,6 +195,8 @@ ErrCode OsAccountSubProfileManager::CreateSubProfileLocked(int32_t osAccountId, 
         }
         return ret;
     }
+
+    subProfileCache_[newSubspaceId] = osAccountId;
     return ERR_OK;
 }
 
@@ -182,9 +217,11 @@ ErrCode OsAccountSubProfileManager::RemoveSubProfileLocked(int32_t osAccountId, 
     }
 
     OsAccountSubspaceInfo info;
-    // Safe to ignore: IsValidSubProfileExists above already called LoadSubProfileInfo under the same mutex
-    // and validated the subspace, so the load here is guaranteed to succeed.
-    (void)subProfileDataDeal_->LoadSubProfileInfo(osAccountId, subspaceId, info);
+    ErrCode loadRet = subProfileDataDeal_->LoadSubProfileInfo(osAccountId, subspaceId, info);
+    if (loadRet != ERR_OK) {
+        ACCOUNT_LOGE("LoadSubProfileInfo failed, subspaceId=%{public}d, ret=%{public}d", subspaceId, loadRet);
+        return loadRet;
+    }
     info.toBeRemoved = true;
     ErrCode saveRet = subProfileDataDeal_->SaveSubProfileInfo(info);
     if (saveRet != ERR_OK) {
@@ -212,10 +249,11 @@ void OsAccountSubProfileManager::RemoveOsAccountSubProfileInfo(
     }
     subProfileIdList.erase(it);
     ErrCode updateRet = IInnerOsAccountManager::GetInstance().UpdateOsAccountSubspaceInfo(
-        osAccountId, osAccountInfo.GetNextSubProfileId(), subProfileIdList);
+        osAccountId, -1, subProfileIdList);
     if (updateRet != ERR_OK) {
         ACCOUNT_LOGE("UpdateOsAccountSubspaceInfo after remove failed, ret=%{public}d", updateRet);
     }
+    subProfileCache_.erase(subspaceId);
 }
 
 bool OsAccountSubProfileManager::CheckActiveSessionStatus(
@@ -224,9 +262,12 @@ bool OsAccountSubProfileManager::CheckActiveSessionStatus(
     if (dataDeal == nullptr) {
         return false;
     }
-    // index-0 subspace is checked in OhosAccountManager under mgrMutex_ — not here.
-    int32_t base = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
-    if (fromSubspaceId == base) {
+    OsAccountInfo osAccountInfo;
+    ErrCode ret = IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(osAccountId, osAccountInfo);
+    if (ret != ERR_OK) {
+        return false;
+    }
+    if (fromSubspaceId == osAccountInfo.GetCommonSubProfileId()) {
         return false;
     }
     OsAccountSubspaceInfo spaceInfo;
@@ -241,16 +282,15 @@ bool OsAccountSubProfileManager::CheckActiveSessionStatus(
 ErrCode OsAccountSubProfileManager::SwitchSubProfileLocked(
     int32_t osAccountId, int32_t subspaceId, int32_t &fromSubspaceId)
 {
-    // index-0 subspace always exists, skip file-based existence check
-    int32_t base = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
-    if (subspaceId != base && !subProfileDataDeal_->IsValidSubProfileExists(osAccountId, subspaceId)) {
-        ACCOUNT_LOGE("OS account subspace %{public}d does not exist or is not valid", subspaceId);
-        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
-    }
     OsAccountInfo osAccountInfo;
     if (IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(osAccountId, osAccountInfo) != ERR_OK) {
         ACCOUNT_LOGE("GetOsAccountInfoById failed for osAccountId=%{public}d", osAccountId);
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
+    if (subspaceId != osAccountInfo.GetCommonSubProfileId() &&
+        !subProfileDataDeal_->IsValidSubProfileExists(osAccountId, subspaceId)) {
+        ACCOUNT_LOGE("OS account subspace %{public}d does not exist or is not valid", subspaceId);
+        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
     }
     fromSubspaceId = osAccountInfo.GetForegroundSubProfileId();
     if (CheckActiveSessionStatus(subProfileDataDeal_.get(), osAccountId, fromSubspaceId)) {
@@ -288,6 +328,7 @@ ErrCode OsAccountSubProfileManager::ScanOsAccountSubProfileIds(int32_t osAccount
 ErrCode OsAccountSubProfileManager::GetSubProfileIds(
     int32_t osAccountId, std::vector<int32_t> &subProfileIds)
 {
+    std::unique_lock<std::mutex> lock(subProfileOpMutex_);
     std::set<int32_t> idSet;
     ErrCode ret = subProfileDataDeal_->ScanOsAccountSubProfileIds(osAccountId, idSet);
     if (ret != ERR_OK) {
@@ -295,8 +336,17 @@ ErrCode OsAccountSubProfileManager::GetSubProfileIds(
             osAccountId, ret);
         return ret;
     }
-    int32_t baseSubProfileId = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
-    idSet.insert(baseSubProfileId);
+    OsAccountInfo osAccountInfo;
+    ret = IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(osAccountId, osAccountInfo);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("GetOsAccountInfoById failed, osAccountId=%{public}d, ret=%{public}d",
+            osAccountId, ret);
+        return ret;
+    }
+    int32_t commonSubProfileId = osAccountInfo.GetCommonSubProfileId();
+    if (commonSubProfileId != Constants::INVALID_SUB_PROFILE_ID) {
+        idSet.insert(commonSubProfileId);
+    }
     subProfileIds.assign(idSet.begin(), idSet.end());
     return ERR_OK;
 }
@@ -304,28 +354,65 @@ ErrCode OsAccountSubProfileManager::GetSubProfileIds(
 ErrCode OsAccountSubProfileManager::GetLocalIdForSubProfile(
     int32_t subProfileId, int32_t &osAccountId)
 {
-    int32_t baseMultiplier = Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
-    osAccountId = subProfileId / baseMultiplier;
-    int32_t base = osAccountId * baseMultiplier;
-    if (subProfileId != base && !subProfileDataDeal_->IsValidSubProfileExists(osAccountId, subProfileId)) {
-        ACCOUNT_LOGE("SubProfile %{public}d does not exist", subProfileId);
+    {
+        std::lock_guard<std::mutex> lock(subProfileOpMutex_);
+        auto it = subProfileCache_.find(subProfileId);
+        if (it != subProfileCache_.end()) {
+            osAccountId = it->second;
+            return ERR_OK;
+        }
+    }
+    std::vector<OsAccountInfo> osAccountInfos;
+    ErrCode ret = IInnerOsAccountManager::GetInstance().QueryAllCreatedOsAccounts(osAccountInfos);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("QueryAllCreatedOsAccounts failed, ret=%{public}d", ret);
         return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
     }
-    return ERR_OK;
+    for (const auto &info : osAccountInfos) {
+        if (info.GetCommonSubProfileId() == subProfileId) {
+            osAccountId = info.GetLocalId();
+            std::lock_guard<std::mutex> lock(subProfileOpMutex_);
+            subProfileCache_[subProfileId] = osAccountId;
+            return ERR_OK;
+        }
+        const auto &idList = info.GetSubProfileIdList();
+        for (const auto &idStr : idList) {
+            int32_t id = 0;
+            if (StrToInt(idStr, id) && id == subProfileId) {
+                osAccountId = info.GetLocalId();
+                std::lock_guard<std::mutex> lock(subProfileOpMutex_);
+                subProfileCache_[subProfileId] = osAccountId;
+                return ERR_OK;
+            }
+        }
+    }
+    ACCOUNT_LOGE("SubProfile %{public}d does not exist", subProfileId);
+    return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
 }
 
 ErrCode OsAccountSubProfileManager::GetSubProfile(int32_t osAccountId, int32_t subProfileId,
     OsAccountSubspaceResult &subspaceResult, OhosAccountInfo &distributedInfo)
 {
-    // Caller MUST validate subProfile ownership (subProfileId / MULTIPLIER == osAccountId) at the service layer.
-    if (subProfileId != (osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER) &&
+    OsAccountInfo osAccountInfo;
+    ErrCode infoRet = IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(osAccountId, osAccountInfo);
+    if (infoRet != ERR_OK) {
+        ACCOUNT_LOGE("GetOsAccountInfoById failed, osAccountId=%{public}d", osAccountId);
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
+    int32_t commonId = osAccountInfo.GetCommonSubProfileId();
+    if (subProfileId != commonId &&
         !subProfileDataDeal_->IsValidSubProfileExists(osAccountId, subProfileId)) {
         ACCOUNT_LOGE("SubProfile %{public}d does not exist", subProfileId);
         return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
     }
     subspaceResult.id = subProfileId;
     subspaceResult.osAccountId = osAccountId;
-    subspaceResult.index = subProfileId - (osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER);
+    const auto &idList = osAccountInfo.GetSubProfileIdList();
+    auto it = std::find(idList.begin(), idList.end(), std::to_string(subProfileId));
+    subspaceResult.index = (it != idList.end()) ? static_cast<int32_t>(std::distance(idList.begin(), it) + 1) : 0;
+    if (subProfileId == commonId) {
+        subspaceResult.index = 0;
+    }
     OsAccountSubspaceInfo subspaceInfo;
     ErrCode ret = subProfileDataDeal_->LoadSubProfileInfo(osAccountId, subProfileId, subspaceInfo);
     if (ret != ERR_OK) {
@@ -333,6 +420,7 @@ ErrCode OsAccountSubProfileManager::GetSubProfile(int32_t osAccountId, int32_t s
             osAccountId, subProfileId, ret);
         return ret;
     }
+    subspaceResult.createTime = subspaceInfo.GetCreateTime();
     distributedInfo = subspaceInfo.ohosAccountInfo_;
     return ERR_OK;
 }

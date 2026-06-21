@@ -41,6 +41,7 @@ using namespace OHOS::AccountSA;
 namespace {
 const std::string TEST_ROOT_DIR = "/data/test/os_account_subspace_test_dir/";
 constexpr int32_t TEST_OS_ACCOUNT_ID = 100;
+constexpr int32_t TEST_SUBPROFILE_BASE = 100000;
 }  // namespace
 
 class OsAccountSubspaceTest : public testing::Test {
@@ -84,398 +85,55 @@ uint64_t OsAccountSubspaceTest::allPermTokenId_ = 0;
 
 /**
  * @tc.name: AllocateOsAccountSubProfileId_001
- * @tc.desc: Allocate first space ID for an OS account
+ * @tc.desc: Allocate returns a positive, monotonically increasing ID from global counter
  * @tc.type: FUNC
  */
 HWTEST_F(OsAccountSubspaceTest, AllocateOsAccountSubProfileId_001, TestSize.Level1)
 {
-    std::vector<std::string> subProfileIdStrList;
-    int32_t nextSubProfileId = -1;
-    int32_t outId = 0;
-    ErrCode ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
+    int32_t outId1 = 0;
+    ErrCode ret = dataDeal_->AllocateOsAccountSubProfileId(outId1);
     EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(outId, TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 1);
+    EXPECT_GT(outId1, 0);
+
+    int32_t outId2 = 0;
+    ret = dataDeal_->AllocateOsAccountSubProfileId(outId2);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_GT(outId2, outId1);
 }
 
 /**
  * @tc.name: AllocateOsAccountSubProfileId_002
- * @tc.desc: Allocate skips already-used indices
+ * @tc.desc: Each allocated ID is strictly greater than the previous (global monotonic)
  * @tc.type: FUNC
  */
 HWTEST_F(OsAccountSubspaceTest, AllocateOsAccountSubProfileId_002, TestSize.Level1)
 {
-    std::vector<std::string> subProfileIdStrList = {"100001", "100002", "100003"};
-    int32_t nextSubProfileId = -1;
-    int32_t outId = 0;
-    ErrCode ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
+    int32_t prev = 0;
+    ErrCode ret = dataDeal_->AllocateOsAccountSubProfileId(prev);
     EXPECT_EQ(ret, ERR_OK);
-    int32_t base = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
-    EXPECT_EQ(outId, base + 4);
-}
-
-/**
- * @tc.name: AllocateOsAccountSubProfileId_003
- * @tc.desc: Returns limit error when all 999 slots are used
- * @tc.type: FUNC
- */
-HWTEST_F(OsAccountSubspaceTest, AllocateOsAccountSubProfileId_003, TestSize.Level1)
-{
-    std::vector<std::string> subProfileIdStrList;
-    int32_t base = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
-    for (int32_t i = 1; i <= MAX_OS_ACCOUNT_SUB_PROFILE_COUNT; ++i) {
-        subProfileIdStrList.push_back(std::to_string(base + i));
+    for (int i = 0; i < 10; ++i) {
+        int32_t cur = 0;
+        ret = dataDeal_->AllocateOsAccountSubProfileId(cur);
+        EXPECT_EQ(ret, ERR_OK);
+        EXPECT_GT(cur, prev);
+        prev = cur;
     }
-    int32_t nextSubProfileId = -1;
-    int32_t outId = 0;
-    ErrCode ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_LIMIT);
 }
 
 /**
- * @tc.name: AllocateOsAccountSubProfileId_IncrementPattern_004
- * @tc.desc: Verify ID allocation follows maxUsed+1 rule: empty→1, {1}→2, {1,2}→3, {1..10}→11
+ * @tc.name: AllocateOsAccountSubProfileId_NoReuse_003
+ * @tc.desc: Allocated IDs are unique across many allocations (no ID is reused)
  * @tc.type: FUNC
  */
-HWTEST_F(OsAccountSubspaceTest, AllocateOsAccountSubProfileId_IncrementPattern_004, TestSize.Level1)
+HWTEST_F(OsAccountSubspaceTest, AllocateOsAccountSubProfileId_NoReuse_003, TestSize.Level1)
 {
-    int32_t outId = 0;
-    int32_t base = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
-
-    std::vector<std::string> subProfileIdStrList;
-    int32_t nextSubProfileId = -1;
-    ErrCode ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(outId, base + 1);
-
-    subProfileIdStrList = {"100001"};
-    nextSubProfileId = base + 2;
-    ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(outId, base + 2);
-
-    subProfileIdStrList = {"100001", "100002"};
-    nextSubProfileId = base + 3;
-    ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(outId, base + 3);
-
-    subProfileIdStrList.clear();
-    for (int32_t i = 1; i <= 10; ++i) {
-        subProfileIdStrList.push_back(std::to_string(base + i));
+    std::set<int32_t> seen;
+    for (int i = 0; i < 50; ++i) {
+        int32_t outId = 0;
+        ErrCode ret = dataDeal_->AllocateOsAccountSubProfileId(outId);
+        EXPECT_EQ(ret, ERR_OK);
+        EXPECT_TRUE(seen.insert(outId).second) << "Duplicate ID allocated: " << outId;
     }
-    nextSubProfileId = base + 4;
-    ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(outId, base + 11);
-}
-
-/**
- * @tc.name: AllocateOsAccountSubProfileId_HolesBelowMaxUsedIgnored_005
- * @tc.desc: When maxUsed < MAX, holes below maxUsed are NOT filled first; allocation prefers maxUsed+1
- * @tc.type: FUNC
- */
-HWTEST_F(OsAccountSubspaceTest, AllocateOsAccountSubProfileId_HoleBelowHint_005, TestSize.Level1)
-{
-    int32_t outId = 0;
-    int32_t base = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
-
-    std::vector<std::string> subProfileIdStrList = {"100001", "100003"};
-    int32_t nextSubProfileId = base + 4;
-    ErrCode ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(outId, base + 4);
-
-    subProfileIdStrList = {"100001", "100005", "100010"};
-    nextSubProfileId = base + 11;
-    ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(outId, base + 11);
-
-    subProfileIdStrList = {"100001", "100002", "100004", "100006", "100008"};
-    nextSubProfileId = base + 9;
-    ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(outId, base + 9);
-}
-
-/**
- * @tc.name: AllocateOsAccountSubProfileId_MaxReachedFreedSmallestIndex_006
- * @tc.desc: When maxUsed=MAX and smallest index is freed, wrap-around fills it from MIN upward
- * @tc.type: FUNC
- */
-HWTEST_F(OsAccountSubspaceTest, AllocateOsAccountSubProfileId_WrapAroundFreedSmallest_006, TestSize.Level1)
-{
-    int32_t outId = 0;
-    int32_t base = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
-
-    std::vector<std::string> subProfileIdStrList;
-    for (int32_t i = 2; i <= MAX_OS_ACCOUNT_SUB_PROFILE_COUNT; ++i) {
-        subProfileIdStrList.push_back(std::to_string(base + i));
-    }
-    int32_t nextSubProfileId = base + 1;
-    ErrCode ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(outId, base + 1);
-
-    subProfileIdStrList.clear();
-    for (int32_t i = 3; i <= MAX_OS_ACCOUNT_SUB_PROFILE_COUNT; ++i) {
-        subProfileIdStrList.push_back(std::to_string(base + i));
-    }
-    subProfileIdStrList.push_back(std::to_string(base + 1));
-    nextSubProfileId = base + 2;
-    ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(outId, base + 2);
-}
-
-/**
- * @tc.name: AllocateOsAccountSubProfileId_MaxReachedFreedMiddleHole_007
- * @tc.desc: When maxUsed=MAX and a middle index is freed, wrap-around finds it after scanning from MIN;
- *           when multiple holes exist, the smallest hole is filled first
- * @tc.type: FUNC
- */
-HWTEST_F(OsAccountSubspaceTest, AllocateOsAccountSubProfileId_WrapAroundFreedMiddleHole_007, TestSize.Level1)
-{
-    int32_t outId = 0;
-    int32_t base = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
-
-    std::vector<std::string> subProfileIdStrList;
-    for (int32_t i = 1; i <= MAX_OS_ACCOUNT_SUB_PROFILE_COUNT; ++i) {
-        if (i != 500) {
-            subProfileIdStrList.push_back(std::to_string(base + i));
-        }
-    }
-    int32_t nextSubProfileId = base + 1;
-    ErrCode ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(outId, base + 500);
-
-    subProfileIdStrList.clear();
-    for (int32_t i = 1; i <= MAX_OS_ACCOUNT_SUB_PROFILE_COUNT; ++i) {
-        if (i != 100 && i != 500) {
-            subProfileIdStrList.push_back(std::to_string(base + i));
-        }
-    }
-    nextSubProfileId = base + 1;
-    ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(outId, base + 100);
-}
-
-/**
- * @tc.name: AllocateOsAccountSubProfileId_MaxReachedNoHoles_008
- * @tc.desc: When all MAX_OS_ACCOUNT_SUB_PROFILE_COUNT indices are used with no freed slots, returns limit error
- * @tc.type: FUNC
- */
-HWTEST_F(OsAccountSubspaceTest, AllocateOsAccountSubProfileId_MaxReachedNoHoles_008, TestSize.Level1)
-{
-    std::vector<std::string> subProfileIdStrList;
-    for (int32_t i = 1; i <= MAX_OS_ACCOUNT_SUB_PROFILE_COUNT; ++i) {
-        subProfileIdStrList.push_back(
-            std::to_string(TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + i));
-    }
-    int32_t nextSubProfileId = -1;
-    int32_t outId = 0;
-    ErrCode ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_LIMIT);
-}
-
-/**
- * @tc.name: AllocateOsAccountSubProfileId_DeleteAndWrapAround_009
- * @tc.desc: Verify the full lifecycle scenario described:
- *   [1,2,3,4] → create → [1,2,3,4,5], nextId=base+6
- *   delete 5 → [1,2,3,4], nextId=base+6 (unchanged)
- *   create → [1,2,3,4,6], nextId wraps to base+1 (7>MAX=6)
- *   create → [1,2,3,4,5,6], wraps from 1 and fills freed hole 5
- *   Uses a small MAX (6) to simulate the wrap-around scenario.
- * @tc.type: FUNC
- */
-HWTEST_F(OsAccountSubspaceTest, AllocateOsAccountSubProfileId_DeleteAndWrapAround_009, TestSize.Level1)
-{
-    int32_t outId = 0;
-    int32_t osAccountId = TEST_OS_ACCOUNT_ID;
-    int32_t base = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
-
-    std::vector<std::string> subProfileIdStrList = {
-        std::to_string(base + 1), std::to_string(base + 2),
-        std::to_string(base + 3), std::to_string(base + 4)};
-    int32_t nextSubProfileId = base + 5;
-
-    ErrCode ret = dataDeal_->AllocateOsAccountSubProfileId(
-        osAccountId, nextSubProfileId, subProfileIdStrList, outId);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(outId, base + 5);
-
-    subProfileIdStrList.push_back(std::to_string(base + 5));
-    nextSubProfileId = base + 6;
-
-    ret = dataDeal_->AllocateOsAccountSubProfileId(
-        osAccountId, nextSubProfileId, subProfileIdStrList, outId);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(outId, base + 6);
-
-    auto erase5 = std::find(subProfileIdStrList.begin(), subProfileIdStrList.end(), std::to_string(base + 5));
-    ASSERT_NE(erase5, subProfileIdStrList.end());
-    subProfileIdStrList.erase(erase5);
-    nextSubProfileId = base + 7;
-
-    ret = dataDeal_->AllocateOsAccountSubProfileId(
-        osAccountId, nextSubProfileId, subProfileIdStrList, outId);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(outId, base + 7);  // MAX=999, no wrapping; base+7 is free (base+5 was deleted)
-
-    // Final step: after step3 list=[1,2,3,4,6]. Allocate with nextId=1 fills freed hole 5.
-    nextSubProfileId = base + 1;
-    ret = dataDeal_->AllocateOsAccountSubProfileId(
-        osAccountId, nextSubProfileId, subProfileIdStrList, outId);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(outId, base + 5);
-}
-
-/**
- * @tc.name: AllocateOsAccountSubProfileId_NonNumericStrList_010
- * @tc.desc: subProfileIdStrList with non-numeric strings never matches std::to_string(startId);
- *           allocation proceeds using only numeric IDs from subProfileIdStrList
- * @tc.type: FUNC
- */
-HWTEST_F(OsAccountSubspaceTest, AllocateOsAccountSubProfileId_NonNumericStrList_010, TestSize.Level1)
-{
-    int32_t base = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
-    std::vector<std::string> subProfileIdStrList = {"not_a_number", "abc", ""};
-    int32_t nextSubProfileId = -1;
-    int32_t outId = 0;
-    ErrCode ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(outId, base + 1);
-
-    subProfileIdStrList = {"invalid", std::to_string(base + 2)};
-    nextSubProfileId = base + 3;
-    ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(outId, base + 3);
-}
-
-/**
- * @tc.name: AllocateOsAccountSubProfileId_HintOutOfRange_011
- * @tc.desc: When nextSubProfileId yields hintIndex < MIN or > MAX,
- *           startIndex falls back to OS_ACCOUNT_SUB_PROFILE_INDEX_MIN
- * @tc.type: FUNC
- */
-HWTEST_F(OsAccountSubspaceTest, AllocateOsAccountSubProfileId_HintOutOfRange_011, TestSize.Level1)
-{
-    int32_t base = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
-    std::vector<std::string> subProfileIdStrList;
-    int32_t outId = 0;
-
-    int32_t nextSubProfileId = 0;
-    ErrCode ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(outId, base + 1);
-
-    nextSubProfileId = base + OsAccountSubProfileDataDeal::OS_ACCOUNT_SUB_PROFILE_INDEX_MAX + 1;
-    ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(outId, base + 1);
-
-    nextSubProfileId = base - 1;
-    ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(outId, base + 1);
-
-    subProfileIdStrList = {std::to_string(base + 1)};
-    nextSubProfileId = base + 1000;
-    ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(outId, base + 2);
-}
-
-/**
- * @tc.name: AllocateOsAccountSubProfileId_HintOccupied_012
- * @tc.desc: When nextSubProfileId hint points to an already-occupied index,
- *           search starts from hint and finds next free slot
- * @tc.type: FUNC
- */
-HWTEST_F(OsAccountSubspaceTest, AllocateOsAccountSubProfileId_HintOccupied_012, TestSize.Level1)
-{
-    int32_t base = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
-    int32_t outId = 0;
-
-    std::vector<std::string> subProfileIdStrList = {std::to_string(base + 3),
-        std::to_string(base + 4), std::to_string(base + 5)};
-    int32_t nextSubProfileId = base + 3;
-    ErrCode ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(outId, base + 6);
-
-    subProfileIdStrList = {std::to_string(base + 5), std::to_string(base + 6),
-        std::to_string(base + 7), std::to_string(base + 1), std::to_string(base + 2)};
-    nextSubProfileId = base + 5;
-    ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(outId, base + 8);
-}
-
-/**
- * @tc.name: AllocateOsAccountSubProfileId_StrListOverlapUsedIndices_013
- * @tc.desc: subProfileIdStrList values are deduplicated by the set; allocation still
- *           by the set; allocation still finds correct free index
- * @tc.type: FUNC
- */
-HWTEST_F(OsAccountSubspaceTest, AllocateOsAccountSubProfileId_StrListOverlapUsedIndices_013, TestSize.Level1)
-{
-    int32_t base = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
-    int32_t outId = 0;
-
-    std::vector<std::string> subProfileIdStrList = {std::to_string(base + 1), std::to_string(base + 2)};
-    int32_t nextSubProfileId = base + 3;
-    ErrCode ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(outId, base + 3);
-}
-
-/**
- * @tc.name: AllocateOsAccountSubProfileId_WrapExactBoundary_014
- * @tc.desc: Search starts at INDEX_MAX (999), only INDEX_MIN (1) is free;
- *           wraps from 999 → 1 and finds the free slot
- * @tc.type: FUNC
- */
-HWTEST_F(OsAccountSubspaceTest, AllocateOsAccountSubProfileId_WrapExactBoundary_014, TestSize.Level1)
-{
-    int32_t base = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
-    std::vector<std::string> subProfileIdStrList;
-    for (int32_t i = 2; i <= MAX_OS_ACCOUNT_SUB_PROFILE_COUNT; ++i) {
-        subProfileIdStrList.push_back(std::to_string(base + i));
-    }
-    int32_t nextSubProfileId = base + OsAccountSubProfileDataDeal::OS_ACCOUNT_SUB_PROFILE_INDEX_MAX;
-    int32_t outId = 0;
-    ErrCode ret = dataDeal_->AllocateOsAccountSubProfileId(
-        TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdStrList, outId);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(outId, base + 1);
 }
 
 /**
@@ -487,7 +145,7 @@ HWTEST_F(OsAccountSubspaceTest, SaveAndLoadSubProfileInfo_001, TestSize.Level1)
 {
     OsAccountSubspaceInfo info;
     info.userId_ = TEST_OS_ACCOUNT_ID;
-    info.subspaceId = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 1;
+    info.subspaceId = TEST_SUBPROFILE_BASE + 1;
     info.isCreateCompleted = true;
     info.toBeRemoved = false;
     info.bindTime_ = 12345;
@@ -531,7 +189,7 @@ HWTEST_F(OsAccountSubspaceTest, SaveAndLoadSubProfileInfo_001, TestSize.Level1)
 HWTEST_F(OsAccountSubspaceTest, SaveAndLoadSubProfileInfo_002, TestSize.Level1)
 {
     OsAccountSubspaceInfo loaded;
-    int32_t nonExistId = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 99;
+    int32_t nonExistId = TEST_SUBPROFILE_BASE + 99;
     ErrCode ret = dataDeal_->LoadSubProfileInfo(TEST_OS_ACCOUNT_ID, nonExistId, loaded);
     EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
@@ -545,7 +203,7 @@ HWTEST_F(OsAccountSubspaceTest, IsValidSubProfileExists_001, TestSize.Level1)
 {
     OsAccountSubspaceInfo info;
     info.userId_ = TEST_OS_ACCOUNT_ID;
-    info.subspaceId = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 2;
+    info.subspaceId = TEST_SUBPROFILE_BASE + 2;
     info.isCreateCompleted = true;
     info.toBeRemoved = false;
     EXPECT_EQ(dataDeal_->SaveSubProfileInfo(info), ERR_OK);
@@ -562,7 +220,7 @@ HWTEST_F(OsAccountSubspaceTest, IsValidSubProfileExists_002, TestSize.Level1)
 {
     OsAccountSubspaceInfo info;
     info.userId_ = TEST_OS_ACCOUNT_ID;
-    info.subspaceId = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 3;
+    info.subspaceId = TEST_SUBPROFILE_BASE + 3;
     info.isCreateCompleted = true;
     info.toBeRemoved = true;
     EXPECT_EQ(dataDeal_->SaveSubProfileInfo(info), ERR_OK);
@@ -577,7 +235,7 @@ HWTEST_F(OsAccountSubspaceTest, IsValidSubProfileExists_002, TestSize.Level1)
  */
 HWTEST_F(OsAccountSubspaceTest, IsValidSubProfileExists_003, TestSize.Level1)
 {
-    int32_t nonExistId = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 999;
+    int32_t nonExistId = TEST_SUBPROFILE_BASE + 999;
     EXPECT_FALSE(dataDeal_->IsValidSubProfileExists(TEST_OS_ACCOUNT_ID, nonExistId));
 }
 
@@ -588,9 +246,9 @@ HWTEST_F(OsAccountSubspaceTest, IsValidSubProfileExists_003, TestSize.Level1)
  */
 HWTEST_F(OsAccountSubspaceTest, ScanOsAccountSubProfileIds_001, TestSize.Level1)
 {
-    int32_t id1 = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 1;
-    int32_t id2 = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 2;
-    int32_t id3 = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 3;
+    int32_t id1 = TEST_SUBPROFILE_BASE + 1;
+    int32_t id2 = TEST_SUBPROFILE_BASE + 2;
+    int32_t id3 = TEST_SUBPROFILE_BASE + 3;
 
     OsAccountSubspaceInfo info1;
     info1.subspaceId = id1;
@@ -626,8 +284,8 @@ HWTEST_F(OsAccountSubspaceTest, ScanOsAccountSubProfileIds_001, TestSize.Level1)
  */
 HWTEST_F(OsAccountSubspaceTest, ScanSubProfileIds_NullptrFilter_001, TestSize.Level1)
 {
-    int32_t id1 = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 1;
-    int32_t id2 = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 2;
+    int32_t id1 = TEST_SUBPROFILE_BASE + 1;
+    int32_t id2 = TEST_SUBPROFILE_BASE + 2;
 
     OsAccountSubspaceInfo info;
     info.subspaceId = id1;
@@ -654,8 +312,8 @@ HWTEST_F(OsAccountSubspaceTest, ScanSubProfileIds_NullptrFilter_001, TestSize.Le
  */
 HWTEST_F(OsAccountSubspaceTest, ScanOrphanedSubProfileIds_001, TestSize.Level1)
 {
-    int32_t id1 = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 10;
-    int32_t id2 = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 11;
+    int32_t id1 = TEST_SUBPROFILE_BASE + 10;
+    int32_t id2 = TEST_SUBPROFILE_BASE + 11;
 
     OsAccountSubspaceInfo info1;
     info1.subspaceId = id1;
@@ -684,7 +342,7 @@ HWTEST_F(OsAccountSubspaceTest, ScanOrphanedSubProfileIds_001, TestSize.Level1)
  */
 HWTEST_F(OsAccountSubspaceTest, RemoveSubProfileDir_001, TestSize.Level1)
 {
-    int32_t distId = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 20;
+    int32_t distId = TEST_SUBPROFILE_BASE + 20;
     OsAccountSubspaceInfo info;
     info.subspaceId = distId;
     info.userId_ = TEST_OS_ACCOUNT_ID;
@@ -703,7 +361,7 @@ HWTEST_F(OsAccountSubspaceTest, RemoveSubProfileDir_001, TestSize.Level1)
  */
 HWTEST_F(OsAccountSubspaceTest, RemoveSubProfileDir_002, TestSize.Level1)
 {
-    int32_t distId = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 21;
+    int32_t distId = TEST_SUBPROFILE_BASE + 21;
     ErrCode ret = dataDeal_->RemoveSubProfileDir(TEST_OS_ACCOUNT_ID, distId);
     EXPECT_EQ(ret, ERR_OK);
 }
@@ -717,7 +375,7 @@ HWTEST_F(OsAccountSubspaceTest, SerializeParseSpaceInfo_001, TestSize.Level1)
 {
     OsAccountSubspaceInfo info;
     info.userId_ = TEST_OS_ACCOUNT_ID;
-    info.subspaceId = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 5;
+    info.subspaceId = TEST_SUBPROFILE_BASE + 5;
     info.isCreateCompleted = true;
     info.toBeRemoved = false;
     info.bindTime_ = 99999;
@@ -790,7 +448,7 @@ HWTEST_F(OsAccountSubspaceTest, LoadSubProfileInfo_AvatarFileMissing_001, TestSi
 {
     OsAccountSubspaceInfo info;
     info.userId_ = TEST_OS_ACCOUNT_ID;
-    info.subspaceId = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 30;
+    info.subspaceId = TEST_SUBPROFILE_BASE + 30;
     info.isCreateCompleted = true;
     info.toBeRemoved = false;
     info.ohosAccountInfo_.avatar_ = "originalAvatar";
@@ -817,7 +475,7 @@ HWTEST_F(OsAccountSubspaceTest, LoadSubProfileInfo_AvatarReadFails_001, TestSize
 {
     OsAccountSubspaceInfo info;
     info.userId_ = TEST_OS_ACCOUNT_ID;
-    info.subspaceId = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 32;
+    info.subspaceId = TEST_SUBPROFILE_BASE + 32;
     info.isCreateCompleted = true;
     info.toBeRemoved = false;
     info.ohosAccountInfo_.avatar_ = "avatarData";
@@ -844,7 +502,7 @@ HWTEST_F(OsAccountSubspaceTest, SaveSubProfileInfo_CreateDirFails_001, TestSize.
     OsAccountSubProfileDataDeal badDeal("/proc/invalid_path_not_writable/");
     OsAccountSubspaceInfo info;
     info.userId_ = TEST_OS_ACCOUNT_ID;
-    info.subspaceId = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 1;
+    info.subspaceId = TEST_SUBPROFILE_BASE + 1;
     info.isCreateCompleted = true;
     info.toBeRemoved = false;
     ErrCode ret = badDeal.SaveSubProfileInfo(info);
@@ -866,7 +524,7 @@ HWTEST_F(OsAccountSubspaceTest, SaveSubProfileInfo_AvatarKeptOnJsonFail_001, Tes
 {
     OsAccountSubspaceInfo info;
     info.userId_ = TEST_OS_ACCOUNT_ID;
-    info.subspaceId = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 31;
+    info.subspaceId = TEST_SUBPROFILE_BASE + 31;
     info.isCreateCompleted = true;
     info.toBeRemoved = false;
     info.ohosAccountInfo_.avatar_ = "originalAvatar";

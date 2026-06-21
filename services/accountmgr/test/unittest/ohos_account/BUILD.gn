@@ -266,6 +266,7 @@ ohos_unittest("OhosAccountSpaceLoginLogoutTest") {
     "${services_path}/accountmgr/src/distributed_account_subscribe_death_recipient.cpp",
     "${services_path}/accountmgr/src/distributed_account/os_account_subspace_data_deal.cpp",
     "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager.cpp",
+    "${services_path}/accountmgr/src/distributed_account/os_account_sub_profile_id_counter.cpp",
     "${services_path}/accountmgr/src/distributed_account_subscribe_manager.cpp",
     "${services_path}/accountmgr/src/ohos_account_data_deal.cpp",
     "${services_path}/accountmgr/src/ohos_account_manager.cpp",
@@ -359,6 +360,7 @@ ohos_unittest("OsAccountSubspaceTest") {
     "${os_account_dfx_path}/hisysevent_adapter/account_hisysevent_adapter.cpp",
     "${innerkits_native_path}/src/distributed_account_subscribe_callback.cpp",
     "${services_path}/accountmgr/src/distributed_account/os_account_subspace_data_deal.cpp",
+    "${services_path}/accountmgr/src/distributed_account/os_account_sub_profile_id_counter.cpp",
     "os_account_subspace_test.cpp",
   ]
 
@@ -430,6 +432,7 @@ ohos_unittest("OsAccountSubProfileManagerTest") {
     "mock/mock_space_dependencies.cpp",
     "${services_path}/accountmgr/src/distributed_account/os_account_subspace_data_deal.cpp",
     "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager.cpp",
+    "${services_path}/accountmgr/src/distributed_account/os_account_sub_profile_id_counter.cpp",
     "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager_service.cpp",
     "${services_path}/accountmgr/src/ability_manager_adapter/ability_manager_adapter.cpp",
     "${os_account_core_path}/src/os_account_constraint_subscriber_manager.cpp",
@@ -692,6 +695,7 @@ ohos_unittest("OsAccountSubspaceCoverageTest") {
   sources += [
     "${services_path}/accountmgr/src/distributed_account/os_account_subspace_data_deal.cpp",
     "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager.cpp",
+    "${services_path}/accountmgr/src/distributed_account/os_account_sub_profile_id_counter.cpp",
     "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager_service.cpp",
     "${services_path}/accountmgr/src/ability_manager_adapter/ability_manager_adapter.cpp",
     "${os_account_core_path}/src/os_account_constraint_subscriber_manager.cpp",

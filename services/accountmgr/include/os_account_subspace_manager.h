@@ -21,6 +21,7 @@
 #include <mutex>
 #include <set>
 #include <string>
+#include <unordered_map>
 #include "account_error_no.h"
 #include "account_info.h"
 #include "os_account_info.h"
@@ -38,6 +39,7 @@ public:
     static OsAccountSubProfileManager &GetInstance();
 
     void Init(const std::string &rootPath);
+    void BuildSubProfileCache();
     void CleanupOrphanedSubProfiles();
 
     ErrCode CreateSubProfile(int32_t osAccountId, int32_t &newSubspaceId);
@@ -70,6 +72,7 @@ private:
     std::mutex subProfileOpMutex_;
     std::string rootPath_;
     std::unique_ptr<OsAccountSubProfileDataDeal> subProfileDataDeal_;
+    std::unordered_map<int32_t, int32_t> subProfileCache_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -16,12 +16,14 @@
 #include "os_account_subspace_manager_service.h"
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 
+#include <algorithm>
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "account_permission_manager.h"
 #include "iinner_os_account_manager.h"
 #include "ohos_account_manager.h"
 #include "os_account_constants.h"
+#include "os_account_info.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -71,23 +73,27 @@ int32_t OsAccountSubProfileManagerService::DeleteOsAccountSubProfile(
     if (permRet != ERR_OK) {
         return permRet;
     }
-    // Restricted accounts (e.g. ADMIN) cannot create subspaces, so there are no
-    // subspaces to delete under them. SUBSPACE_NOT_FOUND is the correct response —
-    // SUBSPACE_RESTRICTED is reserved for attempts to delete the index-0 subspace.
     ErrCode restrictedRet = IInnerOsAccountManager::GetInstance().CheckLocalIdRestricted(osAccountId);
     if (restrictedRet != ERR_OK) {
         return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
     }
-    if (subspaceId / Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER != osAccountId) {
+    OsAccountInfo osAccountInfo;
+    ErrCode ret = IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(osAccountId, osAccountInfo);
+    if (ret != ERR_OK) {
+        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+    }
+    if (subspaceId == osAccountInfo.GetCommonSubProfileId()) {
+        ACCOUNT_LOGE("Cannot delete the primary (common) subspace");
+        return ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED;
+    }
+    const auto &idList = osAccountInfo.GetSubProfileIdList();
+    bool belongs = std::find(idList.begin(), idList.end(), std::to_string(subspaceId)) != idList.end();
+    if (!belongs) {
         ACCOUNT_LOGE("subspaceId %{public}d does not belong to osAccountId %{public}d",
             subspaceId, osAccountId);
         return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
     }
-    if (subspaceId % Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER == 0) {
-        ACCOUNT_LOGE("Cannot delete the primary subspace (index 0)");
-        return ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED;
-    }
-    ErrCode ret = OhosAccountManager::GetInstance().DeleteOsAccountSubspace(
+    ret = OhosAccountManager::GetInstance().DeleteOsAccountSubspace(
         osAccountId, subspaceId);
     return ret;
 }
@@ -99,21 +105,26 @@ int32_t OsAccountSubProfileManagerService::SwitchOsAccountSubProfile(
     if (permRet != ERR_OK) {
         return permRet;
     }
-    // Restricted accounts (e.g. ADMIN) cannot create subspaces, so there are no
-    // subspaces to switch to. SUBSPACE_NOT_FOUND is the correct response.
-    // ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED was designed for switch but is not yet
-    // returned from any code path.
     ErrCode restrictedRet = IInnerOsAccountManager::GetInstance().CheckLocalIdRestricted(osAccountId);
     if (restrictedRet != ERR_OK) {
         return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
     }
-    if (subspaceId / Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER != osAccountId) {
+    OsAccountInfo osAccountInfo;
+    ErrCode ret = IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(osAccountId, osAccountInfo);
+    if (ret != ERR_OK) {
+        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+    }
+    int32_t commonId = osAccountInfo.GetCommonSubProfileId();
+    const auto &idList = osAccountInfo.GetSubProfileIdList();
+    bool belongs = (subspaceId == commonId) ||
+        std::find(idList.begin(), idList.end(), std::to_string(subspaceId)) != idList.end();
+    if (!belongs) {
         ACCOUNT_LOGE("subspaceId %{public}d does not belong to osAccountId %{public}d",
             subspaceId, osAccountId);
         return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
     }
     int32_t fromSubspaceId = 0;
-    ErrCode ret = OhosAccountManager::GetInstance().SwitchOsAccountSubspace(
+    ret = OhosAccountManager::GetInstance().SwitchOsAccountSubspace(
         osAccountId, subspaceId, fromSubspaceId);
     return ret;
 }

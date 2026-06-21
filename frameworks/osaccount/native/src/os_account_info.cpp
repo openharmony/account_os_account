@@ -181,7 +181,7 @@ void OsAccountInfo::SetVersion(int32_t version)
 int32_t OsAccountInfo::GetForegroundSubProfileId() const
 {
     if (foregroundSubProfileId_ == -1) {
-        return localId_ * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
+        return commonSubProfileId_;
     }
     return foregroundSubProfileId_;
 }
@@ -199,6 +199,16 @@ int32_t OsAccountInfo::GetNextSubProfileId() const
 void OsAccountInfo::SetNextSubProfileId(int32_t nextSubProfileId)
 {
     nextSubProfileId_ = nextSubProfileId;
+}
+
+int32_t OsAccountInfo::GetCommonSubProfileId() const
+{
+    return commonSubProfileId_;
+}
+
+void OsAccountInfo::SetCommonSubProfileId(int32_t commonSubProfileId)
+{
+    commonSubProfileId_ = commonSubProfileId;
 }
 
 std::vector<std::string> OsAccountInfo::GetSubProfileIdList() const

@@ -54,7 +54,8 @@ using namespace OHOS::AccountSA;
 namespace {
 const std::string TEST_ROOT_DIR = "/data/test/os_account_subspace_coverage_test_dir/";
 constexpr int32_t TEST_OS_ACCOUNT_ID = 100;
-constexpr int32_t TEST_SUBSPACE_BASE = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
+constexpr int32_t SUBSPACE_MULTIPLIER = 1000;
+constexpr int32_t TEST_SUBSPACE_BASE = TEST_OS_ACCOUNT_ID * SUBSPACE_MULTIPLIER;
 } // namespace
 
 // ===== Task 2: SetOsAccountForegroundSubspaceId =====
@@ -118,7 +119,7 @@ HWTEST_F(SetForegroundSubspaceIdTest, SetForegroundSubspaceId_Success_001, TestS
     osAccountInfo.SetLocalId(TEST_OS_ACCOUNT_ID);
     MockSetCreatedOsAccounts({osAccountInfo});
 
-    int32_t subspaceId = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 1;
+    int32_t subspaceId = TEST_OS_ACCOUNT_ID * SUBSPACE_MULTIPLIER + 1;
     ErrCode ret = IInnerOsAccountManager::GetInstance().SetOsAccountForegroundSubspaceId(
         TEST_OS_ACCOUNT_ID, subspaceId);
     EXPECT_EQ(ret, ERR_OK);
@@ -136,7 +137,7 @@ HWTEST_F(SetForegroundSubspaceIdTest, SetForegroundSubspaceId_SetToBase_001, Tes
     osAccountInfo.SetLocalId(TEST_OS_ACCOUNT_ID);
     MockSetCreatedOsAccounts({osAccountInfo});
 
-    int32_t baseSubspaceId = TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
+    int32_t baseSubspaceId = TEST_OS_ACCOUNT_ID * SUBSPACE_MULTIPLIER;
     ErrCode ret = IInnerOsAccountManager::GetInstance().SetOsAccountForegroundSubspaceId(
         TEST_OS_ACCOUNT_ID, baseSubspaceId);
     EXPECT_EQ(ret, ERR_OK);
@@ -345,7 +346,7 @@ HWTEST_F(OhosAccountManagerSubspaceTest, CreateOsAccountSubspace_SecondSpace_001
 HWTEST_F(OhosAccountManagerSubspaceTest, SwitchOsAccountSubspace_GetInfoFailed_001, TestSize.Level1)
 {
     int32_t nonExistOsAccountId = 99999;
-    int32_t subspaceId = nonExistOsAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 1;
+    int32_t subspaceId = nonExistOsAccountId * SUBSPACE_MULTIPLIER + 1;
     int32_t fromSubspaceId = 0;
     ErrCode ret = OhosAccountManager::GetInstance().SwitchOsAccountSubspace(
         nonExistOsAccountId, subspaceId, fromSubspaceId);
@@ -804,14 +805,14 @@ HWTEST_F(SubProfileManagerServiceTest, CreateOsAccountSubProfile_RestrictedAccou
 HWTEST_F(SubProfileManagerServiceTest, DeleteOsAccountSubProfile_RestrictedAccount_001, TestSize.Level1)
 {
     auto service = std::make_shared<OsAccountSubProfileManagerService>();
-    ErrCode ret = service->DeleteOsAccountSubProfile(0, 0 * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 1);
+    ErrCode ret = service->DeleteOsAccountSubProfile(0, 0 * SUBSPACE_MULTIPLIER + 1);
     EXPECT_NE(ret, ERR_OK);
 }
 
 HWTEST_F(SubProfileManagerServiceTest, SwitchOsAccountSubProfile_RestrictedAccount_001, TestSize.Level1)
 {
     auto service = std::make_shared<OsAccountSubProfileManagerService>();
-    ErrCode ret = service->SwitchOsAccountSubProfile(0, 0 * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 1);
+    ErrCode ret = service->SwitchOsAccountSubProfile(0, 0 * SUBSPACE_MULTIPLIER + 1);
     EXPECT_NE(ret, ERR_OK);
 }
 
@@ -931,7 +932,7 @@ HWTEST_F(OsAccountInfoSubspaceTest, GetForegroundSubspaceId_Default_001, TestSiz
     info.localId_ = TEST_OS_ACCOUNT_ID;
     info.foregroundSubProfileId_ = -1;
     EXPECT_EQ(info.GetForegroundSubProfileId(),
-        TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER);
+        TEST_OS_ACCOUNT_ID * SUBSPACE_MULTIPLIER);
 }
 
 HWTEST_F(OsAccountInfoSubspaceTest, GetForegroundSubspaceId_SetValue_001, TestSize.Level1)
@@ -957,7 +958,7 @@ HWTEST_F(OsAccountInfoSubspaceTest, SetForegroundSubspaceId_Negative_001, TestSi
     info.localId_ = TEST_OS_ACCOUNT_ID;
     info.SetForegroundSubProfileId(-1);
     EXPECT_EQ(info.GetForegroundSubProfileId(),
-        TEST_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER);
+        TEST_OS_ACCOUNT_ID * SUBSPACE_MULTIPLIER);
 }
 
 // ===== Task 9: OsAccountSubspaceResult Marshalling =====
@@ -1361,7 +1362,7 @@ public:
     static const std::string SCAN_TEST_DIR;
     static const std::string SCAN_USER_DIR;
     static constexpr int32_t SCAN_OS_ACCOUNT_ID = 200;
-    static constexpr int32_t SCAN_BASE = SCAN_OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
+    static constexpr int32_t SCAN_BASE = SCAN_OS_ACCOUNT_ID * SUBSPACE_MULTIPLIER;
     static uint64_t allPermTokenId_;
 };
 
@@ -1556,7 +1557,7 @@ public:
 
     static const std::string QUERY_TEST_DIR;
     static constexpr int32_t QUERY_USER_ID = 100;
-    static constexpr int32_t QUERY_BASE = QUERY_USER_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
+    static constexpr int32_t QUERY_BASE = QUERY_USER_ID * SUBSPACE_MULTIPLIER;
     static uint64_t allPermTokenId_;
 };
 
@@ -1686,7 +1687,7 @@ public:
 
     static const std::string OHOS_QUERY_TEST_DIR;
     static constexpr int32_t OHOS_QUERY_USER_ID = 100;
-    static constexpr int32_t OHOS_QUERY_BASE = OHOS_QUERY_USER_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
+    static constexpr int32_t OHOS_QUERY_BASE = OHOS_QUERY_USER_ID * SUBSPACE_MULTIPLIER;
     static uint64_t allPermTokenId_;
 };
 
@@ -1844,7 +1845,7 @@ public:
 
     static uint64_t allPermTokenId_;
     static constexpr int32_t SVC_TEST_USER_ID = 100;
-    static constexpr int32_t SVC_TEST_BASE = SVC_TEST_USER_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
+    static constexpr int32_t SVC_TEST_BASE = SVC_TEST_USER_ID * SUBSPACE_MULTIPLIER;
 };
 
 uint64_t SubProfileQueryServiceTest::allPermTokenId_ = 0;
@@ -1860,7 +1861,7 @@ public:
     void TearDown() override {}
 
     static constexpr int32_t SVC_TEST_USER_ID = 100;
-    static constexpr int32_t SVC_TEST_BASE = SVC_TEST_USER_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
+    static constexpr int32_t SVC_TEST_BASE = SVC_TEST_USER_ID * SUBSPACE_MULTIPLIER;
 };
 
 // ==== 3.2-3.4 GetOsAccountForegroundSubProfileId(int32_t&) tests ====
@@ -2046,7 +2047,7 @@ HWTEST_F(SubProfileQueryServiceTest, GetOsAccountSubProfile_DualArg_SubProfileMi
     OsAccountSubspaceResult subspaceResult;
     OhosAccountInfo distributedInfo;
     // 100 * 1000 = 100000, but subProfileId 200000 → 200, not 100
-    int32_t subProfileId = 200 * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
+    int32_t subProfileId = 200 * SUBSPACE_MULTIPLIER;
     auto ret = AccountMgrService::GetInstance().GetOsAccountSubProfile(
         SVC_TEST_USER_ID, subProfileId, subspaceResult, distributedInfo);
     EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);

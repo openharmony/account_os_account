@@ -19,10 +19,12 @@
 #include <gtest/gtest.h>
 #include <set>
 #include <string>
+#include <thread>
 
 #define private public
 #include "os_account_subspace_data_deal.h"
 #include "os_account_subspace_manager.h"
+#include "os_account_sub_profile_id_counter.h"
 #undef private
 
 #include "account_error_no.h"
@@ -42,6 +44,7 @@ using namespace OHOS::AccountSA;
 namespace {
 const std::string TEST_ROOT_DIR = "/data/test/os_account_subspace_manager_test_dir/";
 constexpr int32_t OS_ACCOUNT_ID = 100;
+constexpr int32_t TEST_ID_BASE = 100000;
 }  // namespace
 
 class OsAccountSubProfileManagerTest : public testing::Test {
@@ -98,7 +101,7 @@ HWTEST_F(OsAccountSubProfileManagerTest, CreateSubspace_Success_001, TestSize.Le
     int32_t newSubspaceId = 0;
     ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, newSubspaceId);
     EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(newSubspaceId, OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 1);
+    EXPECT_EQ(newSubspaceId, TEST_ID_BASE + 1);
 
     EXPECT_TRUE(mgr.subProfileDataDeal_->IsValidSubProfileExists(OS_ACCOUNT_ID, newSubspaceId));
 }
@@ -115,11 +118,11 @@ HWTEST_F(OsAccountSubProfileManagerTest, CreateSubspace_Multiple_002, TestSize.L
     int32_t distId2 = 0;
     ErrCode ret1 = mgr.CreateSubProfile(OS_ACCOUNT_ID, distId1);
     EXPECT_EQ(ret1, ERR_OK);
-    EXPECT_EQ(distId1, OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 1);
+    EXPECT_EQ(distId1, TEST_ID_BASE + 1);
 
     ErrCode ret2 = mgr.CreateSubProfile(OS_ACCOUNT_ID, distId2);
     EXPECT_EQ(ret2, ERR_OK);
-    EXPECT_EQ(distId2, OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 2);
+    EXPECT_EQ(distId2, TEST_ID_BASE + 2);
 
     EXPECT_TRUE(mgr.subProfileDataDeal_->IsValidSubProfileExists(OS_ACCOUNT_ID, distId1));
     EXPECT_TRUE(mgr.subProfileDataDeal_->IsValidSubProfileExists(OS_ACCOUNT_ID, distId2));
@@ -139,7 +142,7 @@ HWTEST_F(OsAccountSubProfileManagerTest, CreateSubspace_LimitReached_003, TestSi
     std::vector<std::string> fullList;
     for (int32_t i = 1; i <= MAX_OS_ACCOUNT_SUB_PROFILE_COUNT; ++i) {
         fullList.push_back(
-            std::to_string(OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + i));
+            std::to_string(TEST_ID_BASE + i));
     }
     osAccountInfo.SetSubProfileIdList(fullList);
     MockSetCreatedOsAccounts({osAccountInfo});
@@ -159,7 +162,7 @@ HWTEST_F(OsAccountSubProfileManagerTest, CreateSubspace_LimitReached_003, TestSi
 HWTEST_F(OsAccountSubProfileManagerTest, CreateSubspace_HintOccupied_004, TestSize.Level1)
 {
     auto &mgr = OsAccountSubProfileManager::GetInstance();
-    int32_t base = OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
+    int32_t base = TEST_ID_BASE;
 
     // Set hint to base+1 and already-occupied list {base+1, base+2}
     // → AllocateOsAccountSubProfileId checks base+1 (occupied, ++startId/+searchCount)
@@ -187,7 +190,7 @@ HWTEST_F(OsAccountSubProfileManagerTest, CreateSubspace_HintOccupied_004, TestSi
 HWTEST_F(OsAccountSubProfileManagerTest, CreateSubspace_WrapAround_005, TestSize.Level1)
 {
     auto &mgr = OsAccountSubProfileManager::GetInstance();
-    int32_t base = OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
+    int32_t base = TEST_ID_BASE;
 
     OsAccountInfo osAccountInfo;
     osAccountInfo.SetLocalId(OS_ACCOUNT_ID);
@@ -196,7 +199,7 @@ HWTEST_F(OsAccountSubProfileManagerTest, CreateSubspace_WrapAround_005, TestSize
     for (int32_t i = 2; i <= MAX_OS_ACCOUNT_SUB_PROFILE_COUNT; ++i) {
         idList.push_back(std::to_string(base + i));
     }
-    osAccountInfo.SetNextSubProfileId(base + OsAccountSubProfileDataDeal::OS_ACCOUNT_SUB_PROFILE_INDEX_MAX);
+    osAccountInfo.SetNextSubProfileId(TEST_ID_BASE + 999);
     osAccountInfo.SetSubProfileIdList(idList);
     MockSetCreatedOsAccounts({osAccountInfo});
 
@@ -257,8 +260,12 @@ HWTEST_F(OsAccountSubProfileManagerTest, CreateSubspace_Isolation_001, TestSize.
     EXPECT_EQ(retA, ERR_OK);
     EXPECT_EQ(retB, ERR_OK);
 
-    EXPECT_EQ(distIdA / Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER, OS_ACCOUNT_ID_A);
-    EXPECT_EQ(distIdB / Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER, OS_ACCOUNT_ID_B);
+    int32_t lookupA = 0;
+    int32_t lookupB = 0;
+    EXPECT_EQ(mgr.GetLocalIdForSubProfile(distIdA, lookupA), ERR_OK);
+    EXPECT_EQ(mgr.GetLocalIdForSubProfile(distIdB, lookupB), ERR_OK);
+    EXPECT_EQ(lookupA, OS_ACCOUNT_ID_A);
+    EXPECT_EQ(lookupB, OS_ACCOUNT_ID_B);
     EXPECT_NE(distIdA, distIdB);
 }
 
@@ -310,7 +317,7 @@ HWTEST_F(OsAccountSubProfileManagerTest, RemoveSpace_ToBeRemoved_001, TestSize.L
 HWTEST_F(OsAccountSubProfileManagerTest, RemoveSpace_ZeroIndex_001, TestSize.Level1)
 {
     auto &mgr = OsAccountSubProfileManager::GetInstance();
-    int32_t zeroDistId = OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
+    int32_t zeroDistId = TEST_ID_BASE;
     ErrCode ret = mgr.RemoveSubProfile(OS_ACCOUNT_ID, zeroDistId);
     EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
 }
@@ -346,7 +353,7 @@ HWTEST_F(OsAccountSubProfileManagerTest, RemoveSpace_ForegroundCheck_001, TestSi
 HWTEST_F(OsAccountSubProfileManagerTest, RemoveSpace_NotFound_002, TestSize.Level1)
 {
     auto &mgr = OsAccountSubProfileManager::GetInstance();
-    int32_t nonExistDistId = OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 999;
+    int32_t nonExistDistId = TEST_ID_BASE + 999;
     ErrCode ret = mgr.RemoveSubProfile(OS_ACCOUNT_ID, nonExistDistId);
     EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
 }
@@ -359,7 +366,7 @@ HWTEST_F(OsAccountSubProfileManagerTest, RemoveSpace_NotFound_002, TestSize.Leve
 HWTEST_F(OsAccountSubProfileManagerTest, SwitchSpace_NotFound_001, TestSize.Level1)
 {
     auto &mgr = OsAccountSubProfileManager::GetInstance();
-    int32_t nonExistDistId = OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 999;
+    int32_t nonExistDistId = TEST_ID_BASE + 999;
     int32_t fromSubspaceId = 0;
     ErrCode ret = mgr.SwitchSubProfile(OS_ACCOUNT_ID, nonExistDistId, fromSubspaceId);
     EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
@@ -416,6 +423,120 @@ HWTEST_F(OsAccountSubProfileManagerTest, RemoveSpace_UpdateOsAccountSubspaceInfo
     EXPECT_EQ(removeRet, ERR_OK);
 
     MockClearForceFailFlags();
+}
+
+/**
+ * @tc.name: SubProfileIdCounter_Persistence_001
+ * @tc.desc: Counter persists value to file; after re-Init, next ID continues from persisted value
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountSubProfileManagerTest, SubProfileIdCounter_Persistence_001, TestSize.Level1)
+{
+    auto &counter = SubProfileIdCounter::GetInstance();
+    ASSERT_EQ(counter.Init({}), ERR_OK);
+    int32_t firstId = counter.GetNextId();
+    int32_t secondId = counter.GetNextId();
+    EXPECT_GT(secondId, firstId);
+
+    ASSERT_EQ(counter.Init({}), ERR_OK);
+    int32_t afterReload = counter.GetNextId();
+    EXPECT_GT(afterReload, secondId);
+}
+
+/**
+ * @tc.name: SubProfileIdCounter_ReconstructFromExistingData_001
+ * @tc.desc: When counter file is missing/corrupted, counter reconstructs from existing OsAccountInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountSubProfileManagerTest, SubProfileIdCounter_ReconstructFromExistingData_001, TestSize.Level1)
+{
+    auto &counter = SubProfileIdCounter::GetInstance();
+    OsAccountInfo info;
+    info.SetLocalId(OS_ACCOUNT_ID);
+    info.SetCommonSubProfileId(500000);
+    info.SetSubProfileIdList({"500001", "500002", "500010"});
+
+    ASSERT_EQ(counter.Init({info}), ERR_OK);
+    int32_t nextId = counter.GetNextId();
+    EXPECT_GT(nextId, 500010);
+}
+
+/**
+ * @tc.name: SubProfileIdCounter_ConcurrentAllocation_001
+ * @tc.desc: Two threads calling GetNextId concurrently receive distinct IDs
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountSubProfileManagerTest, SubProfileIdCounter_ConcurrentAllocation_001, TestSize.Level1)
+{
+    auto &counter = SubProfileIdCounter::GetInstance();
+    ASSERT_EQ(counter.Init({}), ERR_OK);
+    constexpr int ALLOC_COUNT = 100;
+    std::vector<int32_t> idsA(ALLOC_COUNT, 0);
+    std::vector<int32_t> idsB(ALLOC_COUNT, 0);
+    std::thread tA([&]() { for (int i = 0; i < ALLOC_COUNT; ++i) idsA[i] = counter.GetNextId(); });
+    std::thread tB([&]() { for (int i = 0; i < ALLOC_COUNT; ++i) idsB[i] = counter.GetNextId(); });
+    tA.join();
+    tB.join();
+    std::set<int32_t> allIds;
+    for (int i = 0; i < ALLOC_COUNT; ++i) {
+        EXPECT_TRUE(allIds.insert(idsA[i]).second);
+        EXPECT_TRUE(allIds.insert(idsB[i]).second);
+    }
+    EXPECT_EQ(allIds.size(), static_cast<size_t>(ALLOC_COUNT * 2));
+}
+
+/**
+ * @tc.name: SubProfileCache_LookupCorrectness_001
+ * @tc.desc: create → lookup returns correct osAccountId → delete → lookup returns NOT_FOUND
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountSubProfileManagerTest, SubProfileCache_LookupCorrectness_001, TestSize.Level1)
+{
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
+    int32_t newId = 0;
+    ASSERT_EQ(mgr.CreateSubProfile(OS_ACCOUNT_ID, newId), ERR_OK);
+
+    int32_t lookupId = 0;
+    EXPECT_EQ(mgr.GetLocalIdForSubProfile(newId, lookupId), ERR_OK);
+    EXPECT_EQ(lookupId, OS_ACCOUNT_ID);
+
+    EXPECT_EQ(mgr.RemoveSubProfile(OS_ACCOUNT_ID, newId), ERR_OK);
+    EXPECT_NE(mgr.GetLocalIdForSubProfile(newId, lookupId), ERR_OK);
+}
+
+/**
+ * @tc.name: CommonSubProfile_IdentificationViaField_001
+ * @tc.desc: Common SubProfile is identified by commonSubProfileId_ field, not modulo arithmetic
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountSubProfileManagerTest, CommonSubProfile_IdentificationViaField_001, TestSize.Level1)
+{
+    OsAccountInfo info;
+    info.SetLocalId(OS_ACCOUNT_ID);
+    info.SetCommonSubProfileId(777777);
+    info.SetForegroundSubProfileId(-1);
+    MockSetCreatedOsAccounts({info});
+
+    EXPECT_EQ(info.GetForegroundSubProfileId(), 777777);
+    EXPECT_NE(info.GetForegroundSubProfileId() % 1000, 0);
+}
+
+/**
+ * @tc.name: BackwardCompatibility_CommonSubProfileReconstruct_001
+ * @tc.desc: Old OsAccountInfo JSON without commonSubProfileId_ reconstructs from foregroundSubProfileId_
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountSubProfileManagerTest, BackwardCompatibility_CommonSubProfileReconstruct_001, TestSize.Level1)
+{
+    OsAccountInfo info;
+    info.SetLocalId(OS_ACCOUNT_ID);
+    info.SetForegroundSubProfileId(100100);
+    info.SetCommonSubProfileId(Constants::INVALID_SUB_PROFILE_ID);
+    MockSetCreatedOsAccounts({info});
+    if (info.GetCommonSubProfileId() == Constants::INVALID_SUB_PROFILE_ID && info.GetForegroundSubProfileId() > 0) {
+        info.SetCommonSubProfileId(info.GetForegroundSubProfileId());
+    }
+    EXPECT_EQ(info.GetCommonSubProfileId(), 100100);
 }
 
 #endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE

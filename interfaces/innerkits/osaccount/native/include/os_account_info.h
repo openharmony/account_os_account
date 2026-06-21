@@ -218,6 +218,9 @@ public:
     int32_t GetNextSubProfileId() const;
     void SetNextSubProfileId(int32_t nextSubProfileId);
 
+    int32_t GetCommonSubProfileId() const;
+    void SetCommonSubProfileId(int32_t commonSubProfileId);
+
     std::vector<std::string> GetSubProfileIdList() const;
     void SetSubProfileIdList(const std::vector<std::string> &subProfileIdList);
 
@@ -245,7 +248,8 @@ public:
     int32_t version_ = OS_ACCOUNT_INFO_DEFAULT_VERSION;  // Track account info modification version
     int32_t foregroundSubProfileId_ = -1;
     int32_t nextSubProfileId_ = -1;
-    std::vector<std::string> subProfileIdList_;  // default: localId_ * 1000 (initialized lazily)
+    int32_t commonSubProfileId_ = -1;
+    std::vector<std::string> subProfileIdList_;
 };
 
 typedef enum {

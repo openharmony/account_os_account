@@ -230,6 +230,12 @@ public:
         return ERR_OK;
     }
 
+    ErrCode GetTrustedTimeMs(int64_t &timeMs)
+    {
+        // No TEE hardware available; return error so caller falls back to system_clock
+        return ERR_ACCOUNT_COMMON_OPERATION_FAIL;
+    }
+
 private:
     ErrCode PrepareTokenPlainData(const ApplyUserTokenParam& param, UserTokenPlain& tokenPlain)
     {
@@ -445,6 +451,11 @@ ErrCode OsAccountTeeAdapter::CheckTimestampExpired(const uint32_t grantTime, con
 ErrCode OsAccountTeeAdapter::TaAcquireAuthorization(const ApplyUserTokenParam& param, ApplyUserTokenResult& result)
 {
     return impl_->TaAcquireAuthorization(param, result);
+}
+
+ErrCode OsAccountTeeAdapter::GetTrustedTimeMs(int64_t &timeMs)
+{
+    return impl_->GetTrustedTimeMs(timeMs);
 }
 
 } // namespace AccountSA

@@ -1,0 +1,58 @@
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OS_ACCOUNT_SUB_PROFILE_ID_COUNTER_H
+#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OS_ACCOUNT_SUB_PROFILE_ID_COUNTER_H
+
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+
+#include <mutex>
+#include <string>
+#include <vector>
+#include "account_error_no.h"
+#include "account_file_operator.h"
+#include "os_account_constants.h"
+#include "os_account_info.h"
+
+namespace OHOS {
+namespace AccountSA {
+
+class SubProfileIdCounter {
+public:
+    static SubProfileIdCounter &GetInstance();
+
+    ErrCode Init(const std::vector<OsAccountInfo> &existingAccounts);
+    int32_t GetNextId();
+
+private:
+    SubProfileIdCounter() = default;
+    ~SubProfileIdCounter() = default;
+
+    ErrCode LoadFromFile();
+    ErrCode SaveToFile();
+    void ReconstructFromList(const std::vector<OsAccountInfo> &osAccountInfos);
+
+    std::mutex mutex_;
+    int32_t currentId_ = Constants::SUB_PROFILE_ID_INITIAL_VALUE;
+    std::shared_ptr<AccountFileOperator> fileOperator_;
+    std::string filePath_;
+    bool initialized_ = false;
+};
+
+}  // namespace AccountSA
+}  // namespace OHOS
+
+#endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OS_ACCOUNT_SUB_PROFILE_ID_COUNTER_H

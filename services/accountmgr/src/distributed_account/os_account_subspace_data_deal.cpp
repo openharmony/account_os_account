@@ -24,6 +24,7 @@
 #include "account_log_wrapper.h"
 #include "json_utils.h"
 #include "os_account_constants.h"
+#include "os_account_sub_profile_id_counter.h"
 #include "parameters.h"
 
 namespace OHOS {
@@ -34,6 +35,7 @@ const char JSON_KEY_SUBSPACE_ID[] = "subspaceId";
 const char JSON_KEY_OS_ACCOUNT_ID[] = "osAccountId";
 const char JSON_KEY_IS_CREATE_COMPLETED[] = "is_create_completed";
 const char JSON_KEY_TO_BE_REMOVED[] = "to_be_removed";
+const char JSON_KEY_CREATE_TIME[] = "create_time";
 const char JSON_KEY_BIND_TIME[] = "bind_time";
 const char JSON_KEY_VERSION[] = "version";
 // OhosAccountInfo fields — same key names as OhosAccountDataDeal for format reuse
@@ -55,43 +57,15 @@ OsAccountSubProfileDataDeal::OsAccountSubProfileDataDeal(const std::string &conf
     : configRootDir_(configRootDir), fileOperator_(std::make_shared<AccountFileOperator>())
 {}
 
-ErrCode OsAccountSubProfileDataDeal::AllocateOsAccountSubProfileId(
-    int32_t osAccountId, int32_t nextSubProfileId,
-    const std::vector<std::string> &subProfileIdStrList, int32_t &outId)
+ErrCode OsAccountSubProfileDataDeal::AllocateOsAccountSubProfileId(int32_t &outId)
 {
-    int32_t base = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
-    int32_t minId = base + OS_ACCOUNT_SUB_PROFILE_INDEX_MIN;
-    int32_t maxId = base + OS_ACCOUNT_SUB_PROFILE_INDEX_MAX;
-    int32_t startId = nextSubProfileId;
-
-    if (startId < minId || startId > maxId) {
-        startId = minId;
+    outId = SubProfileIdCounter::GetInstance().GetNextId();
+    if (outId == Constants::INVALID_SUB_PROFILE_ID) {
+        ACCOUNT_LOGE("GetNextId failed (persist error)");
+        return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
-
-    int32_t searchCount = 0;
-    int32_t totalRange = OS_ACCOUNT_SUB_PROFILE_INDEX_MAX - OS_ACCOUNT_SUB_PROFILE_INDEX_MIN + 1;
-
-    // Non-numeric strings in subProfileIdStrList (e.g. corrupted data) are implicitly
-    // skipped as they never match std::to_string(startId) — equivalent to the old
-    // behavior where StrToInt silently skipped them.
-    do {
-        if (std::find(subProfileIdStrList.begin(), subProfileIdStrList.end(),
-            std::to_string(startId)) == subProfileIdStrList.end()) {
-            outId = startId;
-            ACCOUNT_LOGI("Allocated subspaceId=%{public}d for osAccountId=%{public}d", outId, osAccountId);
-            return ERR_OK;
-        }
-        ++startId;
-        ++searchCount;
-        if (startId > maxId) {
-            startId = minId;
-        }
-        if (searchCount >= totalRange) {
-            ACCOUNT_LOGE("No available index for osAccountId=%{public}d, all %{public}d slots used.",
-                osAccountId, OS_ACCOUNT_SUB_PROFILE_INDEX_MAX);
-            return ERR_OS_ACCOUNT_SUBSPACE_LIMIT;
-        }
-    } while (true);
+    ACCOUNT_LOGI("Allocated subspaceId=%{public}d from global counter", outId);
+    return ERR_OK;
 }
 
 std::string OsAccountSubProfileDataDeal::GetSubProfileDir(int32_t osAccountId, int32_t subspaceId) const
@@ -106,7 +80,7 @@ std::string OsAccountSubProfileDataDeal::GetSubProfileFilePath(
 }
 
 int32_t OsAccountSubProfileDataDeal::ParseDirEntryAsSubProfileId(
-    const struct dirent *entry, int32_t osAccountId, int32_t base)
+    const struct dirent *entry, int32_t osAccountId)
 {
     if (entry->d_type != DT_DIR) {
         return -1;
@@ -129,12 +103,7 @@ int32_t OsAccountSubProfileDataDeal::ParseDirEntryAsSubProfileId(
             name.c_str(), osAccountId);
         return -1;
     }
-    int32_t subspaceId = static_cast<int32_t>(val);
-    int32_t index = subspaceId - base;
-    if (index < OS_ACCOUNT_SUB_PROFILE_INDEX_MIN || index > OS_ACCOUNT_SUB_PROFILE_INDEX_MAX) {
-        return -1;
-    }
-    return subspaceId;
+    return static_cast<int32_t>(val);
 }
 
 ErrCode OsAccountSubProfileDataDeal::ScanSubProfileIds(int32_t osAccountId,
@@ -150,10 +119,9 @@ ErrCode OsAccountSubProfileDataDeal::ScanSubProfileIds(int32_t osAccountId,
         return ERR_OK;
     }
 
-    int32_t base = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
     struct dirent *entry = nullptr;
     while ((entry = readdir(dir)) != nullptr) {
-        int32_t subspaceId = ParseDirEntryAsSubProfileId(entry, osAccountId, base);
+        int32_t subspaceId = ParseDirEntryAsSubProfileId(entry, osAccountId);
         if (subspaceId < 0) {
             continue;
         }
@@ -211,6 +179,7 @@ std::string OsAccountSubProfileDataDeal::SerializeSubProfileInfoToJson(
     AddIntToJson(jsonObj, JSON_KEY_OS_ACCOUNT_ID, info.userId_);
     AddBoolToJson(jsonObj, JSON_KEY_IS_CREATE_COMPLETED, info.isCreateCompleted);
     AddBoolToJson(jsonObj, JSON_KEY_TO_BE_REMOVED, info.toBeRemoved);
+    AddInt64ToJson(jsonObj, JSON_KEY_CREATE_TIME, info.GetCreateTime());
     AddIntToJson(jsonObj, JSON_KEY_BIND_TIME, static_cast<int32_t>(info.bindTime_));
     AddIntToJson(jsonObj, JSON_KEY_VERSION, info.version_);
     AddStringToJson(jsonObj, JSON_KEY_OHOSACCOUNT_NAME, info.ohosAccountInfo_.name_);
@@ -235,6 +204,9 @@ ErrCode OsAccountSubProfileDataDeal::ParseSubProfileInfoFromJson(
     GetDataByType<int32_t>(jsonObj.get(), JSON_KEY_OS_ACCOUNT_ID, info.userId_);
     GetDataByType<bool>(jsonObj.get(), JSON_KEY_IS_CREATE_COMPLETED, info.isCreateCompleted);
     GetDataByType<bool>(jsonObj.get(), JSON_KEY_TO_BE_REMOVED, info.toBeRemoved);
+    int64_t createTime = 0;
+    GetDataByType<int64_t>(jsonObj.get(), JSON_KEY_CREATE_TIME, createTime);
+    info.SetCreateTime(createTime);
     int32_t bindTime = 0;
     GetDataByType<int32_t>(jsonObj.get(), JSON_KEY_BIND_TIME, bindTime);
     info.bindTime_ = static_cast<std::time_t>(bindTime);

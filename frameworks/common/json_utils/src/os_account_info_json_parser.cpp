@@ -48,9 +48,10 @@ CJsonUnique ToJson(const OsAccountInfo &accountInfo)
 
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
     int32_t fgSubProfileId = (accountInfo.foregroundSubProfileId_ == -1) ?
-        accountInfo.localId_ * 1000 : accountInfo.foregroundSubProfileId_;
+        accountInfo.commonSubProfileId_ : accountInfo.foregroundSubProfileId_;
     AddIntToJson(jsonObject, FOREGROUND_SUBPROFILE_ID, fgSubProfileId);
     AddIntToJson(jsonObject, NEXT_SUBPROFILE_ID, accountInfo.nextSubProfileId_);
+    AddIntToJson(jsonObject, COMMON_SUBPROFILE_ID, accountInfo.commonSubProfileId_);
     AddVectorStringToJson(jsonObject, SUBPROFILE_ID_LIST, accountInfo.subProfileIdList_);
 #endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 
@@ -94,9 +95,8 @@ bool FromJson(cJSON *jsonObject, OsAccountInfo &accountInfo)
     GetDataByType<int32_t>(jsonObject, VERSION, accountInfo.version_);
 
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-    int32_t fgSubProfileId = accountInfo.localId_ * 1000;
-    GetDataByType<int32_t>(jsonObject, FOREGROUND_SUBPROFILE_ID, fgSubProfileId);
-    accountInfo.foregroundSubProfileId_ = fgSubProfileId;
+    GetDataByType<int32_t>(jsonObject, FOREGROUND_SUBPROFILE_ID, accountInfo.foregroundSubProfileId_);
+    GetDataByType<int32_t>(jsonObject, COMMON_SUBPROFILE_ID, accountInfo.commonSubProfileId_);
     GetDataByType<int32_t>(jsonObject, NEXT_SUBPROFILE_ID, accountInfo.nextSubProfileId_);
     GetDataByType<std::vector<std::string>>(jsonObject, SUBPROFILE_ID_LIST, accountInfo.subProfileIdList_);
 #endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE

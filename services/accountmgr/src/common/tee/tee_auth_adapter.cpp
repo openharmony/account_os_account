@@ -49,6 +49,7 @@ namespace {
         CHECK_TIMESTAMP_EXPIRE_CMD_ID = 0x00020003,
         USER_TOKEN_APPLY_CMD_ID = 0x00020001,
         USER_ROLE_BATCH_SET_CMD_ID = 0X00010004,
+        GET_TRUSTED_TIME_CMD_ID = 0x00030001,
     };
 }
 
@@ -75,6 +76,7 @@ public:
     ErrCode CheckTimestampExpired(const uint32_t grantTime, const int32_t period,
         int32_t &remainTimeSec, bool &isValid);
     ErrCode TaAcquireAuthorization(const ApplyUserTokenParam &param, ApplyUserTokenResult &result);
+    ErrCode GetTrustedTimeMs(int64_t &timeMs);
 
 private:
     /**
@@ -462,6 +464,28 @@ ErrCode OsAccountTeeAdapter::Impl::TaAcquireAuthorization(
     return ERR_OK;
 }
 
+ErrCode OsAccountTeeAdapter::Impl::GetTrustedTimeMs(int64_t &timeMs)
+{
+    struct TrustedTimeResult {
+        uint32_t timeHigh;
+        uint32_t timeLow;
+    } result = {0, 0};
+    std::function<ErrCode(TEEC_Operation &)> getParamTask = [&result](TEEC_Operation &operation) {
+        operation.started = 1;
+        operation.paramTypes = TEEC_PARAM_TYPES(TEEC_MEMREF_TEMP_OUTPUT, TEEC_NONE, TEEC_NONE, TEEC_NONE);
+        operation.params[INDEX_ZERO].tmpref.buffer = reinterpret_cast<uint8_t *>(&result);
+        operation.params[INDEX_ZERO].tmpref.size = sizeof(result);
+        return ERR_OK;
+    };
+    ErrCode ret = ExecuteCommand(GET_TRUSTED_TIME_CMD_ID, getParamTask);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("GetTrustedTimeMs failed, ret = %{public}d", ret);
+        return ret;
+    }
+    timeMs = (static_cast<int64_t>(result.timeHigh) << 32) | static_cast<int64_t>(result.timeLow);
+    return ERR_OK;
+}
+
 // Public interface implementation - delegates to pImpl
 OsAccountTeeAdapter::OsAccountTeeAdapter() : impl_(std::make_unique<Impl>()) {}
 OsAccountTeeAdapter::~OsAccountTeeAdapter() = default;
@@ -508,6 +532,11 @@ ErrCode OsAccountTeeAdapter::CheckTimestampExpired(const uint32_t grantTime, con
 ErrCode OsAccountTeeAdapter::TaAcquireAuthorization(const ApplyUserTokenParam &param, ApplyUserTokenResult &result)
 {
     return impl_->TaAcquireAuthorization(param, result);
+}
+
+ErrCode OsAccountTeeAdapter::GetTrustedTimeMs(int64_t &timeMs)
+{
+    return impl_->GetTrustedTimeMs(timeMs);
 }
 } // namespace AccountSA
 } // namespace OHOS

@@ -148,10 +148,12 @@ struct OsAccountSubspaceResult : public Parcelable {
     int32_t id = 0;
     int32_t osAccountId = 0;
     int32_t index = 0;
+    int64_t createTime = 0;
 
     bool Marshalling(Parcel &parcel) const override
     {
-        return parcel.WriteInt32(id) && parcel.WriteInt32(osAccountId) && parcel.WriteInt32(index);
+        return parcel.WriteInt32(id) && parcel.WriteInt32(osAccountId) && parcel.WriteInt32(index) &&
+            parcel.WriteInt64(createTime);
     }
     static OsAccountSubspaceResult* Unmarshalling(Parcel &parcel);
 };
@@ -207,6 +209,9 @@ struct OsAccountSubspaceInfo : AccountInfo {
     int32_t subspaceId = 0;
     bool isCreateCompleted = false;
     bool toBeRemoved = false;
+    int64_t createTime_ = 0;
+    int64_t GetCreateTime() const { return createTime_; }
+    void SetCreateTime(int64_t createTime) { createTime_ = createTime; }
 };
 #endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 } // namespace AccountSA

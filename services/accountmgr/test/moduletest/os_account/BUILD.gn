@@ -795,6 +795,7 @@ ohos_moduletest("os_account_subspace_module_test") {
   sources += [
     "${services_path}/accountmgr/src/distributed_account/os_account_subspace_data_deal.cpp",
     "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager.cpp",
+    "${services_path}/accountmgr/src/distributed_account/os_account_sub_profile_id_counter.cpp",
     "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager_service.cpp",
     "${services_path}/accountmgr/src/ability_manager_adapter/ability_manager_adapter.cpp",
     "${os_account_innerkits_native_path}/src/os_account_subprofile_client.cpp",

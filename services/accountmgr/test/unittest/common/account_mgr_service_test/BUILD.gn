@@ -460,6 +460,7 @@ ohos_unittest("OsAccountSubspaceServiceTest") {
   sources += [
     "${services_path}/accountmgr/src/distributed_account/os_account_subspace_data_deal.cpp",
     "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager.cpp",
+    "${services_path}/accountmgr/src/distributed_account/os_account_sub_profile_id_counter.cpp",
     "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager_service.cpp",
   ]
   sources += ability_manager_sources

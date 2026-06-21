@@ -52,6 +52,9 @@
 #include "perf_stat.h"
 #include "string_ex.h"
 #include "system_ability_definition.h"
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+#include "os_account_subspace_manager.h"
+#endif
 #ifdef HICOLLIE_ENABLE
 #include "xcollie/xcollie.h"
 #endif // HICOLLIE_ENABLE
@@ -584,18 +587,31 @@ int32_t AccountMgrService::GetOsAccountLocalIdForSubProfile(
         ACCOUNT_LOGE("Caller is not system app, ret=%{public}d", ret);
         return ret;
     }
-    auto id = subProfileId / Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    ErrCode lookupRet = OsAccountSubProfileManager::GetInstance().GetLocalIdForSubProfile(
+        subProfileId, osAccountId);
+    if (lookupRet != ERR_OK) {
+        return lookupRet;
+    }
+#else
+    constexpr int32_t legacyMultiplier = 1000;
+    auto id = subProfileId / legacyMultiplier;
+    if (subProfileId != id * legacyMultiplier) {
+        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+    }
+    osAccountId = id;
+#endif
     OsAccountInfo osAccountInfo;
-    ret = IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(id, osAccountInfo);
+    ret = IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(osAccountId, osAccountInfo);
     if (ret != ERR_OK) {
         return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
     }
-    ret = IInnerOsAccountManager::GetInstance().CheckLocalIdRestricted(id);
+    ret = IInnerOsAccountManager::GetInstance().CheckLocalIdRestricted(osAccountId);
     if (ret != ERR_OK) {
         return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
     }
 
-    return OhosAccountManager::GetInstance().GetOsAccountLocalIdForSubProfile(subProfileId, osAccountId);
+    return ERR_OK;
 }
 
 int32_t AccountMgrService::GetOsAccountSubProfile(
@@ -614,11 +630,22 @@ int32_t AccountMgrService::GetOsAccountSubProfile(
     }
 
     int32_t osAccountId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
-    if (subProfileId / Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER != osAccountId) {
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    int32_t cachedOsAccountId = 0;
+    ErrCode lookupRet = OsAccountSubProfileManager::GetInstance().GetLocalIdForSubProfile(
+        subProfileId, cachedOsAccountId);
+    if (lookupRet != ERR_OK || cachedOsAccountId != osAccountId) {
         ACCOUNT_LOGE("subProfileId %{public}d does not belong to osAccountId %{public}d",
             subProfileId, osAccountId);
         return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
     }
+#else
+    if (subProfileId / 1000 != osAccountId) {
+        ACCOUNT_LOGE("subProfileId %{public}d does not belong to osAccountId %{public}d",
+            subProfileId, osAccountId);
+        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+    }
+#endif
     ret = IInnerOsAccountManager::GetInstance().CheckLocalIdRestricted(osAccountId);
     if (ret != ERR_OK) {
         return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
@@ -647,11 +674,22 @@ int32_t AccountMgrService::GetOsAccountSubProfile(
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
 
-    if (subProfileId / Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER != osAccountId) {
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    int32_t cachedOsAccountId = 0;
+    ErrCode lookupRet = OsAccountSubProfileManager::GetInstance().GetLocalIdForSubProfile(
+        subProfileId, cachedOsAccountId);
+    if (lookupRet != ERR_OK || cachedOsAccountId != osAccountId) {
         ACCOUNT_LOGE("subProfileId %{public}d does not belong to osAccountId %{public}d",
             subProfileId, osAccountId);
         return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
     }
+#else
+    if (subProfileId / 1000 != osAccountId) {
+        ACCOUNT_LOGE("subProfileId %{public}d does not belong to osAccountId %{public}d",
+            subProfileId, osAccountId);
+        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+    }
+#endif
     OsAccountInfo osAccountInfo;
     ret = IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(osAccountId, osAccountInfo);
     if (ret != ERR_OK) {

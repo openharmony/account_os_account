@@ -159,6 +159,8 @@
         OHOS::AccountSA::OsAccountManager::GetDefaultActivatedOsAccount*;
         OHOS::AccountSA::OsAccountManager::SetDefaultActivatedOsAccount*;
         "OHOS::AccountSA::OsAccountInfo::GetForegroundSubProfileId() const";
+        "OHOS::AccountSA::OsAccountInfo::GetCommonSubProfileId() const";
+        "OHOS::AccountSA::OsAccountInfo::SetCommonSubProfileId(int)";
         "OHOS::AccountSA::OsAccountManager::SetOsAccountName(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::AccountSA::OsAccountManager::CreateOsAccountForDomain(OHOS::AccountSA::OsAccountType const&, OHOS::AccountSA::DomainAccountInfo const&, std::__h::shared_ptr<OHOS::AccountSA::DomainAccountCallback> const&)";
         "OHOS::AccountSA::OsAccountManager::GetDistributedVirtualDeviceId(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&)";
