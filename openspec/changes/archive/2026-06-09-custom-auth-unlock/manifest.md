@@ -22,6 +22,6 @@ code_refs: []
 commits: []
 baseline_approval:
   approved: true
-  approver: "用户确认"
-  evidence: "2026-05-28 用户明确回复'已确认'"
+  approver: "User confirmed"
+  evidence: "2026-05-28 User explicitly replied 'confirmed'"
 ---
