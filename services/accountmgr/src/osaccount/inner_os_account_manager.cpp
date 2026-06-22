@@ -74,19 +74,13 @@ namespace OHOS {
 namespace AccountSA {
 
 namespace {
-const char OPERATION_UPDATE[] = "update";
 #ifdef SUPPORT_AUTHORIZATION
 const char OPERATION_GET_TYPE[] = "getType";
 #ifndef IS_EMULATOR
 const char MANAGE_LOCAL_ACCOUNTS[] = "ohos.permission.MANAGE_LOCAL_ACCOUNTS";
 #endif // IS_EMULATOR
 #endif // SUPPORT_AUTHORIZATION
-const char OPERATION_SET_TYPE[] = "setType";
-const char OPERATION_SET_TO_BE_REMOVED[] = "setToBeRemoved";
 const char ADMIN_LOCAL_NAME[] = "admin";
-#ifdef SUPPORT_LOCK_OS_ACCOUNT
-const char OPERATION_LOCK[] = "lock";
-#endif
 #ifdef ENABLE_DEFAULT_ADMIN_NAME
 const char STANDARD_LOCAL_NAME[] = "user";
 #endif
@@ -542,6 +536,7 @@ ErrCode IInnerOsAccountManager::ActivateDefaultOsAccount()
         callbackFunc, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
 #endif // HICOLLIE_ENABLE
     ACCOUNT_LOGI("Start to activate default account");
+    ReportOsAccountLifeCycle(activatedId, Constants::OPERATION_BOOT_ACTIVATING);
     // Activate U1 account if enabled
     ErrCode errCode = ActivateU1Account();
     if (errCode != ERR_OK) {
@@ -1100,10 +1095,10 @@ ErrCode IInnerOsAccountManager::UpdateOsAccountWithFullInfo(OsAccountInfo &newIn
     errCode = osAccountControl_->UpdateOsAccount(oldInfo);
     newInfo = oldInfo;
     if (errCode != ERR_OK) {
-        ReportOsAccountOperationFail(localId, OPERATION_UPDATE, errCode, "UpdateOsAccount failed!");
+        ReportOsAccountOperationFail(localId, Constants::OPERATION_UPDATE, errCode, "UpdateOsAccount failed!");
     } else {
         OsAccountInterface::PublishCommonEvent(oldInfo,
-            OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, OPERATION_UPDATE);
+            OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, Constants::OPERATION_UPDATE);
     }
     RemoveLocalIdToOperating(localId);
     return errCode;
@@ -1972,12 +1967,13 @@ ErrCode IInnerOsAccountManager::SetGlobalOsAccountConstraints(const std::vector<
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(enforcerId, osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Get osaccount info failed, errCode = %{public}d", errCode);
-        REPORT_OS_ACCOUNT_FAIL(enforcerId, Constants::OPERATION_CONSTRAINT, errCode, "Get osaccount info failed");
+        REPORT_OS_ACCOUNT_FAIL(enforcerId, Constants::OPERATION_SET_GLOBAL_CONSTRAINTS,
+            errCode, "Get osaccount info failed");
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     if (osAccountInfo.GetToBeRemoved()) {
         ACCOUNT_LOGE("Account %{public}d will be removed, cannot change constraints!", enforcerId);
-        REPORT_OS_ACCOUNT_FAIL(enforcerId, Constants::OPERATION_CONSTRAINT,
+        REPORT_OS_ACCOUNT_FAIL(enforcerId, Constants::OPERATION_SET_GLOBAL_CONSTRAINTS,
             ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR, "Account to be removed");
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR;
     }
@@ -1999,6 +1995,7 @@ ErrCode IInnerOsAccountManager::SetGlobalOsAccountConstraints(const std::vector<
     }
     ACCOUNT_LOGI("Set account %{public}d global OA constraints %{public}d success, callingUid = %{public}d",
         enforcerId, enable, IPCSkeleton::GetCallingUid());
+    ReportOsAccountLifeCycle(enforcerId, Constants::OPERATION_SET_GLOBAL_CONSTRAINTS);
     return ERR_OK;
 }
 
@@ -2009,7 +2006,8 @@ ErrCode IInnerOsAccountManager::SetSpecificOsAccountConstraints(const std::vecto
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(enforcerId, enforcerOsAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Get enforcer info failed, errCode = %{public}d", errCode);
-        REPORT_OS_ACCOUNT_FAIL(enforcerId, Constants::OPERATION_CONSTRAINT, errCode, "Get enforcer info failed");
+        REPORT_OS_ACCOUNT_FAIL(enforcerId, Constants::OPERATION_SET_SPECIFIC_CONSTRAINTS,
+            errCode, "Get enforcer info failed");
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
 
@@ -2017,13 +2015,14 @@ ErrCode IInnerOsAccountManager::SetSpecificOsAccountConstraints(const std::vecto
     errCode = osAccountControl_->GetOsAccountInfoById(targetId, targetOsAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Get target info failed, errCode = %{public}d", errCode);
-        REPORT_OS_ACCOUNT_FAIL(targetId, Constants::OPERATION_CONSTRAINT, errCode, "Get target info failed");
+        REPORT_OS_ACCOUNT_FAIL(targetId, Constants::OPERATION_SET_SPECIFIC_CONSTRAINTS,
+            errCode, "Get target info failed");
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     if (targetOsAccountInfo.GetToBeRemoved() || enforcerOsAccountInfo.GetToBeRemoved()) {
         ACCOUNT_LOGE("Account %{public}d or %{public}d will be removed, cannot change constraints!",
             enforcerId, targetId);
-        REPORT_OS_ACCOUNT_FAIL(enforcerId, Constants::OPERATION_CONSTRAINT,
+        REPORT_OS_ACCOUNT_FAIL(enforcerId, Constants::OPERATION_SET_SPECIFIC_CONSTRAINTS,
             ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR, "Enforcer " + std::to_string(enforcerId) +
             " or target " + std::to_string(targetId) + " to be removed");
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR;
@@ -2047,6 +2046,7 @@ ErrCode IInnerOsAccountManager::SetSpecificOsAccountConstraints(const std::vecto
     }
     ACCOUNT_LOGI("Set %{public}d specific constraints %{public}d for %{public}d success, callingUid = %{public}d",
         enforcerId, enable, targetId, IPCSkeleton::GetCallingUid());
+    ReportOsAccountLifeCycle(enforcerId, Constants::OPERATION_SET_SPECIFIC_CONSTRAINTS);
     return ERR_OK;
 }
 
@@ -2319,7 +2319,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountType(const int id,
     errCode = CheckTypeNumber(type);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Check type number failed.");
-        ReportOsAccountOperationFail(id, OPERATION_SET_TYPE, errCode, "CheckTypeNumber failed!");
+        ReportOsAccountOperationFail(id, Constants::OPERATION_SET_TYPE, errCode, "CheckTypeNumber failed!");
         return errCode;
     }
 
@@ -2353,14 +2353,14 @@ ErrCode IInnerOsAccountManager::SetOsAccountType(const int id,
         ACCOUNT_LOGE("Update os account failed, id: %{public}d, errCode: %{public}d", id, errCode);
 #ifndef SUPPORT_AUTHORIZATION
         RemoveLocalIdToOperating(id);
-        ReportOsAccountOperationFail(id, OPERATION_SET_TYPE, errCode, "UpdateOsAccount failed!");
+        ReportOsAccountOperationFail(id, Constants::OPERATION_SET_TYPE, errCode, "UpdateOsAccount failed!");
         return errCode;
 #endif // SUPPORT_AUTHORIZATION
     }
 
     ReportAccountOperationEvent(ACCOUNT_OPERATION_TYPE_UPDATE_TYPE, osAccountInfo.GetLocalName(), id);
     OsAccountInterface::PublishCommonEvent(osAccountInfo,
-        OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, OPERATION_SET_TYPE);
+        OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, Constants::OPERATION_SET_TYPE);
     RemoveLocalIdToOperating(id);
     return ERR_OK;
 }
@@ -2374,7 +2374,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountTypeInTEE(
     ErrCode errCode = teeAdapter_.SetOsAccountType(id, static_cast<int32_t>(type), tokenData);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("SetOsAccountType in TEE failed, id: %{public}d, errCode: %{public}d", id, errCode);
-        ReportOsAccountOperationFail(id, OPERATION_SET_TYPE, errCode, "SetOsAccountType in TEE failed!");
+        ReportOsAccountOperationFail(id, Constants::OPERATION_SET_TYPE, errCode, "SetOsAccountType in TEE failed!");
         return errCode;
     }
     return ERR_OK;
@@ -2560,7 +2560,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountName(const int id, const std::string
     }
     ReportAccountOperationEvent(ACCOUNT_OPERATION_TYPE_UPDATE_NAME, name, id, localName);
     OsAccountInterface::PublishCommonEvent(
-        osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, OPERATION_UPDATE);
+        osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, Constants::OPERATION_UPDATE);
     return ERR_OK;
 }
 
@@ -2571,14 +2571,14 @@ ErrCode IInnerOsAccountManager::SetOsAccountConstraints(
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Get osaccount info failed, errCode = %{public}d", errCode);
-        REPORT_OS_ACCOUNT_FAIL(id, Constants::OPERATION_CONSTRAINT, errCode, "Get osaccount info failed");
+        REPORT_OS_ACCOUNT_FAIL(id, Constants::OPERATION_SET_CONSTRAINTS, errCode, "Get osaccount info failed");
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
 
     // to be removed, cannot change any thing
     if (osAccountInfo.GetToBeRemoved()) {
         ACCOUNT_LOGE("Account %{public}d will be removed, cannot change constraints!", id);
-        REPORT_OS_ACCOUNT_FAIL(id, Constants::OPERATION_CONSTRAINT,
+        REPORT_OS_ACCOUNT_FAIL(id, Constants::OPERATION_SET_CONSTRAINTS,
             ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR, "Account to be removed");
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR;
     }
@@ -2604,11 +2604,12 @@ ErrCode IInnerOsAccountManager::SetOsAccountConstraints(
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Update osaccount info error %{public}d, id: %{public}d", errCode, osAccountInfo.GetLocalId());
-        REPORT_OS_ACCOUNT_FAIL(id, Constants::OPERATION_CONSTRAINT, errCode, "Update osaccount info failed");
+        REPORT_OS_ACCOUNT_FAIL(id, Constants::OPERATION_SET_CONSTRAINTS, errCode, "Update osaccount info failed");
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
     OsAccountInterface::PublishCommonEvent(
-        osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, OPERATION_UPDATE);
+        osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, Constants::OPERATION_UPDATE);
+    ReportOsAccountLifeCycle(id, Constants::OPERATION_SET_CONSTRAINTS);
     ACCOUNT_LOGI("Set os account %{public}d constraints %{public}d success, callingUid = %{public}d",
         id, enable, IPCSkeleton::GetCallingUid());
     return ERR_OK;
@@ -2646,7 +2647,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountProfilePhoto(const int id, const std
     ReportUserDataSize(GetVerifiedAccountIds(verifiedAccounts_));
     ReportAccountOperationEvent(ACCOUNT_OPERATION_TYPE_UPDATE_PHOTO, osAccountInfo.GetLocalName(), id);
     OsAccountInterface::PublishCommonEvent(
-        osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, OPERATION_UPDATE);
+        osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, Constants::OPERATION_UPDATE);
     return ERR_OK;
 }
 
@@ -3085,7 +3086,6 @@ void IInnerOsAccountManager::RollBackToEarlierAccount(int32_t fromId, int32_t to
         return;
     }
     subscribeManager_.Publish(toId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED, fromId, displayId);
-    ReportOsAccountSwitch(fromId, toId);
     ACCOUNT_LOGI("End pushlishing pre switch event.");
     OsAccountInfo osAccountInfo;
     osAccountInfo.SetLocalId(toId);
@@ -3776,8 +3776,6 @@ ErrCode IInnerOsAccountManager::UpdateAccountInfoByDomainAccountInfo(
     result = osAccountControl_->UpdateOsAccount(accountInfo);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Update account info failed, result = %{public}d", result);
-        ReportOsAccountOperationFail(userId, OPERATION_UPDATE, result,
-            "Failed to update domain account info");
         RemoveLocalIdToOperating(userId);
         return result;
     }
@@ -3843,7 +3841,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountToBeRemoved(int32_t localId, bool to
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(localId, osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Get osaccount info error, errCode %{public}d.", errCode);
-        ReportOsAccountOperationFail(localId, OPERATION_SET_TO_BE_REMOVED, errCode,
+        ReportOsAccountOperationFail(localId, Constants::OPERATION_SET_TO_BE_REMOVED, errCode,
             "Get account info failed when set ToBeRemoved");
         RemoveLocalIdToOperating(localId);
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
@@ -3860,12 +3858,13 @@ ErrCode IInnerOsAccountManager::SetOsAccountToBeRemoved(int32_t localId, bool to
     osAccountInfo.SetToBeRemoved(toBeRemoved);
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
-        ReportOsAccountOperationFail(localId, OPERATION_SET_TO_BE_REMOVED, errCode,
+        ReportOsAccountOperationFail(localId, Constants::OPERATION_SET_TO_BE_REMOVED, errCode,
             "Update ToBeRemoved flag failed");
         ACCOUNT_LOGE("Update ToBeRemoved flag failed, err=%{public}d", errCode);
+    } else {
+        ReportOsAccountLifeCycle(localId, Constants::OPERATION_SET_TO_BE_REMOVED);
     }
     RemoveLocalIdToOperating(localId);
-    ReportOsAccountLifeCycle(localId, OPERATION_SET_TO_BE_REMOVED);
     return errCode;
 }
 
@@ -3877,7 +3876,7 @@ ErrCode IInnerOsAccountManager::ResetDefaultActivatedAccount(int32_t localId)
         ErrCode err = osAccountControl_->SetDefaultActivatedOsAccount(Constants::DEFAULT_DISPLAY_ID,
             Constants::START_USER_ID);
         if (err != ERR_OK) {
-            ReportOsAccountOperationFail(localId, OPERATION_SET_TO_BE_REMOVED, err,
+            ReportOsAccountOperationFail(localId, Constants::OPERATION_SET_TO_BE_REMOVED, err,
                 "Persist defaultActivatedId to START_USER_ID failed for default display");
             ACCOUNT_LOGE("SetDefaultActivatedOsAccount persist failed for default display, err=%{public}d", err);
             return err;
@@ -4039,7 +4038,7 @@ ErrCode IInnerOsAccountManager::LockOsAccount(const int32_t localId)
         lockingAccounts_.Erase(localId);
         RemoveLocalIdToOperating(localId);
         ACCOUNT_LOGE("Failed to lock os account, ret is %{public}d", ret);
-        ReportOsAccountOperationFail(localId, OPERATION_LOCK, ret, "Lock OsAccount failed!");
+        ReportOsAccountOperationFail(localId, Constants::OPERATION_LOCK, ret, "Lock OsAccount failed!");
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_LOCK_ERROR;
     }
     lockingAccounts_.Erase(localId);

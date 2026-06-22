@@ -74,8 +74,16 @@ const char OPERATION_DELETE_CRED[] = "deleteCredential";
 const char OPERATION_LOG_ERROR[] = "errLog";
 const char OPERATION_UPDATE_SERVER_CONFIG[] = "updateServerConfig";
 const char OPERATION_CONSTRAINT[] = "constraintManagement";
+const char OPERATION_SET_CONSTRAINTS[] = "setConstraints";
+const char OPERATION_SET_GLOBAL_CONSTRAINTS[] = "setGlobalConstraints";
+const char OPERATION_SET_SPECIFIC_CONSTRAINTS[] = "setSpecificConstraints";
 const char OPERATION_SECOND_MOUNT[] = "secondMount";
 const char OPERATION_POSIX_FILE[] = "posixFileOperate";
+const char OPERATION_LOCK[] = "lock";
+const char OPERATION_UPDATE[] = "update";
+const char OPERATION_SET_TYPE[] = "setType";
+const char OPERATION_SET_TO_BE_REMOVED[] = "setToBeRemoved";
+const char OPERATION_MIGRATE_TYPE_TO_TEE[] = "migrateOSAccountTypeToTee";
 
 // Domain account DFX flag
 const char OPERATION_BIND_DOMAIN_ACCOUNT[] = "bindDomainAccount";
