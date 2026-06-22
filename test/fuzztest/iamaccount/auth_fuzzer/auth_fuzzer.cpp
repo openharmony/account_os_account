@@ -58,20 +58,24 @@ namespace OHOS {
     {
         FuzzData fuzzData(data, size);
         std::vector<uint8_t> challenge = {fuzzData.GetData<uint8_t>()};
-        AuthType authType = fuzzData.GenerateEnmu(UserIam::UserAuth::RECOVERY_KEY);
+        AuthType authType = static_cast<AuthType>(1 << (fuzzData.GetData<uint32_t>() % 11));
         AuthTrustLevel authTrustLevel = fuzzData.GenerateEnmu(UserIam::UserAuth::ATL4);
         std::shared_ptr<IDMCallback> callback = make_shared<MockIDMCallback>();
         AuthOptions authOptions;
         authOptions.hasAccountId = fuzzData.GetData<bool>();
         if (authOptions.hasAccountId) {
             authOptions.accountId = fuzzData.GetData<bool>() ? fuzzData.GetData<int32_t>() % Constants::MAX_USER_ID
-                                                            : fuzzData.GetData<int32_t>();
+                                                             : fuzzData.GetData<int32_t>();
         }
         authOptions.hasRemoteAuthOptions = fuzzData.GetData<bool>();
         if (authOptions.hasRemoteAuthOptions) {
             GenRemoteAuthOptions(fuzzData, authOptions.remoteAuthOptions);
         }
         authOptions.authIntent = fuzzData.GenerateEnmu(AuthIntent::ABANDONED_PIN_AUTH);
+        authOptions.hasAdditionalInfo = fuzzData.GenerateBool();
+        if (authOptions.hasAdditionalInfo) {
+            authOptions.additionalInfo = fuzzData.GenerateString();
+        }
         std::vector<uint8_t> result = AccountIAMClient::GetInstance().Auth(
             authOptions, challenge, authType, authTrustLevel, callback);
         return true;

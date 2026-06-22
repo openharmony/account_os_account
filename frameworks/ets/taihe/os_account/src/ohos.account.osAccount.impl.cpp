@@ -64,7 +64,8 @@ const std::set<int32_t> TARGET_TYPES = {
     static_cast<int32_t>(UserIam::UserAuth::AuthType::FINGERPRINT),
     static_cast<int32_t>(UserIam::UserAuth::AuthType::FACE),
     static_cast<int32_t>(UserIam::UserAuth::AuthType::PRIVATE_PIN),
-    static_cast<int32_t>(UserIam::UserAuth::AuthType::COMPANION_DEVICE)
+    static_cast<int32_t>(UserIam::UserAuth::AuthType::COMPANION_DEVICE),
+    static_cast<int32_t>(UserIam::UserAuth::AuthType::CUSTOM_AUTH)
 };
 const std::set<int32_t> UNSUPPORTED_TYPES = {
     static_cast<int32_t>(UserIam::UserAuth::AuthType::RECOVERY_KEY),
@@ -242,6 +243,8 @@ AuthType ConvertToAuthTypeTH(const AccountSA::AuthType &type)
             return AuthType(AuthType::key_t::PRIVATE_PIN);
         case AccountSA::AuthType::COMPANION_DEVICE:
             return AuthType(AuthType::key_t::COMPANION_DEVICE);
+        case AccountSA::AuthType::CUSTOM_AUTH:
+            return AuthType(AuthType::key_t::CUSTOM);
         case AccountSA::IAMAuthType::DOMAIN:
             return AuthType(AuthType::key_t::DOMAIN);
         default:
@@ -1042,6 +1045,10 @@ AccountSA::AuthOptions ConvertToAuthOptionsInner(const AuthOptions &options)
     }
     if (options.authIntent.has_value()) {
         authOptionsInner.authIntent = static_cast<AccountSA::AuthIntent>(options.authIntent.value().get_value());
+    }
+    if (options.additionalInfo.has_value()) {
+        authOptionsInner.hasAdditionalInfo = true;
+        authOptionsInner.additionalInfo = std::string(options.additionalInfo.value().c_str());
     }
     if (options.remoteAuthOptions.has_value()) {
         authOptionsInner.hasRemoteAuthOptions = true;

@@ -300,6 +300,9 @@ void InnerAccountIAMManager::CopyAuthParam(const AuthParam &authParam, UserIam::
                 authParam.remoteAuthParam.value().collectorTokenId.value();
         }
     }
+    if (authParam.additionalInfo.has_value()) {
+        iamAuthParam.additionalInfo = authParam.additionalInfo.value();
+    }
 }
 
 int32_t InnerAccountIAMManager::AuthUser(

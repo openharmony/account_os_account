@@ -92,6 +92,17 @@ bool AuthParam::Marshalling(Parcel& parcel) const
         ACCOUNT_LOGE("Failed to write remoteAuthParam");
         return false;
     }
+    bool hasAdditionalInfo = additionalInfo.has_value();
+    if (!parcel.WriteBool(hasAdditionalInfo)) {
+        ACCOUNT_LOGE("Failed to write hasAdditionalInfo");
+        return false;
+    }
+    if (hasAdditionalInfo) {
+        if (!parcel.WriteString(additionalInfo.value())) {
+            ACCOUNT_LOGE("Failed to write additionalInfo");
+            return false;
+        }
+    }
     return true;
 }
 
@@ -137,6 +148,19 @@ bool AuthParam::ReadFromParcel(Parcel& parcel)
     if (!ReadRemoteAuthParam(parcel)) {
         ACCOUNT_LOGE("Failed to read remoteAuthParam for AuthUser");
         return false;
+    }
+    bool hasAdditionalInfo = false;
+    if (!parcel.ReadBool(hasAdditionalInfo)) {
+        ACCOUNT_LOGE("Failed to read hasAdditionalInfo");
+        return false;
+    }
+    if (hasAdditionalInfo) {
+        std::string additionalInfoStr;
+        if (!parcel.ReadString(additionalInfoStr)) {
+            ACCOUNT_LOGE("Failed to read additionalInfo");
+            return false;
+        }
+        additionalInfo = additionalInfoStr;
     }
     return true;
 }

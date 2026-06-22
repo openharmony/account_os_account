@@ -340,6 +340,9 @@ static void CopyAuthOptionsToAuthParam(const AuthOptions &authOptions, AuthParam
 {
     authParam.userId = authOptions.accountId;
     authParam.authIntent = authOptions.authIntent;
+    if (authOptions.hasAdditionalInfo) {
+        authParam.additionalInfo = authOptions.additionalInfo;
+    }
     if (!authOptions.hasRemoteAuthOptions) {
         return;
     }
@@ -450,6 +453,8 @@ uint8_t AccountIAMClient::GetAuthTypeIndex(AuthType authType)
             return static_cast<uint8_t>(AuthTypeIndex::TUI_PIN);
         case AuthType::COMPANION_DEVICE:
             return static_cast<uint8_t>(AuthTypeIndex::COMPANION_DEVICE);
+        case AuthType::CUSTOM_AUTH:
+            return static_cast<uint8_t>(AuthTypeIndex::CUSTOM);
         case IAMAuthType::DOMAIN:
             return static_cast<uint8_t>(AuthTypeIndex::DOMAIN);
         default:

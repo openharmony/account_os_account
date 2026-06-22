@@ -534,5 +534,120 @@ HWTEST_F(AccountIAMInfoTest, AccountIAMInfo_Marshalling_0700, TestSize.Level3)
     EXPECT_EQ(ohosAccountInfo.avatar_, ohosAccountInfo1->avatar_);
     EXPECT_EQ(ohosAccountInfo.scalableData_, ohosAccountInfo1->scalableData_);
 }
+
+/**
+ * @tc.name: AccountIAMInfo_AuthParam_Marshalling_WithAdditionalInfo_0100
+ * @tc.desc: AuthParam Marshalling/Unmarshalling with additionalInfo
+ * @tc.type: FUNC
+ * @tc.require: FEAT-20260528-001
+ */
+HWTEST_F(AccountIAMInfoTest, AccountIAMInfo_AuthParam_Marshalling_WithAdditionalInfo_0100, TestSize.Level3)
+{
+    Parcel parcel;
+    AccountSA::AuthParam authParam;
+    authParam.userId = TEST_USER_ID;
+    authParam.challenge = TEST_CHALLENGE;
+    authParam.authType = static_cast<AuthType>(128);
+    authParam.authTrustLevel = AuthTrustLevel::ATL3;
+    authParam.authIntent = AuthIntent::DEFAULT;
+    authParam.additionalInfo = "CustomAuthData";
+
+    EXPECT_TRUE(authParam.Marshalling(parcel));
+    parcel.RewindRead(0);
+    AccountSA::AuthParam *authParam1 = authParam.Unmarshalling(parcel);
+    EXPECT_NE(authParam1, nullptr);
+
+    EXPECT_EQ(authParam.userId, authParam1->userId);
+    EXPECT_EQ(authParam.authType, authParam1->authType);
+    EXPECT_EQ(authParam.authTrustLevel, authParam1->authTrustLevel);
+    EXPECT_EQ(authParam.authIntent, authParam1->authIntent);
+    EXPECT_EQ(authParam.challenge, authParam1->challenge);
+    EXPECT_TRUE(authParam1->additionalInfo.has_value());
+    EXPECT_EQ(authParam1->additionalInfo.value(), "CustomAuthData");
+    delete authParam1;
+}
+
+/**
+ * @tc.name: AccountIAMInfo_AuthParam_Marshalling_NoAdditionalInfo_0100
+ * @tc.desc: AuthParam Marshalling/Unmarshalling without additionalInfo
+ * @tc.type: FUNC
+ * @tc.require: FEAT-20260528-001
+ */
+HWTEST_F(AccountIAMInfoTest, AccountIAMInfo_AuthParam_Marshalling_NoAdditionalInfo_0100, TestSize.Level3)
+{
+    Parcel parcel;
+    AccountSA::AuthParam authParam;
+    authParam.userId = TEST_USER_ID;
+    authParam.challenge = TEST_CHALLENGE;
+    authParam.authType = AuthType::PIN;
+    authParam.authTrustLevel = AuthTrustLevel::ATL1;
+    authParam.authIntent = AuthIntent::DEFAULT;
+
+    EXPECT_TRUE(authParam.Marshalling(parcel));
+    AccountSA::AuthParam *authParam1 = authParam.Unmarshalling(parcel);
+    EXPECT_NE(authParam1, nullptr);
+
+    EXPECT_EQ(authParam.userId, authParam1->userId);
+    EXPECT_EQ(authParam.authType, authParam1->authType);
+    EXPECT_FALSE(authParam1->additionalInfo.has_value());
+    delete authParam1;
+}
+
+/**
+ * @tc.name: AccountIAMInfo_AuthType_CUSTOM_0100
+ * @tc.desc: Verify AuthTypeIndex::CUSTOM = 7 mapping
+ * @tc.type: FUNC
+ * @tc.require: FEAT-20260528-001
+ */
+HWTEST_F(AccountIAMInfoTest, AccountIAMInfo_AuthType_CUSTOM_0100, TestSize.Level0)
+{
+    EXPECT_EQ(static_cast<uint8_t>(AuthTypeIndex::CUSTOM), 7);
+    EXPECT_EQ(static_cast<int32_t>(static_cast<AuthType>(128)), 128);
+}
+
+/**
+ * @tc.name: AccountIAMInfo_AuthOptions_AdditionalInfo_0100
+ * @tc.desc: AuthOptions with additionalInfo field
+ * @tc.type: FUNC
+ * @tc.require: FEAT-20260528-001
+ */
+HWTEST_F(AccountIAMInfoTest, AccountIAMInfo_AuthOptions_AdditionalInfo_0100, TestSize.Level0)
+{
+    AccountSA::AuthOptions authOptions;
+    EXPECT_FALSE(authOptions.hasAdditionalInfo);
+    EXPECT_TRUE(authOptions.additionalInfo.empty());
+
+    authOptions.additionalInfo = "TestData";
+    authOptions.hasAdditionalInfo = true;
+
+    EXPECT_TRUE(authOptions.hasAdditionalInfo);
+    EXPECT_EQ(authOptions.additionalInfo, "TestData");
+}
+
+/**
+ * @tc.name: AccountIAMInfo_CredentialParametersIam_WithAdditionalInfo_0100
+ * @tc.desc: CredentialParametersIam Marshalling/Unmarshalling with additionalInfo
+ * @tc.type: FUNC
+ * @tc.require: FEAT-20260528-001
+ */
+HWTEST_F(AccountIAMInfoTest, AccountIAMInfo_CredentialParametersIam_WithAdditionalInfo_0100, TestSize.Level3)
+{
+    Parcel parcel;
+    AccountSA::CredentialParametersIam credentialParametersIam;
+    std::vector<uint8_t> testToken = {1, 2, 3, 4};
+    credentialParametersIam.credentialParameters.authType = static_cast<AuthType>(128);
+    credentialParametersIam.credentialParameters.token = testToken;
+    credentialParametersIam.credentialParameters.additionalInfo = "CustomCredInfo";
+
+    EXPECT_TRUE(credentialParametersIam.Marshalling(parcel));
+    AccountSA::CredentialParametersIam *credential = credentialParametersIam.Unmarshalling(parcel);
+    EXPECT_NE(credential, nullptr);
+
+    EXPECT_EQ(credentialParametersIam.credentialParameters.authType, credential->credentialParameters.authType);
+    EXPECT_EQ(credentialParametersIam.credentialParameters.token, credential->credentialParameters.token);
+    EXPECT_EQ(credentialParametersIam.credentialParameters.additionalInfo,
+        credential->credentialParameters.additionalInfo);
+    delete credential;
+}
 }  // namespace AccountTest
 }  // namespace OHOS

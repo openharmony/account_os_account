@@ -108,6 +108,7 @@ struct AuthParam : public Parcelable {
     AuthTrustLevel authTrustLevel;
     AuthIntent authIntent = AuthIntent::DEFAULT;
     std::optional<RemoteAuthParam> remoteAuthParam;
+    std::optional<std::string> additionalInfo;
     bool Marshalling(Parcel& parcel) const override;
     static AuthParam* Unmarshalling(Parcel& parcel);
 
@@ -130,8 +131,10 @@ struct AuthOptions {
     int32_t accountId = -1;
     AuthIntent authIntent = AuthIntent::DEFAULT;
     RemoteAuthOptions remoteAuthOptions;
+    std::string additionalInfo;
     bool hasRemoteAuthOptions = false;
     bool hasAccountId = false;
+    bool hasAdditionalInfo = false;
 };
 
 struct CredentialInfoIam : public Parcelable {
@@ -175,6 +178,7 @@ enum class AuthTypeIndex : uint8_t {
     PRIVATE_PIN = 4,  // AuthType::PRIVATE_PIN (16)
     TUI_PIN = 5,      // AuthType::TUI_PIN (32)
     COMPANION_DEVICE = 6,      // AuthType::COMPANION_DEVICE (64)
+    CUSTOM = 7,       // AuthType::CUSTOM_AUTH (128)
     DOMAIN = 10,      // AuthType::DOMAIN (1024)
 };
 

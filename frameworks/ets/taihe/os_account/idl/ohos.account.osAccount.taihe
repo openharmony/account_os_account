@@ -364,6 +364,7 @@ enum AuthType : i32 {
     RECOVERY_KEY = 8,
     PRIVATE_PIN = 16,
     COMPANION_DEVICE = 64,
+    CUSTOM = 128,
     DOMAIN = 1024
 }
 
@@ -724,6 +725,7 @@ struct AuthOptions {
     accountId: Optional<i32>;
     authIntent: Optional<AuthIntent>;
     remoteAuthOptions: Optional<RemoteAuthOptions>;
+    additionalInfo: Optional<String>;
 }
 
 struct ExecutorProperty {
