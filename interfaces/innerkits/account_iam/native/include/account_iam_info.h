@@ -57,6 +57,7 @@ typedef UserIam::UserAuth::GetCredentialInfoCallback GetCredentialInfoCallback;
 typedef UserIam::UserAuth::PrepareRemoteAuthCallback PrepareRemoteAuthCallback;
 typedef UserIam::UserAuth::GetSecUserInfoCallback GetSecUserInfoCallback;
 const int32_t AUTHORIZATION_INTENT_NUM = 100001;
+const int32_t ADDITIONAL_INFO_MAX_SIZE = 500 * 1024; // 500KB
 
 enum IAMAuthType {
     DOMAIN = 1024,
@@ -116,6 +117,8 @@ private:
     bool WriteRemoteAuthParam(Parcel& parcel) const;
     bool ReadRemoteAuthParam(Parcel& parcel);
     bool ReadFromParcel(Parcel& parcel);
+    bool WriteAdditionalInfo(Parcel &parcel) const;
+    bool ReadAdditionalInfo(Parcel &parcel);
 };
 
 struct RemoteAuthOptions {

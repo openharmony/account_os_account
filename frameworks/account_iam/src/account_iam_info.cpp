@@ -16,6 +16,7 @@
 #include "account_iam_info.h"
 
 #include "account_log_wrapper.h"
+#include "message_parcel.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -92,16 +93,32 @@ bool AuthParam::Marshalling(Parcel& parcel) const
         ACCOUNT_LOGE("Failed to write remoteAuthParam");
         return false;
     }
-    bool hasAdditionalInfo = additionalInfo.has_value();
-    if (!parcel.WriteBool(hasAdditionalInfo)) {
-        ACCOUNT_LOGE("Failed to write hasAdditionalInfo");
+    if (!WriteAdditionalInfo(parcel)) {
+        ACCOUNT_LOGE("Failed to write additionalInfo");
         return false;
     }
-    if (hasAdditionalInfo) {
-        if (!parcel.WriteString(additionalInfo.value())) {
-            ACCOUNT_LOGE("Failed to write additionalInfo");
-            return false;
-        }
+    return true;
+}
+
+bool AuthParam::WriteAdditionalInfo(Parcel &parcel) const
+{
+    bool hasValue = additionalInfo.has_value();
+    if (!parcel.WriteBool(hasValue)) {
+        ACCOUNT_LOGE("Write additionalInfo exist failed.");
+        return false;
+    }
+    if (!hasValue) {
+        return true;
+    }
+    int32_t additionalInfoSize = static_cast<int32_t>(additionalInfo.value().size());
+    if (!parcel.WriteInt32(additionalInfoSize)) {
+        ACCOUNT_LOGE("write additionalInfoSize failed!");
+        return false;
+    }
+    if (!static_cast<MessageParcel &>(parcel).WriteRawData(static_cast<const void *>(
+        additionalInfo.value().c_str()), additionalInfoSize)) {
+        ACCOUNT_LOGE("write additionalInfo failed!");
+        return false;
     }
     return true;
 }
@@ -149,19 +166,38 @@ bool AuthParam::ReadFromParcel(Parcel& parcel)
         ACCOUNT_LOGE("Failed to read remoteAuthParam for AuthUser");
         return false;
     }
-    bool hasAdditionalInfo = false;
-    if (!parcel.ReadBool(hasAdditionalInfo)) {
-        ACCOUNT_LOGE("Failed to read hasAdditionalInfo");
+    if (!ReadAdditionalInfo(parcel)) {
+        ACCOUNT_LOGE("Failed to read additionalInfo");
         return false;
     }
-    if (hasAdditionalInfo) {
-        std::string additionalInfoStr;
-        if (!parcel.ReadString(additionalInfoStr)) {
-            ACCOUNT_LOGE("Failed to read additionalInfo");
-            return false;
-        }
-        additionalInfo = additionalInfoStr;
+    return true;
+}
+
+bool AuthParam::ReadAdditionalInfo(Parcel &parcel)
+{
+    bool hasValue = false;
+    if (!parcel.ReadBool(hasValue)) {
+        ACCOUNT_LOGE("Read additionalInfo exist failed.");
+        return false;
     }
+    if (!hasValue) {
+        return true;
+    }
+    int32_t additionalInfoSize = 0;
+    if (!parcel.ReadInt32(additionalInfoSize)) {
+        ACCOUNT_LOGE("Read additionalInfoSize failed!");
+        return false;
+    }
+    if (additionalInfoSize < 0 || additionalInfoSize > ADDITIONAL_INFO_MAX_SIZE) {
+        ACCOUNT_LOGE("AdditionalInfoSize is invalid, size=%{public}d", additionalInfoSize);
+        return false;
+    }
+    auto infoPtr = static_cast<MessageParcel &>(parcel).ReadRawData(additionalInfoSize);
+    if (infoPtr == nullptr) {
+        ACCOUNT_LOGE("read additionalInfo failed");
+        return false;
+    }
+    additionalInfo = std::string(reinterpret_cast<const char *>(infoPtr), additionalInfoSize);
     return true;
 }
 

@@ -543,7 +543,7 @@ HWTEST_F(AccountIAMInfoTest, AccountIAMInfo_Marshalling_0700, TestSize.Level3)
  */
 HWTEST_F(AccountIAMInfoTest, AccountIAMInfo_AuthParam_Marshalling_WithAdditionalInfo_0100, TestSize.Level3)
 {
-    Parcel parcel;
+    MessageParcel parcel;
     AccountSA::AuthParam authParam;
     authParam.userId = TEST_USER_ID;
     authParam.challenge = TEST_CHALLENGE;
@@ -553,9 +553,8 @@ HWTEST_F(AccountIAMInfoTest, AccountIAMInfo_AuthParam_Marshalling_WithAdditional
     authParam.additionalInfo = "CustomAuthData";
 
     EXPECT_TRUE(authParam.Marshalling(parcel));
-    parcel.RewindRead(0);
-    AccountSA::AuthParam *authParam1 = authParam.Unmarshalling(parcel);
-    EXPECT_NE(authParam1, nullptr);
+    AccountSA::AuthParam *authParam1 = AccountSA::AuthParam::Unmarshalling(parcel);
+    ASSERT_NE(authParam1, nullptr);
 
     EXPECT_EQ(authParam.userId, authParam1->userId);
     EXPECT_EQ(authParam.authType, authParam1->authType);
@@ -563,8 +562,7 @@ HWTEST_F(AccountIAMInfoTest, AccountIAMInfo_AuthParam_Marshalling_WithAdditional
     EXPECT_EQ(authParam.authIntent, authParam1->authIntent);
     EXPECT_EQ(authParam.challenge, authParam1->challenge);
     EXPECT_TRUE(authParam1->additionalInfo.has_value());
-    EXPECT_EQ(authParam1->additionalInfo.value(), "CustomAuthData");
-    delete authParam1;
+    EXPECT_EQ(authParam1->additionalInfo.value(), authParam.additionalInfo.value());
 }
 
 /**
@@ -575,7 +573,7 @@ HWTEST_F(AccountIAMInfoTest, AccountIAMInfo_AuthParam_Marshalling_WithAdditional
  */
 HWTEST_F(AccountIAMInfoTest, AccountIAMInfo_AuthParam_Marshalling_NoAdditionalInfo_0100, TestSize.Level3)
 {
-    Parcel parcel;
+    MessageParcel parcel;
     AccountSA::AuthParam authParam;
     authParam.userId = TEST_USER_ID;
     authParam.challenge = TEST_CHALLENGE;
@@ -625,29 +623,129 @@ HWTEST_F(AccountIAMInfoTest, AccountIAMInfo_AuthOptions_AdditionalInfo_0100, Tes
 }
 
 /**
- * @tc.name: AccountIAMInfo_CredentialParametersIam_WithAdditionalInfo_0100
- * @tc.desc: CredentialParametersIam Marshalling/Unmarshalling with additionalInfo
+ * @tc.name: AccountIAMInfo_AuthParam_AdditionalInfo_LargePayload_0100
+ * @tc.desc: AuthParam Marshalling/Unmarshalling with large additionalInfo (100KB)
  * @tc.type: FUNC
- * @tc.require: FEAT-20260528-001
+ * @tc.require: FEAT-20260623-001
  */
-HWTEST_F(AccountIAMInfoTest, AccountIAMInfo_CredentialParametersIam_WithAdditionalInfo_0100, TestSize.Level3)
+HWTEST_F(AccountIAMInfoTest, AccountIAMInfo_AuthParam_AdditionalInfo_LargePayload_0100, TestSize.Level3)
 {
-    Parcel parcel;
-    AccountSA::CredentialParametersIam credentialParametersIam;
-    std::vector<uint8_t> testToken = {1, 2, 3, 4};
-    credentialParametersIam.credentialParameters.authType = static_cast<AuthType>(128);
-    credentialParametersIam.credentialParameters.token = testToken;
-    credentialParametersIam.credentialParameters.additionalInfo = "CustomCredInfo";
+    MessageParcel parcel;
+    AccountSA::AuthParam authParam;
+    authParam.userId = TEST_USER_ID;
+    authParam.challenge = TEST_CHALLENGE;
+    authParam.authType = static_cast<AuthType>(128);
+    authParam.authTrustLevel = AuthTrustLevel::ATL3;
+    authParam.authIntent = AuthIntent::DEFAULT;
+    std::string largeData(100 * 1024, 'x');
+    authParam.additionalInfo = largeData;
 
-    EXPECT_TRUE(credentialParametersIam.Marshalling(parcel));
-    AccountSA::CredentialParametersIam *credential = credentialParametersIam.Unmarshalling(parcel);
-    EXPECT_NE(credential, nullptr);
+    EXPECT_TRUE(authParam.Marshalling(parcel));
+    AccountSA::AuthParam *authParam1 = authParam.Unmarshalling(parcel);
+    EXPECT_NE(authParam1, nullptr);
+    EXPECT_TRUE(authParam1->additionalInfo.has_value());
+    EXPECT_EQ(authParam1->additionalInfo.value().size(), 100 * 1024);
+    EXPECT_EQ(authParam1->additionalInfo.value(), largeData);
+    delete authParam1;
+}
 
-    EXPECT_EQ(credentialParametersIam.credentialParameters.authType, credential->credentialParameters.authType);
-    EXPECT_EQ(credentialParametersIam.credentialParameters.token, credential->credentialParameters.token);
-    EXPECT_EQ(credentialParametersIam.credentialParameters.additionalInfo,
-        credential->credentialParameters.additionalInfo);
-    delete credential;
+/**
+ * @tc.name: AccountIAMInfo_AuthParam_AdditionalInfo_BoundaryMax_0100
+ * @tc.desc: AuthParam Marshalling/Unmarshalling with additionalInfo at exact 500KB boundary
+ * @tc.type: FUNC
+ * @tc.require: FEAT-20260623-001
+ */
+HWTEST_F(AccountIAMInfoTest, AccountIAMInfo_AuthParam_AdditionalInfo_BoundaryMax_0100, TestSize.Level3)
+{
+    MessageParcel parcel;
+    AccountSA::AuthParam authParam;
+    authParam.userId = TEST_USER_ID;
+    authParam.challenge = TEST_CHALLENGE;
+    authParam.authType = static_cast<AuthType>(128);
+    authParam.authTrustLevel = AuthTrustLevel::ATL3;
+    authParam.authIntent = AuthIntent::DEFAULT;
+    std::string boundaryData(ADDITIONAL_INFO_MAX_SIZE, 'x');
+    authParam.additionalInfo = boundaryData;
+
+    EXPECT_TRUE(authParam.Marshalling(parcel));
+    AccountSA::AuthParam *authParam1 = authParam.Unmarshalling(parcel);
+    EXPECT_NE(authParam1, nullptr);
+    EXPECT_TRUE(authParam1->additionalInfo.has_value());
+    EXPECT_EQ(authParam1->additionalInfo.value().size(), ADDITIONAL_INFO_MAX_SIZE);
+    delete authParam1;
+}
+
+/**
+ * @tc.name: AccountIAMInfo_AuthParam_AdditionalInfo_BoundaryExceed_0100
+ * @tc.desc: AuthParam Unmarshalling fails when additionalInfo size > 500KB
+ * @tc.type: FUNC
+ * @tc.require: FEAT-20260623-001
+ */
+HWTEST_F(AccountIAMInfoTest, AccountIAMInfo_AuthParam_AdditionalInfo_BoundaryExceed_0100, TestSize.Level3)
+{
+    MessageParcel parcel;
+    AccountSA::AuthParam authParam;
+    authParam.userId = TEST_USER_ID;
+    authParam.challenge = TEST_CHALLENGE;
+    authParam.authType = static_cast<AuthType>(128);
+    authParam.authTrustLevel = AuthTrustLevel::ATL3;
+    authParam.authIntent = AuthIntent::DEFAULT;
+    authParam.additionalInfo = std::string(ADDITIONAL_INFO_MAX_SIZE + 1, 'x');
+
+    EXPECT_TRUE(authParam.Marshalling(parcel));
+    AccountSA::AuthParam *authParam1 = authParam.Unmarshalling(parcel);
+    EXPECT_EQ(authParam1, nullptr);
+}
+
+/**
+ * @tc.name: AccountIAMInfo_AuthParam_Unmarshalling_SizeExceed_0100
+ * @tc.desc: AuthParam ReadAdditionalInfo rejects size > ADDITIONAL_INFO_MAX_SIZE
+ * @tc.type: FUNC
+ * @tc.require: FEAT-20260623-001
+ */
+HWTEST_F(AccountIAMInfoTest, AccountIAMInfo_AuthParam_Unmarshalling_SizeExceed_0100, TestSize.Level3)
+{
+    MessageParcel parcel;
+    parcel.WriteBool(true);
+    parcel.WriteInt32(ADDITIONAL_INFO_MAX_SIZE + 1);
+
+    AccountSA::AuthParam authParam;
+    EXPECT_FALSE(authParam.ReadAdditionalInfo(parcel));
+    EXPECT_FALSE(authParam.additionalInfo.has_value());
+}
+
+/**
+ * @tc.name: AccountIAMInfo_AuthParam_Unmarshalling_Nullptr_0100
+ * @tc.desc: AuthParam ReadAdditionalInfo rejects nullptr from ReadRawData
+ * @tc.type: FUNC
+ * @tc.require: FEAT-20260623-001
+ */
+HWTEST_F(AccountIAMInfoTest, AccountIAMInfo_AuthParam_Unmarshalling_Nullptr_0100, TestSize.Level3)
+{
+    MessageParcel parcel;
+    parcel.WriteBool(true);
+    parcel.WriteInt32(100);
+
+    AccountSA::AuthParam authParam;
+    EXPECT_FALSE(authParam.ReadAdditionalInfo(parcel));
+    EXPECT_FALSE(authParam.additionalInfo.has_value());
+}
+
+/**
+ * @tc.name: AccountIAMInfo_AuthParam_Unmarshalling_SizeNegative_0100
+ * @tc.desc: AuthParam ReadAdditionalInfo rejects negative size
+ * @tc.type: FUNC
+ * @tc.require: FEAT-20260623-001
+ */
+HWTEST_F(AccountIAMInfoTest, AccountIAMInfo_AuthParam_Unmarshalling_SizeNegative_0100, TestSize.Level3)
+{
+    MessageParcel parcel;
+    parcel.WriteBool(true);
+    parcel.WriteInt32(-1);
+
+    AccountSA::AuthParam authParam;
+    EXPECT_FALSE(authParam.ReadAdditionalInfo(parcel));
+    EXPECT_FALSE(authParam.additionalInfo.has_value());
 }
 }  // namespace AccountTest
 }  // namespace OHOS

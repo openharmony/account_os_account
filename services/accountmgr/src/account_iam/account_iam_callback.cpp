@@ -202,10 +202,9 @@ void AuthCallback::HandleReEnroll(const Attributes &extraInfo, int32_t accountId
     InnerAccountIAMManager::GetInstance().CloseSession(userId_);
 }
 
-static bool CheckAllowUnlockUserStorage(AuthType authType)
+inline static bool CheckAllowUnlockUserStorage(AuthType authType)
 {
-    std::set<AuthType> allowList{AuthType::PIN, AuthType::CUSTOM_AUTH};
-    return allowList.find(authType) != allowList.end();
+    return (authType == AuthType::PIN) || (authType == AuthType::CUSTOM_AUTH);
 }
 
 ErrCode AuthCallback::UnlockAccount(int32_t accountId, const std::vector<uint8_t> &token,

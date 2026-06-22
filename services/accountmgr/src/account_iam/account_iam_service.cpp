@@ -250,6 +250,10 @@ int32_t AccountIAMService::AuthUser(
         (!GetCurrentUserId(authParamTemp.userId))) {
         return ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR;
     }
+    if (authParamTemp.additionalInfo.has_value() && (authParamTemp.additionalInfo->size() > ADDITIONAL_INFO_MAX_SIZE)) {
+        ACCOUNT_LOGE("AdditionalInfo is too large");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
     return InnerAccountIAMManager::GetInstance().AuthUser(authParamTemp, idmCallback, contextId);
 }
 

@@ -358,6 +358,19 @@ static void CopyAuthOptionsToAuthParam(const AuthOptions &authOptions, AuthParam
     }
 }
 
+bool AccountIAMClient::CheckAuthOptions(AuthOptions &authOptions)
+{
+    if ((!authOptions.hasRemoteAuthOptions) && (authOptions.accountId == -1) &&
+        (!GetCurrentUserId(authOptions.accountId))) {
+        return false;
+    }
+    if (authOptions.hasAdditionalInfo && authOptions.additionalInfo.size() > ADDITIONAL_INFO_MAX_SIZE) {
+        ACCOUNT_LOGE("AdditionalInfoSize is too large!");
+        return false;
+    }
+    return true;
+}
+
 std::vector<uint8_t> AccountIAMClient::AuthUser(
     AuthOptions &authOptions, const std::vector<uint8_t> &challenge, AuthType authType,
     AuthTrustLevel authTrustLevel, const std::shared_ptr<IDMCallback> &callback)
@@ -375,8 +388,7 @@ std::vector<uint8_t> AccountIAMClient::AuthUser(
         callback->OnResult(ERR_ACCOUNT_COMMON_GET_PROXY, emptyResult);
         return errorContextId;
     }
-    if ((!authOptions.hasRemoteAuthOptions) && (authOptions.accountId == -1) &&
-        (!GetCurrentUserId(authOptions.accountId))) {
+    if (!CheckAuthOptions(authOptions)) {
         callback->OnResult(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, emptyResult);
         return errorContextId;
     }

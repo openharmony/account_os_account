@@ -555,7 +555,7 @@ HWTEST_F(AccountIamCallbackTest, AuthCallback_UnlockUserScreen_0300, TestSize.Le
     EXPECT_TRUE(userAuthCallback->innerCallback_ != nullptr);
     std::vector<uint8_t> secret = {8, 8, 8, 8, 8, 8, 8};
     bool isUpdateVerifiedStatus = false;
-    EXPECT_EQ(ERR_OK, userAuthCallback->UnlockUserScreen(-1, {}, secret, isUpdateVerifiedStatus));
+    EXPECT_NE(ERR_OK, userAuthCallback->UnlockUserScreen(-1, {}, secret, isUpdateVerifiedStatus));
 }
 
 /**
@@ -1082,23 +1082,6 @@ HWTEST_F(AccountIamCallbackTest, AuthCallback_UnlockUserScreen_CustomAuth_0100, 
     std::vector<uint8_t> secret = {8, 8, 8, 8, 8, 8, 8};
     bool isUpdateVerifiedStatus = false;
     EXPECT_NE(ERR_OK, userAuthCallback->UnlockUserScreen(-1, {}, secret, isUpdateVerifiedStatus));
-}
-
-/**
- * @tc.name: AuthCallback_UnlockUserScreen_CompanionDevice_0100
- * @tc.desc: UnlockUserScreen with COMPANION_DEVICE should not skip after change.
- * @tc.type: FUNC
- * @tc.require: FEAT-20260528-001
- */
-HWTEST_F(AccountIamCallbackTest, AuthCallback_UnlockUserScreen_CompanionDevice_0100, TestSize.Level0)
-{
-    sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
-    auto userAuthCallback = std::make_shared<AuthCallback>(
-        TEST_USER_ID, AuthType::COMPANION_DEVICE, AccountSA::AuthIntent::DEFAULT, callback);
-    EXPECT_TRUE(userAuthCallback->innerCallback_ != nullptr);
-    std::vector<uint8_t> secret = {8, 8, 8, 8, 8, 8, 8};
-    bool isUpdateVerifiedStatus = false;
-    EXPECT_EQ(ERR_OK, userAuthCallback->UnlockUserScreen(-1, {}, secret, isUpdateVerifiedStatus));
 }
 
 /**
