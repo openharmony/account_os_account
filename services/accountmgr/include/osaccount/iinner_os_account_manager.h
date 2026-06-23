@@ -197,6 +197,7 @@ private:
     ErrCode PrepareOsAccountInfoWithFullInfo(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountActivate(OsAccountInfo &osAccountInfo, const bool startStorage = true,
                                       const uint64_t dispalyId = 0, const bool isAppRecovery = false);
+    void SetDefaultActivatedForLoggedInAccount(const OsAccountInfo &osAccountInfo, const uint64_t displayId);
     ErrCode SendToStorageAccountStart(OsAccountInfo &osAccountInfo);
     ErrCode SendToAMSAndSamgrAccountStart(OsAccountInfo &osAccountInfo, const uint64_t dispalyId,
         const bool isAppRecovery);

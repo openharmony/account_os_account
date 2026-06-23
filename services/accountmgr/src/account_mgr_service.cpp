@@ -98,7 +98,6 @@ const char DEVICE_OWNER_DIR[] = "/data/service/el1/public/account/0/";
 #ifdef SUPPORT_AUTHORIZATION
 const int32_t MAX_RETRY_TIMES = 3;
 const uint32_t RETRY_SLEEP_MS = 10;
-const char MIGRATE_OSACCOUNT_TYPE_TO_TEE[] = "migrateOSAccountTypeToTee";
 #endif // SUPPORT_AUTHORIZATION
 
 std::shared_ptr<void> RequestTimer(std::string eventStr)
@@ -1021,7 +1020,7 @@ void AccountMgrService::StartOsAccountTypeMigrationAsync()
             ret = IInnerOsAccountManager::GetInstance().MigrateOsAccountTypesToTEE();
             if (ret == ERR_OK) {
                 ACCOUNT_LOGI("OS account type migration to TEE completed successfully");
-                ReportOsAccountLifeCycle(0, MIGRATE_OSACCOUNT_TYPE_TO_TEE);
+                ReportOsAccountLifeCycle(0, Constants::OPERATION_MIGRATE_TYPE_TO_TEE);
                 return;
             }
             if (ret == ERR_ACCOUNT_COMMON_TEE_NOT_ALLOW_RECOVERY) {
@@ -1034,7 +1033,7 @@ void AccountMgrService::StartOsAccountTypeMigrationAsync()
         }
         // Still fail after retry
         ACCOUNT_LOGE("Failed to migrate os account types to TEE, ret=%{public}d", ret);
-        ReportOsAccountOperationFail(0, MIGRATE_OSACCOUNT_TYPE_TO_TEE, ret,
+        ReportOsAccountOperationFail(0, Constants::OPERATION_MIGRATE_TYPE_TO_TEE, ret,
             "Failed to migrate os account types to TEE");
     });
     // Detach the thread to run independently
