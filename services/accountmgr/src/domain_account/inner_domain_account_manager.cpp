@@ -928,7 +928,6 @@ ErrCode InnerDomainAccountManager::PluginGetAccessToken(const GetAccessTokenOpti
     PluginGetDomainAccessTokenOptions pOption;
     DomainPluginAdapter::SetPluginGetDomainAccessTokenOptions(option, token, info, pOption);
     PluginUint8Vector *accessToken = nullptr;
-    ACCOUNT_LOGD("Param params=%{public}s callerUid=%{public}d.", pOption.businessParams.data, pOption.callerUid);
     PluginBusinessError* error = (*reinterpret_cast<GetAccessTokenFunc>(iter->second))(&pOption, &accessToken);
     if (accessToken != nullptr) {
         DomainPluginAdapter::GetAndCleanPluginUint8Vector(*accessToken, resultParcel.token);
