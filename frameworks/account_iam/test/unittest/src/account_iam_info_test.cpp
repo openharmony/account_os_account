@@ -563,6 +563,7 @@ HWTEST_F(AccountIAMInfoTest, AccountIAMInfo_AuthParam_Marshalling_WithAdditional
     EXPECT_EQ(authParam.challenge, authParam1->challenge);
     EXPECT_TRUE(authParam1->additionalInfo.has_value());
     EXPECT_EQ(authParam1->additionalInfo.value(), authParam.additionalInfo.value());
+    delete authParam1;
 }
 
 /**
@@ -582,7 +583,7 @@ HWTEST_F(AccountIAMInfoTest, AccountIAMInfo_AuthParam_Marshalling_NoAdditionalIn
     authParam.authIntent = AuthIntent::DEFAULT;
 
     EXPECT_TRUE(authParam.Marshalling(parcel));
-    AccountSA::AuthParam *authParam1 = authParam.Unmarshalling(parcel);
+    AccountSA::AuthParam *authParam1 = AccountSA::AuthParam::Unmarshalling(parcel);
     EXPECT_NE(authParam1, nullptr);
 
     EXPECT_EQ(authParam.userId, authParam1->userId);

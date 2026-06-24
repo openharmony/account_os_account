@@ -1048,7 +1048,8 @@ AccountSA::AuthOptions ConvertToAuthOptionsInner(const AuthOptions &options)
     }
     if (options.additionalInfo.has_value()) {
         authOptionsInner.hasAdditionalInfo = true;
-        authOptionsInner.additionalInfo = std::string(options.additionalInfo.value().c_str());
+        authOptionsInner.additionalInfo = std::string(options.additionalInfo.value().c_str(),
+            options.additionalInfo.value().size());
     }
     if (options.remoteAuthOptions.has_value()) {
         authOptionsInner.hasRemoteAuthOptions = true;
@@ -1252,9 +1253,10 @@ AuthResult ConvertToAuthResultTH(const AccountSA::Attributes &extraInfo)
     return authResultTH;
 }
 
-class THUserAuthCallback : public AccountSA::IDMCallback {
+class THUserAuthCallback : public AccountSA::IDMCallback, public std::enable_shared_from_this<THUserAuthCallback> {
 public:
-    explicit THUserAuthCallback(const IUserAuthCallback &callback) : callback_(callback){};
+    explicit THUserAuthCallback(const IUserAuthCallback &callback,
+        const std::shared_ptr<AppExecFwk::EventHandler> &handler) : callback_(callback), handler_(handler){};
 
     void OnResult(int32_t result, const AccountSA::Attributes &extraInfo) override
     {
@@ -1263,8 +1265,14 @@ public:
             return;
         }
         onResultCalled_ = true;
-
-        callback_.onResult(AccountIAMConvertToJSErrCode(result), ConvertToAuthResultTH(extraInfo));
+        auto shareThis = shared_from_this();
+        auto task = [shareThis, resultCodeTH = AccountIAMConvertToJSErrCode(result),
+            extraInfoTH = ConvertToAuthResultTH(extraInfo)]() {
+            shareThis->callback_.onResult(resultCodeTH, extraInfoTH);
+        };
+        if (!handler_->PostTask(task, __func__, 0, OHOS::AppExecFwk::EventQueue::Priority::VIP, {})) {
+            ACCOUNT_LOGE("Failed to post %{public}s task to handler", __func__);
+        }
     };
 
     void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const AccountSA::Attributes &extraInfo) override
@@ -1274,14 +1282,21 @@ public:
         }
         std::vector<uint8_t> infoArray;
         extraInfo.GetUint8ArrayValue(AccountSA::Attributes::AttributeKey::ATTR_EXTRA_INFO, infoArray);
-        taihe::array<uint8_t> thInfoArray(taihe::copy_data_t{}, infoArray.data(), infoArray.size());
-        callback_.onAcquireInfo.value()(module, static_cast<int32_t>(acquireInfo), thInfoArray);
+        auto shareThis = shared_from_this();
+        auto task = [shareThis, module, acquireInfoTH = static_cast<int32_t>(acquireInfo), infoArray]() {
+            taihe::array<uint8_t> infoArrayTH(taihe::copy_data_t{}, infoArray.data(), infoArray.size());
+            shareThis->callback_.onAcquireInfo.value()(module, acquireInfoTH, infoArrayTH);
+        };
+        if (!handler_->PostTask(task, __func__, 0, OHOS::AppExecFwk::EventQueue::Priority::VIP, {})) {
+            ACCOUNT_LOGE("Failed to post %{public}s task to handler", __func__);
+        }
     };
 
 private:
     const IUserAuthCallback callback_;
     std::mutex mutex_;
     bool onResultCalled_ = false;
+    std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
 };
 
 class THGetPropCallback : public AccountSA::GetSetPropCallback {
@@ -1450,7 +1465,13 @@ public:
     {
         int32_t authTypeInner = authType.get_value();
         int32_t trustLevelInner = authTrustLevel.get_value();
-        std::shared_ptr<THUserAuthCallback> callbackInner = std::make_shared<THUserAuthCallback>(callback);
+        auto runner = AppExecFwk::EventRunner::GetMainEventRunner();
+        if (runner == nullptr) {
+            callback.onResult(ERR_JS_SYSTEM_SERVICE_EXCEPTION, CreateEmptyAuthResultTH());
+            return taihe::array<uint8_t>({});
+        }
+        auto handler = std::make_shared<AppExecFwk::EventHandler>(runner);
+        std::shared_ptr<THUserAuthCallback> callbackInner = std::make_shared<THUserAuthCallback>(callback, handler);
         std::vector<uint8_t> challengeInner(challenge.begin(), challenge.begin() + challenge.size());
         AccountSA::AuthOptions authOptionsInner;
         std::vector<uint8_t> contextId = AccountSA::AccountIAMClient::GetInstance().Auth(
@@ -1464,7 +1485,13 @@ public:
     {
         int32_t authTypeInner = authType.get_value();
         int32_t trustLevelInner = authTrustLevel.get_value();
-        std::shared_ptr<THUserAuthCallback> callbackInner = std::make_shared<THUserAuthCallback>(callback);
+        auto runner = AppExecFwk::EventRunner::GetMainEventRunner();
+        if (runner == nullptr) {
+            callback.onResult(ERR_JS_SYSTEM_SERVICE_EXCEPTION, CreateEmptyAuthResultTH());
+            return taihe::array<uint8_t>({});
+        }
+        auto handler = std::make_shared<AppExecFwk::EventHandler>(runner);
+        std::shared_ptr<THUserAuthCallback> callbackInner = std::make_shared<THUserAuthCallback>(callback, handler);
         std::vector<uint8_t> challengeInner(challenge.begin(), challenge.begin() + challenge.size());
         AccountSA::AuthOptions authOptionsInner = ConvertToAuthOptionsInner(options);
         if ((!authOptionsInner.hasRemoteAuthOptions) && (authOptionsInner.hasAccountId) &&
@@ -1484,7 +1511,13 @@ public:
     {
         int32_t authTypeInner = authType.get_value();
         int32_t trustLevelInner = authTrustLevel.get_value();
-        std::shared_ptr<THUserAuthCallback> callbackInner = std::make_shared<THUserAuthCallback>(callback);
+        auto runner = AppExecFwk::EventRunner::GetMainEventRunner();
+        if (runner == nullptr) {
+            callback.onResult(ERR_JS_SYSTEM_SERVICE_EXCEPTION, CreateEmptyAuthResultTH());
+            return taihe::array<uint8_t>({});
+        }
+        auto handler = std::make_shared<AppExecFwk::EventHandler>(runner);
+        std::shared_ptr<THUserAuthCallback> callbackInner = std::make_shared<THUserAuthCallback>(callback, handler);
         std::vector<uint8_t> challengeInner(challenge.begin(), challenge.begin() + challenge.size());
         AccountSA::AuthOptions authOptionsInner;
 
@@ -1774,7 +1807,7 @@ void UnregisterPlugin()
 
 class DomainAccountCallbackTH final: public AccountSA::DomainAccountCallback {
 public:
-    explicit DomainAccountCallbackTH(std::shared_ptr<THUserAuthCallback> &callback):callback_(callback) {}
+    explicit DomainAccountCallbackTH() {}
 
     std::mutex mutex_;
     std::condition_variable cv_;
@@ -1796,8 +1829,6 @@ public:
         SetTaiheBusinessErrorFromNativeCode(errCode);
         cv_.notify_one();
     }
-private:
-    std::shared_ptr<THUserAuthCallback> callback_;
 };
 
 void Auth(DomainAccountInfo const& domainAccountInfo, array_view<uint8_t> credential, IUserAuthCallback const& callback)
@@ -1890,8 +1921,7 @@ void AuthWithPopupWithId(int32_t localId, IUserAuthCallback const& callback)
 bool HasAccountSync(DomainAccountInfo const& domainAccountInfo)
 {
     AccountSA::DomainAccountInfo domainAccountInfoInner = ConvertToDomainAccountInfoInner(domainAccountInfo);
-    std::shared_ptr<THUserAuthCallback> jsCallback;
-    auto callbackInner = std::make_shared<DomainAccountCallbackTH>(jsCallback);
+    auto callbackInner = std::make_shared<DomainAccountCallbackTH>();
     int errorCode = AccountSA::DomainAccountClient::GetInstance().HasAccount(domainAccountInfoInner, callbackInner);
     if (errorCode != ERR_OK) {
         Parcel emptyParcel;
