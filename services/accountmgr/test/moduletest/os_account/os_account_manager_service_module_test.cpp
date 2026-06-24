@@ -1558,7 +1558,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest128
 #ifdef SUPPORT_AUTHORIZATION
 /**
  * @tc.name: OsAccountManagerServiceModuleTest129
- * @tc.desc: Test EDM-created admin account is queried as restricted admin type.
+ * @tc.desc: Test EDM-created admin account has ADMIN type and admin.authorize constraint.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -1571,7 +1571,12 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest129
 
     OsAccountInfo queriedInfo;
     ASSERT_EQ(ERR_OK, osAccountManagerService_->QueryOsAccountById(createdInfo.GetLocalId(), queriedInfo));
-    EXPECT_EQ(static_cast<int32_t>(OsAccountType::RESTRICTED_ADMIN), static_cast<int32_t>(queriedInfo.GetType()));
+    EXPECT_EQ(static_cast<int32_t>(OsAccountType::ADMIN), static_cast<int32_t>(queriedInfo.GetType()));
+
+    bool isEnable = false;
+    EXPECT_EQ(ERR_OK, osAccountManagerService_->IsOsAccountConstraintEnable(
+        createdInfo.GetLocalId(), "constraint.os.account.admin.authorize", isEnable));
+    EXPECT_TRUE(isEnable);
 
     EXPECT_EQ(ERR_OK, osAccountManagerService_->RemoveOsAccount(createdInfo.GetLocalId()));
 }

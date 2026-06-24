@@ -27,7 +27,6 @@ namespace AccountSA {
 const int32_t OS_ACCOUNT_INFO_DEFAULT_VERSION = 0;
 const int32_t OS_ACCOUNT_INFO_LATEST_VERSION = 1;
 typedef enum {
-    RESTRICTED_ADMIN = -1, //external specification is not supported.
     ADMIN = 0,
     NORMAL,
     GUEST,

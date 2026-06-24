@@ -75,15 +75,13 @@ namespace AccountSA {
 namespace {
 #ifdef SUPPORT_AUTHORIZATION
 const char OPERATION_GET_TYPE[] = "getType";
-#ifndef IS_EMULATOR
-const char MANAGE_LOCAL_ACCOUNTS[] = "ohos.permission.MANAGE_LOCAL_ACCOUNTS";
-#endif // IS_EMULATOR
 #endif // SUPPORT_AUTHORIZATION
 const char ADMIN_LOCAL_NAME[] = "admin";
 #ifdef ENABLE_DEFAULT_ADMIN_NAME
 const char STANDARD_LOCAL_NAME[] = "user";
 #endif
 const std::string CONSTRAINT_CREATE_ACCOUNT_DIRECTLY = "constraint.os.account.create.directly";
+const std::string CONSTRAINT_ADMIN_AUTHORIZE = "constraint.os.account.admin.authorize";
 const char ACCOUNT_READY_EVENT[] = "bootevent.account.ready";
 const char PARAM_LOGIN_NAME_MAX[] = "persist.account.login_name_max";
 constexpr const char DEACTIVATION_ANIMATION_PATH[] = "/system/bin/deactivation_animation";
@@ -439,13 +437,7 @@ ErrCode IInnerOsAccountManager::GetRealOsAccountInfoById(const int id, OsAccount
     } else {
         refreshedCachedType = cachedType.value();
     }
-    const auto &[type, restricted] = refreshedCachedType;
-    if (restricted && type == OsAccountType::ADMIN &&
-        (AccountPermissionManager::VerifyPermission(MANAGE_LOCAL_ACCOUNTS) == ERR_OK)) {
-        osAccountInfo.SetType(OsAccountType::RESTRICTED_ADMIN);
-    } else {
-        osAccountInfo.SetType(type);
-    }
+    osAccountInfo.SetType(refreshedCachedType.first);
 #endif // SUPPORT_AUTHORIZATION
 
     bool isVerified = false;
@@ -977,6 +969,14 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(const std::string &localName, co
         UpdateAccountTypeCache(osAccountInfo.GetLocalId(), osAccountInfo.GetType(), false);
     } else if (options.isEdmCalling) {
         ACCOUNT_LOGI("EDM calling, no need to set OsAccount type to Tee.");
+        if (osAccountInfo.GetType() == OsAccountType::ADMIN) {
+            std::vector<std::string> constraints = osAccountInfo.GetConstraints();
+            constraints.push_back(CONSTRAINT_ADMIN_AUTHORIZE);
+            osAccountInfo.SetConstraints(constraints);
+            ACCOUNT_LOGI("Added constraint for EDM-created admin account %{public}d", osAccountInfo.GetLocalId());
+        }
+        REPORT_OS_ACCOUNT_FAIL(osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE, errCode,
+            "Create an OS account without admin token, account type:" + std::to_string(osAccountInfo.GetType()));
         UpdateAccountTypeCache(osAccountInfo.GetLocalId(), osAccountInfo.GetType(), true);
     } else {
         ACCOUNT_LOGE("Token is required for non-EDM calling.");
@@ -2338,6 +2338,14 @@ ErrCode IInnerOsAccountManager::SetOsAccountType(const int id,
     }
 
     UpdateAccountTypeCache(id, type, false);
+
+    if (type == OsAccountType::ADMIN) {
+        std::vector<std::string> constraints = osAccountInfo.GetConstraints();
+        constraints.erase(
+            std::remove(constraints.begin(), constraints.end(), CONSTRAINT_ADMIN_AUTHORIZE), constraints.end());
+        osAccountInfo.SetConstraints(constraints);
+        ACCOUNT_LOGI("Need to remove constraint after setting ADMIN type for user %{public}d", id);
+    }
 
     // 5. Update local persistent data (for fallback and recovery purposes)
     osAccountInfo.SetType(type);
