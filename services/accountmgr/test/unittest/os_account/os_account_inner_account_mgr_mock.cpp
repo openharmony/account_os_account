@@ -997,6 +997,108 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, SetOsAccountTypeMockTest006, TestSize.Lev
 
     innerMgrService_->osAccountControl_ = ptrOld;
 }
+
+/*
+ * @tc.name: SetOsAccountTypeMockTest007
+ * @tc.desc: SetOsAccountType to ADMIN removes admin.authorize constraint.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, SetOsAccountTypeMockTest007, TestSize.Level1)
+{
+    auto ptr = std::make_shared<MockOsAccountControlFileManager>();
+    auto ptrOld = innerMgrService_->osAccountControl_;
+    innerMgrService_->osAccountControl_ = ptr;
+
+    OsAccountInfo osAccountInfo;
+    osAccountInfo.SetType(OsAccountType::ADMIN);
+    osAccountInfo.SetConstraints({"constraint.os.account.admin.authorize", "constraint.wifi"});
+    EXPECT_CALL(*ptr, GetOsAccountInfoById(::testing::_, ::testing::_))
+        .Times(testing::AtLeast(1))
+        .WillRepeatedly(DoAll(SetArgReferee<1>(osAccountInfo), Return(ERR_OK)));
+
+    bool constraintRemoved = false;
+    EXPECT_CALL(*ptr, UpdateOsAccount(::testing::_))
+        .WillOnce(DoAll(
+            ::testing::Invoke([&constraintRemoved](const OsAccountInfo &info) {
+                for (const auto &c : info.GetConstraints()) {
+                    if (c == "constraint.os.account.admin.authorize") {
+                        constraintRemoved = true;
+                    }
+                }
+                EXPECT_EQ(info.GetType(), OsAccountType::ADMIN);
+            }),
+            Return(ERR_OK)));
+
+    SetOsAccountTypeOptions options;
+    EXPECT_EQ(ERR_OK, innerMgrService_->SetOsAccountType(TEST_USER_ID108, OsAccountType::ADMIN, options));
+    EXPECT_FALSE(constraintRemoved);
+
+    innerMgrService_->osAccountControl_ = ptrOld;
+}
+
+/*
+ * @tc.name: SetOsAccountTypeMockTest008
+ * @tc.desc: SetOsAccountType to non-ADMIN keeps admin.authorize constraint.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, SetOsAccountTypeMockTest008, TestSize.Level1)
+{
+    auto ptr = std::make_shared<MockOsAccountControlFileManager>();
+    auto ptrOld = innerMgrService_->osAccountControl_;
+    innerMgrService_->osAccountControl_ = ptr;
+
+    OsAccountInfo osAccountInfo;
+    osAccountInfo.SetType(OsAccountType::ADMIN);
+    osAccountInfo.SetConstraints({"constraint.os.account.admin.authorize", "constraint.wifi"});
+    EXPECT_CALL(*ptr, GetOsAccountInfoById(::testing::_, ::testing::_))
+        .Times(testing::AtLeast(1))
+        .WillRepeatedly(DoAll(SetArgReferee<1>(osAccountInfo), Return(ERR_OK)));
+
+    bool constraintKept = false;
+    EXPECT_CALL(*ptr, UpdateOsAccount(::testing::_))
+        .WillOnce(DoAll(
+            ::testing::Invoke([&constraintKept](const OsAccountInfo &info) {
+                for (const auto &c : info.GetConstraints()) {
+                    if (c == "constraint.os.account.admin.authorize") {
+                        constraintKept = true;
+                    }
+                }
+                EXPECT_EQ(info.GetType(), OsAccountType::GUEST);
+            }),
+            Return(ERR_OK)));
+
+    SetOsAccountTypeOptions options;
+    EXPECT_EQ(ERR_OK, innerMgrService_->SetOsAccountType(TEST_USER_ID108, OsAccountType::GUEST, options));
+    EXPECT_TRUE(constraintKept);
+
+    innerMgrService_->osAccountControl_ = ptrOld;
+}
+
+/*
+ * @tc.name: GetRealOsAccountInfoByIdMockTest001
+ * @tc.desc: GetRealOsAccountInfoById returns type from control without overriding to RESTRICTED_ADMIN.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, GetRealOsAccountInfoByIdMockTest001, TestSize.Level1)
+{
+    auto ptr = std::make_shared<MockOsAccountControlFileManager>();
+    auto ptrOld = innerMgrService_->osAccountControl_;
+    innerMgrService_->osAccountControl_ = ptr;
+
+    OsAccountInfo osAccountInfo;
+    osAccountInfo.SetType(OsAccountType::ADMIN);
+    EXPECT_CALL(*ptr, GetOsAccountInfoById(::testing::_, ::testing::_))
+        .WillOnce(DoAll(SetArgReferee<1>(osAccountInfo), Return(ERR_OK)));
+
+    OsAccountInfo resultInfo;
+    EXPECT_EQ(ERR_OK, innerMgrService_->GetRealOsAccountInfoById(TEST_USER_ID108, resultInfo));
+    EXPECT_EQ(resultInfo.GetType(), OsAccountType::ADMIN);
+
+    innerMgrService_->osAccountControl_ = ptrOld;
+}
 #endif
 
 /*

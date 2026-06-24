@@ -57,6 +57,7 @@
         "constraint.content.capture",
         "constraint.content.suggestions",
         "constraint.os.account.activate",
+        "constraint.os.account.admin.authorize",
         "constraint.location.set",
         "constraint.airplane.mode.set",
         "constraint.brightness.set",
