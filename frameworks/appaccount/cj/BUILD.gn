@@ -45,6 +45,14 @@ ohos_shared_library("cj_appAccount_ffi") {
 
   include_dirs = []
 
+  cflags_cc = [
+    "-Os",
+    "-fno-asynchronous-unwind-tables",
+    "-fno-unwind-tables",
+    "-fdata-sections",
+    "-ffunction-sections",
+  ]
+
   sources = [
     "src/appaccount_common.cpp",
     "src/appaccount_ffi.cpp",

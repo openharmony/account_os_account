@@ -70,10 +70,14 @@ ohos_shared_library("domain_account_napi") {
     "napi:ace_napi",
   ]
 
-  if (!use_clang_coverage) {
-    version_script = "libnapi_account_innerkits.map"
-  }
-  cflags_cc = []
+  cflags_cc = [
+    "-Os",
+    "-fno-asynchronous-unwind-tables",
+    "-fno-unwind-tables",
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fvisibility=hidden",
+  ]
   if (os_account_support_domain_accounts) {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
   }

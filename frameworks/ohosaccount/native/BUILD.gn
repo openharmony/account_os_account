@@ -33,6 +33,13 @@ config("accountkits_config") {
     "ACCOUNT_LOG_TAG = \"DistributedAccountFwk\"",
     "LOG_DOMAIN = 0xD001B00",
   ]
+  cflags_cc = [
+    "-Os",
+    "-fno-asynchronous-unwind-tables",
+    "-fno-unwind-tables",
+    "-fdata-sections",
+    "-ffunction-sections",
+  ]
 }
 
 idl_gen_interface("account_interface") {

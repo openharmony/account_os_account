@@ -24,6 +24,14 @@ config("tools_acm_config") {
   if (target_cpu == "arm64") {
     defines += [ "_ARM64_" ]
   }
+
+  cflags_cc = [
+    "-Os",
+    "-fno-asynchronous-unwind-tables",
+    "-fno-unwind-tables",
+    "-fdata-sections",
+    "-ffunction-sections",
+  ]
 }
 
 ohos_source_set("tools_acm_source_set") {
@@ -59,6 +67,12 @@ ohos_source_set("tools_acm_source_set") {
     "-Wdate-time",
     "-Wformat=2",
     "-Wshadow",
+    "-Os",
+    "-fno-asynchronous-unwind-tables",
+    "-fno-unwind-tables",
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fvisibility=hidden",
   ]
 
   deps = [

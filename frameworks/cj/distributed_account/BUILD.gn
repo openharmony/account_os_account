@@ -45,6 +45,14 @@ ohos_shared_library("cj_distributed_account_ffi") {
     "napi:cj_bind_ffi",
     "napi:cj_bind_native",
   ]
+  
+  cflags_cc = [
+    "-Os",
+    "-fno-asynchronous-unwind-tables",
+    "-fno-unwind-tables",
+    "-fdata-sections",
+    "-ffunction-sections",
+  ]
 
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "account"
