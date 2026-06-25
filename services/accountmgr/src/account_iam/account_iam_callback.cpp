@@ -202,11 +202,16 @@ void AuthCallback::HandleReEnroll(const Attributes &extraInfo, int32_t accountId
     InnerAccountIAMManager::GetInstance().CloseSession(userId_);
 }
 
+inline static bool CheckAllowUnlockUserStorage(AuthType authType)
+{
+    return (authType == AuthType::PIN) || (authType == AuthType::CUSTOM_AUTH);
+}
+
 ErrCode AuthCallback::UnlockAccount(int32_t accountId, const std::vector<uint8_t> &token,
     const std::vector<uint8_t> &secret, bool &isUpdateVerifiedStatus)
 {
     ErrCode ret = ERR_OK;
-    if (authType_ == AuthType::PIN && !isRemoteAuth_) {
+    if (CheckAllowUnlockUserStorage(authType_) && !isRemoteAuth_) {
         if (secret.empty()) {
             ACCOUNT_LOGI("No need to active user.");
             return ERR_OK;
@@ -255,7 +260,7 @@ ErrCode AuthCallback::UnlockUserScreen(int32_t accountId, const std::vector<uint
 {
     ErrCode ret = ERR_OK;
     if (!isUpdateVerifiedStatus) {
-        if (authType_ == AuthType::RECOVERY_KEY || authType_ == AuthType::COMPANION_DEVICE) {
+        if (authType_ == AuthType::RECOVERY_KEY) {
             ACCOUNT_LOGI("No need to unlock screen.");
             return ERR_OK;
         }

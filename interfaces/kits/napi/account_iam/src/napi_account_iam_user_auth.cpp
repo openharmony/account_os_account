@@ -387,6 +387,13 @@ static bool ParseContextForAuthOptions(napi_env env, napi_value jsOptions, AuthO
             authOptions.accountId = -1;
         }
     }
+    if (!GetOptionalStringPropertyByKey(env, jsOptions, "additionalInfo",
+        authOptions.additionalInfo, authOptions.hasAdditionalInfo)) {
+        ACCOUNT_LOGE("Get authOptions's additionalInfo failed.");
+        std::string errMsg = "Parameter error. The type of \"additionalInfo\" must be string";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+        return false;
+    }
     return true;
 }
 

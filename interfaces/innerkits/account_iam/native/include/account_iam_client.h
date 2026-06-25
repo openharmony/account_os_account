@@ -303,6 +303,7 @@ private:
     void ResetAccountIAMProxy(const wptr<IRemoteObject>& remote);
     bool GetCurrentUserId(int32_t &userId);
     uint64_t StartDomainAuth(int32_t userId, const std::shared_ptr<IDMCallback> &callback);
+    bool CheckAuthOptions(AuthOptions &authOptions);
 #ifdef HAS_PIN_AUTH_PART
     ErrCode RegisterDomainInputer(const std::shared_ptr<IInputer> &inputer);
     ErrCode UnregisterDomainInputer();

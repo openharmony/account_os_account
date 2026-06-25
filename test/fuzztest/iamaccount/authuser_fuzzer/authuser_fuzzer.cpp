@@ -43,11 +43,15 @@ namespace OHOS {
         FuzzData fuzzData(data, size);
         int32_t userId = fuzzData.GetData<int32_t>();
         std::vector<uint8_t> challenge = {fuzzData.GetData<uint8_t>()};
-        AuthType authType = fuzzData.GenerateEnmu(UserIam::UserAuth::RECOVERY_KEY);
+        AuthType authType = static_cast<AuthType>(1 << (fuzzData.GetData<uint32_t>() % 11));
         AuthTrustLevel authTrustLevel = fuzzData.GenerateEnmu(UserIam::UserAuth::ATL4);
         std::shared_ptr<IDMCallback> callback = nullptr;
         AuthOptions authOptions;
         authOptions.accountId = userId;
+        authOptions.hasAdditionalInfo = fuzzData.GenerateBool();
+        if (authOptions.hasAdditionalInfo) {
+            authOptions.additionalInfo = fuzzData.GenerateString();
+        }
         bool isInitCallback = fuzzData.GetData<bool>();
         if (isInitCallback) {
             callback = make_shared<MockIDMCallback>();

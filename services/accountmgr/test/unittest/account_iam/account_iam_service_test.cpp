@@ -424,6 +424,28 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_AuthUser_0200, TestSize.Level3
 }
 
 /**
+ * @tc.name: AccountIAMService_AuthUser_AdditionalInfoSizeExceed_0100
+ * @tc.desc: AuthUser rejects additionalInfo size > 500KB
+ * @tc.type: FUNC
+ * @tc.require: FEAT-20260623-001
+ */
+HWTEST_F(AccountIamServiceTest, AccountIAMService_AuthUser_AdditionalInfoSizeExceed_0100, TestSize.Level3)
+{
+    std::vector<uint8_t> challenge;
+    sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
+    ASSERT_NE(callback, nullptr);
+    AccountSA::AuthParam authParam;
+    authParam.userId = TEST_EXIST_ID;
+    authParam.challenge = challenge;
+    authParam.authType = AuthType::PIN;
+    authParam.authTrustLevel = AuthTrustLevel::ATL1;
+    authParam.additionalInfo = std::string(ADDITIONAL_INFO_MAX_SIZE + 1, 'x');
+    uint64_t contextId = 0;
+    ErrCode res = accountIAMService_->AuthUser(authParam, callback, contextId);
+    EXPECT_EQ(res, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+/**
  * @tc.name: AccountIAMService_GetAvailableStatus_0100
  * @tc.desc: GetAvailableStatus test.
  * @tc.type: FUNC

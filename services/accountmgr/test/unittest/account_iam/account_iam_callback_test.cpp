@@ -543,9 +543,9 @@ HWTEST_F(AccountIamCallbackTest, AuthCallback_UnlockUserScreen_0200, TestSize.Le
 
 /**
  * @tc.name: AuthCallback_UnlockUserScreen_0300
- * @tc.desc: UnlockUserScreen with COMPANION_DEVICE.
+ * @tc.desc: UnlockUserScreen with COMPANION_DEVICE should not skip (after spec change).
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: FEAT-20260528-001
  */
 HWTEST_F(AccountIamCallbackTest, AuthCallback_UnlockUserScreen_0300, TestSize.Level0)
 {
@@ -555,7 +555,7 @@ HWTEST_F(AccountIamCallbackTest, AuthCallback_UnlockUserScreen_0300, TestSize.Le
     EXPECT_TRUE(userAuthCallback->innerCallback_ != nullptr);
     std::vector<uint8_t> secret = {8, 8, 8, 8, 8, 8, 8};
     bool isUpdateVerifiedStatus = false;
-    EXPECT_EQ(ERR_OK, userAuthCallback->UnlockUserScreen(-1, {}, secret, isUpdateVerifiedStatus));
+    EXPECT_NE(ERR_OK, userAuthCallback->UnlockUserScreen(-1, {}, secret, isUpdateVerifiedStatus));
 }
 
 /**
@@ -1064,6 +1064,220 @@ HWTEST_F(AccountIamCallbackTest, GetDomainAuthStatusInfoCallback_OnResult_0100, 
     parcel.WriteInt32(20);
     EXPECT_CALL(*callback, OnResult(0, _)).Times(1);
     getDomainAuthStatusInfoCallback->OnResult(0, parcel);
+}
+#endif
+
+/**
+ * @tc.name: AuthCallback_UnlockUserScreen_CustomAuth_0100
+ * @tc.desc: UnlockUserScreen with CUSTOM_AUTH type should not skip (enters unlock flow).
+ * @tc.type: FUNC
+ * @tc.require: FEAT-20260528-001
+ */
+HWTEST_F(AccountIamCallbackTest, AuthCallback_UnlockUserScreen_CustomAuth_0100, TestSize.Level0)
+{
+    sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
+    auto userAuthCallback = std::make_shared<AuthCallback>(
+        TEST_USER_ID, static_cast<AuthType>(128), AccountSA::AuthIntent::DEFAULT, callback);
+    EXPECT_TRUE(userAuthCallback->innerCallback_ != nullptr);
+    std::vector<uint8_t> secret = {8, 8, 8, 8, 8, 8, 8};
+    bool isUpdateVerifiedStatus = false;
+    EXPECT_NE(ERR_OK, userAuthCallback->UnlockUserScreen(-1, {}, secret, isUpdateVerifiedStatus));
+}
+
+/**
+ * @tc.name: AuthCallback_UnlockUserScreen_RecoveryKey_0100
+ * @tc.desc: UnlockUserScreen with RECOVERY_KEY should still skip.
+ * @tc.type: FUNC
+ * @tc.require: FEAT-20260528-001
+ */
+HWTEST_F(AccountIamCallbackTest, AuthCallback_UnlockUserScreen_RecoveryKey_0100, TestSize.Level0)
+{
+    sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
+    auto userAuthCallback = std::make_shared<AuthCallback>(
+        TEST_USER_ID, AuthType::RECOVERY_KEY, AccountSA::AuthIntent::DEFAULT, callback);
+    EXPECT_TRUE(userAuthCallback->innerCallback_ != nullptr);
+    std::vector<uint8_t> secret = {8, 8, 8, 8, 8, 8, 8};
+    bool isUpdateVerifiedStatus = false;
+    EXPECT_EQ(ERR_OK, userAuthCallback->UnlockUserScreen(-1, {}, secret, isUpdateVerifiedStatus));
+}
+
+/**
+ * @tc.name: AuthCallback_OnResult_CustomAuth_0100
+ * @tc.desc: OnResult test with CUSTOM_AUTH type.
+ * @tc.type: FUNC
+ * @tc.require: FEAT-20260528-001
+ */
+HWTEST_F(AccountIamCallbackTest, AuthCallback_OnResult_CustomAuth_0100, TestSize.Level0)
+{
+    sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
+    auto userAuthCallback = std::make_shared<AuthCallback>(
+        TEST_USER_ID, static_cast<AuthType>(128), AccountSA::AuthIntent::DEFAULT, callback);
+    EXPECT_TRUE(userAuthCallback->innerCallback_ != nullptr);
+    Attributes extraInfo;
+    int32_t errCode = 1;
+    userAuthCallback->OnResult(errCode, extraInfo);
+    EXPECT_EQ(errCode, callback->result_);
+}
+
+/**
+ * @tc.name: AuthCallback_OnResult_CustomAuth_Deactivating_0100
+ * @tc.desc: CUSTOM_AUTH auth success but account is deactivating should not unlock.
+ * @tc.type: FUNC
+ * @tc.require: FEAT-20260528-001
+ */
+HWTEST_F(AccountIamCallbackTest, AuthCallback_OnResult_CustomAuth_Deactivating_0100, TestSize.Level0)
+{
+    OsAccountInfo osAccountInfo(TEST_USER_ID, "testCustomAuthUser", OsAccountType::NORMAL, 0);
+    EXPECT_EQ(IInnerOsAccountManager::GetInstance().osAccountControl_->InsertOsAccount(osAccountInfo), ERR_OK);
+    int32_t testUserId = osAccountInfo.GetLocalId();
+
+    bool isLoggedIn = false;
+    IInnerOsAccountManager::GetInstance().loggedInAccounts_.Find(testUserId, isLoggedIn);
+    if (isLoggedIn) {
+        IInnerOsAccountManager::GetInstance().loggedInAccounts_.Erase(testUserId);
+    }
+
+    IInnerOsAccountManager::GetInstance().deactivatingAccounts_.EnsureInsert(testUserId, true);
+
+    sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
+    auto userAuthCallback = std::make_shared<AuthCallback>(
+        testUserId, static_cast<AuthType>(128), AccountSA::AuthIntent::DEFAULT, callback);
+    EXPECT_TRUE(userAuthCallback->innerCallback_ != nullptr);
+    Attributes extraInfo;
+    int32_t errCode = 0;
+    userAuthCallback->OnResult(errCode, extraInfo);
+    EXPECT_EQ(errCode, callback->result_);
+
+    IInnerOsAccountManager::GetInstance().loggedInAccounts_.Find(testUserId, isLoggedIn);
+    EXPECT_EQ(isLoggedIn, false);
+
+    IInnerOsAccountManager::GetInstance().deactivatingAccounts_.Erase(testUserId);
+    IInnerOsAccountManager::GetInstance().osAccountControl_->DelOsAccount(testUserId);
+}
+
+/**
+ * @tc.name: AuthCallback_OnResult_CompanionDevice_0100
+ * @tc.desc: OnResult test with COMPANION_DEVICE type.
+ * @tc.type: FUNC
+ * @tc.require: FEAT-20260528-001
+ */
+HWTEST_F(AccountIamCallbackTest, AuthCallback_OnResult_CompanionDevice_0100, TestSize.Level0)
+{
+    sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
+    auto userAuthCallback = std::make_shared<AuthCallback>(
+        TEST_USER_ID, AuthType::COMPANION_DEVICE, AccountSA::AuthIntent::DEFAULT, callback);
+    EXPECT_TRUE(userAuthCallback->innerCallback_ != nullptr);
+    Attributes extraInfo;
+    int32_t errCode = 1;
+    userAuthCallback->OnResult(errCode, extraInfo);
+    EXPECT_EQ(errCode, callback->result_);
+}
+
+/**
+ * @tc.name: AuthCallback_OnResult_CompanionDevice_Deactivating_0100
+ * @tc.desc: COMPANION_DEVICE auth success but account is deactivating should not unlock.
+ * @tc.type: FUNC
+ * @tc.require: FEAT-20260528-001
+ */
+HWTEST_F(AccountIamCallbackTest, AuthCallback_OnResult_CompanionDevice_Deactivating_0100, TestSize.Level0)
+{
+    OsAccountInfo osAccountInfo(TEST_USER_ID, "testCompanionDeviceUser", OsAccountType::NORMAL, 0);
+    EXPECT_EQ(IInnerOsAccountManager::GetInstance().osAccountControl_->InsertOsAccount(osAccountInfo), ERR_OK);
+    int32_t testUserId = osAccountInfo.GetLocalId();
+
+    bool isLoggedIn = false;
+    IInnerOsAccountManager::GetInstance().loggedInAccounts_.Find(testUserId, isLoggedIn);
+    if (isLoggedIn) {
+        IInnerOsAccountManager::GetInstance().loggedInAccounts_.Erase(testUserId);
+    }
+
+    IInnerOsAccountManager::GetInstance().deactivatingAccounts_.EnsureInsert(testUserId, true);
+
+    sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
+    auto userAuthCallback = std::make_shared<AuthCallback>(
+        testUserId, AuthType::COMPANION_DEVICE, AccountSA::AuthIntent::DEFAULT, callback);
+    EXPECT_TRUE(userAuthCallback->innerCallback_ != nullptr);
+    Attributes extraInfo;
+    int32_t errCode = 0;
+    userAuthCallback->OnResult(errCode, extraInfo);
+    EXPECT_EQ(errCode, callback->result_);
+
+    IInnerOsAccountManager::GetInstance().loggedInAccounts_.Find(testUserId, isLoggedIn);
+    EXPECT_EQ(isLoggedIn, false);
+
+    IInnerOsAccountManager::GetInstance().deactivatingAccounts_.Erase(testUserId);
+    IInnerOsAccountManager::GetInstance().osAccountControl_->DelOsAccount(testUserId);
+}
+
+/**
+ * @tc.name: AuthCallback_UnlockAccount_CustomAuth_0100
+ * @tc.desc: UnlockAccount with CUSTOM_AUTH type should allow unlock.
+ * @tc.type: FUNC
+ * @tc.require: FEAT-20260528-001
+ */
+HWTEST_F(AccountIamCallbackTest, AuthCallback_UnlockAccount_CustomAuth_0100, TestSize.Level0)
+{
+    sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
+    auto userAuthCallback = std::make_shared<AuthCallback>(
+        TEST_USER_ID, static_cast<AuthType>(128), AccountSA::AuthIntent::DEFAULT, callback);
+    EXPECT_TRUE(userAuthCallback->innerCallback_ != nullptr);
+    std::vector<uint8_t> secret = {8, 8, 8, 8, 8, 8, 8};
+    bool isUpdateVerifiedStatus = true;
+    EXPECT_EQ(ERR_OK, userAuthCallback->UnlockAccount(-1, {}, secret, isUpdateVerifiedStatus));
+}
+
+/**
+ * @tc.name: AuthCallback_UnlockAccount_CompanionDevice_0100
+ * @tc.desc: UnlockAccount with COMPANION_DEVICE type should not allow unlock (not in allowList).
+ * @tc.type: FUNC
+ * @tc.require: FEAT-20260528-001
+ */
+HWTEST_F(AccountIamCallbackTest, AuthCallback_UnlockAccount_CompanionDevice_0100, TestSize.Level0)
+{
+    sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
+    auto userAuthCallback = std::make_shared<AuthCallback>(
+        TEST_USER_ID, AuthType::COMPANION_DEVICE, AccountSA::AuthIntent::DEFAULT, callback);
+    EXPECT_TRUE(userAuthCallback->innerCallback_ != nullptr);
+    std::vector<uint8_t> secret = {8, 8, 8, 8, 8, 8, 8};
+    bool isUpdateVerifiedStatus = true;
+    EXPECT_EQ(ERR_OK, userAuthCallback->UnlockAccount(-1, {}, secret, isUpdateVerifiedStatus));
+}
+
+#ifdef SUPPORT_LOCK_OS_ACCOUNT
+/**
+ * @tc.name: AuthCallback_OnResult_CustomAuth_Locking_0100
+ * @tc.desc: CUSTOM_AUTH auth success but account is locking should not unlock.
+ * @tc.type: FUNC
+ * @tc.require: FEAT-20260528-001
+ */
+HWTEST_F(AccountIamCallbackTest, AuthCallback_OnResult_CustomAuth_Locking_0100, TestSize.Level0)
+{
+    OsAccountInfo osAccountInfo(TEST_USER_ID, "testCustomAuthLockingUser", OsAccountType::NORMAL, 0);
+    EXPECT_EQ(IInnerOsAccountManager::GetInstance().osAccountControl_->InsertOsAccount(osAccountInfo), ERR_OK);
+    int32_t testUserId = osAccountInfo.GetLocalId();
+
+    bool isLoggedIn = false;
+    IInnerOsAccountManager::GetInstance().loggedInAccounts_.Find(testUserId, isLoggedIn);
+    if (isLoggedIn) {
+        IInnerOsAccountManager::GetInstance().loggedInAccounts_.Erase(testUserId);
+    }
+
+    IInnerOsAccountManager::GetInstance().lockingAccounts_.EnsureInsert(testUserId, true);
+
+    sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
+    auto userAuthCallback = std::make_shared<AuthCallback>(
+        testUserId, static_cast<AuthType>(128), AccountSA::AuthIntent::DEFAULT, callback);
+    EXPECT_TRUE(userAuthCallback->innerCallback_ != nullptr);
+    Attributes extraInfo;
+    int32_t errCode = 0;
+    userAuthCallback->OnResult(errCode, extraInfo);
+    EXPECT_EQ(errCode, callback->result_);
+
+    IInnerOsAccountManager::GetInstance().loggedInAccounts_.Find(testUserId, isLoggedIn);
+    EXPECT_EQ(isLoggedIn, false);
+
+    IInnerOsAccountManager::GetInstance().lockingAccounts_.Erase(testUserId);
+    IInnerOsAccountManager::GetInstance().osAccountControl_->DelOsAccount(testUserId);
 }
 #endif
 } // namespace AccountTest
