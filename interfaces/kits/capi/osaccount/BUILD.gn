@@ -56,6 +56,11 @@ ohos_shared_library("libos_account_ndk") {
   cflags_cc = [
     "-Wall",
     "-Werror",
+    "-Os",
+    "-fno-asynchronous-unwind-tables",
+    "-fno-unwind-tables",
+    "-fdata-sections",
+    "-ffunction-sections",
   ]
 
   if (use_libfuzzer) {
@@ -100,6 +105,11 @@ ohos_shared_library("libos_account_utils") {
   cflags_cc = [
     "-Wall",
     "-Werror",
+    "-Os",
+    "-fno-asynchronous-unwind-tables",
+    "-fno-unwind-tables",
+    "-fdata-sections",
+    "-ffunction-sections",
   ]
 
   subsystem_name = "account"

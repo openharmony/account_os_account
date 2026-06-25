@@ -30,6 +30,12 @@ ohos_shared_library("distributedaccount") {
     "-Wdate-time",
     "-Wformat=2",
     "-Wshadow",
+    "-Os",
+    "-fno-asynchronous-unwind-tables",
+    "-fno-unwind-tables",
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fvisibility=hidden",
   ]
 
   sources = [ "src/napi_distributed_account.cpp" ]

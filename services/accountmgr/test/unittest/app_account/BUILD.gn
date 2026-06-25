@@ -67,7 +67,6 @@ ohos_unittest("app_account_data_storage_test") {
   deps = [
     "${app_account_innerkits_native_path}:app_account_innerkits",
     "${app_account_services_path}:accountmgr",
-    "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
   ]
 
@@ -148,8 +147,8 @@ ohos_unittest("app_account_manager_service_test") {
 
   deps = [
     "${app_account_innerkits_native_path}:app_account_innerkits",
+    "${app_account_innerkits_native_path}:app_account_stub",
     "${app_account_services_path}:accountmgr",
-    "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
   ]
 
@@ -198,7 +197,6 @@ ohos_unittest("app_account_stub_test") {
   deps = [
     "${app_account_innerkits_native_path}:app_account_innerkits",
     "${app_account_services_path}:accountmgr",
-    "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
   ]
 
@@ -279,8 +277,8 @@ ohos_unittest("app_account_test") {
 
   deps = [
     "${app_account_innerkits_native_path}:app_account_innerkits",
+    "${app_account_innerkits_native_path}:app_account_stub",
     "${app_account_services_path}:accountmgr",
-    "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
   ]
 

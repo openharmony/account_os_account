@@ -35,6 +35,15 @@ config("authorization_napi_kit_config") {
 ohos_shared_library("authorization_napi") {
   include_dirs = []
 
+  cflags_cc = [
+    "-Os",
+    "-fno-asynchronous-unwind-tables",
+    "-fno-unwind-tables",
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fvisibility=hidden",
+  ]
+
   configs = [ ":authorization_napi_kit_config" ]
 
   public_configs = [ ":authorization_napi_kit_config" ]
@@ -73,8 +82,6 @@ ohos_shared_library("authorization_napi") {
     "napi:ace_napi",
     "window_manager:libwm"
   ]
-
-  cflags_cc = []
 
   subsystem_name = "account"
 

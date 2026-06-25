@@ -37,6 +37,14 @@ ohos_shared_library("account_napi_common") {
   configs = [ ":account_napi_common_config" ]
   public_configs = [ ":account_napi_common_config" ]
 
+  cflags_cc = [
+    "-Os",
+    "-fno-asynchronous-unwind-tables",
+    "-fno-unwind-tables",
+    "-fdata-sections",
+    "-ffunction-sections",
+  ]
+
   sources = [
     "${os_account_path}/interfaces/kits/napi/common/src/napi_account_common.cpp",
     "${os_account_path}/interfaces/kits/napi/common/src/napi_account_error.cpp",

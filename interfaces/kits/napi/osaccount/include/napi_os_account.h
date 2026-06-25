@@ -320,7 +320,7 @@ struct GetOsAccountSubProfileAsyncContext : public CommonAsyncContext {
 };
 
 
-napi_value OsAccountInit(napi_env env, napi_value exports);
+napi_value __attribute__((visibility("default"))) OsAccountInit(napi_env env, napi_value exports);
 
 napi_value GetAccountManager(napi_env env, napi_callback_info cbInfo);
 

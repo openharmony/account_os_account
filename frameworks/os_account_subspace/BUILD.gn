@@ -40,6 +40,11 @@ config("os_account_subspace_innerkits_config") {
     "-Wdate-time",
     "-Wformat=2",
     "-Wshadow",
+    "-Os",
+    "-fno-asynchronous-unwind-tables",
+    "-fno-unwind-tables",
+    "-fdata-sections",
+    "-ffunction-sections",
   ]
 
   if (os_account_enable_multiple_os_account_sub_profiles) {

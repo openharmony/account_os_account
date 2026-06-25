@@ -70,6 +70,13 @@ ohos_shared_library("os_account_innerkits") {
     debug = false
   }
 
+  cflags_cc = [
+    "-Os",
+    "-fno-asynchronous-unwind-tables",
+    "-fno-unwind-tables",
+    "-fdata-sections",
+    "-ffunction-sections",
+  ]
   sources = [
     "${domain_account_framework_path}/src/domain_account_common.cpp",
     "${os_account_core_path}/src/os_account_constraint_subscriber_manager.cpp",
@@ -110,8 +117,6 @@ ohos_shared_library("os_account_innerkits") {
   public_configs = [ ":osaccountinterface_config" ]
   public_configs += [ "${domain_account_framework_path}:frameworks_domain_account_interface_public_config" ]
 
-  use_exceptions = true
-
   deps = [
     ":frameworks_osaccount_interface",
     "${common_path}:libaccount_common",
@@ -128,7 +133,6 @@ ohos_shared_library("os_account_innerkits") {
     version_script = "libos_account_innerkits.map"
   }
 
-  cflags_cc = []
   if (os_account_support_domain_accounts) {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
   }
@@ -165,6 +169,14 @@ ohos_shared_library("os_account_innerkits_lite") {
     cfi_cross_dso = true
     debug = false
   }
+
+  cflags_cc = [
+    "-Os",
+    "-fno-asynchronous-unwind-tables",
+    "-fno-unwind-tables",
+    "-fdata-sections",
+    "-ffunction-sections",
+  ]
 
   sources = [ "src/os_account_manager_lite.cpp" ]
 
@@ -211,7 +223,13 @@ ohos_source_set("os_account_proxy") {
     "ipc:ipc_single",
   ]
 
-  cflags_cc = []
+  cflags_cc = [
+    "-Os",
+    "-fno-asynchronous-unwind-tables",
+    "-fno-unwind-tables",
+    "-fdata-sections",
+    "-ffunction-sections",
+  ]
   if (os_account_support_lock_os_account) {
     cflags_cc += [ "-DSUPPORT_LOCK_OS_ACCOUNT" ]
   }
@@ -239,7 +257,13 @@ ohos_source_set("os_account_stub") {
     "ipc:ipc_single",
   ]
 
-  cflags_cc = []
+  cflags_cc = [
+    "-Os",
+    "-fno-asynchronous-unwind-tables",
+    "-fno-unwind-tables",
+    "-fdata-sections",
+    "-ffunction-sections",
+  ]
   if (os_account_support_lock_os_account) {
     cflags_cc += [ "-DSUPPORT_LOCK_OS_ACCOUNT" ]
   }
@@ -265,6 +289,13 @@ ohos_source_set("os_account_constraint_event_proxy") {
     "hilog:libhilog",
     "ipc:ipc_single",
   ]
+  cflags_cc = [
+    "-Os",
+    "-fno-asynchronous-unwind-tables",
+    "-fno-unwind-tables",
+    "-fdata-sections",
+    "-ffunction-sections",
+  ]
   subsystem_name = "account"
   part_name = "os_account"
 }
@@ -285,6 +316,13 @@ ohos_source_set("os_account_constraint_event_stub") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
+  ]
+  cflags_cc = [
+    "-Os",
+    "-fno-asynchronous-unwind-tables",
+    "-fno-unwind-tables",
+    "-fdata-sections",
+    "-ffunction-sections",
   ]
   subsystem_name = "account"
   part_name = "os_account"
@@ -307,6 +345,13 @@ ohos_source_set("os_account_event_proxy") {
     "hilog:libhilog",
     "ipc:ipc_single",
   ]
+  cflags_cc = [
+    "-Os",
+    "-fno-asynchronous-unwind-tables",
+    "-fno-unwind-tables",
+    "-fdata-sections",
+    "-ffunction-sections",
+  ]
   subsystem_name = "account"
   part_name = "os_account"
 }
@@ -327,6 +372,13 @@ ohos_source_set("os_account_event_stub") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
+  ]
+  cflags_cc = [
+    "-Os",
+    "-fno-asynchronous-unwind-tables",
+    "-fno-unwind-tables",
+    "-fdata-sections",
+    "-ffunction-sections",
   ]
   subsystem_name = "account"
   part_name = "os_account"
@@ -349,6 +401,13 @@ ohos_source_set("os_account_state_reply_callback_proxy") {
     "hilog:libhilog",
     "ipc:ipc_single",
   ]
+  cflags_cc = [
+    "-Os",
+    "-fno-asynchronous-unwind-tables",
+    "-fno-unwind-tables",
+    "-fdata-sections",
+    "-ffunction-sections",
+  ]
   subsystem_name = "account"
   part_name = "os_account"
 }
@@ -369,6 +428,13 @@ ohos_source_set("os_account_state_reply_callback_stub") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
+  ]
+  cflags_cc = [
+    "-Os",
+    "-fno-asynchronous-unwind-tables",
+    "-fno-unwind-tables",
+    "-fdata-sections",
+    "-ffunction-sections",
   ]
   subsystem_name = "account"
   part_name = "os_account"

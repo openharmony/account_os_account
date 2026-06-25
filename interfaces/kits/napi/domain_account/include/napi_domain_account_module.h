@@ -20,7 +20,7 @@
 
 namespace OHOS {
 namespace AccountJsKit {
-napi_value DomainAccountInit(napi_env env, napi_value exports);
+napi_value __attribute__((visibility("default"))) DomainAccountInit(napi_env env, napi_value exports);
 }  // namespace AccountJsKit
 }  // namespace OHOS
 #endif  // OS_ACCOUNT_INTERFACES_KITS_NAPI_DOMAIN_ACCOUNT_INCLUDE_NAPI_DOMAIN_ACCOUNT_MODULE_H

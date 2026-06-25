@@ -38,9 +38,14 @@ config("appaccount_kit_config") {
 
 ohos_shared_library("appaccount") {
   include_dirs = []
-  if (!use_clang_coverage) {
-    version_script = "libappaccount.map"
-  }
+  cflags_cc = [
+    "-Os",
+    "-fno-asynchronous-unwind-tables",
+    "-fno-unwind-tables",
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fvisibility=hidden",
+  ]
   configs = [ ":appaccount_kit_config" ]
 
   public_configs = [ ":appaccount_kit_config" ]

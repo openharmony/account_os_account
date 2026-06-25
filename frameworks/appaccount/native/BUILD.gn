@@ -45,6 +45,11 @@ config("app_account_innnerkits_config") {
     "-Wdate-time",
     "-Wformat=2",
     "-Wshadow",
+    "-Os",
+    "-fno-asynchronous-unwind-tables",
+    "-fno-unwind-tables",
+    "-fdata-sections",
+    "-ffunction-sections",
   ]
 
   defines = [
@@ -104,8 +109,6 @@ ohos_shared_library("app_account_innerkits") {
   configs = [ ":app_account_innnerkits_config" ]
 
   public_configs = [ ":app_account_innerkits_public_config" ]
-
-  use_exceptions = true
 
   if (!use_clang_coverage) {
     version_script = "libapp_account_innerkits.map"

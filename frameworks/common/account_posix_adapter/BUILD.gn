@@ -55,6 +55,11 @@ ohos_shared_library("account_posix_adapter") {
     "-Wshadow",
     "-fvisibility=hidden",
     "-DINCLUDE_FILE_OPT_ONLY",
+    "-Os",
+    "-fno-asynchronous-unwind-tables",
+    "-fno-unwind-tables",
+    "-fdata-sections",
+    "-ffunction-sections",
   ]
   defines = [
     "ACCOUNT_LOG_TAG = \"AccountPosixAdapter\"",

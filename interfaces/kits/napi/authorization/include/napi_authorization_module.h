@@ -20,7 +20,7 @@
 
 namespace OHOS {
 namespace AccountJsKit {
-napi_value AuthorizationInit(napi_env env, napi_value exports);
+napi_value __attribute__((visibility("default"))) AuthorizationInit(napi_env env, napi_value exports);
 }  // namespace AccountJsKit
 }  // namespace OHOS
 #endif  // AUTHORIZATION_KITS_NAPI_AUTHORIZATION_INCLUDE_AUTHORIZATION_MODULE_H

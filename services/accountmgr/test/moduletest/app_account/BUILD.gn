@@ -63,7 +63,6 @@ ohos_moduletest("app_account_check_labels_module_test") {
   deps = [
     "${app_account_innerkits_native_path}:app_account_innerkits",
     "${app_account_services_path}:accountmgr",
-    "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
   ]
 
@@ -247,7 +246,6 @@ ohos_moduletest("app_account_authenticator_callback_test") {
     "${app_account_innerkits_native_path}:app_account_authenticator_callback_proxy",
     "${app_account_innerkits_native_path}:app_account_innerkits",
     "${app_account_services_path}:accountmgr",
-    "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
   ]
@@ -283,8 +281,8 @@ ohos_moduletest("app_account_event_module_test") {
 
   deps = [
     "${app_account_innerkits_native_path}:app_account_innerkits",
+    "${app_account_innerkits_native_path}:app_account_event_proxy",
     "${app_account_services_path}:accountmgr",
-    "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
   ]
@@ -334,7 +332,6 @@ ohos_moduletest("app_account_authenticate_test") {
     "${app_account_innerkits_native_path}:app_account_authenticator_proxy",
     "${app_account_innerkits_native_path}:app_account_innerkits",
     "${app_account_services_path}:accountmgr",
-    "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
   ]
@@ -723,7 +720,7 @@ ohos_moduletest("app_account_authenticator_session_module_test") {
 
   deps = [
     "${app_account_innerkits_native_path}:app_account_innerkits",
-    "${app_account_services_path}/src/appaccount:app_account_service_core",
+    "${app_account_innerkits_native_path}:app_account_stub",
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_event_stub",
     "${os_account_innerkits_native_path}:os_account_innerkits",
@@ -826,8 +823,8 @@ ohos_moduletest("app_account_manager_service_module_test") {
 
   deps = [
     "${app_account_innerkits_native_path}:app_account_innerkits",
+    "${app_account_innerkits_native_path}:app_account_stub",
     "${app_account_services_path}:accountmgr",
-    "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_event_stub",
@@ -899,8 +896,8 @@ ohos_moduletest("app_account_manager_service_check_test") {
 
   deps = [
     "${app_account_innerkits_native_path}:app_account_innerkits",
+    "${app_account_innerkits_native_path}:app_account_stub",
     "${app_account_services_path}:accountmgr",
-    "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
   ]
@@ -950,8 +947,8 @@ ohos_moduletest("app_account_manager_service_not_mock_module_test") {
 
   deps = [
     "${app_account_innerkits_native_path}:app_account_innerkits",
+    "${app_account_innerkits_native_path}:app_account_stub",
     "${app_account_services_path}:accountmgr",
-    "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
   ]
@@ -1022,7 +1019,6 @@ ohos_moduletest("at_not_mock_app_account_manager_service_module_test") {
 
   deps = [
     "${app_account_innerkits_native_path}:app_account_innerkits",
-    "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_event_stub",
@@ -1129,8 +1125,8 @@ ohos_moduletest("app_account_manager_service_subscribe_module_test") {
 
   deps = [
     "${app_account_innerkits_native_path}:app_account_innerkits",
+    "${app_account_innerkits_native_path}:app_account_stub",
     "${app_account_services_path}:accountmgr",
-    "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
   ]
@@ -1188,8 +1184,8 @@ ohos_moduletest("app_account_manager_service_sync_module_test") {
 
   deps = [
     "${app_account_innerkits_native_path}:app_account_innerkits",
+    "${app_account_innerkits_native_path}:app_account_stub",
     "${app_account_services_path}:accountmgr",
-    "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
   ]
@@ -1286,7 +1282,7 @@ ohos_moduletest("app_account_authenticator_session_manager_module_test") {
 
   deps = [
     "${app_account_innerkits_native_path}:app_account_innerkits",
-    "${app_account_services_path}/src/appaccount:app_account_service_core",
+    "${app_account_innerkits_native_path}:app_account_stub",
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_event_stub",
     "${os_account_innerkits_native_path}:os_account_innerkits",
@@ -1377,7 +1373,6 @@ ohos_moduletest("app_account_subscribe_manager_test") {
   deps = [
     "${app_account_innerkits_native_path}:app_account_innerkits",
     "${app_account_services_path}:accountmgr",
-    "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
   ]

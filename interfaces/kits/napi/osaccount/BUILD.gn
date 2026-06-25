@@ -41,6 +41,16 @@ config("osaccount_kit_config") {
 
 ohos_shared_library("osaccount") {
   configs = [ ":osaccount_kit_config" ]
+
+  cflags_cc = [
+    "-Os",
+    "-fno-asynchronous-unwind-tables",
+    "-fno-unwind-tables",
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fvisibility=hidden",
+  ]
+  
   sources = [
     "${os_account_kits_path}/src/napi_init.cpp",
     "${os_account_kits_path}/src/napi_os_account.cpp",

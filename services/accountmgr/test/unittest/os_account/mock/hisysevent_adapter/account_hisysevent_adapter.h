@@ -35,13 +35,13 @@ void ReportOhosAccountStateChange(int32_t userId, int32_t operateType, int32_t o
 void ReportOsAccountDataTampered(int32_t id, const std::string& dataPath, const std::string& dataLabel);
 
 #define ASSEMBLE_ERRMSG(str) \
-    ("[" + std::string(__FUNCTION__) + "@" + std::string(LOG_FILE_NAME) + ":" + std::to_string(__LINE__) + "] " + (str))
+    (str)
 #define REPORT_OS_ACCOUNT_FAIL(id, operationStr, errCode, errMsg) \
-    ReportOsAccountOperationFail(id, operationStr, errCode, ASSEMBLE_ERRMSG(errMsg))
+    ReportOsAccountOperationFail(id, operationStr, errCode, errMsg)
 #define REPORT_OHOS_ACCOUNT_FAIL(userId, operationStr, errCode, errMsg) \
-    ReportOhosAccountOperationFail(userId, operationStr, errCode, ASSEMBLE_ERRMSG(errMsg))
+    ReportOhosAccountOperationFail(userId, operationStr, errCode, errMsg)
 #define REPORT_APP_ACCOUNT_FAIL(name, owner, operationStr, errCode, errMsg) \
-    ReportAppAccountOperationFail(name, owner, operationStr, errCode, ASSEMBLE_ERRMSG(errMsg))
+    ReportAppAccountOperationFail(name, owner, operationStr, errCode, errMsg)
 } // AccountSA
 } // OHOS
 #endif // OS_ACCOUNT_DFX_HISYSEVENT_ADAPTER_H
