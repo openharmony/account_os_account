@@ -285,11 +285,18 @@ bool GetCallbackProperty(napi_env env, napi_value obj, napi_ref &property, int a
     if ((valueType == napi_undefined) || (valueType == napi_null)) {
         ACCOUNT_LOGI("the callback is undefined or null");
         return true;
-    } else if (valueType == napi_function) {
-        NAPI_CALL_BASE(env, napi_create_reference(env, obj, argNum, &property), false);
+    }
+    if (valueType != napi_function) {
+        ACCOUNT_LOGE("the callback is not a napi_function");
+        return false;
+    }
+    if (napi_create_reference(env, obj, argNum, &property) == napi_ok) {
         return true;
     }
-    ACCOUNT_LOGE("the callback is not a napi_function");
+    if (property != nullptr) {
+        napi_delete_reference(env, property);
+        property = nullptr;
+    }
     return false;
 }
 
