@@ -42,7 +42,7 @@ constexpr int32_t PARAM_NUM = 3;
 constexpr int32_t CONNECT_CODE = 1;
 const std::string SYSTEM_SCENEBOARD_BUNDLE_NAME = "com.ohos.sceneboard";
 const std::string SYSTEM_SCENEBOARD_ABILITY_NAME = "com.ohos.sceneboard.systemdialog";
-constexpr std::int32_t UID_TRANSFORM_DIVISOR = 20000;
+constexpr std::int32_t UID_TRANSFORM_DIVISOR = 200000;
 }
 
 void SessionAbilityConnection::SessionAbilityConnectionStub::OnAbilityConnectDone(
