@@ -104,7 +104,9 @@ taihe_shared_library("app_account_taihe_native") {
     "ipc:ipc_napi",
     "ipc:ipc_single",
     "ipc:rpc_taihe",
+    "libuv:uv",
     "napi:ace_napi",
+    "node:node_header_notice",
     "runtime_core:ani_helpers",
     "window_manager:libwm",
   ]
@@ -170,6 +172,7 @@ taihe_shared_library("distributed_account_taihe_native") {
     "c_utils:utils",
     "hilog:libhilog",
     "napi:ace_napi",
+    "node:node_header_notice",
   ]
 
   defines = [
@@ -266,7 +269,9 @@ taihe_shared_library("os_account_taihe_native") {
     "hilog:libhilog",
     "icu:shared_icuuc",
     "ipc:ipc_single",
+    "libuv:uv",
     "napi:ace_napi",
+    "node:node_header_notice",
     "runtime_core:ani",
     "runtime_core:ani_helpers",
     "samgr:samgr_proxy",

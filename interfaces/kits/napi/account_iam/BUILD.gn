@@ -60,7 +60,9 @@ ohos_shared_library("account_iam_napi") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "libuv:uv",
     "napi:ace_napi",
+    "node:node_header_notice",
   ]
 
   cflags_cc = []
