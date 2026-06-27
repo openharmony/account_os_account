@@ -28,6 +28,12 @@ public:
     static ErrCode GetOsAccountSubProfileId(
         int32_t osAccountLocalId, int32_t appIndex, int32_t &subProfileId);
     static ErrCode GetOsAccountSubProfileId(uint32_t tokenId, int32_t &subProfileId);
+    static ErrCode GetOsAccountSubProfileIndex(
+        int32_t osAccountId, int32_t subProfileId, int32_t &index);
+    static ErrCode GetOsAccountForegroundSubProfileId(
+        int32_t osAccountId, int32_t &subProfileId);
+    static ErrCode GetOsAccountLocalIdForSubProfile(
+        int32_t subProfileId, int32_t &osAccountId);
 };
 }  // namespace AccountSA
 }  // namespace OHOS

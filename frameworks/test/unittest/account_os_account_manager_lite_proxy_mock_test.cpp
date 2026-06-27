@@ -27,6 +27,8 @@ constexpr uint32_t COMMAND_GET_OS_ACCOUNT_SERVICE = 14;
 constexpr uint32_t COMMAND_GET_FOREGROUND_OS_ACCOUNT_LOCAL_ID_OUT_INT = 77;
 constexpr uint32_t COMMAND_GET_SUB_PROFILE_ID_BY_LOCAL_APP = 28;
 constexpr uint32_t COMMAND_GET_SUB_PROFILE_ID_BY_TOKEN = 29;
+constexpr uint32_t COMMAND_GET_FOREGROUND_SUB_PROFILE_ID_IN_INT_OUT_INT = 22;
+constexpr uint32_t COMMAND_GET_LOCAL_ID_FOR_SUB_PROFILE = 25;
 constexpr int32_t TEST_LOCAL_ID = 101;
 constexpr int32_t TEST_SUB_PROFILE_ID = 202;
 }
@@ -82,7 +84,9 @@ public:
     int SendRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override
     {
         if (code != COMMAND_GET_SUB_PROFILE_ID_BY_LOCAL_APP &&
-            code != COMMAND_GET_SUB_PROFILE_ID_BY_TOKEN) {
+            code != COMMAND_GET_SUB_PROFILE_ID_BY_TOKEN &&
+            code != COMMAND_GET_FOREGROUND_SUB_PROFILE_ID_IN_INT_OUT_INT &&
+            code != COMMAND_GET_LOCAL_ID_FOR_SUB_PROFILE) {
             return sendRequestResult_;
         }
         if (sendRequestResult_ != ERR_NONE) {
@@ -900,6 +904,238 @@ HWTEST_F(OsAccountManagerLiteProxyMockTest, GetSubProfileIdByTokenIdProxyMock009
     EXPECT_EQ(OsAccountManagerLite::GetOsAccountSubProfileId(
         static_cast<uint32_t>(TEST_LOCAL_ID), subProfileId), ERR_OK);
     EXPECT_EQ(subProfileId, TEST_SUB_PROFILE_ID);
+}
+
+/**
+ * @tc.name: GetOsAccountForegroundSubProfileIdProxyMock001
+ * @tc.desc: Test GetOsAccountForegroundSubProfileId returns get proxy error when proxy is unavailable.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteProxyMockTest, GetOsAccountForegroundSubProfileIdProxyMock001, TestSize.Level3)
+{
+    int32_t subProfileId = -1;
+    EXPECT_EQ(OsAccountManagerLite::GetOsAccountForegroundSubProfileId(
+        TEST_LOCAL_ID, subProfileId), ERR_ACCOUNT_COMMON_GET_PROXY);
+    EXPECT_EQ(subProfileId, -1);
+}
+
+/**
+ * @tc.name: GetOsAccountForegroundSubProfileIdProxyMock002
+ * @tc.desc: Test GetOsAccountForegroundSubProfileId returns get proxy error when SA 200 is unavailable.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteProxyMockTest, GetOsAccountForegroundSubProfileIdProxyMock002, TestSize.Level3)
+{
+    SetMockSystemAbilityManager(new MockSystemAbilityManager(nullptr));
+
+    int32_t subProfileId = -1;
+    EXPECT_EQ(OsAccountManagerLite::GetOsAccountForegroundSubProfileId(
+        TEST_LOCAL_ID, subProfileId), ERR_ACCOUNT_COMMON_GET_PROXY);
+    EXPECT_EQ(subProfileId, -1);
+}
+
+/**
+ * @tc.name: GetOsAccountForegroundSubProfileIdProxyMock003
+ * @tc.desc: Test GetOsAccountForegroundSubProfileId returns remote died when SendRequest fails.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteProxyMockTest, GetOsAccountForegroundSubProfileIdProxyMock003, TestSize.Level3)
+{
+    auto mockService = new MockAccountMgrSubProfileService(ERR_OK, TEST_SUB_PROFILE_ID, ERR_INVALID_VALUE);
+    SetMockSystemAbilityManager(new MockSystemAbilityManager(mockService));
+
+    int32_t subProfileId = -1;
+    EXPECT_EQ(OsAccountManagerLite::GetOsAccountForegroundSubProfileId(
+        TEST_LOCAL_ID, subProfileId), ERR_ACCOUNT_COMMON_REMOTE_DIED);
+    EXPECT_EQ(subProfileId, -1);
+}
+
+/**
+ * @tc.name: GetOsAccountForegroundSubProfileIdProxyMock004
+ * @tc.desc: Test GetOsAccountForegroundSubProfileId returns read parcel error when reply misses errCode.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteProxyMockTest, GetOsAccountForegroundSubProfileIdProxyMock004, TestSize.Level3)
+{
+    auto mockService = new MockAccountMgrSubProfileService(ERR_OK, TEST_SUB_PROFILE_ID, ERR_NONE, false);
+    SetMockSystemAbilityManager(new MockSystemAbilityManager(mockService));
+
+    int32_t subProfileId = -1;
+    EXPECT_EQ(OsAccountManagerLite::GetOsAccountForegroundSubProfileId(
+        TEST_LOCAL_ID, subProfileId), ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR);
+    EXPECT_EQ(subProfileId, -1);
+}
+
+/**
+ * @tc.name: GetOsAccountForegroundSubProfileIdProxyMock005
+ * @tc.desc: Test GetOsAccountForegroundSubProfileId transparently returns other service errors.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteProxyMockTest, GetOsAccountForegroundSubProfileIdProxyMock005, TestSize.Level3)
+{
+    auto mockService = new MockAccountMgrSubProfileService(ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    SetMockSystemAbilityManager(new MockSystemAbilityManager(mockService));
+
+    int32_t subProfileId = -1;
+    EXPECT_EQ(OsAccountManagerLite::GetOsAccountForegroundSubProfileId(
+        TEST_LOCAL_ID, subProfileId), ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    EXPECT_EQ(subProfileId, -1);
+}
+
+/**
+ * @tc.name: GetOsAccountForegroundSubProfileIdProxyMock006
+ * @tc.desc: Test GetOsAccountForegroundSubProfileId returns read parcel error when reply misses subProfileId.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteProxyMockTest, GetOsAccountForegroundSubProfileIdProxyMock006, TestSize.Level3)
+{
+    auto mockService = new MockAccountMgrSubProfileService(
+        ERR_OK, TEST_SUB_PROFILE_ID, ERR_NONE, true, false);
+    SetMockSystemAbilityManager(new MockSystemAbilityManager(mockService));
+
+    int32_t subProfileId = -1;
+    EXPECT_EQ(OsAccountManagerLite::GetOsAccountForegroundSubProfileId(
+        TEST_LOCAL_ID, subProfileId), ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR);
+    EXPECT_EQ(subProfileId, -1);
+}
+
+/**
+ * @tc.name: GetOsAccountForegroundSubProfileIdProxyMock007
+ * @tc.desc: Test GetOsAccountForegroundSubProfileId returns subProfileId when mocked service succeeds.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteProxyMockTest, GetOsAccountForegroundSubProfileIdProxyMock007, TestSize.Level3)
+{
+    auto mockService = new MockAccountMgrSubProfileService(ERR_OK, TEST_SUB_PROFILE_ID);
+    SetMockSystemAbilityManager(new MockSystemAbilityManager(mockService));
+
+    int32_t subProfileId = -1;
+    EXPECT_EQ(OsAccountManagerLite::GetOsAccountForegroundSubProfileId(
+        TEST_LOCAL_ID, subProfileId), ERR_OK);
+    EXPECT_EQ(subProfileId, TEST_SUB_PROFILE_ID);
+}
+
+/**
+ * @tc.name: GetOsAccountLocalIdForSubProfileProxyMock001
+ * @tc.desc: Test GetOsAccountLocalIdForSubProfile returns get proxy error when proxy is unavailable.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteProxyMockTest, GetOsAccountLocalIdForSubProfileProxyMock001, TestSize.Level3)
+{
+    int32_t osAccountId = -1;
+    EXPECT_EQ(OsAccountManagerLite::GetOsAccountLocalIdForSubProfile(
+        TEST_SUB_PROFILE_ID, osAccountId), ERR_ACCOUNT_COMMON_GET_PROXY);
+    EXPECT_EQ(osAccountId, -1);
+}
+
+/**
+ * @tc.name: GetOsAccountLocalIdForSubProfileProxyMock002
+ * @tc.desc: Test GetOsAccountLocalIdForSubProfile returns get proxy error when SA 200 is unavailable.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteProxyMockTest, GetOsAccountLocalIdForSubProfileProxyMock002, TestSize.Level3)
+{
+    SetMockSystemAbilityManager(new MockSystemAbilityManager(nullptr));
+
+    int32_t osAccountId = -1;
+    EXPECT_EQ(OsAccountManagerLite::GetOsAccountLocalIdForSubProfile(
+        TEST_SUB_PROFILE_ID, osAccountId), ERR_ACCOUNT_COMMON_GET_PROXY);
+    EXPECT_EQ(osAccountId, -1);
+}
+
+/**
+ * @tc.name: GetOsAccountLocalIdForSubProfileProxyMock003
+ * @tc.desc: Test GetOsAccountLocalIdForSubProfile returns remote died when SendRequest fails.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteProxyMockTest, GetOsAccountLocalIdForSubProfileProxyMock003, TestSize.Level3)
+{
+    auto mockService = new MockAccountMgrSubProfileService(ERR_OK, TEST_LOCAL_ID, ERR_INVALID_VALUE);
+    SetMockSystemAbilityManager(new MockSystemAbilityManager(mockService));
+
+    int32_t osAccountId = -1;
+    EXPECT_EQ(OsAccountManagerLite::GetOsAccountLocalIdForSubProfile(
+        TEST_SUB_PROFILE_ID, osAccountId), ERR_ACCOUNT_COMMON_REMOTE_DIED);
+    EXPECT_EQ(osAccountId, -1);
+}
+
+/**
+ * @tc.name: GetOsAccountLocalIdForSubProfileProxyMock004
+ * @tc.desc: Test GetOsAccountLocalIdForSubProfile returns read parcel error when reply misses errCode.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteProxyMockTest, GetOsAccountLocalIdForSubProfileProxyMock004, TestSize.Level3)
+{
+    auto mockService = new MockAccountMgrSubProfileService(ERR_OK, TEST_LOCAL_ID, ERR_NONE, false);
+    SetMockSystemAbilityManager(new MockSystemAbilityManager(mockService));
+
+    int32_t osAccountId = -1;
+    EXPECT_EQ(OsAccountManagerLite::GetOsAccountLocalIdForSubProfile(
+        TEST_SUB_PROFILE_ID, osAccountId), ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR);
+    EXPECT_EQ(osAccountId, -1);
+}
+
+/**
+ * @tc.name: GetOsAccountLocalIdForSubProfileProxyMock005
+ * @tc.desc: Test GetOsAccountLocalIdForSubProfile transparently returns other service errors.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteProxyMockTest, GetOsAccountLocalIdForSubProfileProxyMock005, TestSize.Level3)
+{
+    auto mockService = new MockAccountMgrSubProfileService(ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    SetMockSystemAbilityManager(new MockSystemAbilityManager(mockService));
+
+    int32_t osAccountId = -1;
+    EXPECT_EQ(OsAccountManagerLite::GetOsAccountLocalIdForSubProfile(
+        TEST_SUB_PROFILE_ID, osAccountId), ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    EXPECT_EQ(osAccountId, -1);
+}
+
+/**
+ * @tc.name: GetOsAccountLocalIdForSubProfileProxyMock006
+ * @tc.desc: Test GetOsAccountLocalIdForSubProfile returns read parcel error when reply misses osAccountId.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteProxyMockTest, GetOsAccountLocalIdForSubProfileProxyMock006, TestSize.Level3)
+{
+    auto mockService = new MockAccountMgrSubProfileService(
+        ERR_OK, TEST_LOCAL_ID, ERR_NONE, true, false);
+    SetMockSystemAbilityManager(new MockSystemAbilityManager(mockService));
+
+    int32_t osAccountId = -1;
+    EXPECT_EQ(OsAccountManagerLite::GetOsAccountLocalIdForSubProfile(
+        TEST_SUB_PROFILE_ID, osAccountId), ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR);
+    EXPECT_EQ(osAccountId, -1);
+}
+
+/**
+ * @tc.name: GetOsAccountLocalIdForSubProfileProxyMock007
+ * @tc.desc: Test GetOsAccountLocalIdForSubProfile returns osAccountId when mocked service succeeds.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteProxyMockTest, GetOsAccountLocalIdForSubProfileProxyMock007, TestSize.Level3)
+{
+    auto mockService = new MockAccountMgrSubProfileService(ERR_OK, TEST_LOCAL_ID);
+    SetMockSystemAbilityManager(new MockSystemAbilityManager(mockService));
+
+    int32_t osAccountId = -1;
+    EXPECT_EQ(OsAccountManagerLite::GetOsAccountLocalIdForSubProfile(
+        TEST_SUB_PROFILE_ID, osAccountId), ERR_OK);
+    EXPECT_EQ(osAccountId, TEST_LOCAL_ID);
 }
 }  // namespace AccountTest
 }  // namespace OHOS

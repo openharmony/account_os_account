@@ -212,5 +212,12 @@ ErrCode OsAccountSubProfileClient::GetOsAccountSubProfileId(
 {
     return OhosAccountKits::GetInstance().GetOsAccountSubProfileId(tokenId, subProfileId);
 }
+
+ErrCode OsAccountSubProfileClient::GetOsAccountSubProfileIndex(
+    int32_t osAccountLocalId, int32_t subProfileId, int32_t &index)
+{
+    return OhosAccountKits::GetInstance().GetOsAccountSubProfileIndex(
+        osAccountLocalId, subProfileId, index);
+}
 }  // namespace AccountSA
 }  // namespace OHOS

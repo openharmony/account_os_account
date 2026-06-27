@@ -339,6 +339,7 @@
         "OHOS::AccountSA::OsAccountSubProfileClient::GetOsAccountSubProfile(int, int, OHOS::AccountSA::OsAccountSubspaceResult&, OHOS::AccountSA::OhosAccountInfo&)";
         "OHOS::AccountSA::OsAccountSubProfileClient::GetOsAccountSubProfileId(int, int, int&)";
         "OHOS::AccountSA::OsAccountSubProfileClient::GetOsAccountSubProfileId(unsigned int, int&)";
+        "OHOS::AccountSA::OsAccountSubProfileClient::GetOsAccountSubProfileIndex(int, int, int&)";
         "OHOS::AccountSA::OhosAccountInfo::Unmarshalling(OHOS::Parcel&)";
     };
   local:

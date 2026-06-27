@@ -170,6 +170,13 @@ public:
         subProfileId = 0;
         return ERR_OK;
     }
+
+    int32_t GetOsAccountSubProfileIndex(
+        int32_t osAccountId, int32_t subProfileId, int32_t &index) override
+    {
+        index = 0;
+        return ERR_OK;
+    }
 private:
     std::int32_t devAccountId_;
 };

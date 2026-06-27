@@ -29,6 +29,7 @@
 #include "matching_skills.h"
 #endif // HAS_CES_PART
 #include "os_account_manager.h"
+#include "os_account_constants.h"
 using namespace testing;
 using namespace testing::ext;
 using namespace OHOS;
@@ -475,4 +476,70 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest016, TestSize.Level3)
     EXPECT_EQ(result, false);
     result = OhosAccountManager::GetInstance().GetCurOhosAccountAndCheckMatch(info, TEST_NAME, TEST_NAME, 100);
     EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: OhosAccountManagerTest017
+ * @tc.desc: Test GetOsAccountLocalIdForSubProfile in non-macro mode accepts base+1 subProfileId.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest017, TestSize.Level1)
+{
+    constexpr int32_t osAccountId = 100;
+    constexpr int32_t subProfileId = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 1;
+    int32_t resultOsAccountId = -1;
+    ErrCode ret = OhosAccountManager::GetInstance().GetOsAccountLocalIdForSubProfile(
+        subProfileId, resultOsAccountId);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(resultOsAccountId, osAccountId);
+}
+
+/**
+ * @tc.name: OhosAccountManagerTest018
+ * @tc.desc: Test GetOsAccountLocalIdForSubProfile in non-macro mode rejects invalid subProfileId.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest018, TestSize.Level1)
+{
+    constexpr int32_t osAccountId = 100;
+    constexpr int32_t subProfileId = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 2;
+    int32_t resultOsAccountId = -1;
+    ErrCode ret = OhosAccountManager::GetInstance().GetOsAccountLocalIdForSubProfile(
+        subProfileId, resultOsAccountId);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+}
+
+/**
+ * @tc.name: OhosAccountManagerTest019
+ * @tc.desc: Test GetOsAccountSubProfileId in non-macro mode returns base+1 for appIndex=0.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest019, TestSize.Level1)
+{
+    constexpr int32_t osAccountId = 100;
+    int32_t subProfileId = -1;
+    ErrCode ret = OhosAccountManager::GetInstance().GetOsAccountSubProfileId(
+        osAccountId, 0, subProfileId);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(subProfileId, osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 1);
+}
+
+/**
+ * @tc.name: OhosAccountManagerTest020
+ * @tc.desc: Test GetOsAccountSubProfileIndex in non-macro mode returns index=0 for headless subProfileId.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest020, TestSize.Level1)
+{
+    constexpr int32_t osAccountId = 100;
+    constexpr int32_t subProfileId = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 1;
+    int32_t index = -1;
+    ErrCode ret = OhosAccountManager::GetInstance().GetOsAccountSubProfileIndex(
+        osAccountId, subProfileId, index);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(index, 0);
 }

@@ -633,34 +633,32 @@ ErrCode OsAccountSubProfileManager::GetSubProfile(int32_t osAccountId, int32_t s
 ErrCode OsAccountSubProfileManager::GetSubProfileIdByLocalIdAndAppIndex(
     int32_t osAccountId, int32_t appIndex, int32_t &subProfileId)
 {
-    std::vector<int32_t> subProfileIds;
-    ErrCode ret = GetSubProfileIds(osAccountId, subProfileIds);
+    SubProfileContext subprofileCtx;
+    ErrCode ret = IInnerOsAccountManager::GetInstance().ReadSubProfileContext(
+        osAccountId, subprofileCtx);
+    if (ret == ERR_ACCOUNT_COMMON_FILE_NOT_EXIST) {
+        ACCOUNT_LOGE("SubProfileContext not found for osAccountId=%{public}d", osAccountId);
+        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+    }
     if (ret != ERR_OK) {
-        ACCOUNT_LOGE("GetSubProfileIds failed, osAccountId=%{public}d, ret=%{public}d",
+        ACCOUNT_LOGE("ReadSubProfileContext failed, osAccountId=%{public}d, ret=%{public}d",
             osAccountId, ret);
         return ret;
     }
-
-    int32_t baseSubProfileId = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
-    for (const auto &id : subProfileIds) {
-        if (id == baseSubProfileId) {
-            continue;
-        }
-        OsAccountSubspaceResult subspaceResult;
-        OhosAccountInfo distributedInfo;
-        ret = GetSubProfile(osAccountId, id, subspaceResult, distributedInfo);
-        if (ret != ERR_OK) {
-            return ret;
-        }
-        if (subspaceResult.index == appIndex) {
-            subProfileId = id;
-            return ERR_OK;
-        }
+    auto it = subprofileCtx.subProfileIndexMap.find(appIndex);
+    if (it == subprofileCtx.subProfileIndexMap.end()) {
+        ACCOUNT_LOGE("SubProfile with appIndex=%{public}d not found for osAccountId=%{public}d",
+            appIndex, osAccountId);
+        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
     }
+    subProfileId = it->second;
+    return ERR_OK;
+}
 
-    ACCOUNT_LOGE("SubProfile with appIndex=%{public}d not found for osAccountId=%{public}d",
-        appIndex, osAccountId);
-    return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+ErrCode OsAccountSubProfileManager::GetSubProfileIndexByLocalIdAndSubProfileId(
+    int32_t osAccountId, int32_t subProfileId, int32_t &index)
+{
+    return ResolveSubProfileIndexFromContext(osAccountId, subProfileId, index);
 }
 
 }  // namespace AccountSA

@@ -236,6 +236,12 @@ public:
         return ERR_OK;
     }
 
+    virtual ErrCode GetOsAccountSubProfileIndex(
+        int32_t osAccountId, int32_t subProfileId, int32_t &index)
+    {
+        return ERR_OK;
+    }
+
 protected:
     OhosAccountKits() = default;
 };

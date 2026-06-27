@@ -31,6 +31,9 @@ constexpr uint32_t COMMAND_GET_OS_ACCOUNT_SERVICE = 14;
 constexpr uint32_t COMMAND_GET_FOREGROUND_OS_ACCOUNT_LOCAL_ID_OUT_INT = 77;
 constexpr uint32_t COMMAND_GET_OS_ACCOUNT_SUB_PROFILE_ID_APP = 28;
 constexpr uint32_t COMMAND_GET_OS_ACCOUNT_SUB_PROFILE_ID_TOKEN = 29;
+constexpr uint32_t COMMAND_GET_OS_ACCOUNT_SUB_PROFILE_INDEX = 30;
+constexpr uint32_t COMMAND_GET_OS_ACCOUNT_FOREGROUND_SUB_PROFILE_ID_IN_INT_OUT_INT = 22;
+constexpr uint32_t COMMAND_GET_OS_ACCOUNT_LOCAL_ID_FOR_SUB_PROFILE = 25;
 
 ErrCode ConvertToAccountErrCode(ErrCode idlErrCode)
 {
@@ -179,6 +182,114 @@ ErrCode OsAccountManagerLite::GetOsAccountSubProfileId(
         return ConvertToAccountErrCode(errCode);
     }
     if (!reply.ReadInt32(subProfileId)) {
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    return ERR_OK;
+}
+
+ErrCode OsAccountManagerLite::GetOsAccountSubProfileIndex(
+    int32_t osAccountId, int32_t subProfileId, int32_t &index)
+{
+    auto accountMgrService = GetAccountMgrService();
+    if (accountMgrService == nullptr) {
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(ACCOUNT_DESCRIPTOR)) {
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteInt32(osAccountId)) {
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteInt32(subProfileId)) {
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    ErrCode errCode = accountMgrService->SendRequest(
+        COMMAND_GET_OS_ACCOUNT_SUB_PROFILE_INDEX, data, reply, option);
+    if (errCode != ERR_NONE) {
+        return ERR_ACCOUNT_COMMON_REMOTE_DIED;
+    }
+
+    if (!reply.ReadInt32(errCode)) {
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    if (errCode != ERR_OK) {
+        return ConvertToAccountErrCode(errCode);
+    }
+    if (!reply.ReadInt32(index)) {
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    return ERR_OK;
+}
+
+ErrCode OsAccountManagerLite::GetOsAccountForegroundSubProfileId(
+    int32_t osAccountId, int32_t &subProfileId)
+{
+    auto accountMgrService = GetAccountMgrService();
+    if (accountMgrService == nullptr) {
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(ACCOUNT_DESCRIPTOR)) {
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteInt32(osAccountId)) {
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    ErrCode errCode = accountMgrService->SendRequest(
+        COMMAND_GET_OS_ACCOUNT_FOREGROUND_SUB_PROFILE_ID_IN_INT_OUT_INT, data, reply, option);
+    if (errCode != ERR_NONE) {
+        return ERR_ACCOUNT_COMMON_REMOTE_DIED;
+    }
+
+    if (!reply.ReadInt32(errCode)) {
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    if (errCode != ERR_OK) {
+        return ConvertToAccountErrCode(errCode);
+    }
+    if (!reply.ReadInt32(subProfileId)) {
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    return ERR_OK;
+}
+
+ErrCode OsAccountManagerLite::GetOsAccountLocalIdForSubProfile(
+    int32_t subProfileId, int32_t &osAccountId)
+{
+    auto accountMgrService = GetAccountMgrService();
+    if (accountMgrService == nullptr) {
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(ACCOUNT_DESCRIPTOR)) {
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteInt32(subProfileId)) {
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    ErrCode errCode = accountMgrService->SendRequest(
+        COMMAND_GET_OS_ACCOUNT_LOCAL_ID_FOR_SUB_PROFILE, data, reply, option);
+    if (errCode != ERR_NONE) {
+        return ERR_ACCOUNT_COMMON_REMOTE_DIED;
+    }
+
+    if (!reply.ReadInt32(errCode)) {
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    if (errCode != ERR_OK) {
+        return ConvertToAccountErrCode(errCode);
+    }
+    if (!reply.ReadInt32(osAccountId)) {
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     return ERR_OK;

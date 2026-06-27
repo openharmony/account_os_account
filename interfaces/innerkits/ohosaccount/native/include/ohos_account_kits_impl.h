@@ -65,6 +65,8 @@ public:
     ErrCode GetOsAccountSubProfileId(
         int32_t osAccountId, int32_t appIndex, int32_t &subProfileId) final;
     ErrCode GetOsAccountSubProfileId(uint32_t tokenId, int32_t &subProfileId) final;
+    ErrCode GetOsAccountSubProfileIndex(
+        int32_t osAccountId, int32_t subProfileId, int32_t &index) final;
     void RestoreSubscribe();
     ErrCode SubscribeSystemAbility(const DomainAccountSubscribeSACallbackFunc& callbackFunc);
     sptr<IRemoteObject> GetOsAccountService();

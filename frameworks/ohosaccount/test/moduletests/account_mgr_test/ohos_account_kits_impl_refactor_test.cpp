@@ -54,7 +54,7 @@ const std::string BUNDLE_USER_DVID = "F520E84109A560EF21B563F469A50A361EE8AD0946
 // non-system-app anonymized dvid: bundleName = "com.ohos.sceneboard" (AllocPermission default)
 const std::string NON_SYS_ANON_DVID = "A084C754637A0C8EE02599AC553FF44DB2BFEB6EE030CE7F9BABD5F3471070B3";
 constexpr int32_t TEST_OS_ACCOUNT_ID = 100;
-constexpr int32_t TEST_SUB_PROFILE_ID_BASE = TEST_OS_ACCOUNT_ID * 1000;  // 100000
+constexpr int32_t TEST_SUB_PROFILE_ID_BASE = TEST_OS_ACCOUNT_ID * 1000 + 1;  // 100001
 constexpr int32_t TEST_SUB_PROFILE_ID_MISMATCH = 200 * 1000;             // 200000
 constexpr int32_t TEST_NON_EXIST_ACCOUNT_ID = 200;
 
@@ -607,7 +607,7 @@ HWTEST_F(OsAccountSubProfileClientTest, FgSubProfileId_NoParam_Success, TestSize
     int32_t subProfileId = -1;
     ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountForegroundSubProfileId(subProfileId);
     EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(subProfileId, TEST_SUB_PROFILE_ID_BASE + 1);
+    EXPECT_EQ(subProfileId, TEST_SUB_PROFILE_ID_BASE);
 }
 
 HWTEST_F(OsAccountSubProfileClientTest, FgSubProfileId_WithParam_NotSystemApp, TestSize.Level0)
@@ -645,7 +645,7 @@ HWTEST_F(OsAccountSubProfileClientTest, FgSubProfileId_WithParam_Success, TestSi
     ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountForegroundSubProfileId(
         TEST_OS_ACCOUNT_ID, subProfileId);
     EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(subProfileId, TEST_SUB_PROFILE_ID_BASE + 1);
+    EXPECT_EQ(subProfileId, TEST_SUB_PROFILE_ID_BASE);
 }
 
 // ===== B. GetOsAccountSubProfileIds =====
@@ -1053,4 +1053,76 @@ HWTEST_F(OsAccountSubProfileClientTest, TokenId_Success, TestSize.Level0)
         selfTokenId, subProfileId);
     EXPECT_EQ(ret, ERR_OK);
     ASSERT_EQ(0, setuid(UID_USER_0));
+}
+
+// ===== G. GetOsAccountSubProfileIndex =====
+
+HWTEST_F(OsAccountSubProfileClientTest, GetSubprofileIndex_NotSystemApp, TestSize.Level0)
+{
+    uint64_t tokenId = 0;
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    ASSERT_TRUE(AllocPermission({}, tokenId, false));
+    int32_t index = -1;
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfileIndex(
+        TEST_OS_ACCOUNT_ID, TEST_SUB_PROFILE_ID_BASE, index);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+    ASSERT_TRUE(RecoveryPermission(tokenId, selfTokenId));
+}
+
+HWTEST_F(OsAccountSubProfileClientTest, GetSubprofileIndex_AccountNotExist, TestSize.Level0)
+{
+    int32_t index = -1;
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfileIndex(
+        TEST_NON_EXIST_ACCOUNT_ID, TEST_NON_EXIST_ACCOUNT_ID * 1000, index);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+}
+
+HWTEST_F(OsAccountSubProfileClientTest, GetSubprofileIndex_HeadlessSuccess, TestSize.Level0)
+{
+    int32_t index = -1;
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfileIndex(
+        TEST_OS_ACCOUNT_ID, TEST_SUB_PROFILE_ID_BASE, index);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(index, 0);
+}
+
+HWTEST_F(OsAccountSubProfileClientTest, GetSubprofileIndex_SubProfileIdMismatch, TestSize.Level0)
+{
+    int32_t index = -1;
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfileIndex(
+        TEST_OS_ACCOUNT_ID, TEST_SUB_PROFILE_ID_MISMATCH, index);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+}
+
+HWTEST_F(OsAccountSubProfileClientTest, GetSubprofileIndex_SubspaceNotExist, TestSize.Level0)
+{
+    int32_t index = -1;
+    constexpr int32_t nonExistSubProfileId = TEST_OS_ACCOUNT_ID * 1000 + 999;
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfileIndex(
+        TEST_OS_ACCOUNT_ID, nonExistSubProfileId, index);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+}
+
+HWTEST_F(OsAccountSubProfileClientTest, GetSubprofileIndex_AccountRestricted, TestSize.Level0)
+{
+    int32_t index = -1;
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfileIndex(
+        0, 0, index);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+}
+
+HWTEST_F(OsAccountSubProfileClientTest, GetSubprofileIndex_NotExistSubProfile, TestSize.Level0)
+{
+    int32_t index = -1;
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfileIndex(
+        TEST_OS_ACCOUNT_ID, TEST_OS_ACCOUNT_ID * 1000 + 999, index);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+}
+
+HWTEST_F(OsAccountSubProfileClientTest, GetSubprofileIndex_MismatchId, TestSize.Level0)
+{
+    int32_t index = -1;
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfileIndex(
+        TEST_OS_ACCOUNT_ID, TEST_SUB_PROFILE_ID_MISMATCH, index);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
 }

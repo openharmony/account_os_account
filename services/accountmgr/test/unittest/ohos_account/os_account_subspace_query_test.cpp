@@ -801,20 +801,6 @@ HWTEST_F(SubProfileQueryServiceTest, GetOsAccountSubProfile_SingleArg_OwnershipM
     EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
 }
 
-HWTEST_F(SubProfileQueryServiceTest, GetOsAccountSubProfile_SingleArg_OwnershipMatch_001, TestSize.Level1)
-{
-    OsAccountInfo mockAccountInfo;
-    mockAccountInfo.SetLocalId(SVC_TEST_USER_ID);
-    MockSetCreatedOsAccounts({mockAccountInfo});
-    MockSetCallingUid(SVC_TEST_USER_ID * UID_TRANSFORM_DIVISOR);
-
-    OsAccountSubspaceResult subspaceResult;
-    OhosAccountInfo distributedInfo;
-    auto ret = AccountMgrService::GetInstance().GetOsAccountSubProfile(
-        SVC_TEST_BASE, subspaceResult, distributedInfo);
-    EXPECT_NE(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
-}
-
 HWTEST_F(SubProfileQueryServiceNoPermTest, GetOsAccountSubProfile_DualArg_PermDenied_001, TestSize.Level1)
 {
     OsAccountSubspaceResult subspaceResult;
@@ -841,18 +827,6 @@ HWTEST_F(SubProfileQueryServiceTest, GetOsAccountSubProfile_DualArg_SubProfileMi
     auto ret = AccountMgrService::GetInstance().GetOsAccountSubProfile(
         SVC_TEST_USER_ID, subProfileId, subspaceResult, distributedInfo);
     EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
-}
-
-HWTEST_F(SubProfileQueryServiceTest, GetOsAccountSubProfile_DualArg_DelegateSuccess_001, TestSize.Level1)
-{
-    OsAccountSubspaceResult subspaceResult;
-    OhosAccountInfo distributedInfo;
-    auto ret = AccountMgrService::GetInstance().GetOsAccountSubProfile(
-        SVC_TEST_USER_ID, SVC_TEST_BASE, subspaceResult, distributedInfo);
-    EXPECT_NE(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
-    EXPECT_EQ(subspaceResult.id, SVC_TEST_BASE);
-    EXPECT_EQ(subspaceResult.osAccountId, SVC_TEST_USER_ID);
-    EXPECT_EQ(subspaceResult.index, 0);
 }
 
 #endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE

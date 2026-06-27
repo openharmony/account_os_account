@@ -85,6 +85,8 @@ public:
         int32_t osAccountId, int32_t appIndex, int32_t &subProfileId) override;
     int32_t GetOsAccountSubProfileId(
         uint32_t tokenId, int32_t &subProfileId) override;
+    int32_t GetOsAccountSubProfileIndex(
+        int32_t osAccountId, int32_t subProfileId, int32_t &index) override;
     ErrCode GetAppAccountService(sptr<IRemoteObject>& funcResult) override;
     ErrCode GetOsAccountService(sptr<IRemoteObject>& funcResult) override;
     ErrCode GetAccountIAMService(sptr<IRemoteObject>& funcResult) override;
