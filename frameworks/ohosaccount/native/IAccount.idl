@@ -82,4 +82,7 @@ interface OHOS.AccountSA.IAccount {
         [out] int subProfileId);
 
     void GetOsAccountSubProfileId([in] unsigned int tokenId, [out] int subProfileId);
+
+    void GetOsAccountSubProfileIndex([in] int osAccountId, [in] int subProfileId,
+        [out] int index);
 }

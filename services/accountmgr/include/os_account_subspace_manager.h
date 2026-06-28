@@ -54,6 +54,8 @@ public:
         OsAccountSubspaceResult &subspaceResult, OhosAccountInfo &distributedInfo);
     ErrCode GetSubProfileIdByLocalIdAndAppIndex(
         int32_t osAccountId, int32_t appIndex, int32_t &subProfileId);
+    ErrCode GetSubProfileIndexByLocalIdAndSubProfileId(
+        int32_t osAccountId, int32_t subProfileId, int32_t &index);
 
     bool CheckActiveSessionStatus(
         OsAccountSubProfileDataDeal *dataDeal, int32_t osAccountId, int32_t fromSubspaceId);

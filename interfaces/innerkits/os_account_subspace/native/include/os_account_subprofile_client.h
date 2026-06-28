@@ -54,6 +54,8 @@ public:
     ErrCode GetOsAccountSubProfileId(
         int32_t osAccountLocalId, int32_t appIndex, int32_t &subProfileId);
     ErrCode GetOsAccountSubProfileId(uint32_t tokenId, int32_t &subProfileId);
+    ErrCode GetOsAccountSubProfileIndex(
+        int32_t osAccountLocalId, int32_t subProfileId, int32_t &index);
 
 private:
     OsAccountSubProfileClient();

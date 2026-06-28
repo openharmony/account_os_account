@@ -760,7 +760,7 @@ ErrCode OhosAccountManager::GetOsAccountForegroundSubProfileId(
     }
     subProfileId = osAccountInfo.GetForegroundSubProfileId();
 #else
-    subProfileId = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER +1;
+    subProfileId = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 1;
 #endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
     return ERR_OK;
 }
@@ -772,7 +772,7 @@ ErrCode OhosAccountManager::GetOsAccountSubProfileIds(
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
     return OsAccountSubProfileManager::GetInstance().GetSubProfileIds(osAccountId, subProfileIds);
 #else
-    int32_t subProfileId = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER +1;
+    int32_t subProfileId = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 1;
     subProfileIds.push_back(subProfileId);
 #endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
     return ERR_OK;
@@ -788,7 +788,7 @@ ErrCode OhosAccountManager::GetOsAccountLocalIdForSubProfile(
     }
 #else
     auto id = subProfileId / Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
-    if (subProfileId != id * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER) {
+    if (subProfileId != id * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 1) {
         ACCOUNT_LOGE("SubProfile %{public}d does not exist", subProfileId);
         return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
     }
@@ -820,7 +820,7 @@ ErrCode OhosAccountManager::GetOsAccountSubProfile(int32_t osAccountId, int32_t 
         distributedInfo = accountInfo.ohosAccountInfo_;
     }
 #else
-    int32_t base = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
+    int32_t base = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 1;
     if (subProfileId != base) {
         ACCOUNT_LOGE("SubProfile %{public}d does not exist", subProfileId);
         return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
@@ -841,15 +841,31 @@ ErrCode OhosAccountManager::GetOsAccountSubProfile(int32_t osAccountId, int32_t 
 ErrCode OhosAccountManager::GetOsAccountSubProfileId(
     int32_t osAccountLocalId, int32_t appIndex, int32_t &subProfileId)
 {
-    if (appIndex == 0) {
-        subProfileId = osAccountLocalId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
-        return ERR_OK;
-    }
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
     return OsAccountSubProfileManager::GetInstance().GetSubProfileIdByLocalIdAndAppIndex(
         osAccountLocalId, appIndex, subProfileId);
 #else
+    if (appIndex == 0) {
+        subProfileId = osAccountLocalId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 1;
+        return ERR_OK;
+    }
     ACCOUNT_LOGE("Extra subProfile with appIndex=%{public}d does not exist", appIndex);
+    return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+#endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+}
+
+ErrCode OhosAccountManager::GetOsAccountSubProfileIndex(
+    int32_t osAccountId, int32_t subProfileId, int32_t &index)
+{
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    return OsAccountSubProfileManager::GetInstance().GetSubProfileIndexByLocalIdAndSubProfileId(
+        osAccountId, subProfileId, index);
+#else
+    if (subProfileId == osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 1) {
+        index = 0;
+        return ERR_OK;
+    }
+    ACCOUNT_LOGE("Extra subProfile with subProfileId=%{public}d does not exist", subProfileId);
     return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
 #endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 }

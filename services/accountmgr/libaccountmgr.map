@@ -401,6 +401,7 @@
         "OHOS::AccountSA::OhosAccountManager::GetOsAccountLocalIdForSubProfile(int, int&)";
         "OHOS::AccountSA::OhosAccountManager::GetOsAccountSubProfile(int, int, OHOS::AccountSA::OsAccountSubspaceResult&, OHOS::AccountSA::OhosAccountInfo&)";
         "OHOS::AccountSA::OhosAccountManager::GetOsAccountSubProfileId(int, int, int&)";
+        "OHOS::AccountSA::OhosAccountManager::GetOsAccountSubProfileIndex(int, int, int&)";
         "OHOS::AccountSA::GetSecUserInfoCallbackWrapper::GetSecUserInfoCallbackWrapper(int, OHOS::UserIam::UserAuth::AuthType, OHOS::sptr<OHOS::AccountSA::IGetEnrolledIdCallback> const&)";
         "OHOS::AccountSA::UpdateCredInfo::UpdateCredInfo(OHOS::UserIam::UserAuth::Attributes const&)";
         "OHOS::AccountSA::CommitCredUpdateCallback::InnerOnResult(int, OHOS::UserIam::UserAuth::Attributes const&)";

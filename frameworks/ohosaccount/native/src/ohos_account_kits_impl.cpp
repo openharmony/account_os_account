@@ -734,5 +734,16 @@ ErrCode OhosAccountKitsImpl::GetOsAccountSubProfileId(
     }
     return accountProxy->GetOsAccountSubProfileId(tokenId, subProfileId);
 }
+
+ErrCode OhosAccountKitsImpl::GetOsAccountSubProfileIndex(
+    int32_t osAccountId, int32_t subProfileId, int32_t &index)
+{
+    auto accountProxy = GetService();
+    if (accountProxy == nullptr) {
+        ACCOUNT_LOGE("Get proxy failed");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return accountProxy->GetOsAccountSubProfileIndex(osAccountId, subProfileId, index);
+}
 } // namespace AccountSA
 } // namespace OHOS

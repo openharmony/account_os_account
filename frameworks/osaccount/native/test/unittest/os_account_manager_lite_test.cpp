@@ -19,6 +19,7 @@
 #include "account_test_common.h"
 #include "ipc_skeleton.h"
 #include "os_account_manager_lite.h"
+#include "os_account_subprofile_client.h"
 #include "os_account_manager.h"
 
 using namespace testing::ext;
@@ -29,7 +30,7 @@ namespace {
 constexpr int32_t MAIN_ACCOUNT_ID = 100;
 constexpr int32_t TEST_NON_EXIST_ACCOUNT_ID = 200;
 constexpr int32_t TEST_UID_USER_100 = MAIN_ACCOUNT_ID * 200000;
-constexpr int32_t TEST_SUB_PROFILE_ID_BASE = MAIN_ACCOUNT_ID * 1000;
+constexpr int32_t TEST_SUB_PROFILE_ID_BASE = MAIN_ACCOUNT_ID * 1000 + 1;
 uint64_t g_selfTokenId = 0;
 uint64_t g_accountTokenId = 0;
 }
@@ -199,6 +200,165 @@ HWTEST_F(OsAccountManagerLiteTest, GetOsAccountSubProfileIdConsistency001, TestS
     EXPECT_EQ(subProfileIdByIndex, TEST_SUB_PROFILE_ID_BASE);
 
     ASSERT_EQ(0, setuid(0));
+}
+
+/**
+ * @tc.name: GetOsAccountSubProfileIndex001
+ * @tc.desc: Test GetOsAccountSubProfileIndex returns correct index for headless subProfileId.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteTest, GetOsAccountSubProfileIndex001, TestSize.Level1)
+{
+    int32_t index = -1;
+    EXPECT_EQ(OsAccountManagerLite::GetOsAccountSubProfileIndex(
+        MAIN_ACCOUNT_ID, TEST_SUB_PROFILE_ID_BASE, index), ERR_OK);
+    EXPECT_EQ(index, 0);
+}
+
+/**
+ * @tc.name: GetOsAccountSubProfileIndex002
+ * @tc.desc: Test GetOsAccountSubProfileIndex returns error on non-existent account.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteTest, GetOsAccountSubProfileIndex002, TestSize.Level1)
+{
+    int32_t index = -1;
+    ErrCode ret = OsAccountManagerLite::GetOsAccountSubProfileIndex(
+        TEST_NON_EXIST_ACCOUNT_ID, TEST_NON_EXIST_ACCOUNT_ID * 1000, index);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    EXPECT_EQ(index, -1);
+}
+
+/**
+ * @tc.name: GetOsAccountSubProfileIndex003
+ * @tc.desc: Test GetOsAccountSubProfileIndex returns error on restricted account (user 0).
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteTest, GetOsAccountSubProfileIndex003, TestSize.Level1)
+{
+    int32_t index = -1;
+    ErrCode ret = OsAccountManagerLite::GetOsAccountSubProfileIndex(0, 0, index);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+}
+
+/**
+ * @tc.name: GetOsAccountSubProfileIndex004
+ * @tc.desc: Test GetOsAccountSubProfileIndex returns error on mismatched subProfileId.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteTest, GetOsAccountSubProfileIndex004, TestSize.Level1)
+{
+    int32_t index = -1;
+    ErrCode ret = OsAccountManagerLite::GetOsAccountSubProfileIndex(
+        MAIN_ACCOUNT_ID, TEST_NON_EXIST_ACCOUNT_ID * 1000, index);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+}
+
+/**
+ * @tc.name: GetOsAccountSubProfileIndex005
+ * @tc.desc: Test GetOsAccountSubProfileIndex returns error on non-existent subspace.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteTest, GetOsAccountSubProfileIndex005, TestSize.Level1)
+{
+    int32_t index = -1;
+    ErrCode ret = OsAccountManagerLite::GetOsAccountSubProfileIndex(
+        MAIN_ACCOUNT_ID, MAIN_ACCOUNT_ID * 1000 + 999, index);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+}
+
+/**
+ * @tc.name: GetOsAccountSubProfileIndexConsistency001
+ * @tc.desc: Test lite interface result is consistent with OsAccountSubProfileClient on main account.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteTest, GetOsAccountSubProfileIndexConsistency001, TestSize.Level1)
+{
+    int32_t liteIndex = -1;
+    int32_t clientIndex = -1;
+    ErrCode liteResult = OsAccountManagerLite::GetOsAccountSubProfileIndex(
+        MAIN_ACCOUNT_ID, TEST_SUB_PROFILE_ID_BASE, liteIndex);
+    ErrCode clientResult = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfileIndex(
+        MAIN_ACCOUNT_ID, TEST_SUB_PROFILE_ID_BASE, clientIndex);
+    EXPECT_EQ(liteResult, clientResult);
+    EXPECT_EQ(liteIndex, clientIndex);
+}
+
+/**
+ * @tc.name: GetOsAccountForegroundSubProfileId001
+ * @tc.desc: Test GetOsAccountForegroundSubProfileId returns correct subProfileId for main account.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteTest, GetOsAccountForegroundSubProfileId001, TestSize.Level1)
+{
+    int32_t subProfileId = -1;
+    EXPECT_EQ(OsAccountManagerLite::GetOsAccountForegroundSubProfileId(
+        MAIN_ACCOUNT_ID, subProfileId), ERR_OK);
+    EXPECT_GT(subProfileId, 0);
+}
+
+/**
+ * @tc.name: GetOsAccountForegroundSubProfileId002
+ * @tc.desc: Test GetOsAccountForegroundSubProfileId returns error on non-existent account.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteTest, GetOsAccountForegroundSubProfileId002, TestSize.Level1)
+{
+    int32_t subProfileId = -1;
+    ErrCode ret = OsAccountManagerLite::GetOsAccountForegroundSubProfileId(
+        TEST_NON_EXIST_ACCOUNT_ID, subProfileId);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    EXPECT_EQ(subProfileId, -1);
+}
+
+/**
+ * @tc.name: GetOsAccountForegroundSubProfileId003
+ * @tc.desc: Test GetOsAccountForegroundSubProfileId returns error on restricted account (user 0).
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteTest, GetOsAccountForegroundSubProfileId003, TestSize.Level1)
+{
+    int32_t subProfileId = -1;
+    ErrCode ret = OsAccountManagerLite::GetOsAccountForegroundSubProfileId(0, subProfileId);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+}
+
+/**
+ * @tc.name: GetOsAccountLocalIdForSubProfile001
+ * @tc.desc: Test GetOsAccountLocalIdForSubProfile returns correct osAccountId for headless subProfileId.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteTest, GetOsAccountLocalIdForSubProfile001, TestSize.Level1)
+{
+    int32_t osAccountId = -1;
+    EXPECT_EQ(OsAccountManagerLite::GetOsAccountLocalIdForSubProfile(
+        TEST_SUB_PROFILE_ID_BASE, osAccountId), ERR_OK);
+    EXPECT_EQ(osAccountId, MAIN_ACCOUNT_ID);
+}
+
+/**
+ * @tc.name: GetOsAccountLocalIdForSubProfile002
+ * @tc.desc: Test GetOsAccountLocalIdForSubProfile returns error on non-existent subProfileId.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerLiteTest, GetOsAccountLocalIdForSubProfile002, TestSize.Level1)
+{
+    int32_t osAccountId = -1;
+    ErrCode ret = OsAccountManagerLite::GetOsAccountLocalIdForSubProfile(
+        TEST_NON_EXIST_ACCOUNT_ID * 1000, osAccountId);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    EXPECT_EQ(osAccountId, -1);
 }
 
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS

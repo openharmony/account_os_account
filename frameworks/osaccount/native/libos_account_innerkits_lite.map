@@ -4,6 +4,9 @@
         "OHOS::AccountSA::OsAccountManagerLite::GetForegroundOsAccountLocalId(int&)";
         "OHOS::AccountSA::OsAccountManagerLite::GetOsAccountSubProfileId(int, int, int&)";
         "OHOS::AccountSA::OsAccountManagerLite::GetOsAccountSubProfileId(unsigned int, int&)";
+        "OHOS::AccountSA::OsAccountManagerLite::GetOsAccountSubProfileIndex(int, int, int&)";
+        "OHOS::AccountSA::OsAccountManagerLite::GetOsAccountForegroundSubProfileId(int, int&)";
+        "OHOS::AccountSA::OsAccountManagerLite::GetOsAccountLocalIdForSubProfile(int, int&)";
     };
   local:
     *;

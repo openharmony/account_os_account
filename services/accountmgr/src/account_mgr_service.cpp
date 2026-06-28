@@ -725,6 +725,35 @@ int32_t AccountMgrService::GetOsAccountSubProfileId(
         hapTokenInfo.userID, static_cast<int32_t>(hapTokenInfo.instIndex), subProfileId);
 }
 
+int32_t AccountMgrService::GetOsAccountSubProfileIndex(
+    int32_t osAccountId, int32_t subProfileId, int32_t &index)
+{
+    ErrCode ret = AccountPermissionManager::CheckSystemApp();
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Caller is not system app, ret=%{public}d", ret);
+        return ret;
+    }
+
+    if (subProfileId / Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER != osAccountId) {
+        ACCOUNT_LOGE("subProfileId %{public}d does not belong to osAccountId %{public}d",
+            subProfileId, osAccountId);
+        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+    }
+
+    OsAccountInfo osAccountInfo;
+    ret = IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(osAccountId, osAccountInfo);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("OsAccount not exist, osAccountId=%{public}d, ret=%{public}d", osAccountId, ret);
+        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+    }
+    ret = IInnerOsAccountManager::GetInstance().CheckLocalIdRestricted(osAccountId);
+    if (ret != ERR_OK) {
+        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+    }
+    return OhosAccountManager::GetInstance().GetOsAccountSubProfileIndex(
+        osAccountId, subProfileId, index);
+}
+
 ErrCode AccountMgrService::GetAppAccountService(sptr<IRemoteObject>& funcResult)
 {
     [[maybe_unused]] auto timerPtr = RequestTimer(Constants::OPERATION_GET_SERVICE);
