@@ -1,0 +1,105 @@
+{
+    "name": "ohos-acm",
+    "version": "1.0.0",
+    "description": "ohos-acm - OS Account management command-line utility for querying OS account information.",
+    "executablePath": "/system/bin/cli_tool/executable/ohos-acm",
+    "requirePermissions": [],
+    "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+    },
+    "outputSchema": {
+        "type": "object",
+        "properties": {
+            "type": {
+                "type": "string",
+                "enum": ["result"]
+            },
+            "status": {
+                "type": "string",
+                "enum": ["success", "failed"]
+            },
+            "data": {
+                "type": "object",
+                "properties": {}
+            },
+            "errCode": {
+                "type": "string"
+            },
+            "errMsg": {
+                "type": "string"
+            },
+            "suggestion": {
+                "type": "string"
+            }
+        },
+        "required": ["type", "status"]
+    },
+    "eventTypes": [],
+    "eventSchemas": {},
+    "hasSubCommand": true,
+    "subcommands": {
+        "get-current-userid": {
+            "description": "Get the local ID of the current OS account for the calling process. Used for querying which OS account the calling process belongs to.",
+            "requirePermissions": [],
+            "inputSchema": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "outputSchema": {
+                "type": "object",
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "enum": ["result"]
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": ["success", "failed"]
+                    },
+                    "data": {
+                        "type": "object",
+                        "properties": {
+                            "userId": {
+                                "type": "integer",
+                                "description": "Local ID of the current OS account"
+                            }
+                        },
+                        "required": ["userId"]
+                    },
+                    "errCode": {
+                        "type": "string"
+                    },
+                    "errMsg": {
+                        "type": "string"
+                    },
+                    "suggestion": {
+                        "type": "string"
+                    }
+                },
+                "required": ["type", "status"]
+            }
+        },
+        "--help": {
+            "description": "Show help message. Used for displaying command usage information. Does not execute any query operations.",
+            "requirePermissions": [],
+            "inputSchema": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "outputSchema": {
+                "type": "object",
+                "properties": {
+                    "content": {
+                        "type": "string",
+                        "description": "Help information output"
+                    }
+                },
+                "required": ["content"]
+            }
+        }
+    }
+}

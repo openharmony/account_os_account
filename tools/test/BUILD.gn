@@ -12,9 +12,13 @@
 # limitations under the License.
 
 import("//build/test.gni")
+import("../../os_account.gni")
 
 group("unittest") {
   testonly = true
 
-  deps = [ "unittest/acm:unittest" ]
+  deps = [
+    "unittest/acm:unittest",
+    "${tools_path}/ohos-acm/tests:unittest",
+  ]
 }
