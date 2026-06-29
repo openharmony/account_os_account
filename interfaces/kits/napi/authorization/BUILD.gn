@@ -33,6 +33,7 @@ config("authorization_napi_kit_config") {
 }
 
 ohos_shared_library("authorization_napi") {
+  branch_protector_ret = "pac_ret"
   include_dirs = []
 
   configs = [ ":authorization_napi_kit_config" ]

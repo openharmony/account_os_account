@@ -17,7 +17,7 @@ import("../../../../os_account.gni")
 ohos_shared_library("libos_account_ndk") {
   innerapi_tags = [ "ndk" ]
   output_extension = "so"
-
+  branch_protector_ret = "pac_ret"
   sanitize = {
     integer_overflow = true
     cfi = true
@@ -68,7 +68,7 @@ ohos_shared_library("libos_account_ndk") {
 
 ohos_shared_library("libos_account_utils") {
   output_extension = "so"
-
+  branch_protector_ret = "pac_ret"
   sanitize = {
     integer_overflow = true
     cfi = true
