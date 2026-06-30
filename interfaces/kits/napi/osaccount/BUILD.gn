@@ -78,7 +78,9 @@ ohos_shared_library("osaccount") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
+    "libuv:uv",
     "napi:ace_napi",
+    "node:node_header_notice",
     "samgr:samgr_proxy",
   ]
 
