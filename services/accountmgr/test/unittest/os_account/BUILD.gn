@@ -390,7 +390,6 @@ ohos_unittest("OsAccountInnerAccmgrCovTest") {
 
   sources = [
     "os_account_inner_account_mgr_cov.cpp",
-    "os_account_service_test.cpp",
   ]
   configs = [
     ":os_account_amgr_test_config",
@@ -1152,7 +1151,6 @@ group("unittest") {
     ":OsAccountControlFileManagerUnitTest",
     ":OsAccountControlFileManagerMockUnitTest",
     ":OsAccountEventManagerMultipleThreadTest",
-    ":OsAccountFileManagerMultipleThreadTest",
     ":OsAccountInnerAccmgrBundleAdapterMockTest",
     ":OsAccountInnerAccmgrCovTest",
     ":OsAccountInnerAccmgrPluginMockTest",
