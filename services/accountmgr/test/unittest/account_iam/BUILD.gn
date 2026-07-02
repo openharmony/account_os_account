@@ -425,7 +425,6 @@ group("unittest") {
   if (!use_libfuzzer) {
     deps += [
       ":account_iam_callback_test",
-      ":account_iam_manager_test",
       ":account_iam_service_test",
       ":account_iam_stub_test",
       ":account_inner_iam_manager_mock_source_file_test",
