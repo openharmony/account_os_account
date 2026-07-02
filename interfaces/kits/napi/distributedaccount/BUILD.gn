@@ -15,6 +15,7 @@ import("//build/ohos.gni")
 import("../../../../os_account.gni")
 
 ohos_shared_library("distributedaccount") {
+  branch_protector_ret = "pac_ret"
   include_dirs = [
     "include",
     "${os_account_path}/interfaces/innerkits/ohosaccount/native/include",
