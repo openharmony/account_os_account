@@ -157,7 +157,7 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLoginTokenExpired005, T
      * @tc.expected: step3. The current state is AccountStateMachine::ACCOUNT_STATE_UNBOUND
      */
     EXPECT_EQ(true, stateMachine.StateChangeProcess(ACCOUNT_TOKEN_EXPIRED_EVT));
-    EXPECT_EQ(ACCOUNT_STATE_UNBOUND, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_TOKEN_EXPIRED, stateMachine.GetAccountState());
 }
 
 /**

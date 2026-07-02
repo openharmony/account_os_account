@@ -39,9 +39,6 @@
 #include "account_log_wrapper.h"
 #include "account_mgr_service.h"
 #include "account_permission_manager.h"
-#ifdef HAS_CES_PART
-#include "common_event_support.h"
-#endif // HAS_CES_PART
 #include "account_hisysevent_adapter.h"
 #include "device_account_info.h"
 #include "distributed_account_subscribe_manager.h"
@@ -53,10 +50,6 @@
 #include "os_account_constants.h"
 #include "system_ability_definition.h"
 #include "tokenid_kit.h"
-
-#ifdef HAS_CES_PART
-using namespace OHOS::EventFwk;
-#endif // HAS_CES_PART
 
 #ifdef DLOPEN_OPENSSL
 #ifdef __cplusplus
@@ -626,17 +619,32 @@ ErrCode OhosAccountManager::UnsubscribeDistributedAccountEvent(const DISTRIBUTED
     return errCode;
 }
 
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-#ifdef HAS_CES_PART
-static void SendMultiSubSpaceCommonEvt(const std::int32_t userId, const int32_t subspaceId, const std::string &eventStr)
+void OhosAccountManager::SendSubProfileCES(const std::int32_t userId, const int32_t subprofileId,
+    const std::string &eventStr)
 {
-    EventFwk::Want want;
+    AAFwk::Want want;
     want.SetParam("userId", userId);
-    want.SetParam("subProfileId", subspaceId);
+    want.SetParam("subProfileId", subprofileId);
     AccountEventProvider::EventPublishAsUser(eventStr, want, userId);
+    ACCOUNT_LOGI("SendSubProfileCES eventStr=%{public}s, userId=%{public}d, subProfileId=%{public}d",
+        eventStr.c_str(), userId, subprofileId);
 }
-#endif // HAS_CES_PART
 
+void OhosAccountManager::SendSubProfileSwitchCES(const std::int32_t userId, const int32_t subprofileId,
+    const int32_t fromSubprofileId, bool isSwitching)
+{
+    AAFwk::Want want;
+    want.SetParam("userId", userId);
+    want.SetParam("toSubProfileId", subprofileId);
+    want.SetParam("fromSubProfileId", fromSubprofileId);
+    std::string eventStr = isSwitching ? COMMON_EVENT_OS_ACCOUNT_SUB_PROFILE_SWITCHING :
+        COMMON_EVENT_OS_ACCOUNT_SUB_PROFILE_SWITCHED;
+    AccountEventProvider::EventPublishAsUser(eventStr, want, userId);
+    ACCOUNT_LOGI("SendSubProfileSwitchCES eventStr=%{public}s, userId=%{public}d, subProfileId=%{public}d, "
+        "fromSubprofileId=%{public}d", eventStr.c_str(), userId, subprofileId, fromSubprofileId);
+}
+
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 void OhosAccountManager::InitOsAccountSubProfileManager(const std::string &rootPath)
 {
     OsAccountSubProfileManager::GetInstance().Init(rootPath);
@@ -672,6 +680,7 @@ ErrCode OhosAccountManager::CreateOsAccountSubspace(int32_t osAccountId, OsAccou
         ACCOUNT_LOGW("Failed to publish CREATE event for distId=%{public}d, ret=%{public}d (space is still valid)",
             newSubspaceId, publishRet);
     }
+    SendSubProfileCES(osAccountId, newSubspaceId, COMMON_EVENT_OS_ACCOUNT_SUB_PROFILE_CREATED);
     ACCOUNT_LOGI("CreateOsAccountSubspace successful, osAccountId=%{public}d, subspaceId=%{public}d",
         osAccountId, newSubspaceId);
     ReportOsAccountLifeCycle(newSubspaceId, Constants::OPERATION_SUBPROFILE_CREATE);
@@ -685,11 +694,24 @@ ErrCode OhosAccountManager::DeleteOsAccountSubspace(int32_t osAccountId, int32_t
         ACCOUNT_LOGE("Cannot delete headless subprofile (index=0)");
         return ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED;
     }
-    ErrCode ret = OsAccountSubProfileManager::GetInstance().RemoveSubProfile(osAccountId, subspaceId);
+    OsAccountSubspaceInfo profileInfo;
+    ErrCode ret = GetDistributedAccountSpaceInfo(osAccountId, subspaceId, profileInfo);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Get spaceInfo failed, userId=%{public}d, spaceId=%{public}d, ret=%{public}d",
+            osAccountId, subspaceId, ret);
+        REPORT_OHOS_ACCOUNT_FAIL(osAccountId, Constants::OPERATION_SUBPROFILE_DELETE,
+            ret, "Get ohos space info failed");
+        return ret == ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR ? ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND : ret;
+    }
+    ret = OsAccountSubProfileManager::GetInstance().RemoveSubProfile(osAccountId, subspaceId);
     if (ret != ERR_OK) {
         REPORT_OS_ACCOUNT_FAIL(osAccountId, Constants::OPERATION_SUBPROFILE_DELETE, ret,
             "DeleteOsAccountSubspace failed");
         return ret;
+    }
+    if (profileInfo.ohosAccountInfo_.status_ != ACCOUNT_STATE_UNBOUND) {
+        subscribeManager_.Publish(osAccountId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::UNBOUND, subspaceId);
+        SendSubProfileCES(osAccountId, subspaceId, COMMON_EVENT_DISTRIBUTED_ACCOUNT_UNBOUND);
     }
     ErrCode publishRet = subscribeManager_.Publish(
         DistributedAccountSubProfileEventType::DELETED, osAccountId, subspaceId);
@@ -697,6 +719,7 @@ ErrCode OhosAccountManager::DeleteOsAccountSubspace(int32_t osAccountId, int32_t
         ACCOUNT_LOGW("Failed to publish DELETED event for distId=%{public}d, ret=%{public}d",
             subspaceId, publishRet);
     }
+    SendSubProfileCES(osAccountId, subspaceId, COMMON_EVENT_OS_ACCOUNT_SUB_PROFILE_DELETED);
     ACCOUNT_LOGI("DeleteOsAccountSubspace successful, osAccountId=%{public}d, subspaceId=%{public}d",
         osAccountId, subspaceId);
     ReportOsAccountLifeCycle(subspaceId, Constants::OPERATION_SUBPROFILE_DELETE);
@@ -714,6 +737,10 @@ ErrCode OhosAccountManager::SwitchOsAccountSubspace(
             "subspaceId=%{public}d", osAccountId, subspaceId);
         return ERR_OK;
     }
+    fromSubspaceId = osAccountInfo.GetForegroundSubProfileId();
+    SendSubProfileSwitchCES(osAccountId, subspaceId, fromSubspaceId, true);
+    (void) subscribeManager_.Publish(
+        DistributedAccountSubProfileEventType::SWITCHING, osAccountId, subspaceId, fromSubspaceId);
 
     ErrCode ret = OsAccountSubProfileManager::GetInstance().SwitchSubProfile(
         osAccountId, subspaceId, fromSubspaceId);
@@ -722,12 +749,9 @@ ErrCode OhosAccountManager::SwitchOsAccountSubspace(
             "SwitchOsAccountSubspace failed");
         return ret;
     }
-    ErrCode publishRet = subscribeManager_.Publish(
+    (void) subscribeManager_.Publish(
         DistributedAccountSubProfileEventType::SWITCHED, osAccountId, subspaceId, fromSubspaceId);
-    if (publishRet != ERR_OK) {
-        ACCOUNT_LOGW("Failed to publish SWITCHED event for distId=%{public}d, ret=%{public}d",
-            subspaceId, publishRet);
-    }
+    SendSubProfileSwitchCES(osAccountId, subspaceId, fromSubspaceId, false);
     ACCOUNT_LOGI("SwitchOsAccountSubspace successful, osAccountId=%{public}d, from=%{public}d, to=%{public}d",
         osAccountId, fromSubspaceId, subspaceId);
     ReportOsAccountLifeCycle(subspaceId, Constants::OPERATION_SUBPROFILE_SWITCH);
@@ -993,20 +1017,18 @@ ErrCode OhosAccountManager::PublishLoginEvents(int32_t userId, int32_t originalS
 {
     if (originalStatus == ACCOUNT_STATE_UNBOUND) {
         subscribeManager_.Publish(userId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::BOUND);
+        AccountEventProvider::EventPublishAsUser(COMMON_EVENT_DISTRIBUTED_ACCOUNT_BOUND, userId);
     }
     subscribeManager_.Publish(userId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGIN);
-#ifdef HAS_CES_PART
     bool isPubLoginEvent = (originalStatus != ACCOUNT_STATE_LOGIN);
     if (!isPubLoginEvent) {
-        AccountEventProvider::EventPublish(CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, userId, nullptr);
+        AccountEventProvider::EventPublish(COMMON_EVENT_USER_INFO_UPDATED, userId, nullptr);
         (void)CreateCommonEventSubscribe();
         return ERR_OK;
     }
-    AccountEventProvider::EventPublishAsUser(CommonEventSupport::COMMON_EVENT_HWID_LOGIN, userId);
-    AccountEventProvider::EventPublishAsUser(
-        CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGIN, userId);
+    AccountEventProvider::EventPublishAsUser(COMMON_EVENT_HWID_LOGIN, userId);
+    AccountEventProvider::EventPublishAsUser(COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGIN, userId);
     (void)CreateCommonEventSubscribe();
-#endif // HAS_CES_PART
     ACCOUNT_LOGI("LoginOhosAccount success! userId %{public}d", userId);
     return ERR_OK;
 }
@@ -1048,14 +1070,9 @@ ErrCode OhosAccountManager::LogoutOhosAccount(
     }
     subscribeManager_.Publish(userId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGOUT);
     subscribeManager_.Publish(userId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::UNBOUND);
-#ifdef HAS_CES_PART
-    AccountEventProvider::EventPublishAsUser(
-        EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOUT, userId);
-    AccountEventProvider::EventPublishAsUser(
-        EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOUT, userId);
-#else  // HAS_CES_PART
-    ACCOUNT_LOGI("No common event part! Publish nothing!");
-#endif // HAS_CES_PART
+    AccountEventProvider::EventPublishAsUser(COMMON_EVENT_HWID_LOGOUT, userId);
+    AccountEventProvider::EventPublishAsUser(COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOUT, userId);
+    AccountEventProvider::EventPublishAsUser(COMMON_EVENT_DISTRIBUTED_ACCOUNT_UNBOUND, userId);
     ACCOUNT_LOGI("LogoutOhosAccount success, userId %{public}d.", userId);
     return ERR_OK;
 }
@@ -1096,14 +1113,9 @@ ErrCode OhosAccountManager::LogoffOhosAccount(
     }
     subscribeManager_.Publish(userId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGOFF);
     subscribeManager_.Publish(userId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::UNBOUND);
-#ifdef HAS_CES_PART
-    AccountEventProvider::EventPublishAsUser(
-        EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOFF, userId);
-    AccountEventProvider::EventPublishAsUser(
-        EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOFF, userId);
-#else  // HAS_CES_PART
-    ACCOUNT_LOGI("No common event part, publish nothing for logoff!");
-#endif // HAS_CES_PART
+    AccountEventProvider::EventPublishAsUser(COMMON_EVENT_HWID_LOGOFF, userId);
+    AccountEventProvider::EventPublishAsUser(COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOFF, userId);
+    AccountEventProvider::EventPublishAsUser(COMMON_EVENT_DISTRIBUTED_ACCOUNT_UNBOUND, userId);
     ACCOUNT_LOGI("LogoffOhosAccount success, userId %{public}d.", userId);
     return ERR_OK;
 }
@@ -1144,15 +1156,8 @@ ErrCode OhosAccountManager::HandleOhosAccountTokenInvalidEvent(
         ACCOUNT_LOGW("SaveOhosAccountInfo failed, userId %{public}d.", userId);
     }
     subscribeManager_.Publish(userId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::TOKEN_INVALID);
-
-#ifdef HAS_CES_PART
-    AccountEventProvider::EventPublishAsUser(
-        EventFwk::CommonEventSupport::COMMON_EVENT_HWID_TOKEN_INVALID, userId);
-    AccountEventProvider::EventPublishAsUser(
-        EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_TOKEN_INVALID, userId);
-#else  // HAS_CES_PART
-    ACCOUNT_LOGI("No common event part, publish nothing for token invalid event.");
-#endif // HAS_CES_PART
+    AccountEventProvider::EventPublishAsUser(COMMON_EVENT_HWID_TOKEN_INVALID, userId);
+    AccountEventProvider::EventPublishAsUser(COMMON_EVENT_DISTRIBUTED_ACCOUNT_TOKEN_INVALID, userId);
     ACCOUNT_LOGI("success, userId %{public}d.", userId);
     return ERR_OK;
 }
@@ -1244,10 +1249,9 @@ void OhosAccountManager::ClearMainAccountIfMatch(int32_t localId, const std::int
 #ifndef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
     subscribeManager_.Publish(localId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGOUT);
     subscribeManager_.Publish(localId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::UNBOUND);
-    AccountEventProvider::EventPublishAsUser(
-        EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOUT, localId);
-    AccountEventProvider::EventPublishAsUser(
-        EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOUT, localId);
+    AccountEventProvider::EventPublishAsUser(COMMON_EVENT_HWID_LOGOUT, localId);
+    AccountEventProvider::EventPublishAsUser(COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOUT, localId);
+    AccountEventProvider::EventPublishAsUser(COMMON_EVENT_DISTRIBUTED_ACCOUNT_UNBOUND, localId);
 #else
     PublishLogoutSpaceEvents(localId, localId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER, true);
 #endif
@@ -1282,6 +1286,12 @@ void OhosAccountManager::ClearDistributedAccountSpaceIfMatch(
     PublishLogoutSpaceEvents(localId, spaceId, true);
 }
 #endif
+#else
+bool OhosAccountManager::CreateCommonEventSubscribe()
+{
+    ACCOUNT_LOGI("No common event part, skip common event subscribe.");
+    return true;
+}
 #endif // HAS_CES_PART
 
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
@@ -1385,19 +1395,16 @@ ErrCode OhosAccountManager::PublishLoginSpaceEvents(int32_t userId, int32_t subs
 {
     if (originalStatus == ACCOUNT_STATE_UNBOUND) {
         subscribeManager_.Publish(userId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::BOUND, subspaceId);
+        SendSubProfileCES(userId, subspaceId, COMMON_EVENT_DISTRIBUTED_ACCOUNT_BOUND);
     }
-    subscribeManager_.Publish(userId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGIN, subspaceId);
     bool isPubLoginEvent = (originalStatus != ACCOUNT_STATE_LOGIN);
     if (!isPubLoginEvent) {
-#ifdef HAS_CES_PART
-        AccountEventProvider::EventPublish(CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, userId, nullptr);
-#endif // HAS_CES_PART
+        AccountEventProvider::EventPublish(COMMON_EVENT_USER_INFO_UPDATED, userId, nullptr);
         return ERR_OK;
     }
-#ifdef HAS_CES_PART
-    SendMultiSubSpaceCommonEvt(userId, subspaceId, CommonEventSupport::COMMON_EVENT_HWID_LOGIN);
-    SendMultiSubSpaceCommonEvt(userId, subspaceId, CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGIN);
-#endif // HAS_CES_PART
+    subscribeManager_.Publish(userId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGIN, subspaceId);
+    SendSubProfileCES(userId, subspaceId, COMMON_EVENT_HWID_LOGIN);
+    SendSubProfileCES(userId, subspaceId, COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGIN);
     ACCOUNT_LOGI("LoginOhosAccountSpace success, userId=%{public}d, spaceId=%{public}d", userId, subspaceId);
     return ERR_OK;
 }
@@ -1449,19 +1456,12 @@ void OhosAccountManager::PublishLogoutSpaceEvents(int32_t localId, int32_t subsp
 {
     // Publish IPC event
     subscribeManager_.Publish(localId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGOUT, subspaceId);
+    SendSubProfileCES(localId, subspaceId, COMMON_EVENT_HWID_LOGOUT);
+    SendSubProfileCES(localId, subspaceId, COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOUT);
     if (isUnbound) {
         subscribeManager_.Publish(localId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::UNBOUND, subspaceId);
+        SendSubProfileCES(localId, subspaceId, COMMON_EVENT_DISTRIBUTED_ACCOUNT_UNBOUND);
     }
-#ifdef HAS_CES_PART
-    EventFwk::Want want;
-    want.SetParam("userId", localId);
-    want.SetParam("subProfileId", subspaceId);
-    want.SetParam("isUnbound", isUnbound);
-    AccountEventProvider::EventPublishAsUser(
-        EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOUT, want, localId);
-    AccountEventProvider::EventPublishAsUser(
-        EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOUT, want, localId);
-#endif // HAS_CES_PART
 }
 
 ErrCode OhosAccountManager::HandleOhosAccountSpaceTokenInvalidEvent(int32_t userId, int32_t subspaceId,
@@ -1498,12 +1498,8 @@ ErrCode OhosAccountManager::HandleOhosAccountSpaceTokenInvalidEvent(int32_t user
     }
 
     subscribeManager_.Publish(userId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::TOKEN_INVALID, subspaceId);
-
-#ifdef HAS_CES_PART
-    SendMultiSubSpaceCommonEvt(userId, subspaceId, CommonEventSupport::COMMON_EVENT_HWID_TOKEN_INVALID);
-    SendMultiSubSpaceCommonEvt(userId, subspaceId, CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_TOKEN_INVALID);
-#endif // HAS_CES_PART
-
+    SendSubProfileCES(userId, subspaceId, COMMON_EVENT_HWID_TOKEN_INVALID);
+    SendSubProfileCES(userId, subspaceId, COMMON_EVENT_DISTRIBUTED_ACCOUNT_TOKEN_INVALID);
     ACCOUNT_LOGI("HandleOhosAccountSpaceTokenInvalidEvent success, userId=%{public}d, spaceId=%{public}d",
         userId, subspaceId);
     return ERR_OK;
@@ -1542,11 +1538,8 @@ ErrCode OhosAccountManager::LogoffOhosAccountSpace(int32_t userId, int32_t subsp
     }
 
     subscribeManager_.Publish(userId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGOFF, subspaceId);
-
-#ifdef HAS_CES_PART
-    SendMultiSubSpaceCommonEvt(userId, subspaceId, CommonEventSupport::COMMON_EVENT_HWID_LOGOFF);
-    SendMultiSubSpaceCommonEvt(userId, subspaceId, CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOFF);
-#endif // HAS_CES_PART
+    SendSubProfileCES(userId, subspaceId, COMMON_EVENT_HWID_LOGOFF);
+    SendSubProfileCES(userId, subspaceId, COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOFF);
     ACCOUNT_LOGI("LogoffOhosAccountSpace success, userId=%{public}d, spaceId=%{public}d", userId, subspaceId);
     return ERR_OK;
 }
@@ -1648,7 +1641,6 @@ ErrCode OhosAccountManager::SendMultiSpaceLogoutOnDelOsAccount(int32_t localId)
         ACCOUNT_LOGE("ScanOsAccountSubProfileIds failed, localId=%{public}d", localId);
         return ret;
     }
-    subSpaceIds.insert(localId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER); // include base space
     for (int32_t spaceId : subSpaceIds) {
         OsAccountSubspaceInfo spaceInfo;
         ret = GetDistributedAccountSpaceInfo(localId, spaceId, spaceInfo);
@@ -1658,13 +1650,17 @@ ErrCode OhosAccountManager::SendMultiSpaceLogoutOnDelOsAccount(int32_t localId)
             continue;
         }
         if (spaceInfo.ohosAccountInfo_.status_ == ACCOUNT_STATE_UNBOUND) {
+            subscribeManager_.Publish(DistributedAccountSubProfileEventType::DELETED, localId, spaceId);
+            SendSubProfileCES(localId, spaceId, COMMON_EVENT_OS_ACCOUNT_SUB_PROFILE_DELETED);
             continue;
         }
         if (spaceInfo.ohosAccountInfo_.status_ == ACCOUNT_STATE_LOGIN) {
-            PublishLogoutSpaceEvents(localId, spaceId, true);
-            continue;
+            PublishLogoutSpaceEvents(localId, spaceId, false);
         }
         subscribeManager_.Publish(localId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::UNBOUND, spaceId);
+        SendSubProfileCES(localId, spaceId, COMMON_EVENT_DISTRIBUTED_ACCOUNT_UNBOUND);
+        subscribeManager_.Publish(DistributedAccountSubProfileEventType::DELETED, localId, spaceId);
+        SendSubProfileCES(localId, spaceId, COMMON_EVENT_OS_ACCOUNT_SUB_PROFILE_DELETED);
     }
     return ERR_OK;
 }
@@ -1680,16 +1676,26 @@ ErrCode OhosAccountManager::SendLogoutEventOnDelOsAccount(int32_t localId)
         ACCOUNT_LOGE("GetAccountInfoByUserId failed, localId=%{public}d.", localId);
         return ret;
     }
-    if (ohosInfo.ohosAccountInfo_.name_ != DEFAULT_OHOS_ACCOUNT_NAME) {
-        subscribeManager_.Publish(localId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGOUT);
-        subscribeManager_.Publish(localId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::UNBOUND);
-#ifdef HAS_CES_PART
-        AccountEventProvider::EventPublishAsUser(
-            EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOUT, localId);
-        AccountEventProvider::EventPublishAsUser(
-            EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOUT, localId);
-#endif // HAS_CES_PART
+    int32_t defaultSubProfileId = -1;
+    ret = GetOsAccountForegroundSubProfileId(localId, defaultSubProfileId);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("GetOsAccountForegroundSubProfileId failed, localId=%{public}d, ret=%{public}d.", localId, ret);
+        return ret;
     }
+    if (ohosInfo.ohosAccountInfo_.status_ == ACCOUNT_STATE_UNBOUND) {
+        subscribeManager_.Publish(DistributedAccountSubProfileEventType::DELETED, localId, defaultSubProfileId);
+        SendSubProfileCES(localId, defaultSubProfileId, COMMON_EVENT_OS_ACCOUNT_SUB_PROFILE_DELETED);
+        return ERR_OK;
+    }
+    if (ohosInfo.ohosAccountInfo_.status_ == ACCOUNT_STATE_LOGIN) {
+        subscribeManager_.Publish(localId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGOUT);
+        AccountEventProvider::EventPublishAsUser(COMMON_EVENT_HWID_LOGOUT, localId);
+        AccountEventProvider::EventPublishAsUser(COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOUT, localId);
+    }
+    subscribeManager_.Publish(localId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::UNBOUND);
+    AccountEventProvider::EventPublishAsUser(COMMON_EVENT_DISTRIBUTED_ACCOUNT_UNBOUND, localId);
+    subscribeManager_.Publish(DistributedAccountSubProfileEventType::DELETED, localId, defaultSubProfileId);
+    SendSubProfileCES(localId, defaultSubProfileId, COMMON_EVENT_OS_ACCOUNT_SUB_PROFILE_DELETED);
     return ERR_OK;
 #else
     return SendMultiSpaceLogoutOnDelOsAccount(localId);

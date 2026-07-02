@@ -29,9 +29,7 @@
 #include "inner_domain_account_manager.h"
 #endif // SUPPORT_DOMAIN_ACCOUNTS
 #include "iservice_registry.h"
-#ifdef HAS_STORAGE_PART
 #include "storage_service_errno.h"
-#endif
 #include "system_ability_definition.h"
 #include "user_access_ctrl_client.h"
 #include "user_auth_client.h"
@@ -876,6 +874,71 @@ ErrCode InnerAccountIAMManager::CheckNeedReactivateUserKey(int32_t userId, bool 
     needReactivateKey = false;
     return ERR_OK;
 #endif // HAS_STORAGE_PART
+}
+
+ErrCode InnerAccountIAMManager::UnlockUserStorage(int32_t accountId, const std::vector<uint8_t> &token,
+    const std::vector<uint8_t> &secret, bool &isUpdateVerifiedStatus)
+{
+    (void)HandleFileKeyException(accountId, secret, token);
+    bool isVerified = false;
+    (void)IInnerOsAccountManager::GetInstance().IsOsAccountVerified(accountId, isVerified);
+    bool needActivateKey = true;
+    ErrCode ret = ERR_OK;
+    if (isVerified) {
+        ret = CheckNeedReactivateUserKey(accountId, needActivateKey);
+        if (ret != ERR_OK) {
+            ReportOsAccountOperationFail(accountId, Constants::OPERATION_UNLOCK, ret,
+                "Failed to check need reactivate user key");
+            ACCOUNT_LOGE("Failed to check need reactivate key, ret = %{public}d.", ret);
+        }
+    }
+
+    if (needActivateKey) {
+        // el2 file decryption
+        ret = ActivateUserKey(accountId, token, secret);
+        if ((ret != ERR_OK) && (ret != ErrNo::E_PARAMS_NULLPTR_ERR)) {
+            ACCOUNT_LOGE("Failed to activate user key");
+            ReportOsAccountOperationFail(accountId, Constants::OPERATION_UNLOCK, ret,
+                "Failed to activate user key");
+        }
+        // only catch el2 activation error
+        if (ret == ErrNo::E_ACTIVE_EL2_FAILED) {
+            ACCOUNT_LOGE("Failed to activate el2, exit user activation.");
+            return ret;
+        }
+        ErrCode prepareRet = PrepareStartUser(accountId);
+        if (prepareRet != ERR_OK) {
+            ACCOUNT_LOGE("Failed to prepare start user");
+            ReportOsAccountOperationFail(accountId, Constants::OPERATION_UNLOCK, prepareRet,
+                "Failed to prepare start user");
+        }
+        isUpdateVerifiedStatus = true;
+    }
+    return ret;
+}
+
+ErrCode InnerAccountIAMManager::UnlockEnhancedStorage(int32_t accountId, const std::vector<uint8_t> &token,
+    const std::vector<uint8_t> &secret, bool isUpdateVerifiedStatus)
+{
+    if (isUpdateVerifiedStatus) {
+        return ERR_OK;
+    }
+    ErrCode ret = ERR_OK;
+    bool lockScreenStatus = false;
+    ret = GetLockScreenStatus(accountId, lockScreenStatus);
+    if (ret != 0) {
+        ReportOsAccountOperationFail(accountId, OPERATION_UNLOCK_ENHANCE, ret, "Failed to get lock status");
+    }
+    if (!lockScreenStatus) {
+        ACCOUNT_LOGI("start unlock user screen");
+        // el3\4 file decryption
+        ret = UnlockUserScreen(accountId, token, secret);
+        if (ret != 0) {
+            ReportOsAccountOperationFail(accountId, OPERATION_UNLOCK_ENHANCE, ret,
+                "Failed to unlock user enhanced key");
+        }
+    }
+    return ret;
 }
 }  // namespace AccountSA
 }  // namespace OHOS

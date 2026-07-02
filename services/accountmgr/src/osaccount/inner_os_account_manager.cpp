@@ -28,6 +28,7 @@
 #ifdef HAS_CES_PART
 #include "common_event_support.h"
 #endif // HAS_CES_PART
+#include "distributed_account_subscribe_manager.h"
 #include "domain_account_callback_service.h"
 #include "hitrace_adapter.h"
 #include "account_hisysevent_adapter.h"
@@ -37,7 +38,6 @@
 #include "ohos_account_kits.h"
 #include "os_account_constants.h"
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-#include "distributed_account_subscribe_manager.h"
 #include "os_account_subspace_data_deal.h"
 #include "os_account_subspace_manager.h"
 #endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
@@ -836,6 +836,36 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
     return FinalizeAccountCreate(osAccountInfo);
 }
 
+void IInnerOsAccountManager::OsAccountCreateOnComplete(OsAccountInfo &osAccountInfo)
+{
+    int32_t localId = osAccountInfo.GetLocalId();
+    OsAccountInterface::SendToCESAccountCreate(osAccountInfo);
+    subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::CREATED);
+    // Send sub profile create event to CES
+    int32_t foregroundProfileId = -1;
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    int32_t headlessProfileId = localId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
+    OhosAccountManager::GetInstance().SendSubProfileCES(localId, headlessProfileId,
+        COMMON_EVENT_OS_ACCOUNT_SUB_PROFILE_CREATED);
+    (void) DistributedAccountSubscribeManager::GetInstance().Publish(
+        DistributedAccountSubProfileEventType::CREATED, localId, headlessProfileId);
+    foregroundProfileId = osAccountInfo.GetForegroundSubProfileId();
+#else
+    (void) OhosAccountManager::GetInstance().GetOsAccountForegroundSubProfileId(localId, foregroundProfileId);
+#endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    OhosAccountManager::GetInstance().SendSubProfileCES(localId, foregroundProfileId,
+        COMMON_EVENT_OS_ACCOUNT_SUB_PROFILE_CREATED);
+    (void) DistributedAccountSubscribeManager::GetInstance().Publish(
+        DistributedAccountSubProfileEventType::CREATED, localId, foregroundProfileId);
+    // Send sub profile switch event to CES
+    OhosAccountManager::GetInstance().SendSubProfileSwitchCES(localId, foregroundProfileId, -1, true);
+    (void) DistributedAccountSubscribeManager::GetInstance().Publish(
+        DistributedAccountSubProfileEventType::SWITCHING, localId, foregroundProfileId, -1);
+    OhosAccountManager::GetInstance().SendSubProfileSwitchCES(localId, foregroundProfileId, -1, false);
+    (void) DistributedAccountSubscribeManager::GetInstance().Publish(
+        DistributedAccountSubProfileEventType::SWITCHED, localId, foregroundProfileId, -1);
+}
+
 ErrCode IInnerOsAccountManager::FinalizeAccountCreate(OsAccountInfo &osAccountInfo)
 {
     int32_t localId = osAccountInfo.GetLocalId();
@@ -867,8 +897,7 @@ ErrCode IInnerOsAccountManager::FinalizeAccountCreate(OsAccountInfo &osAccountIn
             "Failed to send storage account create complete");
     }
     ReportOsAccountLifeCycle(localId, Constants::OPERATION_CREATE);
-    OsAccountInterface::SendToCESAccountCreate(osAccountInfo);
-    subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::CREATED);
+    OsAccountCreateOnComplete(osAccountInfo);
     ACCOUNT_LOGI("OsAccountAccountMgr send to storage and bm for start success");
     ReportUserDataSize(GetVerifiedAccountIds(verifiedAccounts_));
     ReportAccountOperationEvent(ACCOUNT_OPERATION_TYPE_CREATE, osAccountInfo.GetLocalName(), localId);
@@ -4110,13 +4139,6 @@ ErrCode IInnerOsAccountManager::InitOsAccountSubspaceForNewAccount(int32_t local
         osAccountControl_->DeleteSubProfileContextFile(localId);
         return createRet;
     }
-
-    ErrCode publishCreateRet = DistributedAccountSubscribeManager::GetInstance().Publish(
-        DistributedAccountSubProfileEventType::CREATED, localId, newSubspaceId);
-    if (publishCreateRet != ERR_OK) {
-        ACCOUNT_LOGW("Failed to publish CREATED event for localId=%{public}d, subspaceId=%{public}d, ret=%{public}d",
-            localId, newSubspaceId, publishCreateRet);
-    }
     ReportOsAccountLifeCycle(newSubspaceId, Constants::OPERATION_SUBPROFILE_CREATE);
 
     int32_t fromSubspaceId = -1;
@@ -4130,12 +4152,6 @@ ErrCode IInnerOsAccountManager::InitOsAccountSubspaceForNewAccount(int32_t local
     }
     foregroundSubProfileId = newSubspaceId;
 
-    ErrCode publishSwitchRet = DistributedAccountSubscribeManager::GetInstance().Publish(
-        DistributedAccountSubProfileEventType::SWITCHED, localId, newSubspaceId, fromSubspaceId);
-    if (publishSwitchRet != ERR_OK) {
-        ACCOUNT_LOGW("Failed to publish SWITCHED event for localId=%{public}d, subspaceId=%{public}d, ret=%{public}d",
-            localId, newSubspaceId, publishSwitchRet);
-    }
     ReportOsAccountLifeCycle(newSubspaceId, Constants::OPERATION_SUBPROFILE_SWITCH);
 
     return ERR_OK;

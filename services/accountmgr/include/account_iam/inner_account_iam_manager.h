@@ -78,6 +78,37 @@ public:
     void OnDelUserDone(int32_t userId);
 #endif // HAS_PIN_AUTH_PART
     ErrCode CheckNeedReactivateUserKey(int32_t userId, bool &needReactivateKey);
+    /**
+     * @brief Unlock EL2 full user storage space after authentication.
+     *
+     * Flow: restore key context if iam_fault exists -> check account verified status ->
+     * check reactivation need -> ActivateUserKey (EL2) -> PrepareStartUser.
+     * Sets isUpdateVerifiedStatus to true when EL2 activation succeeds.
+     *
+     * @param accountId               the OS account ID
+     * @param token                   auth token from IAM framework
+     * @param secret                  root secret from IAM framework
+     * @param isUpdateVerifiedStatus  out: set to true when EL2 key activated,
+     *                                caller should update account verified status
+     * @return ERR_OK on success; ErrNo::E_ACTIVE_EL2_FAILED if EL2 activation fails
+     *         (caller should abort subsequent EL3/EL4 unlock)
+     */
+    ErrCode UnlockUserStorage(int32_t accountId, const std::vector<uint8_t> &token,
+        const std::vector<uint8_t> &secret, bool &isUpdateVerifiedStatus);
+    /**
+     * @brief Unlock EL3/EL4 enhanced user storage space after authentication.
+     *
+     * Flow: skip if isUpdateVerifiedStatus is true (EL2 just activated) ->
+     * query lock screen status -> UnlockUserScreen (EL3/EL4) when not locked.
+     *
+     * @param accountId               the OS account ID
+     * @param token                   auth token from IAM framework
+     * @param secret                  root secret from IAM framework
+     * @param isUpdateVerifiedStatus  in: true if EL2 was just activated (skip EL3/EL4)
+     * @return ERR_OK on success or skipped; error code on failure
+     */
+    ErrCode UnlockEnhancedStorage(int32_t accountId, const std::vector<uint8_t> &token,
+        const std::vector<uint8_t> &secret, bool isUpdateVerifiedStatus);
 
 private:
     InnerAccountIAMManager();

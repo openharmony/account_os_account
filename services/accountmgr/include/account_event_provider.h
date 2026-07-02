@@ -22,6 +22,23 @@
 
 namespace OHOS {
 namespace AccountSA {
+// CES for distributed account events
+const char COMMON_EVENT_OS_ACCOUNT_SUB_PROFILE_CREATED[] = "usual.event.OS_ACCOUNT_SUB_PROFILE_CREATED";
+const char COMMON_EVENT_OS_ACCOUNT_SUB_PROFILE_DELETED[] = "usual.event.OS_ACCOUNT_SUB_PROFILE_DELETED";
+const char COMMON_EVENT_OS_ACCOUNT_SUB_PROFILE_SWITCHING[] = "usual.event.OS_ACCOUNT_SUB_PROFILE_SWITCHING";
+const char COMMON_EVENT_OS_ACCOUNT_SUB_PROFILE_SWITCHED[] = "usual.event.OS_ACCOUNT_SUB_PROFILE_SWITCHED";
+const char COMMON_EVENT_DISTRIBUTED_ACCOUNT_BOUND[] = "usual.event.DISTRIBUTED_ACCOUNT_BOUND";
+const char COMMON_EVENT_DISTRIBUTED_ACCOUNT_UNBOUND[] = "usual.event.DISTRIBUTED_ACCOUNT_UNBOUND";
+const char COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGIN[] = "common.event.DISTRIBUTED_ACCOUNT_LOGIN";
+const char COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOUT[] = "common.event.DISTRIBUTED_ACCOUNT_LOGOUT";
+const char COMMON_EVENT_DISTRIBUTED_ACCOUNT_TOKEN_INVALID[] = "common.event.DISTRIBUTED_ACCOUNT_TOKEN_INVALID";
+const char COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOFF[] = "common.event.DISTRIBUTED_ACCOUNT_LOGOFF";
+const char COMMON_EVENT_USER_INFO_UPDATED[] = "usual.event.USER_INFO_UPDATED";
+const char COMMON_EVENT_HWID_LOGIN[] = "common.event.HWID_LOGIN";
+const char COMMON_EVENT_HWID_LOGOUT[] = "common.event.HWID_LOGOUT";
+const char COMMON_EVENT_HWID_TOKEN_INVALID[] = "common.event.HWID_TOKEN_INVALID";
+const char COMMON_EVENT_HWID_LOGOFF[] = "common.event.HWID_LOGOFF";
+
 class AccountEventProvider {
 public:
     static bool EventPublish(const std::string& event, int32_t userId, const DomainAccountEventData *report);

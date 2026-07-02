@@ -595,7 +595,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo011, TestSize.Level3)
     EXPECT_EQ(OhosAccountKits::GetInstance().GetOsAccountDistributedInfo(localId, accountInfoget), ERR_OK);
     EXPECT_EQ(accountInfoget.uid_, TEST_EXPECTED_UID);
     EXPECT_EQ(accountInfoget.nickname_, TEST_NICKNAME);
-    EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_UNBOUND);
+    EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_TOKEN_EXPIRED);
     EXPECT_EQ(accountInfoget.avatar_, TEST_AVATAR);
     EXPECT_EQ(accountInfoget.scalableData_, accountInfo.scalableData_);
 

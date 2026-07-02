@@ -25,6 +25,7 @@
 #include "account_iam_info.h"
 #include "account_info_report.h"
 #include "account_log_wrapper.h"
+#include "iam_common_defines.h"
 #include "iinner_os_account_manager.h"
 #include "inner_account_iam_manager.h"
 #ifdef SUPPORT_AUTHORIZATION
@@ -50,8 +51,6 @@ namespace {
 #ifdef HICOLLIE_ENABLE
 const int32_t REENROLL_TIME_OUT = 6;
 #endif // HICOLLIE_ENABLE
-const int32_t AUTH_CANCEL_ERRCODE = 3;
-const int32_t NO_CRED_ERRCODE = 10;
 }
 
 using UserIDMClient = UserIam::UserAuth::UserIdmClient;
@@ -216,71 +215,29 @@ ErrCode AuthCallback::UnlockAccount(int32_t accountId, const std::vector<uint8_t
             ACCOUNT_LOGI("No need to active user.");
             return ERR_OK;
         }
-        (void)InnerAccountIAMManager::GetInstance().HandleFileKeyException(accountId, secret, token);
-        bool isVerified = false;
-        (void)IInnerOsAccountManager::GetInstance().IsOsAccountVerified(accountId, isVerified);
-        bool needActivateKey = true;
-        if (isVerified) {
-            ret = InnerAccountIAMManager::GetInstance().CheckNeedReactivateUserKey(accountId, needActivateKey);
-            if (ret != ERR_OK) {
-                ReportOsAccountOperationFail(accountId, Constants::OPERATION_UNLOCK, ret,
-                    "Failed to check need reactivate user key");
-                ACCOUNT_LOGE("Failed to check need reactivate key, ret = %{public}d.", ret);
-            }
-        }
-
-        if (needActivateKey) {
-            // el2 file decryption
-            ret = InnerAccountIAMManager::GetInstance().ActivateUserKey(accountId, token, secret);
-            if ((ret != ERR_OK) && (ret != ErrNo::E_PARAMS_NULLPTR_ERR)) {
-                ACCOUNT_LOGE("Failed to activate user key");
-                ReportOsAccountOperationFail(accountId, Constants::OPERATION_UNLOCK, ret,
-                    "Failed to activate user key");
-            }
-            // only catch el2 activation error
-            if (ret == ErrNo::E_ACTIVE_EL2_FAILED) {
-                ACCOUNT_LOGE("Failed to activate el2, exit user activation.");
-                return ret;
-            }
-            ret = InnerAccountIAMManager::GetInstance().PrepareStartUser(accountId);
-            if (ret != ERR_OK) {
-                ACCOUNT_LOGE("Failed to prepare start user");
-                ReportOsAccountOperationFail(accountId, Constants::OPERATION_UNLOCK, ret,
-                    "Failed to prepare start user");
-            }
-            isUpdateVerifiedStatus = true;
+        ret = InnerAccountIAMManager::GetInstance().UnlockUserStorage(accountId, token, secret, isUpdateVerifiedStatus);
+        // only catch el2 activation error
+        if (ret == ErrNo::E_ACTIVE_EL2_FAILED) {
+            ACCOUNT_LOGE("Failed to activate el2, exit user activation.");
+            return ret;
         }
     }
     ret = UnlockUserScreen(accountId, token, secret, isUpdateVerifiedStatus);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Failed to unlock user screen, ret = %{public}d", ret);
+    }
     return ret;
 }
 
 ErrCode AuthCallback::UnlockUserScreen(int32_t accountId, const std::vector<uint8_t> &token,
     const std::vector<uint8_t> &secret, bool &isUpdateVerifiedStatus)
 {
-    ErrCode ret = ERR_OK;
-    if (!isUpdateVerifiedStatus) {
-        if (authType_ == AuthType::RECOVERY_KEY) {
-            ACCOUNT_LOGI("No need to unlock screen.");
-            return ERR_OK;
-        }
-        bool lockScreenStatus = false;
-        ret = InnerAccountIAMManager::GetInstance().GetLockScreenStatus(accountId, lockScreenStatus);
-        if (ret != 0) {
-            ReportOsAccountOperationFail(accountId, OPERATION_UNLOCK_ENHANCE, ret, "Failed to get lock status");
-        }
-        if (!lockScreenStatus) {
-            ACCOUNT_LOGI("start unlock user screen");
-            // el3\4 file decryption
-            ret = InnerAccountIAMManager::GetInstance().UnlockUserScreen(accountId, token, secret);
-            if (ret != 0) {
-                ReportOsAccountOperationFail(accountId, OPERATION_UNLOCK_ENHANCE, ret,
-                    "Failed to unlock user enhanced key");
-                return ret;
-            }
-        }
+    if (!isUpdateVerifiedStatus && authType_ == AuthType::RECOVERY_KEY) {
+        ACCOUNT_LOGI("No need to unlock screen.");
+        return ERR_OK;
     }
-    return ret;
+    return InnerAccountIAMManager::GetInstance().UnlockEnhancedStorage(
+        accountId, token, secret, isUpdateVerifiedStatus);
 }
 
 ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo, int32_t accountId, bool &isUpdateVerifiedStatus)
@@ -364,6 +321,16 @@ bool AuthCallback::IsTokenFromRemoteDevice(const Attributes &extraInfo)
     return isTokenFromRemoteDevice;
 }
 
+inline static bool NeedReportAuthError(int32_t result, AuthType authType)
+{
+    if (result == UserIam::UserAuth::ResultCode::CANCELED ||
+        result == UserIam::UserAuth::ResultCode::NOT_ENROLLED ||
+        (authType == AuthType::FACE && result == UserIam::UserAuth::ResultCode::TIMEOUT)) {
+        return false;
+    }
+    return true;
+}
+
 void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
 {
     int32_t authedAccountId = 0;
@@ -382,7 +349,7 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
     }
     if (result != 0) {
         innerCallback_->OnResult(result, extraInfo.Serialize());
-        if (result != AUTH_CANCEL_ERRCODE) {
+        if (NeedReportAuthError(result, authType_)) {
             ReportOsAccountOperationFail(authedAccountId, OPERATION_AUTH_CRED, result,
                 "Failed to auth, type:" + std::to_string(authType_));
         }
@@ -441,7 +408,7 @@ void AuthorizationAuthCallback::OnResult(int32_t result, const Attributes &extra
         ACCOUNT_LOGE("innerCallback_ is nullptr");
         return;
     }
-    if (result == ERR_OK || result == NO_CRED_ERRCODE) {
+    if (result == ERR_OK || result == UserIam::UserAuth::ResultCode::NOT_ENROLLED) {
         std::vector<uint8_t> token;
         extraInfo.GetUint8ArrayValue(Attributes::ATTR_SIGNATURE, token);
         ErrCode errCode = InnerAuthorizationManager::GetInstance().UpdateAuthInfo(token, authedAccountId, callingPid_,
@@ -551,7 +518,7 @@ void AddCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
         }
     }
     if (result != 0) {
-        if (result != AUTH_CANCEL_ERRCODE) {
+        if (result != UserIam::UserAuth::ResultCode::CANCELED) {
             ReportOsAccountOperationFail(userId_, OPERATION_ADD_CRED, result,
                 "Failed to add credential, type: " + std::to_string(credInfo_.authType));
         }
@@ -875,7 +842,7 @@ void GetCredInfoCallbackWrapper::OnCredentialInfo(int32_t result, const std::vec
         ACCOUNT_LOGE("InnerCallback_ is nullptr");
         return;
     }
-    if (result != 0 && result != NO_CRED_ERRCODE) {
+    if (result != 0 && result != UserIam::UserAuth::ResultCode::NOT_ENROLLED) {
         REPORT_OS_ACCOUNT_FAIL(userId_, "getCredentialInfo", result,
             "Failed to get credential info, authType:" + std::to_string(authType_));
     }
@@ -934,7 +901,7 @@ void GetPropCallbackWrapper::OnResult(int32_t result, const Attributes &extraInf
         ACCOUNT_LOGE("inner callback is nullptr");
         return;
     }
-    if (result != 0 && result != NO_CRED_ERRCODE) {
+    if (result != 0 && result != UserIam::UserAuth::ResultCode::NOT_ENROLLED) {
         ReportOsAccountOperationFail(userId_, "getProperty", result, "Failed to get property");
     }
     innerCallback_->OnResult(result, extraInfo.Serialize());
