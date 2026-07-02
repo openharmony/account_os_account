@@ -14,7 +14,7 @@
 import("//build/test.gni")
 import("../../../../services/accountmgr/os_account_service.gni")
 
-module_output_path = "os_account/authorization"
+module_output_path = "os_account/os_account"
 
 config("authorization_framework_config_moduletest") {
   visibility = [ ":*" ]
@@ -91,7 +91,7 @@ ohos_moduletest("authorization_client_module_cov_test") {
   if (os_account_support_authorization) {
     cflags_cc += [ "-DSUPPORT_AUTHORIZATION" ]
   }
-  
+
   if (use_libfuzzer) {
     cflags_cc += [ "-DFUZZ_TEST" ]
   }
@@ -157,7 +157,7 @@ ohos_moduletest("acquire_admin_authorization_test") {
   if (os_account_support_authorization) {
     cflags_cc += [ "-DSUPPORT_AUTHORIZATION" ]
   }
-  
+
   if (use_libfuzzer) {
     cflags_cc += [ "-DFUZZ_TEST" ]
   }
