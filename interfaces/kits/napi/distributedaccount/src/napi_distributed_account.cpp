@@ -247,7 +247,8 @@ void ProcessSetNamedProperty(napi_env env, const DistributedAccountAsyncContext 
         napi_create_string_utf8(env, asyncContext->ohosAccountInfo.avatar_.c_str(),
                                 asyncContext->ohosAccountInfo.avatar_.size(), &value);
         napi_set_named_property(env, result[1], PROPERTY_KEY_AVATAR.c_str(), value);
-        napi_create_int32(env, asyncContext->ohosAccountInfo.status_, &value);
+        int32_t isLogin = (asyncContext->ohosAccountInfo.status_ == ACCOUNT_STATE_LOGIN) ? 1 : 0;
+        napi_create_int32(env, isLogin, &value);
         napi_set_named_property(env, result[1], PROPERTY_KEY_STATUS.c_str(), value);
         napi_value scalable = DeserializeScalableData(env, asyncContext->ohosAccountInfo.scalableData_);
         napi_set_named_property(env, result[1], PROPERTY_KEY_SCALABLE.c_str(), scalable);

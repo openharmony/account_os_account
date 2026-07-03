@@ -248,6 +248,7 @@ private:
     ErrCode ValidateDisplayForActivation(const int id, const uint64_t displayId);
     ErrCode ValidateDisplayId(const uint64_t displayId);
 #endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+    void OsAccountCreateOnComplete(OsAccountInfo &osAccountInfo);
 
 private:
     std::shared_ptr<IOsAccountControl> osAccountControl_;

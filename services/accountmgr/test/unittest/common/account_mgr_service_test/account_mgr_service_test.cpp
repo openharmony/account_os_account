@@ -281,7 +281,7 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosTokenInvalidTest001, TestSi
     EXPECT_EQ(true, ret);
     ret = (accountName == TEST_ACCOUNT_NAME);
     EXPECT_EQ(true, ret);
-    ret = (status == ACCOUNT_STATE_UNBOUND);
+    ret = (status == ACCOUNT_STATE_TOKEN_EXPIRED);
     EXPECT_EQ(true, ret);
 
     // login again after token invalid

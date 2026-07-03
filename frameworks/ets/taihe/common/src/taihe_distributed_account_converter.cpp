@@ -31,8 +31,7 @@ using OHOS::AccountSA::ACCOUNT_LABEL;
 static DistributedAccountStatus GetDistributedAccountStatus(int32_t status)
 {
     DistributedAccountStatus loginStatus(DistributedAccountStatus::key_t::LOGGED_IN);
-    int32_t loginStatusId = loginStatus.get_value();
-    if (status == loginStatusId) {
+    if (status == AccountSA::ACCOUNT_STATE_LOGIN) {
         return DistributedAccountStatus(DistributedAccountStatus::key_t::LOGGED_IN);
     }
     return DistributedAccountStatus(DistributedAccountStatus::key_t::NOT_LOGGED_IN);

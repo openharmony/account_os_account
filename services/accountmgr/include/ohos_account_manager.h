@@ -170,6 +170,8 @@ public:
     bool HandleEvent(AccountInfo &curOhosAccount, const std::string &eventStr);
 
     ErrCode SendLogoutEventOnDelOsAccount(int32_t localId);
+    void SendSubProfileCES(int32_t localId, int32_t subprofileId, const std::string &eventStr);
+    void SendSubProfileSwitchCES(int32_t localId, int32_t subprofileId, int32_t fromSubprofileId, bool isSwitching);
 
 #ifndef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
     /**
