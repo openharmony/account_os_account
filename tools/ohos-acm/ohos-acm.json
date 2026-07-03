@@ -6,8 +6,12 @@
     "requirePermissions": [],
     "inputSchema": {
         "type": "object",
-        "properties": {},
-        "required": []
+        "properties": {
+            "help": {
+                "type": "boolean",
+                "default": false
+            }
+        }
     },
     "outputSchema": {
         "type": "object",
@@ -45,8 +49,12 @@
             "requirePermissions": [],
             "inputSchema": {
                 "type": "object",
-                "properties": {},
-                "required": []
+                "properties": {
+                    "help": {
+                        "type": "boolean",
+                        "default": false
+                    }
+                }
             },
             "outputSchema": {
                 "type": "object",
@@ -80,25 +88,6 @@
                     }
                 },
                 "required": ["type", "status"]
-            }
-        },
-        "--help": {
-            "description": "Show help message. Used for displaying command usage information. Does not execute any query operations.",
-            "requirePermissions": [],
-            "inputSchema": {
-                "type": "object",
-                "properties": {},
-                "required": []
-            },
-            "outputSchema": {
-                "type": "object",
-                "properties": {
-                    "content": {
-                        "type": "string",
-                        "description": "Help information output"
-                    }
-                },
-                "required": ["content"]
             }
         }
     }

@@ -28,8 +28,8 @@ namespace OHOS {
 namespace AccountSA {
 namespace ACli {
 
-extern const char* G_PROGRAM_NAME;
 extern const char* TOOL_NAME;
+extern std::string g_programName;
 
 inline void CLI_LOG(const std::string& msg)
 {

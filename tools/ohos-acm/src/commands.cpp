@@ -24,14 +24,13 @@ namespace OHOS {
 namespace AccountSA {
 namespace ACli {
 
-const char* G_PROGRAM_NAME = "";
 const char* TOOL_NAME = "ohos-acm";
+std::string g_programName = TOOL_NAME;
 
 const std::unordered_map<std::string, Command>& GetCommands()
 {
     static const std::unordered_map<std::string, Command> kCommands = {
         {"get-current-userid", {"Get the local ID of the current OS account", CmdGetCurrentUserId}},
-        {"--help", {"Show help message", CmdHelp}},
     };
     return kCommands;
 }
@@ -51,8 +50,10 @@ int OutputSuccess(CJsonUnique data)
     std::string output = PackJsonToString(response);
     if (!output.empty()) {
         std::cout << output << std::endl;
+        return 0;
     }
-    return 0;
+    OutputError("ERR_JSON_SERIALIZE", "Failed to serialize JSON", "Check system memory");
+    return 1;
 }
 
 int OutputError(const std::string& code, const std::string& message, const std::string& suggestion)
@@ -117,41 +118,25 @@ static void PrintFullHelp()
 {
     const auto& commands = GetCommands();
 
-    CLI_LOG(std::string("ohos-acm - OS Account management command-line utility"));
+    CLI_LOG("ohos-acm - OS Account management command-line utility");
     CLI_LOG("");
     CLI_LOG("Usage:");
-    CLI_LOG(std::string("  ") + G_PROGRAM_NAME + " <command> [options]");
+    CLI_LOG(std::string("  ") + g_programName + " <command> [options]");
     CLI_LOG("");
     CLI_LOG("Parameters:");
-    CLI_LOG("  --help             Display this help message");
+    CLI_LOG("  --help             Show this help message");
     CLI_LOG("");
     CLI_LOG("SubCommands:");
 
-    constexpr size_t descriptionPadding = 2;
-    size_t maxLen = 0;
     for (const auto& pair : commands) {
-        if (pair.first != "--help" && pair.first.length() > maxLen) {
-            maxLen = pair.first.length();
-        }
-    }
-
-    for (const auto& pair : commands) {
-        if (pair.first == "--help") {
-            continue;
-        }
-        std::string line = "  " + pair.first;
-        for (size_t i = pair.first.length(); i < maxLen + descriptionPadding; i++) {
-            line += " ";
-        }
-        line += pair.second.description;
-        CLI_LOG(line);
+        CLI_LOG("  " + pair.first + " - " + pair.second.description);
     }
 
     CLI_LOG("");
     CLI_LOG("Examples:");
-    CLI_LOG(std::string("  ") + G_PROGRAM_NAME + " --help");
-    CLI_LOG(std::string("  ") + G_PROGRAM_NAME + " get-current-userid");
-    CLI_LOG(std::string("  ") + G_PROGRAM_NAME + " get-current-userid --help");
+    CLI_LOG(std::string("  ") + g_programName + " --help");
+    CLI_LOG(std::string("  ") + g_programName + " get-current-userid");
+    CLI_LOG(std::string("  ") + g_programName + " get-current-userid --help");
 }
 
 static int PrintCommandHelp(const std::string& targetCmd)
@@ -166,13 +151,13 @@ static int PrintCommandHelp(const std::string& targetCmd)
     CLI_LOG(std::string("ohos-acm ") + targetCmd + " - " + it->second.description);
     CLI_LOG("");
     CLI_LOG("Usage:");
-    CLI_LOG(std::string("  ") + G_PROGRAM_NAME + " " + targetCmd + " [options]");
+    CLI_LOG(std::string("  ") + g_programName + " " + targetCmd + " [options]");
     CLI_LOG("");
     CLI_LOG("Parameters:");
     CLI_LOG("  --help             Display this help message");
     CLI_LOG("");
     CLI_LOG("Examples:");
-    CLI_LOG(std::string("  ") + G_PROGRAM_NAME + " " + targetCmd);
+    CLI_LOG(std::string("  ") + g_programName + " " + targetCmd);
 
     return 0;
 }

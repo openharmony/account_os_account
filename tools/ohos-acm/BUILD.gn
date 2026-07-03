@@ -36,6 +36,14 @@ ohos_cli_executable("ohos-acm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
   cflags_cc = cflags
+  cflags_cc += [
+    "-Os",
+    "-fno-asynchronous-unwind-tables",
+    "-fno-unwind-tables",
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fvisibility=hidden",
+  ]
 
   deps = [
     "${os_account_innerkits_native_path}:os_account_innerkits",
