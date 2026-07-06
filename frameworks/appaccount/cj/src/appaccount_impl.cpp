@@ -728,7 +728,6 @@ CArrString CJAppAccountImpl::ConvertSet2CArrString(std::set<std::string> &in)
             free(retValue);
             return {nullptr, 0};
         }
-        i++;
     }
     arrStr.head = retValue;
     return arrStr;
