@@ -312,14 +312,19 @@ public:
         }
     }
 
-    bool IsMainOsAccountSync()
+    bool IsMainOsAccount()
     {
         bool isMainOsAcount = false;
         ErrCode errCode = AccountSA::OsAccountManager::IsMainOsAccount(isMainOsAcount);
         return TaiheReturn(errCode, isMainOsAcount, DEFAULT_BOOL);
     }
 
-    string GetOsAccountProfilePhotoSync(int32_t localId)
+    bool IsMainOsAccountPromise()
+    {
+        return IsMainOsAccount();
+    }
+
+    string GetOsAccountProfilePhoto(int32_t localId)
     {
         int32_t temp = localId;
         std::string photo = "";
@@ -327,11 +332,21 @@ public:
         return TaiheReturn(errCode, photo, DEFAULT_STR);
     }
 
-    OsAccountType GetOsAccountTypeSync()
+    string GetOsAccountProfilePhotoPromise(int32_t localId)
+    {
+        return GetOsAccountProfilePhoto(localId);
+    }
+
+    OsAccountType GetOsAccountType()
     {
         AccountSA::OsAccountType type = DEFAULT_ACCOUNT_TYPE;
         ErrCode errCode = AccountSA::OsAccountManager::GetOsAccountTypeFromProcess(type);
         return ConvertToOsAccountTypeKey(TaiheReturn(errCode, type, DEFAULT_ACCOUNT_TYPE));
+    }
+
+    OsAccountType GetOsAccountTypePromise()
+    {
+        return GetOsAccountType();
     }
 
     OsAccountType GetOsAccountTypeWithIdSync(int32_t localId)
@@ -632,7 +647,7 @@ public:
         }
     }
 
-    void ActivateOsAccountSync(int32_t localId)
+    void ActivateOsAccount(int32_t localId)
     {
         ErrCode errCode = AccountSA::OsAccountManager::ActivateOsAccount(localId);
         ACCOUNT_LOGI("ActivateOsAccount returned errCode: %{public}d", errCode);
@@ -640,6 +655,11 @@ public:
             ACCOUNT_LOGE("ActivateOsAccount failed with errCode: %{public}d", errCode);
             SetTaiheBusinessErrorFromNativeCode(errCode);
         }
+    }
+
+    void ActivateOsAccountPromise(int32_t localId)
+    {
+        ActivateOsAccount(localId);
     }
 
     void ActivateOsAccountWithDisplayId(int32_t localId, int64_t displayId)
@@ -700,7 +720,7 @@ public:
         }
     }
 
-    array<int32_t> GetActivatedOsAccountLocalIdsSync()
+    array<int32_t> GetActivatedOsAccountLocalIds()
     {
         std::vector<int32_t> ids;
         ErrCode errCode = AccountSA::OsAccountManager::QueryActiveOsAccountIds(ids);
@@ -709,6 +729,11 @@ public:
             return taihe::array<int32_t>(nullptr, 0);
         }
         return taihe::array<int32_t>(taihe::copy_data_t{}, ids.data(), ids.size());
+    }
+
+    array<int32_t> GetActivatedOsAccountLocalIdsPromise()
+    {
+        return GetActivatedOsAccountLocalIds();
     }
 
     OsAccountInfo QueryOsAccountSync()
@@ -761,7 +786,7 @@ public:
         return static_cast<int64_t>(displayId);
     }
 
-    int32_t GetOsAccountLocalIdSync()
+    int32_t GetOsAccountLocalId()
     {
         int32_t id = -1;
         ErrCode errCode = AccountSA::OsAccountManager::GetOsAccountLocalIdFromProcess(id);
@@ -772,7 +797,12 @@ public:
         return id;
     }
 
-    int32_t GetOsAccountLocalIdForUidSyncTaihe(int32_t uid)
+    int32_t GetOsAccountLocalIdPromise()
+    {
+        return GetOsAccountLocalId();
+    }
+
+    int32_t GetOsAccountLocalIdForUid(int32_t uid)
     {
         int32_t id = -1;
         ErrCode errCode = AccountSA::OsAccountManager::GetOsAccountLocalIdFromUid(uid, id);
@@ -781,6 +811,11 @@ public:
             SetTaiheBusinessErrorFromNativeCode(errCode);
         }
         return id;
+    }
+
+    int32_t GetOsAccountLocalIdForUidPromise(int32_t uid)
+    {
+        return GetOsAccountLocalIdForUid(uid);
     }
 
     bool IsOsAccountUnlockedSync()
@@ -809,7 +844,7 @@ public:
         return isUnlocked;
     }
 
-    array<OsAccountInfo> QueryAllCreatedOsAccountsSync()
+    array<OsAccountInfo> QueryAllCreatedOsAccounts()
     {
         std::vector<AccountSA::OsAccountInfo> osAccountInfos;
         ErrCode errCode = AccountSA::OsAccountManager::QueryAllCreatedOsAccounts(osAccountInfos);
@@ -824,6 +859,11 @@ public:
         }
 
         return taihe::array<OsAccountInfo>(taihe::copy_data_t{}, convertedInfos.data(), convertedInfos.size());
+    }
+
+    array<OsAccountInfo> QueryAllCreatedOsAccountsPromise()
+    {
+        return QueryAllCreatedOsAccounts();
     }
 
     array<int32_t> GetOsAccountLocalIdsSync()
@@ -848,7 +888,7 @@ public:
         return static_cast<int32_t>(maxLoggedInNumber);
     }
 
-    OsAccountInfo QueryOsAccountByIdSync(int32_t localId)
+    OsAccountInfo QueryOsAccountById(int32_t localId)
     {
         AccountSA::OsAccountInfo osAccountInfo;
         ErrCode errCode = AccountSA::OsAccountManager::QueryOsAccountById(localId, osAccountInfo);
@@ -859,7 +899,12 @@ public:
         return ConvertOsAccountInfo(osAccountInfo);
     }
 
-    void SetOsAccountProfilePhotoSync(int32_t localId, string_view photo)
+    OsAccountInfo QueryOsAccountByIdPromise(int32_t localId)
+    {
+        return QueryOsAccountById(localId);
+    }
+
+    void SetOsAccountProfilePhoto(int32_t localId, string_view photo)
     {
         std::string innerPhoto(photo.data(), photo.size());
         ErrCode errorCode = AccountSA::OsAccountManager::SetOsAccountProfilePhoto(localId, innerPhoto);
@@ -869,7 +914,12 @@ public:
         }
     }
 
-    int32_t GetOsAccountLocalIdForSerialNumberSync(int64_t serialNumber)
+    void SetOsAccountProfilePhotoCallback(int32_t localId, string_view photo)
+    {
+        SetOsAccountProfilePhoto(localId, photo);
+    }
+
+    int32_t GetOsAccountLocalIdForSerialNumber(int64_t serialNumber)
     {
         int id = -1;
         ErrCode errorCode = AccountSA::OsAccountManager::GetOsAccountLocalIdBySerialNumber(serialNumber, id);
@@ -880,7 +930,12 @@ public:
         return id;
     }
 
-    int64_t GetSerialNumberForOsAccountLocalIdSync(int32_t localId)
+    int32_t GetOsAccountLocalIdForSerialNumberCallback(int64_t serialNumber)
+    {
+        return GetOsAccountLocalIdForSerialNumber(serialNumber);
+    }
+
+    int64_t GetSerialNumberForOsAccountLocalId(int32_t localId)
     {
         int64_t serialNum = -1;
         ErrCode errorCode = AccountSA::OsAccountManager::GetSerialNumberByOsAccountLocalId(localId, serialNum);
@@ -892,7 +947,12 @@ public:
         return serialNum;
     }
 
-    int32_t GetBundleIdForUidWithIdSync(int32_t uid)
+    int64_t GetSerialNumberForOsAccountLocalIdCallback(int32_t localId)
+    {
+        return GetSerialNumberForOsAccountLocalId(localId);
+    }
+
+    int32_t GetBundleIdForUid(int32_t uid)
     {
         int id = -1;
         ErrCode errorCode = AccountSA::OsAccountManager::GetBundleIdFromUid(uid, id);
@@ -901,6 +961,11 @@ public:
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
         }
         return id;
+    }
+
+    int32_t GetBundleIdForUidCallback(int32_t uid)
+    {
+        return GetBundleIdForUid(uid);
     }
 
     int32_t GetBundleIdForUidSyncTaihe(int32_t uid)
@@ -950,7 +1015,7 @@ public:
         return tempInfos;
     }
 
-    array<ConstraintSourceTypeInfo> GetOsAccountConstraintSourceTypesSync(int32_t localId, string_view constraint)
+    array<ConstraintSourceTypeInfo> GetOsAccountConstraintSourceTypes(int32_t localId, string_view constraint)
     {
         std::string innerConstraint(constraint.data(), constraint.size());
         std::vector<AccountSA::ConstraintSourceTypeInfo> constraintSourceTypeInfos;
@@ -964,6 +1029,11 @@ public:
             ConvertConstraintSourceTypeInfo(constraintSourceTypeInfos);
         return taihe::array<ConstraintSourceTypeInfo>(taihe::copy_data_t{}, tempConstraintSourceTypeInfos.data(),
             tempConstraintSourceTypeInfos.size());
+    }
+
+    array<ConstraintSourceTypeInfo> GetOsAccountConstraintSourceTypesCallback(int32_t localId, string_view constraint)
+    {
+        return GetOsAccountConstraintSourceTypes(localId, constraint);
     }
 
     void bindDomainAccountSync(int32_t localId, DomainAccountInfo domainAccountInfo)
@@ -984,27 +1054,37 @@ public:
         }
     }
 
-    bool CheckMultiOsAccountEnabledSync()
+    bool CheckMultiOsAccountEnabled()
     {
         bool isMultiOAEnabled;
         ErrCode errCode = AccountSA::OsAccountManager::IsMultiOsAccountEnable(isMultiOAEnabled);
         if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("CheckMultiOsAccountEnabledSync failed with errCode: %{public}d", errCode);
+            ACCOUNT_LOGE("CheckMultiOsAccountEnabled failed with errCode: %{public}d", errCode);
             SetTaiheBusinessErrorFromNativeCode(errCode);
         }
         return isMultiOAEnabled;
     }
 
-    void RemoveOsAccountSync(int32_t localId)
+    bool CheckMultiOsAccountEnabledPromise()
+    {
+        return CheckMultiOsAccountEnabled();
+    }
+
+    void RemoveOsAccount(int32_t localId)
     {
         ErrCode errCode = AccountSA::OsAccountManager::RemoveOsAccount(localId);
         if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("RemoveOsAccountSync failed with errCode: %{public}d", errCode);
+            ACCOUNT_LOGE("RemoveOsAccount failed with errCode: %{public}d", errCode);
             SetTaiheBusinessErrorFromNativeCode(errCode);
         }
     }
 
-    void RemoveOsAccountWithOptionSync(int32_t localId, RemoveOsAccountOptions options)
+    void RemoveOsAccountPromise(int32_t localId)
+    {
+        RemoveOsAccount(localId);
+    }
+
+    void RemoveOsAccountWithOption(int32_t localId, RemoveOsAccountOptions options)
     {
         AccountSA::RemoveOsAccountOptions innerOptions;
         if (options.token.has_value()) {
@@ -1019,19 +1099,29 @@ public:
         }
         ErrCode errCode = AccountSA::OsAccountManager::RemoveOsAccount(localId, innerOptions);
         if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("RemoveOsAccountWithOptionSync failed with errCode: %{public}d", errCode);
+            ACCOUNT_LOGE("RemoveOsAccountWithOption failed with errCode: %{public}d", errCode);
             SetTaiheBusinessErrorFromNativeCode(errCode);
         }
     }
 
-    void SetOsAccountNameSync(int32_t localId, string_view localName)
+    void RemoveOsAccountWithOptionPromise(int32_t localId, RemoveOsAccountOptions options)
+    {
+        RemoveOsAccountWithOption(localId, options);
+    }
+
+    void SetOsAccountName(int32_t localId, string_view localName)
     {
         std::string innerLocalName(localName.data(), localName.size());
         ErrCode errCode = AccountSA::OsAccountManager::SetOsAccountName(localId, innerLocalName);
         if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("RemoveOsAccountSync failed with errCode: %{public}d", errCode);
+            ACCOUNT_LOGE("SetOsAccountName failed with errCode: %{public}d", errCode);
             SetTaiheBusinessErrorFromNativeCode(errCode);
         }
+    }
+
+    void SetOsAccountNamePromise(int32_t localId, string_view localName)
+    {
+        SetOsAccountName(localId, localName);
     }
 
     bool IsOsAccountActivatedSync(int32_t localId)
@@ -1090,12 +1180,17 @@ public:
         return isConsEnabled;
     }
 
-    bool CheckOsAccountTestableSync()
+    bool CheckOsAccountTestable()
     {
         return false;
     }
 
-    void SetOsAccountConstraintsSync(int32_t localId, array_view<taihe::string> constraints, bool enable)
+    bool CheckOsAccountTestablePromise()
+    {
+        return CheckOsAccountTestable();
+    }
+
+    void SetOsAccountConstraints(int32_t localId, array_view<taihe::string> constraints, bool enable)
     {
         std::vector<std::string> innerConstraints;
         for (const auto &constraint : constraints) {
@@ -1105,9 +1200,14 @@ public:
         ErrCode errCode =
         AccountSA::OsAccountManager::SetOsAccountConstraints(localId, innerConstraints, enable);
         if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("SetOsAccountConstraintsSync failed with errCode: %{public}d", errCode);
+            ACCOUNT_LOGE("SetOsAccountConstraints failed with errCode: %{public}d", errCode);
             SetTaiheBusinessErrorFromNativeCode(errCode);
         }
+    }
+
+    void SetOsAccountConstraintsPromise(int32_t localId, array_view<taihe::string> constraints, bool enable)
+    {
+        SetOsAccountConstraints(localId, constraints, enable);
     }
 
     taihe::string GetOsAccountNameSync()
@@ -1132,15 +1232,20 @@ public:
         return taihe::string(name);
     }
 
-    uint32_t GetOsAccountCountSync()
+    uint32_t GetOsAccountCount()
     {
         unsigned int osAccountsCount;
         ErrCode errCode = AccountSA::OsAccountManager::GetCreatedOsAccountsCount(osAccountsCount);
         if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("GetOsAccountCountSync failed with errCode: %{public}d", errCode);
+            ACCOUNT_LOGE("GetOsAccountCount failed with errCode: %{public}d", errCode);
             SetTaiheBusinessErrorFromNativeCode(errCode);
         }
         return osAccountsCount;
+    }
+
+    uint32_t GetOsAccountCountPromise()
+    {
+        return GetOsAccountCount();
     }
 
     int32_t GetOsAccountLocalIdForUidSyncOverload(int32_t uid)
@@ -1154,7 +1259,7 @@ public:
         return localId;
     }
 
-    int32_t GetOsAccountLocalIdForDomainSync(DomainAccountInfo const& domainInfo)
+    int32_t GetOsAccountLocalIdForDomain(DomainAccountInfo const& domainInfo)
     {
         int32_t id = 0;
         std::string innerDomain (domainInfo.domain.data(), domainInfo.domain.size());
@@ -1177,21 +1282,31 @@ public:
 
         ErrCode errCode = AccountSA::OsAccountManager::GetOsAccountLocalIdFromDomain(innerDomainInfo, id);
         if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("GetOsAccountLocalIdForDomainSync failed with errCode: %{public}d", errCode);
+            ACCOUNT_LOGE("GetOsAccountLocalIdForDomain failed with errCode: %{public}d", errCode);
             SetTaiheBusinessErrorFromNativeCode(errCode);
         }
         return id;
     }
 
-    uint32_t QueryMaxOsAccountNumberSync()
+    int32_t GetOsAccountLocalIdForDomainPromise(DomainAccountInfo const& domainInfo)
+    {
+        return GetOsAccountLocalIdForDomain(domainInfo);
+    }
+
+    uint32_t QueryMaxOsAccountNumber()
     {
         uint32_t maxOsAccountNumber;
         ErrCode errCode = AccountSA::OsAccountManager::QueryMaxOsAccountNumber(maxOsAccountNumber);
         if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("QueryMaxOsAccountNumberSync failed with errCode: %{public}d", errCode);
+            ACCOUNT_LOGE("QueryMaxOsAccountNumber failed with errCode: %{public}d", errCode);
             SetTaiheBusinessErrorFromNativeCode(errCode);
         }
         return maxOsAccountNumber;
+    }
+
+    uint32_t QueryMaxOsAccountNumberPromise()
+    {
+        return QueryMaxOsAccountNumber();
     }
 
     array<string> GetEnabledOsAccountConstraintsSync(int32_t localId)
@@ -1320,15 +1435,20 @@ public:
         return DomainAccountInfoOrNull::make_infoData(domainAccountInfo);
     }
 
-    string QueryDistributedVirtualDeviceIdSync()
+    string QueryDistributedVirtualDeviceId()
     {
         std::string deviceId;
         ErrCode errCode = AccountSA::OsAccountManager::GetDistributedVirtualDeviceId(deviceId);
         if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("QueryDistributedVirtualDeviceIdSync failed with errCode: %{public}d", errCode);
+            ACCOUNT_LOGE("QueryDistributedVirtualDeviceId failed with errCode: %{public}d", errCode);
             SetTaiheBusinessErrorFromNativeCode(errCode);
         }
         return string(deviceId);
+    }
+
+    string QueryDistributedVirtualDeviceIdPromise()
+    {
+        return QueryDistributedVirtualDeviceId();
     }
 };
 

@@ -36,21 +36,37 @@ enum DistributedAccountStatus: i32 {
 }
 
 interface DistributedAccountAbility {
-    @gen_async("getOsAccountDistributedInfo")
-    @gen_promise("getOsAccountDistributedInfo")
-    GetOsAccountDistributedInfoSync(): DistributedInfo;
+    @rename("getOsAccountDistributedInfo")
+    @async
+    GetOsAccountDistributedInfo(): DistributedInfo;
 
-    @gen_async("getOsAccountDistributedInfoByLocalId")
-    @gen_promise("getOsAccountDistributedInfoByLocalId")
-    GetOsAccountDistributedInfoByLocalIdSync(localId: i32): DistributedInfo;
+    @rename("getOsAccountDistributedInfo")
+    @promise
+    GetOsAccountDistributedInfoPromise(): DistributedInfo;
 
-    @gen_async("setOsAccountDistributedInfo")
-    @gen_promise("setOsAccountDistributedInfo")
-    SetOsAccountDistributedInfoSync(accountInfo: DistributedInfo);
+    @rename("getOsAccountDistributedInfoByLocalId")
+    @async
+    GetOsAccountDistributedInfoByLocalId(localId: i32): DistributedInfo;
 
-    @gen_async("setOsAccountDistributedInfoByLocalId")
-    @gen_promise("setOsAccountDistributedInfoByLocalId")
-    SetOsAccountDistributedInfoByLocalIdSync(localId: i32, distributedInfo: DistributedInfo);
+    @rename("getOsAccountDistributedInfoByLocalId")
+    @promise
+    GetOsAccountDistributedInfoByLocalIdPromise(localId: i32): DistributedInfo;
+
+    @rename("setOsAccountDistributedInfo")
+    @async
+    SetOsAccountDistributedInfo(accountInfo: DistributedInfo);
+
+    @rename("setOsAccountDistributedInfo")
+    @promise
+    SetOsAccountDistributedInfoPromise(accountInfo: DistributedInfo);
+
+    @rename("setOsAccountDistributedInfoByLocalId")
+    @async
+    SetOsAccountDistributedInfoByLocalId(localId: i32, distributedInfo: DistributedInfo);
+
+    @rename("setOsAccountDistributedInfoByLocalId")
+    @promise
+    SetOsAccountDistributedInfoByLocalIdPromise(localId: i32, distributedInfo: DistributedInfo);
 
 }
 

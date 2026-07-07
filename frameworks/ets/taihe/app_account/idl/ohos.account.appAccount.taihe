@@ -104,127 +104,222 @@ function getAuthCallbackByPtr(ptr:u64): AuthCallback;
 function getAuthCallbackPtr(callback: AuthCallback): u64;
 interface AppAccountManager {
     GetInner(): u64;
-    @gen_promise("createAccount")
+    @rename("createAccount")
+    @promise
     CreateAccountPromise(name: String, options: Optional<CreateAccountOptions>);
 
-    @gen_async("createAccount")
+    @rename("createAccount")
+    @async
     CreateAccountCallback(name: String);
 
-    @gen_async("createAccount")
+    @rename("createAccount")
+    @async
     CreateAccountCallbackWithOpt(name: String, options: CreateAccountOptions);
 
-    @overload("createAccountImplicitly")
+    @rename("createAccountImplicitly")
     CreateAccountImplicitly(owner: String, callback: AuthCallback);
 
-    @overload("createAccountImplicitly")
+    @rename("createAccountImplicitly")
     CreateAccountImplicitlyWithOpt(owner: String, options: CreateAccountImplicitlyOptions, callback: AuthCallback);
 
-    @gen_async("removeAccount")
-    @gen_promise("removeAccount")
-    RemoveAccountSync(name: String);
+    @rename("removeAccount")
+    @async
+    RemoveAccount(name: String);
 
-    @gen_async("setAppAccess")
-    @gen_promise("setAppAccess")
-    SetAppAccessSync(name: String, bundleName: String, isAccessible: bool);
+    @rename("removeAccount")
+    @promise
+    RemoveAccountPromise(name: String);
 
-    @gen_async("checkAppAccess")
-    @gen_promise("checkAppAccess")
-    CheckAppAccessSync(name: String, bundleName: String): bool;
+    @rename("setAppAccess")
+    @async
+    SetAppAccess(name: String, bundleName: String, isAccessible: bool);
 
-    @gen_async("checkDataSyncEnabled")
-    @gen_promise("checkDataSyncEnabled")
-    CheckDataSyncEnabledSync(name: String): bool;
+    @rename("setAppAccess")
+    @promise
+    SetAppAccessPromise(name: String, bundleName: String, isAccessible: bool);
 
-    @gen_async("setCredential")
-    @gen_promise("setCredential")
-    SetCredentialSync(name: String, credentialType: String, credential: String);
+    @rename("checkAppAccess")
+    @async
+    CheckAppAccess(name: String, bundleName: String): bool;
 
-    @gen_async("setDataSyncEnabled")
-    @gen_promise("setDataSyncEnabled")
-    SetDataSyncEnabledSync(name: String, isEnabled: bool);
+    @rename("checkAppAccess")
+    @promise
+    CheckAppAccessPromise(name: String, bundleName: String): bool;
 
-    @gen_async("setCustomData")
-    @gen_promise("setCustomData")
-    SetCustomDataSync(name: String, key: String, value: String);
+    @rename("checkDataSyncEnabled")
+    @async
+    CheckDataSyncEnabled(name: String): bool;
 
-	@gen_async("getAllAccounts")
-    @gen_promise("getAllAccounts")
-    GetAllAccountsSync(): Array<AppAccountInfo>;
+    @rename("checkDataSyncEnabled")
+    @promise
+    CheckDataSyncEnabledPromise(name: String): bool;
 
-    @gen_async("getAccountsByOwner")
-    @gen_promise("getAccountsByOwner")
-    GetAccountsByOwnerSync(owner: String): Array<AppAccountInfo>;
+    @rename("setCredential")
+    @async
+    SetCredential(name: String, credentialType: String, credential: String);
 
-    @gen_async("getCredential")
-    @gen_promise("getCredential")
-    GetCredentialSync(name: String, credentialType: String): String;
+    @rename("setCredential")
+    @promise
+    SetCredentialPromise(name: String, credentialType: String, credential: String);
 
-    @gen_async("getCustomData")
-    @gen_promise("getCustomData")
-    GetCustomDataWithTypeSync(name: String, credentialType: String): String;
+    @rename("setDataSyncEnabled")
+    @async
+    SetDataSyncEnabled(name: String, isEnabled: bool);
 
-	@overload("getCustomDataSync")
+    @rename("setDataSyncEnabled")
+    @promise
+    SetDataSyncEnabledPromise(name: String, isEnabled: bool);
+
+    @rename("setCustomData")
+    @async
+    SetCustomData(name: String, key: String, value: String);
+
+    @rename("setCustomData")
+    @promise
+    SetCustomDataPromise(name: String, key: String, value: String);
+
+    @rename("getAllAccounts")
+    @async
+    GetAllAccounts(): Array<AppAccountInfo>;
+
+    @rename("getAllAccounts")
+    @promise
+    GetAllAccountsPromise(): Array<AppAccountInfo>;
+
+    @rename("getAccountsByOwner")
+    @async
+    GetAccountsByOwner(owner: String): Array<AppAccountInfo>;
+
+    @rename("getAccountsByOwner")
+    @promise
+    GetAccountsByOwnerPromise(owner: String): Array<AppAccountInfo>;
+
+    @rename("getCredential")
+    @async
+    GetCredential(name: String, credentialType: String): String;
+
+    @rename("getCredential")
+    @promise
+    GetCredentialPromise(name: String, credentialType: String): String;
+
+    @rename("getCustomData")
+    @async
+    GetCustomData(name: String, credentialType: String): String;
+
+    @rename("getCustomData")
+    @promise
+    GetCustomDataPromise(name: String, credentialType: String): String;
+
+    @rename("getCustomDataSync")
     GetCustomDataSyncTaihe(name: String, key: String): String;
-	
-	@gen_async("getAuthToken")
-    @gen_promise("getAuthToken")
-    GetAuthTokenSync(name: String, owner: String, authType: String): String;
 
-    @gen_async("setAuthToken")
-    @gen_promise("setAuthToken")
-    SetAuthTokenSync(name: String, authType: String, token: String);
+    @rename("getAuthToken")
+    @async
+    GetAuthToken(name: String, owner: String, authType: String): String;
 
-    @gen_async("checkAccountLabels")
-    @gen_promise("checkAccountLabels")
-    CheckAccountLabelsSync(name: String, owner: String, labels: Array<String>): bool;
+    @rename("getAuthToken")
+    @promise
+    GetAuthTokenPromise(name: String, owner: String, authType: String): String;
 
-    @gen_async("selectAccountsByOptions")
-    @gen_promise("selectAccountsByOptions")
-    SelectAccountsByOptionsSync(options: SelectAccountsOptions): Array<AppAccountInfo>;
+    @rename("setAuthToken")
+    @async
+    SetAuthToken(name: String, authType: String, token: String);
 
-    @gen_async("deleteAuthToken")
-    @gen_promise("deleteAuthToken")
-    DeleteAuthTokenSync(name: String, owner: String, authType: String, token: String);
+    @rename("setAuthToken")
+    @promise
+    SetAuthTokenPromise(name: String, authType: String, token: String);
 
-    @gen_async("setAuthTokenVisibility")
-    @gen_promise("setAuthTokenVisibility")
-    SetAuthTokenVisibilitySync(name: String, authType: String, bundleName: String, isVisible: bool);
+    @rename("checkAccountLabels")
+    @async
+    CheckAccountLabels(name: String, owner: String, labels: Array<String>): bool;
 
-    @gen_async("checkAuthTokenVisibility")
-    @gen_promise("checkAuthTokenVisibility")
-    CheckAuthTokenVisibilitySync(name: String, authType: String, bundleName: String): bool;
+    @rename("checkAccountLabels")
+    @promise
+    CheckAccountLabelsPromise(name: String, owner: String, labels: Array<String>): bool;
 
-    @gen_async("getAllAuthTokens")
-    @gen_promise("getAllAuthTokens")
-    GetAllAuthTokensSync(name: String, owner: String): Array<AuthTokenInfo>;
+    @rename("selectAccountsByOptions")
+    @async
+    SelectAccountsByOptions(options: SelectAccountsOptions): Array<AppAccountInfo>;
 
-    @gen_async("getAuthList")
-    @gen_promise("getAuthList")
-    GetAuthListSync(name: String, authType: String):Array<String>;
+    @rename("selectAccountsByOptions")
+    @promise
+    SelectAccountsByOptionsPromise(options: SelectAccountsOptions): Array<AppAccountInfo>;
 
-    @gen_async("getAuthCallback")
-    @gen_promise("getAuthCallback")
-    GetAuthCallbackSync(sessionId: String):AuthCallback;
+    @rename("deleteAuthToken")
+    @async
+    DeleteAuthToken(name: String, owner: String, authType: String, token: String);
 
-    @overload("verifyCredential")
+    @rename("deleteAuthToken")
+    @promise
+    DeleteAuthTokenPromise(name: String, owner: String, authType: String, token: String);
+
+    @rename("setAuthTokenVisibility")
+    @async
+    SetAuthTokenVisibility(name: String, authType: String, bundleName: String, isVisible: bool);
+
+    @rename("setAuthTokenVisibility")
+    @promise
+    SetAuthTokenVisibilityPromise(name: String, authType: String, bundleName: String, isVisible: bool);
+
+    @rename("checkAuthTokenVisibility")
+    @async
+    CheckAuthTokenVisibility(name: String, authType: String, bundleName: String): bool;
+
+    @rename("checkAuthTokenVisibility")
+    @promise
+    CheckAuthTokenVisibilityPromise(name: String, authType: String, bundleName: String): bool;
+
+    @rename("getAllAuthTokens")
+    @async
+    GetAllAuthTokens(name: String, owner: String): Array<AuthTokenInfo>;
+
+    @rename("getAllAuthTokens")
+    @promise
+    GetAllAuthTokensPromise(name: String, owner: String): Array<AuthTokenInfo>;
+
+    @rename("getAuthList")
+    @async
+    GetAuthList(name: String, authType: String):Array<String>;
+
+    @rename("getAuthList")
+    @promise
+    GetAuthListPromise(name: String, authType: String):Array<String>;
+
+    @rename("getAuthCallback")
+    @async
+    GetAuthCallback(sessionId: String):AuthCallback;
+
+    @rename("getAuthCallback")
+    @promise
+    GetAuthCallbackPromise(sessionId: String):AuthCallback;
+
+    @rename("verifyCredential")
     VerifyCredentialSync(name: String, owner: String, callback: AuthCallback);
 
-    @overload("verifyCredential")
+    @rename("verifyCredential")
     VerifyCredentialWithOpt(name: String, owner: String, options: @sts_type("VerifyCredentialOptions")Opaque, callback: AuthCallback);
 
-    @overload("setAuthenticatorProperties")
+    @rename("setAuthenticatorProperties")
     SetAuthenticatorPropertiesSync(owner: String, callback: AuthCallback): void;
 
-    @overload("setAuthenticatorProperties")
+    @rename("setAuthenticatorProperties")
     SetAuthenticatorPropertiesWithOpt(owner: String, options: @sts_type("SetPropertiesOptions")Opaque, callback: AuthCallback): void;
 
-    @gen_async("queryAuthenticatorInfo")
-    @gen_promise("queryAuthenticatorInfo")
-    QueryAuthenticatorInfoSync(owner: String): AuthenticatorInfo;
+    @rename("queryAuthenticatorInfo")
+    @async
+    QueryAuthenticatorInfo(owner: String): AuthenticatorInfo;
 
-    @gen_async("deleteCredential")
-    @gen_promise("deleteCredential")
-    DeleteCredentialSync(name: String, credentialType: String);
+    @rename("queryAuthenticatorInfo")
+    @promise
+    QueryAuthenticatorInfoPromise(owner: String): AuthenticatorInfo;
+
+    @rename("deleteCredential")
+    @async
+    DeleteCredential(name: String, credentialType: String);
+
+    @rename("deleteCredential")
+    @promise
+    DeleteCredentialPromise(name: String, credentialType: String);
 
     @rename("onAccountChange")
     OnAccountChange(owners: Array<String>, callback: (data: Array<AppAccountInfo>) => void): void;
@@ -232,10 +327,10 @@ interface AppAccountManager {
     @rename("offAccountChange")
     OffAccountChange(callback: Optional<(data: Array<AppAccountInfo>) => void>): void;
 
-    @overload("auth")
+    @rename("auth")
     AuthSync(name: String, owner: String, authType: String, callback: AuthCallback);
 
-    @overload("auth")
+    @rename("auth")
     AuthWithMap(name: String, owner: String, authType: String, options: @sts_type("Record<string, RecordData>")Opaque, callback: AuthCallback);
 }
 

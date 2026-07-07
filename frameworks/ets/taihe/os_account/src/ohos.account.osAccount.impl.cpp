@@ -1584,6 +1584,11 @@ public:
         return ConvertToExecutorPropertyTH(idmCallback->propertyInfoInner, idmCallback->keys);
     }
 
+    ExecutorProperty GetPropertyPromise(const GetPropertyRequest &request)
+    {
+        return GetPropertySync(request);
+    }
+
     void SetPropertySync(const SetPropertyRequest &request)
     {
         AccountSA::SetPropertyRequest setPropertyRequestInner;
@@ -1604,6 +1609,11 @@ public:
             int32_t jsErrCode = AccountIAMConvertToJSErrCode(callback->errCode);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
         }
+    }
+
+    void SetPropertyPromise(const SetPropertyRequest &request)
+    {
+        SetPropertySync(request);
     }
 
     int32_t GetVersionSync()
@@ -2353,10 +2363,14 @@ TH_EXPORT_CPP_API_AuthWithOption(AuthWithOption);
 TH_EXPORT_CPP_API_AuthWithPopup(AuthWithPopup);
 TH_EXPORT_CPP_API_AuthWithPopupWithId(AuthWithPopupWithId);
 TH_EXPORT_CPP_API_HasAccountSync(HasAccountSync);
+TH_EXPORT_CPP_API_HasAccountPromise(HasAccountSync);
 TH_EXPORT_CPP_API_IsDomainAccountSupportedSync(IsDomainAccountSupportedSync);
 TH_EXPORT_CPP_API_UpdateAccountTokenSync(UpdateAccountTokenSync);
+TH_EXPORT_CPP_API_UpdateAccountTokenPromise(UpdateAccountTokenSync);
 TH_EXPORT_CPP_API_GetAccessTokenSync(GetAccessTokenSync);
+TH_EXPORT_CPP_API_GetAccessTokenPromise(GetAccessTokenSync);
 TH_EXPORT_CPP_API_GetAccountInfoSync(GetAccountInfoSync);
+TH_EXPORT_CPP_API_GetAccountInfoPromise(GetAccountInfoSync);
 TH_EXPORT_CPP_API_UpdateAccountInfoSync(UpdateAccountInfoSync);
 TH_EXPORT_CPP_API_AddServerConfigSync(AddServerConfigSync);
 TH_EXPORT_CPP_API_RemoveServerConfigSync(RemoveServerConfigSync);
