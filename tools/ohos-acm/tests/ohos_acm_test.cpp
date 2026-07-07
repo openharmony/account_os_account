@@ -38,26 +38,24 @@ void OhosAcmTest::SetUp() {}
 void OhosAcmTest::TearDown() {}
 
 /**
- * @tc.name: OhosAcmTest_CommandMap_001
- * @tc.desc: Test command map has expected entries
- * @tc.type: FUNC
- * @tc.require: ohos-acm-cli
+ * @tc.number: Ohos_Acm_CommandMap_0001
+ * @tc.name: CommandMap
+ * @tc.desc: Verify command map contains expected entries (no --help subcommand)
  */
-HWTEST_F(OhosAcmTest, CommandMap_001, TestSize.Level1)
+HWTEST_F(OhosAcmTest, Ohos_Acm_CommandMap_0001, Function | MediumTest | Level1)
 {
     const auto& commands = GetCommands();
     EXPECT_GE(commands.size(), static_cast<size_t>(1));
     EXPECT_NE(commands.find("get-current-userid"), commands.end());
-    EXPECT_NE(commands.find("--help"), commands.end());
+    EXPECT_EQ(commands.find("--help"), commands.end());
 }
 
 /**
- * @tc.name: OhosAcmTest_OutputSuccess_001
+ * @tc.number: Ohos_Acm_OutputSuccess_0001
+ * @tc.name: OutputSuccess
  * @tc.desc: Test OutputSuccess with valid data returns 0
- * @tc.type: FUNC
- * @tc.require: ohos-acm-cli
  */
-HWTEST_F(OhosAcmTest, OutputSuccess_001, TestSize.Level1)
+HWTEST_F(OhosAcmTest, Ohos_Acm_OutputSuccess_0001, Function | MediumTest | Level1)
 {
     auto data = CreateJson();
     ASSERT_NE(data, nullptr);
@@ -67,12 +65,11 @@ HWTEST_F(OhosAcmTest, OutputSuccess_001, TestSize.Level1)
 }
 
 /**
- * @tc.name: OhosAcmTest_OutputSuccess_002
+ * @tc.number: Ohos_Acm_OutputSuccess_0002
+ * @tc.name: OutputSuccess
  * @tc.desc: Test OutputSuccess with null data returns 1
- * @tc.type: FUNC
- * @tc.require: ohos-acm-cli
  */
-HWTEST_F(OhosAcmTest, OutputSuccess_002, TestSize.Level1)
+HWTEST_F(OhosAcmTest, Ohos_Acm_OutputSuccess_0002, Function | MediumTest | Level1)
 {
     CJsonUnique nullData(nullptr);
     int ret = OutputSuccess(std::move(nullData));
@@ -80,48 +77,44 @@ HWTEST_F(OhosAcmTest, OutputSuccess_002, TestSize.Level1)
 }
 
 /**
- * @tc.name: OhosAcmTest_OutputError_001
+ * @tc.number: Ohos_Acm_OutputError_0001
+ * @tc.name: OutputError
  * @tc.desc: Test OutputError returns 1
- * @tc.type: FUNC
- * @tc.require: ohos-acm-cli
  */
-HWTEST_F(OhosAcmTest, OutputError_001, TestSize.Level1)
+HWTEST_F(OhosAcmTest, Ohos_Acm_OutputError_0001, Function | MediumTest | Level1)
 {
     int ret = OutputError("ERR_TEST", "Test error message", "Test suggestion");
     EXPECT_EQ(ret, 1);
 }
 
 /**
- * @tc.name: OhosAcmTest_OutputError_002
- * @tc.desc: Test OutputError with empty code and message
- * @tc.type: FUNC
- * @tc.require: ohos-acm-cli
+ * @tc.number: Ohos_Acm_OutputError_0002
+ * @tc.name: OutputError
+ * @tc.desc: Test OutputError with empty code and message returns 1
  */
-HWTEST_F(OhosAcmTest, OutputError_002, TestSize.Level1)
+HWTEST_F(OhosAcmTest, Ohos_Acm_OutputError_0002, Function | MediumTest | Level1)
 {
     int ret = OutputError("", "", "");
     EXPECT_EQ(ret, 1);
 }
 
 /**
- * @tc.name: OhosAcmTest_OutputError_003
- * @tc.desc: Test OutputError with special characters
- * @tc.type: FUNC
- * @tc.require: ohos-acm-cli
+ * @tc.number: Ohos_Acm_OutputError_0003
+ * @tc.name: OutputError
+ * @tc.desc: Test OutputError with special characters returns 1
  */
-HWTEST_F(OhosAcmTest, OutputError_003, TestSize.Level1)
+HWTEST_F(OhosAcmTest, Ohos_Acm_OutputError_0003, Function | MediumTest | Level1)
 {
     int ret = OutputError("ERR_\"quote\"", "Msg with \\\" escape", "");
     EXPECT_EQ(ret, 1);
 }
 
 /**
- * @tc.name: OhosAcmTest_CmdHelp_001
- * @tc.desc: Test CmdHelp returns 0 with empty args
- * @tc.type: FUNC
- * @tc.require: ohos-acm-cli
+ * @tc.number: Ohos_Acm_CmdHelp_0001
+ * @tc.name: CmdHelp
+ * @tc.desc: Test CmdHelp with empty args returns 0 (full help)
  */
-HWTEST_F(OhosAcmTest, CmdHelp_001, TestSize.Level1)
+HWTEST_F(OhosAcmTest, Ohos_Acm_CmdHelp_0001, Function | MediumTest | Level1)
 {
     const char* testArgv[] = {"ohos-acm"};
     int argc = 1;
@@ -131,12 +124,11 @@ HWTEST_F(OhosAcmTest, CmdHelp_001, TestSize.Level1)
 }
 
 /**
- * @tc.name: OhosAcmTest_CmdHelp_002
- * @tc.desc: Test CmdHelp with command name returns 0
- * @tc.type: FUNC
- * @tc.require: ohos-acm-cli
+ * @tc.number: Ohos_Acm_CmdHelp_0002
+ * @tc.name: CmdHelp
+ * @tc.desc: Test CmdHelp with command name returns 0 (subcommand help)
  */
-HWTEST_F(OhosAcmTest, CmdHelp_002, TestSize.Level1)
+HWTEST_F(OhosAcmTest, Ohos_Acm_CmdHelp_0002, Function | MediumTest | Level1)
 {
     const char* testArgv[] = {"ohos-acm", "get-current-userid"};
     int argc = 2;
@@ -146,12 +138,11 @@ HWTEST_F(OhosAcmTest, CmdHelp_002, TestSize.Level1)
 }
 
 /**
- * @tc.name: OhosAcmTest_CmdHelp_003
+ * @tc.number: Ohos_Acm_CmdHelp_0003
+ * @tc.name: CmdHelp
  * @tc.desc: Test CmdHelp with unknown command returns error
- * @tc.type: FUNC
- * @tc.require: ohos-acm-cli
  */
-HWTEST_F(OhosAcmTest, CmdHelp_003, TestSize.Level1)
+HWTEST_F(OhosAcmTest, Ohos_Acm_CmdHelp_0003, Function | MediumTest | Level1)
 {
     const char* testArgv[] = {"ohos-acm", "unknown-command"};
     int argc = 2;
@@ -161,16 +152,30 @@ HWTEST_F(OhosAcmTest, CmdHelp_003, TestSize.Level1)
 }
 
 /**
- * @tc.name: OhosAcmTest_CmdGetCurrentUserId_001
- * @tc.desc: Test CmdGetCurrentUserId basic invocation
- * @tc.type: FUNC
- * @tc.require: ohos-acm-cli
+ * @tc.number: Ohos_Acm_CmdHelp_0004
+ * @tc.name: CmdHelp
+ * @tc.desc: Test CmdHelp with --help flag as subcommand parameter dispatches correctly
  */
-HWTEST_F(OhosAcmTest, CmdGetCurrentUserId_001, TestSize.Level1)
+HWTEST_F(OhosAcmTest, Ohos_Acm_CmdHelp_0004, Function | MediumTest | Level1)
+{
+    const char* testArgv[] = {"ohos-acm", "get-current-userid", "--help"};
+    int argc = 3;
+    char* argv[] = {const_cast<char*>(testArgv[0]), const_cast<char*>(testArgv[1]),
+        const_cast<char*>(testArgv[2])};
+    int ret = CmdHelp(argc, argv);
+    EXPECT_EQ(ret, 0);
+}
+
+/**
+ * @tc.number: Ohos_Acm_CmdGetCurrentUserId_0001
+ * @tc.name: CmdGetCurrentUserId
+ * @tc.desc: Test CmdGetCurrentUserId basic invocation
+ */
+HWTEST_F(OhosAcmTest, Ohos_Acm_CmdGetCurrentUserId_0001, Function | MediumTest | Level1)
 {
     const char* testArgv[] = {"ohos-acm", "get-current-userid"};
     int argc = 2;
     char* argv[] = {const_cast<char*>(testArgv[0]), const_cast<char*>(testArgv[1])};
     int ret = CmdGetCurrentUserId(argc, argv);
-    EXPECT_TRUE(ret == 0 || ret == 1);
+    EXPECT_EQ(ret, 0);
 }
