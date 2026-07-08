@@ -408,18 +408,20 @@ int32_t InnerWrapWantParamsArrayFd(sptr<AAFwk::IArray> &ao, CParameters *p)
     }
     for (long i = 0; i < size; i++) {
         sptr<AAFwk::IInterface> iface = nullptr;
-        if (ao->Get(i, iface) == ERR_OK) {
-            AAFwk::IWantParams *iValue = AAFwk::IWantParams::Query(iface);
-            if (iValue == nullptr) {
-                free(arrP);
-                return ERR_CES_FAILED;
-            }
-            WantParams wantP = AAFwk::WantParamWrapper::Unbox(iValue);
-            int ret = GetFDValue(wantP, std::string(p->key), arrP + i);
-            if (ret != NO_ERROR) {
-                free(arrP);
-                return ret;
-            }
+        if (ao->Get(i, iface) != ERR_OK) {
+            free(arrP);
+            return ERR_CES_FAILED;
+        }
+        AAFwk::IWantParams *iValue = AAFwk::IWantParams::Query(iface);
+        if (iValue == nullptr) {
+            free(arrP);
+            return ERR_CES_FAILED;
+        }
+        WantParams wantP = AAFwk::WantParamWrapper::Unbox(iValue);
+        int ret = GetFDValue(wantP, std::string(p->key), arrP + i);
+        if (ret != NO_ERROR) {
+            free(arrP);
+            return ret;
         }
     }
     p->size = size;
