@@ -484,7 +484,7 @@ public:
             appAccountMgrCb->OnResult(jsErrCode, errResult);
         }
     }
-    void RemoveAccountSync(string_view name)
+    void RemoveAccount(string_view name)
     {
         std::string innerName(name.data(), name.size());
         int32_t errorCode = AccountSA::AppAccountManager::DeleteAccount(innerName);
@@ -494,7 +494,12 @@ public:
         }
     }
 
-    void SetAppAccessSync(string_view name, string_view bundleName, bool isAccessible)
+    void RemoveAccountPromise(string_view name)
+    {
+        RemoveAccount(name);
+    }
+
+    void SetAppAccess(string_view name, string_view bundleName, bool isAccessible)
     {
         std::string innerName(name.data(), name.size());
         std::string innerBundleName(bundleName.data(), bundleName.size());
@@ -505,7 +510,12 @@ public:
         }
     }
 
-    bool CheckAppAccessSync(string_view name, string_view bundleName)
+    void SetAppAccessPromise(string_view name, string_view bundleName, bool isAccessible)
+    {
+        SetAppAccess(name, bundleName, isAccessible);
+    }
+
+    bool CheckAppAccess(string_view name, string_view bundleName)
     {
         std::string innerName(name.data(), name.size());
         std::string innerBundleName(bundleName.data(), bundleName.size());
@@ -518,7 +528,12 @@ public:
         return isAccessible;
     }
 
-    bool CheckDataSyncEnabledSync(string_view name)
+    bool CheckAppAccessPromise(string_view name, string_view bundleName)
+    {
+        return CheckAppAccess(name, bundleName);
+    }
+
+    bool CheckDataSyncEnabled(string_view name)
     {
         std::string innerName(name.data(), name.size());
         bool result = false;
@@ -530,7 +545,12 @@ public:
         return result;
     }
 
-    void SetCredentialSync(string_view name, string_view credentialType, string_view credential)
+    bool CheckDataSyncEnabledPromise(string_view name)
+    {
+        return CheckDataSyncEnabled(name);
+    }
+
+    void SetCredential(string_view name, string_view credentialType, string_view credential)
     {
         std::string innerName(name.data(), name.size());
         std::string innerCredentialType(credentialType.data(), credentialType.size());
@@ -543,7 +563,12 @@ public:
         }
     }
 
-    void SetDataSyncEnabledSync(string_view name, bool isEnabled)
+    void SetCredentialPromise(string_view name, string_view credentialType, string_view credential)
+    {
+        SetCredential(name, credentialType, credential);
+    }
+
+    void SetDataSyncEnabled(string_view name, bool isEnabled)
     {
         std::string innerName(name.data(), name.size());
         int32_t errorCode = AccountSA::AppAccountManager::SetAppAccountSyncEnable(innerName, isEnabled);
@@ -553,7 +578,12 @@ public:
         }
     }
 
-    void SetCustomDataSync(string_view name, string_view key, string_view value)
+    void SetDataSyncEnabledPromise(string_view name, bool isEnabled)
+    {
+        SetDataSyncEnabled(name, isEnabled);
+    }
+
+    void SetCustomData(string_view name, string_view key, string_view value)
     {
         std::string innerName(name.data(), name.size());
         std::string innerkey(key.data(), key.size());
@@ -565,7 +595,12 @@ public:
         }
     }
 
-    array<AppAccountInfo> GetAllAccountsSync()
+    void SetCustomDataPromise(string_view name, string_view key, string_view value)
+    {
+        SetCustomData(name, key, value);
+    }
+
+    array<AppAccountInfo> GetAllAccounts()
     {
         std::string innerOwner = "";
         std::vector<AccountSA::AppAccountInfo> appAccounts;
@@ -582,7 +617,12 @@ public:
         return taihe::array<AppAccountInfo>(taihe::copy_data_t{}, appAccountsInfos.data(), appAccountsInfos.size());
     }
 
-    array<AppAccountInfo> GetAccountsByOwnerSync(string_view owner)
+    array<AppAccountInfo> GetAllAccountsPromise()
+    {
+        return GetAllAccounts();
+    }
+
+    array<AppAccountInfo> GetAccountsByOwner(string_view owner)
     {
         std::string innerOwner(owner.data(), owner.size());
         std::vector<AppAccountInfo> appAccountsInfos;
@@ -604,7 +644,12 @@ public:
         return taihe::array<AppAccountInfo>(taihe::copy_data_t{}, appAccountsInfos.data(), appAccountsInfos.size());
     }
 
-    string GetCredentialSync(string_view name, string_view credentialType)
+    array<AppAccountInfo> GetAccountsByOwnerPromise(string_view owner)
+    {
+        return GetAccountsByOwner(owner);
+    }
+
+    string GetCredential(string_view name, string_view credentialType)
     {
         std::string innerName(name.data(), name.size());
         std::string innerCredentialType(credentialType.data(), credentialType.size());
@@ -618,7 +663,12 @@ public:
         return taihe::string(credential.c_str());
     }
 
-    string GetCustomDataWithTypeSync(string_view name, string_view credentialType)
+    string GetCredentialPromise(string_view name, string_view credentialType)
+    {
+        return GetCredential(name, credentialType);
+    }
+
+    string GetCustomData(string_view name, string_view credentialType)
     {
         std::string innerName(name.data(), name.size());
         std::string innerKey(credentialType.data(), credentialType.size());
@@ -629,6 +679,11 @@ public:
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
         }
         return taihe::string(value.c_str());
+    }
+
+    string GetCustomDataPromise(string_view name, string_view credentialType)
+    {
+        return GetCustomData(name, credentialType);
     }
 
     string GetCustomDataSyncTaihe(string_view name, string_view key)
@@ -644,7 +699,7 @@ public:
         return taihe::string(value.c_str());
     }
 
-    string GetAuthTokenSync(string_view name, string_view owner, string_view authType)
+    string GetAuthToken(string_view name, string_view owner, string_view authType)
     {
         std::string innerName(name.data(), name.size());
         std::string innerOwner(owner.data(), owner.size());
@@ -658,7 +713,12 @@ public:
         return taihe::string(token.c_str());
     }
 
-    void SetAuthTokenSync(string_view name, string_view authType, string_view token)
+    string GetAuthTokenPromise(string_view name, string_view owner, string_view authType)
+    {
+        return GetAuthToken(name, owner, authType);
+    }
+
+    void SetAuthToken(string_view name, string_view authType, string_view token)
     {
         std::string innerName(name.data(), name.size());
         std::string innerAuthType(authType.data(), authType.size());
@@ -670,7 +730,12 @@ public:
         }
     }
 
-    bool CheckAccountLabelsSync(string_view name, string_view owner, array_view<string_view> labels)
+    void SetAuthTokenPromise(string_view name, string_view authType, string_view token)
+    {
+        SetAuthToken(name, authType, token);
+    }
+
+    bool CheckAccountLabels(string_view name, string_view owner, array_view<string_view> labels)
     {
         std::string innerName(name.data(), name.size());
         std::string innerOwner(owner.data(), owner.size());
@@ -702,7 +767,12 @@ public:
         return callback->param_->result.GetBoolParam(AccountSA::Constants::KEY_BOOLEAN_RESULT, false);
     }
 
-    array<AppAccountInfo> SelectAccountsByOptionsSync(SelectAccountsOptions const& options)
+    bool CheckAccountLabelsPromise(string_view name, string_view owner, array_view<string_view> labels)
+    {
+        return CheckAccountLabels(name, owner, labels);
+    }
+
+    array<AppAccountInfo> SelectAccountsByOptions(SelectAccountsOptions const& options)
     {
         AccountSA::SelectAccountsOptions innerOptions = ConvertAccountsOptionsInfo(options);
         std::vector<AppAccountInfo> accountInfos;
@@ -730,9 +800,9 @@ public:
             return taihe::array<AppAccountInfo>(taihe::copy_data_t{}, accountInfos.data(), accountInfos.size());
         }
         std::vector<std::string> names =
-			callback->param_->result.GetStringArrayParam(AccountSA::Constants::KEY_ACCOUNT_NAMES);
+            callback->param_->result.GetStringArrayParam(AccountSA::Constants::KEY_ACCOUNT_NAMES);
         std::vector<std::string> owners =
-			callback->param_->result.GetStringArrayParam(AccountSA::Constants::KEY_ACCOUNT_OWNERS);
+            callback->param_->result.GetStringArrayParam(AccountSA::Constants::KEY_ACCOUNT_OWNERS);
         if (names.size() != owners.size()) {
             int32_t jsErrCode = GenerateBusinessErrorCode(JSErrorCode::ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
@@ -748,7 +818,12 @@ public:
         return taihe::array<AppAccountInfo>(taihe::copy_data_t{}, accountInfos.data(), accountInfos.size());
     }
 
-    void DeleteAuthTokenSync(string_view name, string_view owner, string_view authType, string_view token)
+    array<AppAccountInfo> SelectAccountsByOptionsPromise(SelectAccountsOptions const& options)
+    {
+        return SelectAccountsByOptions(options);
+    }
+
+    void DeleteAuthToken(string_view name, string_view owner, string_view authType, string_view token)
     {
         std::string innerName(name.data(), name.size());
         std::string innerOwner(owner.data(), owner.size());
@@ -762,7 +837,12 @@ public:
         }
     }
 
-    void SetAuthTokenVisibilitySync(string_view name, string_view authType, string_view bundleName, bool isVisible)
+    void DeleteAuthTokenPromise(string_view name, string_view owner, string_view authType, string_view token)
+    {
+        DeleteAuthToken(name, owner, authType, token);
+    }
+
+    void SetAuthTokenVisibility(string_view name, string_view authType, string_view bundleName, bool isVisible)
     {
         std::string innerName(name.data(), name.size());
         std::string innerAuthType(authType.data(), authType.size());
@@ -775,7 +855,12 @@ public:
         }
     }
 
-    bool CheckAuthTokenVisibilitySync(string_view name, string_view authType, string_view bundleName)
+    void SetAuthTokenVisibilityPromise(string_view name, string_view authType, string_view bundleName, bool isVisible)
+    {
+        SetAuthTokenVisibility(name, authType, bundleName, isVisible);
+    }
+
+    bool CheckAuthTokenVisibility(string_view name, string_view authType, string_view bundleName)
     {
         std::string innerName(name.data(), name.size());
         std::string innerAuthType(authType.data(), authType.size());
@@ -789,8 +874,13 @@ public:
         }
         return isVisible;
     }
+
+    bool CheckAuthTokenVisibilityPromise(string_view name, string_view authType, string_view bundleName)
+    {
+        return CheckAuthTokenVisibility(name, authType, bundleName);
+    }
     
-    array<AuthTokenInfo> GetAllAuthTokensSync(string_view name, string_view owner)
+    array<AuthTokenInfo> GetAllAuthTokens(string_view name, string_view owner)
     {
         std::string innerName(name.data(), name.size());
         std::string innerOwner(owner.data(), owner.size());
@@ -816,8 +906,13 @@ public:
         }
         return array<AuthTokenInfo>(taihe::copy_data_t{}, authTokenInfoArray.data(), authTokenInfoArray.size());
     }
+
+    array<AuthTokenInfo> GetAllAuthTokensPromise(string_view name, string_view owner)
+    {
+        return GetAllAuthTokens(name, owner);
+    }
     
-    array<string> GetAuthListSync(string_view name, string_view authType)
+    array<string> GetAuthList(string_view name, string_view authType)
     {
         std::string innerName(name.data(), name.size());
         std::string innerAuthType(authType.data(), authType.size());
@@ -835,6 +930,11 @@ public:
         return array<string>(taihe::copy_data_t{}, innerAuthListVector.data(), innerAuthListVector.size());
     }
 
+    array<string> GetAuthListPromise(string_view name, string_view authType)
+    {
+        return GetAuthList(name, authType);
+    }
+
     template <typename Signature>
     taihe::callback<Signature> CreateEmptyCallback()
     {
@@ -845,7 +945,7 @@ public:
         return taihe::callback<Signature>(emptyAbi);
     }
 
-    AuthCallback GetAuthCallbackSync(string_view sessionId)
+    AuthCallback GetAuthCallback(string_view sessionId)
     {
         AuthCallback emptyAuthCallback {
             .onResult = CreateEmptyCallback<void(int32_t, optional_view<AuthResult>)>(),
@@ -878,6 +978,11 @@ public:
             .onRequestContinued = optional<taihe::callback<void ()>>(std::in_place_t{}, onRequestContinued),
         };
         return authCallback;
+    }
+
+    AuthCallback GetAuthCallbackPromise(string_view sessionId)
+    {
+        return GetAuthCallback(sessionId);
     }
 
     void VerifyCredentialSync(string_view name, string_view owner, AuthCallback const& callback)
@@ -1098,7 +1203,7 @@ public:
         }
     }
 
-    AuthenticatorInfo QueryAuthenticatorInfoSync(string_view owner)
+    AuthenticatorInfo QueryAuthenticatorInfo(string_view owner)
     {
         std::string innerOwner(owner.data(), owner.size());
         AccountSA::AuthenticatorInfo innerAuthenticatorInfo;
@@ -1118,7 +1223,12 @@ public:
         return authenticatorInfo;
     }
 
-    void DeleteCredentialSync(string_view name, string_view credentialType)
+    AuthenticatorInfo QueryAuthenticatorInfoPromise(string_view owner)
+    {
+        return QueryAuthenticatorInfo(owner);
+    }
+
+    void DeleteCredential(string_view name, string_view credentialType)
     {
         std::string innerName(name.data(), name.size());
         std::string innerCredentialType(credentialType.data(), credentialType.size());
@@ -1128,6 +1238,11 @@ public:
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
         }
+    }
+
+    void DeleteCredentialPromise(string_view name, string_view credentialType)
+    {
+        DeleteCredential(name, credentialType);
     }
 
     void AuthSync(string_view name, string_view owner, string_view authType, const AuthCallback &callback)

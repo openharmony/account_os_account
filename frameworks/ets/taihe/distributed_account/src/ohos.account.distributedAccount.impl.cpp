@@ -63,7 +63,7 @@ class DistributedAccountAbilityImpl {
 public:
     DistributedAccountAbilityImpl() {}
 
-    DistributedInfo GetOsAccountDistributedInfoSync()
+    DistributedInfo GetOsAccountDistributedInfo()
     {
         AccountSA::OhosAccountInfo info;
         ErrCode err = AccountSA::OhosAccountKits::GetInstance().GetOhosAccountInfo(info);
@@ -74,7 +74,12 @@ public:
         return OHOS::AccountSA::ConvertToDistributedInfoTH(info);
     }
 
-    DistributedInfo GetOsAccountDistributedInfoByLocalIdSync(int32_t localId)
+    DistributedInfo GetOsAccountDistributedInfoPromise()
+    {
+        return GetOsAccountDistributedInfo();
+    }
+
+    DistributedInfo GetOsAccountDistributedInfoByLocalId(int32_t localId)
     {
         AccountSA::OhosAccountInfo info;
         ErrCode err = AccountSA::OhosAccountKits::GetInstance().GetOsAccountDistributedInfo(localId, info);
@@ -85,7 +90,12 @@ public:
         return OHOS::AccountSA::ConvertToDistributedInfoTH(info);
     }
 
-    void SetOsAccountDistributedInfoSync(DistributedInfo const& accountInfo)
+    DistributedInfo GetOsAccountDistributedInfoByLocalIdPromise(int32_t localId)
+    {
+        return GetOsAccountDistributedInfoByLocalId(localId);
+    }
+
+    void SetOsAccountDistributedInfo(DistributedInfo const& accountInfo)
     {
         std::string event(accountInfo.event.data(), accountInfo.event.size());
         AccountSA::OhosAccountInfo info = ConvertToOhosAccountInfoTH(accountInfo);
@@ -96,7 +106,12 @@ public:
         }
     }
 
-    void SetOsAccountDistributedInfoByLocalIdSync(int32_t localId, DistributedInfo const& distributedInfo)
+    void SetOsAccountDistributedInfoPromise(DistributedInfo const& accountInfo)
+    {
+        SetOsAccountDistributedInfo(accountInfo);
+    }
+
+    void SetOsAccountDistributedInfoByLocalId(int32_t localId, DistributedInfo const& distributedInfo)
     {
         std::string event(distributedInfo.event.data(), distributedInfo.event.size());
         AccountSA::OhosAccountInfo info = ConvertToOhosAccountInfoTH(distributedInfo);
@@ -105,6 +120,11 @@ public:
             int32_t jsErrCode = GenerateBusinessErrorCode(err);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
         }
+    }
+
+    void SetOsAccountDistributedInfoByLocalIdPromise(int32_t localId, DistributedInfo const& distributedInfo)
+    {
+        SetOsAccountDistributedInfoByLocalId(localId, distributedInfo);
     }
 };
 DistributedAccountAbility getDistributedAccountAbility()

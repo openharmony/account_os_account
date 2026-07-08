@@ -24,31 +24,37 @@ use ohos.account.distributedAccount as distributedAccount;
 static { loadLibrary("os_account_taihe_native.z") }
 """)
 
-@overload("getAuthorizationManager")
+@rename("getAuthorizationManager")
 function GetAuthorizationManager(): AuthorizationManager;
 
 interface AuthorizationManager {
-    @gen_promise("acquireAuthorization")
+    @rename("acquireAuthorization")
+    @promise
     AcquireAuthorizationSync(privilege: String, options: Optional<AcquireAuthorizationOptions>): AcquireAuthorizationResult;
 
-    @gen_promise("releaseAuthorization")
- 	ReleaseAuthorizationSync(privilege: String): void;
+    @rename("releaseAuthorization")
+    @promise
+    ReleaseAuthorizationSync(privilege: String): void;
 
-    @gen_promise("hasAuthorization")
+    @rename("hasAuthorization")
+    @promise
     HasAuthorizationSync(privilege: String): bool;
 }
 
-@overload("getOsAccountSubProfileManager")
+@rename("getOsAccountSubProfileManager")
 function GetOsAccountSubProfileManager(): OsAccountSubProfileManager;
 
 interface OsAccountSubProfileManager {
-    @gen_promise("createOsAccountSubProfile")
+    @rename("createOsAccountSubProfile")
+    @promise
     CreateOsAccountSubProfileSync(osAccountId: i32): OsAccountSubProfile;
 
-    @gen_promise("deleteOsAccountSubProfile")
+    @rename("deleteOsAccountSubProfile")
+    @promise
     DeleteOsAccountSubProfileSync(osAccountId: i32, subProfileId: i32);
 
-    @gen_promise("switchOsAccountSubProfile")
+    @rename("switchOsAccountSubProfile")
+    @promise
     SwitchOsAccountSubProfileSync(osAccountId: i32, subProfileId: i32);
 
     @rename("onOsAccountSubProfileEvent")
@@ -57,32 +63,40 @@ interface OsAccountSubProfileManager {
     @rename("offOsAccountSubProfileEvent")
     OffOsAccountSubProfileEvent(callback: Optional<(data: OsAccountSubProfileEventData) => void>): void;
     
-    @gen_promise("getOsAccountForegroundSubProfileId")
+    @rename("getOsAccountForegroundSubProfileId")
+    @promise
     GetOsAccountForegroundSubProfileIdSync(): i32;
 
-    @gen_promise("getOsAccountForegroundSubProfileId")
+    @rename("getOsAccountForegroundSubProfileId")
+    @promise
     GetOsAccountForegroundSubProfileIdWithIdSync(osAccountId: i32): i32;
 
-    @gen_promise("getOsAccountSubProfileIds")
+    @rename("getOsAccountSubProfileIds")
+    @promise
     GetOsAccountSubProfileIdsSync(): Array<i32>;
 
-    @gen_promise("getOsAccountSubProfileIds")
+    @rename("getOsAccountSubProfileIds")
+    @promise
     GetOsAccountSubProfileIdsWithIdSync(osAccountId: i32): Array<i32>;
 
-    @gen_promise("getOsAccountLocalIdForSubProfile")
+    @rename("getOsAccountLocalIdForSubProfile")
+    @promise
     GetOsAccountLocalIdForSubProfileSync(subProfileId: i32): i32;
 
-    @gen_promise("getOsAccountSubProfile")
+    @rename("getOsAccountSubProfile")
+    @promise
     GetOsAccountSubProfileSync(subProfileId: i32): OsAccountSubProfile;
 
-    @gen_promise("getOsAccountSubProfile")
+    @rename("getOsAccountSubProfile")
+    @promise
     GetOsAccountSubProfileWithIdSync(osAccountId: i32, subProfileId: i32): OsAccountSubProfile;
 }
 
-@overload("getAccountManager")
+@rename("getAccountManager")
 function GetAccountManager(): AccountManager;
 
-@gen_promise("isDomainAccountSupported")
+@rename("isDomainAccountSupported")
+@promise
 function IsDomainAccountSupportedSync(): bool;
 
 
@@ -93,21 +107,36 @@ struct OsAccountSubProfile {
     distributedInfo: Optional<distributedAccount.DistributedInfo>;
 }
 interface AccountManager {
-    @gen_async("isMainOsAccount")
-    @gen_promise("isMainOsAccount")
-    IsMainOsAccountSync():bool;
+    @rename("isMainOsAccount")
+    @async
+    IsMainOsAccount(): bool;
 
-    @gen_async("getOsAccountProfilePhoto")
-    @gen_promise("getOsAccountProfilePhoto")
-    GetOsAccountProfilePhotoSync(localId: i32): String;
+    @rename("isMainOsAccount")
+    @promise
+    IsMainOsAccountPromise(): bool;
 
-    @gen_promise("getOsAccountType")
-    @gen_async("getOsAccountType")
-    GetOsAccountTypeSync(): OsAccountType;
-    @gen_promise("getOsAccountType")
+    @rename("getOsAccountProfilePhoto")
+    @async
+    GetOsAccountProfilePhoto(localId: i32): String;
+
+    @rename("getOsAccountProfilePhoto")
+    @promise
+    GetOsAccountProfilePhotoPromise(localId: i32): String;
+
+    @rename("getOsAccountType")
+    @async
+    GetOsAccountType(): OsAccountType;
+
+    @rename("getOsAccountType")
+    @promise
+    GetOsAccountTypePromise(): OsAccountType;
+
+    @rename("getOsAccountType")
+    @promise
     GetOsAccountTypeWithIdSync(localId: i32): OsAccountType;
 
-    @gen_promise("setOsAccountType")
+    @rename("setOsAccountType")
+    @promise
     SetOsAccountTypeSync(localId: i32, type: OsAccountType, options: Optional<SetOsAccountTypeOptions>): void;
 
     @rename("onActivate")
@@ -136,202 +165,315 @@ interface AccountManager {
     @rename("offConstraintChanged")
     offConstraintChanged(callback: Optional<(data: ConstraintChangeInfo) => void>): void;
 
-    @gen_async("activateOsAccount")
-    @gen_promise("activateOsAccount")
-    ActivateOsAccountSync(localId: i32): void;
+    @rename("activateOsAccount")
+    @async
+    ActivateOsAccount(localId: i32): void;
 
-    @gen_promise("activateOsAccount")
+    @rename("activateOsAccount")
+    @promise
+    ActivateOsAccountPromise(localId: i32): void;
+
+    @rename("activateOsAccount")
+    @promise
     ActivateOsAccountWithDisplayId(localId: i32, displayId: i64): void;
 
-    @gen_async("createOsAccount")
+    @rename("createOsAccount")
+    @async
     CreateOsAccountSync(localName: String, type: OsAccountType): OsAccountInfo;
 
-    @gen_promise("createOsAccount")
+    @rename("createOsAccount")
+    @promise
     CreateOsAccountWithOptionSync(localName: String, type: OsAccountType, options: Optional<CreateOsAccountOptions>): OsAccountInfo;
 
-    @gen_promise("deactivateOsAccount")
+    @rename("deactivateOsAccount")
+    @promise
     DeactivateOsAccountSync(localId: i32): void;
 
-    @gen_async("getActivatedOsAccountLocalIds")
-    @gen_promise("getActivatedOsAccountLocalIds")
-    GetActivatedOsAccountLocalIdsSync(): Array<i32>;
+    @rename("getActivatedOsAccountLocalIds")
+    @async
+    GetActivatedOsAccountLocalIds(): Array<i32>;
 
-    @gen_promise("queryOsAccount")
+    @rename("getActivatedOsAccountLocalIds")
+    @promise
+    GetActivatedOsAccountLocalIdsPromise(): Array<i32>;
+
+    @rename("queryOsAccount")
+    @promise
     QueryOsAccountSync(): OsAccountInfo;
 
-    @gen_promise("getForegroundOsAccountLocalId")
+    @rename("getForegroundOsAccountLocalId")
+    @promise
     GetForegroundOsAccountLocalIdSync(): i32;
 
-    @gen_promise("getForegroundOsAccountLocalId")
+    @rename("getForegroundOsAccountLocalId")
+    @promise
     GetForegroundOsAccountLocalIdWithDisplayId(displayId: i64): i32;
 
-    @gen_promise("getForegroundOsAccountDisplayId")
+    @rename("getForegroundOsAccountDisplayId")
+    @promise
     GetForegroundOsAccountDisplayIdSync(localId: i32): i64;
 
-    @gen_async("getOsAccountLocalId")
-    @gen_promise("getOsAccountLocalId")
-    GetOsAccountLocalIdSync(): i32;
+    @rename("getOsAccountLocalId")
+    @async
+    GetOsAccountLocalId(): i32;
 
-    @gen_async("getOsAccountLocalIdForUid")
-    @gen_promise("getOsAccountLocalIdForUid")
-    GetOsAccountLocalIdForUidSyncTaihe(uid: i32): i32;
+    @rename("getOsAccountLocalId")
+    @promise
+    GetOsAccountLocalIdPromise(): i32;
 
-    @gen_promise("isOsAccountUnlocked")
+    @rename("getOsAccountLocalIdForUid")
+    @async
+    GetOsAccountLocalIdForUid(uid: i32): i32;
+
+    @rename("getOsAccountLocalIdForUid")
+    @promise
+    GetOsAccountLocalIdForUidPromise(uid: i32): i32;
+
+    @rename("isOsAccountUnlocked")
+    @promise
     IsOsAccountUnlockedSync(): bool;
 
-    @gen_promise("isOsAccountUnlocked")
+    @rename("isOsAccountUnlocked")
+    @promise
     IsOsAccountUnlockedById(localId: i32): bool;
 
-    @gen_async("queryAllCreatedOsAccounts")
-    @gen_promise("queryAllCreatedOsAccounts")
-    QueryAllCreatedOsAccountsSync(): Array<OsAccountInfo>;
+    @rename("queryAllCreatedOsAccounts")
+    @async
+    QueryAllCreatedOsAccounts(): Array<OsAccountInfo>;
 
-    @gen_promise("getOsAccountLocalIds")
+    @rename("queryAllCreatedOsAccounts")
+    @promise
+    QueryAllCreatedOsAccountsPromise(): Array<OsAccountInfo>;
+
+    @rename("getOsAccountLocalIds")
+    @promise
     GetOsAccountLocalIdsSync(): Array<i32>;
 
-    @gen_promise("queryMaxLoggedInOsAccountNumber")
+    @rename("queryMaxLoggedInOsAccountNumber")
+    @promise
     QueryMaxLoggedInOsAccountNumberSync(): i32;
 
-    @gen_async("queryOsAccountById")
-    @gen_promise("queryOsAccountById")
-    QueryOsAccountByIdSync(localId: i32): OsAccountInfo;
+    @rename("queryOsAccountById")
+    @async
+    QueryOsAccountById(localId: i32): OsAccountInfo;
 
-    @gen_promise("setOsAccountProfilePhoto")
-    @gen_async("setOsAccountProfilePhoto")
-    SetOsAccountProfilePhotoSync(localId: i32, photo: String);
+    @rename("queryOsAccountById")
+    @promise
+    QueryOsAccountByIdPromise(localId: i32): OsAccountInfo;
 
-    @gen_promise("getOsAccountLocalIdForSerialNumber")
-    @gen_async("getOsAccountLocalIdForSerialNumber")
-    GetOsAccountLocalIdForSerialNumberSync(serialNumber: i64): i32;
+    @rename("setOsAccountProfilePhoto")
+    @promise
+    SetOsAccountProfilePhoto(localId: i32, photo: String);
 
-    @gen_promise("getSerialNumberForOsAccountLocalId")
-    @gen_async("getSerialNumberForOsAccountLocalId")
-    GetSerialNumberForOsAccountLocalIdSync(localId: i32): i64;
+    @rename("setOsAccountProfilePhoto")
+    @async
+    SetOsAccountProfilePhotoCallback(localId: i32, photo: String);
 
-    @gen_promise("getBundleIdForUid")
-    @gen_async("getBundleIdForUid")
-    GetBundleIdForUidWithIdSync(uid: i32): i32;
+    @rename("getOsAccountLocalIdForSerialNumber")
+    @promise
+    GetOsAccountLocalIdForSerialNumber(serialNumber: i64): i32;
 
-    @overload("getBundleIdForUidSync")
+    @rename("getOsAccountLocalIdForSerialNumber")
+    @async
+    GetOsAccountLocalIdForSerialNumberCallback(serialNumber: i64): i32;
+
+    @rename("getSerialNumberForOsAccountLocalId")
+    @promise
+    GetSerialNumberForOsAccountLocalId(localId: i32): i64;
+
+    @rename("getSerialNumberForOsAccountLocalId")
+    @async
+    GetSerialNumberForOsAccountLocalIdCallback(localId: i32): i64;
+
+    @rename("getBundleIdForUid")
+    @promise
+    GetBundleIdForUid(uid: i32): i32;
+
+    @rename("getBundleIdForUid")
+    @async
+    GetBundleIdForUidCallback(uid: i32): i32;
+
+    @rename("getBundleIdForUidSync")
     GetBundleIdForUidSyncTaihe(uid: i32): i32;
 
-    @gen_promise("getOsAccountConstraintSourceTypes")
-    @gen_async("getOsAccountConstraintSourceTypes")
-    GetOsAccountConstraintSourceTypesSync(localId: i32, constraint: String): Array<ConstraintSourceTypeInfo>;
+    @rename("getOsAccountConstraintSourceTypes")
+    @promise
+    GetOsAccountConstraintSourceTypes(localId: i32, constraint: String): Array<ConstraintSourceTypeInfo>;
 
-    @gen_promise("bindDomainAccount")
+    @rename("getOsAccountConstraintSourceTypes")
+    @async
+    GetOsAccountConstraintSourceTypesCallback(localId: i32, constraint: String): Array<ConstraintSourceTypeInfo>;
+
+    @rename("bindDomainAccount")
+    @promise
     bindDomainAccountSync(localId: i32, domainAccountInfo: DomainAccountInfo): void;
 
-    @gen_async("checkMultiOsAccountEnabled")
-    @gen_promise("checkMultiOsAccountEnabled")
-    CheckMultiOsAccountEnabledSync(): bool;
+    @rename("checkMultiOsAccountEnabled")
+    @async
+    CheckMultiOsAccountEnabled(): bool;
 
-    @gen_async("removeOsAccount")
-    @gen_promise("removeOsAccount")
-    RemoveOsAccountSync(localId: i32);
+    @rename("checkMultiOsAccountEnabled")
+    @promise
+    CheckMultiOsAccountEnabledPromise(): bool;
 
-    @gen_async("removeOsAccount")
-    @gen_promise("removeOsAccount")
-    RemoveOsAccountWithOptionSync(localId: i32, options: RemoveOsAccountOptions): void;
+    @rename("removeOsAccount")
+    @async
+    RemoveOsAccount(localId: i32);
 
-    @gen_async("setOsAccountName")
-    @gen_promise("setOsAccountName")
-    SetOsAccountNameSync(localId: i32, localName: String);
+    @rename("removeOsAccount")
+    @promise
+    RemoveOsAccountPromise(localId: i32);
 
-    @gen_promise("isOsAccountActivated")
+    @rename("removeOsAccount")
+    @async
+    RemoveOsAccountWithOption(localId: i32, options: RemoveOsAccountOptions): void;
+
+    @rename("removeOsAccount")
+    @promise
+    RemoveOsAccountWithOptionPromise(localId: i32, options: RemoveOsAccountOptions): void;
+
+    @rename("setOsAccountName")
+    @async
+    SetOsAccountName(localId: i32, localName: String);
+
+    @rename("setOsAccountName")
+    @promise
+    SetOsAccountNamePromise(localId: i32, localName: String);
+
+    @rename("isOsAccountActivated")
+    @promise
     IsOsAccountActivatedSync(localId: i32): bool;
 
-    @gen_promise("isOsAccountConstraintEnabled")
+    @rename("isOsAccountConstraintEnabled")
+    @promise
     IsOsAccountConstraintEnabledSync(constraint: String): bool;
 
-    @gen_promise("isOsAccountConstraintEnabled")
+    @rename("isOsAccountConstraintEnabled")
+    @promise
     IsOsAccountConstraintEnabledWithId(localId: i32, constraint: String): bool;
 
-    @gen_async("checkOsAccountTestable")
-    @gen_promise("checkOsAccountTestable")
-    CheckOsAccountTestableSync(): bool;
+    @rename("checkOsAccountTestable")
+    @async
+    CheckOsAccountTestable(): bool;
 
-    @gen_async("setOsAccountConstraints")
-    @gen_promise("setOsAccountConstraints")
-    SetOsAccountConstraintsSync(localId: i32, constraints: Array<String>, enable: bool);
+    @rename("checkOsAccountTestable")
+    @promise
+    CheckOsAccountTestablePromise(): bool;
 
-    @gen_promise("getOsAccountName")
+    @rename("setOsAccountConstraints")
+    @async
+    SetOsAccountConstraints(localId: i32, constraints: Array<String>, enable: bool);
+
+    @rename("setOsAccountConstraints")
+    @promise
+    SetOsAccountConstraintsPromise(localId: i32, constraints: Array<String>, enable: bool);
+
+    @rename("getOsAccountName")
+    @promise
     GetOsAccountNameSync(): String;
 
-    @gen_promise("getOsAccountNameByLocalId")
+    @rename("getOsAccountNameByLocalId")
+    @promise
     GetOsAccountNameByIdSync(localId: i32): String;
 
-    @gen_async("getOsAccountCount")
-    @gen_promise("getOsAccountCount")
-    GetOsAccountCountSync():u32;
+    @rename("getOsAccountCount")
+    @async
+    GetOsAccountCount(): u32;
 
-    @overload("getOsAccountLocalIdForUidSync")
+    @rename("getOsAccountCount")
+    @promise
+    GetOsAccountCountPromise(): u32;
+
+    @rename("getOsAccountLocalIdForUidSync")
     GetOsAccountLocalIdForUidSyncOverload(uid: i32): i32;
 
-    @gen_async("getOsAccountLocalIdForDomain")
-    @gen_promise("getOsAccountLocalIdForDomain")
-    GetOsAccountLocalIdForDomainSync(domainInfo: DomainAccountInfo): i32;
+    @rename("getOsAccountLocalIdForDomain")
+    @async
+    GetOsAccountLocalIdForDomain(domainInfo: DomainAccountInfo): i32;
 
-    @gen_async("queryMaxOsAccountNumber")
-    @gen_promise("queryMaxOsAccountNumber")
-    QueryMaxOsAccountNumberSync(): u32;
+    @rename("getOsAccountLocalIdForDomain")
+    @promise
+    GetOsAccountLocalIdForDomainPromise(domainInfo: DomainAccountInfo): i32;
 
-    @gen_promise("getEnabledOsAccountConstraints")
+    @rename("queryMaxOsAccountNumber")
+    @async
+    QueryMaxOsAccountNumber(): u32;
+
+    @rename("queryMaxOsAccountNumber")
+    @promise
+    QueryMaxOsAccountNumberPromise(): u32;
+
+    @rename("getEnabledOsAccountConstraints")
+    @promise
     GetEnabledOsAccountConstraintsSync(localId: i32): Array<String>;
-    @gen_async("createOsAccountForDomain")
+    @rename("createOsAccountForDomain")
+    @async
     CreateOsAccountForDomainSync(type: OsAccountType, domainInfo: DomainAccountInfo): OsAccountInfo;
 
-    @gen_promise("createOsAccountForDomain")
+    @rename("createOsAccountForDomain")
+    @promise
     CreateOsAccountForDomainWithOpts(type: OsAccountType, domainInfo: DomainAccountInfo,
         options: Optional<CreateOsAccountForDomainOptions>): OsAccountInfo;
 
-    @gen_promise("getOsAccountDomainInfo")
+    @rename("getOsAccountDomainInfo")
+    @promise
     GetOsAccountDomainInfoSync(localId: i32): DomainAccountInfoOrNull;
 
-    @gen_async("queryDistributedVirtualDeviceId")
-    @gen_promise("queryDistributedVirtualDeviceId")
-    QueryDistributedVirtualDeviceIdSync(): String;
+    @rename("queryDistributedVirtualDeviceId")
+    @async
+    QueryDistributedVirtualDeviceId(): String;
+
+    @rename("queryDistributedVirtualDeviceId")
+    @promise
+    QueryDistributedVirtualDeviceIdPromise(): String;
 }
 
 @class
 interface UserIdentityManager {
-    @gen_async("openSession")
+    @rename("openSession")
+    @async
     OpenSession(): @typedarray Array<u8>;
 
-    @gen_promise("openSession")
+    @rename("openSession")
+    @promise
     OpenSessionPromise(accountId:Optional<i32>): @typedarray Array<u8>;
 
-    @overload("closeSession")
+    @rename("closeSession")
     CloseSession(accountId: Optional<i32>): void;
 
-    @gen_async("getAuthInfo")
+    @rename("getAuthInfo")
+    @async
     GetAuthInfoEmpty(): Array<EnrolledCredInfo>;
 
-    @gen_async("getAuthInfo")
+    @rename("getAuthInfo")
+    @async
     GetAuthInfoTypeSync(authType: AuthType): Array<EnrolledCredInfo>;
 
-    @gen_promise("getAuthInfo")
+    @rename("getAuthInfo")
+    @promise
     GetAuthInfoType(authType: AuthType): Array<EnrolledCredInfo>;
 
-    @gen_promise("getAuthInfo")
+    @rename("getAuthInfo")
+    @promise
     GetAuthInfoWithOptionsSync(options: Optional<GetAuthInfoOptions>): Array<EnrolledCredInfo>;
 
-    @overload("addCredential")
+    @rename("addCredential")
     AddCredential(info: CredentialInfo, callback: IIdmCallback): void;
 
-    @overload("updateCredential")
+    @rename("updateCredential")
     UpdateCredential(credentialInfo: CredentialInfo, callback: IIdmCallback): void;
 
-    @overload("delUser")
+    @rename("delUser")
     DelUser(token: @typedarray Array<u8>, callback: IIdmCallback);
 
-    @overload("cancel")
+    @rename("cancel")
     CancelWithChallenge(challenge: @typedarray Array<u8>): void;
 
-    @overload("delCred")
+    @rename("delCred")
     DelCred(credentialId: @typedarray Array<u8>, token: @typedarray Array<u8>, callback: IIdmCallback);
 
-    @gen_promise("getEnrolledId")
+    @rename("getEnrolledId")
+    @promise
     GetEnrolledIdSync(authType: AuthType, accountId: Optional<i32>): @typedarray Array<u8>;
 
     @rename("onCredentialChanged")
@@ -541,27 +683,27 @@ struct EnrolledCredInfo {
 
 union OptionalError {
     error: @sts_type("BusinessError") Opaque;
-    @null nValue;
+    nValue: @null unit;
 }
 
 union DomainAccountInfoData {
     data: DomainAccountInfo;
-    @undefined uValue;
+    uValue: @undefined unit;
 }
 
 union AuthStatusInfoData {
     data: AuthStatusInfo;
-    @undefined uValue;
+    uValue: @undefined unit;
 }
 
 union BoolData {
     data: bool;
-    @undefined uValue;
+    uValue: @undefined unit;
 }
 
 union ArrayData {
     data: @typedarray Array<u8>;
-    @undefined uValue;
+    uValue: @undefined unit;
 }
 
 struct DomainPlugin {
@@ -583,79 +725,107 @@ interface DomainAccountManager {}
 interface DomainServerConfigManager {}
 
 @static("DomainAccountManager")
-@gen_promise("isAuthenticationExpired")
+@rename("isAuthenticationExpired")
+@promise
 function IsAuthenticationExpiredSync(domainAccountInfo: DomainAccountInfo): bool;
 
 @static("DomainAccountManager")
-@overload("registerPlugin")
+@rename("registerPlugin")
 function RegisterPlugin(plugin: DomainPlugin): void;
 
 @static("DomainAccountManager")
-@overload("unregisterPlugin")
+@rename("unregisterPlugin")
 function UnregisterPlugin(): void;
 
 @static("DomainAccountManager")
-@overload("auth")
+@rename("auth")
 function Auth(domainAccountInfo: DomainAccountInfo, credential: @typedarray Array<u8>, callback: IUserAuthCallback): void;
 
 @static("DomainAccountManager")
-@overload("auth")
+@rename("auth")
 function AuthWithOption(domainAccountInfo: DomainAccountInfo, credential: @typedarray Array<u8>, options: DomainAccountAuthOptions, callback: IUserAuthCallback): void;
 
 @static("DomainAccountManager")
-@overload("authWithPopup")
+@rename("authWithPopup")
 function AuthWithPopup(callback: IUserAuthCallback): void;
 
 @static("DomainAccountManager")
-@overload("authWithPopup")
+@rename("authWithPopup")
 function AuthWithPopupWithId(localId: i32, callback: IUserAuthCallback): void;
 
 @static("DomainAccountManager")
-@gen_async("hasAccount")
-@gen_promise("hasAccount")
+@rename("hasAccount")
+@async
 function HasAccountSync(domainAccountInfo: DomainAccountInfo): bool;
 
 @static("DomainAccountManager")
-@gen_async("updateAccountToken")
-@gen_promise("updateAccountToken")
+@rename("hasAccount")
+@promise
+function HasAccountPromise(domainAccountInfo: DomainAccountInfo): bool;
+
+@static("DomainAccountManager")
+@rename("updateAccountToken")
+@async
 function UpdateAccountTokenSync(domainAccountInfo: DomainAccountInfo, token: @typedarray Array<u8>);
 
 @static("DomainAccountManager")
-@gen_async("getAccessToken")
-@gen_promise("getAccessToken")
+@rename("updateAccountToken")
+@promise
+function UpdateAccountTokenPromise(domainAccountInfo: DomainAccountInfo, token: @typedarray Array<u8>);
+
+@static("DomainAccountManager")
+@rename("getAccessToken")
+@async
 function GetAccessTokenSync(businessParams: @sts_type("Record<string, RecordData>")Opaque): @typedarray Array<u8>;
 
 @static("DomainAccountManager")
-@gen_async("getAccountInfo")
-@gen_promise("getAccountInfo")
+@rename("getAccessToken")
+@promise
+function GetAccessTokenPromise(businessParams: @sts_type("Record<string, RecordData>")Opaque): @typedarray Array<u8>;
+
+@static("DomainAccountManager")
+@rename("getAccountInfo")
+@async
 function GetAccountInfoSync(options: GetDomainAccountInfoOptions): DomainAccountInfo;
 
 @static("DomainAccountManager")
-@gen_promise("updateAccountInfo")
+@rename("getAccountInfo")
+@promise
+function GetAccountInfoPromise(options: GetDomainAccountInfoOptions): DomainAccountInfo;
+
+@static("DomainAccountManager")
+@rename("updateAccountInfo")
+@promise
 function UpdateAccountInfoSync(oldAccountInfo: DomainAccountInfo, newAccountInfo: DomainAccountInfo);
 
 @static("DomainServerConfigManager")
-@gen_promise("addServerConfig")
+@rename("addServerConfig")
+@promise
 function AddServerConfigSync(parameters: @sts_type("Record<string, RecordData>")Opaque): DomainServerConfig;
 
 @static("DomainServerConfigManager")
-@gen_promise("removeServerConfig")
+@rename("removeServerConfig")
+@promise
 function RemoveServerConfigSync(configId: String);
 
 @static("DomainServerConfigManager")
-@gen_promise("updateServerConfig")
+@rename("updateServerConfig")
+@promise
 function UpdateServerConfigSync(configId: String, parameters: @sts_type("Record<string, RecordData>")Opaque):DomainServerConfig;
 
 @static("DomainServerConfigManager")
-@gen_promise("getServerConfig")
+@rename("getServerConfig")
+@promise
 function GetServerConfigSync(configId: String): DomainServerConfig;
 
 @static("DomainServerConfigManager")
-@gen_promise("getAllServerConfigs")
+@rename("getAllServerConfigs")
+@promise
 function GetAllServerConfigsSync(): Array<DomainServerConfig>;
 
 @static("DomainServerConfigManager")
-@gen_promise("getAccountServerConfig")
+@rename("getAccountServerConfig")
+@promise
 function GetAccountServerConfigSync(domainAccountInfo: DomainAccountInfo): DomainServerConfig;
 
 struct AuthResult {
@@ -683,9 +853,9 @@ struct AcquireAuthorizationResult {
     token: Optional<@typedarray Array<u8>>;
 }
 enum AuthorizationResultCode : i32 {
- 	AUTHORIZATION_SUCCESS = 0,
- 	AUTHORIZATION_CANCELED = 12300301,
- 	AUTHORIZATION_INTERACTION_NOT_ALLOWED = 12300302,
+    AUTHORIZATION_SUCCESS = 0,
+    AUTHORIZATION_CANCELED = 12300301,
+    AUTHORIZATION_INTERACTION_NOT_ALLOWED = 12300302,
     AUTHORIZATION_DENIED = 12300303,
     AUTHORIZATION_SERVICE_BUSY = 12300304
 }
@@ -759,48 +929,58 @@ function getPtrByIInputData(data: IInputData): i64;
 
 @class
 interface UserAuth {
-    @overload("auth")
+    @rename("auth")
     AuthSync(challenge: @typedarray Array<u8>, authType: AuthType,
         authTrustLevel: AuthTrustLevel, callback: IUserAuthCallback): @typedarray Array<u8>;
 
-    @overload("auth")
+    @rename("auth")
     AuthWithOptSync(challenge: @typedarray Array<u8>, authType: AuthType,
         authTrustLevel: AuthTrustLevel, options: AuthOptions, callback: IUserAuthCallback): @typedarray Array<u8>;
 
-    @overload("authUser")
+    @rename("authUser")
     AuthUser(userId: i32, challenge: @typedarray Array<u8>, authType: AuthType,
         authTrustLevel: AuthTrustLevel, callback: IUserAuthCallback): @typedarray Array<u8>;
 
-    @overload("cancelAuth")
+    @rename("cancelAuth")
     CancelAuth(contextID: @typedarray Array<u8>): void;
 
-    @gen_async("getProperty")
-    @gen_promise("getProperty")
+    @rename("getProperty")
+    @async
     GetPropertySync(request: GetPropertyRequest): ExecutorProperty;
 
-    @gen_async("setProperty")
-    @gen_promise("setProperty")
+    @rename("getProperty")
+    @promise
+    GetPropertyPromise(request: GetPropertyRequest): ExecutorProperty;
+
+    @rename("setProperty")
+    @async
     SetPropertySync(request: SetPropertyRequest): void;
 
-    @overload("getVersion")
+    @rename("setProperty")
+    @promise
+    SetPropertyPromise(request: SetPropertyRequest): void;
+
+    @rename("getVersion")
     GetVersionSync(): i32;
 
-    @overload("getAvailableStatus")
+    @rename("getAvailableStatus")
     GetAvailableStatusSync(authType: AuthType, authTrustLevel: AuthTrustLevel): i32;
 
-    @gen_promise("getPropertyByCredentialId")
+    @rename("getPropertyByCredentialId")
+    @promise
     GetPropertyByCredentialIdSync(credentialId: @typedarray Array<u8>, keys: Array<GetPropertyType>): ExecutorProperty;
 
-    @gen_promise("prepareRemoteAuth")
+    @rename("prepareRemoteAuth")
+    @promise
     PrepareRemoteAuthSync(remoteNetworkId: String): void;
 }
 
 @class
 interface PINAuth {
-    @overload("registerInputer")
+    @rename("registerInputer")
     RegisterInputer(inputer: IInputer): void;
 
-    @overload("unregisterInputer")
+    @rename("unregisterInputer")
     UnregisterInputer(): void;
 }
 
