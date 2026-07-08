@@ -35,6 +35,14 @@
         {
             "name":"ohos.privilege.format_data_disk",
             "description":"Formatting data disk"
+        },
+        {
+            "name":"ohos.privilege.enable_mdm_admin",
+            "description":"Enable admin"
+        },
+        {
+            "name":"ohos.privilege.disable_mdm_admin",
+            "description":"Disable admin"
         }
     ]
 }
