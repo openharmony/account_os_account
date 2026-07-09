@@ -1,14 +1,22 @@
-# Distributed Account Module - AI Knowledge Base
+# Distributed Account Module - Agent Instruction Guide
 
-## Overview
+> Scope: **directory** `services/accountmgr/src/distributed_account/` — Distributed Account (OHOS Account) service logic.
+> Parent: [../../../../AGENTS.md](../../../../AGENTS.md) (root, §1–8 framework applies here too).
+> Target: any coding agent editing this module.
+> Data location: `/data/service/el1/public/account/{userId}/account.json`
+> SA ID: 1401
 
-Distributed Account (OHOS Account) module provides account management for OpenHarmony distributed scenarios. Features: login/logout, state management, event subscription, data persistence, and account anonymization.
+---
 
-**Entry Points:**
-- [account_mgr_service.cpp](../account_mgr_service.cpp):143 - AccountMgrService (SA 1401)
-- [ohos_account_manager.cpp](../ohos_account_manager.cpp):219 - OhosAccountManager
+## 1. Code Map
 
-## Architecture
+### 1.1 Responsibility
+
+Distributed Account (OHOS Account) provides account management for OpenHarmony
+distributed scenarios: login/logout, state management, event subscription, data
+persistence, and account anonymization for privacy.
+
+### 1.2 Architecture
 
 ```
 Client App -> AccountMgrService -> OhosAccountManager -> OhosAccountDataDeal -> JSON Files
@@ -17,26 +25,67 @@ Client App -> AccountMgrService -> OhosAccountManager -> OhosAccountDataDeal -> 
                                    DistributedAccountSubscribeManager -> Subscribers
 ```
 
-**Data Location:** `/data/service/el1/public/account/{userId}/account.json`
+### 1.3 Entry Points
 
-## State Machine
+| Component | File | Lines |
+|-----------|------|-------|
+| AccountMgrService (SA 1401) | [../account_mgr_service.cpp](../account_mgr_service.cpp) | :143 |
+| OhosAccountManager | [../ohos_account_manager.cpp](../ohos_account_manager.cpp) | :219 |
 
-```
-UNBOUND --[LOGIN]--> LOGIN --[LOGOUT/LOGOFF/TOKEN_INVALID]--> UNBOUND
-```
+### 1.4 Where to Look (task → path)
 
-| State | Value | Description |
-|--------|---------|-------------|
-| UNBOUND | 0 | Not logged in |
-| LOGIN | 1 | Logged in/bound |
-| LOGOUT | 2 | Logged out |
-| TOKEN_INVALID | 3 | Token expired |
+| Task | Start here |
+|------|------------|
+| Login/logout/token-invalid logic | `../ohos_account_manager.cpp` → `LoginOhosAccount` / `LogoutOhosAccount` / `HandleOhosAccountTokenInvalidEvent` |
+| DVID generation | `../ohos_account_manager.cpp:124-154` |
+| Account anonymization | `../ohos_account_manager.cpp:349-370` |
+| JSON persistence (read/write/schema) | `../ohos_account_data_deal.cpp` |
+| Event subscription / publishing | `distributed_account_subscribe_manager.cpp` |
+| State machine transitions | `../ohos_account_manager.cpp:453-489` |
+| SA interactions (StorageManager, BundleManager, etc.) | `../account_mgr_service.cpp:616-629` |
 
-**State Transition:** [ohos_account_manager.cpp:453-489](../ohos_account_manager.cpp#L453-L489)
+---
 
-## Core Components
+## 2. Knowledge Routing
 
-### AccountMgrService ([account_mgr_service.cpp](../account_mgr_service.cpp))
+### 2.1 Task-based routing
+
+| If the task involves… | Read this first |
+|----------------------|-----------------|
+| Login / logout / token invalid flow | §3.2 Usage Scenarios (Login, Token Invalid); §4.5 State Machine |
+| DVID / cross-device ID | §4.1 DVID Generation |
+| Anonymization / privacy | §4.2 Account Anonymization |
+| JSON schema / persistence | §4.3 JSON Schema; §4.4 OhosAccountDataDeal |
+| Event subscription | §1.4 DistributedAccountSubscribeManager row |
+| File watcher / tamper detection | §4.4 (ENABLE_FILE_WATCHER) |
+| Thread safety / locking | §4.6 Thread Safety |
+| Permission checks | Root AGENTS.md §3.1 (Do-not: permission checks); §4.7 Permissions |
+| State machine | §4.5 State Machine |
+| Debugging / troubleshooting | §6 Troubleshooting |
+
+### 2.2 Vocabulary routing
+
+| Term | Meaning | Read |
+|------|---------|------|
+| DVID | Distributed Virtual Device ID = `PBKDF2_HMAC-SHA256(raw_uid, bundleName, 1000, 32)`; per-app unique ID for privacy | §4.1 DVID Generation |
+| OHOS_UID | `SHA256(uid)` — the device-level account identifier | §5.1 Login Flow |
+| `bind_status` | Account state field in JSON: 0=UNBOUND, 1=LOGIN, 2=LOGOUT, 3=TOKEN_INVALID | §4.5 State Machine |
+| Anonymization | Non-system apps get DVID + masked names instead of raw data | §4.2 Account Anonymization |
+| File watcher | inotify + SHA256 digest comparison to detect JSON tampering (`ENABLE_FILE_WATCHER` flag) | §4.4 OhosAccountDataDeal |
+| LOGOUT vs LOGOFF | LOGOUT = unbind (can re-login); LOGOFF = remove from device | §7 FAQ Q1 |
+
+### 2.3 Pre-edit protocol
+
+See root [AGENTS.md](../../../../AGENTS.md) §2.4. Before writing code, state:
+1. **Task category** (login/state machine / DVID / anonymization / persistence / events / other).
+2. **Documents read** (per §2.1–2.2 above).
+3. **Constraints found** (§4.8 Do-not / Ask-before rules that apply).
+
+---
+
+## 3. Core Components
+
+### 3.1 AccountMgrService — distributed account methods
 
 | Method | Lines | Description |
 |---------|-------|-------------|
@@ -47,9 +96,7 @@ UNBOUND --[LOGIN]--> LOGIN --[LOGOUT/LOGOFF/TOKEN_INVALID]--> UNBOUND
 | `SubscribeDistributedAccountEvent()` | 417-431 | Subscribe events |
 | `UnsubscribeDistributedAccountEvent()` | 433-447 | Unsubscribe events |
 
-**Permissions:** MANAGE_DISTRIBUTED_ACCOUNTS, GET_DISTRIBUTED_ACCOUNTS, DISTRIBUTED_DATASYNC, MANAGE_USERS
-
-### OhosAccountManager ([ohos_account_manager.cpp](../ohos_account_manager.cpp))
+### 3.2 OhosAccountManager — key methods
 
 | Method | Lines | Description |
 |---------|-------|-------------|
@@ -60,11 +107,11 @@ UNBOUND --[LOGIN]--> LOGIN --[LOGOUT/LOGOFF/TOKEN_INVALID]--> UNBOUND
 | `GetOhosAccountDistributedInfo()` | 372-395 | Get with anonymization |
 | `QueryDistributedVirtualDeviceId()` | 283-303 | Generate DVID |
 
-**Key Flows:**
-1. **Login:** CheckCanBind -> Gen SHA256 UID -> UpdateState -> SaveJSON -> PublishEvent
-2. **Query:** CheckSystemApp -> ReturnFull or Anonymized
+**Key flows**:
+1. **Login**: CheckCanBind → Gen SHA256 UID → UpdateState → SaveJSON → PublishEvent
+2. **Query**: CheckSystemApp → ReturnFull or Anonymized
 
-### OhosAccountDataDeal ([ohos_account_data_deal.cpp](../ohos_account_data_deal.cpp))
+### 3.3 OhosAccountDataDeal
 
 | Method | Lines | Description |
 |---------|-------|-------------|
@@ -74,7 +121,46 @@ UNBOUND --[LOGIN]--> LOGIN --[LOGOUT/LOGOFF/TOKEN_INVALID]--> UNBOUND
 | `SaveAccountInfo()` | 217-259 | Persist to file |
 | `BuildJsonFileFromScratch()` | 395-413 | Create default file |
 
-**JSON Schema:**
+### 3.4 DistributedAccountSubscribeManager
+
+| Method | Lines | Description |
+|---------|-------|-------------|
+| `SubscribeDistributedAccountEvent()` | 41-68 | Add listener |
+| `UnsubscribeDistributedAccountEvent()` | 70-95 | Remove listener |
+| `Publish()` | 154-177 | Notify all subscribers (async with retry) |
+
+Events: LOGIN, LOGOUT, LOGOFF, TOKEN_INVALID
+
+---
+
+## 4. Constraints & Boundaries
+
+### 4.1 DVID Generation
+
+[../ohos_account_manager.cpp:124-154](../ohos_account_manager.cpp)
+
+```cpp
+DVID = PBKDF2_HMAC-SHA256(raw_uid, bundleName, 1000, 32)
+```
+- Per-app unique ID for privacy — prevents cross-app tracking.
+- **Do not change** the algorithm, iteration count, or salt — existing DVIDs
+  across devices and apps depend on this exact computation.
+
+### 4.2 Account Anonymization
+
+[../ohos_account_manager.cpp:349-370](../ohos_account_manager.cpp#L349-L370)
+
+| Caller type | Raw UID | Name | Nickname | Avatar | ScalableData |
+|-------------|---------|------|----------|--------|--------------|
+| System app | Full | Full | Full | Full | Full |
+| Normal app | DVID | FirstChar + `**********` | FirstChar + `**********` | `**********` | Empty |
+
+**Do not change** anonymization rules — privacy guarantees depend on them.
+
+### 4.3 JSON Schema (on-disk, compatibility-sensitive)
+
+[../ohos_account_data_deal.cpp](../ohos_account_data_deal.cpp)
+
 ```json
 {
   "version": int,
@@ -90,87 +176,69 @@ UNBOUND --[LOGIN]--> LOGIN --[LOGOUT/LOGOFF/TOKEN_INVALID]--> UNBOUND
 }
 ```
 
-**File Watcher (ENABLE_FILE_WATCHER):** Detects tampering via SHA256 digest comparison
+**Do not change** field names, types, or the `version` field semantics — breaks
+upgrade compatibility (Root AGENTS.md §3.1). Version migration: check `version`
+field and upgrade format accordingly (§7 FAQ Q10).
 
-### DistributedAccountSubscribeManager ([distributed_account_subscribe_manager.cpp](../distributed_account_subscribe_manager.cpp))
+### 4.4 File Watcher (ENABLE_FILE_WATCHER)
 
-| Method | Lines | Description |
-|---------|-------|-------------|
-| `SubscribeDistributedAccountEvent()` | 41-68 | Add listener |
-| `UnsubscribeDistributedAccountEvent()` | 70-95 | Remove listener |
-| `Publish()` | 154-177 | Notify all subscribers (async with retry) |
+Detects tampering via inotify + SHA256 digest comparison. Do not disable without
+escalation — security boundary.
 
-**Events:** LOGIN, LOGOUT, LOGOFF, TOKEN_INVALID
+### 4.5 State Machine
 
-## Key Algorithms
-
-### DVID Generation ([ohos_account_manager.cpp:124-154](../ohos_account_manager.cpp#L124-L154))
-
-```cpp
-DVID = PBKDF2_HMAC-SHA256(raw_uid, bundleName, 1000, 32)
 ```
-- Per-app unique ID for privacy
-- Prevents cross-app tracking
-
-### Account Anonymization ([ohos_account_manager.cpp:349-370](../ohos_account_manager.cpp#L349-L370))
-
-**System Apps:** Full data (raw UID, full name)
-**Normal Apps:**
-- UID -> DVID (app-specific)
-- Name -> FirstChar + "**********"
-- Nickname -> FirstChar + "**********"
-- Avatar -> "**********"
-- ScalableData -> Empty
-
-## Usage Scenarios
-
-### 1. Login Flow
-```
-App -> SetOhosAccountInfo(name, uid, LOGIN)
-     -> Permission check
-     -> Gen OHOS_UID = SHA256(uid)
-     -> State: UNBOUND -> LOGIN
-     -> Save to JSON
-     -> Publish to subscribers (DistributedKV, DSoftbus)
-     -> Send CommonEvents
+UNBOUND --[LOGIN]--> LOGIN --[LOGOUT/LOGOFF/TOKEN_INVALID]--> UNBOUND
 ```
 
-### 2. Query with Anonymization
-```
-App -> GetOhosAccountInfo()
-     -> Check if system app
-         -> YES: Return full data
-         -> NO:  Return DVID + masked name
-```
+| State | Value | Description |
+|--------|---------|-------------|
+| UNBOUND | 0 | Not logged in |
+| LOGIN | 1 | Logged in/bound |
+| LOGOUT | 2 | Logged out |
+| TOKEN_INVALID | 3 | Token expired |
 
-### 3. Token Invalid Handling
-```
-Server Token Expire -> Auth App callback
-     -> SetOhosAccountInfo(TOKEN_INVALID)
-     -> State: LOGIN -> TOKEN_INVALID
-     -> Notify subscribers (stop sync)
-     -> Apps re-authenticate user
-```
+State transition: [../ohos_account_manager.cpp:453-489](../ohos_account_manager.cpp#L453-L489)
 
-### 4. DVID for Cross-Device Sync
-```
-DistributedKV -> QueryDistributedVirtualDeviceId()
-     -> Gen DVID = PBKDF2(uid, bundleName)
-     -> Use as key: "dist_db_{DVID}"
-     -> Sync across devices via same DVID
-```
+### 4.6 Thread Safety
 
-## System Ability Interactions
+| Mutex | Protects |
+|-------|----------|
+| `OhosAccountManager::mgrMutex_` | State changes |
+| `OhosAccountDataDeal::mutex_` / `accountInfoFileLock_` | File I/O |
+| `DistributedAccountSubscribeManager::subscribeRecordMutex_` | Subscription list |
 
-| SA | Purpose | Code |
-|----|-----------|-------|
-| StorageManager | Wait ready, create dirs | [account_mgr_service.cpp:616](../account_mgr_service.cpp#L616) |
-| BundleManager | Get bundle name for DVID | [account_mgr_service.cpp:624](../account_mgr_service.cpp#L624) |
-| AbilityManager | Activate default account | [account_mgr_service.cpp:620](../account_mgr_service.cpp#L620) |
-| DistributedKV | Data migration on ready | [account_mgr_service.cpp:629](../account_mgr_service.cpp#L629) |
-| DSoftbus | Get account for discovery | Permission: DISTRIBUTED_DATASYNC |
+Do not hold `mgrMutex_` during IPC or disk I/O (Root AGENTS.md §3.4 Pitfall 6).
 
-## Error Codes
+### 4.7 Permissions
+
+- `MANAGE_DISTRIBUTED_ACCOUNTS` — manage distributed accounts
+- `GET_DISTRIBUTED_ACCOUNTS` — query distributed accounts
+- `DISTRIBUTED_DATASYNC` — cross-device data sync
+- `MANAGE_USERS` — query other users
+
+Do not remove or weaken permission checks (Root AGENTS.md §3.1).
+
+### 4.8 Do not (without explicit user escalation)
+
+- **Do not change the JSON schema** (field names, types, `version` semantics) —
+  breaks upgrade compatibility (§4.3).
+- **Do not change the DVID algorithm** (PBKDF2, iterations=1000, keylen=32,
+  salt=bundleName) — existing cross-device sync depends on it (§4.1).
+- **Do not change anonymization rules** — privacy boundary (§4.2).
+- **Do not change event names** (LOGIN, LOGOUT, LOGOFF, TOKEN_INVALID) —
+  subscribers depend on them.
+- **Do not change state values** (0=UNBOUND, 1=LOGIN, 2=LOGOUT, 3=TOKEN_INVALID)
+  — persisted in JSON `bind_status` field.
+- **Do not disable file watcher** without escalation — tamper detection boundary.
+
+### 4.9 Ask before
+
+- Changing state machine transitions (§4.5) — affects login/logout flows.
+- Changing retry count (`MAX_RETRY_TIMES`) for event publishing.
+- Changing `ENABLE_FILE_WATCHER` / `HAS_CES_PART` / `HAS_HUKS_PART` flags.
+
+### 4.10 Error Codes
 
 | Code | Description |
 |------|-------------|
@@ -182,12 +250,134 @@ DistributedKV -> QueryDistributedVirtualDeviceId()
 | `ERR_ACCOUNT_DATADEAL_JSON_FILE_CORRUPTION` | JSON corrupted (auto-retry) |
 | `ERR_OHOSACCOUNT_KIT_NO_SPECIFIED_CALLBACK_HAS_BEEN_REGISTERED` | Subscription not found |
 
-## Dependencies
+---
 
-**Internal:** AccountStateMachine, AccountFileOperator, IInnerOsAccountManager
-**External:** OpenSSL (SHA256, PBKDF2), AccessTokenKit, IPCSkeleton, HiSysEvent, CommonEvent
+## 5. Usage Scenarios
 
-## Configuration
+### 5.1 Login Flow
+```
+App -> SetOhosAccountInfo(name, uid, LOGIN)
+     -> Permission check
+     -> Gen OHOS_UID = SHA256(uid)
+     -> State: UNBOUND -> LOGIN
+     -> Save to JSON
+     -> Publish to subscribers (DistributedKV, DSoftbus)
+     -> Send CommonEvents
+```
+
+### 5.2 Query with Anonymization
+```
+App -> GetOhosAccountInfo()
+     -> Check if system app
+         -> YES: Return full data
+         -> NO:  Return DVID + masked name
+```
+
+### 5.3 Token Invalid Handling
+```
+Server Token Expire -> Auth App callback
+     -> SetOhosAccountInfo(TOKEN_INVALID)
+     -> State: LOGIN -> TOKEN_INVALID
+     -> Notify subscribers (stop sync)
+     -> Apps re-authenticate user
+```
+
+### 5.4 DVID for Cross-Device Sync
+```
+DistributedKV -> QueryDistributedVirtualDeviceId()
+     -> Gen DVID = PBKDF2(uid, bundleName)
+     -> Use as key: "dist_db_{DVID}"
+     -> Sync across devices via same DVID
+```
+
+---
+
+## 6. Troubleshooting
+
+| Issue | Check |
+|-------|--------|
+| Login fails "already bound" | Check `bind_status` in JSON, verify not stuck in LOGIN state |
+| JSON corrupted | Auto-retry enabled (`MAX_RETRY_TIMES=2`), check file integrity |
+| No events received | Verify system app, death recipient registered, correct event type |
+| DVID empty | Check OpenSSL loaded, UID length < 512 |
+
+**Debug commands:**
+```bash
+cat /data/service/el1/public/account/{userId}/account.json | jq
+hidumper -s accountmgr -a
+grep "ohos_account" /var/log/hisysevent/*.log
+```
+
+---
+
+## 7. FAQ
+
+**Q1: LOGOUT vs LOGOFF?** LOGOUT = unbind (can re-login), LOGOFF = remove from device.
+
+**Q2: Why DVID differs per app?** PBKDF2 uses bundleName as salt for privacy.
+
+**Q3: Same OHOS account on multiple users?** Blocked by `CheckOhosAccountCanBind` ([../ohos_account_manager.cpp#L789](../ohos_account_manager.cpp#L789)).
+
+**Q4: How tampering detected?** inotify + SHA256 digest comparison.
+
+**Q5: Crash recovery?** Reload JSON, restore state, re-register subscriptions.
+
+**Q6: Anonymized data?** Non-system apps get DVID + masked names.
+
+**Q7: Account sync across devices?** Not by this service. DistributedKV uses DVID as sync key.
+
+**Q8: Query other users?** Only with `MANAGE_USERS` or `INTERACT_ACROSS_LOCAL_ACCOUNTS` permission.
+
+**Q9: Max retry for events?** `Constants::MAX_RETRY_TIMES` (typically 3).
+
+**Q10: Version migration?** Check `version` field in JSON, upgrade format accordingly.
+
+---
+
+## 8. Verification
+
+### 8.1 Minimum checks
+
+See root [AGENTS.md](../../../../AGENTS.md) §5.1 for build commands. For this module:
+
+```bash
+# Build
+./build.sh --product-name rk3568 --build-target os_account account_build_unittest account_build_moduletest
+
+# Run distributed account test suites
+cd {OpenHarmonyRootFolder}/test/testfwk/developer_test
+./start.sh run -p rk3568 -t UT MST -tp os_account -ts OhosAccountManagerModuleTest
+```
+
+### 8.2 Task-specific validation
+
+| If you changed… | Also check |
+|----------------|------------|
+| `ohos_account_manager.cpp` (login/logout) | Verify state machine transitions intact; run manager module tests |
+| DVID generation (`ohos_account_manager.cpp:124-154`) | Verify algorithm unchanged (§4.1); test cross-device sync |
+| Anonymization (`ohos_account_manager.cpp:349-370`) | Verify rules unchanged (§4.2); test system vs normal app paths |
+| `ohos_account_data_deal.cpp` (JSON) | Verify schema unchanged (§4.3); test reboot-restore; test version migration |
+| `distributed_account_subscribe_manager.cpp` | Verify event names unchanged; test subscriber death handling |
+| File watcher flag | Test tamper detection path |
+
+### 8.3 Done definition
+
+A change is **done** when:
+1. Build succeeds: `./build.sh --product-name rk3568 --build-target os_account` (no errors).
+2. Relevant test suite passes — report suite name + pass/fail counts.
+3. No new compiler warnings in changed files.
+4. If JSON schema, DVID algorithm, anonymization rules, event names, or state
+   values changed: **escalate to user** (compatibility/privacy boundary, §4.8).
+5. If file watcher or permission checks changed: **escalate to user** (§4.8).
+
+### 8.4 Fallback
+
+If build/tests cannot run locally, state "I could not run the build/tests because
+\<reason\>" and ask the user to run §8.1 commands. Do not claim the change is verified.
+
+---
+
+## 9. Configuration
 
 | Flag | Purpose |
 |--------|-----------|
@@ -196,52 +386,11 @@ DistributedKV -> QueryDistributedVirtualDeviceId()
 | `HAS_HUKS_PART` | Enable HUKS digest |
 | `ACCOUNT_TEST` | Use test directory |
 
-## Thread Safety
+---
 
-- `OhosAccountManager::mgrMutex_` - State changes
-- `OhosAccountDataDeal::mutex_` / `accountInfoFileLock_` - File I/O
-- `DistributedAccountSubscribeManager::subscribeRecordMutex_` - Subscription list
+## Version History
 
-## Troubleshooting
-
-| Issue | Check |
-|-------|--------|
-| Login fails "already bound" | Check bind_status in JSON, verify not stuck in LOGIN state |
-| JSON corrupted | Auto-retry enabled (MAX_RETRY_TIMES=2), check file integrity |
-| No events received | Verify system app, death recipient registered, correct event type |
-| DVID empty | Check OpenSSL loaded, UID length < 512 |
-
-**Debug Commands:**
-```bash
-cat /data/service/el1/public/account/{userId}/account.json | jq
-hidumper -s accountmgr -a
-grep "ohos_account" /var/log/hisysevent/*.log
-```
-
-## FAQ
-
-**Q1: LOGOUT vs LOGOFF?** A: LOGOUT = unbind (can re-login), LOGOFF = remove from device
-
-**Q2: Why DVID differs per app?** A: PBKDF2 uses bundleName as salt for privacy
-
-**Q3: Same OHOS account on multiple users?** A: Blocked by [CheckOhosAccountCanBind](../ohos_account_manager.cpp#L789)
-
-**Q4: How tampering detected?** A: inotify + SHA256 digest comparison
-
-**Q5: Crash recovery?** A: Reload JSON, restore state, re-register subscriptions
-
-**Q6: Anonymized data?** A: Non-system apps get DVID + masked names
-
-**Q7: Account sync across devices?** A: Not by this service. DistributedKV uses DVID as sync key
-
-**Q8: Query other users?** A: Only with MANAGE_USERS or INTERACT_ACROSS_LOCAL_ACCOUNTS permission
-
-**Q9: Max retry for events?** A: Constants::MAX_RETRY_TIMES (typically 3)
-
-**Q10: Version migration?** A: Check `version` field in JSON, upgrade format accordingly
-
-## References
-
-- **SA ID:** 1401
-- **Data Path:** `/data/service/el1/public/account/{userId}/`
-- **Events:** OHOS_ACCOUNT_EVENT_LOGIN/LOGOUT/LOGOFF/TOKEN_INVALID
+| Version | Date | Changes | Maintainer |
+|---------|------|---------|------------|
+| v1.0 | 2026-01-31 | Initial AGENTS.md creation | AI Assistant |
+| v2.0 | 2026-07-09 | Rewritten per agent-instruction quality review: added code map, knowledge routing, constraints, verification | AI Assistant |
