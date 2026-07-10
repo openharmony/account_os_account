@@ -1585,7 +1585,7 @@ bool OhosAccountManager::GetCurOhosAccountAndCheckMatch(AccountInfo &curAccountI
                                                         const std::int32_t callingUserId) const
 {
     if (dataDealer_->AccountInfoFromJson(curAccountInfo, callingUserId) != ERR_OK) {
-        ACCOUNT_LOGE("cannot read from config, inputName %{public}s.", inputName.c_str());
+        ACCOUNT_LOGE("cannot read from config, inputName %{public}s.", AnonymizeNameStr(inputName).c_str());
         return false;
     }
 
