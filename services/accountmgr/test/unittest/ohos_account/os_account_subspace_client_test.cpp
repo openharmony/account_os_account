@@ -15,6 +15,8 @@
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 
 #include <gtest/gtest.h>
+#include <set>
+#include <memory>
 
 #define private public
 #include "os_account_subprofile_client.h"
@@ -22,6 +24,7 @@
 
 #include "account_error_no.h"
 #include "os_account_sub_profile_stub.h"
+#include "os_account_sub_profile_subscribe_callback.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -33,8 +36,6 @@ constexpr int32_t TEST_OS_ACCOUNT_ID = 100;
 constexpr int32_t TEST_SUBSPACE_ID = 100001;
 constexpr ErrCode ERR_EXPECTED_FAILURE = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
 
-// Mock IOsAccountSubProfile that overrides all three subspace operations.
-// Inherits OsAccountSubProfileStub to provide valid AsObject() and IRemoteObject semantics.
 class MockOsAccountSubProfileStub : public OsAccountSubProfileStub {
 public:
     ErrCode CreateOsAccountSubProfile(int32_t osAccountId, OsAccountSubspaceResult &result) override
@@ -58,9 +59,23 @@ public:
         return switchRet_;
     }
 
+    ErrCode SubscribeOsAccountSubProfileEvents(
+        const std::vector<int32_t>& typeInts, const sptr<IRemoteObject>& eventListener) override
+    {
+        return subscribeRet_;
+    }
+
+    ErrCode UnsubscribeOsAccountSubProfileEvents(
+        const std::vector<int32_t>& typeInts, const sptr<IRemoteObject>& eventListener) override
+    {
+        return unsubscribeRet_;
+    }
+
     ErrCode createRet_ = ERR_OK;
     ErrCode deleteRet_ = ERR_OK;
     ErrCode switchRet_ = ERR_OK;
+    ErrCode subscribeRet_ = ERR_OK;
+    ErrCode unsubscribeRet_ = ERR_OK;
 
     OsAccountSubspaceResult createResult_;
     int32_t lastCreateOsAccountId = -1;
@@ -71,7 +86,6 @@ public:
 };
 } // namespace
 
-// ===== OsAccountSubProfileClientTest =====
 class OsAccountSubProfileClientTest : public testing::Test {
 public:
     void SetUp() override
@@ -85,17 +99,6 @@ public:
         OsAccountSubProfileClient::GetInstance().deathRecipient_ = nullptr;
     }
 };
-
-/**
- * @tc.name: OsAccountSubProfileClientTest_GetInstance_Singleton_001
- * @tc.desc: GetInstance returns the same instance on multiple calls.
- */
-HWTEST_F(OsAccountSubProfileClientTest, GetInstance_Singleton_001, TestSize.Level1)
-{
-    OsAccountSubProfileClient &instance1 = OsAccountSubProfileClient::GetInstance();
-    OsAccountSubProfileClient &instance2 = OsAccountSubProfileClient::GetInstance();
-    EXPECT_EQ(&instance1, &instance2);
-}
 
 /**
  * @tc.name: OsAccountSubProfileClientTest_NoPermission_001
@@ -258,15 +261,53 @@ HWTEST_F(OsAccountSubProfileClientTest, GetOsAccountSubProfileProxy_CacheHit_001
     EXPECT_EQ(result.GetRefPtr(), mockProxy.GetRefPtr());
 }
 
+// ===== Subscribe/Unsubscribe tests =====
+class TestSubscribeCallback : public OsAccountSubProfileSubscribeCallback {
+public:
+    void OnSubProfileChanged(const SubProfileEventData &eventData) override {}
+};
+
 /**
- * @tc.name: OsAccountSubProfileClientTest_GetOsAccountSubProfileProxy_CacheMiss_001
- * @tc.desc: GetOsAccountSubProfileProxy returns nullptr on cache miss when
- *           the real service is not available (unit test environment).
+ * @tc.name: OsAccountSubProfileClientTest_Subscribe_AlreadySubscribed
+ * @tc.desc: SubscribeOsAccountSubProfileEvents succeeds when the same callback already exists with different types.
  */
-HWTEST_F(OsAccountSubProfileClientTest, GetOsAccountSubProfileProxy_CacheMiss_001, TestSize.Level1)
+HWTEST_F(OsAccountSubProfileClientTest, Subscribe_AlreadySubscribed, TestSize.Level1)
 {
-    // proxy_ is null after SetUp reset; no service running → nullptr returned
-    auto result = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfileProxy();
-    EXPECT_EQ(result, nullptr);
+    sptr<MockOsAccountSubProfileStub> mockProxy = new (std::nothrow) MockOsAccountSubProfileStub();
+    ASSERT_NE(mockProxy, nullptr);
+    OsAccountSubProfileClient::GetInstance().proxy_ = mockProxy;
+
+    auto callback = std::make_shared<TestSubscribeCallback>();
+    ASSERT_NE(callback, nullptr);
+
+    ErrCode ret1 = OsAccountSubProfileClient::GetInstance().SubscribeOsAccountSubProfileEvents(
+        {OsAccountSubProfileEventType::CREATED}, callback);
+    EXPECT_EQ(ret1, ERR_OK);
+
+    ErrCode ret2 = OsAccountSubProfileClient::GetInstance().SubscribeOsAccountSubProfileEvents(
+        {OsAccountSubProfileEventType::CREATED, OsAccountSubProfileEventType::DELETED}, callback);
+    EXPECT_EQ(ret2, ERR_OK);
 }
+
+/**
+ * @tc.name: OsAccountSubProfileClientTest_Unsubscribe_Success
+ * @tc.desc: UnsubscribeOsAccountSubProfileEvents succeeds after subscribing with the same callback.
+ */
+HWTEST_F(OsAccountSubProfileClientTest, Unsubscribe_Success, TestSize.Level1)
+{
+    sptr<MockOsAccountSubProfileStub> mockProxy = new (std::nothrow) MockOsAccountSubProfileStub();
+    ASSERT_NE(mockProxy, nullptr);
+    OsAccountSubProfileClient::GetInstance().proxy_ = mockProxy;
+
+    auto callback = std::make_shared<TestSubscribeCallback>();
+    ASSERT_NE(callback, nullptr);
+
+    OsAccountSubProfileClient::GetInstance().SubscribeOsAccountSubProfileEvents(
+        {OsAccountSubProfileEventType::CREATED}, callback);
+
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().UnsubscribeOsAccountSubProfileEvents(callback);
+
+    EXPECT_EQ(ret, ERR_OK);
+}
+
 #endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE

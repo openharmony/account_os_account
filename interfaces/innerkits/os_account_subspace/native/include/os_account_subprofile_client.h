@@ -18,12 +18,10 @@
 
 #include <set>
 #include "account_info.h"
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 #include "ios_account_sub_profile.h"
 #include "nocopyable.h"
-#endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 #include "account_error_no.h"
-#include "distributed_account_subscribe_callback.h"
+#include "os_account_sub_profile_subscribe_callback.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -47,10 +45,10 @@ public:
         OsAccountSubspaceResult &subspaceResult, OhosAccountInfo &distributedInfo);
 
     ErrCode SubscribeOsAccountSubProfileEvents(
-        const std::set<DistributedAccountSubProfileEventType>& types,
-        const std::shared_ptr<DistributedAccountSubscribeCallback>& callback);
+        const std::set<OsAccountSubProfileEventType>& types,
+        const std::shared_ptr<OsAccountSubProfileSubscribeCallback>& callback);
     ErrCode UnsubscribeOsAccountSubProfileEvents(
-        const std::shared_ptr<DistributedAccountSubscribeCallback>& callback);
+        const std::shared_ptr<OsAccountSubProfileSubscribeCallback>& callback);
     ErrCode GetOsAccountSubProfileId(
         int32_t osAccountLocalId, int32_t appIndex, int32_t &subProfileId);
     ErrCode GetOsAccountSubProfileId(uint32_t tokenId, int32_t &subProfileId);
@@ -61,8 +59,11 @@ private:
     OsAccountSubProfileClient();
     ~OsAccountSubProfileClient() = default;
     DISALLOW_COPY_AND_MOVE(OsAccountSubProfileClient);
-
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    void RestoreSubscribe();
+    void GetNewSubProfileEventTypes(const std::set<OsAccountSubProfileEventType> &types,
+        std::set<OsAccountSubProfileEventType> &newTypes);
+    ErrCode SubscribeNewTypesToService(const sptr<IOsAccountSubProfile> &proxy,
+        const std::set<OsAccountSubProfileEventType> &newTypes);
     class OsAccountSubProfileDeathRecipient : public IRemoteObject::DeathRecipient {
     public:
         OsAccountSubProfileDeathRecipient() = default;
@@ -77,7 +78,6 @@ private:
     std::mutex mutex_;
     sptr<IOsAccountSubProfile> proxy_ = nullptr;
     sptr<OsAccountSubProfileDeathRecipient> deathRecipient_ = nullptr;
-#endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 };
 }  // namespace AccountSA
 }  // namespace OHOS

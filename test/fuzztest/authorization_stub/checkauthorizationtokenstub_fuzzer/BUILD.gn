@@ -37,6 +37,8 @@ ohos_fuzztest("CheckAuthorizationTokenStubFuzzTest") {
     "${os_account_path}/services/accountmgr/include/appaccount",
     "${os_account_path}/services/accountmgr/include/account_iam",
     "${os_account_path}/services/accountmgr/include",
+    "${os_account_path}/services/accountmgr/include/distributed_account",
+    "${os_account_path}/services/accountmgr/include/os_account_subprofile",
     "${authorization_framework_path}/include",
     "${os_account_path}/test/fuzztest/authorization/common",
     "${common_path}/include",
@@ -77,6 +79,9 @@ ohos_fuzztest("CheckAuthorizationTokenStubFuzzTest") {
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${os_account_innerkits_native_path}:os_account_state_reply_callback_stub",
     "${os_account_innerkits_native_path}:os_account_stub",
+    "${os_account_subspace_framework_path}:os_account_sub_profile_event_proxy",
+    "${os_account_subspace_framework_path}:os_account_sub_profile_event_stub",
+    "${os_account_subspace_framework_path}:os_account_subspace_stub",
     "${authorization_framework_path}:authorization_callback_stub",
     "${authorization_framework_path}:authorization_proxy",
     "${authorization_framework_path}:authorization_innerkits",
@@ -176,6 +181,13 @@ ohos_fuzztest("CheckAuthorizationTokenStubFuzzTest") {
   cflags += [ "-DSUPPORT_AUTHORIZATION" ]
   if (has_hiviewdfx_hisysevent_part) {
     cflags += [ "-DHAS_HISYSEVENT_PART" ]
+  }
+  if (os_account_enable_multiple_os_account_sub_profiles) {
+    cflags += [ "-DENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE" ]
+    sources += [
+      "${services_path}/accountmgr/src/distributed_account/os_account_subspace_data_deal.cpp",
+      "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager.cpp",
+    ]
   }
   defines = [
     "ACCOUNT_LOG_TAG = \"AuthorizationFuzzTest\"",

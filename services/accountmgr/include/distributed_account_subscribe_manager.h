@@ -34,12 +34,6 @@ public:
         const sptr<IRemoteObject> &eventListener) override;
     ErrCode UnsubscribeDistributedAccountEvent(const sptr<IRemoteObject> &eventListener) override;
     ErrCode Publish(const int id, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE subscribeType, int32_t subProfileId = -1) override;
-    ErrCode SubscribeDistributedAccountSpaceEvents(const std::set<DistributedAccountSubProfileEventType> &types,
-        const sptr<IRemoteObject> &eventListener) override;
-    ErrCode UnsubscribeDistributedAccountSpaceEvents(const std::set<DistributedAccountSubProfileEventType> &types,
-        const sptr<IRemoteObject> &eventListener) override;
-    ErrCode Publish(DistributedAccountSubProfileEventType eventType, int32_t localId,
-        int32_t distributedAccountId, int32_t previousDistributedAccountId = -1) override;
 
 private:
     DistributedAccountSubscribeManager();
@@ -47,11 +41,7 @@ private:
     DISALLOW_COPY_AND_MOVE(DistributedAccountSubscribeManager);
     bool OnAccountsChanged(const sptr<IDistributedAccountEvent> &eventProxy,
         const int id, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE subscribeType, const int32_t subProfileId);
-    bool OnSubProfileAccountsChanged(const sptr<IDistributedAccountEvent> &eventProxy,
-        const DistributedAccountSubProfileEventData &eventData);
     DistributedSubscribeRecordPtr FindSubscribeRecordByEventListener(const sptr<IRemoteObject> &eventListener);
-    std::vector<sptr<IRemoteObject>> GetSubscribersToNotify(
-        DistributedAccountSubProfileEventType eventType, int32_t eventLocalId);
 
 private:
     sptr<IRemoteObject::DeathRecipient> subscribeDeathRecipient_;

@@ -30,6 +30,7 @@
 #include "ohos_account_kits.h"
 #include "os_account_info.h"
 #include "os_account_subprofile_client.h"
+#include "os_account_sub_profile_subscribe_callback.h"
 #include "taihe_distributed_account_converter.h"
 #include "taihe/runtime.hpp"
 #include "taihe_common.h"
@@ -238,26 +239,26 @@ public:
 
 using TaiheSubProfileCallback = taihe::callback<void(OsAccountSubProfileEventData const&)>;
 
-class TaiheSubspaceCallback final : public AccountSA::DistributedAccountSubscribeCallback {
+class TaiheSubspaceCallback final : public AccountSA::OsAccountSubProfileSubscribeCallback {
 public:
     explicit TaiheSubspaceCallback(std::shared_ptr<TaiheSubProfileCallback> &cb)
         : callback_(cb) {}
     ~TaiheSubspaceCallback() {}
 
-    void OnSubProfileAccountsChanged(const AccountSA::DistributedAccountSubProfileEventData &eventData) override
+    void OnSubProfileChanged(const AccountSA::SubProfileEventData &eventData) override
     {
         OsAccountSubProfileEvent::key_t eventKey;
         switch (eventData.type_) {
-            case AccountSA::DistributedAccountSubProfileEventType::CREATED:
+            case AccountSA::OsAccountSubProfileEventType::CREATED:
                 eventKey = OsAccountSubProfileEvent::key_t::CREATED;
                 break;
-            case AccountSA::DistributedAccountSubProfileEventType::DELETED:
+            case AccountSA::OsAccountSubProfileEventType::DELETED:
                 eventKey = OsAccountSubProfileEvent::key_t::DELETED;
                 break;
-            case AccountSA::DistributedAccountSubProfileEventType::SWITCHING:
+            case AccountSA::OsAccountSubProfileEventType::SWITCHING:
                 eventKey = OsAccountSubProfileEvent::key_t::SWITCHING;
                 break;
-            case AccountSA::DistributedAccountSubProfileEventType::SWITCHED:
+            case AccountSA::OsAccountSubProfileEventType::SWITCHED:
                 eventKey = OsAccountSubProfileEvent::key_t::SWITCHED;
                 break;
             default:
@@ -267,11 +268,11 @@ public:
         OsAccountSubProfileEventData data = OsAccountSubProfileEventData {
             .event = OsAccountSubProfileEvent(eventKey),
             .osAccountLocalId = eventData.osAccountId_,
-            .subProfileId = eventData.subspaceId_,
+            .subProfileId = eventData.subProfileId_,
         };
-        if (eventData.previousSubspaceId_ != -1) {
+        if (eventData.previousSubProfileId_ != -1) {
             data.previousSubProfileId =
-                optional<int32_t>(std::in_place_t{}, static_cast<int32_t>(eventData.previousSubspaceId_));
+                optional<int32_t>(std::in_place_t{}, static_cast<int32_t>(eventData.previousSubProfileId_));
         }
         if (callback_ != nullptr) {
             TaiheSubProfileCallback call = *callback_;
@@ -1744,15 +1745,15 @@ public:
             return;
         }
 
-        std::set<AccountSA::DistributedAccountSubProfileEventType> types;
+        std::set<AccountSA::OsAccountSubProfileEventType> types;
         for (size_t i = 0; i < events.size(); i++) {
             int32_t eventValue = events[i].get_value();
-            if (eventValue < static_cast<int32_t>(AccountSA::DistributedAccountSubProfileEventType::CREATED) ||
-                eventValue >= static_cast<int32_t>(AccountSA::DistributedAccountSubProfileEventType::INVALID_TYPE)) {
+            if (eventValue < static_cast<int32_t>(AccountSA::OsAccountSubProfileEventType::CREATED) ||
+                eventValue >= static_cast<int32_t>(AccountSA::OsAccountSubProfileEventType::INVALID_TYPE)) {
                 SetTaiheBusinessErrorFromNativeCode(ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
                 return;
             }
-            types.insert(static_cast<AccountSA::DistributedAccountSubProfileEventType>(eventValue));
+            types.insert(static_cast<AccountSA::OsAccountSubProfileEventType>(eventValue));
         }
 
         TaiheSubProfileCallback call = callback;

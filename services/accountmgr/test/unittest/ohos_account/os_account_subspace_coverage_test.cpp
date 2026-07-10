@@ -16,6 +16,11 @@
 
 #include "os_account_subspace_coverage_test_common.h"
 
+#include "os_account_sub_profile_subscribe_manager.h"
+#include "os_account_sub_profile_event_stub.h"
+#include <condition_variable>
+#include <mutex>
+
 using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
@@ -211,32 +216,17 @@ public:
 
 uint64_t GetSubspaceServiceTest::allPermTokenId_ = 0;
 
-HWTEST_F(GetSubspaceServiceTest, GetOsAccountSubspaceService_EnableMacro_001, TestSize.Level1)
-{
-    sptr<IRemoteObject> result = nullptr;
-    ErrCode ret = AccountMgrService::GetInstance().GetOsAccountSubspaceService(result);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED);
-    EXPECT_EQ(result, nullptr);
-}
-
 HWTEST_F(GetSubspaceServiceTest, GetOsAccountSubspaceService_SecondCallPromote_001, TestSize.Level1)
 {
     sptr<IRemoteObject> result1 = nullptr;
     ErrCode ret1 = AccountMgrService::GetInstance().GetOsAccountSubspaceService(result1);
-    EXPECT_EQ(ret1, ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED);
+    EXPECT_EQ(ret1, ERR_OK);
+    EXPECT_NE(result1, nullptr);
 
     sptr<IRemoteObject> result2 = nullptr;
     ErrCode ret2 = AccountMgrService::GetInstance().GetOsAccountSubspaceService(result2);
-    EXPECT_EQ(ret2, ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED);
-    EXPECT_EQ(result2, nullptr);
-}
-
-HWTEST_F(GetSubspaceServiceTest, GetOsAccountSubspaceService_DisableMacroFallback_001, TestSize.Level1)
-{
-    sptr<IRemoteObject> result = nullptr;
-    ErrCode ret = AccountMgrService::GetInstance().GetOsAccountSubspaceService(result);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED);
-    EXPECT_EQ(result, nullptr);
+    EXPECT_EQ(ret2, ERR_OK);
+    EXPECT_EQ(result2, result1);
 }
 
 // ===== Task 4: OhosAccountManager subspace methods =====
@@ -1464,5 +1454,144 @@ public:
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
 };
+
+// ===== SubProfile Event Flow Integration Test =====
+class MockEventSubscriberStub : public OsAccountSubProfileEventStub {
+public:
+    ErrCode OnSubProfileChanged(const SubProfileEventData& eventData) override
+    {
+        receivedEventData_ = eventData;
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            called_ = true;
+        }
+        cv_.notify_one();
+        return ERR_OK;
+    }
+
+    bool WaitForCalled(int timeoutMs = 2000)
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        return cv_.wait_for(lock, std::chrono::milliseconds(timeoutMs), [this] { return called_; });
+    }
+
+    SubProfileEventData receivedEventData_;
+    bool called_ = false;
+    std::mutex mutex_;
+    std::condition_variable cv_;
+};
+
+class SubProfileEventFlowTest : public testing::Test {
+public:
+    static void SetUpTestCase()
+    {
+        allPermTokenId_ = GetAllAccountPermission();
+        ASSERT_NE(allPermTokenId_, 0);
+    }
+
+    static void TearDownTestCase()
+    {
+        if (allPermTokenId_ != 0) {
+            Security::AccessToken::AccessTokenKit::DeleteToken(
+                static_cast<Security::AccessToken::AccessTokenID>(allPermTokenId_));
+        }
+    }
+
+    void SetUp() override
+    {
+        ASSERT_EQ(SetSelfTokenID(allPermTokenId_), 0);
+        std::error_code ec;
+        std::filesystem::remove_all(TEST_ROOT_DIR, ec);
+        std::filesystem::create_directories(TEST_ROOT_DIR);
+        subscriber_ = new (std::nothrow) MockEventSubscriberStub();
+        ASSERT_NE(subscriber_, nullptr);
+    }
+
+    void TearDown() override
+    {
+        if (subscriber_ != nullptr) {
+            OsAccountSubProfileSubscribeManager::GetInstance().UnsubscribeOsAccountSubProfileEvents(subscriber_);
+        }
+        ResetMockState();
+        std::error_code ec;
+        std::filesystem::remove_all(TEST_ROOT_DIR, ec);
+    }
+
+    sptr<MockEventSubscriberStub> subscriber_;
+    static uint64_t allPermTokenId_;
+};
+
+uint64_t SubProfileEventFlowTest::allPermTokenId_ = 0;
+
+/**
+ * @tc.name: SubscribePublishUnsubscribe_Flow_001
+ * @tc.desc: Subscribe to SWITCHED, verify callback received with correct data.
+ */
+HWTEST_F(SubProfileEventFlowTest, SubscribePublishUnsubscribe_Flow_001, TestSize.Level1)
+{
+    auto &mgr = OsAccountSubProfileSubscribeManager::GetInstance();
+
+    ErrCode ret = mgr.SubscribeOsAccountSubProfileEvents(
+        {OsAccountSubProfileEventType::SWITCHED}, subscriber_);
+    EXPECT_EQ(ret, ERR_OK);
+
+    int32_t localId = TEST_OS_ACCOUNT_ID;
+    int32_t subProfileId = TEST_SUBSPACE_BASE + 50;
+    int32_t previousSubProfileId = TEST_SUBSPACE_BASE + 10;
+    ret = mgr.Publish(OsAccountSubProfileEventType::SWITCHED, localId, subProfileId, previousSubProfileId);
+    EXPECT_EQ(ret, ERR_OK);
+
+    ASSERT_TRUE(subscriber_->WaitForCalled(2000));
+
+    EXPECT_EQ(subscriber_->receivedEventData_.type_, OsAccountSubProfileEventType::SWITCHED);
+    EXPECT_EQ(subscriber_->receivedEventData_.osAccountId_, localId);
+    EXPECT_EQ(subscriber_->receivedEventData_.subProfileId_, subProfileId);
+    EXPECT_EQ(subscriber_->receivedEventData_.previousSubProfileId_, previousSubProfileId);
+}
+
+/**
+ * @tc.name: SubscribePublishUnsubscribe_MultipleTypes_002
+ * @tc.desc: Subscribe to multiple event types, publish one, verify callback receives matching type.
+ */
+HWTEST_F(SubProfileEventFlowTest, SubscribePublishUnsubscribe_MultipleTypes_002, TestSize.Level1)
+{
+    auto &mgr = OsAccountSubProfileSubscribeManager::GetInstance();
+
+    ErrCode ret = mgr.SubscribeOsAccountSubProfileEvents(
+        {OsAccountSubProfileEventType::CREATED, OsAccountSubProfileEventType::DELETED}, subscriber_);
+    EXPECT_EQ(ret, ERR_OK);
+
+    int32_t localId = TEST_OS_ACCOUNT_ID;
+    int32_t subProfileId = TEST_SUBSPACE_BASE + 77;
+    ret = mgr.Publish(OsAccountSubProfileEventType::DELETED, localId, subProfileId);
+    EXPECT_EQ(ret, ERR_OK);
+
+    ASSERT_TRUE(subscriber_->WaitForCalled(2000));
+
+    EXPECT_EQ(subscriber_->receivedEventData_.type_, OsAccountSubProfileEventType::DELETED);
+    EXPECT_EQ(subscriber_->receivedEventData_.osAccountId_, localId);
+    EXPECT_EQ(subscriber_->receivedEventData_.subProfileId_, subProfileId);
+}
+
+/**
+ * @tc.name: SubscribePublishUnsubscribe_NoMatchingType_003
+ * @tc.desc: Subscribe to CREATED, publish DELETED, verify callback NOT called.
+ */
+HWTEST_F(SubProfileEventFlowTest, SubscribePublishUnsubscribe_NoMatchingType_003, TestSize.Level1)
+{
+    auto &mgr = OsAccountSubProfileSubscribeManager::GetInstance();
+
+    ErrCode ret = mgr.SubscribeOsAccountSubProfileEvents(
+        {OsAccountSubProfileEventType::CREATED}, subscriber_);
+    EXPECT_EQ(ret, ERR_OK);
+
+    int32_t localId = TEST_OS_ACCOUNT_ID;
+    int32_t subProfileId = TEST_SUBSPACE_BASE + 77;
+    ret = mgr.Publish(OsAccountSubProfileEventType::DELETED, localId, subProfileId);
+    EXPECT_EQ(ret, ERR_OK);
+
+    bool called = subscriber_->WaitForCalled(500);
+    EXPECT_FALSE(called);
+}
 
 #endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE

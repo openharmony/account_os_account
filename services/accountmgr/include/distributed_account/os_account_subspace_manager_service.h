@@ -16,7 +16,7 @@
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OS_ACCOUNT_SUB_PROFILE_MANAGER_SERVICE_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OS_ACCOUNT_SUB_PROFILE_MANAGER_SERVICE_H
 
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+
 #include "os_account_sub_profile_stub.h"
 #include "account_info.h"
 
@@ -26,15 +26,19 @@ class OsAccountSubProfileManagerService : public OsAccountSubProfileStub {
 public:
     OsAccountSubProfileManagerService() = default;
     ~OsAccountSubProfileManagerService() override = default;
-
     int32_t CreateOsAccountSubProfile(int32_t osAccountId,
         OsAccountSubspaceResult &subspaceResult) override;
     int32_t DeleteOsAccountSubProfile(int32_t osAccountId,
         int32_t subspaceId) override;
     int32_t SwitchOsAccountSubProfile(int32_t osAccountId,
         int32_t subspaceId) override;
+    ErrCode SubscribeOsAccountSubProfileEvents(
+        const std::vector<int32_t>& typeInts,
+        const sptr<IRemoteObject>& eventListener) override;
+    ErrCode UnsubscribeOsAccountSubProfileEvents(
+        const std::vector<int32_t>& typeInts,
+        const sptr<IRemoteObject>& eventListener) override;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
-#endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 #endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OS_ACCOUNT_SUB_PROFILE_MANAGER_SERVICE_H

@@ -16,8 +16,11 @@
 #include "os_account_subprofile_client.h"
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
+#include "account_permission_manager.h"
 #include "ohos_account_kits_impl.h"
 #include "os_account_constants.h"
+#include "os_account_sub_profile_event_service.h"
+#include "system_ability_definition.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -27,7 +30,15 @@ OsAccountSubProfileClient &OsAccountSubProfileClient::GetInstance()
     return instance;
 }
 
-OsAccountSubProfileClient::OsAccountSubProfileClient() {}
+OsAccountSubProfileClient::OsAccountSubProfileClient()
+{
+    auto callbackFunc = [] (int32_t systemAbilityId, const std::string &deviceId) {
+        if (systemAbilityId == SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN) {
+            OsAccountSubProfileClient::GetInstance().RestoreSubscribe();
+        }
+    };
+    OhosAccountKitsImpl::GetInstance().SubscribeSystemAbility(callbackFunc);
+}
 
 ErrCode OsAccountSubProfileClient::CreateOsAccountSubProfile(
     int32_t osAccountId, OsAccountSubspaceResult &subspaceResult)
@@ -90,7 +101,6 @@ ErrCode OsAccountSubProfileClient::SwitchOsAccountSubProfile(
 #endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 }
 
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 void OsAccountSubProfileClient::OsAccountSubProfileDeathRecipient::OnRemoteDied(
     const wptr<IRemoteObject> &remote)
 {
@@ -140,7 +150,6 @@ void OsAccountSubProfileClient::ResetProxy(const wptr<IRemoteObject> &remote)
     proxy_ = nullptr;
     deathRecipient_ = nullptr;
 }
-#endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 
 ErrCode OsAccountSubProfileClient::GetOsAccountForegroundSubProfileId(
     int32_t &subProfileId)
@@ -187,17 +196,137 @@ ErrCode OsAccountSubProfileClient::GetOsAccountSubProfile(
         distributedInfo);
 }
 
-ErrCode OsAccountSubProfileClient::SubscribeOsAccountSubProfileEvents(
-    const std::set<DistributedAccountSubProfileEventType>& types,
-    const std::shared_ptr<DistributedAccountSubscribeCallback>& callback)
+void OsAccountSubProfileClient::RestoreSubscribe()
 {
-    return OhosAccountKitsImpl::GetInstance().SubscribeDistributedAccountSpaceEvents(types, callback);
+    auto proxy = GetOsAccountSubProfileProxy();
+    if (proxy == nullptr) {
+        ACCOUNT_LOGE("Get proxy failed.");
+        return;
+    }
+
+    std::lock_guard<std::mutex> lock(mutex_);
+    std::set<OsAccountSubProfileEventType> existingTypes;
+    OsAccountSubProfileEventService::GetInstance()->GetAllType(existingTypes);
+    if (existingTypes.empty()) {
+        return;
+    }
+    ErrCode result = SubscribeNewTypesToService(proxy, existingTypes);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Subscribe to service space failed, result=%{public}d.", result);
+    }
+}
+
+void OsAccountSubProfileClient::GetNewSubProfileEventTypes(
+    const std::set<OsAccountSubProfileEventType> &types,
+    std::set<OsAccountSubProfileEventType> &newTypes)
+{
+    std::set<OsAccountSubProfileEventType> existingTypes;
+    OsAccountSubProfileEventService::GetInstance()->GetAllType(existingTypes);
+    for (auto type : types) {
+        if (existingTypes.find(type) == existingTypes.end()) {
+            newTypes.insert(type);
+        }
+    }
+}
+
+ErrCode OsAccountSubProfileClient::SubscribeNewTypesToService(
+    const sptr<IOsAccountSubProfile> &proxy,
+    const std::set<OsAccountSubProfileEventType> &newTypes)
+{
+    std::vector<int32_t> typeInts;
+    for (auto type : newTypes) {
+        typeInts.push_back(static_cast<int32_t>(type));
+    }
+    return proxy->SubscribeOsAccountSubProfileEvents(typeInts,
+        OsAccountSubProfileEventService::GetInstance()->AsObject());
+}
+
+ErrCode OsAccountSubProfileClient::SubscribeOsAccountSubProfileEvents(
+    const std::set<OsAccountSubProfileEventType>& types,
+    const std::shared_ptr<OsAccountSubProfileSubscribeCallback>& callback)
+{
+    ACCOUNT_LOGI("Batch subscribe os account sub profile events in client.");
+    if (callback == nullptr || types.empty()) {
+        ACCOUNT_LOGE("Invalid parameter, callback null or types empty.");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    auto proxy = GetOsAccountSubProfileProxy();
+    if (proxy == nullptr) {
+        ACCOUNT_LOGE("Get proxy failed.");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    if (OsAccountSubProfileEventService::GetInstance()->IsAllTypeExist(types, callback)) {
+        ACCOUNT_LOGI("Callback already has sub profile event listener.");
+        return ERR_OK;
+    }
+
+    if (OsAccountSubProfileEventService::GetInstance()->GetCallbackSize() >=
+        Constants::DISTRIBUTED_SUBSCRIBER_MAX_SIZE) {
+        ACCOUNT_LOGE("The maximum number of eventListeners has been reached.");
+        return ERR_OHOSACCOUNT_KIT_SUBSCRIBE_MAX_SIZE_ERROR;
+    }
+
+    if (OsAccountSubProfileEventService::GetInstance()->AsObject() == nullptr) {
+        ACCOUNT_LOGE("Create sub profile event service failed.");
+        return ERR_OHOSACCOUNT_KIT_SUBSCRIBE_ERROR;
+    }
+
+    std::set<OsAccountSubProfileEventType> newTypes;
+    GetNewSubProfileEventTypes(types, newTypes);
+
+    ErrCode result = ERR_OK;
+    if (!newTypes.empty()) {
+        result = SubscribeNewTypesToService(proxy, newTypes);
+    }
+    if (result == ERR_OK) {
+        OsAccountSubProfileEventService::GetInstance()->AddTypes(types, callback);
+    }
+    return result;
 }
 
 ErrCode OsAccountSubProfileClient::UnsubscribeOsAccountSubProfileEvents(
-    const std::shared_ptr<DistributedAccountSubscribeCallback>& callback)
+    const std::shared_ptr<OsAccountSubProfileSubscribeCallback>& callback)
 {
-    return OhosAccountKitsImpl::GetInstance().UnsubscribeDistributedAccountSpaceEvents(callback);
+    ACCOUNT_LOGI("Unsubscribe os account sub profile events in client.");
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("Callback is nullptr.");
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+    }
+
+    auto proxy = GetOsAccountSubProfileProxy();
+    if (proxy == nullptr) {
+        ACCOUNT_LOGE("Get proxy failed.");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+
+    sptr<IRemoteObject> listener = OsAccountSubProfileEventService::GetInstance()->AsObject();
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    std::set<OsAccountSubProfileEventType> removedTypes;
+    OsAccountSubProfileEventService::GetInstance()->GetTypesToRemove(callback, removedTypes);
+
+    if (removedTypes.empty()) {
+        ACCOUNT_LOGI("All types still have other subscribers, only delete client data.");
+        OsAccountSubProfileEventService::GetInstance()->DeleteCallback(callback);
+        return ERR_OK;
+    }
+
+    std::vector<int32_t> typeInts;
+    for (auto type : removedTypes) {
+        typeInts.push_back(static_cast<int32_t>(type));
+    }
+    ErrCode result = proxy->UnsubscribeOsAccountSubProfileEvents(typeInts, listener);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Unsubscribe sub profile events from service failed, result=%{public}d.", result);
+        return result;
+    }
+
+    OsAccountSubProfileEventService::GetInstance()->DeleteCallback(callback);
+    return ERR_OK;
 }
 
 ErrCode OsAccountSubProfileClient::GetOsAccountSubProfileId(

@@ -31,12 +31,6 @@ int32_t DistributedAccountEventService::GetCallbackSize()
     return callbackMap_.size();
 }
 
-int32_t DistributedAccountEventService::GetSpaceCallbackSize()
-{
-    std::lock_guard<std::mutex> lock(spaceMapLock_);
-    return spaceCallbackMap_.size();
-}
-
 bool DistributedAccountEventService::IsTypeExist(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
     const std::shared_ptr<DistributedAccountSubscribeCallback> &callback)
 {
@@ -128,126 +122,6 @@ DistributedAccountEventService *DistributedAccountEventService::GetInstance()
 {
     static sptr<DistributedAccountEventService> instance = new (std::nothrow) DistributedAccountEventService();
     return instance.GetRefPtr();
-}
-
-void DistributedAccountEventService::AddSpaceTypes(const std::set<DistributedAccountSubProfileEventType>& types,
-    const std::shared_ptr<DistributedAccountSubscribeCallback> &callback)
-{
-    if (callback == nullptr || types.empty()) {
-        return;
-    }
-    std::lock_guard<std::mutex> lock(spaceMapLock_);
-    auto it = spaceCallbackMap_.find(callback);
-    if (it == spaceCallbackMap_.end()) {
-        spaceCallbackMap_[callback] = types;
-    } else {
-        it->second.insert(types.begin(), types.end());
-    }
-
-    for (auto type : types) {
-        auto itemType = spaceTypeMap_.find(type);
-        if (itemType == spaceTypeMap_.end()) {
-            spaceTypeMap_[type] = {callback};
-        } else {
-            itemType->second.insert(callback);
-        }
-    }
-    ACCOUNT_LOGI("Distributed client subscribe space events, type size=%{public}zu, callback size=%{public}zu.",
-        spaceTypeMap_.size(), spaceCallbackMap_.size());
-}
-
-void DistributedAccountEventService::DeleteSpaceCallback(
-    const std::shared_ptr<DistributedAccountSubscribeCallback> &callback)
-{
-    if (callback == nullptr) {
-        return;
-    }
-    std::lock_guard<std::mutex> lock(spaceMapLock_);
-    auto it = spaceCallbackMap_.find(callback);
-    if (it == spaceCallbackMap_.end()) {
-        return;
-    }
-
-    auto callbackTypes = it->second;
-    spaceCallbackMap_.erase(it);
-
-    for (auto type : callbackTypes) {
-        auto itemType = spaceTypeMap_.find(type);
-        if (itemType != spaceTypeMap_.end()) {
-            itemType->second.erase(callback);
-            if (itemType->second.empty()) {
-                spaceTypeMap_.erase(itemType);
-            }
-        }
-    }
-    ACCOUNT_LOGI("Distributed client delete space callback.");
-}
-
-void DistributedAccountEventService::GetSpaceTypesToRemove(
-    const std::shared_ptr<DistributedAccountSubscribeCallback> &callback,
-    std::set<DistributedAccountSubProfileEventType> &removedTypes)
-{
-    if (callback == nullptr) {
-        return;
-    }
-    std::lock_guard<std::mutex> lock(spaceMapLock_);
-    auto it = spaceCallbackMap_.find(callback);
-    if (it == spaceCallbackMap_.end()) {
-        return;
-    }
-
-    auto callbackTypes = it->second;
-    for (auto type : callbackTypes) {
-        auto itemType = spaceTypeMap_.find(type);
-        if (itemType != spaceTypeMap_.end()) {
-            if (itemType->second.size() == 1) {
-                removedTypes.insert(type);
-            }
-        }
-    }
-    ACCOUNT_LOGI("Distributed client query space types to remove, removed types=%{public}zu.",
-        removedTypes.size());
-}
-
-void DistributedAccountEventService::GetAllSpaceType(std::set<DistributedAccountSubProfileEventType> &typeList)
-{
-    std::lock_guard<std::mutex> lock(spaceMapLock_);
-    for (auto &item : spaceTypeMap_) {
-        typeList.insert(item.first);
-    }
-}
-
-bool DistributedAccountEventService::IsAllSpaceTypeExist(const std::set<DistributedAccountSubProfileEventType>& types,
-    const std::shared_ptr<DistributedAccountSubscribeCallback> &callback)
-{
-    if (callback == nullptr || types.empty()) {
-        return false;
-    }
-    std::lock_guard<std::mutex> lock(spaceMapLock_);
-    auto it = spaceCallbackMap_.find(callback);
-    if (it == spaceCallbackMap_.end()) {
-        return false;
-    }
-    for (auto type : types) {
-        if (it->second.find(type) == it->second.end()) {
-            return false;
-        }
-    }
-    return true;
-}
-
-ErrCode DistributedAccountEventService::OnSubProfileAccountsChanged(
-    const DistributedAccountSubProfileEventData &eventData)
-{
-    std::lock_guard<std::mutex> lock(spaceMapLock_);
-    auto it = spaceTypeMap_.find(eventData.type_);
-    if (it == spaceTypeMap_.end()) {
-        return ERR_OK;
-    }
-    for (const auto &callback : it->second) {
-        callback->OnSubProfileAccountsChanged(eventData);
-    }
-    return ERR_OK;
 }
 }  // namespace AccountSA
 }  // namespace OHOS

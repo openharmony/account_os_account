@@ -580,14 +580,6 @@ public:
     void TearDown() override {}
 };
 
-HWTEST_F(OsAccountSubProfileClientTest, SubscribeOsAccountSubProfileEvents001, TestSize.Level0)
-{
-    ErrCode ret = OsAccountSubProfileClient::GetInstance().SubscribeOsAccountSubProfileEvents({}, nullptr);
-    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-    ret = OsAccountSubProfileClient::GetInstance().UnsubscribeOsAccountSubProfileEvents(nullptr);
-    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
-}
-
 // ===== A. GetOsAccountForegroundSubProfileId =====
 
 HWTEST_F(OsAccountSubProfileClientTest, FgSubProfileId_NoParam_NotSystemApp, TestSize.Level0)

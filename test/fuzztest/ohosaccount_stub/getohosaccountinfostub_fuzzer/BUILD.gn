@@ -31,6 +31,8 @@ ohos_fuzztest("GetOhosAccountInfoStubFuzzTest") {
     "${os_account_path}/dfx/hitrace_adapter",
     "${os_account_path}/test/fuzztest/ohosaccount/common",
     "${services_path}/accountmgr/include",
+    "${services_path}/accountmgr/include/distributed_account",
+    "${services_path}/accountmgr/include/os_account_subprofile",
   ]
   cflags = [
     "-g",
@@ -38,7 +40,11 @@ ohos_fuzztest("GetOhosAccountInfoStubFuzzTest") {
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
   ]
-  sources = [ "getohosaccountinfostub_fuzzer.cpp" ]
+  sources = [ 
+    "getohosaccountinfostub_fuzzer.cpp",
+    "${os_account_subspace_framework_path}/src/os_account_sub_profile_subscribe_callback.cpp",
+    "${os_account_subspace_framework_path}/src/os_account_sub_profile_event_service.cpp"
+  ]
   configs = [
     "${domain_account_framework_path}:frameworks_domain_account_interface_public_config",
     "${os_account_innerkits_native_path}:frameworks_osaccount_interface_public_config",
@@ -48,6 +54,9 @@ ohos_fuzztest("GetOhosAccountInfoStubFuzzTest") {
     "${innerkits_native_path}:libaccountkits",
     "${os_account_path}/frameworks/common:libaccount_common",
     "${services_path}/accountmgr:accountmgr",
+    "${os_account_subspace_framework_path}:os_account_subspace_stub",
+    "${os_account_subspace_framework_path}:os_account_sub_profile_event_proxy",
+    "${os_account_subspace_framework_path}:os_account_sub_profile_event_stub",
   ]
 
   external_deps = [

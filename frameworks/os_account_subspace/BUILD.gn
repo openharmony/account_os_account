@@ -16,7 +16,10 @@ import("//build/ohos.gni")
 import("../../os_account.gni")
 
 idl_gen_interface("frameworks_os_account_subspace_interface") {
-  sources = [ "IOsAccountSubProfile.idl" ]
+  sources = [
+    "IOsAccountSubProfile.idl",
+    "IOsAccountSubProfileEvent.idl",
+  ]
   log_domainid = "0xD001B00"
   log_tag = "DistributedAccountSpaceFwk"
   subsystem_name = "account"
@@ -68,6 +71,7 @@ config("os_account_subspace_innerkits_public_config") {
     "include",
     "${os_account_subspace_interfaces_native_path}/include",
     "${common_path}/include",
+    "${common_path}/log/include",
     "${common_path}/utils/include",
     "${innerkits_common}/include",
     "${innerkits_path}/include",
@@ -106,6 +110,48 @@ ohos_source_set("os_account_subspace_stub") {
   public_configs = [ ":os_account_subspace_innerkits_public_config" ]
   output_values = get_target_outputs(":frameworks_os_account_subspace_interface")
   sources = filter_include(output_values, [ "*os_account_sub_profile_stub.cpp" ])
+  deps = [ ":frameworks_os_account_subspace_interface" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+ohos_source_set("os_account_sub_profile_event_proxy") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  configs = [ ":os_account_subspace_innerkits_config" ]
+  public_configs = [ ":os_account_subspace_innerkits_public_config" ]
+  output_values = get_target_outputs(":frameworks_os_account_subspace_interface")
+  sources = filter_include(output_values, [ "*os_account_sub_profile_event_proxy.cpp" ])
+  deps = [ ":frameworks_os_account_subspace_interface" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+ohos_source_set("os_account_sub_profile_event_stub") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  configs = [ ":os_account_subspace_innerkits_config" ]
+  public_configs = [ ":os_account_subspace_innerkits_public_config" ]
+  output_values = get_target_outputs(":frameworks_os_account_subspace_interface")
+  sources = filter_include(output_values, [ "*os_account_sub_profile_event_stub.cpp" ])
   deps = [ ":frameworks_os_account_subspace_interface" ]
   external_deps = [
     "c_utils:utils",

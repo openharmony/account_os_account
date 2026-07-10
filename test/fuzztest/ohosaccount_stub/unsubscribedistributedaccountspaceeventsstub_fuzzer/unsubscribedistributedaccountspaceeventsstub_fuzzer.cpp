@@ -20,6 +20,7 @@
 #include <vector>
 #define private public
 #include "account_mgr_service.h"
+#include "os_account_subspace_manager_service.h"
 #undef private
 #include "access_token.h"
 #include "access_token_error.h"
@@ -35,7 +36,7 @@ using namespace std;
 using namespace OHOS::AccountSA;
 using namespace OHOS::Security::AccessToken;
 
-const std::u16string OHOS_ACCOUNT_DESCRIPTOR = u"ohos.accountfwk.IAccount";
+const std::u16string OHOS_ACCOUNT_DESCRIPTOR = u"ohos.accountfwk.IOsAccountSubProfile";
 const int32_t ENUM_SIZE = 4;
 namespace OHOS {
 bool UnsubscribeDistributedAccountSpaceEventsStubFuzzTest(const uint8_t* data, size_t size)
@@ -65,7 +66,7 @@ bool UnsubscribeDistributedAccountSpaceEventsStubFuzzTest(const uint8_t* data, s
     auto accountManagerService = std::make_shared<AccountMgrService>();
     accountManagerService->state_ = STATE_RUNNING;
     accountManagerService->OnRemoteRequest(
-        static_cast<int32_t>(IAccountIpcCode::COMMAND_UNSUBSCRIBE_DISTRIBUTED_ACCOUNT_SPACE_EVENTS),
+        static_cast<int32_t>(IOsAccountSubProfileIpcCode::COMMAND_UNSUBSCRIBE_OS_ACCOUNT_SUB_PROFILE_EVENTS),
         datas, reply, option);
     return true;
 }

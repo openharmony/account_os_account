@@ -28,12 +28,9 @@
 #include "iremote_object.h"
 #include "ohos_account_manager.h"
 #include "os_account_manager_service.h"
+#include "os_account_subspace_manager_service.h"
 #include "singleton.h"
 #include "system_ability.h"
-
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-#include "os_account_subspace_manager_service.h"
-#endif
 
 namespace OHOS {
 namespace AccountSA {
@@ -65,10 +62,6 @@ public:
     ErrCode SubscribeDistributedAccountEvent(int32_t typeInt, const sptr<IRemoteObject>& eventListener) override;
     ErrCode UnsubscribeDistributedAccountEvent(int32_t typeInt, const sptr<IRemoteObject>& eventListener) override;
 
-    ErrCode SubscribeDistributedAccountSpaceEvents(
-        const std::vector<int32_t>& typeInts, const sptr<IRemoteObject>& eventListener) override;
-    ErrCode UnsubscribeDistributedAccountSpaceEvents(
-        const std::vector<int32_t>& typeInts, const sptr<IRemoteObject>& eventListener) override;
     int32_t GetOsAccountForegroundSubProfileId(int32_t &subProfileId) override;
     int32_t GetOsAccountForegroundSubProfileId(int32_t osAccountId,
         int32_t &subProfileId) override;

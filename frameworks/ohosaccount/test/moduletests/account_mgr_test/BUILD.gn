@@ -45,6 +45,8 @@ ohos_moduletest("AccountInnerSdkModuleMockTest") {
     "${services_path}/accountmgr/include/account_iam",
     "${services_path}/accountmgr/include/appaccount",
     "${services_path}/accountmgr/include/domain_account",
+    "${services_path}/accountmgr/include/os_account_subprofile",
+    "${services_path}/accountmgr/include/distributed_account",
     "${services_path}/accountmgr/include/osaccount",
     "${os_account_path}/interfaces/innerkits/ohosaccount/native/include/",
     "${services_path}/accountmgr/include/common/database/kvstore",
@@ -88,6 +90,9 @@ ohos_moduletest("AccountInnerSdkModuleMockTest") {
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${os_account_innerkits_native_path}:os_account_state_reply_callback_proxy",
     "${os_account_innerkits_native_path}:os_account_state_reply_callback_stub",
+    "${os_account_subspace_framework_path}:os_account_sub_profile_event_proxy",
+    "${os_account_subspace_framework_path}:os_account_sub_profile_event_stub",
+    "${os_account_subspace_framework_path}:os_account_subspace_stub",
   ]
 
   use_exceptions = true
@@ -157,6 +162,13 @@ ohos_moduletest("AccountInnerSdkModuleMockTest") {
   }
   if (has_hiviewdfx_hisysevent_part) {
     cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
+  }
+  if (os_account_enable_multiple_os_account_sub_profiles) {
+    cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE" ]
+    sources += [
+      "${services_path}/accountmgr/src/distributed_account/os_account_subspace_data_deal.cpp",
+      "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager.cpp",
+    ]
   }
   part_name = "os_account"
 }

@@ -165,29 +165,6 @@ public:
     virtual ErrCode UnsubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
         const std::shared_ptr<DistributedAccountSubscribeCallback> &callback) = 0;
 
-    /**
-     * @brief Batch subscribes distributed account space events by types and callback.
-     * @param types space event types set
-     * @param callback subscribe callback
-     * @return error code, see account_error_no.h
-     */
-    virtual ErrCode SubscribeDistributedAccountSpaceEvents(const std::set<DistributedAccountSubProfileEventType>& types,
-        const std::shared_ptr<DistributedAccountSubscribeCallback> &callback)
-    {
-        return ERR_OK;
-    }
-
-    /**
-     * @brief Unsubscribes all distributed account space events for a callback.
-     * @param callback subscribe callback
-     * @return error code, see account_error_no.h
-     */
-    virtual ErrCode UnsubscribeDistributedAccountSpaceEvents(
-        const std::shared_ptr<DistributedAccountSubscribeCallback> &callback)
-    {
-        return ERR_OK;
-    }
-
     virtual ErrCode GetOsAccountForegroundSubProfileId(int32_t &subProfileId)
     {
         return ERR_OK;

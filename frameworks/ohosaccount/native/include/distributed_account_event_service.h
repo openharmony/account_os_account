@@ -34,33 +34,17 @@ public:
         const std::shared_ptr<DistributedAccountSubscribeCallback> &callback);
     void GetAllType(std::set<DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE> &typeList);
     int32_t GetCallbackSize();
-    int32_t GetSpaceCallbackSize();
-    void AddSpaceTypes(const std::set<DistributedAccountSubProfileEventType>& types,
-        const std::shared_ptr<DistributedAccountSubscribeCallback> &callback);
-    void DeleteSpaceCallback(const std::shared_ptr<DistributedAccountSubscribeCallback> &callback);
-    void GetSpaceTypesToRemove(const std::shared_ptr<DistributedAccountSubscribeCallback> &callback,
-        std::set<DistributedAccountSubProfileEventType> &removedTypes);
-    void GetAllSpaceType(std::set<DistributedAccountSubProfileEventType> &typeList);
-    bool IsAllSpaceTypeExist(const std::set<DistributedAccountSubProfileEventType>& types,
-        const std::shared_ptr<DistributedAccountSubscribeCallback> &callback);
     ErrCode OnAccountsChanged(const DistributedAccountEventData &eventData) override;
-    ErrCode OnSubProfileAccountsChanged(const DistributedAccountSubProfileEventData &eventData) override;
     static DistributedAccountEventService *GetInstance();
 
 private:
     std::mutex mapLock_;
-    std::mutex spaceMapLock_;
+
     std::map<std::shared_ptr<DistributedAccountSubscribeCallback>,
         std::set<DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE>> callbackMap_;
 
     std::map<DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE,
         std::set<std::shared_ptr<DistributedAccountSubscribeCallback>>> typeMap_;
-
-    std::map<std::shared_ptr<DistributedAccountSubscribeCallback>,
-        std::set<DistributedAccountSubProfileEventType>> spaceCallbackMap_;
-
-    std::map<DistributedAccountSubProfileEventType,
-        std::set<std::shared_ptr<DistributedAccountSubscribeCallback>>> spaceTypeMap_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

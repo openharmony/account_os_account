@@ -47,6 +47,8 @@ ohos_unittest("OhosServiceTest") {
     "${account_iam_interfaces_native_path}/include",
     "${os_account_interfaces_native_path}/include",
     "${os_account_core_path}/include",
+    "${os_account_subspace_interfaces_native_path}/include",
+    "${services_path}/accountmgr/include/os_account_subprofile",
   ]
 
   sources = [
@@ -64,6 +66,14 @@ ohos_unittest("OhosServiceTest") {
 
   sources += [ "distributed_account_subscribe_manager_test.cpp" ]
 
+  sources += [ "os_account_subprofile_client_no_subspace_test.cpp" ]
+
+  sources += [
+    "${os_account_innerkits_native_path}/src/os_account_subprofile_client.cpp",
+    "${os_account_subspace_framework_path}/src/os_account_sub_profile_event_service.cpp",
+    "${os_account_subspace_framework_path}/src/os_account_sub_profile_subscribe_callback.cpp",
+  ]
+
   configs = [
     ":accountmgr_data_deal_test_config",
     "${services_path}/accountmgr:accountmgr_config",
@@ -71,9 +81,12 @@ ohos_unittest("OhosServiceTest") {
   ]
 
   deps = [
+    "${account_test_common}:account_test_common_source_set",
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${os_account_subspace_framework_path}:os_account_sub_profile_event_stub",
+    "${os_account_subspace_framework_path}:os_account_subspace_stub",
     "${services_path}/accountmgr:accountmgr",
   ]
 
@@ -83,6 +96,7 @@ ohos_unittest("OhosServiceTest") {
     "ability_runtime:app_manager",
     "access_token:libaccesstoken_sdk",
     "access_token:libtokenid_sdk",
+    "access_token:libtokensetproc_shared",
     "cJSON:cjson",
     "c_utils:utils",
     "googletest:gmock_main",
@@ -218,10 +232,80 @@ group("unittest") {
   ]
   deps += [
     ":OhosAccountSpaceLoginLogoutTest",
-    ":OsAccountSubspaceCoverageTest",
     ":OsAccountSubProfileManagerTest",
+    ":OsAccountSubProfileSubscribeManagerTest",
+    ":OsAccountSubspaceCheckSystemAppTest",
+    ":OsAccountSubspaceCoverageTest",
     ":OsAccountSubspaceTest",
   ]
+}
+
+ohos_unittest("OsAccountSubspaceCheckSystemAppTest") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  module_out_path = module_output_path
+  cflags_cc = [ "-DENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE" ]
+  sources = [ "os_account_subspace_check_system_app_test.cpp" ]
+  sources += [
+    "${common_path}/account_error/src/account_error_no.cpp",
+    "${common_path}/log/src/account_log_wrapper.cpp",
+    "${os_account_dfx_path}/hisysevent_adapter/account_hisysevent_adapter.cpp",
+    "${os_account_subspace_framework_path}/src/os_account_sub_profile_subscribe_callback.cpp",
+  ]
+  include_dirs = [
+    "${os_account_interfaces_native_path}/include",
+    "${os_account_subspace_interfaces_native_path}/include",
+    "${common_path}/account_error",
+    "${common_path}/log/include",
+    "${common_path}/include",
+    "${innerkits_common}/include",
+    "${innerkits_path}/include",
+    "${innerkits_native_path}/include",
+    "${services_path}/accountmgr/include",
+    "${services_path}/accountmgr/include/os_account_subprofile",
+    "${os_account_dfx_path}/hisysevent_adapter",
+  ]
+  configs = [
+    ":accountmgr_data_deal_test_config",
+    "${services_path}/accountmgr/test:accountmgr_test_config",
+    "${services_path}/accountmgr:accountmgr_config",
+  ]
+  deps = [
+    "${account_test_common}:account_test_common_source_set",
+    "${common_path}:libaccount_common",
+    "${innerkits_native_path}:libaccountkits",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${os_account_subspace_framework_path}:os_account_sub_profile_event_stub",
+    "${os_account_subspace_framework_path}:os_account_subspace_stub",
+    "${services_path}/accountmgr:accountmgr",
+  ]
+  external_deps = [
+    "ability_base:base",
+    "ability_base:want",
+    "access_token:libaccesstoken_sdk",
+    "access_token:libtokenid_sdk",
+    "access_token:libtokensetproc_shared",
+    "cJSON:cjson",
+    "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+    "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
+  ]
+  if (os_account_distributed_feature && !use_libfuzzer) {
+    cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
+  }
+  if (has_hiviewdfx_hisysevent_part) {
+    cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
+    external_deps += [ "hisysevent:libhisysevent" ]
+  }
+  part_name = "os_account"
 }
 
 ohos_unittest("OhosAccountSpaceLoginLogoutTest") {
@@ -255,6 +339,7 @@ ohos_unittest("OhosAccountSpaceLoginLogoutTest") {
     "${os_account_dfx_path}/hidumper_adapter",
     "${os_account_dfx_path}/hitrace_adapter",
     "${os_account_dfx_path}/hisysevent_adapter",
+    "${services_path}/accountmgr/include/os_account_subprofile",
   ]
 
   sources = [
@@ -263,12 +348,14 @@ ohos_unittest("OhosAccountSpaceLoginLogoutTest") {
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
     "${services_path}/accountmgr/src/account_event_provider.cpp",
     "${services_path}/accountmgr/src/account_state_machine.cpp",
-    "${services_path}/accountmgr/src/distributed_account_subscribe_death_recipient.cpp",
     "${services_path}/accountmgr/src/distributed_account/os_account_subspace_data_deal.cpp",
     "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager.cpp",
+    "${services_path}/accountmgr/src/distributed_account_subscribe_death_recipient.cpp",
     "${services_path}/accountmgr/src/distributed_account_subscribe_manager.cpp",
     "${services_path}/accountmgr/src/ohos_account_data_deal.cpp",
     "${services_path}/accountmgr/src/ohos_account_manager.cpp",
+    "${services_path}/accountmgr/src/os_account_subprofile/os_account_sub_profile_subscribe_death_recipient.cpp",
+    "${services_path}/accountmgr/src/os_account_subprofile/os_account_sub_profile_subscribe_manager.cpp",
     "mock/mock_space_dependencies.cpp",
     "ohos_account_space_login_logout_test.cpp",
   ]
@@ -349,6 +436,7 @@ ohos_unittest("OsAccountSubspaceTest") {
     "${innerkits_path}/include",
     "${os_account_dfx_path}/hisysevent_adapter",
     "${os_account_dfx_path}/data_dfx",
+    "${services_path}/accountmgr/include/os_account_subprofile",
   ]
 
   sources = [
@@ -356,8 +444,8 @@ ohos_unittest("OsAccountSubspaceTest") {
     "${common_path}/file_operator/src/account_file_operator.cpp",
     "${common_path}/json_utils/src/json_utils.cpp",
     "${common_path}/log/src/account_log_wrapper.cpp",
-    "${os_account_dfx_path}/hisysevent_adapter/account_hisysevent_adapter.cpp",
     "${innerkits_native_path}/src/distributed_account_subscribe_callback.cpp",
+    "${os_account_dfx_path}/hisysevent_adapter/account_hisysevent_adapter.cpp",
     "${services_path}/accountmgr/src/distributed_account/os_account_subspace_data_deal.cpp",
     "os_account_subspace_test.cpp",
   ]
@@ -406,38 +494,36 @@ ohos_unittest("OsAccountSubProfileManagerTest") {
   use_exceptions = true
   cflags = []
 
-  sources = [
-    "os_account_subspace_manager_test.cpp",
-  ]
+  sources = [ "os_account_subspace_manager_test.cpp" ]
 
   sources += [
+    "${account_iam_framework_path}/src/account_iam_info.cpp",
     "${common_path}/account_error/src/account_error_no.cpp",
     "${common_path}/file_operator/src/account_file_operator.cpp",
     "${common_path}/json_utils/src/json_utils.cpp",
     "${common_path}/json_utils/src/os_account_info_json_parser.cpp",
     "${common_path}/log/src/account_log_wrapper.cpp",
-    "${os_account_dfx_path}/hisysevent_adapter/account_hisysevent_adapter.cpp",
-    "${account_iam_framework_path}/src/account_iam_info.cpp",
     "${domain_account_framework_path}/src/domain_account_common.cpp",
-    "${os_account_innerkits_native_path}/src/os_account_constraint_subscriber.cpp",
+    "${os_account_dfx_path}/hisysevent_adapter/account_hisysevent_adapter.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
+    "${os_account_innerkits_native_path}/src/os_account_constraint_subscriber.cpp",
   ]
   sources += account_service_sources
   sources -= [
-    "${services_path}/accountmgr/src/osaccount/inner_os_account_manager.cpp",
     "${services_path}/accountmgr/src/account_mgr_service.cpp",
+    "${services_path}/accountmgr/src/osaccount/inner_os_account_manager.cpp",
   ]
   sources += [
-    "mock/mock_space_dependencies.cpp",
-    "${services_path}/accountmgr/src/distributed_account/os_account_subspace_data_deal.cpp",
-    "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager.cpp",
-    "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager_service.cpp",
-    "${services_path}/accountmgr/src/ability_manager_adapter/ability_manager_adapter.cpp",
-    "${os_account_core_path}/src/os_account_constraint_subscriber_manager.cpp",
     "${os_account_core_path}/src/os_account.cpp",
+    "${os_account_core_path}/src/os_account_constraint_subscriber_manager.cpp",
     "${os_account_core_path}/src/os_account_death_recipient.cpp",
     "${os_account_core_path}/src/os_account_event_listener.cpp",
+    "${os_account_subspace_framework_path}/src/os_account_sub_profile_event_service.cpp",
+    "${services_path}/accountmgr/src/ability_manager_adapter/ability_manager_adapter.cpp",
     "${services_path}/accountmgr/src/common/database/kvstore/kvstore_adapter_impl.cpp",
+    "${services_path}/accountmgr/src/distributed_account/os_account_subspace_data_deal.cpp",
+    "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager.cpp",
+    "mock/mock_space_dependencies.cpp",
   ]
 
   include_dirs = [
@@ -460,6 +546,7 @@ ohos_unittest("OsAccountSubProfileManagerTest") {
     "${os_account_dfx_path}/hisysevent_adapter",
     "${os_account_dfx_path}/data_dfx",
     "${account_iam_interfaces_native_path}/include",
+    "${services_path}/accountmgr/include/os_account_subprofile",
   ]
 
   configs = [
@@ -469,19 +556,21 @@ ohos_unittest("OsAccountSubProfileManagerTest") {
   ]
 
   deps = [
+    "${account_iam_framework_path}:account_iam_stub",
     "${account_test_common}:account_test_common_source_set",
     "${common_path}:libaccount_common",
-    "${account_iam_framework_path}:account_iam_stub",
     "${domain_account_framework_path}:domain_account_stub",
-    "${os_account_subspace_framework_path}:os_account_subspace_stub",
     "${innerkits_native_path}:account_stub",
     "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_event_proxy",
     "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${os_account_innerkits_native_path}:os_account_proxy",
     "${os_account_innerkits_native_path}:os_account_state_reply_callback_proxy",
     "${os_account_innerkits_native_path}:os_account_state_reply_callback_stub",
-    "${os_account_innerkits_native_path}:os_account_proxy",
     "${os_account_innerkits_native_path}:os_account_stub",
+    "${os_account_subspace_framework_path}:os_account_sub_profile_event_proxy",
+    "${os_account_subspace_framework_path}:os_account_sub_profile_event_stub",
+    "${os_account_subspace_framework_path}:os_account_subspace_stub",
     "${services_path}/accountmgr:accountmgr",
   ]
 
@@ -647,7 +736,85 @@ ohos_unittest("OsAccountSubProfileManagerTest") {
     external_deps += [ "hisysevent:libhisysevent" ]
   }
 
-  sources += [ "${services_path}/accountmgr/test/mock/common/bundle_manager_adapter.cpp" ]
+  sources += [
+    "${services_path}/accountmgr/test/mock/common/bundle_manager_adapter.cpp",
+  ]
+  part_name = "os_account"
+}
+
+ohos_unittest("OsAccountSubProfileSubscribeManagerTest") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  module_out_path = module_output_path
+  cflags_cc = [ "-DENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE" ]
+
+  sources = [
+    "${common_path}/log/src/account_log_wrapper.cpp",
+    "${os_account_dfx_path}/hisysevent_adapter/account_hisysevent_adapter.cpp",
+    "${os_account_subspace_framework_path}/src/os_account_sub_profile_subscribe_callback.cpp",
+    "${services_path}/accountmgr/src/os_account_subprofile/os_account_sub_profile_subscribe_death_recipient.cpp",
+    "${services_path}/accountmgr/src/os_account_subprofile/os_account_sub_profile_subscribe_manager.cpp",
+    "mock/mock_space_dependencies.cpp",
+    "os_account_sub_profile_subscribe_manager_test.cpp",
+  ]
+
+  include_dirs = [
+    "${os_account_interfaces_native_path}/include",
+    "${os_account_subspace_interfaces_native_path}/include",
+    "${os_account_subspace_framework_path}/src",
+    "${services_path}/accountmgr/include",
+    "${services_path}/accountmgr/include/os_account_subprofile",
+    "${common_path}/account_error",
+    "${common_path}/log/include",
+    "${common_path}/file_operator/include",
+    "${common_path}/json_utils/include",
+    "${common_path}/utils/include",
+    "${common_path}/include",
+    "${innerkits_common}/include",
+    "${innerkits_path}/include",
+    "${innerkits_native_path}/include",
+    "${os_account_dfx_path}/hisysevent_adapter",
+    "${services_path}/accountmgr/test/unittest/ohos_account/mock",
+  ]
+
+  configs = [
+    ":accountmgr_data_deal_test_config",
+    "${services_path}/accountmgr/test:accountmgr_test_config",
+  ]
+
+  deps = [
+    "${account_test_common}:account_test_common_source_set",
+    "${common_path}:libaccount_common",
+    "${innerkits_native_path}:libaccountkits",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${os_account_subspace_framework_path}:os_account_sub_profile_event_proxy",
+    "${os_account_subspace_framework_path}:os_account_sub_profile_event_stub",
+    "${os_account_subspace_framework_path}:os_account_subspace_stub",
+  ]
+
+  external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "access_token:libtokenid_sdk",
+    "access_token:libtokensetproc_shared",
+    "cJSON:cjson",
+    "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "init:libbegetutil",
+    "ipc:ipc_single",
+    "openssl:libcrypto_shared",
+  ]
+  if (has_hiviewdfx_hisysevent_part) {
+    cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
+    external_deps += [ "hisysevent:libhisysevent" ]
+  }
   part_name = "os_account"
 }
 
@@ -661,44 +828,47 @@ ohos_unittest("OsAccountSubspaceCoverageTest") {
   }
 
   module_out_path = module_output_path
-  cflags_cc = [ "-DENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE", "-DACCOUNT_TEST" ]
+  cflags_cc = [
+    "-DENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE",
+    "-DACCOUNT_TEST",
+  ]
   use_exceptions = true
   cflags = []
 
   sources = [
+    "os_account_subspace_client_and_service_test.cpp",
     "os_account_subspace_client_test.cpp",
     "os_account_subspace_coverage_test.cpp",
-    "os_account_subspace_client_and_service_test.cpp",
     "os_account_subspace_query_test.cpp",
   ]
 
   sources += [
+    "${account_iam_framework_path}/src/account_iam_info.cpp",
     "${common_path}/account_error/src/account_error_no.cpp",
     "${common_path}/file_operator/src/account_file_operator.cpp",
     "${common_path}/json_utils/src/json_utils.cpp",
     "${common_path}/json_utils/src/os_account_info_json_parser.cpp",
     "${common_path}/log/src/account_log_wrapper.cpp",
-    "${os_account_dfx_path}/hisysevent_adapter/account_hisysevent_adapter.cpp",
-    "${account_iam_framework_path}/src/account_iam_info.cpp",
     "${domain_account_framework_path}/src/domain_account_common.cpp",
-    "${os_account_innerkits_native_path}/src/os_account_constraint_subscriber.cpp",
+    "${os_account_dfx_path}/hisysevent_adapter/account_hisysevent_adapter.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
+    "${os_account_innerkits_native_path}/src/os_account_constraint_subscriber.cpp",
   ]
   sources += account_service_sources
   sources -= [
-    "${services_path}/accountmgr/src/osaccount/inner_os_account_manager.cpp",
     "${services_path}/accountmgr/src/account_mgr_service.cpp",
+    "${services_path}/accountmgr/src/osaccount/inner_os_account_manager.cpp",
   ]
   sources += [
-    "${services_path}/accountmgr/src/distributed_account/os_account_subspace_data_deal.cpp",
-    "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager.cpp",
-    "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager_service.cpp",
-    "${services_path}/accountmgr/src/ability_manager_adapter/ability_manager_adapter.cpp",
-    "${os_account_core_path}/src/os_account_constraint_subscriber_manager.cpp",
     "${os_account_core_path}/src/os_account.cpp",
+    "${os_account_core_path}/src/os_account_constraint_subscriber_manager.cpp",
     "${os_account_core_path}/src/os_account_death_recipient.cpp",
     "${os_account_core_path}/src/os_account_event_listener.cpp",
+    "${os_account_subspace_framework_path}/src/os_account_sub_profile_event_service.cpp",
+    "${services_path}/accountmgr/src/ability_manager_adapter/ability_manager_adapter.cpp",
     "${services_path}/accountmgr/src/common/database/kvstore/kvstore_adapter_impl.cpp",
+    "${services_path}/accountmgr/src/distributed_account/os_account_subspace_data_deal.cpp",
+    "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager.cpp",
   ]
   sources += [
     "${os_account_innerkits_native_path}/src/os_account_subprofile_client.cpp",
@@ -727,6 +897,7 @@ ohos_unittest("OsAccountSubspaceCoverageTest") {
     "${os_account_dfx_path}/hisysevent_adapter",
     "${os_account_dfx_path}/data_dfx",
     "${account_iam_interfaces_native_path}/include",
+    "${services_path}/accountmgr/include/os_account_subprofile",
   ]
 
   configs = [
@@ -736,19 +907,22 @@ ohos_unittest("OsAccountSubspaceCoverageTest") {
   ]
 
   deps = [
+    "${account_iam_framework_path}:account_iam_stub",
     "${account_test_common}:account_test_common_source_set",
     "${common_path}:libaccount_common",
-    "${account_iam_framework_path}:account_iam_stub",
     "${domain_account_framework_path}:domain_account_stub",
-    "${os_account_subspace_framework_path}:os_account_subspace_stub",
     "${innerkits_native_path}:account_stub",
     "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_event_proxy",
     "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${os_account_innerkits_native_path}:os_account_proxy",
     "${os_account_innerkits_native_path}:os_account_state_reply_callback_proxy",
     "${os_account_innerkits_native_path}:os_account_state_reply_callback_stub",
-    "${os_account_innerkits_native_path}:os_account_proxy",
     "${os_account_innerkits_native_path}:os_account_stub",
+    "${os_account_subspace_framework_path}:os_account_sub_profile_event_proxy",
+    "${os_account_subspace_framework_path}:os_account_sub_profile_event_stub",
+    "${os_account_subspace_framework_path}:os_account_subspace_proxy_source",
+    "${os_account_subspace_framework_path}:os_account_subspace_stub",
     "${services_path}/accountmgr:accountmgr",
   ]
 
@@ -914,6 +1088,8 @@ ohos_unittest("OsAccountSubspaceCoverageTest") {
     external_deps += [ "hisysevent:libhisysevent" ]
   }
 
-  sources += [ "${services_path}/accountmgr/test/mock/common/bundle_manager_adapter.cpp" ]
+  sources += [
+    "${services_path}/accountmgr/test/mock/common/bundle_manager_adapter.cpp",
+  ]
   part_name = "os_account"
 }

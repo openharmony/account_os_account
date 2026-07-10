@@ -14,7 +14,6 @@
  */
 
 #include "os_account_subspace_manager_service.h"
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
@@ -22,9 +21,11 @@
 #include "iinner_os_account_manager.h"
 #include "ohos_account_manager.h"
 #include "os_account_constants.h"
+#include "os_account_sub_profile_subscribe_manager.h"
 
 namespace OHOS {
 namespace AccountSA {
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 namespace {
 ErrCode CheckSubspacePermission()
 {
@@ -41,7 +42,9 @@ ErrCode CheckSubspacePermission()
     return ERR_OK;
 }
 }  // namespace
+#endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 int32_t OsAccountSubProfileManagerService::CreateOsAccountSubProfile(
     int32_t osAccountId, OsAccountSubspaceResult &subspaceResult)
 {
@@ -117,6 +120,92 @@ int32_t OsAccountSubProfileManagerService::SwitchOsAccountSubProfile(
         osAccountId, subspaceId, fromSubspaceId);
     return ret;
 }
+#else
+
+int32_t OsAccountSubProfileManagerService::CreateOsAccountSubProfile(
+    int32_t osAccountId, OsAccountSubspaceResult &subspaceResult)
+{
+    (void)osAccountId;
+    (void)subspaceResult;
+    ACCOUNT_LOGE("CreateOsAccountSubProfile failed, subspace feature not enabled.");
+    return ERR_OS_ACCOUNT_SUBSPACE_LIMIT;
+}
+
+int32_t OsAccountSubProfileManagerService::DeleteOsAccountSubProfile(
+    int32_t osAccountId, int32_t subspaceId)
+{
+    (void)osAccountId;
+    (void)subspaceId;
+    ACCOUNT_LOGE("DeleteOsAccountSubProfile failed, subspace feature not enabled.");
+    return ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED;
+}
+
+int32_t OsAccountSubProfileManagerService::SwitchOsAccountSubProfile(
+    int32_t osAccountId, int32_t subspaceId)
+{
+    constexpr int32_t singleSubspaceMultiplier = 1000;
+    if (subspaceId != osAccountId * singleSubspaceMultiplier) {
+        ACCOUNT_LOGE("SwitchOsAccountSubProfile failed, subspace feature not enabled, "
+            "subspaceId=%{public}d, osAccountId=%{public}d.", subspaceId, osAccountId);
+        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+    }
+    return ERR_OK;
+}
+#endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+
+ErrCode OsAccountSubProfileManagerService::SubscribeOsAccountSubProfileEvents(
+    const std::vector<int32_t>& typeInts, const sptr<IRemoteObject>& eventListener)
+{
+    ErrCode res = AccountPermissionManager::CheckSystemApp();
+    if (res != ERR_OK) {
+        ACCOUNT_LOGE("Check systemApp failed.");
+        return res;
+    }
+    if (eventListener == nullptr || typeInts.empty()) {
+        ACCOUNT_LOGE("SubscribeOsAccountSubProfileEvents failed, eventListener is nullptr or typeInts is empty.");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    if (typeInts.size() > static_cast<size_t>(OsAccountSubProfileEventType::INVALID_TYPE)) {
+        ACCOUNT_LOGE("SubscribeOsAccountSubProfileEvents failed, typeInts.size=%{public}zu.", typeInts.size());
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    std::set<OsAccountSubProfileEventType> types;
+    for (auto typeInt : typeInts) {
+        if (!IsValidOsAccountSubProfileEventType(typeInt)) {
+            ACCOUNT_LOGE("SubscribeOsAccountSubProfileEvents failed, typeInt=%{public}d.", typeInt);
+            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+        }
+        types.insert(static_cast<OsAccountSubProfileEventType>(typeInt));
+    }
+    return OsAccountSubProfileSubscribeManager::GetInstance().SubscribeOsAccountSubProfileEvents(types, eventListener);
+}
+
+ErrCode OsAccountSubProfileManagerService::UnsubscribeOsAccountSubProfileEvents(
+    const std::vector<int32_t>& typeInts, const sptr<IRemoteObject>& eventListener)
+{
+    ErrCode res = AccountPermissionManager::CheckSystemApp();
+    if (res != ERR_OK) {
+        ACCOUNT_LOGE("Check systemApp failed.");
+        return res;
+    }
+    if (eventListener == nullptr || typeInts.empty()) {
+        ACCOUNT_LOGE("UnsubscribeOsAccountSubProfileEvents failed, eventListener is nullptr or typeInts is empty.");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    if (typeInts.size() > static_cast<size_t>(OsAccountSubProfileEventType::INVALID_TYPE)) {
+        ACCOUNT_LOGE("UnsubscribeOsAccountSubProfileEvents failed, typeInts.size=%{public}zu.", typeInts.size());
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    std::set<OsAccountSubProfileEventType> types;
+    for (auto typeInt : typeInts) {
+        if (!IsValidOsAccountSubProfileEventType(typeInt)) {
+            ACCOUNT_LOGE("UnsubscribeOsAccountSubProfileEvents failed, typeInt=%{public}d.", typeInt);
+            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+        }
+        types.insert(static_cast<OsAccountSubProfileEventType>(typeInt));
+    }
+    return OsAccountSubProfileSubscribeManager::GetInstance().UnsubscribeOsAccountSubProfileEvents(types,
+        eventListener);
+}
 }  // namespace AccountSA
 }  // namespace OHOS
-#endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE

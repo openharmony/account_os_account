@@ -14,7 +14,7 @@
  */
 
 sequenceable OsAccountSubspaceResult..OHOS.AccountSA.OsAccountSubspaceResult;
-
+sequenceable OHOS.IRemoteObject;
 interface_token ohos.accountfwk.IOsAccountSubProfile;
 
 interface OHOS.AccountSA.IOsAccountSubProfile {
@@ -23,4 +23,8 @@ interface OHOS.AccountSA.IOsAccountSubProfile {
     void DeleteOsAccountSubProfile([in] int osAccountId, [in] int subspaceId);
 
     void SwitchOsAccountSubProfile([in] int osAccountId, [in] int subspaceId);
+
+    void SubscribeOsAccountSubProfileEvents([in] int[] typeInts, [in] IRemoteObject eventListener);
+
+    void UnsubscribeOsAccountSubProfileEvents([in] int[] typeInts, [in] IRemoteObject eventListener);
 }

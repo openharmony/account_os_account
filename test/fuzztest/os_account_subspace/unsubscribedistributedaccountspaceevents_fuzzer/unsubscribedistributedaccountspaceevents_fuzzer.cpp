@@ -17,19 +17,18 @@
 
 #include <set>
 #include "account_log_wrapper.h"
-#include "distributed_account_subscribe_callback.h"
 #include "fuzz_data.h"
+#include "os_account_sub_profile_subscribe_callback.h"
 #include "os_account_subprofile_client.h"
 
 using namespace std;
 using namespace OHOS::AccountSA;
 
 namespace OHOS {
-class TestDistributedAccountSpaceSubscribeCallback final : public DistributedAccountSubscribeCallback {
+class TestDistributedAccountSpaceSubscribeCallback final : public OsAccountSubProfileSubscribeCallback {
 public:
     explicit TestDistributedAccountSpaceSubscribeCallback() {}
-    void OnAccountsChanged(const DistributedAccountEventData &eventData) {}
-    void OnSubProfileAccountsChanged(const DistributedAccountSubProfileEventData &eventData) {}
+    void OnSubProfileChanged(const SubProfileEventData &eventData) override {}
 };
 
 bool UnsubscribeDistributedAccountSpaceEventsFuzzTest(const uint8_t* data, size_t size)
@@ -38,7 +37,7 @@ bool UnsubscribeDistributedAccountSpaceEventsFuzzTest(const uint8_t* data, size_
         return false;
     }
     FuzzData fuzzData(data, size);
-    std::shared_ptr<DistributedAccountSubscribeCallback> callback = nullptr;
+    std::shared_ptr<OsAccountSubProfileSubscribeCallback> callback = nullptr;
     bool isInitCallback = fuzzData.GetData<bool>();
     if (isInitCallback) {
         callback = std::make_shared<TestDistributedAccountSpaceSubscribeCallback>();
