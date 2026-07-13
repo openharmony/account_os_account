@@ -1037,3 +1037,124 @@ HWTEST_F(OsAccountTest, OsAccountSetOsAccountTypeTest001, TestSize.Level1)
 }
 #endif
 
+/**
+ * @tc.name: CheckCreateOsAccountForDomainPermission_001
+ * @tc.desc: Test CreateOsAccountForDomain without MANAGE_LOCAL_ACCOUNTS permission
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountTest, CheckCreateOsAccountForDomainPermission_001, TestSize.Level1)
+{
+    ACCOUNT_LOGI("CheckCreateOsAccountForDomainPermission_001");
+    
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    uint64_t tokenId = 0;
+    
+    // Allocate token without MANAGE_LOCAL_ACCOUNTS permission
+    ASSERT_TRUE(AllocPermission({}, tokenId, false));
+    
+    // Simulate non-root UID to bypass root check in PermissionCheck
+    setuid(MAIN_ACCOUNT_ID * UID_TRANSFORM_DIVISOR);
+    
+    DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
+    CreateOsAccountForDomainOptions options;
+    
+    ErrCode result = g_osAccount->CreateOsAccountForDomain(
+        OsAccountType::NORMAL, domainInfo, nullptr, options);
+    
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    
+    setuid(0);
+    ASSERT_TRUE(RecoveryPermission(tokenId, selfTokenId));
+}
+
+/**
+ * @tc.name: CheckCreateOsAccountForDomainPermission_002
+ * @tc.desc: Test CreateOsAccountForDomain with permission but has CONSTANT_CREATE constraint
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountTest, CheckCreateOsAccountForDomainPermission_002, TestSize.Level1)
+{
+    ACCOUNT_LOGI("CheckCreateOsAccountForDomainPermission_002");
+    
+    // Mock edm token for SetSpecificOsAccountConstraints permission
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    ASSERT_TRUE(MockTokenId("edm"));
+    
+    // Set CONSTANT_CREATE constraint on MAIN_ACCOUNT_ID
+    std::vector<std::string> constraints = {"constraint.os.account.create"};
+    ErrCode result = g_osAccount->SetSpecificOsAccountConstraints(
+        constraints, true, MAIN_ACCOUNT_ID, MAIN_ACCOUNT_ID, false);
+    EXPECT_EQ(result, ERR_OK);
+    
+    ASSERT_TRUE(SetSelfTokenID(selfTokenId) == 0);
+    
+    // Allocate token with MANAGE_LOCAL_ACCOUNTS permission
+    uint64_t tokenId = 0;
+    ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenId, true));
+    
+    // Simulate non-root UID to bypass root check in PermissionCheck
+    setuid(MAIN_ACCOUNT_ID * UID_TRANSFORM_DIVISOR);
+    
+    DomainAccountInfo domainInfo2(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
+    CreateOsAccountForDomainOptions options;
+    
+    result = g_osAccount->CreateOsAccountForDomain(
+        OsAccountType::NORMAL, domainInfo2, nullptr, options);
+    
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    
+    setuid(0);
+    ASSERT_TRUE(RecoveryPermission(tokenId, selfTokenId));
+    
+    // Clear the constraint after test
+    ASSERT_TRUE(MockTokenId("edm"));
+    result = g_osAccount->SetSpecificOsAccountConstraints(
+        constraints, false, MAIN_ACCOUNT_ID, MAIN_ACCOUNT_ID, false);
+    EXPECT_EQ(result, ERR_OK);
+    ASSERT_TRUE(SetSelfTokenID(selfTokenId) == 0);
+}
+
+/**
+ * @tc.name: CheckCreateOsAccountForDomainPermission_003
+ * @tc.desc: Test CreateOsAccountForDomain with permission and no constraint
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountTest, CheckCreateOsAccountForDomainPermission_003, TestSize.Level1)
+{
+    ACCOUNT_LOGI("CheckCreateOsAccountForDomainPermission_003");
+    
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    uint64_t tokenId = 0;
+    
+    // Allocate token with MANAGE_LOCAL_ACCOUNTS permission
+    ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenId, true));
+    
+    // Simulate non-root UID to bypass root check in PermissionCheck
+    setuid(MAIN_ACCOUNT_ID * UID_TRANSFORM_DIVISOR);
+    
+    DomainAccountInfo domainInfo3(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
+    CreateOsAccountForDomainOptions options;
+    
+    ErrCode result = g_osAccount->CreateOsAccountForDomain(
+        OsAccountType::NORMAL, domainInfo3, nullptr, options);
+    EXPECT_NE(result, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    
+    setuid(0);
+    
+    // If success, need to clean up the created account
+    if (result == ERR_OK) {
+        std::vector<OsAccountInfo> osAccountInfos;
+        g_osAccount->QueryAllCreatedOsAccounts(osAccountInfos);
+        for (const auto &info : osAccountInfos) {
+            if (info.GetLocalId() != Constants::START_USER_ID) {
+                g_osAccount->RemoveOsAccount(info.GetLocalId());
+            }
+        }
+    }
+
+    ASSERT_TRUE(RecoveryPermission(tokenId, selfTokenId));
+}
+
