@@ -95,6 +95,10 @@ ohos_shared_library("libaccount_common") {
     }
   }
 
+  if (use_libfuzzer) {
+    cflags_cc += [ "-DFUZZ_TEST" ]
+  }
+
   public_configs = [ ":account_common_config" ]
 
   deps = [ ":privileges_definition_parse" ]
