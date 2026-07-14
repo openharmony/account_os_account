@@ -679,6 +679,16 @@ ErrCode OsAccountControlFileManager::GetOsAccountInfoById(const int id, OsAccoun
             return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
         }
     }
+#ifdef SUPPORT_AUTHORIZATION
+    if (static_cast<int32_t>(osAccountInfo.GetType()) == -1) {
+        // -1 indicates that the account type is RESTRICTED_ADMIN.
+        // Modification for RESTRICTED_ADMIN overriding and this should be deleted in later version.
+        osAccountInfo.SetType(OsAccountType::ADMIN);
+        std::call_once(onceFlag_, [id]() {
+            REPORT_OS_ACCOUNT_FAIL(id, Constants::OPERATION_SET_TYPE, ERR_OK, "Return from RESTRICTED_ADMIN to ADMIN");
+        });
+    }
+#endif // SUPPORT_AUTHORIZATION
     return ERR_OK;
 }
 
