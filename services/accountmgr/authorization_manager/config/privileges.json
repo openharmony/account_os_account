@@ -37,8 +37,8 @@
             "description":"Formatting data disk"
         },
         {
-            "name":"ohos.privilege.manage_enterprise_equipment_management_application",
-            "description":"Manage enterprise equipment management application"
+            "name":"ohos.privilege.manage_enterprise_device_management_applications",
+            "description":"Manage enterprise device management applications"
         }
     ]
 }
