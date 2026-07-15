@@ -116,7 +116,7 @@ HWTEST_F(AppAccountDataStorageTest, AppAccountDataStorage_AddAccountInfo_0100, T
 
     AppAccountInfo appAccountInfo(STRING_NAME, STRING_OWNER);
     appAccountInfo.SetExtraInfo(STRING_EXTRA_INFO);
-    appAccountInfo.EnableAppAccess(STRING_BUNDLE_NAME);
+    appAccountInfo.EnableAppAccess(STRING_BUNDLE_NAME, 0);
     result = dataStoragePtr->AddAccountInfo(appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 

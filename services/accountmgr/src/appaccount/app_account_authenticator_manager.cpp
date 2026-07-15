@@ -22,6 +22,9 @@
 #include "app_account_constants.h"
 #include "bundle_manager_adapter.h"
 #include "account_hisysevent_adapter.h"
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+#include "app_account_control_manager.h"
+#endif
 
 namespace OHOS {
 namespace AccountSA {
@@ -30,6 +33,25 @@ const char SYSTEM_ACTION_APP_ACCOUNT_AUTH[] = "ohos.appAccount.action.auth";
 const char SYSTEM_ACTION_APP_ACCOUNT_OAUTH[] = "ohos.account.appAccount.action.oauth";
 }
 
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+static bool QueryAbilityAndExtension(AAFwk::Want &want, int32_t userId,
+    std::vector<AppExecFwk::AbilityInfo> &abilityInfos,
+    std::vector<AppExecFwk::ExtensionAbilityInfo> &extensionInfos)
+{
+    int32_t abilityFlag = AppExecFwk::BundleFlag::GET_BUNDLE_WITH_ABILITIES
+        | AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_APPLICATION
+        | AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_DISABLE;
+    int32_t extensionFlag = static_cast<int32_t>(
+        AppExecFwk::GetExtensionAbilityInfoFlag::GET_EXTENSION_ABILITY_INFO_WITH_APPLICATION)
+        | static_cast<int32_t>(AppExecFwk::GetAbilityInfoFlag::GET_ABILITY_INFO_WITH_DISABLE);
+    bool result = BundleManagerAdapter::GetInstance()->QueryAbilityInfos(
+        want, abilityFlag, userId, abilityInfos);
+    ErrCode ret = BundleManagerAdapter::GetInstance()->QueryExtensionAbilityInfosV9(
+        want, extensionFlag, userId, extensionInfos);
+    return result || (ret == ERR_OK);
+}
+#endif
+
 static ErrCode QueryAbilityInfos(const std::string &owner, int32_t userId,
     std::vector<AppExecFwk::AbilityInfo> &abilityInfos,
     std::vector<AppExecFwk::ExtensionAbilityInfo> &extensionInfos)
@@ -37,6 +59,15 @@ static ErrCode QueryAbilityInfos(const std::string &owner, int32_t userId,
     AAFwk::Want want;
     want.SetBundle(owner);
     want.SetAction(SYSTEM_ACTION_APP_ACCOUNT_AUTH);
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    if (!QueryAbilityAndExtension(want, userId, abilityInfos, extensionInfos)) {
+        want.SetAction(SYSTEM_ACTION_APP_ACCOUNT_OAUTH);
+        if (!QueryAbilityAndExtension(want, userId, abilityInfos, extensionInfos)) {
+            return ERR_APPACCOUNT_SERVICE_OAUTH_AUTHENTICATOR_NOT_EXIST;
+        }
+    }
+    return ERR_OK;
+#else
     bool result = BundleManagerAdapter::GetInstance()->QueryAbilityInfos(
         want, AppExecFwk::BundleFlag::GET_BUNDLE_WITH_ABILITIES, userId, abilityInfos);
     if (!result) {
@@ -59,10 +90,11 @@ static ErrCode QueryAbilityInfos(const std::string &owner, int32_t userId,
         return ERR_APPACCOUNT_SERVICE_OAUTH_AUTHENTICATOR_NOT_EXIST;
     }
     return ERR_OK;
+#endif
 }
 
 ErrCode AppAccountAuthenticatorManager::GetAuthenticatorInfo(
-    const std::string &owner, int32_t userId, AuthenticatorInfo &info)
+    const std::string &owner, uint32_t callerAppIndex, int32_t userId, AuthenticatorInfo &info)
 {
     std::vector<AppExecFwk::AbilityInfo> abilityInfos;
     std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos;
@@ -70,35 +102,73 @@ ErrCode AppAccountAuthenticatorManager::GetAuthenticatorInfo(
     if (ret != ERR_OK) {
         return ret;
     }
+    if (FillAuthenticatorInfoFromAbilities(abilityInfos, callerAppIndex, userId, owner, info) ||
+        FillAuthenticatorInfoFromExtensions(extensionInfos, callerAppIndex, userId, owner, info)) {
+        return ERR_OK;
+    }
+    REPORT_APP_ACCOUNT_FAIL("", owner, Constants::APP_DFX_AUTHENTICATOR_SESSION,
+        ERR_APPACCOUNT_SERVICE_OAUTH_AUTHENTICATOR_NOT_EXIST, "No authenticator ability found");
+    return ERR_APPACCOUNT_SERVICE_OAUTH_AUTHENTICATOR_NOT_EXIST;
+}
 
+bool AppAccountAuthenticatorManager::FillAuthenticatorInfoFromAbilities(
+    const std::vector<AppExecFwk::AbilityInfo> &abilityInfos, uint32_t callerAppIndex,
+    int32_t userId, const std::string &owner, AuthenticatorInfo &info)
+{
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    int32_t foregroundIndex = -1;
+    AppAccountControlManager::GetForegroundIndex(userId, foregroundIndex);
     auto iter = std::find_if(abilityInfos.begin(), abilityInfos.end(),
-        [abilityInfos](AppExecFwk::AbilityInfo abilityInfo) {
-            return ((abilityInfo.type == AppExecFwk::AbilityType::SERVICE) && (abilityInfo.visible)
-            && (abilityInfo.appIndex == 0));
+        [callerAppIndex, foregroundIndex](const AppExecFwk::AbilityInfo &ai) {
+            return (ai.type == AppExecFwk::AbilityType::SERVICE) && (ai.visible)
+                && (ai.applicationInfo.enabled)
+                && AppAccountControlManager::IsAppIndexVisibleWithFg(callerAppIndex,
+                    static_cast<uint32_t>(ai.appIndex), foregroundIndex);
         });
+#else
+    auto iter = std::find_if(abilityInfos.begin(), abilityInfos.end(),
+        [](const AppExecFwk::AbilityInfo &ai) {
+            return (ai.type == AppExecFwk::AbilityType::SERVICE) && (ai.visible) && (ai.appIndex == 0);
+        });
+#endif
     if (iter != abilityInfos.end()) {
         info.owner = owner;
         info.abilityName = iter->name;
         info.iconId = iter->iconId;
         info.labelId = iter->labelId;
-        return ERR_OK;
+        return true;
     }
+    return false;
+}
 
-    auto iter_extensionInfos = std::find_if(extensionInfos.begin(), extensionInfos.end(),
-        [extensionInfos](AppExecFwk::ExtensionAbilityInfo extensionInfo) {
-            return ((extensionInfo.type == AppExecFwk::ExtensionAbilityType::SERVICE) && (extensionInfo.visible)
-            && (extensionInfo.appIndex == 0));
+bool AppAccountAuthenticatorManager::FillAuthenticatorInfoFromExtensions(
+    const std::vector<AppExecFwk::ExtensionAbilityInfo> &extensionInfos, uint32_t callerAppIndex,
+    int32_t userId, const std::string &owner, AuthenticatorInfo &info)
+{
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    int32_t foregroundIndex = -1;
+    AppAccountControlManager::GetForegroundIndex(userId, foregroundIndex);
+    auto iter = std::find_if(extensionInfos.begin(), extensionInfos.end(),
+        [callerAppIndex, foregroundIndex](const AppExecFwk::ExtensionAbilityInfo &ei) {
+            return (ei.type == AppExecFwk::ExtensionAbilityType::SERVICE) && (ei.visible)
+                && (ei.applicationInfo.enabled)
+                && AppAccountControlManager::IsAppIndexVisibleWithFg(callerAppIndex,
+                    static_cast<uint32_t>(ei.appIndex), foregroundIndex);
         });
-    if (iter_extensionInfos != extensionInfos.end()) {
+#else
+    auto iter = std::find_if(extensionInfos.begin(), extensionInfos.end(),
+        [](const AppExecFwk::ExtensionAbilityInfo &ei) {
+            return (ei.type == AppExecFwk::ExtensionAbilityType::SERVICE) && (ei.visible) && (ei.appIndex == 0);
+        });
+#endif
+    if (iter != extensionInfos.end()) {
         info.owner = owner;
-        info.abilityName = iter_extensionInfos->name;
-        info.iconId = iter_extensionInfos->iconId;
-        info.labelId = iter_extensionInfos->labelId;
-        return ERR_OK;
+        info.abilityName = iter->name;
+        info.iconId = iter->iconId;
+        info.labelId = iter->labelId;
+        return true;
     }
-    REPORT_APP_ACCOUNT_FAIL("", owner, Constants::APP_DFX_AUTHENTICATOR_SESSION,
-        ERR_APPACCOUNT_SERVICE_OAUTH_AUTHENTICATOR_NOT_EXIST, "Find authenticator ability failed");
-    return ERR_APPACCOUNT_SERVICE_OAUTH_AUTHENTICATOR_NOT_EXIST;
+    return false;
 }
 }  // namespace AccountSA
 }  // namespace OHOS

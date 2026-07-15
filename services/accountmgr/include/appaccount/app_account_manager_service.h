@@ -141,6 +141,8 @@ private:
     ErrCode GetBundleNameAndCallingUid(int32_t &callingUid, std::string &bundleName);
     ErrCode GetCallingTokenInfoAndAppIndex(uint32_t &appIndex);
     ErrCode GetCallingInfo(int32_t &callingUid, std::string &bundleName, uint32_t &appIndex);
+    void FilterEnabledOwners(const std::vector<std::string> &owners, int32_t userId, uint32_t callerAppIndex,
+        std::vector<std::string> &existOwners);
     ErrCode GetTokenVisibilityParam(const std::string &name,
         const std::string &authType, const std::string &bundleName, AuthenticatorSessionRequest &request);
 

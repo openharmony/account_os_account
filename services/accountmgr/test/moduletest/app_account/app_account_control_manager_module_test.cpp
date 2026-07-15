@@ -21,6 +21,9 @@
 #include "app_account_constants.h"
 #define private public
 #include "app_account_control_manager.h"
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+#include "iinner_os_account_manager.h"
+#endif
 #undef private
 
 using namespace testing::ext;
@@ -32,6 +35,7 @@ const std::string STRING_NAME = "name";
 const std::string STRING_NAME_BACK = "end";
 const std::string STRING_EXTRA_INFO = "extra_info";
 const std::string STRING_OWNER = "com.example.owner";
+const std::string STRING_DISABLED_OWNER = "com.example.disabled.owner";
 const std::string AUTHORIZED_APP = "authorizedApp";
 const std::string BUNDLE_NAME = "bundlename";
 
@@ -67,7 +71,16 @@ void AppAccountControlManagerModuleTest::SetUp(void) __attribute__((no_sanitize(
 }
 
 void AppAccountControlManagerModuleTest::TearDown(void)
-{}
+{
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    // Reset mock state to prevent leakage between tests
+    auto &mgr = IInnerOsAccountManager::GetInstance();
+    mgr.mockQueryResult = ERR_OK;
+    mgr.mockOsAccountInfo = OsAccountInfo();
+    mgr.mockReadCtxResult = ERR_OK;
+    mgr.mockSubProfileCtx = SubProfileContext();
+#endif
+}
 
 /**
  * @tc.name: AppAccountControlManager_AccountMaxSize_0100
@@ -350,4 +363,18 @@ HWTEST_F(AppAccountControlManagerModuleTest, ComputeHash001, TestSize.Level1)
     appAccountInfo.alias_ = "";
     std::string res = appAccountInfo.GetAlias();
     EXPECT_EQ("973997FA53478B64D3FD06E71F683ACA92750EE2DC4DDD087D0E371E25AF4588", res);
+}
+
+/**
+ * @tc.name: QueryVisibleEnabledAppIndex_Default_001
+ * @tc.desc: Test QueryVisibleEnabledAppIndex returns appIndex=0 when subspace disabled or query unavailable.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppAccountControlManagerModuleTest, QueryVisibleEnabledAppIndex_Default_001, TestSize.Level1)
+{
+    uint32_t appIndex = 999;
+    ErrCode result = AppAccountControlManager::QueryVisibleEnabledAppIndex("com.example.test", 0, 100, appIndex);
+    EXPECT_EQ(result, ERR_OK);
+    // Without subspace enabled or bundle not installed, defaults to 0 (main profile)
+    EXPECT_EQ(appIndex, 0u);
 }

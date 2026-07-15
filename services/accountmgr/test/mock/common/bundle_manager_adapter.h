@@ -49,6 +49,10 @@ public:
         const int32_t &userId, std::vector<AppExecFwk::ExtensionAbilityInfo> &extensionInfos);
     bool QueryExtensionAbilityInfos(const AAFwk::Want &want, const AppExecFwk::ExtensionAbilityType &extensionType,
         const int32_t &flag, const int32_t &userId, std::vector<AppExecFwk::ExtensionAbilityInfo> &extensionInfos);
+    ErrCode QueryExtensionAbilityInfosV9(const AAFwk::Want &want, int32_t flags, int32_t userId,
+        std::vector<AppExecFwk::ExtensionAbilityInfo> &extensionInfos);
+    ErrCode GetMainAndCloneBundleInfo(const std::string &bundleName, int32_t flags,
+        int32_t userId, std::vector<AppExecFwk::BundleInfo> &bundleInfos);
     ErrCode g_resultCode = ERR_OK;
 };
 }  // namespace AccountSA

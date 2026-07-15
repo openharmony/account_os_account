@@ -15,6 +15,7 @@
 
 #include "app_account_manager_service.h"
 
+#include <algorithm>
 #include <securec.h>
 #include "accesstoken_kit.h"
 #include "account_log_wrapper.h"
@@ -866,16 +867,29 @@ ErrCode AppAccountManagerService::GetAllAccounts(
 
     AppExecFwk::BundleInfo bundleInfo;
     int32_t userId = callingUid / UID_TRANSFORM_DIVISOR;
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    uint32_t ownerAppIndex = 0;
+    bool bundleExist = (AppAccountControlManager::QueryVisibleEnabledAppIndex(
+        owner, appIndex, userId, ownerAppIndex) == ERR_OK);
+#else
     bool result = BundleManagerAdapter::GetInstance()->GetBundleInfo(
         owner, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId);
-    if (!result) {
+    bool bundleExist = result;
+#endif
+    if (!bundleExist) {
         REPORT_APP_ACCOUNT_FAIL("", owner, Constants::APP_DFX_GET_ALL_ACCOUNTS,
             ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO, "Get bundle info failed");
         funcResult = ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO;
         return ERR_OK;
     }
     std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(callingUid);
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    // Pass the owner's resolved appIndex (not the caller's) so the owner's accounts
+    // are loaded from owner#ownerAppIndex; otherwise keep the caller's appIndex.
+    funcResult = innerManager_->GetAllAccounts(owner, appAccounts, callingUid, bundleName, ownerAppIndex);
+#else
     funcResult = innerManager_->GetAllAccounts(owner, appAccounts, callingUid, bundleName, appIndex);
+#endif
     return ERR_OK;
 }
 
@@ -923,8 +937,14 @@ ErrCode AppAccountManagerService::QueryAllAccessibleAccounts(
     }
     AppExecFwk::BundleInfo bundleInfo;
     int32_t userId = callingUid / UID_TRANSFORM_DIVISOR;
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    uint32_t ownerAppIndex = 0;
+    bool ret = (AppAccountControlManager::QueryVisibleEnabledAppIndex(
+        owner, appIndex, userId, ownerAppIndex) == ERR_OK);
+#else
     bool ret = BundleManagerAdapter::GetInstance()->GetBundleInfo(
         owner, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId);
+#endif
     if (!ret) {
         REPORT_APP_ACCOUNT_FAIL("", owner, Constants::APP_DFX_GET_ALL_ACCOUNTS,
             ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO, "Get bundle info failed");
@@ -932,7 +952,13 @@ ErrCode AppAccountManagerService::QueryAllAccessibleAccounts(
         return ERR_OK;
     }
     std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(callingUid);
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    // Pass the owner's resolved appIndex (not the caller's) so the owner's accounts
+    // are loaded from owner#ownerAppIndex; otherwise keep the caller's appIndex.
+    funcResult = innerManager_->GetAllAccounts(owner, appAccounts, callingUid, bundleName, ownerAppIndex);
+#else
     funcResult = innerManager_->GetAllAccounts(owner, appAccounts, callingUid, bundleName, appIndex);
+#endif
     return ERR_OK;
 }
 
@@ -1073,6 +1099,36 @@ ErrCode AppAccountManagerService::SetAuthenticatorProperties(const std::string &
     return ERR_OK;
 }
 
+void AppAccountManagerService::FilterEnabledOwners(const std::vector<std::string> &owners, int32_t userId,
+    uint32_t callerAppIndex, std::vector<std::string> &existOwners)
+{
+    for (auto owner : owners) {
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+        uint32_t ownerAppIndex = 0;
+        if (AppAccountControlManager::QueryVisibleEnabledAppIndex(owner, callerAppIndex,
+            userId, ownerAppIndex) != ERR_OK) {
+            ACCOUNT_LOGE("Owner %{public}s is disabled or appIndex mismatch, skip", owner.c_str());
+            REPORT_APP_ACCOUNT_FAIL("", owner, Constants::APP_DFX_SUBSCRIBE,
+                ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO, "Owner disabled or appIndex mismatch");
+            continue;
+        }
+        existOwners.push_back(owner);
+#else
+        AppExecFwk::BundleInfo bundleInfo;
+        int32_t bundleFlag = AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT;
+        bool bundleRet = BundleManagerAdapter::GetInstance()->GetBundleInfo(owner,
+            static_cast<AppExecFwk::BundleFlag>(bundleFlag), bundleInfo, userId);
+        if (!bundleRet) {
+            ACCOUNT_LOGE("Failed to get bundle info, name=%{public}s", owner.c_str());
+            REPORT_APP_ACCOUNT_FAIL("", owner, Constants::APP_DFX_SUBSCRIBE,
+                ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO, "Get bundle info failed");
+            continue;
+        }
+        existOwners.push_back(owner);
+#endif
+    }
+}
+
 ErrCode AppAccountManagerService::SubscribeAppAccount(
     const AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener, int32_t &funcResult)
 {
@@ -1096,18 +1152,7 @@ ErrCode AppAccountManagerService::SubscribeAppAccount(
 
     int32_t userId = callingUid / UID_TRANSFORM_DIVISOR;
     std::vector<std::string> existOwners;
-    for (auto owner : owners) {
-        AppExecFwk::BundleInfo bundleInfo;
-        bool bundleRet = BundleManagerAdapter::GetInstance()->GetBundleInfo(owner,
-            AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId);
-        if (!bundleRet) {
-            ACCOUNT_LOGE("Failed to get bundle info, name=%{public}s", owner.c_str());
-            REPORT_APP_ACCOUNT_FAIL("", owner, Constants::APP_DFX_SUBSCRIBE,
-                ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO, "Get bundle info failed");
-            continue;
-        }
-        existOwners.push_back(owner);
-    }
+    FilterEnabledOwners(owners, userId, appIndex, existOwners);
     if (existOwners.size() == 0) {
         ACCOUNT_LOGI("ExistOwners is empty.");
         funcResult = ERR_OK;

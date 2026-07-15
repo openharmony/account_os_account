@@ -366,6 +366,56 @@ void AppAccountInfo::SetExtraInfo(const std::string &extraInfo)
     extraInfo_ = extraInfo;
 }
 
+bool AppAccountInfo::IsSelfBundle(const std::string &bundleName) const
+{
+    std::string rawBundle;
+    uint32_t appIdx = 0;
+    if (ParseAuthorizedApp(bundleName, rawBundle, appIdx)) {
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+        return rawBundle == owner_ && appIdx == appIndex_;
+#else
+        return rawBundle == owner_;
+#endif
+    }
+    return bundleName == owner_;
+}
+
+std::string AppAccountInfo::EncodeAuthorizedApp(const std::string &bundleName, uint32_t appIndex)
+{
+    return bundleName + HYPHEN + std::to_string(appIndex);
+}
+
+bool AppAccountInfo::ParseAuthorizedApp(const std::string &entry, std::string &bundleName, uint32_t &appIndex)
+{
+    auto pos = entry.rfind(HYPHEN);
+    if (pos == std::string::npos) {
+        // legacy data: pure bundleName, default appIndex 0 (main profile)
+        bundleName = entry;
+        appIndex = 0;
+        return true;
+    }
+    bundleName = entry.substr(0, pos);
+    std::string indexStr = entry.substr(pos + 1);
+    if (indexStr.empty()) {
+        return false;
+    }
+    uint64_t parsed = 0;
+    constexpr uint64_t DECIMAL_BASE = 10;
+    for (char c : indexStr) {
+        if (c < '0' || c > '9') {
+            return false;
+        }
+        parsed = parsed * DECIMAL_BASE + static_cast<uint64_t>(c - '0');
+        if (parsed > 0xFFFFFFFF) {
+            return false;
+        }
+    }
+    appIndex = static_cast<uint32_t>(parsed);
+    return true;
+}
+
+// authorizedApp is the already-encoded bundle key (bundleName#appIndex, or
+// plain bundleName when subspace is off). Callers are responsible for encoding.
 ErrCode AppAccountInfo::EnableAppAccess(const std::string &authorizedApp, const uint32_t apiVersion)
 {
     auto it = authorizedApps_.emplace(authorizedApp);
@@ -664,7 +714,7 @@ ErrCode AppAccountInfo::DeleteAuthToken(const std::string &authType, const std::
 ErrCode AppAccountInfo::SetOAuthTokenVisibility(
     const std::string &authType, const std::string &bundleName, bool isVisible, const uint32_t apiVersion)
 {
-    if (bundleName == owner_) {
+    if (bundleName == owner_ || IsSelfBundle(bundleName)) {
         return ERR_OK;
     }
     auto it = oauthTokens_.find(authType);
@@ -708,7 +758,7 @@ ErrCode AppAccountInfo::CheckOAuthTokenVisibility(
     const std::string &authType, const std::string &bundleName, bool &isVisible, const uint32_t apiVersion) const
 {
     isVisible = false;
-    if (bundleName == owner_) {
+    if (bundleName == owner_ || IsSelfBundle(bundleName)) {
         isVisible = true;
         return ERR_OK;
     }

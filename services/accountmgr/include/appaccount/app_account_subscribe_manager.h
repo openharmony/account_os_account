@@ -44,11 +44,16 @@ private:
     std::vector<AppAccountSubscribeRecordPtr> GetSubscribeRecords(const std::string &owner,
         const uint32_t &appIndex = 0);
     ErrCode OnAccountsChanged(const std::shared_ptr<AppAccountEventRecord> &record);
+    bool IsReceiverAuthorizedApp(const std::shared_ptr<AppAccountEventRecord> &record,
+        const AppAccountSubscribeRecordPtr &receiver);
     ErrCode GetAccessibleAccountsBySubscribeInfo(const std::shared_ptr<AppAccountSubscribeInfo> &subscribeInfoPtr,
         const std::vector<AppAccountInfo> &accessibleAccounts, std::vector<AppAccountInfo> &appAccounts);
 
     ErrCode CheckAppAccess(const std::shared_ptr<AppAccountSubscribeInfo> &subscribeInfoPtr, const uid_t &uid,
         const std::string &bundleName, const uint32_t &appIndex);
+    ErrCode CheckOwnersAccessible(const std::vector<std::string> &owners,
+        const std::string &bundleName, const std::string &bundleKey,
+        const std::vector<std::string> &accessibleAccounts);
 
     void ClearOldData(const sptr<IRemoteObject> &eventListener, const std::string &owner,
         std::map<std::string, std::multiset<AppAccountSubscribeRecordPtr>>::iterator &item);

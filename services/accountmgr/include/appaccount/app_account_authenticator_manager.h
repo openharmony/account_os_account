@@ -18,12 +18,21 @@
 
 #include "account_error_no.h"
 #include "app_account_common.h"
+#include <vector>
+#include "bundle_info.h"
 
 namespace OHOS {
 namespace AccountSA {
 class AppAccountAuthenticatorManager {
 public:
-    static ErrCode GetAuthenticatorInfo(const std::string &owner, int32_t userId, AuthenticatorInfo &info);
+    static ErrCode GetAuthenticatorInfo(const std::string &owner, uint32_t appIndex, int32_t userId,
+        AuthenticatorInfo &info);
+private:
+    static bool FillAuthenticatorInfoFromAbilities(const std::vector<AppExecFwk::AbilityInfo> &abilityInfos,
+        uint32_t callerAppIndex, int32_t userId, const std::string &owner, AuthenticatorInfo &info);
+    static bool FillAuthenticatorInfoFromExtensions(
+        const std::vector<AppExecFwk::ExtensionAbilityInfo> &extensionInfos, uint32_t callerAppIndex,
+        int32_t userId, const std::string &owner, AuthenticatorInfo &info);
 };
 }  // namespace AccountSA
 }  // namespace OHOS

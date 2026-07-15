@@ -175,6 +175,8 @@
         "OHOS::AccountSA::AppAccountInfo::SetAppIndex(unsigned int const&)";
         "OHOS::AccountSA::AppAccountInfo::GetAppIndex()";
         "OHOS::AccountSA::AppAccountInfo::CheckAppAccess(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, bool&)";
+        "OHOS::AccountSA::AppAccountInfo::EncodeAuthorizedApp(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned int)";
+        "OHOS::AccountSA::AppAccountInfo::ParseAuthorizedApp(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&, unsigned int&)";
         "OHOS::AccountSA::AppAccountInfo::GetAllAssociatedData(std::__h::map<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::less<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>, std::__h::allocator<std::__h::pair<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>>>&) const";
     };
   local:

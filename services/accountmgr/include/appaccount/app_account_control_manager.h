@@ -35,6 +35,21 @@ struct AssociatedDataCacheItem {
 class AppAccountControlManager {
 public:
     static AppAccountControlManager &GetInstance();
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    static bool IsAppIndexVisibleWithFg(uint32_t callerAppIndex, uint32_t targetAppIndex, int32_t foregroundIndex);
+    static bool GetForegroundIndex(int32_t osAccountId, int32_t &foregroundIndex);
+#endif
+    static ErrCode QueryVisibleEnabledAppIndex(const std::string &bundleName,
+        uint32_t callerAppIndex, int32_t osAccountId, uint32_t &appIndex);
+    // Resolve the visible-enabled appIndex for |authorizedApp| from the caller's foreground
+    // context and encode it as "bundleName#appIndex". Under subspace-off, |encodedApp| is set
+    // to |authorizedApp| unchanged. On query failure, falls back to callerAppIndex and returns ERR_OK.
+    static ErrCode ResolveAndEncodeAuthorizedApp(const std::string &authorizedApp,
+        uint32_t callerAppIndex, int32_t callerUid, std::string &encodedApp);
+    // Encode |bundleName| + |appIndex| as "bundleName#appIndex" (precise, no visibility query).
+    // Under subspace-off, |encodedApp| is set to |bundleName| unchanged.
+    static void EncodeAuthorizedAppPrecise(const std::string &bundleName,
+        uint32_t appIndex, std::string &encodedApp);
     ErrCode AddAccount(const std::string &name, const std::string &extraInfo, const uid_t &uid,
         const std::string &bundleName, AppAccountInfo &appAccountInfo);
     ErrCode CreateAccount(const std::string &name, const CreateAccountOptions &options, const uid_t &uid,
@@ -132,20 +147,29 @@ private:
     ErrCode DeleteAccountInfoFromDataStorage(
         AppAccountInfo &appAccountInfo, std::shared_ptr<AppAccountDataStorage> &dataStoragePtr, const uid_t &uid);
 
-    ErrCode SaveAuthorizedAccount(const std::string &authorizedApp, AppAccountInfo &appAccountInfo,
-        const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr, const uid_t &uid);
-    ErrCode RemoveAuthorizedAccount(const std::string &authorizedApp, AppAccountInfo &appAccountInfo,
-        const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr, const uid_t &uid);
-    ErrCode SaveAuthorizedAccountIntoDataStorage(const std::string &authorizedApp, AppAccountInfo &appAccountInfo,
-        const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
-    ErrCode RemoveAuthorizedAccountFromDataStorage(const std::string &authorizedApp, AppAccountInfo &appAccountInfo,
-        const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
+    // authorizedApp is the already-encoded bundle key (bundleName#appIndex, or
+    // plain bundleName when subspace is off). Callers encode before calling.
+    ErrCode SaveAuthorizedAccount(const std::string &authorizedApp,
+        AppAccountInfo &appAccountInfo, const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr, const uid_t &uid);
+    ErrCode RemoveAuthorizedAccount(const std::string &authorizedApp,
+        AppAccountInfo &appAccountInfo, const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr, const uid_t &uid);
+    ErrCode SaveAuthorizedAccountIntoDataStorage(const std::string &authorizedApp,
+        AppAccountInfo &appAccountInfo, const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
+    ErrCode RemoveAuthorizedAccountFromDataStorage(const std::string &authorizedApp,
+        AppAccountInfo &appAccountInfo, const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
     bool IsOsAccountRemoved(int32_t localId);
     ErrCode RemoveAppAccountData(const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
     std::string GetBundleKeySuffix(const uint32_t &appIndex);
     ErrCode RemoveAppAccountDataFromDataStorage(const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr,
         const std::string &key, const uint32_t &appIndex,
-        const std::shared_ptr<AppAccountDataStorage> &dataStorageSyncPtr);
+        const std::shared_ptr<AppAccountDataStorage> &dataStorageSyncPtr = nullptr);
+    ErrCode FilterAccessibleAccounts(const std::vector<std::string> &accessibleAccounts,
+        uint32_t appIndex, const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr,
+        std::vector<AppAccountInfo> &appAccounts);
+    ErrCode FilterAccessibleAccountsByOwner(const std::vector<std::string> &accessibleAccounts,
+        const std::string &owner, uint32_t appIndex,
+        const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr,
+        std::vector<AppAccountInfo> &appAccounts);
 
 private:
     std::mutex mutex_;
