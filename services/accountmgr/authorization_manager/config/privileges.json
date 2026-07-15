@@ -37,12 +37,8 @@
             "description":"Formatting data disk"
         },
         {
-            "name":"ohos.privilege.enable_mdm_admin",
-            "description":"Enable admin"
-        },
-        {
-            "name":"ohos.privilege.disable_mdm_admin",
-            "description":"Disable admin"
+            "name":"ohos.privilege.manage_enterprise_equipment_management_application",
+            "description":"Manage enterprise equipment management application"
         }
     ]
 }
