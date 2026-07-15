@@ -100,6 +100,8 @@ public:
      */
     bool IsAllAppDied(int32_t accountId);
 
+    static int32_t GetLastConnectAppIndex();
+
 #ifdef SUPPORT_AUTHORIZATION
     /**
      * @brief Get extension running infos.

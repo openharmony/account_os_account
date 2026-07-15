@@ -176,6 +176,39 @@ void AppAccountInfo::SetExtraInfo(const std::string &extraInfo)
     extraInfo_ = extraInfo;
 }
 
+std::string AppAccountInfo::EncodeAuthorizedApp(const std::string &bundleName, uint32_t appIndex)
+{
+    return bundleName + HYPHEN + std::to_string(appIndex);
+}
+
+bool AppAccountInfo::ParseAuthorizedApp(const std::string &entry, std::string &bundleName, uint32_t &appIndex)
+{
+    auto pos = entry.rfind(HYPHEN);
+    if (pos == std::string::npos) {
+        bundleName = entry;
+        appIndex = 0;
+        return true;
+    }
+    bundleName = entry.substr(0, pos);
+    std::string indexStr = entry.substr(pos + 1);
+    if (indexStr.empty()) {
+        return false;
+    }
+    uint64_t parsed = 0;
+    constexpr uint64_t DECIMAL_BASE = 10;
+    for (char c : indexStr) {
+        if (c < '0' || c > '9') {
+            return false;
+        }
+        parsed = parsed * DECIMAL_BASE + static_cast<uint64_t>(c - '0');
+        if (parsed > 0xFFFFFFFF) {
+            return false;
+        }
+    }
+    appIndex = static_cast<uint32_t>(parsed);
+    return true;
+}
+
 ErrCode AppAccountInfo::EnableAppAccess(const std::string &authorizedApp, const uint32_t apiVersion)
 {
     auto it = authorizedApps_.emplace(authorizedApp);
@@ -191,11 +224,15 @@ ErrCode AppAccountInfo::EnableAppAccess(const std::string &authorizedApp, const 
 
 ErrCode AppAccountInfo::DisableAppAccess(const std::string &authorizedApp, const uint32_t apiVersion)
 {
+    (void)authorizedApp;
+    (void)apiVersion;
     return ERR_OK;
 }
 
 ErrCode AppAccountInfo::CheckAppAccess(const std::string &authorizedApp, bool &isAccessible)
 {
+    (void)authorizedApp;
+    (void)isAccessible;
     return ERR_OK;
 }
 

@@ -43,7 +43,7 @@
         "OHOS::AccountSA::UpdateCredCallback::UpdateCredCallback(unsigned int, OHOS::UserIam::UserAuth::CredentialParameters const&, OHOS::sptr<OHOS::AccountSA::IIDMCallback> const&)";
         "OHOS::AccountSA::AppAccountAuthenticatorCallback::AppAccountAuthenticatorCallback(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::AccountSA::AppAccountAuthenticatorManager::AppAccountAuthenticatorManager()";
-        "OHOS::AccountSA::AppAccountAuthenticatorManager::GetAuthenticatorInfo(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, int, OHOS::AccountSA::AuthenticatorInfo&)";
+        "OHOS::AccountSA::AppAccountAuthenticatorManager::GetAuthenticatorInfo(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned int, int, OHOS::AccountSA::AuthenticatorInfo&)";
         "OHOS::AccountSA::AppAccountAuthenticatorManager::Init()";
         "OHOS::AccountSA::AppAccountAuthenticatorProxy::AppAccountAuthenticatorProxy(OHOS::sptr<OHOS::IRemoteObject> const&)";
         "OHOS::AccountSA::AppAccountAuthenticatorSession::AddClientDeathRecipient()";
@@ -360,6 +360,7 @@
         "OHOS::AccountSA::BundleManagerAdapter::GetUidByBundleName(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, int)";
         "OHOS::AccountSA::BundleManagerAdapter::GetBundleInfo(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AppExecFwk::BundleFlag, OHOS::AppExecFwk::BundleInfo&, int)";
         "OHOS::AccountSA::BundleManagerAdapter::QueryExtensionAbilityInfos(OHOS::AAFwk::Want const&, OHOS::AppExecFwk::ExtensionAbilityType const&, int const&, int const&, std::__h::vector<OHOS::AppExecFwk::ExtensionAbilityInfo, std::__h::allocator<OHOS::AppExecFwk::ExtensionAbilityInfo>>&)";
+        "OHOS::AccountSA::BundleManagerAdapter::QueryExtensionAbilityInfosV9(OHOS::AAFwk::Want const&, int, int, std::__h::vector<OHOS::AppExecFwk::ExtensionAbilityInfo, std::__h::allocator<OHOS::AppExecFwk::ExtensionAbilityInfo>>&)";
         "OHOS::AccountSA::BundleManagerAdapter::Connect()";
         "OHOS::AccountSA::BundleManagerAdapter::ResetProxy(OHOS::wptr<OHOS::IRemoteObject> const&)";
         "OHOS::AccountSA::StartTraceAdapter(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";

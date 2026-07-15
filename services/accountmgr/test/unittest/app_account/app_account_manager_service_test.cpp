@@ -31,6 +31,8 @@ namespace {
 const std::string STRING_NAME = "name";
 const std::string STRING_EXTRA_INFO = "extra_info";
 const std::string STRING_OWNER = "com.example.owner";
+const std::string STRING_DISABLED_OWNER = "com.example.disabled.owner";
+const std::string STRING_SUBPROFILE_AUTH_EXT = "com.example.subprofile.auth.extension";
 sptr<IRemoteObject> g_appAccountManagerService;
 sptr<IAppAccount> g_appAccountProxy;
 sptr<AppAccountManagerService> g_servicePtr;
@@ -158,4 +160,58 @@ HWTEST_F(
 
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(funcResult, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_SubscribeAppAccount_0200
+ * @tc.desc: Subscribe with disabled owner; excluded under subprofile flag, proceeds otherwise.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppAccountManagerServiceTest, AppAccountManagerService_SubscribeAppAccount_0200, TestSize.Level1)
+{
+    std::vector<std::string> owners;
+    owners.emplace_back(STRING_DISABLED_OWNER);
+    AppAccountSubscribeInfo subscribeInfo;
+    subscribeInfo.SetOwners(owners);
+    int32_t funcResult = -1;
+    ErrCode result = g_appAccountProxy->SubscribeAppAccount(subscribeInfo, nullptr, funcResult);
+    EXPECT_EQ(result, ERR_OK);
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    // Disabled owner is filtered out by QueryExtensionAbilityInfosV9, existOwners is empty.
+    EXPECT_EQ(funcResult, ERR_OK);
+#else
+    // Disabled is not checked without subprofile flag; proceeds to nullptr eventListener check.
+    EXPECT_EQ(funcResult, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
+#endif
+}
+
+/**
+ * @tc.name: AppAccountManagerService_SubscribeAppAccount_0300
+ * @tc.desc: Subscribe with owner whose extension appIndex mismatches caller; owner is filtered out.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppAccountManagerServiceTest, AppAccountManagerService_SubscribeAppAccount_0300, TestSize.Level1)
+{
+    std::vector<std::string> owners;
+    owners.emplace_back(STRING_SUBPROFILE_AUTH_EXT);
+    AppAccountSubscribeInfo subscribeInfo;
+    subscribeInfo.SetOwners(owners);
+    int32_t funcResult = -1;
+    ErrCode result = g_appAccountProxy->SubscribeAppAccount(subscribeInfo, nullptr, funcResult);
+    EXPECT_EQ(result, ERR_OK);
+    // Extension appIndex(1) mismatches caller appIndex(0); owner is filtered out, existOwners is empty.
+    EXPECT_EQ(funcResult, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_GetAuthenticatorInfo_0100
+ * @tc.desc: GetAuthenticatorInfo populates callerBundleName via GetCallingInfo.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppAccountManagerServiceTest, AppAccountManagerService_GetAuthenticatorInfo_0100, TestSize.Level1)
+{
+    AuthenticatorInfo info;
+    int32_t funcResult = -1;
+    ErrCode result = g_appAccountProxy->GetAuthenticatorInfo(STRING_OWNER, info, funcResult);
+    EXPECT_EQ(result, ERR_OK);
 }

@@ -20,10 +20,12 @@
 #include "account_log_wrapper.h"
 #include "app_account_control_manager.h"
 #include "app_account_data_storage.h"
+#include "app_account_info.h"
 #include "app_account_subscribe_death_recipient.h"
 #include "iapp_account_event.h"
 #include "ipc_skeleton.h"
 #include "ohos_account_kits.h"
+#include "account_info.h"
 #include "account_hisysevent_adapter.h"
 
 namespace OHOS {
@@ -84,7 +86,11 @@ ErrCode AppAccountSubscribeManager::SubscribeAppAccount(
     subscribeRecordPtr->eventListener = eventListener;
     subscribeRecordPtr->bundleName = bundleName;
     subscribeRecordPtr->appIndex = appIndex;
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    subscribeRecordPtr->subscribedAppIndex = appIndex;
+#else
     subscribeRecordPtr->subscribedAppIndex = 0;
+#endif
 
     if (subscribeDeathRecipient_ != nullptr) {
         eventListener->AddDeathRecipient(subscribeDeathRecipient_);
@@ -174,7 +180,6 @@ ErrCode AppAccountSubscribeManager::CheckAppAccess(const std::shared_ptr<AppAcco
         ACCOUNT_LOGE("subscribeInfoPtr is nullptr");
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
-
     std::vector<std::string> owners;
     subscribeInfoPtr->GetOwners(owners);
     auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(uid);
@@ -182,14 +187,18 @@ ErrCode AppAccountSubscribeManager::CheckAppAccess(const std::shared_ptr<AppAcco
         ACCOUNT_LOGE("dataStoragePtr is nullptr");
         return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
     }
-
     std::vector<std::string> accessibleAccounts;
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    std::string bundleKey = AppAccountInfo::EncodeAuthorizedApp(bundleName, appIndex);
+#else
     std::string bundleKey = bundleName + (appIndex == 0 ? "" : HYPHEN + std::to_string(appIndex));
+#endif
     ErrCode ret = dataStoragePtr->GetAccessibleAccountsFromDataStorage(bundleKey, accessibleAccounts);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("failed to get accessible account from data storage, ret %{public}d.", ret);
         return ret;
     }
+#ifndef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
     for (auto it = accessibleAccounts.begin(); it != accessibleAccounts.end();) {
         if (!CheckAppIsMaster(*it)) {
             it = accessibleAccounts.erase(it);
@@ -197,21 +206,24 @@ ErrCode AppAccountSubscribeManager::CheckAppAccess(const std::shared_ptr<AppAcco
             it++;
         }
     }
+#endif
+    return CheckOwnersAccessible(owners, bundleName, bundleKey, accessibleAccounts);
+}
+
+ErrCode AppAccountSubscribeManager::CheckOwnersAccessible(const std::vector<std::string> &owners,
+    const std::string &bundleName, const std::string &bundleKey,
+    const std::vector<std::string> &accessibleAccounts)
+{
     for (auto owner : owners) {
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+        if (owner == bundleName) {
+#else
         if (owner == bundleKey) {
+#endif
             continue;
         }
-        auto it = std::find_if(
-            accessibleAccounts.begin(),
-            accessibleAccounts.end(),
-            [owner](const std::string &account) {
-                auto position = account.find(owner);
-                if (position != 0) {
-                    return false;
-                }
-
-                return true;
-            });
+        auto it = std::find_if(accessibleAccounts.begin(), accessibleAccounts.end(),
+            [&owner](const std::string &account) { return account.find(owner) == 0; });
         if (it == accessibleAccounts.end()) {
             ACCOUNT_LOGE("failed to find accessible account");
             REPORT_APP_ACCOUNT_FAIL("", owner, Constants::APP_DFX_SUBSCRIBE,
@@ -371,6 +383,17 @@ bool AppAccountSubscribeManager::PublishAccount(
     return true;
 }
 
+bool AppAccountSubscribeManager::IsReceiverAuthorizedApp(
+    const std::shared_ptr<AppAccountEventRecord> &record, const AppAccountSubscribeRecordPtr &receiver)
+{
+    bool isAuthorizedApp = false;
+    // precise lookup: encode the receiver's raw appIndex (no visibility query).
+    std::string encodedApp;
+    AppAccountControlManager::EncodeAuthorizedAppPrecise(receiver->bundleName, receiver->appIndex, encodedApp);
+    record->info->CheckAppAccess(encodedApp, isAuthorizedApp);
+    return isAuthorizedApp;
+}
+
 ErrCode AppAccountSubscribeManager::OnAccountsChanged(const std::shared_ptr<AppAccountEventRecord> &record)
 {
     auto uid = record->uid;
@@ -380,11 +403,12 @@ ErrCode AppAccountSubscribeManager::OnAccountsChanged(const std::shared_ptr<AppA
         ACCOUNT_LOGE("dataStoragePtr is nullptr");
         return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
     }
+    std::string ownerName;
+    record->info->GetOwner(ownerName);
 
     for (auto receiver : record->receivers) {
-        bool isAuthorizedApp = false;
-        record->info->CheckAppAccess(receiver->bundleName, isAuthorizedApp);
-        if (!isAuthorizedApp && receiver->bundleName != record->info->GetOwner()) {
+        bool isAuthorizedApp = IsReceiverAuthorizedApp(record, receiver);
+        if (!isAuthorizedApp && receiver->bundleName != ownerName) {
             continue;
         }
         std::vector<AppAccountInfo> accessibleAccounts;

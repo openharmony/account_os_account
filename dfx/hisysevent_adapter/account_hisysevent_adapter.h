@@ -77,6 +77,7 @@ const char APP_DFX_DB_ERR_LOG[] = "dataStorage";
 const char APP_DFX_BMS_ERR_LOG[] = "bmsErrorLog";
 const char APP_DFX_ASSET_ERR_LOG[] = "assetErrorLog";
 const char APP_DFX_AUTHENTICATOR_SESSION[] = "authenticatorSessionError";
+const char APP_DFX_GET_FOREGROUND_SUBPROFILE[] = "getForegroundSubprofile";
 const char APP_DFX_GET_ALL_ACCOUNTS[] = "getAllAccounts";
 const char APP_DFX_GET_EXTRAINFO[] = "getExtraInfo";
 const char APP_DFX_GET_CREDENTIAL[] = "getCredential";

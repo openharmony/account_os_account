@@ -1191,3 +1191,93 @@ HWTEST_F(AppAccountInfoTest, ParseTokenInfosFromJson_OverFlow_001, TestSize.Leve
     EXPECT_TRUE(result);
     EXPECT_EQ(appAccountInfo.oauthTokens_.size(), MAX_TOKEN_NUMBER);
 }
+/**
+ * @tc.name: AppAccountInfo_EncodeAuthorizedApp_001
+ * @tc.desc: Test EncodeAuthorizedApp produces bundleName#appIndex format.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_EncodeAuthorizedApp_001, TestSize.Level1)
+{
+    EXPECT_EQ(AppAccountInfo::EncodeAuthorizedApp("com.example.app", 0), "com.example.app#0");
+    EXPECT_EQ(AppAccountInfo::EncodeAuthorizedApp("com.example.app", 1), "com.example.app#1");
+    EXPECT_EQ(AppAccountInfo::EncodeAuthorizedApp("com.example.app", 100), "com.example.app#100");
+}
+
+/**
+ * @tc.name: AppAccountInfo_ParseAuthorizedApp_001
+ * @tc.desc: Test ParseAuthorizedApp with normal encoded entry.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_ParseAuthorizedApp_001, TestSize.Level1)
+{
+    std::string bundleName;
+    uint32_t appIndex = 99;
+    EXPECT_TRUE(AppAccountInfo::ParseAuthorizedApp("com.example.app#1", bundleName, appIndex));
+    EXPECT_EQ(bundleName, "com.example.app");
+    EXPECT_EQ(appIndex, 1u);
+}
+
+/**
+ * @tc.name: AppAccountInfo_ParseAuthorizedApp_002
+ * @tc.desc: Test ParseAuthorizedApp with multi-digit appIndex.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_ParseAuthorizedApp_002, TestSize.Level1)
+{
+    std::string bundleName;
+    uint32_t appIndex = 0;
+    EXPECT_TRUE(AppAccountInfo::ParseAuthorizedApp("com.example.app#100", bundleName, appIndex));
+    EXPECT_EQ(bundleName, "com.example.app");
+    EXPECT_EQ(appIndex, 100u);
+}
+
+/**
+ * @tc.name: AppAccountInfo_ParseAuthorizedApp_003
+ * @tc.desc: Test ParseAuthorizedApp with legacy pure bundleName (upgrade compatibility).
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_ParseAuthorizedApp_003, TestSize.Level1)
+{
+    std::string bundleName;
+    uint32_t appIndex = 99;
+    EXPECT_TRUE(AppAccountInfo::ParseAuthorizedApp("com.example.app", bundleName, appIndex));
+    EXPECT_EQ(bundleName, "com.example.app");
+    EXPECT_EQ(appIndex, 0u);
+}
+
+/**
+ * @tc.name: AppAccountInfo_ParseAuthorizedApp_004
+ * @tc.desc: Test ParseAuthorizedApp with overflow appIndex (> uint32 max).
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_ParseAuthorizedApp_004, TestSize.Level1)
+{
+    std::string bundleName;
+    uint32_t appIndex = 0;
+    // 4294967296 = 0x100000000 > UINT32_MAX
+    EXPECT_FALSE(AppAccountInfo::ParseAuthorizedApp("com.example.app#4294967296", bundleName, appIndex));
+}
+
+/**
+ * @tc.name: AppAccountInfo_ParseAuthorizedApp_005
+ * @tc.desc: Test ParseAuthorizedApp with non-numeric appIndex.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_ParseAuthorizedApp_005, TestSize.Level1)
+{
+    std::string bundleName;
+    uint32_t appIndex = 0;
+    EXPECT_FALSE(AppAccountInfo::ParseAuthorizedApp("com.example.app#abc", bundleName, appIndex));
+}
+
+/**
+ * @tc.name: AppAccountInfo_ParseAuthorizedApp_006
+ * @tc.desc: Test ParseAuthorizedApp with empty appIndex (trailing #).
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_ParseAuthorizedApp_006, TestSize.Level1)
+{
+    std::string bundleName;
+    uint32_t appIndex = 0;
+    EXPECT_FALSE(AppAccountInfo::ParseAuthorizedApp("com.example.app#", bundleName, appIndex));
+}

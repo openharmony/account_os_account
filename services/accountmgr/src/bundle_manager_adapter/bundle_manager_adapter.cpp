@@ -139,6 +139,36 @@ bool BundleManagerAdapter::QueryExtensionAbilityInfos(
     return ret;
 }
 
+ErrCode BundleManagerAdapter::QueryExtensionAbilityInfosV9(const AAFwk::Want &want, int32_t flags, int32_t userId,
+    std::vector<AppExecFwk::ExtensionAbilityInfo> &extensionInfos)
+{
+    std::lock_guard<std::mutex> lock(proxyMutex_);
+    ErrCode result = Connect();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to connect bundle manager service.");
+        return ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO;
+    }
+    StartTraceAdapter("Bundle manager service, QueryExtensionAbilityInfosV9");
+    auto ret = proxy_->QueryExtensionAbilityInfosV9(want, flags, userId, extensionInfos);
+    FinishTraceAdapter();
+    return ret;
+}
+
+ErrCode BundleManagerAdapter::GetMainAndCloneBundleInfo(const std::string &bundleName, int32_t flags,
+    int32_t userId, std::vector<AppExecFwk::BundleInfo> &bundleInfos)
+{
+    std::lock_guard<std::mutex> lock(proxyMutex_);
+    ErrCode result = Connect();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to connect bundle manager service.");
+        return result;
+    }
+    StartTraceAdapter("Bundle manager service, GetMainAndCloneBundleInfo");
+    auto ret = proxy_->GetMainAndCloneBundleInfo(bundleName, flags, userId, bundleInfos);
+    FinishTraceAdapter();
+    return ret;
+}
+
 ErrCode BundleManagerAdapter::CreateNewUser(int32_t userId, const std::vector<std::string> &disallowedHapList,
     const std::optional<std::vector<std::string>> &allowedHapList)
 {

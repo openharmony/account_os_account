@@ -35,6 +35,14 @@
 #include "singleton.h"
 #include "system_ability_definition.h"
 #include "account_hisysevent_adapter.h"
+#ifdef HAS_HIVIEWDFX_HITRACE_PART
+#include "hitrace_adapter.h"
+#endif
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+#include "iinner_os_account_manager.h"
+#include "os_account_info.h"
+#include "sub_profile_context.h"
+#endif
 
 namespace OHOS {
 namespace AccountSA {
@@ -53,6 +61,32 @@ const std::string HYPHEN = "#";
 const std::string ALIAS_SUFFIX_CREDENTIAL = "credential";
 const std::string ALIAS_SUFFIX_TOKEN = "token";
 #endif
+}
+
+// Resolve the storage appIndex for an account owned by |bundleName|, from the
+// caller's foreground context. Under subspace it queries the visible+enabled
+// appIndex; otherwise 0. On query failure (bundle not installed / BMS unavailable)
+// it falls back to the caller's raw appIndex instead of erroring, so that acts
+// scenarios like getAuthToken/setAuthToken on a non-existent owner/account surface
+static ErrCode ResolveAppIndex(const std::string &bundleName, uint32_t callerAppIndex,
+    int32_t callerUid, uint32_t &appIndex)
+{
+    appIndex = 0;
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    int32_t osAccountId = callerUid / UID_TRANSFORM_DIVISOR;
+    ErrCode ret = AppAccountControlManager::QueryVisibleEnabledAppIndex(
+        bundleName, callerAppIndex, osAccountId, appIndex);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGW("ResolveAppIndex QueryVisibleEnabledAppIndex failed, ret=%{public}d, fallback to callerAppIndex",
+            ret);
+        appIndex = callerAppIndex;
+    }
+#else
+    (void)bundleName;
+    (void)callerAppIndex;
+    (void)callerUid;
+#endif
+    return ERR_OK;
 }
 
 #ifdef HAS_ASSET_PART
@@ -235,6 +269,154 @@ AppAccountControlManager &AppAccountControlManager::GetInstance()
 {
     static AppAccountControlManager *instance = new (std::nothrow) AppAccountControlManager();
     return *instance;
+}
+
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+bool AppAccountControlManager::IsAppIndexVisibleWithFg(uint32_t callerAppIndex,
+    uint32_t targetAppIndex, int32_t foregroundIndex)
+{
+    if (callerAppIndex == targetAppIndex) {
+        return true;
+    }
+    if (foregroundIndex < 0) {
+        return false;
+    }
+    if ((callerAppIndex == static_cast<uint32_t>(HEADLESS_SUBPROFILE_INDEX) &&
+         targetAppIndex == static_cast<uint32_t>(foregroundIndex)) ||
+        (targetAppIndex == static_cast<uint32_t>(HEADLESS_SUBPROFILE_INDEX) &&
+         callerAppIndex == static_cast<uint32_t>(foregroundIndex))) {
+        return true;
+    }
+    return false;
+}
+#endif
+
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+bool AppAccountControlManager::GetForegroundIndex(int32_t osAccountId, int32_t &foregroundIndex)
+{
+    ACCOUNT_LOGD("GetForegroundIndex enter, osAccountId=%{public}d", osAccountId);
+    foregroundIndex = -1;
+    OsAccountInfo osAccountInfo;
+    ErrCode ret = IInnerOsAccountManager::GetInstance().QueryOsAccountById(osAccountId, osAccountInfo);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGW("QueryOsAccountById failed, osAccountId=%{public}d, ret=%{public}d", osAccountId, ret);
+        REPORT_APP_ACCOUNT_FAIL("", "", Constants::APP_DFX_GET_FOREGROUND_SUBPROFILE, ret, "QueryOsAccountById failed");
+        return false;
+    }
+    int32_t foregroundSubProfileId = osAccountInfo.GetForegroundSubProfileId();
+    if (foregroundSubProfileId < 0) {
+        ACCOUNT_LOGD("foregroundSubProfileId not set, only same appIndex visible");
+        return false;
+    }
+    SubProfileContext subprofileCtx;
+    ret = IInnerOsAccountManager::GetInstance().ReadSubProfileContext(osAccountId, subprofileCtx);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGW("ReadSubProfileContext failed, ret=%{public}d", ret);
+        REPORT_APP_ACCOUNT_FAIL("", "", Constants::APP_DFX_GET_FOREGROUND_SUBPROFILE,
+            ret, "ReadSubProfileContext failed");
+        return false;
+    }
+    for (const auto &entry : subprofileCtx.subProfileIndexMap) {
+        if (entry.second == foregroundSubProfileId) {
+            foregroundIndex = entry.first;
+            ACCOUNT_LOGD("GetForegroundIndex found, foregroundIndex=%{public}d", foregroundIndex);
+            return true;
+        }
+    }
+    ACCOUNT_LOGW("foregroundSubProfileId=%{public}d not found in subProfileIndexMap", foregroundSubProfileId);
+    REPORT_APP_ACCOUNT_FAIL("", "", Constants::APP_DFX_GET_FOREGROUND_SUBPROFILE,
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR, "foregroundSubProfileId not found in subProfileIndexMap");
+    return false;
+}
+
+static void GetForegroundCandidates(uint32_t callerAppIndex, int32_t osAccountId,
+    std::vector<uint32_t> &candidates)
+{
+    if (callerAppIndex != static_cast<uint32_t>(HEADLESS_SUBPROFILE_INDEX)) {
+        candidates.push_back(static_cast<uint32_t>(HEADLESS_SUBPROFILE_INDEX));
+        return;
+    }
+    int32_t foregroundIndex = -1;
+    if (AppAccountControlManager::GetForegroundIndex(osAccountId, foregroundIndex) && foregroundIndex >= 0) {
+        candidates.push_back(static_cast<uint32_t>(foregroundIndex));
+    }
+}
+#endif
+
+ErrCode AppAccountControlManager::QueryVisibleEnabledAppIndex(const std::string &bundleName,
+    uint32_t callerAppIndex, int32_t osAccountId, uint32_t &appIndex)
+{
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    std::vector<uint32_t> candidates = {callerAppIndex};
+    GetForegroundCandidates(callerAppIndex, osAccountId, candidates);
+    int32_t flag = static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION)
+        | static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_DISABLE);
+    std::vector<AppExecFwk::BundleInfo> bundleInfos;
+    ACCOUNT_LOGD("GetMainAndCloneBundleInfo before, bundle=%{public}s, osAccountId=%{public}d", bundleName.c_str(),
+        osAccountId);
+#ifdef HAS_HIVIEWDFX_HITRACE_PART
+    StartTraceAdapter("QueryVisibleEnabledAppIndex");
+#endif
+    ErrCode ret = BundleManagerAdapter::GetInstance()->GetMainAndCloneBundleInfo(
+        bundleName, flag, osAccountId, bundleInfos);
+#ifdef HAS_HIVIEWDFX_HITRACE_PART
+    FinishTraceAdapter();
+#endif
+    ACCOUNT_LOGD("GetMainAndCloneBundleInfo after, ret=%{public}d, size=%{public}zu", ret, bundleInfos.size());
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGW("GetMainAndCloneBundleInfo failed, bundle=%{public}s, ret=%{public}d", bundleName.c_str(), ret);
+        return ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO;
+    }
+    // Only one appIndex is enabled at a time in subspace; find the enabled visible one
+    appIndex = 0;
+    for (const auto &info : bundleInfos) {
+        if (!info.applicationInfo.enabled || info.applicationInfo.appIndex < 0) {
+            continue;
+        }
+        uint32_t idx = static_cast<uint32_t>(info.applicationInfo.appIndex);
+        if (std::find(candidates.begin(), candidates.end(), idx) != candidates.end()) {
+            appIndex = idx;
+            return ERR_OK;
+        }
+    }
+    ACCOUNT_LOGD("No visible enabled appIndex found for bundle=%{public}s, default appIndex=0",
+        bundleName.c_str());
+    return ERR_OK;
+#else
+    appIndex = 0;
+    return ERR_OK;
+#endif
+}
+
+ErrCode AppAccountControlManager::ResolveAndEncodeAuthorizedApp(const std::string &authorizedApp,
+    uint32_t callerAppIndex, int32_t callerUid, std::string &encodedApp)
+{
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    uint32_t appIndex = 0;
+    int32_t osAccountId = callerUid / UID_TRANSFORM_DIVISOR;
+    ErrCode ret = QueryVisibleEnabledAppIndex(authorizedApp, callerAppIndex, osAccountId, appIndex);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGW("ResolveAndEncodeAuthorizedApp QueryVisibleEnabledAppIndex failed, ret=%{public}d, fallback", ret);
+        appIndex = callerAppIndex;
+    }
+    encodedApp = AppAccountInfo::EncodeAuthorizedApp(authorizedApp, appIndex);
+#else
+    (void)callerAppIndex;
+    (void)callerUid;
+    encodedApp = authorizedApp;
+#endif
+    return ERR_OK;
+}
+
+void AppAccountControlManager::EncodeAuthorizedAppPrecise(const std::string &bundleName,
+    uint32_t appIndex, std::string &encodedApp)
+{
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    encodedApp = AppAccountInfo::EncodeAuthorizedApp(bundleName, appIndex);
+#else
+    (void)appIndex;
+    encodedApp = bundleName;
+#endif
 }
 
 ErrCode AppAccountControlManager::AddAccount(const std::string &name, const std::string &extraInfo, const uid_t &uid,
@@ -739,7 +921,13 @@ ErrCode AppAccountControlManager::GetOAuthToken(
     const AuthenticatorSessionRequest &request, std::string &token, const uint32_t apiVersion)
 {
     AppAccountInfo appAccountInfo(request.name, request.owner);
-    appAccountInfo.SetAppIndex(0);
+    uint32_t resolvedAppIndex = 0;
+    ErrCode appIdxRet = ResolveAppIndex(request.owner, request.appIndex, request.callerUid, resolvedAppIndex);
+    if (appIdxRet != ERR_OK) {
+        ACCOUNT_LOGE("ResolveAppIndex failed, ret=%{public}d", appIdxRet);
+        return appIdxRet;
+    }
+    appAccountInfo.SetAppIndex(resolvedAppIndex);
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr = GetDataStorage(request.callerUid, false);
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
     if (result != ERR_OK) {
@@ -776,9 +964,22 @@ ErrCode AppAccountControlManager::GetOAuthToken(
 
 ErrCode AppAccountControlManager::SetOAuthToken(const AuthenticatorSessionRequest &request)
 {
+    // Resolve the storage appIndex BEFORE acquiring mutex_ so the BMS IPC inside
+    // ResolveAppIndex does not run under the lock (Pitfall 6). Under subspace the
+    // visible+enabled appIndex is queried; otherwise the caller's appIndex is kept
+    // (pre-subspace behaviour, macro-isolated to not affect old features).
+    uint32_t resolvedAppIndex = request.appIndex;
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    ErrCode appIdxRet = ResolveAppIndex(
+        request.callerBundleName, request.appIndex, request.callerUid, resolvedAppIndex);
+    if (appIdxRet != ERR_OK) {
+        ACCOUNT_LOGE("ResolveAppIndex failed, ret=%{public}d", appIdxRet);
+        return appIdxRet;
+    }
+#endif
     std::lock_guard<std::mutex> lock(mutex_);
     AppAccountInfo appAccountInfo(request.name, request.callerBundleName);
-    appAccountInfo.SetAppIndex(request.appIndex);
+    appAccountInfo.SetAppIndex(resolvedAppIndex);
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr = GetDataStorage(request.callerUid, false);
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
     if (result != ERR_OK) {
@@ -798,7 +999,8 @@ ErrCode AppAccountControlManager::SetOAuthToken(const AuthenticatorSessionReques
         return result;
     }
 #ifdef HAS_ASSET_PART
-    std::string hapLabel = request.callerBundleName + Constants::HYPHEN + std::to_string(request.appIndex);
+    std::string hapLabel = request.callerBundleName + Constants::HYPHEN +
+        std::to_string(appAccountInfo.GetAppIndex());
     std::string authTypeAlias;
     appAccountInfo.GetOAuthToken(request.authType, authTypeAlias);
     int32_t localId = request.callerUid / UID_TRANSFORM_DIVISOR;
@@ -810,9 +1012,18 @@ ErrCode AppAccountControlManager::SetOAuthToken(const AuthenticatorSessionReques
 ErrCode AppAccountControlManager::DeleteOAuthToken(
     const AuthenticatorSessionRequest &request, const uint32_t apiVersion)
 {
+    // Resolve the storage appIndex BEFORE acquiring mutex_ so the BMS IPC inside
+    // ResolveAppIndex does not run under the lock (Pitfall 6). Under non-subspace
+    // ResolveAppIndex is a no-op that returns 0 (pre-subspace behaviour).
+    uint32_t resolvedAppIndex = 0;
+    ErrCode appIdxRet = ResolveAppIndex(request.owner, request.appIndex, request.callerUid, resolvedAppIndex);
+    if (appIdxRet != ERR_OK) {
+        ACCOUNT_LOGE("ResolveAppIndex failed, ret=%{public}d", appIdxRet);
+        return appIdxRet;
+    }
     std::lock_guard<std::mutex> lock(mutex_);
     AppAccountInfo appAccountInfo(request.name, request.owner);
-    appAccountInfo.SetAppIndex(0);
+    appAccountInfo.SetAppIndex(resolvedAppIndex);
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr = GetDataStorage(request.callerUid);
     ErrCode ret = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
     if (ret != ERR_OK) {
@@ -882,8 +1093,13 @@ ErrCode AppAccountControlManager::SetOAuthTokenVisibility(
             ret, "Get info from data storage failed");
         return ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST;
     }
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    std::string bundleKey = request.bundleName + GetBundleKeySuffix(request.appIndex);
+#else
+    const std::string &bundleKey = request.bundleName;
+#endif
     ret = appAccountInfo.SetOAuthTokenVisibility(
-        request.authType, request.bundleName, request.isTokenVisible, apiVersion);
+        request.authType, bundleKey, request.isTokenVisible, apiVersion);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("failed to set oauth token visibility, result %{public}d.", ret);
         return ret;
@@ -912,7 +1128,12 @@ ErrCode AppAccountControlManager::CheckOAuthTokenVisibility(
             result, "Get info from data storage failed");
         return ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST;
     }
-    return appAccountInfo.CheckOAuthTokenVisibility(request.authType, request.bundleName, isVisible, apiVersion);
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    std::string bundleKey = request.bundleName + GetBundleKeySuffix(request.appIndex);
+#else
+    const std::string &bundleKey = request.bundleName;
+#endif
+    return appAccountInfo.CheckOAuthTokenVisibility(request.authType, bundleKey, isVisible, apiVersion);
 }
 
 ErrCode AppAccountControlManager::GetAllOAuthTokens(
@@ -920,7 +1141,13 @@ ErrCode AppAccountControlManager::GetAllOAuthTokens(
 {
     tokenInfos.clear();
     AppAccountInfo appAccountInfo(request.name, request.owner);
-    appAccountInfo.SetAppIndex(0);
+    uint32_t resolvedAppIndex = 0;
+    ErrCode appIdxRet = ResolveAppIndex(request.owner, request.appIndex, request.callerUid, resolvedAppIndex);
+    if (appIdxRet != ERR_OK) {
+        ACCOUNT_LOGE("ResolveAppIndex failed, ret=%{public}d", appIdxRet);
+        return appIdxRet;
+    }
+    appAccountInfo.SetAppIndex(resolvedAppIndex);
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr = GetDataStorage(request.callerUid);
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
     if (result != ERR_OK) {
@@ -928,6 +1155,11 @@ ErrCode AppAccountControlManager::GetAllOAuthTokens(
         return ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST;
     }
     std::string bundleKey = request.callerBundleName + GetBundleKeySuffix(request.appIndex);
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    bool isSelf = (request.callerBundleName == request.owner);
+#else
+    bool isSelf = (bundleKey == request.owner);
+#endif
     std::vector<OAuthTokenInfo> allTokenInfos;
     result = appAccountInfo.GetAllOAuthTokens(allTokenInfos);
     if (result != ERR_OK) {
@@ -935,7 +1167,7 @@ ErrCode AppAccountControlManager::GetAllOAuthTokens(
         return result;
     }
     for (auto tokenInfo : allTokenInfos) {
-        if ((bundleKey != request.owner) &&
+        if (!isSelf &&
             (tokenInfo.authList.find(bundleKey) == tokenInfo.authList.end())) {
             continue;
         }
@@ -964,12 +1196,30 @@ ErrCode AppAccountControlManager::GetOAuthList(
         ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", result);
         return ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST;
     }
-    return appAccountInfo.GetOAuthList(request.authType, oauthList, apiVersion);
+    result = appAccountInfo.GetOAuthList(request.authType, oauthList, apiVersion);
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    std::set<std::string> strippedList;
+    for (const auto &entry : oauthList) {
+        std::string rawBundle;
+        uint32_t appIdx = 0;
+        if (AppAccountInfo::ParseAuthorizedApp(entry, rawBundle, appIdx)) {
+            strippedList.insert(rawBundle);
+        } else {
+            strippedList.insert(entry);
+        }
+    }
+    oauthList = std::move(strippedList);
+#endif
+    return result;
 }
 
 std::string AppAccountControlManager::GetBundleKeySuffix(const uint32_t &appIndex)
 {
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    return HYPHEN + std::to_string(appIndex);
+#else
     return (appIndex == 0 ? "" : HYPHEN + std::to_string(appIndex));
+#endif
 }
 
 ErrCode AppAccountControlManager::GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts,
@@ -986,7 +1236,21 @@ ErrCode AppAccountControlManager::GetAllAccounts(const std::string &owner, std::
     }
     ErrCode result = AccountPermissionManager::VerifyPermission(GET_ALL_APP_ACCOUNTS);
     std::string bundleKey = bundleName + GetBundleKeySuffix(appIndex);
-    if ((bundleKey == owner) || (result == ERR_OK)) {
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    bool isOwner = (bundleName == owner);
+#else
+    bool isOwner = (bundleKey == owner);
+#endif
+    if (isOwner || (result == ERR_OK)) {
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+        std::string key = owner + Constants::HYPHEN + std::to_string(appIndex);
+        result = GetAllAccountsFromDataStorage(key, appAccounts, owner, dataStoragePtr);
+        if (result != ERR_OK) {
+            ACCOUNT_LOGE("failed to get all accounts from data storage, result = %{public}d", result);
+            return result;
+        }
+        return ERR_OK;
+#else
         std::string key = owner + Constants::HYPHEN + std::to_string(0);
         result = GetAllAccountsFromDataStorage(key, appAccounts, owner, dataStoragePtr);
         if (result != ERR_OK) {
@@ -994,6 +1258,7 @@ ErrCode AppAccountControlManager::GetAllAccounts(const std::string &owner, std::
             return result;
         }
         return ERR_OK;
+#endif
     }
 
     std::vector<std::string> accessibleAccounts;
@@ -1004,37 +1269,38 @@ ErrCode AppAccountControlManager::GetAllAccounts(const std::string &owner, std::
             result, "Get accessible account from data storage failed");
         return result;
     }
-    for (auto account : accessibleAccounts) {
-        AppAccountInfo appAccountInfo;
-        result = dataStoragePtr->GetAccountInfoById(account, appAccountInfo);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("failed to get account info by id, result %{public}d.", result);
-            return ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID;
-        }
-        if (appAccountInfo.GetOwner() == owner && AppAccountSubscribeManager::CheckAppIsMaster(account)) {
-            appAccounts.emplace_back(appAccountInfo);
-        }
+    ErrCode filterRet = FilterAccessibleAccountsByOwner(
+        accessibleAccounts, owner, appIndex, dataStoragePtr, appAccounts);
+    if (filterRet != ERR_OK) {
+        return filterRet;
     }
     return ERR_OK;
 }
 
-static ErrCode LoadAllAppAccounts(const std::shared_ptr<OHOS::AccountSA::AppAccountDataStorage> &dataStoragePtr,
-    std::vector<AppAccountInfo> &appAccounts)
+ErrCode AppAccountControlManager::FilterAccessibleAccountsByOwner(
+    const std::vector<std::string> &accessibleAccounts, const std::string &owner, uint32_t appIndex,
+    const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr, std::vector<AppAccountInfo> &appAccounts)
 {
-    std::map<std::string, std::shared_ptr<IAccountInfo>> infos;
-    ErrCode result = dataStoragePtr->LoadAllData(infos);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("LoadAllData failed!");
-        REPORT_APP_ACCOUNT_FAIL("", "", Constants::APP_DFX_GET_ALL_ACCOUNTS,
-            result, "Load all data failed");
-        return result;
-    }
-    for (auto it = infos.begin(); it != infos.end(); ++it) {
-        if (it->first == AUTHORIZED_ACCOUNTS) {
+    for (auto account : accessibleAccounts) {
+        AppAccountInfo appAccountInfo;
+        ErrCode result = dataStoragePtr->GetAccountInfoById(account, appAccountInfo);
+        if (result != ERR_OK) {
+            ACCOUNT_LOGE("failed to get account info by id, result %{public}d.", result);
+            return ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID;
+        }
+        if (appAccountInfo.GetOwner() != owner) {
             continue;
         }
-        AppAccountInfo curAppInfo = *(std::static_pointer_cast<AppAccountInfo>(it->second));
-        appAccounts.emplace_back(curAppInfo);
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+        if (appAccountInfo.GetAppIndex() != appIndex) {
+            continue;
+        }
+#else
+        if (!AppAccountSubscribeManager::CheckAppIsMaster(account)) {
+            continue;
+        }
+#endif
+        appAccounts.emplace_back(appAccountInfo);
     }
     return ERR_OK;
 }
@@ -1053,43 +1319,35 @@ ErrCode AppAccountControlManager::GetAllAccessibleAccounts(std::vector<AppAccoun
     }
     ErrCode result = AccountPermissionManager::VerifyPermission(GET_ALL_APP_ACCOUNTS);
     if (result == ERR_OK) {
-        return LoadAllAppAccounts(dataStoragePtr, appAccounts);
-    }
-    std::vector<std::string> accessibleAccounts;
-    result = dataStoragePtr->GetAccessibleAccountsFromDataStorage(bundleName, accessibleAccounts);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get accessible account from data storage, result %{public}d.", result);
-        REPORT_APP_ACCOUNT_FAIL("", bundleName, Constants::APP_DFX_GET_ALL_ACCOUNTS,
-            result, "Get accessible account from data storage failed");
-        return result;
-    }
-
-    for (auto account : accessibleAccounts) {
-        AppAccountInfo appAccountInfo;
-
-        result = dataStoragePtr->GetAccountInfoById(account, appAccountInfo);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("failed to get account info by id, result %{public}d.", result);
-            REPORT_APP_ACCOUNT_FAIL("", bundleName, Constants::APP_DFX_GET_ALL_ACCOUNTS,
-                result, "Get info by id failed");
-            return ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID;
+        // Fast path: caller holds GET_ALL_APP_ACCOUNTS, load all accounts at once.
+        std::map<std::string, std::shared_ptr<IAccountInfo>> infos;
+        ErrCode loadRet = dataStoragePtr->LoadAllData(infos);
+        if (loadRet != ERR_OK) {
+            return loadRet;
         }
-
-        appAccounts.emplace_back(appAccountInfo);
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+        int32_t foregroundIndex = -1;
+        // foregroundIndex<0 is an abnormal foreground state; IsAppIndexVisibleWithFg then
+        // degrades to "only the caller's own appIndex is visible", which is acceptable.
+        (void)GetForegroundIndex(static_cast<int32_t>(uid / UID_TRANSFORM_DIVISOR), foregroundIndex);
+#endif
+        for (auto it = infos.begin(); it != infos.end(); ++it) {
+            if (it->first == AUTHORIZED_ACCOUNTS) {
+                continue;
+            }
+            auto appAccountInfo = *(std::static_pointer_cast<AppAccountInfo>(it->second));
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+            // Only return accounts whose storage appIndex is visible to the caller's appIndex.
+            if (!IsAppIndexVisibleWithFg(appIndex, appAccountInfo.GetAppIndex(), foregroundIndex)) {
+                continue;
+            }
+#endif
+            appAccounts.emplace_back(appAccountInfo);
+        }
+        return ERR_OK;
     }
-
-    std::vector<AppAccountInfo> currentAppAccounts;
-    std::string key = bundleName + Constants::HYPHEN + std::to_string(appIndex);
-    result = GetAllAccountsFromDataStorage(key, currentAppAccounts, bundleName, dataStoragePtr);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get all accounts from data storage, result = %{public}d", result);
-        return result;
-    }
-
-    std::transform(currentAppAccounts.begin(), currentAppAccounts.end(), std::back_inserter(appAccounts),
-        [](auto account) { return account; });
-
-    return ERR_OK;
+    // Slow path: no permission, filter by authorization (subspace-aware).
+    return GetAllAccessibleAccountsFromDataStorage(appAccounts, bundleName, dataStoragePtr, appIndex);
 }
 
 ErrCode AppAccountControlManager::SelectAccountsByOptions(
@@ -1188,7 +1446,7 @@ ErrCode AppAccountControlManager::OnPackageRemoved(
 
 ErrCode AppAccountControlManager::RemoveAppAccountDataFromDataStorage(
     const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr, const std::string &key,
-    const uint32_t &appIndex, const std::shared_ptr<AppAccountDataStorage> &dataStorageSyncPtr = nullptr)
+    const uint32_t &appIndex, const std::shared_ptr<AppAccountDataStorage> &dataStorageSyncPtr)
 {
     DatabaseTransaction dbTransaction = nullptr;
     ErrCode result = StartDbTransaction(dataStoragePtr, dbTransaction);
@@ -1210,6 +1468,7 @@ ErrCode AppAccountControlManager::RemoveAppAccountDataFromDataStorage(
         appAccountInfo.GetAuthorizedApps(authorizedApps);
         appAccountInfo.SetAppIndex(appIndex);
         for (auto authorizedApp : authorizedApps) {
+            // authorizedApp is already the encoded bundle key; pass directly.
             RemoveAuthorizedAccountFromDataStorage(authorizedApp, appAccountInfo, dataStoragePtr);
 #ifdef DISTRIBUTED_FEATURE_ENABLED
             if (NeedSyncDataStorage(appAccountInfo) == true) {
@@ -1308,6 +1567,37 @@ ErrCode AppAccountControlManager::GetAllAccountsFromDataStorage(const std::strin
     return ERR_OK;
 }
 
+ErrCode AppAccountControlManager::FilterAccessibleAccounts(
+    const std::vector<std::string> &accessibleAccounts, uint32_t appIndex,
+    const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr, std::vector<AppAccountInfo> &appAccounts)
+{
+    ACCOUNT_LOGD("FilterAccessibleAccounts enter, size=%{public}zu, appIndex=%{public}u",
+        accessibleAccounts.size(), appIndex);
+    for (auto account : accessibleAccounts) {
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+        AppAccountInfo appAccountInfo;
+        ErrCode result = dataStoragePtr->GetAccountInfoById(account, appAccountInfo);
+        if (result != ERR_OK) {
+            ACCOUNT_LOGE("failed to get account info by id. result %{public}d.", result);
+            return ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID;
+        }
+        appAccounts.emplace_back(appAccountInfo);
+#else
+        if (!AppAccountSubscribeManager::CheckAppIsMaster(account)) {
+            continue;
+        }
+        AppAccountInfo appAccountInfo;
+        ErrCode result = dataStoragePtr->GetAccountInfoById(account, appAccountInfo);
+        if (result != ERR_OK) {
+            ACCOUNT_LOGE("failed to get account info by id. result %{public}d.", result);
+            return ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID;
+        }
+        appAccounts.emplace_back(appAccountInfo);
+#endif
+    }
+    return ERR_OK;
+}
+
 ErrCode AppAccountControlManager::GetAllAccessibleAccountsFromDataStorage(
     std::vector<AppAccountInfo> &appAccounts, const std::string &bundleName,
     const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr, const uint32_t &appIndex)
@@ -1320,25 +1610,20 @@ ErrCode AppAccountControlManager::GetAllAccessibleAccountsFromDataStorage(
     }
 
     std::vector<std::string> accessibleAccounts;
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    std::string bundleKey = AppAccountInfo::EncodeAuthorizedApp(bundleName, appIndex);
+    ErrCode result = dataStoragePtr->GetAccessibleAccountsFromDataStorage(bundleKey, accessibleAccounts);
+#else
     ErrCode result = dataStoragePtr->GetAccessibleAccountsFromDataStorage(bundleName, accessibleAccounts);
+#endif
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get accessible account from data storage, result = %{public}d.", result);
         return result;
     }
 
-    for (auto account : accessibleAccounts) {
-        if (!AppAccountSubscribeManager::CheckAppIsMaster(account)) {
-            continue;
-        }
-        AppAccountInfo appAccountInfo;
-
-        result = dataStoragePtr->GetAccountInfoById(account, appAccountInfo);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("failed to get account info by id. result %{public}d.", result);
-            return ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID;
-        }
-
-        appAccounts.emplace_back(appAccountInfo);
+    result = FilterAccessibleAccounts(accessibleAccounts, appIndex, dataStoragePtr, appAccounts);
+    if (result != ERR_OK) {
+        return result;
     }
 
     std::vector<AppAccountInfo> currentAppAccounts;
@@ -1685,9 +1970,10 @@ ErrCode AppAccountControlManager::SaveAuthorizedAccountIntoDataStorage(const std
         ACCOUNT_LOGE("failed to get config by id from data storage, result %{public}d.", result);
     }
 
+    const std::string &bundleKey = authorizedApp;  // already encoded by caller
     std::vector<std::string> accessibleAccounts;
     auto jsonObject = dataStoragePtr->GetAccessibleAccountsFromAuthorizedAccounts(
-        authorizedAccounts, authorizedApp, accessibleAccounts);
+        authorizedAccounts, bundleKey, accessibleAccounts);
 
     auto accountId = appAccountInfo.GetPrimeKey();
 
@@ -1696,7 +1982,7 @@ ErrCode AppAccountControlManager::SaveAuthorizedAccountIntoDataStorage(const std
         accessibleAccounts.emplace_back(accountId);
     }
 
-    AddVectorStringToJson(jsonObject, authorizedApp, accessibleAccounts);
+    AddVectorStringToJson(jsonObject, bundleKey, accessibleAccounts);
     authorizedAccounts = PackJsonToString(jsonObject);
     if (authorizedAccounts.empty()) {
         ACCOUNT_LOGE("Failed to dump json object.");
@@ -1727,9 +2013,10 @@ ErrCode AppAccountControlManager::RemoveAuthorizedAccountFromDataStorage(const s
         ACCOUNT_LOGE("failed to get authorized accounts from data storage, result %{public}d.", result);
     }
 
+    const std::string &bundleKey = authorizedApp;  // already encoded by caller
     std::vector<std::string> accessibleAccounts;
     auto jsonObject = dataStoragePtr->GetAccessibleAccountsFromAuthorizedAccounts(
-        authorizedAccounts, authorizedApp, accessibleAccounts);
+        authorizedAccounts, bundleKey, accessibleAccounts);
 
     auto accountId = appAccountInfo.GetPrimeKey();
 
@@ -1738,7 +2025,7 @@ ErrCode AppAccountControlManager::RemoveAuthorizedAccountFromDataStorage(const s
         accessibleAccounts.erase(it);
     }
 
-    AddVectorStringToJson(jsonObject, authorizedApp, accessibleAccounts);
+    AddVectorStringToJson(jsonObject, bundleKey, accessibleAccounts);
     authorizedAccounts = PackJsonToString(jsonObject);
     if (authorizedAccounts.empty()) {
         ACCOUNT_LOGE("Failed to dump json object.");

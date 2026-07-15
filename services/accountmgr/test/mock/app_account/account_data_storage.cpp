@@ -17,6 +17,7 @@
 #include <unistd.h>
 #include "account_log_wrapper.h"
 #include "account_hisysevent_adapter.h"
+#include "app_account_info.h"
 #include "app_account_info_error.h"
 #include "app_account_info_json_parser.h"
 #include "json_utils.h"
@@ -25,6 +26,7 @@ namespace OHOS {
 namespace AccountSA {
 
 int g_accountDataStorageErrType = 0;
+bool g_mockLoadDataNonEmpty = false;
 
 AccountDataStorage::AccountDataStorage(const std::string &appId, const std::string &storeId,
     const DbAdapterOptions &options)
@@ -255,6 +257,17 @@ ErrCode AccountDataStorage::LoadDataByLocalFuzzyQuery(
     std::string subId, std::map<std::string, std::shared_ptr<IAccountInfo>> &infos)
 {
     ACCOUNT_LOGI("mock enter");
+    if (g_mockLoadDataNonEmpty) {
+        auto info = std::make_shared<AppAccountInfo>();
+        info->owner_ = "com.example.owner";
+        info->name_ = "test_account";
+        info->appIndex_ = 0;
+        info->authorizedApps_.emplace("com.example.target#0");
+        info->authorizedApps_.emplace("com.example.other#1");
+        info->authorizedApps_.emplace("invalid_entry#abc");
+        infos["account1"] = info;
+        return ERR_OK;
+    }
     if (g_accountDataStorageErrType == ERR_ACCOUNTDATASTORAGE_LOADDATA) {
         return ERR_ACCOUNTDATASTORAGE_FAILED;
     }

@@ -118,8 +118,15 @@ ErrCode InnerAppAccountManager::EnableAppAccess(const std::string &name, const s
 {
     AppAccountInfo appAccountInfo(name, appAccountCallingInfo.bundleName);
     appAccountInfo.SetAppIndex(appAccountCallingInfo.appIndex);
+    std::string encodedApp;
+    ErrCode encRet = AppAccountControlManager::ResolveAndEncodeAuthorizedApp(
+        authorizedApp, appAccountCallingInfo.appIndex, appAccountCallingInfo.callingUid, encodedApp);
+    if (encRet != ERR_OK) {
+        ACCOUNT_LOGE("ResolveAndEncodeAuthorizedApp failed, ret=%{public}d", encRet);
+        return encRet;
+    }
     ErrCode result = controlManager_.EnableAppAccess(
-        name, authorizedApp, appAccountCallingInfo, appAccountInfo, apiVersion);
+        name, encodedApp, appAccountCallingInfo, appAccountInfo, apiVersion);
     if ((result == ERR_OK) && (!subscribeManager_.PublishAccount(
         appAccountInfo, appAccountCallingInfo.callingUid, appAccountCallingInfo.bundleName))) {
         ACCOUNT_LOGE("failed to publish account");
@@ -132,11 +139,18 @@ ErrCode InnerAppAccountManager::DisableAppAccess(const std::string &name, const 
 {
     AppAccountInfo appAccountInfo(name, appAccountCallingInfo.bundleName);
     appAccountInfo.SetAppIndex(appAccountCallingInfo.appIndex);
+    std::string encodedApp;
+    ErrCode encRet = AppAccountControlManager::ResolveAndEncodeAuthorizedApp(
+        authorizedApp, appAccountCallingInfo.appIndex, appAccountCallingInfo.callingUid, encodedApp);
+    if (encRet != ERR_OK) {
+        ACCOUNT_LOGE("ResolveAndEncodeAuthorizedApp failed, ret=%{public}d", encRet);
+        return encRet;
+    }
     ErrCode result = controlManager_.DisableAppAccess(
-        name, authorizedApp, appAccountCallingInfo, appAccountInfo, apiVersion);
+        name, encodedApp, appAccountCallingInfo, appAccountInfo, apiVersion);
     if (result == ERR_OK) {
         // After DisableAppAccess, the AuthorizedApp information not exists in the appAccountInfo
-        appAccountInfo.EnableAppAccess(authorizedApp, apiVersion);
+        appAccountInfo.EnableAppAccess(encodedApp, apiVersion);
     }
     if ((result == ERR_OK) && (!subscribeManager_.PublishAccount(
         appAccountInfo, appAccountCallingInfo.callingUid, appAccountCallingInfo.bundleName))) {
@@ -148,7 +162,12 @@ ErrCode InnerAppAccountManager::DisableAppAccess(const std::string &name, const 
 ErrCode InnerAppAccountManager::CheckAppAccess(const std::string &name, const std::string &authorizedApp,
     bool &isAccessible, const AppAccountCallingInfo &appAccountCallingInfo)
 {
-    return controlManager_.CheckAppAccess(name, authorizedApp, isAccessible, appAccountCallingInfo);
+    // precise lookup: encode the caller's raw appIndex (no visibility query),
+    // consistent with the pre-refactor CheckAppAccess semantics.
+    std::string encodedApp;
+    AppAccountControlManager::EncodeAuthorizedAppPrecise(
+        authorizedApp, appAccountCallingInfo.appIndex, encodedApp);
+    return controlManager_.CheckAppAccess(name, encodedApp, isAccessible, appAccountCallingInfo);
 }
 
 ErrCode InnerAppAccountManager::CheckAppAccountSyncEnable(const std::string &name, bool &syncEnable,
@@ -333,7 +352,7 @@ ErrCode InnerAppAccountManager::GetAuthenticatorInfo(
     const AuthenticatorSessionRequest &request, AuthenticatorInfo &info)
 {
     return AppAccountAuthenticatorManager::GetAuthenticatorInfo(
-        request.owner, request.callerUid / UID_TRANSFORM_DIVISOR, info);
+        request.owner, request.appIndex, request.callerUid / UID_TRANSFORM_DIVISOR, info);
 }
 
 ErrCode InnerAppAccountManager::GetAllOAuthTokens(

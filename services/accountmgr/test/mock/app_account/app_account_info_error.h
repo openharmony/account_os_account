@@ -30,6 +30,7 @@ enum AccountDataStorageErrType {
 };
 
 extern int g_accountDataStorageErrType;
+extern bool g_mockLoadDataNonEmpty;
 }
 }
 #endif // OS_ACCOUNT_SERVICES_ACCOUNTMGR_TEST_MOCK_APP_ACCOUNT_INFO_ERROR_H

@@ -138,7 +138,8 @@ ErrCode AppAccountAuthenticatorSession::Open()
         return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
     }
     AuthenticatorInfo info;
-    ErrCode errCode = AppAccountAuthenticatorManager::GetAuthenticatorInfo(request_.owner, userId_, info);
+    ErrCode errCode = AppAccountAuthenticatorManager::GetAuthenticatorInfo(
+        request_.owner, request_.appIndex, userId_, info);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("authenticator not exist, owner: %{public}s, errCode: %{public}d.",
             request_.owner.c_str(), errCode);
@@ -148,6 +149,7 @@ ErrCode AppAccountAuthenticatorSession::Open()
     }
     AAFwk::Want want;
     want.SetElementName(request_.owner, info.abilityName);
+    want.SetParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY, static_cast<int32_t>(request_.appIndex));
     auto task = [want, this] {
         AbilityManagerAdapter::GetInstance()->ConnectAbility(want, this->conn_, nullptr, this->userId_);
     };

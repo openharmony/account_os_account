@@ -84,6 +84,8 @@ public:
 
     void GetAuthorizedApps(std::set<std::string> &apps) const;
     void SetAuthorizedApps(const std::set<std::string> &apps);
+    static std::string EncodeAuthorizedApp(const std::string &bundleName, uint32_t appIndex);
+    static bool ParseAuthorizedApp(const std::string &entry, std::string &bundleName, uint32_t &appIndex);
 
     void GetSyncEnable(bool &syncEnable) const;
     void SetSyncEnable(const bool &syncEnable);
@@ -125,6 +127,7 @@ private:
     bool ReadStringMap(std::map<std::string, std::string> &stringMap, Parcel &data);
     bool WriteTokenInfos(const std::map<std::string, OAuthTokenInfo> &tokenInfos, Parcel &data) const;
     bool ReadTokenInfos(std::map<std::string, OAuthTokenInfo> &tokenInfos, Parcel &data);
+    bool IsSelfBundle(const std::string &bundleName) const;
 
 public:
     std::string owner_;

@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <atomic>
 #include "ability_manager_adapter.h"
 
 #include "account_log_wrapper.h"
@@ -27,7 +28,13 @@ namespace {
 const std::string STRING_BUNDLE = "com.example.name";
 const std::string STRING_ABILITY_NAME_WITH_CONNECT_FAILED = "com.example.MainAbilityWithConnectFailed";
 const std::string STRING_ABILITY_NAME_WITH_NO_PROXY = "com.example.MainAbilityWithNoProxy";
+std::atomic<int32_t> g_lastConnectAppIndex{-1};
 } // namespace
+
+int32_t AbilityManagerAdapter::GetLastConnectAppIndex()
+{
+    return g_lastConnectAppIndex.load();
+}
 using namespace AAFwk;
 
 AbilityManagerAdapter *AbilityManagerAdapter::GetInstance()
@@ -45,6 +52,7 @@ AbilityManagerAdapter::~AbilityManagerAdapter()
 ErrCode AbilityManagerAdapter::ConnectAbility(const AAFwk::Want &want, const sptr<AAFwk::IAbilityConnection> &connect,
     const sptr<IRemoteObject> &callerToken, int32_t userId)
 {
+    g_lastConnectAppIndex = want.GetIntParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY, -1);
     if (want.GetBundle() == STRING_BUNDLE) {
         sptr<AccountSA::MockAppAccountAuthenticator> mockServicePtr_ =
             new (std::nothrow) AccountSA::MockAppAccountAuthenticator();

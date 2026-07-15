@@ -492,3 +492,33 @@ HWTEST_F(BundleManagerModuleTest, BundleManagerAdapter_QueryExtensionAbilityInfo
     EXPECT_EQ(g_bundleManagerAdapterProxyRemoteNull->QueryExtensionAbilityInfos(
         want, ExtensionAbilityType::BACKUP, flag, USER_ID, extensionInfos), false);
 }
+
+/**
+ * @tc.name: BundleManagerAdapter_QueryExtensionAbilityInfosV9_0100
+ * @tc.desc: QueryExtensionAbilityInfosV9 with null proxy → returns error.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BundleManagerModuleTest, BundleManagerAdapter_QueryExtensionAbilityInfosV9_0100, TestSize.Level1)
+{
+    ASSERT_NE(g_bundleManagerAdapterProxyRemoteNull, nullptr);
+    Want want;
+    int32_t flag = 1;
+    std::vector<ExtensionAbilityInfo> extensionInfos;
+    ErrCode ret = g_bundleManagerAdapterProxyRemoteNull->QueryExtensionAbilityInfosV9(
+        want, flag, USER_ID, extensionInfos);
+    EXPECT_NE(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: BundleManagerAdapter_GetMainAndCloneBundleInfo_0100
+ * @tc.desc: GetMainAndCloneBundleInfo with null proxy → returns error.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BundleManagerModuleTest, BundleManagerAdapter_GetMainAndCloneBundleInfo_0100, TestSize.Level1)
+{
+    ASSERT_NE(g_bundleManagerAdapterProxyRemoteNull, nullptr);
+    std::vector<BundleInfo> bundleInfos;
+    ErrCode ret = g_bundleManagerAdapterProxyRemoteNull->GetMainAndCloneBundleInfo(
+        BUNDLE_NAME, FLAGS, USER_ID, bundleInfos);
+    EXPECT_NE(ret, ERR_OK);
+}

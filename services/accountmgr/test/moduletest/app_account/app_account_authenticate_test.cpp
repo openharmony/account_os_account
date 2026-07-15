@@ -413,7 +413,7 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_Ge
     std::string owner = "owner";
     int32_t userId = 1;
     AuthenticatorInfo info;
-    ErrCode result = AppAccountAuthenticatorManager::GetAuthenticatorInfo(owner, userId, info);
+    ErrCode result = AppAccountAuthenticatorManager::GetAuthenticatorInfo(owner, 0, userId, info);
     ASSERT_NE(result, ERR_OK);
 }
 
