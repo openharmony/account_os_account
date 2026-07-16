@@ -132,13 +132,13 @@ HWTEST_F(OsAccountSubProfileManagerTest, CreateSubspace_Multiple_002, TestSize.L
 
 /**
  * @tc.name: CreateSubspace_LimitReached_003
- * @tc.desc: C7 - CreateSubspace returns REACH_LIMIT when all 999 slots are used
+ * @tc.desc: C7 - CreateSubspace returns REACH_LIMIT when all MAX slots are used
  * @tc.type: FUNC
  */
 HWTEST_F(OsAccountSubProfileManagerTest, CreateSubspace_LimitReached_003, TestSize.Level1)
 {
     auto &mgr = OsAccountSubProfileManager::GetInstance();
-    // Setup mock: account 100 with all 999 subspaces already allocated
+    // Setup mock: account 100 with all MAX subspaces already allocated
     OsAccountInfo osAccountInfo;
     osAccountInfo.SetLocalId(OS_ACCOUNT_ID);
     MockSetCreatedOsAccounts({osAccountInfo});
@@ -146,7 +146,7 @@ HWTEST_F(OsAccountSubProfileManagerTest, CreateSubspace_LimitReached_003, TestSi
     SubProfileContext subprofileCtx;
     subprofileCtx.subProfileIdList.push_back(
         OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER);
-    for (int32_t i = 1; i <= MAX_OS_ACCOUNT_SUB_PROFILE_COUNT - 1; ++i) {
+    for (int32_t i = 1; i <= MAX_OS_ACCOUNT_SUB_PROFILE_COUNT; ++i) {
         subprofileCtx.subProfileIdList.push_back(
             OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + i);
     }
