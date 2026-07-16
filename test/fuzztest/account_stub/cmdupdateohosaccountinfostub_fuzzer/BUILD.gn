@@ -30,6 +30,8 @@ ohos_fuzztest("CmdUpdateOhosAccountInfoStubFuzzTest") {
     "${os_account_path}/dfx/hidumper_adapter",
     "${os_account_path}/dfx/hitrace_adapter",
     "${services_path}/accountmgr/include",
+    "${services_path}/accountmgr/include/os_account_subprofile",
+    "${services_path}/accountmgr/include/distributed_account",
     "${os_account_path}/test/fuzztest/appaccount_stub/fuzz_data",
   ]
   cflags = [

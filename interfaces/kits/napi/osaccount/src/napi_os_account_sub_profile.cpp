@@ -13,15 +13,16 @@
  * limitations under the License.
  */
 
-#include <unordered_set>
-#include "napi_os_account.h"
 #include "napi_os_account_sub_profile_manager.h"
+
+#include <unordered_set>
 
 #include "account_log_wrapper.h"
 #include "account_permission_manager.h"
 #include "napi_account_common.h"
 #include "napi_account_error.h"
 #include "napi_common_want.h"
+#include "napi_os_account.h"
 #include "napi_os_account_common.h"
 #include "napi/native_common.h"
 #include "os_account_manager.h"
@@ -260,7 +261,7 @@ static void OnDistributedAccountEnvCleanup(void* data)
         std::lock_guard<std::mutex> lock(g_lockForSubspaceSubscribers);
         auto it = g_subspaceSubscribers.begin();
         while (it != g_subspaceSubscribers.end()) {
-            if ((*it)->env == cleanupEnv) {
+            if ((*it)->env_ == cleanupEnv) {
                 ACCOUNT_LOGW("Removing subscriber for destroyed environment");
                 ErrCode errCode = OsAccountSubProfileClient::GetInstance().UnsubscribeOsAccountSubProfileEvents(*it);
                 if (errCode != ERR_OK) {
@@ -295,14 +296,14 @@ static bool RegisterDistributedAccountEnvCleanupHook(napi_env env)
 
 SubspaceSubscriber::SubspaceSubscriber(napi_env &env, napi_ref &ref)
 {
-    this->env = env;
-    this->callback = std::make_shared<NapiCallbackRef>(env, ref);
+    this->env_ = env;
+    this->callback_ = std::make_shared<NapiCallbackRef>(env, ref);
 }
 
 SubspaceSubscriber::~SubspaceSubscriber()
 {
-    if (callback != nullptr) {
-        callback.reset();
+    if (callback_ != nullptr) {
+        callback_.reset();
     }
 }
 
@@ -334,13 +335,13 @@ std::function<void()> SubspaceEventNotifyTask(const std::shared_ptr<SubspaceEven
             napi_set_named_property(worker->env, result, "osAccountLocalId", osAccountIdValue));
         napi_value subspaceIdValue = nullptr;
         NAPI_CALL_RETURN_VOID(worker->env,
-            napi_create_int32(worker->env, worker->eventData.subspaceId_, &subspaceIdValue));
+            napi_create_int32(worker->env, worker->eventData.subProfileId_, &subspaceIdValue));
         NAPI_CALL_RETURN_VOID(worker->env,
             napi_set_named_property(worker->env, result, "subProfileId", subspaceIdValue));
         napi_value previousSubspaceIdValue = nullptr;
-        if (worker->eventData.previousSubspaceId_ != -1) {
+        if (worker->eventData.previousSubProfileId_ != -1) {
             NAPI_CALL_RETURN_VOID(worker->env,
-                napi_create_int32(worker->env, worker->eventData.previousSubspaceId_, &previousSubspaceIdValue));
+                napi_create_int32(worker->env, worker->eventData.previousSubProfileId_, &previousSubspaceIdValue));
             NAPI_CALL_RETURN_VOID(worker->env,
                 napi_set_named_property(worker->env, result, "previousSubProfileId", previousSubspaceIdValue));
         }
@@ -355,26 +356,26 @@ std::function<void()> SubspaceEventNotifyTask(const std::shared_ptr<SubspaceEven
     };
 }
 
-void SubspaceSubscriber::OnSubProfileAccountsChanged(const DistributedAccountSubProfileEventData &eventData)
+void SubspaceSubscriber::OnSubProfileChanged(const SubProfileEventData &eventData)
 {
     std::shared_ptr<SubspaceEventWorker> worker = std::make_shared<SubspaceEventWorker>();
     if (worker == nullptr) {
         ACCOUNT_LOGE("failed to create SubspaceEventWorker");
         return;
     }
-    worker->env = env;
+    worker->env = env_;
     worker->eventData = eventData;
     worker->subscriber = shared_from_this();
-    worker->callback = callback;
+    worker->callback = callback_;
     auto task = SubspaceEventNotifyTask(worker);
-    if (napi_ok != napi_send_event(env, task, napi_eprio_vip, "OnSubProfileAccountsChanged")) {
+    if (napi_ok != napi_send_event(env_, task, napi_eprio_vip, "OnSubProfileChanged")) {
         ACCOUNT_LOGE("napi_send_event failed");
     }
     ACCOUNT_LOGI("Post task finish");
 }
 
 static bool ParseSubspaceEventArray(napi_env env, napi_value array,
-    std::set<DistributedAccountSubProfileEventType> &types)
+    std::set<OsAccountSubProfileEventType> &types)
 {
     bool isArray = false;
     NAPI_CALL_BASE(env, napi_is_array(env, array, &isArray), false);
@@ -403,21 +404,21 @@ static bool ParseSubspaceEventArray(napi_env env, napi_value array,
             AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
             return false;
         }
-        if (eventValue < static_cast<int32_t>(DistributedAccountSubProfileEventType::CREATED) ||
-            eventValue >= static_cast<int32_t>(DistributedAccountSubProfileEventType::INVALID_TYPE)) {
+        if (eventValue < static_cast<int32_t>(OsAccountSubProfileEventType::CREATED) ||
+            eventValue >= static_cast<int32_t>(OsAccountSubProfileEventType::INVALID_TYPE)) {
             ACCOUNT_LOGE("Invalid event value %{public}d", eventValue);
             std::string errMsg = "Parameter error. The event value at index " + std::to_string(i) +
                 " must be a valid OsAccountSubspaceEvent";
             AccountNapiThrow(env, ERR_JS_INVALID_PARAMETER, errMsg, true);
             return false;
         }
-        types.insert(static_cast<DistributedAccountSubProfileEventType>(eventValue));
+        types.insert(static_cast<OsAccountSubProfileEventType>(eventValue));
     }
     return true;
 }
 
 static bool ParseParaOnOsAccountSubspaceEvent(napi_env env, napi_callback_info cbInfo,
-    napi_ref &tempRef, std::set<DistributedAccountSubProfileEventType> &types)
+    napi_ref &tempRef, std::set<OsAccountSubProfileEventType> &types)
 {
     size_t argc = ARGS_SIZE_TWO;
     napi_value argv[ARGS_SIZE_TWO] = {nullptr};
@@ -452,7 +453,7 @@ napi_value NapiOsAccountSubProfileManager::onOsAccountSubProfileEvent(napi_env e
         return nullptr;
     }
     napi_ref tempRef = nullptr;
-    std::set<DistributedAccountSubProfileEventType> types;
+    std::set<OsAccountSubProfileEventType> types;
     if (!ParseParaOnOsAccountSubspaceEvent(env, cbInfo, tempRef, types)) {
         ACCOUNT_LOGE("Parse parameters for onOsAccountSubProfileEvent failed");
         return nullptr;
@@ -465,8 +466,8 @@ napi_value NapiOsAccountSubProfileManager::onOsAccountSubProfileEvent(napi_env e
 
     std::lock_guard<std::mutex> lock(g_lockForSubspaceSubscribers);
     for (const auto &item : g_subspaceSubscribers) {
-        if (item->env == env && item->callback != nullptr && newSubscriber->callback != nullptr &&
-            CompareOnAndOffRef(env, item->callback->callbackRef, newSubscriber->callback->callbackRef)) {
+        if (item->env_ == env && item->callback_ != nullptr && newSubscriber->callback_ != nullptr &&
+            CompareOnAndOffRef(env, item->callback_->callbackRef, newSubscriber->callback_->callbackRef)) {
             hasExistingRecord = true;
             subscriber = item;
             break;
@@ -532,12 +533,12 @@ napi_value NapiOsAccountSubProfileManager::offOsAccountSubProfileEvent(napi_env 
     std::lock_guard<std::mutex> lock(g_lockForSubspaceSubscribers);
     auto it = g_subspaceSubscribers.begin();
     while (it != g_subspaceSubscribers.end()) {
-        if ((*it)->env != env) {
+        if ((*it)->env_ != env) {
             it++;
             continue;
         }
-        if (targetSubscriber->callback != nullptr && targetSubscriber->callback->callbackRef != nullptr &&
-            !CompareOnAndOffRef(env, (*it)->callback->callbackRef, targetSubscriber->callback->callbackRef)) {
+        if (targetSubscriber->callback_ != nullptr && targetSubscriber->callback_->callbackRef != nullptr &&
+            !CompareOnAndOffRef(env, (*it)->callback_->callbackRef, targetSubscriber->callback_->callbackRef)) {
             it++;
             continue;
         }
@@ -553,7 +554,7 @@ napi_value NapiOsAccountSubProfileManager::offOsAccountSubProfileEvent(napi_env 
             return nullptr;
         }
         it = g_subspaceSubscribers.erase(it);
-        if (targetSubscriber->callback != nullptr && targetSubscriber->callback->callbackRef != nullptr) {
+        if (targetSubscriber->callback_ != nullptr && targetSubscriber->callback_->callbackRef != nullptr) {
             ACCOUNT_LOGI("Unsubscribe specific callback succeed");
             return nullptr;
         }
@@ -928,13 +929,13 @@ napi_value NapiOsAccountSubProfileManager::Init(napi_env env, napi_value exports
     napi_value osAccountSubProfileEvent = nullptr;
     napi_create_object(env, &osAccountSubProfileEvent);
     SetEnumProperty(env, osAccountSubProfileEvent,
-        static_cast<int>(DistributedAccountSubProfileEventType::CREATED), "CREATED");
+        static_cast<int>(OsAccountSubProfileEventType::CREATED), "CREATED");
     SetEnumProperty(env, osAccountSubProfileEvent,
-        static_cast<int>(DistributedAccountSubProfileEventType::DELETED), "DELETED");
+        static_cast<int>(OsAccountSubProfileEventType::DELETED), "DELETED");
     SetEnumProperty(env, osAccountSubProfileEvent,
-        static_cast<int>(DistributedAccountSubProfileEventType::SWITCHING), "SWITCHING");
+        static_cast<int>(OsAccountSubProfileEventType::SWITCHING), "SWITCHING");
     SetEnumProperty(env, osAccountSubProfileEvent,
-        static_cast<int>(DistributedAccountSubProfileEventType::SWITCHED), "SWITCHED");
+        static_cast<int>(OsAccountSubProfileEventType::SWITCHED), "SWITCHED");
 
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("createOsAccountSubProfile", CreateOsAccountSubProfile),

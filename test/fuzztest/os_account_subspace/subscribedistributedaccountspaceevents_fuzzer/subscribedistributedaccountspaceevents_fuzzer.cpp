@@ -17,8 +17,8 @@
 
 #include <set>
 #include "account_log_wrapper.h"
-#include "distributed_account_subscribe_callback.h"
 #include "fuzz_data.h"
+#include "os_account_sub_profile_subscribe_callback.h"
 #include "os_account_subprofile_client.h"
 
 using namespace std;
@@ -26,11 +26,10 @@ using namespace OHOS::AccountSA;
 
 namespace OHOS {
 const int32_t ENUM_SIZE = 4;
-class TestDistributedAccountSpaceSubscribeCallback final : public DistributedAccountSubscribeCallback {
+class TestDistributedAccountSpaceSubscribeCallback final : public OsAccountSubProfileSubscribeCallback {
 public:
     explicit TestDistributedAccountSpaceSubscribeCallback() {}
-    void OnAccountsChanged(const DistributedAccountEventData &eventData) {}
-    void OnSubProfileAccountsChanged(const DistributedAccountSubProfileEventData &eventData) {}
+    void OnSubProfileChanged(const SubProfileEventData &eventData) override {}
 };
 
 bool SubscribeDistributedAccountSpaceEventsFuzzTest(const uint8_t* data, size_t size)
@@ -39,14 +38,14 @@ bool SubscribeDistributedAccountSpaceEventsFuzzTest(const uint8_t* data, size_t 
         return false;
     }
     FuzzData fuzzData(data, size);
-    std::set<DistributedAccountSubProfileEventType> types;
+    std::set<OsAccountSubProfileEventType> types;
     int32_t typeCount = fuzzData.GetData<int32_t>() % ENUM_SIZE + 1;
     for (int32_t i = 0; i < typeCount && i < ENUM_SIZE; i++) {
-        DistributedAccountSubProfileEventType type = static_cast<DistributedAccountSubProfileEventType>(
+        OsAccountSubProfileEventType type = static_cast<OsAccountSubProfileEventType>(
             fuzzData.GetData<int32_t>() % ENUM_SIZE);
         types.insert(type);
     }
-    std::shared_ptr<DistributedAccountSubscribeCallback> callback = nullptr;
+    std::shared_ptr<OsAccountSubProfileSubscribeCallback> callback = nullptr;
     bool isInitCallback = fuzzData.GetData<bool>();
     if (isInitCallback) {
         callback = std::make_shared<TestDistributedAccountSpaceSubscribeCallback>();

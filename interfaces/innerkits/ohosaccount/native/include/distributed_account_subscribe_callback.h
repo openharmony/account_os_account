@@ -22,14 +22,6 @@
 namespace OHOS {
 namespace AccountSA {
 
-enum class DistributedAccountSubProfileEventType : int32_t {
-    CREATED = 0,
-    DELETED = 1,
-    SWITCHING = 2,
-    SWITCHED = 3,
-    INVALID_TYPE = 4,
-};
-
 enum class DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE : int32_t {
     LOGIN = 0,
     LOGOUT,
@@ -54,30 +46,12 @@ private:
     bool ReadFromParcel(Parcel &parcel);
 };
 
-class DistributedAccountSubProfileEventData : public Parcelable {
-public:
-    DistributedAccountSubProfileEventType type_ = DistributedAccountSubProfileEventType::INVALID_TYPE;
-    int32_t osAccountId_ = -1;
-    int32_t subspaceId_ = -1;
-    int32_t previousSubspaceId_ = -1;
-
-    bool Marshalling(Parcel &parcel) const override;
-    static DistributedAccountSubProfileEventData *Unmarshalling(Parcel &parcel);
-    bool operator==(const DistributedAccountSubProfileEventData &eventData) const;
-
-private:
-    bool ReadFromParcel(Parcel &parcel);
-};
-
 /**
  * @brief Base class for distributed account subscription callback.
  *
  * Usage:
  * - If subscribed to original distributed account events (LOGIN/LOGOUT/LOGOFF/TOKEN_INVALID),
  *   must implement OnAccountsChanged
- * - If subscribed to space events (CREATED/DELETED/BOUND/UNBOUND/SWITCHING/SWITCHED),
- *   must implement OnSubProfileAccountsChanged
- * - If subscribed to both types of events, must implement both callback methods
  *
  * Warning: Failing to implement the corresponding callback method will result in
  * not receiving event notifications after successful subscription. Please ensure
@@ -91,13 +65,6 @@ public:
      * @warning Must implement this method if subscribed via SubscribeDistributedAccountEvent.
      */
     virtual void OnAccountsChanged(const DistributedAccountEventData &eventData) {};
-
-    /**
-     * @brief Callback for distributed account space events.
-     * @param eventData Event data containing event type, OS account ID, space ID, and previous space ID.
-     * @warning Must implement this method if subscribed via SubscribeDistributedAccountSpaceEvents.
-     */
-    virtual void OnSubProfileAccountsChanged(const DistributedAccountSubProfileEventData &eventData) {};
 };
 }  // namespace AccountSA
 }  // namespace OHOS

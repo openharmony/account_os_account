@@ -446,46 +446,6 @@ ErrCode AccountMgrService::UnsubscribeDistributedAccountEvent(int32_t typeInt, c
     return OhosAccountManager::GetInstance().UnsubscribeDistributedAccountEvent(type, eventListener);
 }
 
-ErrCode AccountMgrService::SubscribeDistributedAccountSpaceEvents(
-    const std::vector<int32_t>& typeInts, const sptr<IRemoteObject>& eventListener)
-{
-    [[maybe_unused]] auto timerPtr = RequestTimer(Constants::OPERATION_SUBSCRIBE);
-    ErrCode res = AccountPermissionManager::CheckSystemApp();
-    if (res != ERR_OK) {
-        ACCOUNT_LOGE("Check systemApp failed.");
-        return res;
-    }
-    if (eventListener == nullptr || typeInts.empty()) {
-        ACCOUNT_LOGE("Invalid parameter, eventListener null or typeInts empty.");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
-    std::set<DistributedAccountSubProfileEventType> types;
-    for (auto typeInt : typeInts) {
-        types.insert(static_cast<DistributedAccountSubProfileEventType>(typeInt));
-    }
-    return OhosAccountManager::GetInstance().SubscribeDistributedAccountSpaceEvents(types, eventListener);
-}
-
-ErrCode AccountMgrService::UnsubscribeDistributedAccountSpaceEvents(
-    const std::vector<int32_t>& typeInts, const sptr<IRemoteObject>& eventListener)
-{
-    [[maybe_unused]] auto timerPtr = RequestTimer(Constants::OPERATION_UNSUBSCRIBE);
-    ErrCode res = AccountPermissionManager::CheckSystemApp();
-    if (res != ERR_OK) {
-        ACCOUNT_LOGE("Check systemApp failed.");
-        return res;
-    }
-    if (eventListener == nullptr || typeInts.empty()) {
-        ACCOUNT_LOGE("Invalid parameter, eventListener null or typeInts empty.");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
-    std::set<DistributedAccountSubProfileEventType> types;
-    for (auto typeInt : typeInts) {
-        types.insert(static_cast<DistributedAccountSubProfileEventType>(typeInt));
-    }
-    return OhosAccountManager::GetInstance().UnsubscribeDistributedAccountSpaceEvents(types, eventListener);
-}
-
 int32_t AccountMgrService::GetOsAccountForegroundSubProfileId(int32_t &subProfileId)
 {
     ErrCode ret = AccountPermissionManager::CheckSystemApp();
@@ -837,7 +797,6 @@ ErrCode AccountMgrService::GetDomainAccountService(sptr<IRemoteObject>& funcResu
 ErrCode AccountMgrService::GetOsAccountSubspaceService(sptr<IRemoteObject>& funcResult)
 {
     [[maybe_unused]] auto timerPtr = RequestTimer(Constants::OPERATION_GET_SERVICE);
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
     std::lock_guard<std::mutex> lock(serviceMutex_);
     funcResult = distributedAccountSpaceService_.promote();
     if (funcResult == nullptr) {
@@ -845,10 +804,6 @@ ErrCode AccountMgrService::GetOsAccountSubspaceService(sptr<IRemoteObject>& func
         distributedAccountSpaceService_ = funcResult;
     }
     return ERR_OK;
-#else
-    funcResult = nullptr;
-    return ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED;
-#endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 }
 
 bool AccountMgrService::IsServiceStarted(void) const

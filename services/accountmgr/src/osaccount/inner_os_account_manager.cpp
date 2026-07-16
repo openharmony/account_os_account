@@ -46,6 +46,7 @@
 #endif // SUPPORT_DOMAIN_ACCOUNTS
 #include "os_account_static_subscriber_manager.h"
 #include "os_account_subscribe_manager.h"
+#include "os_account_sub_profile_subscribe_manager.h"
 #include "parameter.h"
 #include "parcel.h"
 #include "securec.h"
@@ -856,23 +857,23 @@ void IInnerOsAccountManager::OsAccountCreateOnComplete(OsAccountInfo &osAccountI
     int32_t headlessProfileId = localId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
     OhosAccountManager::GetInstance().SendSubProfileCES(localId, headlessProfileId,
         COMMON_EVENT_OS_ACCOUNT_SUB_PROFILE_CREATED);
-    (void) DistributedAccountSubscribeManager::GetInstance().Publish(
-        DistributedAccountSubProfileEventType::CREATED, localId, headlessProfileId);
+    (void) OsAccountSubProfileSubscribeManager::GetInstance().Publish(
+        OsAccountSubProfileEventType::CREATED, localId, headlessProfileId);
     foregroundProfileId = osAccountInfo.GetForegroundSubProfileId();
 #else
     (void) OhosAccountManager::GetInstance().GetOsAccountForegroundSubProfileId(localId, foregroundProfileId);
 #endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
     OhosAccountManager::GetInstance().SendSubProfileCES(localId, foregroundProfileId,
         COMMON_EVENT_OS_ACCOUNT_SUB_PROFILE_CREATED);
-    (void) DistributedAccountSubscribeManager::GetInstance().Publish(
-        DistributedAccountSubProfileEventType::CREATED, localId, foregroundProfileId);
+    (void) OsAccountSubProfileSubscribeManager::GetInstance().Publish(
+        OsAccountSubProfileEventType::CREATED, localId, foregroundProfileId);
     // Send sub profile switch event to CES
     OhosAccountManager::GetInstance().SendSubProfileSwitchCES(localId, foregroundProfileId, -1, true);
-    (void) DistributedAccountSubscribeManager::GetInstance().Publish(
-        DistributedAccountSubProfileEventType::SWITCHING, localId, foregroundProfileId, -1);
+    (void) OsAccountSubProfileSubscribeManager::GetInstance().Publish(
+        OsAccountSubProfileEventType::SWITCHING, localId, foregroundProfileId, -1);
     OhosAccountManager::GetInstance().SendSubProfileSwitchCES(localId, foregroundProfileId, -1, false);
-    (void) DistributedAccountSubscribeManager::GetInstance().Publish(
-        DistributedAccountSubProfileEventType::SWITCHED, localId, foregroundProfileId, -1);
+    (void) OsAccountSubProfileSubscribeManager::GetInstance().Publish(
+        OsAccountSubProfileEventType::SWITCHED, localId, foregroundProfileId, -1);
 }
 
 ErrCode IInnerOsAccountManager::FinalizeAccountCreate(OsAccountInfo &osAccountInfo)

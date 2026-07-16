@@ -32,18 +32,6 @@ const char THREAD_DISTRIBUTED_ACCOUNT_EVENT[] = "distributedAccountEvent";
 #endif
 }
 
-void DistributedSubscribeRecord::AddSpaceTypes(const std::set<DistributedAccountSubProfileEventType> &newTypes)
-{
-    spaceTypes_.insert(newTypes.begin(), newTypes.end());
-}
-
-void DistributedSubscribeRecord::RemoveSpaceTypes(const std::set<DistributedAccountSubProfileEventType> &types)
-{
-    for (auto type : types) {
-        spaceTypes_.erase(type);
-    }
-}
-
 DistributedAccountSubscribeManager::DistributedAccountSubscribeManager()
     : subscribeDeathRecipient_(sptr<IRemoteObject::DeathRecipient>(
         new (std::nothrow) DistributedAccountSubscribeDeathRecipient()))
@@ -66,31 +54,6 @@ DistributedSubscribeRecordPtr DistributedAccountSubscribeManager::FindSubscribeR
         return *it;
     }
     return nullptr;
-}
-
-std::vector<sptr<IRemoteObject>> DistributedAccountSubscribeManager::GetSubscribersToNotify(
-    DistributedAccountSubProfileEventType eventType, int32_t eventLocalId)
-{
-    std::vector<sptr<IRemoteObject>> subscribersToNotify;
-    std::lock_guard<std::mutex> lock(subscribeRecordMutex_);
-    for (auto it = subscribeRecords_.begin(); it != subscribeRecords_.end(); ++it) {
-        if ((*it)->spaceTypes_.find(eventType) == (*it)->spaceTypes_.end()) {
-            continue;
-        }
-        bool shouldNotify = false;
-        // isNotifyAllUsers_ indicates whether to notify for all users' events:
-        // - If true (from sa or app on U0): notify for any user's events
-        // - If false (from app on non-U0): only notify for events from the user where the application resides
-        if ((*it)->isNotifyAllUsers_) {
-            shouldNotify = true;
-        } else if ((*it)->localId_ == eventLocalId) {
-            shouldNotify = true;
-        }
-        if (shouldNotify) {
-            subscribersToNotify.emplace_back((*it)->eventListener_);
-        }
-    }
-    return subscribersToNotify;
 }
 
 ErrCode DistributedAccountSubscribeManager::SubscribeDistributedAccountEvent(
@@ -122,71 +85,6 @@ ErrCode DistributedAccountSubscribeManager::SubscribeDistributedAccountEvent(
     return ERR_OK;
 }
 
-ErrCode DistributedAccountSubscribeManager::SubscribeDistributedAccountSpaceEvents(
-    const std::set<DistributedAccountSubProfileEventType> &types, const sptr<IRemoteObject> &eventListener)
-{
-    ACCOUNT_LOGI("Batch subscribe distributed account space events.");
-    if (eventListener == nullptr || types.empty()) {
-        ACCOUNT_LOGE("Invalid parameter, eventListener null or types empty.");
-        REPORT_OHOS_ACCOUNT_FAIL(-1, Constants::OPERATION_SUBSCRIBE_SPACE_EVENT,
-            ERR_ACCOUNT_COMMON_INVALID_PARAMETER, "Invalid parameter for space events subscribe");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
-
-    int32_t callingUid = IPCSkeleton::GetCallingUid();
-    int32_t localId = callingUid / UID_TRANSFORM_DIVISOR;
-    bool isNotifyAllUsers = AccountPermissionManager::CheckSaCall() || (localId == 0);
-    std::lock_guard<std::mutex> lock(subscribeRecordMutex_);
-    auto record = FindSubscribeRecordByEventListener(eventListener);
-    if (record != nullptr) {
-        record->AddSpaceTypes(types);
-        record->localId_ = localId;
-        return ERR_OK;
-    }
-
-    auto subscribeRecordPtr = std::make_shared<DistributedSubscribeRecord>(eventListener, localId, isNotifyAllUsers);
-    if (subscribeDeathRecipient_ != nullptr) {
-        eventListener->AddDeathRecipient(subscribeDeathRecipient_);
-    }
-    subscribeRecordPtr->AddSpaceTypes(types);
-    subscribeRecords_.emplace_back(subscribeRecordPtr);
-    return ERR_OK;
-}
-
-ErrCode DistributedAccountSubscribeManager::UnsubscribeDistributedAccountSpaceEvents(
-    const std::set<DistributedAccountSubProfileEventType> &types, const sptr<IRemoteObject> &eventListener)
-{
-    ACCOUNT_LOGI("Batch unsubscribe distributed account space events.");
-    if (eventListener == nullptr || types.empty()) {
-        ACCOUNT_LOGE("Invalid parameter, eventListener null or types empty.");
-        REPORT_OHOS_ACCOUNT_FAIL(-1, Constants::OPERATION_UNSUBSCRIBE_SPACE_EVENT,
-            ERR_ACCOUNT_COMMON_INVALID_PARAMETER, "Invalid parameter for space events unsubscribe");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
-
-    std::lock_guard<std::mutex> lock(subscribeRecordMutex_);
-    auto record = FindSubscribeRecordByEventListener(eventListener);
-    if (record == nullptr) {
-        ACCOUNT_LOGE("Unsubscribe failed, subscribe record not found.");
-        REPORT_OHOS_ACCOUNT_FAIL(-1, Constants::OPERATION_UNSUBSCRIBE_SPACE_EVENT,
-            ERR_OHOSACCOUNT_KIT_NO_SPECIFIED_CALLBACK_HAS_BEEN_REGISTERED, "Subscribe record not found");
-        return ERR_OHOSACCOUNT_KIT_NO_SPECIFIED_CALLBACK_HAS_BEEN_REGISTERED;
-    }
-    record->RemoveSpaceTypes(types);
-    if (!record->spaceTypes_.empty() || !record->types_.empty()) {
-        return ERR_OK;
-    }
-    if (subscribeDeathRecipient_ != nullptr && record->eventListener_ != nullptr) {
-        record->eventListener_->RemoveDeathRecipient(subscribeDeathRecipient_);
-    }
-    record->eventListener_ = nullptr;
-    subscribeRecords_.erase(
-        std::remove_if(subscribeRecords_.begin(), subscribeRecords_.end(),
-            [&record](const auto& r) { return r == record; }),
-        subscribeRecords_.end());
-    return ERR_OK;
-}
-
 ErrCode DistributedAccountSubscribeManager::UnsubscribeDistributedAccountEvent(
     const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type, const sptr<IRemoteObject> &eventListener)
 {
@@ -199,7 +97,7 @@ ErrCode DistributedAccountSubscribeManager::UnsubscribeDistributedAccountEvent(
     for (auto it = subscribeRecords_.begin(); it != subscribeRecords_.end(); ++it) {
         if ((*it)->eventListener_ == eventListener) {
             (*it)->types_.erase(type);
-            if (!(*it)->types_.empty() || !(*it)->spaceTypes_.empty()) {
+            if (!(*it)->types_.empty()) {
                 return ERR_OK;
             }
             if (subscribeDeathRecipient_ != nullptr) {
@@ -300,53 +198,6 @@ bool DistributedAccountSubscribeManager::OnAccountsChanged(
         return false;
     }
     return true;
-}
-
-bool DistributedAccountSubscribeManager::OnSubProfileAccountsChanged(
-    const sptr<IDistributedAccountEvent> &eventProxy, const DistributedAccountSubProfileEventData &eventData)
-{
-    if (eventProxy == nullptr) {
-        ACCOUNT_LOGE("Event proxy is nullptr.");
-        return false;
-    }
-
-    ErrCode result = SendDistributedAccountEventNotify(
-        [&]() { return eventProxy->OnSubProfileAccountsChanged(eventData); }, "Send space event request");
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("SendRequest for space account changed failed, result=%{public}d osAccountId=%{public}d.",
-            result, eventData.osAccountId_);
-        return false;
-    }
-    return true;
-}
-
-ErrCode DistributedAccountSubscribeManager::Publish(DistributedAccountSubProfileEventType eventType,
-    int32_t localId, int32_t distributedAccountId, int32_t previousDistributedAccountId)
-{
-    ACCOUNT_LOGI("Publish distributed account space event, eventType=%{public}d, localId=%{public}d",
-        static_cast<int32_t>(eventType), localId);
-    auto subscribersToNotify = GetSubscribersToNotify(eventType, localId);
-
-    DistributedAccountSubProfileEventData eventData;
-    eventData.type_ = eventType;
-    eventData.osAccountId_ = localId;
-    eventData.subspaceId_ = distributedAccountId;
-    eventData.previousSubspaceId_ = previousDistributedAccountId;
-
-    for (const auto& eventListener : subscribersToNotify) {
-        auto eventProxy = iface_cast<IDistributedAccountEvent>(eventListener);
-        if (eventProxy == nullptr) {
-            ACCOUNT_LOGW("Failed to cast event proxy");
-            continue;
-        }
-        auto task = [this, eventProxy, eventData] {
-            this->OnSubProfileAccountsChanged(eventProxy, eventData);
-        };
-        ExecuteDistributedAccountEventNotifyAsync(task);
-    }
-    ACCOUNT_LOGI("Publish space event %{public}d succeed, localId=%{public}d, size=%{public}zu.",
-        static_cast<int32_t>(eventType), localId, subscribersToNotify.size());
-    return ERR_OK;
 }
 
 ErrCode DistributedAccountSubscribeManager::Publish(const int id, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE subscribeType,

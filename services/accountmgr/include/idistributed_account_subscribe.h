@@ -25,7 +25,6 @@ namespace AccountSA {
 struct DistributedSubscribeRecord {
     sptr<IRemoteObject> eventListener_;
     std::set<DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE> types_;
-    std::set<DistributedAccountSubProfileEventType> spaceTypes_;
     int32_t localId_ = -1;
     bool isNotifyAllUsers_ = false;
 
@@ -34,9 +33,6 @@ struct DistributedSubscribeRecord {
     DistributedSubscribeRecord(sptr<IRemoteObject> eventListener, int32_t localId = -1, bool isNotifyAllUsers = false)
         : eventListener_(eventListener), localId_(localId), isNotifyAllUsers_(isNotifyAllUsers)
     {}
-
-    void AddSpaceTypes(const std::set<DistributedAccountSubProfileEventType> &newTypes);
-    void RemoveSpaceTypes(const std::set<DistributedAccountSubProfileEventType> &types);
 };
 
 using DistributedSubscribeRecordPtr = std::shared_ptr<DistributedSubscribeRecord>;
@@ -48,15 +44,8 @@ public:
     virtual ErrCode UnsubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
         const sptr<IRemoteObject> &eventListener) = 0;
     virtual ErrCode UnsubscribeDistributedAccountEvent(const sptr<IRemoteObject> &eventListener) = 0;
-    virtual ErrCode SubscribeDistributedAccountSpaceEvents(const std::set<DistributedAccountSubProfileEventType> &types,
-        const sptr<IRemoteObject> &eventListener) = 0;
-    virtual ErrCode UnsubscribeDistributedAccountSpaceEvents(
-        const std::set<DistributedAccountSubProfileEventType> &types, const sptr<IRemoteObject> &eventListener) = 0;
     virtual ErrCode Publish(const int id, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE subscribeType,
         int32_t subProfileId = -1) = 0;
-
-    virtual ErrCode Publish(DistributedAccountSubProfileEventType eventType, int32_t localId,
-        int32_t distributedAccountId, int32_t previousDistributedAccountId = -1) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

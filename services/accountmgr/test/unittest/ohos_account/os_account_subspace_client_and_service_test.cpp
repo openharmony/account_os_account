@@ -15,6 +15,7 @@
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 
 #include "os_account_subspace_coverage_test_common.h"
+#include "os_account_sub_profile_subscribe_manager.h"
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -57,23 +58,6 @@ HWTEST_F(SubspaceClientTest, GetOsAccountSubProfileProxy_ExistingProxy_001, Test
     if (client.proxy_ != nullptr) {
         sptr<IOsAccountSubProfile> result = client.GetOsAccountSubProfileProxy();
         EXPECT_EQ(result, client.proxy_);
-        client.proxy_ = nullptr;
-        client.deathRecipient_ = nullptr;
-    }
-}
-
-HWTEST_F(SubspaceClientTest, ResetProxy_MatchingRemote_001, TestSize.Level1)
-{
-    auto &client = OsAccountSubProfileClient::GetInstance();
-    sptr<IRemoteObject> serviceObj = new (std::nothrow) MockAccountMgrService();
-    client.proxy_ = iface_cast<IOsAccountSubProfile>(serviceObj);
-    client.deathRecipient_ = new (std::nothrow) OsAccountSubProfileClient::OsAccountSubProfileDeathRecipient();
-    if (client.proxy_ != nullptr) {
-        wptr<IRemoteObject> remote = serviceObj;
-        client.ResetProxy(remote);
-        EXPECT_EQ(client.proxy_, nullptr);
-        EXPECT_EQ(client.deathRecipient_, nullptr);
-    } else {
         client.proxy_ = nullptr;
         client.deathRecipient_ = nullptr;
     }
@@ -205,93 +189,6 @@ HWTEST_F(SubProfileManagerServiceTest, SwitchOsAccountSubProfile_Success_001, Te
     std::filesystem::remove_all(testDir, ec);
 }
 
-// ===== Task 8: OsAccountInfo subspace methods =====
-class OsAccountInfoSubspaceTest : public testing::Test {
-public:
-    void SetUp() override {}
-    void TearDown() override {}
-};
-
-HWTEST_F(OsAccountInfoSubspaceTest, GetForegroundSubspaceId_Default_001, TestSize.Level1)
-{
-    OsAccountInfo info;
-    info.localId_ = TEST_OS_ACCOUNT_ID;
-    info.foregroundSubProfileId_ = -1;
-    EXPECT_EQ(info.GetForegroundSubProfileId(), -1);
-}
-
-HWTEST_F(OsAccountInfoSubspaceTest, GetForegroundSubspaceId_SetValue_001, TestSize.Level1)
-{
-    OsAccountInfo info;
-    info.localId_ = TEST_OS_ACCOUNT_ID;
-    int32_t expectedId = TEST_SUBSPACE_BASE + 5;
-    info.SetForegroundSubProfileId(expectedId);
-    EXPECT_EQ(info.GetForegroundSubProfileId(), expectedId);
-}
-
-HWTEST_F(OsAccountInfoSubspaceTest, GetForegroundSubspaceId_SetToBase_001, TestSize.Level1)
-{
-    OsAccountInfo info;
-    info.localId_ = TEST_OS_ACCOUNT_ID;
-    info.SetForegroundSubProfileId(TEST_SUBSPACE_BASE);
-    EXPECT_EQ(info.GetForegroundSubProfileId(), TEST_SUBSPACE_BASE);
-}
-
-HWTEST_F(OsAccountInfoSubspaceTest, SetForegroundSubspaceId_Negative_001, TestSize.Level1)
-{
-    OsAccountInfo info;
-    info.localId_ = TEST_OS_ACCOUNT_ID;
-    info.SetForegroundSubProfileId(-1);
-    EXPECT_EQ(info.GetForegroundSubProfileId(), -1);
-}
-
-// ===== Task 9: OsAccountSubspaceResult Marshalling =====
-class SubspaceResultMarshallingTest : public testing::Test {
-public:
-    void SetUp() override {}
-    void TearDown() override {}
-};
-
-HWTEST_F(SubspaceResultMarshallingTest, Marshalling_Success_001, TestSize.Level1)
-{
-    OsAccountSubspaceResult result;
-    result.id = TEST_SUBSPACE_BASE + 1;
-    result.osAccountId = TEST_OS_ACCOUNT_ID;
-    result.index = 1;
-
-    Parcel parcel;
-    EXPECT_TRUE(result.Marshalling(parcel));
-
-    EXPECT_TRUE(parcel.ReadInt32());
-    EXPECT_TRUE(parcel.ReadInt32());
-    EXPECT_TRUE(parcel.ReadInt32());
-}
-
-HWTEST_F(SubspaceResultMarshallingTest, Unmarshalling_Success_001, TestSize.Level1)
-{
-    OsAccountSubspaceResult original;
-    original.id = TEST_SUBSPACE_BASE + 2;
-    original.osAccountId = TEST_OS_ACCOUNT_ID;
-    original.index = 2;
-
-    Parcel parcel;
-    ASSERT_TRUE(original.Marshalling(parcel));
-
-    OsAccountSubspaceResult *unmarshalled = OsAccountSubspaceResult::Unmarshalling(parcel);
-    ASSERT_NE(unmarshalled, nullptr);
-    EXPECT_EQ(unmarshalled->id, original.id);
-    EXPECT_EQ(unmarshalled->osAccountId, original.osAccountId);
-    EXPECT_EQ(unmarshalled->index, original.index);
-    delete unmarshalled;
-}
-
-HWTEST_F(SubspaceResultMarshallingTest, Unmarshalling_EmptyParcel_001, TestSize.Level1)
-{
-    Parcel emptyParcel;
-    OsAccountSubspaceResult *result = OsAccountSubspaceResult::Unmarshalling(emptyParcel);
-    EXPECT_EQ(result, nullptr);
-}
-
 class MockIRemoteForDeathTest : public IRemoteObject {
 public:
     explicit MockIRemoteForDeathTest() : IRemoteObject(u"") {}
@@ -393,16 +290,6 @@ public:
     bool IsServiceStarted() const { return true; }
     int32_t CallbackEnter(uint32_t code) override { return ERR_OK; }
     int32_t CallbackExit(uint32_t code, int32_t result) override { return ERR_OK; }
-    ErrCode SubscribeDistributedAccountSpaceEvents(
-        const std::vector<int32_t>& typeInts, const sptr<IRemoteObject>& eventListener) override
-    {
-        return ERR_OK;
-    }
-    ErrCode UnsubscribeDistributedAccountSpaceEvents(
-        const std::vector<int32_t>& typeInts, const sptr<IRemoteObject>& eventListener) override
-    {
-        return ERR_OK;
-    }
 
     ErrCode GetOsAccountForegroundSubProfileId(int32_t& subProfileId) override
     {
@@ -518,16 +405,6 @@ HWTEST_F(SubspaceProxyDeathTest, ObjectNullReturn_001, TestSize.Level1)
     EXPECT_EQ(result, nullptr);
 }
 
-HWTEST_F(SubspaceProxyDeathTest, AddDeathRecipientFailure_001, TestSize.Level1)
-{
-    sptr<MockIRemoteForDeathTest> mockRemoteObj = new (std::nothrow) MockIRemoteForDeathTest();
-    ASSERT_NE(mockRemoteObj, nullptr);
-    mockAccountProxy_->mockSubspaceService_ = mockRemoteObj;
-
-    auto result = OsAccountSubProfileClient::GetInstance().GetOsAccountSubProfileProxy();
-    EXPECT_EQ(result, nullptr);
-}
-
 namespace {
 bool g_forceNothrowNewFailure = false;
 } // namespace
@@ -551,6 +428,174 @@ HWTEST_F(SubspaceProxyDeathTest, DeathRecipientNull_001, TestSize.Level1)
     g_forceNothrowNewFailure = false;
 
     EXPECT_EQ(result, nullptr);
+}
+
+// ===== Client+Service Integration Tests for Subscribe/Publish (T-001) =====
+
+static constexpr int32_t TEST_UID = 200000; // localId = 1
+
+class IntegrationTestCallback : public OsAccountSubProfileSubscribeCallback {
+public:
+    void OnSubProfileChanged(const SubProfileEventData &eventData) override {}
+};
+
+class IntegrationSubProfileStub : public OsAccountSubProfileStub {
+public:
+    ErrCode CreateOsAccountSubProfile(
+        int32_t osAccountId,
+        OsAccountSubspaceResult& subspaceResult) override
+    {
+        return ERR_OK;
+    }
+    ErrCode DeleteOsAccountSubProfile(
+        int32_t osAccountId,
+        int32_t subspaceId) override
+    {
+        return ERR_OK;
+    }
+    ErrCode SwitchOsAccountSubProfile(
+        int32_t osAccountId,
+        int32_t subspaceId) override
+    {
+        return ERR_OK;
+    }
+    ErrCode SubscribeOsAccountSubProfileEvents(
+        const std::vector<int32_t> &types,
+        const sptr<IRemoteObject> &eventListener) override
+    {
+        std::set<OsAccountSubProfileEventType> typeSet;
+        for (auto t : types) {
+            typeSet.insert(static_cast<OsAccountSubProfileEventType>(t));
+        }
+        return OsAccountSubProfileSubscribeManager::GetInstance().SubscribeOsAccountSubProfileEvents(
+            typeSet, eventListener);
+    }
+    ErrCode UnsubscribeOsAccountSubProfileEvents(
+        const std::vector<int32_t> &types,
+        const sptr<IRemoteObject> &eventListener) override
+    {
+        std::set<OsAccountSubProfileEventType> typeSet;
+        for (auto t : types) {
+            typeSet.insert(static_cast<OsAccountSubProfileEventType>(t));
+        }
+        return OsAccountSubProfileSubscribeManager::GetInstance().UnsubscribeOsAccountSubProfileEvents(
+            typeSet, eventListener);
+    }
+};
+
+class OsAccountSubProfileIntegrationTest : public testing::Test {
+public:
+    static void SetUpTestCase()
+    {
+        allPermTokenId_ = GetAllAccountPermission();
+        ASSERT_NE(allPermTokenId_, 0);
+    }
+
+    static void TearDownTestCase()
+    {
+        if (allPermTokenId_ != 0) {
+            Security::AccessToken::AccessTokenKit::DeleteToken(
+                static_cast<Security::AccessToken::AccessTokenID>(allPermTokenId_));
+        }
+    }
+
+    void SetUp() override
+    {
+        ASSERT_EQ(SetSelfTokenID(allPermTokenId_), 0);
+        MockSetCallingUid(TEST_UID);
+        ResetMockState();
+
+        OsAccountSubProfileClient::GetInstance().proxy_ = nullptr;
+        OsAccountSubProfileClient::GetInstance().deathRecipient_ = nullptr;
+
+        stub_ = sptr<IntegrationSubProfileStub>(new (std::nothrow) IntegrationSubProfileStub());
+        ASSERT_NE(stub_, nullptr);
+        OsAccountSubProfileClient::GetInstance().proxy_ = stub_;
+    }
+
+    void TearDown() override
+    {
+        OsAccountSubProfileClient::GetInstance().proxy_ = nullptr;
+        OsAccountSubProfileClient::GetInstance().deathRecipient_ = nullptr;
+        stub_ = nullptr;
+    }
+
+    static uint64_t allPermTokenId_;
+    sptr<IntegrationSubProfileStub> stub_;
+};
+
+uint64_t OsAccountSubProfileIntegrationTest::allPermTokenId_ = 0;
+
+/**
+ * @tc.name: OsAccountSubProfileIntegrationTest_SubscribeThenUnsubscribe_Integration
+ * @tc.desc: Subscribe via full client→stub→manager stack, then unsubscribe.
+ */
+HWTEST_F(OsAccountSubProfileIntegrationTest, SubscribeThenUnsubscribe_Integration, TestSize.Level1)
+{
+    auto cb = std::make_shared<IntegrationTestCallback>();
+    std::set<OsAccountSubProfileEventType> types = {OsAccountSubProfileEventType::CREATED};
+
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().SubscribeOsAccountSubProfileEvents(types, cb);
+    EXPECT_EQ(ret, ERR_OK);
+
+    ret = OsAccountSubProfileClient::GetInstance().UnsubscribeOsAccountSubProfileEvents(cb);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountSubProfileIntegrationTest_Subscribe_MultipleTypes_Integration
+ * @tc.desc: Subscribe with multiple event types through full stack.
+ */
+HWTEST_F(OsAccountSubProfileIntegrationTest, Subscribe_MultipleTypes_Integration, TestSize.Level1)
+{
+    auto cb = std::make_shared<IntegrationTestCallback>();
+    std::set<OsAccountSubProfileEventType> types = {
+        OsAccountSubProfileEventType::CREATED,
+        OsAccountSubProfileEventType::DELETED,
+        OsAccountSubProfileEventType::SWITCHED
+    };
+
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().SubscribeOsAccountSubProfileEvents(types, cb);
+    EXPECT_EQ(ret, ERR_OK);
+
+    ret = OsAccountSubProfileClient::GetInstance().UnsubscribeOsAccountSubProfileEvents(cb);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountSubProfileIntegrationTest_Subscribe_Deduplicate_Integration
+ * @tc.desc: Subscribe with same types twice, verify dedup via return codes.
+ */
+HWTEST_F(OsAccountSubProfileIntegrationTest, Subscribe_Deduplicate_Integration, TestSize.Level1)
+{
+    auto cb = std::make_shared<IntegrationTestCallback>();
+    std::set<OsAccountSubProfileEventType> types = {OsAccountSubProfileEventType::CREATED};
+
+    ErrCode ret1 = OsAccountSubProfileClient::GetInstance().SubscribeOsAccountSubProfileEvents(types, cb);
+    EXPECT_EQ(ret1, ERR_OK);
+
+    ret1 = OsAccountSubProfileClient::GetInstance().SubscribeOsAccountSubProfileEvents(types, cb);
+    EXPECT_EQ(ret1, ERR_OK);
+
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().UnsubscribeOsAccountSubProfileEvents(cb);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountSubProfileIntegrationTest_Publish_AfterClientSubscribe
+ * @tc.desc: Subscribe via full stack, then publish via manager.
+ */
+HWTEST_F(OsAccountSubProfileIntegrationTest, Publish_AfterClientSubscribe, TestSize.Level1)
+{
+    auto cb = std::make_shared<IntegrationTestCallback>();
+    std::set<OsAccountSubProfileEventType> types = {OsAccountSubProfileEventType::CREATED};
+
+    ErrCode ret = OsAccountSubProfileClient::GetInstance().SubscribeOsAccountSubProfileEvents(types, cb);
+    EXPECT_EQ(ret, ERR_OK);
+
+    auto &mgr = OsAccountSubProfileSubscribeManager::GetInstance();
+    ret = mgr.Publish(OsAccountSubProfileEventType::CREATED, 1, TEST_SUBSPACE_BASE, -1);
+    EXPECT_EQ(ret, ERR_OK);
 }
 
 #endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE

@@ -48,6 +48,7 @@
 #include "ipc_skeleton.h"
 #include "ohos_account_constants.h"
 #include "os_account_constants.h"
+#include "os_account_sub_profile_subscribe_manager.h"
 #include "system_ability_definition.h"
 #include "tokenid_kit.h"
 
@@ -674,8 +675,8 @@ ErrCode OhosAccountManager::CreateOsAccountSubspace(int32_t osAccountId, OsAccou
     result.osAccountId = osAccountId;
     result.index = index;
 
-    ErrCode publishRet = subscribeManager_.Publish(
-        DistributedAccountSubProfileEventType::CREATED, osAccountId, newSubspaceId);
+    ErrCode publishRet = OsAccountSubProfileSubscribeManager::GetInstance().Publish(
+        OsAccountSubProfileEventType::CREATED, osAccountId, newSubspaceId);
     if (publishRet != ERR_OK) {
         ACCOUNT_LOGW("Failed to publish CREATE event for distId=%{public}d, ret=%{public}d (space is still valid)",
             newSubspaceId, publishRet);
@@ -713,8 +714,8 @@ ErrCode OhosAccountManager::DeleteOsAccountSubspace(int32_t osAccountId, int32_t
         subscribeManager_.Publish(osAccountId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::UNBOUND, subspaceId);
         SendSubProfileCES(osAccountId, subspaceId, COMMON_EVENT_DISTRIBUTED_ACCOUNT_UNBOUND);
     }
-    ErrCode publishRet = subscribeManager_.Publish(
-        DistributedAccountSubProfileEventType::DELETED, osAccountId, subspaceId);
+    ErrCode publishRet = OsAccountSubProfileSubscribeManager::GetInstance().Publish(
+        OsAccountSubProfileEventType::DELETED, osAccountId, subspaceId);
     if (publishRet != ERR_OK) {
         ACCOUNT_LOGW("Failed to publish DELETED event for distId=%{public}d, ret=%{public}d",
             subspaceId, publishRet);
@@ -739,8 +740,8 @@ ErrCode OhosAccountManager::SwitchOsAccountSubspace(
     }
     fromSubspaceId = osAccountInfo.GetForegroundSubProfileId();
     SendSubProfileSwitchCES(osAccountId, subspaceId, fromSubspaceId, true);
-    (void) subscribeManager_.Publish(
-        DistributedAccountSubProfileEventType::SWITCHING, osAccountId, subspaceId, fromSubspaceId);
+    (void) OsAccountSubProfileSubscribeManager::GetInstance().Publish(
+        OsAccountSubProfileEventType::SWITCHING, osAccountId, subspaceId, fromSubspaceId);
 
     ErrCode ret = OsAccountSubProfileManager::GetInstance().SwitchSubProfile(
         osAccountId, subspaceId, fromSubspaceId);
@@ -749,8 +750,8 @@ ErrCode OhosAccountManager::SwitchOsAccountSubspace(
             "SwitchOsAccountSubspace failed");
         return ret;
     }
-    (void) subscribeManager_.Publish(
-        DistributedAccountSubProfileEventType::SWITCHED, osAccountId, subspaceId, fromSubspaceId);
+    (void) OsAccountSubProfileSubscribeManager::GetInstance().Publish(
+        OsAccountSubProfileEventType::SWITCHED, osAccountId, subspaceId, fromSubspaceId);
     SendSubProfileSwitchCES(osAccountId, subspaceId, fromSubspaceId, false);
     ACCOUNT_LOGI("SwitchOsAccountSubspace successful, osAccountId=%{public}d, from=%{public}d, to=%{public}d",
         osAccountId, fromSubspaceId, subspaceId);
@@ -758,18 +759,6 @@ ErrCode OhosAccountManager::SwitchOsAccountSubspace(
     return ERR_OK;
 }
 #endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-
-ErrCode OhosAccountManager::SubscribeDistributedAccountSpaceEvents(
-    const std::set<DistributedAccountSubProfileEventType> &types, const sptr<IRemoteObject> &eventListener)
-{
-    return subscribeManager_.SubscribeDistributedAccountSpaceEvents(types, eventListener);
-}
-
-ErrCode OhosAccountManager::UnsubscribeDistributedAccountSpaceEvents(
-    const std::set<DistributedAccountSubProfileEventType> &types, const sptr<IRemoteObject> &eventListener)
-{
-    return subscribeManager_.UnsubscribeDistributedAccountSpaceEvents(types, eventListener);
-}
 
 ErrCode OhosAccountManager::GetOsAccountForegroundSubProfileId(
     int32_t osAccountId, int32_t &subProfileId)
@@ -1650,7 +1639,8 @@ ErrCode OhosAccountManager::SendMultiSpaceLogoutOnDelOsAccount(int32_t localId)
             continue;
         }
         if (spaceInfo.ohosAccountInfo_.status_ == ACCOUNT_STATE_UNBOUND) {
-            subscribeManager_.Publish(DistributedAccountSubProfileEventType::DELETED, localId, spaceId);
+            OsAccountSubProfileSubscribeManager::GetInstance().Publish(
+                OsAccountSubProfileEventType::DELETED, localId, spaceId);
             SendSubProfileCES(localId, spaceId, COMMON_EVENT_OS_ACCOUNT_SUB_PROFILE_DELETED);
             continue;
         }
@@ -1659,7 +1649,8 @@ ErrCode OhosAccountManager::SendMultiSpaceLogoutOnDelOsAccount(int32_t localId)
         }
         subscribeManager_.Publish(localId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::UNBOUND, spaceId);
         SendSubProfileCES(localId, spaceId, COMMON_EVENT_DISTRIBUTED_ACCOUNT_UNBOUND);
-        subscribeManager_.Publish(DistributedAccountSubProfileEventType::DELETED, localId, spaceId);
+        OsAccountSubProfileSubscribeManager::GetInstance().Publish(
+            OsAccountSubProfileEventType::DELETED, localId, spaceId);
         SendSubProfileCES(localId, spaceId, COMMON_EVENT_OS_ACCOUNT_SUB_PROFILE_DELETED);
     }
     return ERR_OK;
@@ -1683,7 +1674,8 @@ ErrCode OhosAccountManager::SendLogoutEventOnDelOsAccount(int32_t localId)
         return ret;
     }
     if (ohosInfo.ohosAccountInfo_.status_ == ACCOUNT_STATE_UNBOUND) {
-        subscribeManager_.Publish(DistributedAccountSubProfileEventType::DELETED, localId, defaultSubProfileId);
+        OsAccountSubProfileSubscribeManager::GetInstance().Publish(
+            OsAccountSubProfileEventType::DELETED, localId, defaultSubProfileId);
         SendSubProfileCES(localId, defaultSubProfileId, COMMON_EVENT_OS_ACCOUNT_SUB_PROFILE_DELETED);
         return ERR_OK;
     }
@@ -1694,7 +1686,8 @@ ErrCode OhosAccountManager::SendLogoutEventOnDelOsAccount(int32_t localId)
     }
     subscribeManager_.Publish(localId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::UNBOUND);
     AccountEventProvider::EventPublishAsUser(COMMON_EVENT_DISTRIBUTED_ACCOUNT_UNBOUND, localId);
-    subscribeManager_.Publish(DistributedAccountSubProfileEventType::DELETED, localId, defaultSubProfileId);
+    OsAccountSubProfileSubscribeManager::GetInstance().Publish(
+        OsAccountSubProfileEventType::DELETED, localId, defaultSubProfileId);
     SendSubProfileCES(localId, defaultSubProfileId, COMMON_EVENT_OS_ACCOUNT_SUB_PROFILE_DELETED);
     return ERR_OK;
 #else

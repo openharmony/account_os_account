@@ -30,6 +30,7 @@ ohos_fuzztest("CmdSwitchOsAccountSubspaceStubFuzzTest") {
     "${os_account_path}/test/fuzztest/appaccount/common",
     "${os_account_path}/services/accountmgr/include",
     "${os_account_path}/services/accountmgr/include/distributed_account",
+    "${os_account_path}/services/accountmgr/include/os_account_subprofile",
     "${os_account_path}/services/accountmgr/include/osaccount",
     "${os_account_subspace_interfaces_native_path}/include",
     "${os_account_path}/dfx/hidumper_adapter",
@@ -46,6 +47,7 @@ ohos_fuzztest("CmdSwitchOsAccountSubspaceStubFuzzTest") {
     "${os_account_dfx_path}/hisysevent_adapter",
     "${os_account_dfx_path}/data_dfx",
     "${account_iam_interfaces_native_path}/include",
+    "${os_account_path}/services/accountmgr/include/os_account_subprofile",
   ]
   cflags = [
     "-g",
@@ -62,6 +64,10 @@ ohos_fuzztest("CmdSwitchOsAccountSubspaceStubFuzzTest") {
   ]
   sources = [
     "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager_service.cpp",
+    "${services_path}/accountmgr/src/os_account_subprofile/os_account_sub_profile_subscribe_manager.cpp",
+    "${services_path}/accountmgr/src/os_account_subprofile/os_account_sub_profile_subscribe_death_recipient.cpp",
+    "${os_account_subspace_framework_path}/src/os_account_sub_profile_subscribe_callback.cpp",
+    "${os_account_subspace_framework_path}/src/os_account_sub_profile_event_service.cpp",
     "cmd_switch_os_account_subspace_stub_fuzzer.cpp",
   ]
 
@@ -78,6 +84,8 @@ ohos_fuzztest("CmdSwitchOsAccountSubspaceStubFuzzTest") {
     "${os_account_innerkits_native_path}:os_account_proxy",
     "${os_account_innerkits_native_path}:os_account_stub",
     "${os_account_subspace_framework_path}:os_account_subspace_stub",
+    "${os_account_subspace_framework_path}:os_account_sub_profile_event_proxy",
+    "${os_account_subspace_framework_path}:os_account_sub_profile_event_stub",
     "${os_account_path}/frameworks/appaccount/native:app_account_innerkits",
     "${os_account_path}/frameworks/common:libaccount_common",
     "${os_account_path}/services/accountmgr:accountmgr",

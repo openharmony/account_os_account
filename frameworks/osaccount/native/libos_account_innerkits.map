@@ -23,6 +23,8 @@
         "VTT for OHOS::AccountSA::SetOsAccountTypeOptions";
         "VTT for OHOS::AccountSA::ForegroundOsAccount";
         "VTT for OHOS::AccountSA::ConstraintSourceTypeInfo";
+        "VTT for OHOS::AccountSA::SubProfileEventData";
+        "vtable for OHOS::AccountSA::SubProfileEventData";
         "vtable for OHOS::AccountSA::OsAccountInfo";
         "vtable for OHOS::AccountSA::OsAccountSubscribeInfo";
         "vtable for OHOS::AccountSA::CreateOsAccountOptions";
@@ -333,14 +335,21 @@
         "OHOS::AccountSA::OsAccountSubProfileClient::GetOsAccountSubProfileIds(int, std::__h::vector<int, std::__h::allocator<int>>&)";
         "OHOS::AccountSA::OsAccountSubProfileClient::GetOsAccountSubProfileIds(std::__h::vector<int, std::__h::allocator<int>>&)";
         "OHOS::AccountSA::OsAccountSubProfileClient::GetOsAccountLocalIdForSubProfile(int, int&)";
-        "OHOS::AccountSA::OsAccountSubProfileClient::SubscribeOsAccountSubProfileEvents(std::__h::set<OHOS::AccountSA::DistributedAccountSubProfileEventType, std::__h::less<OHOS::AccountSA::DistributedAccountSubProfileEventType>, std::__h::allocator<OHOS::AccountSA::DistributedAccountSubProfileEventType>> const&, std::__h::shared_ptr<OHOS::AccountSA::DistributedAccountSubscribeCallback> const&)";
-        "OHOS::AccountSA::OsAccountSubProfileClient::UnsubscribeOsAccountSubProfileEvents(std::__h::shared_ptr<OHOS::AccountSA::DistributedAccountSubscribeCallback> const&)";
+        "OHOS::AccountSA::OsAccountSubProfileClient::SubscribeOsAccountSubProfileEvents(std::__h::set<OHOS::AccountSA::OsAccountSubProfileEventType, std::__h::less<OHOS::AccountSA::OsAccountSubProfileEventType>, std::__h::allocator<OHOS::AccountSA::OsAccountSubProfileEventType>> const&, std::__h::shared_ptr<OHOS::AccountSA::OsAccountSubProfileSubscribeCallback> const&)";
+        "OHOS::AccountSA::OsAccountSubProfileClient::UnsubscribeOsAccountSubProfileEvents(std::__h::shared_ptr<OHOS::AccountSA::OsAccountSubProfileSubscribeCallback> const&)";
         "OHOS::AccountSA::OsAccountSubProfileClient::GetOsAccountSubProfile(int, OHOS::AccountSA::OsAccountSubspaceResult&, OHOS::AccountSA::OhosAccountInfo&)";
         "OHOS::AccountSA::OsAccountSubProfileClient::GetOsAccountSubProfile(int, int, OHOS::AccountSA::OsAccountSubspaceResult&, OHOS::AccountSA::OhosAccountInfo&)";
         "OHOS::AccountSA::OsAccountSubProfileClient::GetOsAccountSubProfileId(int, int, int&)";
         "OHOS::AccountSA::OsAccountSubProfileClient::GetOsAccountSubProfileId(unsigned int, int&)";
         "OHOS::AccountSA::OsAccountSubProfileClient::GetOsAccountSubProfileIndex(int, int, int&)";
+        "OHOS::AccountSA::OsAccountSubProfileEventService::GetInstance()";
+        "OHOS::AccountSA::OsAccountSubProfileEventService::GetAllType(std::__h::set<OHOS::AccountSA::OsAccountSubProfileEventType, std::__h::less<OHOS::AccountSA::OsAccountSubProfileEventType>, std::__h::allocator<OHOS::AccountSA::OsAccountSubProfileEventType>>&)";
+        "OHOS::AccountSA::OsAccountSubProfileEventService::IsAllTypeExist(std::__h::set<OHOS::AccountSA::OsAccountSubProfileEventType, std::__h::less<OHOS::AccountSA::OsAccountSubProfileEventType>, std::__h::allocator<OHOS::AccountSA::OsAccountSubProfileEventType>> const&, std::__h::shared_ptr<OHOS::AccountSA::OsAccountSubProfileSubscribeCallback> const&)";
+        "OHOS::AccountSA::OsAccountSubProfileEventService::GetCallbackSize()";
+        "OHOS::AccountSA::OsAccountSubProfileEventService::DeleteCallback(std::__h::shared_ptr<OHOS::AccountSA::OsAccountSubProfileSubscribeCallback> const&)";
+        "OHOS::AccountSA::OsAccountSubProfileEventService::GetTypesToRemove(std::__h::shared_ptr<OHOS::AccountSA::OsAccountSubProfileSubscribeCallback> const&, std::__h::set<OHOS::AccountSA::OsAccountSubProfileEventType, std::__h::less<OHOS::AccountSA::OsAccountSubProfileEventType>, std::__h::allocator<OHOS::AccountSA::OsAccountSubProfileEventType>>&)";
         "OHOS::AccountSA::OhosAccountInfo::Unmarshalling(OHOS::Parcel&)";
+        "OHOS::AccountSA::SubProfileEventData::~SubProfileEventData()";
     };
   local:
     *;

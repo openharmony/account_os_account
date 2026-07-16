@@ -24,6 +24,8 @@ ohos_fuzztest("SubscribeDistributedAccountSpaceEventsStubFuzzTest") {
     "${innerkits_path}/include",
     "${os_account_core_path}/include",
     "${os_account_interfaces_native_path}/include",
+    "${os_account_path}/services/accountmgr/include/distributed_account",
+    "${os_account_path}/services/accountmgr/include/os_account_subprofile",
     "${innerkits_native_path}/include",
     "${os_account_path}/dfx/hidumper_adapter",
     "${os_account_path}/dfx/hitrace_adapter",
@@ -36,7 +38,11 @@ ohos_fuzztest("SubscribeDistributedAccountSpaceEventsStubFuzzTest") {
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
   ]
-  sources = [ "subscribedistributedaccountspaceeventsstub_fuzzer.cpp" ]
+  sources = [ 
+    "subscribedistributedaccountspaceeventsstub_fuzzer.cpp",
+    "${os_account_subspace_framework_path}/src/os_account_sub_profile_subscribe_callback.cpp",
+    "${os_account_subspace_framework_path}/src/os_account_sub_profile_event_service.cpp"
+  ]
   configs = [
     "${domain_account_framework_path}:frameworks_domain_account_interface_public_config",
     "${os_account_innerkits_native_path}:frameworks_osaccount_interface_public_config",
@@ -46,6 +52,9 @@ ohos_fuzztest("SubscribeDistributedAccountSpaceEventsStubFuzzTest") {
     "${innerkits_native_path}:libaccountkits",
     "${os_account_path}/frameworks/common:libaccount_common",
     "${services_path}/accountmgr:accountmgr",
+    "${os_account_subspace_framework_path}:os_account_subspace_stub",
+    "${os_account_subspace_framework_path}:os_account_sub_profile_event_proxy",
+    "${os_account_subspace_framework_path}:os_account_sub_profile_event_stub",
   ]
 
   external_deps = [
@@ -67,5 +76,6 @@ ohos_fuzztest("SubscribeDistributedAccountSpaceEventsStubFuzzTest") {
   defines = [
     "ACCOUNT_LOG_TAG = \"OhosAccountStubFuzzTest\"",
     "LOG_DOMAIN = 0xD001B00",
+    "ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE",
   ]
 }

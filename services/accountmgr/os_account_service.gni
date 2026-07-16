@@ -17,6 +17,7 @@ account_service_sources = [
   "${os_account_innerkits_native_path}/src/os_account_constraint_subscribe_info.cpp",
   "${os_account_innerkits_native_path}/src/os_account_info.cpp",
   "${os_account_innerkits_native_path}/src/os_account_subscribe_info.cpp",
+  "${os_account_subspace_framework_path}/src/os_account_sub_profile_subscribe_callback.cpp",
   "${services_path}/accountmgr/src/account_event_provider.cpp",
   "${services_path}/accountmgr/src/account_event_subscribe.cpp",
   "${services_path}/accountmgr/src/account_info_report.cpp",
@@ -43,6 +44,9 @@ account_service_sources = [
   "${services_path}/accountmgr/src/osaccount/os_account_user_callback.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_constraint_manager.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_constraint_subscribe_manager.cpp",
+  "${services_path}/accountmgr/src/os_account_subprofile/os_account_sub_profile_subscribe_manager.cpp",
+  "${services_path}/accountmgr/src/os_account_subprofile/os_account_sub_profile_subscribe_death_recipient.cpp",
+  "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager_service.cpp",
 ]
 if (os_account_support_lock_os_account) {
   account_service_sources += [ "${services_path}/accountmgr/src/osaccount/os_account_lock_os_account_plugin_manager.cpp" ]
@@ -90,6 +94,7 @@ account_service_sources_mock = [
   "${os_account_core_path}/src/os_account_state_parcel.cpp",
   "${os_account_innerkits_native_path}/src/os_account_constraint_subscribe_info.cpp",
   "${os_account_innerkits_native_path}/src/os_account_subscribe_info.cpp",
+  "${os_account_subspace_framework_path}/src/os_account_sub_profile_subscribe_callback.cpp",
   "${services_path}/accountmgr/src/account_event_provider.cpp",
   "${services_path}/accountmgr/src/account_event_subscribe.cpp",
   "${services_path}/accountmgr/src/account_info_report.cpp",
@@ -116,6 +121,9 @@ account_service_sources_mock = [
   "${services_path}/accountmgr/src/osaccount/os_account_static_subscriber_manager.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_subscribe_death_recipient.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_subscribe_manager.cpp",
+  "${services_path}/accountmgr/src/os_account_subprofile/os_account_sub_profile_subscribe_manager.cpp",
+  "${services_path}/accountmgr/src/os_account_subprofile/os_account_sub_profile_subscribe_death_recipient.cpp",
+  "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager_service.cpp",
 ]
 if (os_account_support_lock_os_account) {
   account_service_sources_mock += [ "${services_path}/accountmgr/src/osaccount/os_account_lock_os_account_plugin_manager.cpp" ]

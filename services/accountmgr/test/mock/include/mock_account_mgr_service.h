@@ -106,16 +106,6 @@ public:
     {
         return ERR_OK;
     }
-    ErrCode SubscribeDistributedAccountSpaceEvents(
-        const std::vector<int32_t>& typeInts, const sptr<IRemoteObject>& eventListener) override
-    {
-        return ERR_OK;
-    }
-    ErrCode UnsubscribeDistributedAccountSpaceEvents(
-        const std::vector<int32_t>& typeInts, const sptr<IRemoteObject>& eventListener) override
-    {
-        return ERR_OK;
-    }
 
     ErrCode GetOsAccountForegroundSubProfileId(int32_t& subProfileId) override
     {

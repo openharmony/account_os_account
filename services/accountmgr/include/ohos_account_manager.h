@@ -125,27 +125,8 @@ public:
     ErrCode CreateOsAccountSubspace(int32_t osAccountId, OsAccountSubspaceResult &result);
     ErrCode DeleteOsAccountSubspace(int32_t osAccountId, int32_t subspaceId);
     ErrCode SwitchOsAccountSubspace(int32_t osAccountId, int32_t subspaceId, int32_t &fromSubspaceId);
+
 #endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-
-    /**
-     * Subscribe distributed account space events by multiple types.
-     *
-     * @param types space event types set
-     * @param eventListener event listener
-     * @return subscribe result.
-     */
-    ErrCode SubscribeDistributedAccountSpaceEvents(const std::set<DistributedAccountSubProfileEventType> &types,
-        const sptr<IRemoteObject> &eventListener);
-
-    /**
-     * Unsubscribe distributed account space events by multiple types.
-     *
-     * @param types space event types set
-     * @param eventListener event listener
-     * @return unsubscribe result.
-     */
-    ErrCode UnsubscribeDistributedAccountSpaceEvents(const std::set<DistributedAccountSubProfileEventType> &types,
-        const sptr<IRemoteObject> &eventListener);
 
     /**
      * Get current account state.

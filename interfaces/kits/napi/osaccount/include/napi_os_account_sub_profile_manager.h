@@ -19,24 +19,24 @@
 #include <set>
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
-#include "distributed_account_subscribe_callback.h"
+#include "os_account_sub_profile_subscribe_callback.h"
 #include "napi_account_common.h"
 
 namespace OHOS {
 namespace AccountJsKit {
 
-class SubspaceSubscriber final : public AccountSA::DistributedAccountSubscribeCallback,
-                            public std::enable_shared_from_this<SubspaceSubscriber> {
+class SubspaceSubscriber final : public AccountSA::OsAccountSubProfileSubscribeCallback,
+                             public std::enable_shared_from_this<SubspaceSubscriber> {
 public:
     explicit SubspaceSubscriber(napi_env &env, napi_ref &ref);
     ~SubspaceSubscriber();
-    void OnSubProfileAccountsChanged(const AccountSA::DistributedAccountSubProfileEventData &eventData) override;
-    std::shared_ptr<NapiCallbackRef> callback = nullptr;
-    napi_env env = nullptr;
+    void OnSubProfileChanged(const AccountSA::SubProfileEventData &eventData) override;
+    std::shared_ptr<NapiCallbackRef> callback_ = nullptr;
+    napi_env env_ = nullptr;
 };
 
 struct SubspaceEventWorker : public CommonAsyncContext {
-    AccountSA::DistributedAccountSubProfileEventData eventData;
+    AccountSA::SubProfileEventData eventData;
     std::shared_ptr<NapiCallbackRef> callback = nullptr;
     std::shared_ptr<SubspaceSubscriber> subscriber = nullptr;
 };
