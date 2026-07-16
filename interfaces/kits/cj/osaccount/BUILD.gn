@@ -71,6 +71,7 @@ ohos_shared_library("cj_osaccount_ffi") {
     "samgr:samgr_proxy",
   ]
 
+  branch_protector_ret = "pac_ret"
   innerapi_tags = [ "platformsdk" ]
   part_name = "os_account"
   subsystem_name = "account"
