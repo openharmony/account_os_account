@@ -54,6 +54,7 @@ ohos_shared_library("cj_distributed_account_ffi") {
     "-ffunction-sections",
   ]
 
+  branch_protector_ret = "pac_ret"
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "account"
   part_name = "os_account"
