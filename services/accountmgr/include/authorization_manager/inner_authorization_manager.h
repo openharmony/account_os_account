@@ -17,6 +17,7 @@
 #define OS_ACCOUNT_SERVICES_AUTHORIZATION_INCLUDE_INNER_AUTHORIZATION_MANAGER_H
 
 #include <atomic>
+#include <mutex>
 
 #include "account_iam_callback.h"
 #include "account_iam_client_callback.h"
@@ -84,14 +85,15 @@ private:
     ConnectAbilityInfo info_;
     ErrCode errCode_ = ERR_OK;
     std::atomic<bool> hasUpdateAuthInfo_{false};
+    std::mutex dataMutex_;
 };
 
-class AdminAuthCallback : public AuthenticationCallback {
+class AdminAuthCallback final : public AuthenticationCallback {
 public:
     explicit AdminAuthCallback(const std::vector<uint8_t> &challenge,
         const sptr<IAdminAuthorizationCallback> &callback, int32_t userId, int32_t callingPid,
         const std::string &privilege = "");
-    virtual ~AdminAuthCallback() = default;
+    ~AdminAuthCallback();
 
     void SetDeathRecipient(const sptr<AuthCallbackDeathRecipient> &deathRecipient);
     void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo) override;
@@ -102,8 +104,8 @@ private:
     int32_t callingPid_ = -1;
     sptr<IAdminAuthorizationCallback> innerCallback_ = nullptr;
     sptr<AuthCallbackDeathRecipient> deathRecipient_ = nullptr;
-    const std::vector<uint8_t> challenge_;
-    const std::string privilege_;
+    std::vector<uint8_t> challenge_;
+    std::string privilege_;
 
     ErrCode CallTAForToken(int32_t accountId, const std::vector<uint8_t> &iamToken, std::vector<uint8_t> &token);
 };

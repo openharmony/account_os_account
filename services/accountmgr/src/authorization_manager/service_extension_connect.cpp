@@ -86,12 +86,18 @@ ErrCode SessionAbilityConnection::SessionAbilityConnectionStub::SendConnectionRe
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    data.WriteInt32(PARAM_NUM);
-    data.WriteString16(u"bundleName");
-    data.WriteString16(Str8ToStr16(info_.bundleName));
-    data.WriteString16(u"abilityName");
-    data.WriteString16(Str8ToStr16(info_.abilityName));
-    data.WriteString16(u"parameters");
+    if (!data.WriteInt32(PARAM_NUM) ||
+        !data.WriteString16(u"bundleName") ||
+        !data.WriteString16(Str8ToStr16(info_.bundleName)) ||
+        !data.WriteString16(u"abilityName") ||
+        !data.WriteString16(Str8ToStr16(info_.abilityName)) ||
+        !data.WriteString16(u"parameters")) {
+        ACCOUNT_LOGE("Failed to write basic parameters to parcel");
+        REPORT_OS_ACCOUNT_FAIL(localId_, PRIVILEGE_OPT_ACQUIRE_AUTH, ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR,
+            "Failed to write basic parameters to parcel");
+        SessionAbilityConnection::GetInstance().CallbackOnResult(ERR_AUTHORIZATION_CREATE_SYS_EXTENSION_ERROR);
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
 
     std::string parameters = "";
     if (!GenerateParameters(parameters)) {
@@ -101,7 +107,13 @@ ErrCode SessionAbilityConnection::SessionAbilityConnectionStub::SendConnectionRe
         SessionAbilityConnection::GetInstance().CallbackOnResult(ERR_AUTHORIZATION_CREATE_SYS_EXTENSION_ERROR);
         return ERR_AUTHORIZATION_GET_PROXY_ERROR;
     }
-    data.WriteString16(Str8ToStr16(parameters));
+    if (!data.WriteString16(Str8ToStr16(parameters))) {
+        ACCOUNT_LOGE("Failed to write parameters to parcel");
+        REPORT_OS_ACCOUNT_FAIL(localId_, PRIVILEGE_OPT_ACQUIRE_AUTH, ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR,
+            "Failed to write parameters to parcel");
+        SessionAbilityConnection::GetInstance().CallbackOnResult(ERR_AUTHORIZATION_CREATE_SYS_EXTENSION_ERROR);
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
 
     int32_t errCode = remoteObject->SendRequest(CONNECT_CODE, data, reply, option);
     if (errCode != ERR_OK) {
@@ -233,7 +245,6 @@ bool SessionAbilityConnection::HasServiceConnect()
     }
     std::vector<ExtensionRunningInfo> infos;
     ErrCode err = AbilityManagerAdapter::GetInstance()->GetExtensionRunningInfos(infos);
-
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (abilityConnectionStub_ == nullptr) {
         return false;

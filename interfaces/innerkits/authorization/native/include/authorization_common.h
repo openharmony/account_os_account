@@ -189,6 +189,8 @@ struct AdminAuthorizationResult : public Parcelable {
     int32_t resultCode = 0;
     std::vector<uint8_t> token;
 
+    ~AdminAuthorizationResult();
+
     bool ReadFromParcel(Parcel &parcel)
     {
         if (!parcel.ReadInt32(resultCode)) {
@@ -242,6 +244,8 @@ public:
      * @return ERR_OK if callback is successfully processed
      */
     virtual int32_t OnResult(const AdminAuthorizationResult &result) = 0;
+
+    virtual ~AdminAuthorizationCallback() = default;
 };
 }
 }
