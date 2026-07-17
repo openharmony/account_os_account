@@ -3059,7 +3059,7 @@ void IInnerOsAccountManager::LaunchDeactivationAnimation(const OsAccountInfo &os
 // LCOV_EXCL_STOP
 #endif
 
-ErrCode IInnerOsAccountManager::DeactivateOsAccount(const int id, bool isStopStorage, const bool isAnimationEnabled)
+ErrCode IInnerOsAccountManager::DeactivateOsAccount(const int id, bool isStopStorage)
 {
     if (!CheckAndAddLocalIdOperating(id)) {
         ACCOUNT_LOGW("The %{public}d already in operating", id);
@@ -3090,7 +3090,7 @@ ErrCode IInnerOsAccountManager::DeactivateOsAccount(const int id, bool isStopSto
     OsAccountInterface::PublishCommonEvent(
         osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_STOPPING, Constants::OPERATION_STOP);
 
-    if (isAnimationEnabled && osAccountInfo.GetIsForeground()) {
+    if (osAccountInfo.GetIsForeground()) {
         LaunchDeactivationAnimation(osAccountInfo);
     }
 

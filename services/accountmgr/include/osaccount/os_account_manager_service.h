@@ -102,7 +102,7 @@ public:
     ErrCode ActivateOsAccount(int32_t id) override;
     ErrCode ActivateOsAccount(int32_t id, const uint64_t displayId) override;
     ErrCode DeactivateOsAccount(int32_t id) override;
-    ErrCode DeactivateAllOsAccounts(const bool isAnimationEnabled = true) override;
+    ErrCode DeactivateAllOsAccounts() override;
 
     ErrCode StartOsAccount(int32_t id) override;
 

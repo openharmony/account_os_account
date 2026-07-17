@@ -248,9 +248,9 @@ ErrCode OsAccountManager::DeactivateOsAccount(const int id)
     return OsAccount::GetInstance().DeactivateOsAccount(id);
 }
 
-ErrCode OsAccountManager::DeactivateAllOsAccounts(const bool isAnimationEnabled)
+ErrCode OsAccountManager::DeactivateAllOsAccounts()
 {
-    return OsAccount::GetInstance().DeactivateAllOsAccounts(isAnimationEnabled);
+    return OsAccount::GetInstance().DeactivateAllOsAccounts();
 }
 
 ErrCode OsAccountManager::StartOsAccount(const int id)
