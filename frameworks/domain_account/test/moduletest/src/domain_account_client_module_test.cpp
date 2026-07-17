@@ -550,13 +550,15 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_0
     EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(DEFAULT_USER_ID, VALID_PASSWORD, callback, contextId),
         ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 
-    EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(DEFAULT_USER_ID, nullptr, callback, contextId),
+    EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(
+        DEFAULT_USER_ID, nullptr, callback, DomainAccountUnlockOptions(), contextId),
         ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 
     std::function<std::vector<uint8_t>()> pwdhooks = []() {
         return std::vector<uint8_t>();
     };
-    EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(DEFAULT_USER_ID, pwdhooks, nullptr, contextId),
+    EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(
+        DEFAULT_USER_ID, pwdhooks, nullptr, DomainAccountUnlockOptions(), contextId),
         ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
@@ -2583,6 +2585,11 @@ public:
         errCode = domainAccountErrCode;
         return ERR_OK;
     };
+    ErrCode OnAcquireInfo(
+        int32_t module, uint32_t acquireInfo, const DomainAccountUnlockExtraInfoIdl &extraInfo) override
+    {
+        return ERR_OK;
+    }
 };
 
 /**

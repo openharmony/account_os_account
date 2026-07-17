@@ -19,6 +19,7 @@
 #include "domain_account_common.h"
 #include "domain_account_callback.h"
 #include "domain_account_callback_stub.h"
+#include "domain_account_ipc_data.h"
 #include "idomain_account_callback.h"
 #include "ios_account_control.h"
 #include "os_account_info.h"
@@ -30,6 +31,8 @@ public:
     CheckAndCreateDomainAccountCallback(std::shared_ptr<IOsAccountControl> &osAccountControl, const OsAccountType &type,
         const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions &accountOptions);
     ErrCode OnResult(int32_t errCode, const DomainAccountParcel &domainAccountParcel) override;
+    ErrCode OnAcquireInfo(int32_t module, uint32_t acquireInfo,
+        const DomainAccountUnlockExtraInfoIdl &extraInfo) override { return ERR_OK; }
 
 private:
     OsAccountType type_;

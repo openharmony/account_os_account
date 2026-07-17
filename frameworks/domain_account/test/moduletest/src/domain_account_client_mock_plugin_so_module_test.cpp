@@ -34,11 +34,14 @@
 #define protected public
 #include "domain_account_client.h"
 #include "inner_domain_account_manager.h"
+#include "inner_account_iam_manager.h"
+#include "account_iam_callback.h"
 #include "iinner_os_account_manager.h"
 #include "os_account.h"
 #include "os_account_control_file_manager.h"
 #undef protected
 #undef private
+#include "account_iam_service.h"
 #include "ipc_skeleton.h"
 #include "mock_domain_auth_callback.h"
 #include "mock_domain_auth_callback_for_listener.h"
@@ -46,6 +49,7 @@
 #include "mock_domain_has_domain_info_callback.h"
 #include "mock_domain_get_access_token_callback.h"
 #include "mock_domain_plugin.h"
+#include "account_iam_info.h"
 #include "mock_domain_so_plugin.h"
 #include "os_account_manager.h"
 #ifdef BUNDLE_ADAPTER_MOCK
@@ -86,6 +90,8 @@ std::map<PluginMethodEnum, void *> PLUGIN_METHOD_MAP = {
     {PluginMethodEnum::CANCEL_AUTH, reinterpret_cast<void *>(CancelAuth)},
     {PluginMethodEnum::GET_ACCOUNT_SERVER_CONFIG, reinterpret_cast<void *>(GetAccountServerConfig)},
     {PluginMethodEnum::AUTH_WITH_SERVER_CONFIG, reinterpret_cast<void *>(AuthWithServerConfig)},
+    {PluginMethodEnum::AUTH_WITH_UNLOCK_INTENT, reinterpret_cast<void *>(AuthWithUnlockIntent)},
+    {PluginMethodEnum::GET_UNLOCK_DEVICE_CONFIG, reinterpret_cast<void *>(GetUnlockDeviceConfigResult)},
 };
 }
 
@@ -143,6 +149,21 @@ void TestPluginSoDomainAuthCallback::SetOsAccountInfo(const OsAccountInfo &accou
 {
     accountInfo_ = accountInfo;
 }
+
+class MockIDMCallback : public IDMCallbackStub {
+public:
+    ErrCode OnAcquireInfo(int32_t module, uint32_t acquireInfo,
+        const std::vector<uint8_t> &extraInfoBuffer) override
+    {
+        return ERR_OK;
+    }
+    ErrCode OnResult(int32_t resultCode, const std::vector<uint8_t> &extraInfoBuffer) override
+    {
+        result_ = resultCode;
+        return ERR_OK;
+    }
+    int32_t result_ = -1;
+};
 
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 class MockPluginSoDomainCreateDomainAccountCallback {
@@ -240,7 +261,17 @@ void DomainAccountClientMockPluginSoModuleTest::SetUpTestCase(void)
     ASSERT_NE(osAccountService, nullptr);
     IInnerOsAccountManager::GetInstance().Init();
     IInnerOsAccountManager::GetInstance().ActivateDefaultOsAccount();
-    OsAccount::GetInstance().proxy_ = new (std::nothrow) OsAccountProxy(osAccountService->AsObject());
+    {
+        std::lock_guard<std::mutex> lock(OsAccount::GetInstance().mutex_);
+        if ((OsAccount::GetInstance().proxy_ != nullptr) &&
+            (OsAccount::GetInstance().proxy_->AsObject() != nullptr) &&
+            (OsAccount::GetInstance().deathRecipient_ != nullptr)) {
+            OsAccount::GetInstance().proxy_->AsObject()->RemoveDeathRecipient(
+                OsAccount::GetInstance().deathRecipient_);
+        }
+        OsAccount::GetInstance().deathRecipient_ = nullptr;
+        OsAccount::GetInstance().proxy_ = new (std::nothrow) OsAccountProxy(osAccountService->AsObject());
+    }
     ASSERT_NE(OsAccount::GetInstance().proxy_, nullptr);
 #endif
 }
@@ -1754,6 +1785,11 @@ public:
         errCode = domainAccountErrCode;
         return ERR_OK;
     };
+    ErrCode OnAcquireInfo(
+        int32_t module, uint32_t acquireInfo, const DomainAccountUnlockExtraInfoIdl &extraInfo) override
+    {
+        return ERR_OK;
+    }
 };
 
 /**
@@ -1823,4 +1859,1058 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, InnerGenerateContextId001, T
     EXPECT_EQ(contextId4, contextId2);
     InnerDomainAccountManager::GetInstance().authContextIdMap_.clear();
     InnerDomainAccountManager::GetInstance().contextIdCount_ = 0;
+}
+
+// F3 test cases for domain account unlock
+
+class UnlockAuthCallback final : public DomainAccountCallback {
+public:
+    UnlockAuthCallback() = default;
+    ~UnlockAuthCallback() = default;
+    int32_t resultErrCode = -1;
+    bool acquireInfoCalled = false;
+    int32_t acquireModule = -1;
+    uint32_t acquireInfoVal = 0;
+    std::mutex mutex;
+    std::condition_variable cv;
+    bool isReady = false;
+    void OnResult(const int32_t errCode, Parcel &parcel) override
+    {
+        resultErrCode = errCode;
+        std::lock_guard<std::mutex> lock(mutex);
+        isReady = true;
+        cv.notify_all();
+    }
+    void OnAcquireInfo(int32_t module, uint32_t acquireInfo,
+        const DomainAccountUnlockExtraInfo &extraInfo) override
+    {
+        acquireInfoCalled = true;
+        acquireModule = module;
+        acquireInfoVal = acquireInfo;
+    }
+};
+
+static int32_t CreateAndBindDomainAccount(const std::string &accountName)
+{
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = accountName;
+    domainInfo.domain_ = "test.example.com";
+    domainInfo.accountId_ = accountName + "_id";
+    auto callback = std::make_shared<MockPluginSoDomainCreateDomainAccountCallback>();
+    auto testCallback = std::make_shared<TestPluginSoCreateDomainAccountCallback>(callback);
+    EXPECT_CALL(*callback, OnResult(ERR_OK, accountName, "test.example.com", _)).Times(Exactly(1));
+    ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, testCallback);
+    std::unique_lock<std::mutex> lock(testCallback->mutex);
+    testCallback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
+                              [lockCallback = testCallback]() { return lockCallback->isReady; });
+    if (errCode != ERR_OK) {
+        return -1;
+    }
+    int32_t userId = -1;
+    OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId);
+    return userId;
+}
+
+/**
+ * @tc.name: DomainAccountUnlock_001
+ * @tc.desc: Test AuthUserWithUnlockOptions routes to plugin AuthWithUnlockIntent.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountUnlock_001, TestSize.Level3)
+{
+    LoadPluginMethods();
+    SetEnableUnlockDevice(true);
+    SetAuthWithUnlockIntentError(false);
+    int32_t userId = CreateAndBindDomainAccount("unlock001");
+    ASSERT_GT(userId, 0);
+    auto callback = std::make_shared<UnlockAuthCallback>();
+    DomainAccountUnlockOptions options;
+    options.authIntent = UNLOCK_INTENT;
+    options.challenge = {1, 2, 3};
+    uint64_t contextId = 0;
+    ErrCode ret = DomainAccountClient::GetInstance().AuthUser(
+        userId, []() { return std::vector<uint8_t>{49, 50, 51}; },
+        callback, options, contextId);
+    EXPECT_EQ(ret, ERR_OK);
+    std::unique_lock<std::mutex> lock(callback->mutex);
+    callback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
+                          [callback]() { return callback->isReady; });
+    EXPECT_EQ(callback->resultErrCode, ERR_OK);
+    EXPECT_TRUE(callback->acquireInfoCalled);
+    EXPECT_EQ(callback->acquireModule, static_cast<int32_t>(IAMAuthType::DOMAIN));
+    std::vector<uint8_t> challenge;
+    GetLastChallenge(challenge);
+    EXPECT_EQ(challenge, std::vector<uint8_t>({1, 2, 3}));
+    UnloadPluginMethods();
+}
+
+/**
+ * @tc.name: DomainAccountUnlock_002
+ * @tc.desc: Test AuthUser with DEFAULT intent routes to existing AuthUser (not AuthWithUnlockIntent).
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountUnlock_002, TestSize.Level3)
+{
+    LoadPluginMethods();
+    SetEnableUnlockDevice(true);
+    int32_t userId = CreateAndBindDomainAccount("unlock002");
+    ASSERT_GT(userId, 0);
+    auto callback = std::make_shared<UnlockAuthCallback>();
+    DomainAccountUnlockOptions options;
+    options.authIntent = 0;
+    uint64_t contextId = 0;
+    ErrCode ret = DomainAccountClient::GetInstance().AuthUser(
+        userId, []() { return std::vector<uint8_t>{49, 50, 51}; },
+        callback, options, contextId);
+    EXPECT_EQ(ret, ERR_OK);
+    std::unique_lock<std::mutex> lock(callback->mutex);
+    callback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
+                          [callback]() { return callback->isReady; });
+    EXPECT_EQ(callback->resultErrCode, ERR_OK);
+    EXPECT_FALSE(callback->acquireInfoCalled);
+    UnloadPluginMethods();
+}
+
+/**
+ * @tc.name: DomainAccountUnlock_003
+ * @tc.desc: Test AuthUserWithUnlockOptions with no plugin loaded.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountUnlock_003, TestSize.Level3)
+{
+    LoadPluginMethods();
+    int32_t userId = CreateAndBindDomainAccount("unlock003");
+    ASSERT_GT(userId, 0);
+    UnloadPluginMethods();
+    auto callback = std::make_shared<UnlockAuthCallback>();
+    DomainAccountUnlockOptions options;
+    options.authIntent = UNLOCK_INTENT;
+    uint64_t contextId = 0;
+    ErrCode ret = DomainAccountClient::GetInstance().AuthUser(
+        userId, []() { return std::vector<uint8_t>{49, 50, 51}; },
+        callback, options, contextId);
+    EXPECT_EQ(ret, ERR_OK);
+    std::unique_lock<std::mutex> lock(callback->mutex);
+    callback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
+                          [callback]() { return callback->isReady; });
+    EXPECT_EQ(callback->resultErrCode, ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE);
+}
+
+/**
+ * @tc.name: DomainAccountUnlock_004
+ * @tc.desc: Test AuthUserWithUnlockOptions with unlock not enabled.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountUnlock_004, TestSize.Level3)
+{
+    LoadPluginMethods();
+    SetEnableUnlockDevice(false);
+    int32_t userId = CreateAndBindDomainAccount("unlock004");
+    ASSERT_GT(userId, 0);
+    auto callback = std::make_shared<UnlockAuthCallback>();
+    DomainAccountUnlockOptions options;
+    options.authIntent = UNLOCK_INTENT;
+    uint64_t contextId = 0;
+    ErrCode ret = DomainAccountClient::GetInstance().AuthUser(
+        userId, []() { return std::vector<uint8_t>{49, 50, 51}; },
+        callback, options, contextId);
+    EXPECT_EQ(ret, ERR_OK);
+    std::unique_lock<std::mutex> lock(callback->mutex);
+    callback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
+                          [callback]() { return callback->isReady; });
+    EXPECT_EQ(callback->resultErrCode, ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE);
+    SetEnableUnlockDevice(true);
+    UnloadPluginMethods();
+}
+
+/**
+ * @tc.name: DomainAccountUnlock_005
+ * @tc.desc: Test AuthUserWithUnlockOptions with user not bound to domain account.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountUnlock_005, TestSize.Level3)
+{
+    LoadPluginMethods();
+    SetEnableUnlockDevice(true);
+    auto callback = std::make_shared<UnlockAuthCallback>();
+    DomainAccountUnlockOptions options;
+    options.authIntent = UNLOCK_INTENT;
+    uint64_t contextId = 0;
+    ErrCode ret = DomainAccountClient::GetInstance().AuthUser(
+        9999, []() { return std::vector<uint8_t>{49, 50, 51}; },
+        callback, options, contextId);
+    EXPECT_EQ(ret, ERR_OK);
+    std::unique_lock<std::mutex> lock(callback->mutex);
+    callback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
+                          [callback]() { return callback->isReady; });
+    EXPECT_NE(callback->resultErrCode, ERR_OK);
+    UnloadPluginMethods();
+}
+
+/**
+ * @tc.name: DomainAccountUnlock_006
+ * @tc.desc: Test AuthUserWithUnlockOptions with plugin auth failure.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountUnlock_006, TestSize.Level3)
+{
+    LoadPluginMethods();
+    SetEnableUnlockDevice(true);
+    SetAuthWithUnlockIntentError(true);
+    int32_t userId = CreateAndBindDomainAccount("unlock006");
+    ASSERT_GT(userId, 0);
+    auto callback = std::make_shared<UnlockAuthCallback>();
+    DomainAccountUnlockOptions options;
+    options.authIntent = UNLOCK_INTENT;
+    uint64_t contextId = 0;
+    ErrCode ret = DomainAccountClient::GetInstance().AuthUser(
+        userId, []() { return std::vector<uint8_t>{49, 50, 51}; },
+        callback, options, contextId);
+    EXPECT_EQ(ret, ERR_OK);
+    std::unique_lock<std::mutex> lock(callback->mutex);
+    callback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
+                          [callback]() { return callback->isReady; });
+    EXPECT_NE(callback->resultErrCode, ERR_OK);
+    EXPECT_FALSE(callback->acquireInfoCalled);
+    SetAuthWithUnlockIntentError(false);
+    UnloadPluginMethods();
+}
+
+/**
+ * @tc.name: DomainAccountUnlock_007
+ * @tc.desc: Test password-based AuthUser does not trigger unlock.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountUnlock_007, TestSize.Level3)
+{
+    LoadPluginMethods();
+    SetEnableUnlockDevice(true);
+    int32_t userId = CreateAndBindDomainAccount("unlock007");
+    ASSERT_GT(userId, 0);
+    auto mockCallback = std::make_shared<MockPluginSoDomainAuthCallback>();
+    auto testCallback = std::make_shared<TestPluginSoDomainAuthCallback>(mockCallback);
+    EXPECT_CALL(*mockCallback, OnResult(_, _)).Times(Exactly(1));
+    uint64_t contextId = 0;
+    ErrCode ret = DomainAccountClient::GetInstance().AuthUser(
+        userId, std::vector<uint8_t>{49, 50, 51}, testCallback, contextId);
+    EXPECT_EQ(ret, ERR_OK);
+    std::unique_lock<std::mutex> testLock2(testCallback->mutex);
+    testCallback->cv.wait_for(testLock2, std::chrono::seconds(WAIT_TIME),
+                              []() { return true; });
+    UnloadPluginMethods();
+}
+
+/**
+ * @tc.name: DomainAccountUnlock_008
+ * @tc.desc: Test AuthUserWithUnlockOptions with invalid auth user returns error.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountUnlock_008, TestSize.Level3)
+{
+    LoadPluginMethods();
+    SetEnableUnlockDevice(true);
+    auto callback = std::make_shared<UnlockAuthCallback>();
+    DomainAccountUnlockOptions options;
+    options.authIntent = UNLOCK_INTENT;
+    uint64_t contextId = 0;
+    ErrCode ret = DomainAccountClient::GetInstance().AuthUser(
+        -1, []() { return std::vector<uint8_t>{49, 50, 51}; },
+        callback, options, contextId);
+    EXPECT_EQ(ret, ERR_OK);
+    std::unique_lock<std::mutex> lock(callback->mutex);
+    callback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME), [callback]() { return callback->isReady; });
+    EXPECT_EQ(callback->resultErrCode, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    UnloadPluginMethods();
+}
+
+/**
+ * @tc.name: DomainAccountUnlock_009
+ * @tc.desc: Test AuthUserWithUnlockOptions with invalid permission
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountUnlock_009, TestSize.Level3)
+{
+    LoadPluginMethods();
+    uint64_t noPermTokenId = 0;
+    ASSERT_TRUE(AllocPermission({}, noPermTokenId, false));
+    ASSERT_EQ(SetSelfTokenID(noPermTokenId), 0);
+    SetEnableUnlockDevice(true);
+    auto callback = std::make_shared<UnlockAuthCallback>();
+    DomainAccountUnlockOptions options;
+    options.authIntent = UNLOCK_INTENT;
+    uint64_t contextId = 0;
+    int32_t userId = 100; // test uid
+    ErrCode ret = DomainAccountClient::GetInstance().AuthUser(userId,
+        []() { return std::vector<uint8_t> {49, 50, 51}; },
+        callback, options, contextId);
+    EXPECT_EQ(ret, ERR_OK);
+    std::unique_lock<std::mutex> lock(callback->mutex);
+    callback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME), [callback]() { return callback->isReady; });
+    EXPECT_EQ(callback->resultErrCode, ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+    UnloadPluginMethods();
+    ASSERT_TRUE(RecoveryPermission(noPermTokenId));
+}
+
+// F1 test cases
+
+/**
+ * @tc.name: DomainAccountPlugin_001
+ * @tc.desc: Test AuthWithUnlockIntent returns PluginAuthResultInfo with token and secret.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountPlugin_001, TestSize.Level3)
+{
+    LoadPluginMethods();
+    SetEnableUnlockDevice(true);
+    SetAuthWithUnlockIntentError(false);
+    int32_t userId = CreateAndBindDomainAccount("plugin001");
+    ASSERT_GT(userId, 0);
+    auto callback = std::make_shared<UnlockAuthCallback>();
+    DomainAccountUnlockOptions options;
+    options.authIntent = UNLOCK_INTENT;
+    uint64_t contextId = 0;
+    ErrCode ret = DomainAccountClient::GetInstance().AuthUser(
+        userId, []() { return std::vector<uint8_t>{49, 50, 51}; }, callback, options, contextId);
+    EXPECT_EQ(ret, ERR_OK);
+    std::unique_lock<std::mutex> lock(callback->mutex);
+    callback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
+                          [callback]() { return callback->isReady; });
+    EXPECT_EQ(callback->resultErrCode, ERR_OK);
+    UnloadPluginMethods();
+}
+
+/**
+ * @tc.name: DomainAccountUnlock_Deactivating_001
+ * @tc.desc: AuthUserWithUnlockOptions returns ERR_IAM_BUSY via callback when the account is deactivating.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountUnlock_Deactivating_001, TestSize.Level3)
+{
+    LoadPluginMethods();
+    SetEnableUnlockDevice(true);
+    SetAuthWithUnlockIntentError(false);
+    int32_t userId = CreateAndBindDomainAccount("unlock_deact");
+    ASSERT_GT(userId, 0);
+    IInnerOsAccountManager::GetInstance().deactivatingAccounts_.EnsureInsert(userId, true);
+    auto callback = std::make_shared<UnlockAuthCallback>();
+    DomainAccountUnlockOptions options;
+    options.authIntent = UNLOCK_INTENT;
+    options.challenge = {1, 2, 3};
+    uint64_t contextId = 0;
+    ErrCode ret = DomainAccountClient::GetInstance().AuthUser(
+        userId, []() { return std::vector<uint8_t>{49, 50, 51}; }, callback, options, contextId);
+    EXPECT_EQ(ret, ERR_OK);
+    {
+        std::unique_lock<std::mutex> lock(callback->mutex);
+        callback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
+                              [callback]() { return callback->isReady; });
+    }
+    EXPECT_TRUE(callback->isReady);
+    EXPECT_EQ(callback->resultErrCode, ERR_IAM_BUSY);
+    IInnerOsAccountManager::GetInstance().deactivatingAccounts_.Erase(userId);
+    UnloadPluginMethods();
+}
+
+#ifdef SUPPORT_LOCK_OS_ACCOUNT
+/**
+ * @tc.name: DomainAccountUnlock_Locking_001
+ * @tc.desc: AuthUserWithUnlockOptions returns ERR_IAM_BUSY via callbackwhen the account is locking.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountUnlock_Locking_001, TestSize.Level3)
+{
+    LoadPluginMethods();
+    SetEnableUnlockDevice(true);
+    SetAuthWithUnlockIntentError(false);
+    int32_t userId = CreateAndBindDomainAccount("unlock_lock");
+    ASSERT_GT(userId, 0);
+    IInnerOsAccountManager::GetInstance().lockingAccounts_.EnsureInsert(userId, true);
+    auto callback = std::make_shared<UnlockAuthCallback>();
+    DomainAccountUnlockOptions options;
+    options.authIntent = UNLOCK_INTENT;
+    options.challenge = {1, 2, 3};
+    uint64_t contextId = 0;
+    ErrCode ret = DomainAccountClient::GetInstance().AuthUser(
+        userId, []() { return std::vector<uint8_t>{49, 50, 51}; }, callback, options, contextId);
+    EXPECT_EQ(ret, ERR_OK);
+    {
+        std::unique_lock<std::mutex> lock(callback->mutex);
+        callback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
+                              [callback]() { return callback->isReady; });
+    }
+    EXPECT_TRUE(callback->isReady);
+    EXPECT_EQ(callback->resultErrCode, ERR_IAM_BUSY);
+    IInnerOsAccountManager::GetInstance().lockingAccounts_.Erase(userId);
+    UnloadPluginMethods();
+}
+#endif
+
+/**
+ * @tc.name: DomainAccountUnlock_HandleUnlock_Deactivating_001
+ * @tc.desc: On auth success, HandleUnlockResult skips storage unlock and returns ERR_OK when the
+ *           account became deactivating after auth started.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountUnlock_HandleUnlock_Deactivating_001,
+    TestSize.Level3)
+{
+    LoadPluginMethods();
+    SetEnableUnlockDevice(true);
+    SetAuthWithUnlockIntentError(false);
+    int32_t userId = CreateAndBindDomainAccount("unlock_hdl_deact");
+    ASSERT_GT(userId, 0);
+    auto callback = std::make_shared<UnlockAuthCallback>();
+    DomainAccountUnlockOptions options;
+    options.authIntent = UNLOCK_INTENT;
+    options.challenge = {1, 2, 3};
+    uint64_t contextId = 0;
+    ErrCode ret = DomainAccountClient::GetInstance().AuthUser(
+        userId, []() { return std::vector<uint8_t>{49, 50, 51}; }, callback, options, contextId);
+    EXPECT_EQ(ret, ERR_OK);
+    // Wait briefly to let the entry-level deactivating check pass
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    IInnerOsAccountManager::GetInstance().deactivatingAccounts_.EnsureInsert(userId, true);
+    {
+        std::unique_lock<std::mutex> lock(callback->mutex);
+        callback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
+                              [callback]() { return callback->isReady; });
+    }
+    EXPECT_TRUE(callback->isReady);
+    EXPECT_EQ(callback->resultErrCode, ERR_OK);
+    EXPECT_TRUE(callback->acquireInfoCalled);
+    // Distinguisher: storage unlock was skipped, so the account stays UNVERIFIED (the normal
+    // path would call SetOsAccountIsVerified via UnlockUserStorage).
+    bool verifiedAfter = true;
+    EXPECT_EQ(IInnerOsAccountManager::GetInstance().IsOsAccountVerified(userId, verifiedAfter), ERR_OK);
+    EXPECT_FALSE(verifiedAfter);
+    IInnerOsAccountManager::GetInstance().deactivatingAccounts_.Erase(userId);
+    UnloadPluginMethods();
+}
+
+/**
+ * @tc.name: DomainAccountPlugin_002
+ * @tc.desc: Test GetUnlockDeviceConfigResult returns correct config.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountPlugin_002, TestSize.Level3)
+{
+    LoadPluginMethods();
+    SetEnableUnlockDevice(true);
+    int32_t userId = CreateAndBindDomainAccount("plugin002");
+    ASSERT_GT(userId, 0);
+    bool enableUnlockDevice = false;
+    int32_t unlockDeviceMode = 0;
+    ErrCode ret = InnerDomainAccountManager::GetInstance().GetUnlockDeviceConfig(
+        userId, enableUnlockDevice, unlockDeviceMode);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_TRUE(enableUnlockDevice);
+    EXPECT_EQ(unlockDeviceMode, ONLINE_OFFLINE_AUTH_UNLOCK_DEVICE);
+    UnloadPluginMethods();
+}
+
+/**
+ * @tc.name: DomainAccountPlugin_003
+ * @tc.desc: Test GetUnlockDeviceConfigResult with unlock disabled.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountPlugin_003, TestSize.Level3)
+{
+    LoadPluginMethods();
+    SetEnableUnlockDevice(false);
+    int32_t userId = CreateAndBindDomainAccount("plugin003");
+    ASSERT_GT(userId, 0);
+    bool enableUnlockDevice = true;
+    int32_t unlockDeviceMode = 0;
+    ErrCode ret = InnerDomainAccountManager::GetInstance().GetUnlockDeviceConfig(
+        userId, enableUnlockDevice, unlockDeviceMode);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_FALSE(enableUnlockDevice);
+    SetEnableUnlockDevice(true);
+    UnloadPluginMethods();
+}
+
+/**
+ * @tc.name: DomainAccountPlugin_004
+ * @tc.desc: Test GetUnlockDeviceConfig with no plugin loaded returns default.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountPlugin_004, TestSize.Level3)
+{
+    LoadPluginMethods();
+    int32_t userId = CreateAndBindDomainAccount("plugin004");
+    ASSERT_GT(userId, 0);
+    UnloadPluginMethods();
+    bool enableUnlockDevice = true;
+    int32_t unlockDeviceMode = 0;
+    ErrCode ret = InnerDomainAccountManager::GetInstance().GetUnlockDeviceConfig(
+        userId, enableUnlockDevice, unlockDeviceMode);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_FALSE(enableUnlockDevice);
+}
+
+// F2 test cases
+
+/**
+ * @tc.name: DomainAccountUnlockEnabled_001
+ * @tc.desc: Test SetDomainAuthUnlockEnabled with uid not 7058.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountUnlockEnabled_001, TestSize.Level3)
+{
+    LoadPluginMethods();
+    setuid(ROOT_UID);
+    uint64_t tokenID;
+    ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_USER_IDM"}, tokenID));
+    auto service = new (std::nothrow) AccountIAMService();
+    ASSERT_NE(service, nullptr);
+    std::vector<uint8_t> token = {1, 2, 3};
+    std::vector<uint8_t> secret = {4, 5, 6};
+    EXPECT_EQ(service->SetDomainAuthUnlockEnabled(100, token, secret, 1),
+        ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    ASSERT_TRUE(RecoveryPermission(tokenID));
+    UnloadPluginMethods();
+}
+
+/**
+ * @tc.name: DomainAccountUnlockEnabled_002
+ * @tc.desc: Test SetDomainAuthUnlockEnabled without MANAGE_USER_IDM permission.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountUnlockEnabled_002, TestSize.Level3)
+{
+    LoadPluginMethods();
+    setuid(7058);
+    auto service = new (std::nothrow) AccountIAMService();
+    ASSERT_NE(service, nullptr);
+    std::vector<uint8_t> token = {1, 2, 3};
+    std::vector<uint8_t> secret = {4, 5, 6};
+    EXPECT_EQ(service->SetDomainAuthUnlockEnabled(100, token, secret, 1),
+        ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    setuid(ROOT_UID);
+    UnloadPluginMethods();
+}
+
+/**
+ * @tc.name: DomainAccountUnlockEnabled_003
+ * @tc.desc: Test SetDomainAuthUnlockEnabled with no plugin loaded.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountUnlockEnabled_003, TestSize.Level3)
+{
+    UnloadPluginMethods();
+    std::vector<uint8_t> token = {1, 2, 3};
+    std::vector<uint8_t> secret = {4, 5, 6};
+    ErrCode ret = InnerAccountIAMManager::GetInstance().SetDomainAuthUnlockEnabled(
+        100, token, secret, true);
+    EXPECT_EQ(ret, ERR_DOMAIN_ACCOUNT_NOT_SUPPORT);
+}
+
+/**
+ * @tc.name: DomainAccountUnlockEnabled_004
+ * @tc.desc: Test SetDomainAuthUnlockEnabled with unbound localId.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountUnlockEnabled_004, TestSize.Level3)
+{
+    LoadPluginMethods();
+    std::vector<uint8_t> token = {1, 2, 3};
+    std::vector<uint8_t> secret = {4, 5, 6};
+    ErrCode ret = InnerAccountIAMManager::GetInstance().SetDomainAuthUnlockEnabled(
+        9999, token, secret, true);
+    EXPECT_NE(ret, ERR_OK);
+    UnloadPluginMethods();
+}
+
+/**
+ * @tc.name: DomainAccountUnlockEnabled_005
+ * @tc.desc: Test SetDomainAuthUnlockEnabled with invalid token (VerifyAuthToken fails).
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountUnlockEnabled_005, TestSize.Level3)
+{
+    LoadPluginMethods();
+    int32_t userId = CreateAndBindDomainAccount("unlockEnabled005");
+    ASSERT_GT(userId, 0);
+    std::vector<uint8_t> token = {1, 2, 3};
+    std::vector<uint8_t> secret = {4, 5, 6};
+    ErrCode ret = InnerAccountIAMManager::GetInstance().SetDomainAuthUnlockEnabled(
+        userId, token, secret, true);
+    EXPECT_EQ(ret, ERR_ACCOUNT_IAM_AUTH_TOKEN_INVALID);
+    UnloadPluginMethods();
+}
+
+/**
+ * @tc.name: IsEnableDomainUnlock_001
+ * @tc.desc: Test IsEnableDomainUnlock returns true when domain unlock is enabled with ONLINE_OFFLINE mode.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, IsEnableDomainUnlock_001, TestSize.Level3)
+{
+    LoadPluginMethods();
+    SetEnableUnlockDevice(true);
+    int32_t userId = CreateAndBindDomainAccount("isEnableUnlock001");
+    ASSERT_GT(userId, 0);
+    bool enable = false;
+    ErrCode ret = InnerAccountIAMManager::GetInstance().IsEnableDomainUnlock(userId, enable);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_TRUE(enable);
+    IInnerOsAccountManager::GetInstance().osAccountControl_->DelOsAccount(userId);
+    UnloadPluginMethods();
+}
+
+/**
+ * @tc.name: IsEnableDomainUnlock_002
+ * @tc.desc: Test IsEnableDomainUnlock returns false when domain unlock is disabled.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, IsEnableDomainUnlock_002, TestSize.Level3)
+{
+    LoadPluginMethods();
+    SetEnableUnlockDevice(false);
+    int32_t userId = CreateAndBindDomainAccount("isEnableUnlock002");
+    ASSERT_GT(userId, 0);
+    bool enable = true;
+    ErrCode ret = InnerAccountIAMManager::GetInstance().IsEnableDomainUnlock(userId, enable);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_FALSE(enable);
+    IInnerOsAccountManager::GetInstance().osAccountControl_->DelOsAccount(userId);
+    SetEnableUnlockDevice(true);
+    UnloadPluginMethods();
+}
+
+/**
+ * @tc.name: IsEnableDomainUnlock_003
+ * @tc.desc: Test IsEnableDomainUnlock returns false when no plugin is loaded.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, IsEnableDomainUnlock_003, TestSize.Level3)
+{
+    LoadPluginMethods();
+    int32_t userId = CreateAndBindDomainAccount("isEnableUnlock003");
+    ASSERT_GT(userId, 0);
+    UnloadPluginMethods();
+    bool enable = true;
+    ErrCode ret = InnerAccountIAMManager::GetInstance().IsEnableDomainUnlock(userId, enable);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_FALSE(enable);
+    IInnerOsAccountManager::GetInstance().osAccountControl_->DelOsAccount(userId);
+}
+
+// F2 PIN flow adaptation tests
+
+/**
+ * @tc.name: CommitDelCredCallback_SkipStorageKey_001
+ * @tc.desc: Test CommitDelCredCallback::OnResult with skipStorageKey=true skips UpdateStorageKeyContext.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, CommitDelCredCallback_SkipStorageKey_001, TestSize.Level3)
+{
+    LoadPluginMethods();
+    SetEnableUnlockDevice(true);
+    sptr<MockIDMCallback> callback = new (std::nothrow) MockIDMCallback();
+    ASSERT_NE(callback, nullptr);
+    auto commitDelCredCallback = std::make_shared<CommitDelCredCallback>(100, callback, true);
+    ASSERT_NE(commitDelCredCallback, nullptr);
+    Attributes extraInfo;
+    commitDelCredCallback->OnResult(ERR_OK, extraInfo);
+    EXPECT_EQ(callback->result_, ERR_OK);
+    EXPECT_TRUE(commitDelCredCallback->isCalled_);
+    UnloadPluginMethods();
+}
+
+/**
+ * @tc.name: CommitDelCredCallback_SkipStorageKey_002
+ * @tc.desc: Test CommitDelCredCallback::OnResult with skipStorageKey=false calls UpdateStorageKeyContext.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, CommitDelCredCallback_SkipStorageKey_002, TestSize.Level3)
+{
+    LoadPluginMethods();
+    SetEnableUnlockDevice(false);
+    sptr<MockIDMCallback> callback = new (std::nothrow) MockIDMCallback();
+    ASSERT_NE(callback, nullptr);
+    auto commitDelCredCallback = std::make_shared<CommitDelCredCallback>(100, callback, false);
+    ASSERT_NE(commitDelCredCallback, nullptr);
+    Attributes extraInfo;
+    commitDelCredCallback->OnResult(ERR_OK, extraInfo);
+    EXPECT_EQ(callback->result_, ERR_OK);
+    EXPECT_TRUE(commitDelCredCallback->isCalled_);
+    UnloadPluginMethods();
+}
+
+/**
+ * @tc.name: CommitDelCredCallback_SkipStorageKey_003
+ * @tc.desc: Test CommitDelCredCallback::OnResult with error result (not ERR_OK).
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, CommitDelCredCallback_SkipStorageKey_003, TestSize.Level3)
+{
+    sptr<MockIDMCallback> callback = new (std::nothrow) MockIDMCallback();
+    ASSERT_NE(callback, nullptr);
+    auto commitDelCredCallback = std::make_shared<CommitDelCredCallback>(100, callback, true);
+    ASSERT_NE(commitDelCredCallback, nullptr);
+    Attributes extraInfo;
+    commitDelCredCallback->OnResult(ResultCode::FAIL, extraInfo);
+    EXPECT_EQ(callback->result_, ResultCode::FAIL);
+    EXPECT_TRUE(commitDelCredCallback->isCalled_);
+}
+
+/**
+ * @tc.name: AddCredCallback_SkipStorageKey_001
+ * @tc.desc: Test AddCredCallback::OnResult skips AddUserKey when domain unlock is enabled.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, AddCredCallback_SkipStorageKey_001, TestSize.Level3)
+{
+    LoadPluginMethods();
+    SetEnableUnlockDevice(true);
+    int32_t userId = CreateAndBindDomainAccount("skipAdd001");
+    ASSERT_GT(userId, 0);
+    sptr<MockIDMCallback> callback = new (std::nothrow) MockIDMCallback();
+    ASSERT_NE(callback, nullptr);
+    CredentialParameters credInfo = {};
+    credInfo.authType = AuthType::PIN;
+    auto addCredCallback = std::make_shared<AddCredCallback>(userId, credInfo, callback);
+    ASSERT_NE(addCredCallback, nullptr);
+    Attributes extraInfo;
+    extraInfo.SetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, 100);
+    extraInfo.SetUint64Value(Attributes::AttributeKey::ATTR_SEC_USER_ID, 200);
+    extraInfo.SetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, {1, 2, 3});
+    extraInfo.SetUint8ArrayValue(Attributes::ATTR_AUTH_TOKEN, {4, 5, 6});
+    addCredCallback->OnResult(0, extraInfo);
+    EXPECT_EQ(callback->result_, 0);
+    EXPECT_TRUE(addCredCallback->isCalled_);
+    UnloadPluginMethods();
+}
+
+/**
+ * @tc.name: AddCredCallback_SkipStorageKey_002
+ * @tc.desc: Test AddCredCallback::OnResult does NOT skip AddUserKey when no plugin loaded.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, AddCredCallback_SkipStorageKey_002, TestSize.Level3)
+{
+    LoadPluginMethods();
+    SetEnableUnlockDevice(false);
+    int32_t userId = CreateAndBindDomainAccount("skipAdd002");
+    ASSERT_GT(userId, 0);
+    sptr<MockIDMCallback> callback = new (std::nothrow) MockIDMCallback();
+    ASSERT_NE(callback, nullptr);
+    CredentialParameters credInfo = {};
+    credInfo.authType = AuthType::PIN;
+    auto addCredCallback = std::make_shared<AddCredCallback>(userId, credInfo, callback);
+    ASSERT_NE(addCredCallback, nullptr);
+    Attributes extraInfo;
+    extraInfo.SetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, 100);
+    extraInfo.SetUint64Value(Attributes::AttributeKey::ATTR_SEC_USER_ID, 200);
+    extraInfo.SetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, {1, 2, 3});
+    extraInfo.SetUint8ArrayValue(Attributes::ATTR_AUTH_TOKEN, {4, 5, 6});
+    addCredCallback->OnResult(0, extraInfo);
+    EXPECT_EQ(callback->result_, 0);
+    EXPECT_TRUE(addCredCallback->isCalled_);
+    UnloadPluginMethods();
+}
+
+/**
+ * @tc.name: AddCredCallback_SkipStorageKey_003
+ * @tc.desc: Test AddCredCallback::OnResult with non-PIN authType does not enter skip logic.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, AddCredCallback_SkipStorageKey_003, TestSize.Level3)
+{
+    LoadPluginMethods();
+    SetEnableUnlockDevice(true);
+    sptr<MockIDMCallback> callback = new (std::nothrow) MockIDMCallback();
+    ASSERT_NE(callback, nullptr);
+    CredentialParameters credInfo = {};
+    credInfo.authType = AuthType::FACE;
+    auto addCredCallback = std::make_shared<AddCredCallback>(100, credInfo, callback);
+    ASSERT_NE(addCredCallback, nullptr);
+    Attributes extraInfo;
+    addCredCallback->OnResult(0, extraInfo);
+    EXPECT_EQ(callback->result_, 0);
+    EXPECT_TRUE(addCredCallback->isCalled_);
+    UnloadPluginMethods();
+}
+
+/**
+ * @tc.name: AddCredCallback_SkipStorageKey_004
+ * @tc.desc: Test AddCredCallback::OnResult with error result and PIN authType.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, AddCredCallback_SkipStorageKey_004, TestSize.Level3)
+{
+    LoadPluginMethods();
+    SetEnableUnlockDevice(true);
+    sptr<MockIDMCallback> callback = new (std::nothrow) MockIDMCallback();
+    ASSERT_NE(callback, nullptr);
+    CredentialParameters credInfo = {};
+    credInfo.authType = AuthType::PIN;
+    auto addCredCallback = std::make_shared<AddCredCallback>(100, credInfo, callback);
+    ASSERT_NE(addCredCallback, nullptr);
+    Attributes extraInfo;
+    addCredCallback->OnResult(ResultCode::FAIL, extraInfo);
+    EXPECT_EQ(callback->result_, ResultCode::FAIL);
+    EXPECT_TRUE(addCredCallback->isCalled_);
+    UnloadPluginMethods();
+}
+
+// Sync callback tests (Gap A: VerifyTokenSyncCallback, GetCredentialInfoSyncCallback, GetSecureUidCallback)
+
+/**
+ * @tc.name: VerifyTokenSyncCallback_OnResult_0100
+ * @tc.desc: Test VerifyTokenSyncCallback::OnResult with success result.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, VerifyTokenSyncCallback_OnResult_0100, TestSize.Level3)
+{
+    auto callback = std::make_shared<VerifyTokenSyncCallback>();
+    ASSERT_NE(callback, nullptr);
+    Attributes extraInfo;
+    callback->OnResult(ERR_OK, extraInfo);
+    EXPECT_TRUE(callback->isCalled_);
+    EXPECT_EQ(callback->result_, ERR_OK);
+}
+
+/**
+ * @tc.name: VerifyTokenSyncCallback_OnResult_0200
+ * @tc.desc: Test VerifyTokenSyncCallback::OnResult with failure result.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, VerifyTokenSyncCallback_OnResult_0200, TestSize.Level3)
+{
+    auto callback = std::make_shared<VerifyTokenSyncCallback>();
+    ASSERT_NE(callback, nullptr);
+    Attributes extraInfo;
+    callback->OnResult(ResultCode::FAIL, extraInfo);
+    EXPECT_TRUE(callback->isCalled_);
+    EXPECT_EQ(callback->result_, ResultCode::FAIL);
+}
+
+/**
+ * @tc.name: GetCredentialInfoSyncCallback_OnCredentialInfo_0100
+ * @tc.desc: Test GetCredentialInfoSyncCallback with PIN credential present.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, GetCredentialInfoSyncCallback_OnCredentialInfo_0100,
+    TestSize.Level3)
+{
+    auto callback = std::make_shared<GetCredentialInfoSyncCallback>(100);
+    ASSERT_NE(callback, nullptr);
+    std::vector<CredentialInfo> infoList;
+    CredentialInfo info;
+    info.authType = AuthType::PIN;
+    info.isAbandoned = false;
+    infoList.push_back(info);
+    callback->OnCredentialInfo(ERR_OK, infoList);
+    EXPECT_TRUE(callback->isCalled_);
+    EXPECT_EQ(callback->result_, ERR_OK);
+    EXPECT_TRUE(callback->hasPIN_);
+}
+
+/**
+ * @tc.name: GetCredentialInfoSyncCallback_OnCredentialInfo_0200
+ * @tc.desc: Test GetCredentialInfoSyncCallback with empty info list.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, GetCredentialInfoSyncCallback_OnCredentialInfo_0200,
+    TestSize.Level3)
+{
+    auto callback = std::make_shared<GetCredentialInfoSyncCallback>(100);
+    ASSERT_NE(callback, nullptr);
+    std::vector<CredentialInfo> emptyList;
+    callback->OnCredentialInfo(ERR_OK, emptyList);
+    EXPECT_TRUE(callback->isCalled_);
+    EXPECT_EQ(callback->result_, ERR_OK);
+    EXPECT_FALSE(callback->hasPIN_);
+}
+
+/**
+ * @tc.name: GetCredentialInfoSyncCallback_OnCredentialInfo_0300
+ * @tc.desc: Test GetCredentialInfoSyncCallback with abandoned PIN credential.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, GetCredentialInfoSyncCallback_OnCredentialInfo_0300,
+    TestSize.Level3)
+{
+    auto callback = std::make_shared<GetCredentialInfoSyncCallback>(100);
+    ASSERT_NE(callback, nullptr);
+    std::vector<CredentialInfo> infoList;
+    CredentialInfo info;
+    info.authType = AuthType::PIN;
+    info.isAbandoned = true;
+    infoList.push_back(info);
+    callback->OnCredentialInfo(ERR_OK, infoList);
+    EXPECT_TRUE(callback->isCalled_);
+    EXPECT_EQ(callback->result_, ERR_OK);
+    EXPECT_FALSE(callback->hasPIN_);
+}
+
+/**
+ * @tc.name: GetCredentialInfoSyncCallback_OnCredentialInfo_0400
+ * @tc.desc: Test GetCredentialInfoSyncCallback with NOT_ENROLLED result.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, GetCredentialInfoSyncCallback_OnCredentialInfo_0400,
+    TestSize.Level3)
+{
+    auto callback = std::make_shared<GetCredentialInfoSyncCallback>(100);
+    ASSERT_NE(callback, nullptr);
+    std::vector<CredentialInfo> infoList;
+    callback->OnCredentialInfo(ResultCode::NOT_ENROLLED, infoList);
+    EXPECT_TRUE(callback->isCalled_);
+    EXPECT_EQ(callback->result_, ResultCode::NOT_ENROLLED);
+    EXPECT_FALSE(callback->hasPIN_);
+}
+
+/**
+ * @tc.name: GetCredentialInfoSyncCallback_OnCredentialInfo_0500
+ * @tc.desc: Test GetCredentialInfoSyncCallback with non-PIN credential.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, GetCredentialInfoSyncCallback_OnCredentialInfo_0500,
+    TestSize.Level3)
+{
+    auto callback = std::make_shared<GetCredentialInfoSyncCallback>(100);
+    ASSERT_NE(callback, nullptr);
+    std::vector<CredentialInfo> infoList;
+    CredentialInfo info;
+    info.authType = AuthType::FACE;
+    info.isAbandoned = false;
+    infoList.push_back(info);
+    callback->OnCredentialInfo(ERR_OK, infoList);
+    EXPECT_TRUE(callback->isCalled_);
+    EXPECT_EQ(callback->result_, ERR_OK);
+    EXPECT_FALSE(callback->hasPIN_);
+}
+
+/**
+ * @tc.name: GetSecureUidCallback_OnSecUserInfo_0100
+ * @tc.desc: Test GetSecureUidCallback::OnSecUserInfo with success result.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, GetSecureUidCallback_OnSecUserInfo_0100, TestSize.Level3)
+{
+    auto callback = std::make_shared<GetSecureUidCallback>(100);
+    ASSERT_NE(callback, nullptr);
+    SecUserInfo info;
+    info.secureUid = 12345;
+    callback->OnSecUserInfo(ERR_OK, info);
+    EXPECT_TRUE(callback->isCalled_);
+    EXPECT_EQ(callback->ret, ERR_OK);
+    EXPECT_EQ(callback->secureUid_, 12345u);
+}
+
+/**
+ * @tc.name: GetSecureUidCallback_OnSecUserInfo_0200
+ * @tc.desc: Test GetSecureUidCallback::OnSecUserInfo with failure result.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, GetSecureUidCallback_OnSecUserInfo_0200, TestSize.Level3)
+{
+    auto callback = std::make_shared<GetSecureUidCallback>(100);
+    ASSERT_NE(callback, nullptr);
+    SecUserInfo info;
+    info.secureUid = 0;
+    callback->OnSecUserInfo(ResultCode::FAIL, info);
+    EXPECT_TRUE(callback->isCalled_);
+    EXPECT_EQ(callback->ret, static_cast<int32_t>(ResultCode::FAIL));
+    EXPECT_EQ(callback->secureUid_, 0u);
+}
+
+/**
+ * @tc.name: GetSecureUidCallback_OnSecUserInfo_0300
+ * @tc.desc: Test GetSecureUidCallback::OnSecUserInfo with NOT_ENROLLED result.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, GetSecureUidCallback_OnSecUserInfo_0300, TestSize.Level3)
+{
+    auto callback = std::make_shared<GetSecureUidCallback>(100);
+    ASSERT_NE(callback, nullptr);
+    SecUserInfo info;
+    callback->OnSecUserInfo(ResultCode::NOT_ENROLLED, info);
+    EXPECT_TRUE(callback->isCalled_);
+    EXPECT_EQ(callback->ret, static_cast<int32_t>(ResultCode::NOT_ENROLLED));
+}
+
+/**
+ * @tc.name: PluginGetUnlockDeviceConfigWithInfo_NoPlugin_0100
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, PluginGetUnlockDeviceConfigWithInfo_NoPlugin_0100, TestSize.Level3)
+{
+    LoadPluginMethods();
+    {
+        std::lock_guard<std::mutex> lock(InnerDomainAccountManager::GetInstance().libMutex_);
+        InnerDomainAccountManager::GetInstance().methodMap_.erase(PluginMethodEnum::GET_UNLOCK_DEVICE_CONFIG);
+    }
+    DomainAccountInfo info;
+    bool enableUnlockDevice = true;
+    int32_t unlockDeviceMode = 0;
+    EXPECT_EQ(InnerDomainAccountManager::GetInstance().PluginGetUnlockDeviceConfigWithInfo(
+        info, enableUnlockDevice, unlockDeviceMode), ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
+    UnloadPluginMethods();
+}
+
+/**
+ * @tc.name: PluginAuthWithUnlockIntent_NoPlugin_0100
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, PluginAuthWithUnlockIntent_NoPlugin_0100, TestSize.Level3)
+{
+    LoadPluginMethods();
+    {
+        std::lock_guard<std::mutex> lock(InnerDomainAccountManager::GetInstance().libMutex_);
+        InnerDomainAccountManager::GetInstance().methodMap_.erase(PluginMethodEnum::AUTH_WITH_UNLOCK_INTENT);
+    }
+    DomainAccountInfo info;
+    uint64_t contextId;
+    EXPECT_EQ(InnerDomainAccountManager::GetInstance().PluginAuthWithUnlockIntent(info, {}, {}, contextId),
+        ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE);
+    UnloadPluginMethods();
 }

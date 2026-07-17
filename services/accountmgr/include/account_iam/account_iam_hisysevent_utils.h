@@ -32,6 +32,9 @@ const char OPERATION_OPEN_SESSION[] = "openSession";
 
 const char OPERATION_UNLOCK_ENHANCE[] = "unlockEnhancedKeys";
 const char OPERATION_COMMIT[] = "commit";
+const char OPERATION_SET_DOMAIN_AUTH_UNLOCK[] = "setDomainAuthUnlockEnabled";
+const char OPERATION_SUB_ADD_KEY[] = "addKey";
+const char OPERATION_SUB_DELETE_KEY[] = "deleteKey";
 
 std::string ConstructSubOperationStr(const char* mainOperation, const char* subOperation);
 std::string ConstructSubOperationStr(const char* mainOperation, const int32_t authType);

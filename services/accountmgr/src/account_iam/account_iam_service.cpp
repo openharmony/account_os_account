@@ -15,6 +15,7 @@
 
 #include "account_iam_service.h"
 
+#include <securec.h>
 #include "account_log_wrapper.h"
 #include "account_permission_manager.h"
 #include "iget_cred_info_callback.h"
@@ -29,6 +30,10 @@ namespace {
 const char PERMISSION_ACCESS_USER_AUTH_INTERNAL[] = "ohos.permission.ACCESS_USER_AUTH_INTERNAL";
 const char PERMISSION_MANAGE_USER_IDM[] = "ohos.permission.MANAGE_USER_IDM";
 const char PERMISSION_USE_USER_IDM[] = "ohos.permission.USE_USER_IDM";
+// Fixed UID of the domain auth service process. SetDomainAuthUnlockEnabled operates on storage
+// keys for domain-account users, so beyond the MANAGE_USER_IDM permission it is restricted to
+// this privileged caller to prevent unauthorized storage-key manipulation.
+constexpr int32_t DOMAIN_AUTH_SERVICE_UID = 7058;
 } // namespace
 
 AccountIAMService::AccountIAMService()
@@ -359,6 +364,37 @@ bool AccountIAMService::CheckPermission(const std::string &permission)
         return false;
     }
     return true;
+}
+
+int32_t AccountIAMService::SetDomainAuthUnlockEnabled(int32_t localId, const std::vector<uint8_t>& token,
+    const std::vector<uint8_t>& secret, int32_t enabled)
+{
+    auto cleanSensitiveData = [](const std::vector<uint8_t> &data) {
+        auto &ref = const_cast<std::vector<uint8_t> &>(data);
+        (void)memset_s(ref.data(), ref.size(), 0, ref.size());
+    };
+    if (!CheckPermission(PERMISSION_MANAGE_USER_IDM)) {
+        cleanSensitiveData(token);
+        cleanSensitiveData(secret);
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+    if (IPCSkeleton::GetCallingUid() != DOMAIN_AUTH_SERVICE_UID) {
+        ACCOUNT_LOGE("caller uid is not domain auth service uid");
+        cleanSensitiveData(token);
+        cleanSensitiveData(secret);
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+    ErrCode ret = InnerAccountIAMManager::GetInstance().SetDomainAuthUnlockEnabled(
+        localId, token, secret, enabled != 0);
+    cleanSensitiveData(token);
+    cleanSensitiveData(secret);
+    return ret;
+#else
+    cleanSensitiveData(token);
+    cleanSensitiveData(secret);
+    return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
+#endif
 }
 }  // namespace AccountSA
 }  // namespace OHOS

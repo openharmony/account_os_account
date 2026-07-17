@@ -35,5 +35,6 @@ group("fuzztest") {
     "prepareremoteauthstub_fuzzer:PrepareRemoteAuthStubFuzzTest",
     "setpropertystub_fuzzer:SetPropertyStubFuzzTest",
     "updatecredentialstub_fuzzer:UpdateCredentialStubFuzzTest",
+    "procsetdomainauthunlockenabledstub_fuzzer:ProcSetDomainAuthUnlockEnabledStubFuzzTest",
   ]
 }

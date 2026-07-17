@@ -51,5 +51,17 @@ ErrCode DomainAccountCallbackService::OnResult(int32_t errCode, const DomainAcco
     }
     return ERR_OK;
 }
+
+ErrCode DomainAccountCallbackService::OnAcquireInfo(int32_t module, uint32_t acquireInfo,
+    const DomainAccountUnlockExtraInfoIdl &extraInfo)
+{
+    ACCOUNT_LOGI("enter, module=%{public}d, acquireInfo=%{public}u", module, acquireInfo);
+    if (innerCallback_ != nullptr) {
+        DomainAccountUnlockExtraInfo innerExtra;
+        innerExtra.successExtraInfo = extraInfo.successExtraInfo;
+        innerCallback_->OnAcquireInfo(module, acquireInfo, innerExtra);
+    }
+    return ERR_OK;
+}
 }  // namespace AccountSA
 }  // namespace OHOS

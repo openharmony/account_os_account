@@ -41,10 +41,6 @@ using namespace OHOS::AccountSA;
 using namespace OHOS::UserIam::UserAuth;
 using namespace OHOS::Security::AccessToken;
 namespace OHOS {
-namespace AccountSA {
-UpdateCredInfo::~UpdateCredInfo() {}
-}
-
 namespace AccountTest {
 namespace {
 const int32_t DEFAULT_USER_ID = 100;

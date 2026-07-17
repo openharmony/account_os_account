@@ -37,6 +37,7 @@ group("fuzztest") {
       "procupdateaccounttokenstub_fuzzer:ProcUpdateAccountTokenStubFuzzTest",
       "procupdateserverconfigstub_fuzzer:ProcUpdateServerConfigStubFuzzTest",
       "procauthwithparametersstub_fuzzer:ProcAuthWithParametersStubFuzzTest",
-    ]
+      "procauthuserwithunlockoptionsstub_fuzzer:ProcAuthUserWithUnlockOptionsStubFuzzTest",
+  ]
   }
 }

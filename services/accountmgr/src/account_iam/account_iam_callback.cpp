@@ -444,8 +444,8 @@ IDMCallbackDeathRecipient::IDMCallbackDeathRecipient(uint32_t userId) : userId_(
 {}
 
 AddCredCallback::AddCredCallback(uint32_t userId, const CredentialParameters &credInfo,
-    const sptr<IIDMCallback> &callback)
-    : userId_(userId), credInfo_(credInfo), innerCallback_(callback)
+    const sptr<IIDMCallback> &callback, bool isDomainUnlockEnabled)
+    : userId_(userId), credInfo_(credInfo), innerCallback_(callback), isDomainUnlockEnabled_(isDomainUnlockEnabled)
 {}
 
 AddCredCallback::~AddCredCallback()
@@ -474,15 +474,13 @@ static ErrCode AddUserKey(int32_t userId, uint64_t secureUid, const std::vector<
     return errCode;
 }
 
-static inline void DeleteSecretFlag(const uint32_t userId, const std::string &operation)
+inline static void ReadFromAttribute(const Attributes &extraInfo, uint64_t &credentialId,
+    uint64_t &secureUid, std::vector<uint8_t> &newSecret, std::vector<uint8_t> &token)
 {
-    std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(userId) +
-    Constants::PATH_SEPARATOR + Constants::USER_SECRET_FLAG_FILE_NAME;
-    auto accountFileOperator = std::make_shared<AccountFileOperator>();
-    ErrCode code = accountFileOperator->DeleteDirOrFile(path);
-    if (code != ERR_OK) {
-        ReportOsAccountOperationFail(userId, operation, code, "Failed to delete iam_fault file");
-    }
+    extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, credentialId);
+    extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_SEC_USER_ID, secureUid);
+    extraInfo.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, newSecret);
+    extraInfo.GetUint8ArrayValue(Attributes::ATTR_AUTH_TOKEN, token);
 }
 
 void AddCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
@@ -500,21 +498,19 @@ void AddCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
     if ((result == 0) && (credInfo_.authType == AuthType::PIN)) {
         innerIamMgr.SetState(userId_, AFTER_ADD_CRED);
         uint64_t credentialId = 0;
-        extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, credentialId);
-        (void)IInnerOsAccountManager::GetInstance().SetOsAccountCredentialId(userId_, credentialId);
         uint64_t secureUid = 0;
-        extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_SEC_USER_ID, secureUid);
         std::vector<uint8_t> newSecret;
-        extraInfo.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, newSecret);
         std::vector<uint8_t> token;
-        extraInfo.GetUint8ArrayValue(Attributes::ATTR_AUTH_TOKEN, token);
-        std::vector<uint8_t> oldSecret;
-        ErrCode code = AddUserKey(userId_, secureUid, token, oldSecret, newSecret);
+        ReadFromAttribute(extraInfo, credentialId, secureUid, newSecret, token);
+        (void)IInnerOsAccountManager::GetInstance().SetOsAccountCredentialId(userId_, credentialId);
+        ErrCode code = ERR_OK;
+        if (!isDomainUnlockEnabled_) {
+            code = AddUserKey(userId_, secureUid, token, {}, newSecret);
+        }
         std::fill(newSecret.begin(), newSecret.end(), 0);
         std::fill(token.begin(), token.end(), 0);
-        std::fill(oldSecret.begin(), oldSecret.end(), 0);
         if (code == ERR_OK) {
-            DeleteSecretFlag(userId_, OPERATION_ADD_CRED);
+            InnerAccountIAMManager::GetInstance().DeleteSecretFaultFile(userId_, OPERATION_ADD_CRED);
         }
     }
     if (result != 0) {
@@ -523,7 +519,7 @@ void AddCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
                 "Failed to add credential, type: " + std::to_string(credInfo_.authType));
         }
         if (credInfo_.authType == AuthType::PIN) {
-            DeleteSecretFlag(userId_, OPERATION_ADD_CRED);
+            InnerAccountIAMManager::GetInstance().DeleteSecretFaultFile(userId_, OPERATION_ADD_CRED);
         }
     } else {
         ReportOsAccountLifeCycle(userId_, ConstructSubOperationStr(OPERATION_ADD_CRED, credInfo_.authType));
@@ -631,8 +627,9 @@ void UpdateCredCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, con
 }
 
 VerifyTokenCallbackWrapper::VerifyTokenCallbackWrapper(uint32_t userId, const std::vector<uint8_t> &token,
-    Security::AccessToken::AccessTokenID callerTokenId, const sptr<IIDMCallback> &callback)
-    : userId_(userId), token_(token), callerTokenId_(callerTokenId), innerCallback_(callback)
+    Security::AccessToken::AccessTokenID callerTokenId, const sptr<IIDMCallback> &callback, bool isDomainUnlockEnabled)
+    : userId_(userId), token_(token), callerTokenId_(callerTokenId), innerCallback_(callback),
+    isDomainUnlockEnabled_(isDomainUnlockEnabled)
 {}
 
 VerifyTokenCallbackWrapper::~VerifyTokenCallbackWrapper()
@@ -662,34 +659,31 @@ void VerifyTokenCallbackWrapper::InnerOnResult(int32_t result, const Attributes 
     std::vector<uint8_t> rootSecret;
     extraInfo.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, rootSecret);
     // add secret delete operation flag
-    std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(userId_) +
-        Constants::PATH_SEPARATOR + Constants::USER_SECRET_FLAG_FILE_NAME;
-    auto accountFileOperator = std::make_shared<AccountFileOperator>();
-    ErrCode code = accountFileOperator->InputFileByPathAndContent(path, "");
-    if (code != ERR_OK) {
-        ReportOsAccountOperationFail(userId_, scene, code, "Failed to write iam_fault file");
-        ACCOUNT_LOGE("Input file fail, path=%{public}s", path.c_str());
-    }
+    (void)InnerAccountIAMManager::GetInstance().CreateSecretFaultFile(userId_, scene);
     auto &innerIamMgr = InnerAccountIAMManager::GetInstance();
-    ErrCode errCode = innerIamMgr.UpdateStorageUserAuth(userId_, secureUid, token_, rootSecret, {});
+    ErrCode errCode = ERR_OK;
+    if (!isDomainUnlockEnabled_) {
+        errCode = innerIamMgr.UpdateStorageUserAuth(userId_, secureUid, token_, rootSecret, {});
+    }
     std::fill(rootSecret.begin(), rootSecret.end(), 0);
     if (errCode != ERR_OK) {
         ReportOsAccountOperationFail(userId_, scene, errCode, "Failed to update user auth");
-        DeleteSecretFlag(userId_, scene);
+        InnerAccountIAMManager::GetInstance().DeleteSecretFaultFile(userId_, scene);
         Attributes emptyExtraInfo;
         innerCallback_->OnResult(ResultCode::FAIL, emptyExtraInfo.Serialize());
         return;
     }
     result = SetFirstCallerTokenID(callerTokenId_);
     ACCOUNT_LOGI("Set first caller info result: %{public}d", result);
-    auto deleteUserCallback = std::make_shared<CommitDelCredCallback>(userId_, innerCallback_);
+    auto deleteUserCallback = std::make_shared<CommitDelCredCallback>(userId_, innerCallback_, isDomainUnlockEnabled_);
     UserIDMClient::GetInstance().DeleteUser(userId_, token_, deleteUserCallback);
     std::unique_lock<std::mutex> lock(deleteUserCallback->mutex_);
     deleteUserCallback->onResultCondition_.wait(lock, [deleteUserCallback] { return deleteUserCallback->isCalled_; });
 }
 
-CommitDelCredCallback::CommitDelCredCallback(uint32_t userId, const sptr<IIDMCallback> callback)
-    : userId_(userId), innerCallback_(callback)
+CommitDelCredCallback::CommitDelCredCallback(uint32_t userId, const sptr<IIDMCallback> callback,
+    bool isDomainUnlockEnabled) : userId_(userId), innerCallback_(callback),
+    isDomainUnlockEnabled_(isDomainUnlockEnabled)
 {}
 
 void CommitDelCredCallback::OnResult(int32_t result, const UserIam::UserAuth::Attributes &extraInfo)
@@ -701,12 +695,14 @@ void CommitDelCredCallback::OnResult(int32_t result, const UserIam::UserAuth::At
     if (result != ERR_OK) {
         ReportOsAccountOperationFail(userId_, scene, result, "Failed to delete user's credential");
     } else {
-        DeleteSecretFlag(userId_, scene);
+        InnerAccountIAMManager::GetInstance().DeleteSecretFaultFile(userId_, scene);
         ReportOsAccountLifeCycle(userId_, ConstructSubOperationStr(OPERATION_DELETE_CRED,
             OPERATION_COMMIT, AuthType::PIN));
-        ErrCode errCode = InnerAccountIAMManager::GetInstance().UpdateStorageKeyContext(userId_);
-        if (errCode != ERR_OK) {
-            ReportOsAccountOperationFail(userId_, scene, errCode, "Failed to update key context");
+        if (!isDomainUnlockEnabled_) {
+            ErrCode errCode = InnerAccountIAMManager::GetInstance().UpdateStorageKeyContext(userId_);
+            if (errCode != ERR_OK) {
+                ReportOsAccountOperationFail(userId_, scene, errCode, "Failed to update key context");
+            }
         }
         (void)IInnerOsAccountManager::GetInstance().SetOsAccountCredentialId(userId_, 0);
     }
@@ -755,7 +751,8 @@ void CommitCredUpdateCallback::InnerOnResult(int32_t result, const Attributes &e
         ReportOsAccountOperationFail(userId_, ConstructSubOperationStr(OPERATION_UPDATE_CRED,
             OPERATION_COMMIT), updateRet, "Failed to update key context");
     } else {
-        DeleteSecretFlag(userId_, ConstructSubOperationStr(OPERATION_UPDATE_CRED, OPERATION_COMMIT));
+        InnerAccountIAMManager::GetInstance().DeleteSecretFaultFile(
+            userId_, ConstructSubOperationStr(OPERATION_UPDATE_CRED, OPERATION_COMMIT));
     }
 }
 
@@ -773,8 +770,8 @@ void CommitCredUpdateCallback::OnAcquireInfo(int32_t module, uint32_t acquireInf
 }
 
 DelCredCallback::DelCredCallback(int32_t userId, bool isPIN, std::vector<uint8_t> token,
-    const sptr<IIDMCallback> &callback)
-    : userId_(userId), isPIN_(isPIN), token_(token), innerCallback_(callback)
+    const sptr<IIDMCallback> &callback, bool isDomainUnlockEnabled) : userId_(userId), isPIN_(isPIN), token_(token),
+    innerCallback_(callback), isDomainUnlockEnabled_(isDomainUnlockEnabled)
 {}
 
 DelCredCallback::~DelCredCallback()
@@ -792,6 +789,8 @@ void DelCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
     auto &innerIamMgr = InnerAccountIAMManager::GetInstance();
     if ((result == 0) && isPIN_) {
         (void)IInnerOsAccountManager::GetInstance().SetOsAccountCredentialId(userId_, 0);  // 0-invalid credentialId
+    }
+    if ((result == 0) && isPIN_ && !isDomainUnlockEnabled_) {
         std::vector<uint8_t> newSecret;
         std::vector<uint8_t> oldSecret;
         extraInfo.GetUint8ArrayValue(Attributes::ATTR_OLD_ROOT_SECRET, oldSecret);
@@ -890,6 +889,15 @@ void GetCredentialInfoSyncCallback::OnCredentialInfo(int32_t result,
     secureCv_.notify_all();
 }
 
+void VerifyTokenSyncCallback::OnResult(int32_t result, const Attributes &extraInfo)
+{
+    ACCOUNT_LOGI("VerifyTokenSyncCallback result:%{public}d", result);
+    std::unique_lock<std::mutex> lock(mutex_);
+    result_ = result;
+    isCalled_ = true;
+    onResultCondition_.notify_all();
+}
+
 GetPropCallbackWrapper::GetPropCallbackWrapper(int32_t userId, const sptr<IGetSetPropCallback> &callback)
     : userId_(userId), innerCallback_(callback)
 {}
@@ -956,9 +964,9 @@ GetSecureUidCallback::GetSecureUidCallback(int32_t userId): userId_(userId)
 
 void GetSecureUidCallback::OnSecUserInfo(int32_t result, const SecUserInfo &info)
 {
-    static_cast<void>(result);
-    ACCOUNT_LOGI("SecUserInfo call back userId=%{public}d", userId_);
+    ACCOUNT_LOGI("SecUserInfo call back userId=%{public}d result=%{public}d", userId_, result);
     std::unique_lock<std::mutex> lck(secureMtx_);
+    this->ret = result;
     this->secureUid_ = info.secureUid;
     isCalled_ = true;
     secureCv_.notify_all();

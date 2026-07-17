@@ -21,6 +21,7 @@ group("fuzztest") {
       "authwithpopup_fuzzer:AuthWithPopUpFuzzTest",
       "authclientwithserver_fuzzer:AuthClientWithServerFuzzTest",
       "domainauthuser_fuzzer:DomainAuthUserFuzzTest",
+      "authuserwithunlockoptions_fuzzer:AuthUserWithUnlockOptionsFuzzTest",
       "getaccesstoken_fuzzer:GetAccessTokenFuzzTest",
       "getaccountpolicy_fuzzer:GetAccountPolicyFuzzTest",
       "getaccountstatus_fuzzer:GetAccountStatusFuzzTest",

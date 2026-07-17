@@ -384,7 +384,7 @@ AuthStatusInfo *AuthStatusInfo::Unmarshalling(Parcel &parcel)
 bool DomainAuthResult::ReadFromParcel(Parcel &parcel)
 {
     if (!parcel.ReadUInt8Vector(&token)) {
-        ACCOUNT_LOGE("Failed to read remainingTimes");
+        ACCOUNT_LOGE("Failed to read token");
         return false;
     }
     std::shared_ptr<AuthStatusInfo> infoPtr(parcel.ReadParcelable<AuthStatusInfo>());

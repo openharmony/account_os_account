@@ -18,12 +18,15 @@
 
 #include <cstdint>
 #include "parcel.h"
+#include "domain_account_common.h"
 
 namespace OHOS {
 namespace AccountSA {
 class DomainAccountCallback {
 public:
     virtual void OnResult(const int32_t errCode, Parcel &parcel) = 0;
+    virtual void OnAcquireInfo(int32_t module, uint32_t acquireInfo,
+        const DomainAccountUnlockExtraInfo &extraInfo) { return; };
 };
 }  // namespace AccountSA
 }  // namespace OHOS
