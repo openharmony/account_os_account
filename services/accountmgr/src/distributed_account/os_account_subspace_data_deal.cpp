@@ -61,13 +61,8 @@ OsAccountSubProfileDataDeal::OsAccountSubProfileDataDeal(const std::string &conf
 ErrCode OsAccountSubProfileDataDeal::AllocateSubProfileIndex(
     int32_t nextSubProfileIndex, const std::map<int32_t, int32_t> &subProfileIndexMap, int32_t &outIndex)
 {
-    // Allocate a free logical slot index from [1, MAX_OS_ACCOUNT_SUB_PROFILE_COUNT - 1].
-    // Index 0 (HEADLESS_SUBPROFILE_INDEX) is reserved and never allocated here.
-    // Simple self-increment: if the map is not yet full, allocate the next free index.
-    // When all indices have been allocated, wrap around to reuse the smallest available
-    // index (not present in the map after deletions).
     int32_t minIndex = HEADLESS_SUBPROFILE_INDEX + 1;
-    int32_t maxIndex = MAX_OS_ACCOUNT_SUB_PROFILE_COUNT - 1;
+    int32_t maxIndex = MAX_OS_ACCOUNT_SUB_PROFILE_COUNT;
     int32_t totalRange = maxIndex - minIndex + 1;
     int32_t startIndex = nextSubProfileIndex;
     if (startIndex < minIndex || startIndex > maxIndex) {

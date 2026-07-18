@@ -284,7 +284,7 @@ HWTEST_F(OhosAccountManagerSubspaceTest, CreateOsAccountSubspace_LimitReached_00
 
     SubProfileContext subprofileCtx;
     subprofileCtx.subProfileIdList.push_back(TEST_SUBSPACE_BASE);
-    for (int32_t i = 1; i <= MAX_OS_ACCOUNT_SUB_PROFILE_COUNT - 1; ++i) {
+    for (int32_t i = 1; i <= MAX_OS_ACCOUNT_SUB_PROFILE_COUNT; ++i) {
         subprofileCtx.subProfileIdList.push_back(TEST_SUBSPACE_BASE + i);
     }
     MockForceSubProfileContext(TEST_OS_ACCOUNT_ID, subprofileCtx);
@@ -749,7 +749,7 @@ HWTEST_F(SubspaceManagerInternalTest, TryReclaimSubProfileSlots_StillAtLimit_002
 
     SubProfileContext subprofileCtx2;
     subprofileCtx2.subProfileIdList.push_back(base);
-    for (int32_t i = 1; i <= MAX_OS_ACCOUNT_SUB_PROFILE_COUNT - 1; ++i) {
+    for (int32_t i = 1; i <= MAX_OS_ACCOUNT_SUB_PROFILE_COUNT; ++i) {
         subprofileCtx2.subProfileIdList.push_back(base + i);
     }
     MockForceSubProfileContext(TEST_OS_ACCOUNT_ID, subprofileCtx2);
@@ -826,7 +826,7 @@ HWTEST_F(SubspaceManagerInternalTest, AllocateSubProfileIndex_WrapAround_003, Te
 {
     OsAccountSubProfileDataDeal dataDeal(TEST_ROOT_DIR);
     std::map<int32_t, int32_t> occupiedMap;
-    for (int32_t i = 1; i <= MAX_OS_ACCOUNT_SUB_PROFILE_COUNT - 1; ++i) {
+    for (int32_t i = 1; i <= MAX_OS_ACCOUNT_SUB_PROFILE_COUNT; ++i) {
         if (i != 5) {
             occupiedMap[i] = TEST_SUBSPACE_BASE + i;
         }
@@ -834,7 +834,7 @@ HWTEST_F(SubspaceManagerInternalTest, AllocateSubProfileIndex_WrapAround_003, Te
     occupiedMap[0] = TEST_SUBSPACE_BASE;
     int32_t outIndex = 0;
     ErrCode ret = dataDeal.AllocateSubProfileIndex(
-        MAX_OS_ACCOUNT_SUB_PROFILE_COUNT - 1, occupiedMap, outIndex);
+        MAX_OS_ACCOUNT_SUB_PROFILE_COUNT, occupiedMap, outIndex);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(outIndex, 5);
 }
@@ -844,7 +844,7 @@ HWTEST_F(SubspaceManagerInternalTest, AllocateSubProfileIndex_AllSlotsUsed_004, 
     OsAccountSubProfileDataDeal dataDeal(TEST_ROOT_DIR);
     std::map<int32_t, int32_t> fullMap;
     for (int32_t i = 0;
-        i <= MAX_OS_ACCOUNT_SUB_PROFILE_COUNT - 1; ++i) {
+        i <= MAX_OS_ACCOUNT_SUB_PROFILE_COUNT; ++i) {
         fullMap[i] = TEST_SUBSPACE_BASE + i;
     }
     int32_t outIndex = 0;
@@ -868,7 +868,7 @@ HWTEST_F(SubspaceManagerInternalTest, AllocateSubProfileIndex_HintOutOfBounds_00
 
     outIndex = 0;
     ret = dataDeal.AllocateSubProfileIndex(
-        MAX_OS_ACCOUNT_SUB_PROFILE_COUNT, emptyMap, outIndex);
+        MAX_OS_ACCOUNT_SUB_PROFILE_COUNT + 1, emptyMap, outIndex);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(outIndex, 1);
 }
@@ -961,11 +961,11 @@ HWTEST_F(SubspaceManagerInternalTest, CreateSubProfileLocked_ReclaimRefreshesInd
     SubProfileContext subprofileCtx6;
     subprofileCtx6.subProfileIdList.push_back(base);
     subprofileCtx6.subProfileIndexMap[0] = base;
-    for (int32_t i = 1; i <= MAX_OS_ACCOUNT_SUB_PROFILE_COUNT - 2; ++i) {
+    for (int32_t i = 1; i <= MAX_OS_ACCOUNT_SUB_PROFILE_COUNT - 1; ++i) {
         subprofileCtx6.subProfileIdList.push_back(base + i);
         subprofileCtx6.subProfileIndexMap[i] = base + i;
     }
-    int32_t garbageIndex = OsAccountSubProfileDataDeal::OS_ACCOUNT_SUB_PROFILE_ID_MAX;
+    int32_t garbageIndex = MAX_OS_ACCOUNT_SUB_PROFILE_COUNT;
     int32_t garbageId = base + garbageIndex;
     subprofileCtx6.subProfileIdList.push_back(garbageId);
     subprofileCtx6.subProfileIndexMap[garbageIndex] = garbageId;
@@ -983,14 +983,14 @@ HWTEST_F(SubspaceManagerInternalTest, CreateSubProfileLocked_ReclaimRefreshesInd
     ErrCode ret = mgr.CreateSubProfile(TEST_OS_ACCOUNT_ID, newSubspaceId, newIndex);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_GE(newIndex, 0);
-    EXPECT_LT(newIndex, MAX_OS_ACCOUNT_SUB_PROFILE_COUNT);
+    EXPECT_LT(newIndex, MAX_OS_ACCOUNT_SUB_PROFILE_COUNT + 1);
 
     SubProfileContext updatedData;
     ErrCode getInfoRet = IInnerOsAccountManager::GetInstance().ReadSubProfileContext(TEST_OS_ACCOUNT_ID, updatedData);
     EXPECT_EQ(getInfoRet, ERR_OK);
     auto updatedMap = updatedData.subProfileIndexMap;
     EXPECT_EQ(updatedMap[newIndex], newSubspaceId);
-    EXPECT_EQ(static_cast<int32_t>(updatedData.subProfileIdList.size()), MAX_OS_ACCOUNT_SUB_PROFILE_COUNT);
+    EXPECT_EQ(static_cast<int32_t>(updatedData.subProfileIdList.size()), MAX_OS_ACCOUNT_SUB_PROFILE_COUNT + 1);
 
     if (newSubspaceId == garbageId) {
         OsAccountSubspaceInfo onDiskInfo;
