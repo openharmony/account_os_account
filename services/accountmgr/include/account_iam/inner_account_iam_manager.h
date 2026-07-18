@@ -109,7 +109,13 @@ public:
      */
     ErrCode UnlockEnhancedStorage(int32_t accountId, const std::vector<uint8_t> &token,
         const std::vector<uint8_t> &secret, bool isUpdateVerifiedStatus);
-
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+    ErrCode SetDomainAuthUnlockEnabled(
+        int32_t localId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret, bool enabled);
+#endif
+    ErrCode CreateSecretFaultFile(const int32_t localId, const std::string &scene);
+    ErrCode DeleteSecretFaultFile(const int32_t localId, const std::string &scene);
+    ErrCode IsEnableDomainUnlock(int32_t userId, bool &enable);
 private:
     InnerAccountIAMManager();
     ~InnerAccountIAMManager() = default;

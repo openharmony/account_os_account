@@ -15,6 +15,7 @@
 
 import IDomainAccountCallback;
 import IDomainAccountPlugin;
+import DomainAccountIpcData;
 sequenceable OHOS.AAFwk.WantParams;
 sequenceable DomainAccountCommon..OHOS.AccountSA.DomainAccountInfo;
 sequenceable DomainAccountCommon..OHOS.AccountSA.DomainAccountAuthOptions;
@@ -53,4 +54,6 @@ interface OHOS.AccountSA.IDomainAccount {
     void AuthWithParameters([in] DomainAccountInfo info, [in] unsigned char[] password,
         [in] DomainAccountAuthOptions authOptions, [in] IDomainAccountCallback domainAccountCallback);
     void IsDomainAccountSupported([out] boolean isSupported);
+    void AuthUserWithUnlockOptions([in] int localId, [in] unsigned char[] password,
+        [in] DomainAccountUnlockOptionsIdl options, [in] IDomainAccountCallback domainAccountCallback);
 }

@@ -241,7 +241,8 @@ int32_t AccountIAMClient::Cancel(int32_t userId)
 
 #ifdef HAS_PIN_AUTH_PART
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
-uint64_t AccountIAMClient::StartDomainAuth(int32_t userId, const std::shared_ptr<IDMCallback> &callback)
+uint64_t AccountIAMClient::StartDomainAuth(int32_t userId,
+    const DomainAccountUnlockOptions &unlockOptions, const std::shared_ptr<IDMCallback> &callback)
 {
     std::lock_guard<std::mutex> lock(domainMutex_);
     Attributes emptyResult;
@@ -258,7 +259,8 @@ uint64_t AccountIAMClient::StartDomainAuth(int32_t userId, const std::shared_ptr
         domainInputer->OnGetData(IAMAuthType::DOMAIN, std::vector<uint8_t>(), recipient);
         return recipient->WaitToGetData();
     };
-    ErrCode errCode = DomainAccountClient::GetInstance().AuthUser(userId, getPwdHooks, idmCallback, contextId);
+    ErrCode errCode = DomainAccountClient::GetInstance().AuthUser(
+        userId, getPwdHooks, idmCallback, unlockOptions, contextId);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Failed to begin authenticate user, errCode = %{public}d", errCode);
         callback->OnResult(errCode, emptyResult);
@@ -395,7 +397,8 @@ std::vector<uint8_t> AccountIAMClient::AuthUser(
 #ifdef HAS_PIN_AUTH_PART
     if (static_cast<int32_t>(authType) == static_cast<int32_t>(IAMAuthType::DOMAIN)) {
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
-        contextId = StartDomainAuth(authOptions.accountId, callback);
+        contextId = StartDomainAuth(authOptions.accountId,
+            DomainAccountUnlockOptions(challenge, static_cast<int32_t>(authOptions.authIntent)), callback);
         return GenerateContextArray(contextId, authTypeIdx);
 #else
         callback->OnResult(ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE, emptyResult);
@@ -838,6 +841,21 @@ sptr<IAccountIAM> AccountIAMClient::GetAccountIAMProxy()
         ACCOUNT_LOGE("failed to get account iam proxy");
     }
     return proxy_;
+}
+
+ErrCode AccountIAMClient::SetDomainAuthUnlockEnabled(int32_t localId, const std::vector<uint8_t> &token,
+    const std::vector<uint8_t> &secret, bool enabled)
+{
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+    sptr<IAccountIAM> proxy = GetAccountIAMProxy();
+    if (proxy == nullptr) {
+        ACCOUNT_LOGE("failed to get account iam proxy");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->SetDomainAuthUnlockEnabled(localId, token, secret, enabled ? 1 : 0);
+#else
+    return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
+#endif
 }
 }  // namespace AccountSA
 }  // namespace OHOS

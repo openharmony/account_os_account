@@ -248,7 +248,8 @@ ErrCode DomainAccountClient::AuthUser(int32_t userId, const std::vector<uint8_t>
 
 ErrCode DomainAccountClient::AuthUser(int32_t userId,
     const std::function<std::vector<uint8_t>()> getPasswordHooks,
-    const std::shared_ptr<DomainAccountCallback> &callback, uint64_t &contextId)
+    const std::shared_ptr<DomainAccountCallback> &callback,
+    const DomainAccountUnlockOptions &unlockOptions, uint64_t &contextId)
 {
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
     if ((callback == nullptr) || (getPasswordHooks == nullptr)) {
@@ -264,9 +265,12 @@ ErrCode DomainAccountClient::AuthUser(int32_t userId,
         return result;
     }
     contextId = genContextId;
-    auto task = [getPasswordHooks, proxy, callbackService, userId]() {
+    auto task = [getPasswordHooks, proxy, callbackService, userId, unlockOptions]() {
         std::vector<uint8_t> password = getPasswordHooks();
-        ErrCode errCode = proxy->AuthUser(userId, password, callbackService);
+        DomainAccountUnlockOptionsIdl idlOptions;
+        idlOptions.challenge = unlockOptions.challenge;
+        idlOptions.authIntent = unlockOptions.authIntent;
+        ErrCode errCode = proxy->AuthUserWithUnlockOptions(userId, password, idlOptions, callbackService);
         std::fill(password.begin(), password.end(), 0);
         if (errCode != ERR_OK) {
             ACCOUNT_LOGE("Failed to auth for domain account, errCode=%{public}d", errCode);

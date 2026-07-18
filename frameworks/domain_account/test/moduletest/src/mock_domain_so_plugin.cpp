@@ -34,6 +34,9 @@ namespace {
 static int32_t g_callingLocalId = -1;
 static bool g_needWaitCancel = false;
 static bool g_isCheckError = false;
+static bool g_enableUnlockDevice = true;
+static std::vector<uint8_t> g_lastChallenge;
+static bool g_authWithUnlockIntentError = false;
 static std::mutex g_needWaitCancelMutex;
 static std::mutex g_mutex;
 const int32_t WAIT_TIME = 5;
@@ -76,6 +79,21 @@ static bool SetPluginUint8Vector(const std::vector<uint8_t> &vector, PluginUint8
 void SetIsCheckError(bool isCheckError)
 {
     g_isCheckError = isCheckError;
+}
+
+void SetEnableUnlockDevice(bool enable)
+{
+    g_enableUnlockDevice = enable;
+}
+
+void SetAuthWithUnlockIntentError(bool isError)
+{
+    g_authWithUnlockIntentError = isError;
+}
+
+void GetLastChallenge(std::vector<uint8_t> &challenge)
+{
+    challenge = g_lastChallenge;
 }
 
 PluginBusinessError *GetAccountServerConfig(const PluginDomainAccountInfo *domainAccountInfo,
@@ -127,7 +145,7 @@ PluginBusinessError *Auth(const PluginDomainAccountInfo *domainAccountInfo, cons
     auto delayCallback = [callback, contextId = *contextId]() {
         std::this_thread::sleep_for(std::chrono::seconds(1));
         ACCOUNT_LOGI("Mock Auth begin");
-        PluginAuthResultInfo *authResultInfo = (PluginAuthResultInfo *)malloc(sizeof(PluginAuthResultInfo));
+        PluginAuthResultInfo *authResultInfo = (PluginAuthResultInfo *)calloc(1, sizeof(PluginAuthResultInfo));
         SetPluginUint8Vector({1, 2}, authResultInfo->accountToken);
         authResultInfo->remainTimes = 1;
         authResultInfo->freezingTime = 1;
@@ -160,6 +178,77 @@ PluginBusinessError *AuthWithServerConfig(const PluginString *parameters,
         error->code = 0;
         error->msg.data = nullptr;
     }
+    return error;
+}
+
+PluginBusinessError *AuthWithUnlockIntent(const PluginDomainAccountInfo *domainAccountInfo,
+    const PluginUint8Vector *credential, const int32_t callerLocalId, const PluginUint8Vector *challengeValue,
+    PluginAuthResultInfoCallback callback, uint64_t *contextId)
+{
+    ACCOUNT_LOGI("Mock AuthWithUnlockIntent enter.");
+    if (challengeValue != nullptr && challengeValue->data != nullptr) {
+        g_lastChallenge.assign(challengeValue->data, challengeValue->data + challengeValue->size);
+    }
+    PluginBusinessError *error = (PluginBusinessError *)malloc(sizeof(PluginBusinessError));
+    if (error == nullptr) {
+        return nullptr;
+    }
+    if (g_authWithUnlockIntentError) {
+        error->code = g_testErrCode;
+        error->msg.data = nullptr;
+        return error;
+    }
+    error->code = 0;
+    error->msg.data = nullptr;
+    {
+        std::lock_guard<std::mutex> lock(g_mutex);
+        *contextId = g_contextId;
+        g_contextId++;
+    }
+    auto delayCallback = [callback, contextId = *contextId]() {
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        ACCOUNT_LOGI("Mock AuthWithUnlockIntent begin");
+        PluginAuthResultInfo *authResultInfo = (PluginAuthResultInfo *)calloc(1, sizeof(PluginAuthResultInfo));
+        if (authResultInfo == nullptr) {
+            return;
+        }
+        SetPluginUint8Vector({1, 2}, authResultInfo->accountToken);
+        SetPluginUint8Vector({10, 20, 30}, authResultInfo->secret);
+        authResultInfo->remainTimes = 1;
+        authResultInfo->freezingTime = 1;
+        authResultInfo->nextPhaseFreezingTime = 0;
+        authResultInfo->localId = -1;
+
+        PluginBusinessError *cbError = (PluginBusinessError *)malloc(sizeof(PluginBusinessError));
+        if (cbError != nullptr) {
+            cbError->code = 0;
+            cbError->msg.data = nullptr;
+        }
+        callback(contextId, authResultInfo, cbError);
+    };
+    std::thread thread(delayCallback);
+    pthread_setname_np(thread.native_handle(), "AuthUnlockIntent");
+    thread.detach();
+    return error;
+}
+
+PluginBusinessError *GetUnlockDeviceConfigResult(const PluginDomainAccountInfo *domainAccountInfo,
+    PluginUnlockDeviceConfigResult **unlockDeviceConfigResult)
+{
+    ACCOUNT_LOGI("Mock GetUnlockDeviceConfigResult enter.");
+    PluginBusinessError *error = (PluginBusinessError *)malloc(sizeof(PluginBusinessError));
+    if (error == nullptr) {
+        return nullptr;
+    }
+    error->code = 0;
+    error->msg.data = nullptr;
+    *unlockDeviceConfigResult = (PluginUnlockDeviceConfigResult *)malloc(sizeof(PluginUnlockDeviceConfigResult));
+    if (*unlockDeviceConfigResult == nullptr) {
+        free(error);
+        return nullptr;
+    }
+    (*unlockDeviceConfigResult)->enableUnlockDevice = g_enableUnlockDevice ? 1 : 0;
+    (*unlockDeviceConfigResult)->unlockDeviceMode = ONLINE_OFFLINE_AUTH_UNLOCK_DEVICE;
     return error;
 }
 
@@ -418,7 +507,7 @@ PluginBusinessError *AuthBlocking(const PluginDomainAccountInfo *domainAccountIn
                     return !g_needWaitCancel;
                 });
         }
-        PluginAuthResultInfo *authResultInfo = (PluginAuthResultInfo *)malloc(sizeof(PluginAuthResultInfo));
+        PluginAuthResultInfo *authResultInfo = (PluginAuthResultInfo *)calloc(1, sizeof(PluginAuthResultInfo));
         SetPluginUint8Vector({1, 2}, authResultInfo->accountToken);
         authResultInfo->remainTimes = 1;
         authResultInfo->freezingTime = 1;
@@ -456,7 +545,7 @@ PluginBusinessError *CancelAuth(const uint64_t contextId)
     {
         std::lock_guard<std::mutex> lock(g_mutex);
         ACCOUNT_LOGI("Mock cancel begin");
-        PluginAuthResultInfo *authResultInfo = (PluginAuthResultInfo *)malloc(sizeof(PluginAuthResultInfo));
+        PluginAuthResultInfo *authResultInfo = (PluginAuthResultInfo *)calloc(1, sizeof(PluginAuthResultInfo));
         SetPluginUint8Vector({1, 2}, authResultInfo->accountToken);
         authResultInfo->remainTimes = 1;
         authResultInfo->freezingTime = 1;

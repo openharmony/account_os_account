@@ -353,5 +353,94 @@ HWTEST_F(AccountIAMCallbackServiceTest, PreRemoteAuthCallbackService_DestructTes
     callbackWrapper->OnResult(0);
     delete callbackWrapper;
 }
+
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+/**
+ * @tc.name: DomainAuthCallbackAdapter_OnAcquireInfo_0100
+ * @tc.desc: Test DomainAuthCallbackAdapter::OnAcquireInfo wraps ATTR_EXTRA_INFO and passes to IDMCallback.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMCallbackServiceTest, DomainAuthCallbackAdapter_OnAcquireInfo_0100, TestSize.Level3)
+{
+    auto mockCallback = std::make_shared<MockIDMCallback>();
+    EXPECT_CALL(*mockCallback, OnAcquireInfo(_, _, _)).Times(Exactly(1));
+    auto testCallback = std::make_shared<TestIDMCallback>(mockCallback);
+    auto adapter = std::make_shared<DomainAuthCallbackAdapter>(testCallback);
+    DomainAccountUnlockExtraInfo extraInfo;
+    extraInfo.successExtraInfo = {1, 2, 3, 4, 5};
+    adapter->OnAcquireInfo(1024, 1, extraInfo);
+    std::unique_lock<std::mutex> lock(testCallback->mutex);
+    testCallback->cv.wait_for(
+        lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
+}
+
+/**
+ * @tc.name: DomainAuthCallbackAdapter_OnAcquireInfo_0200
+ * @tc.desc: Test DomainAuthCallbackAdapter::OnAcquireInfo with nullptr callback.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMCallbackServiceTest, DomainAuthCallbackAdapter_OnAcquireInfo_0200, TestSize.Level3)
+{
+    auto adapter = std::make_shared<DomainAuthCallbackAdapter>(nullptr);
+    DomainAccountUnlockExtraInfo extraInfo;
+    extraInfo.successExtraInfo = {1, 2, 3};
+    adapter->OnAcquireInfo(1024, 1, extraInfo);
+    std::string cmd = "hilog -x | grep 'AccountIAMFwk'";
+    std::string cmdRes = RunCommand(cmd);
+    ASSERT_TRUE(cmdRes.find("callback is nullptr") != std::string::npos);
+}
+
+/**
+ * @tc.name: DomainAuthCallbackAdapter_OnAcquireInfo_0300
+ * @tc.desc: Test DomainAccountCallback default OnAcquireInfo empty impl does not affect existing flow.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMCallbackServiceTest, DomainAuthCallbackAdapter_OnAcquireInfo_0300, TestSize.Level3)
+{
+    class EmptyCallback final : public DomainAccountCallback {
+    public:
+        int32_t onResultCalled = 0;
+        void OnResult(const int32_t errCode, Parcel &parcel) override
+        {
+            onResultCalled++;
+        }
+    };
+    auto emptyCallback = std::make_shared<EmptyCallback>();
+    ASSERT_NE(emptyCallback, nullptr);
+    DomainAccountUnlockExtraInfo extraInfo;
+    extraInfo.successExtraInfo = {1, 2, 3};
+    emptyCallback->OnAcquireInfo(1024, 1, extraInfo);
+    EXPECT_EQ(emptyCallback->onResultCalled, 0);
+}
+
+/**
+ * @tc.name: DomainAuthCallbackAdapter_OnResult_0100
+ * @tc.desc: Test DomainAuthCallbackAdapter::OnResult does not set ATTR_ROOT_SECRET.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMCallbackServiceTest, DomainAuthCallbackAdapter_OnResult_0200, TestSize.Level3)
+{
+    auto mockCallback = std::make_shared<MockIDMCallback>();
+    EXPECT_CALL(*mockCallback, OnResult(_, _)).Times(Exactly(1));
+    auto testCallback = std::make_shared<TestIDMCallback>(mockCallback);
+    auto adapter = std::make_shared<DomainAuthCallbackAdapter>(testCallback);
+    Parcel parcel;
+    DomainAuthResult authResult;
+    authResult.token = {1, 2, 3};
+    authResult.secret = {4, 5, 6};
+    authResult.authStatusInfo.remainingTimes = 5;
+    authResult.authStatusInfo.freezingTime = 0;
+    authResult.authStatusInfo.nextPhaseFreezingTime = 0;
+    ASSERT_TRUE(authResult.Marshalling(parcel));
+    adapter->OnResult(0, parcel);
+    std::unique_lock<std::mutex> lock(testCallback->mutex);
+    testCallback->cv.wait_for(
+        lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
+}
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 }  // namespace AccountTest
 }  // namespace OHOS

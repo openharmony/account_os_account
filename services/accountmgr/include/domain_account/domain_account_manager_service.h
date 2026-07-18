@@ -18,6 +18,7 @@
 
 #include <mutex>
 #include "domain_account_stub.h"
+#include "domain_account_ipc_data.h"
 #include "os_account_info.h"
 
 namespace OHOS {
@@ -39,6 +40,8 @@ public:
         const DomainAccountAuthOptions &authOptions, const sptr<IDomainAccountCallback> &callback) override;
     ErrCode AuthUser(int32_t userId, const std::vector<uint8_t> &password,
         const sptr<IDomainAccountCallback> &callback) override;
+    ErrCode AuthUserWithUnlockOptions(int32_t localId, const std::vector<uint8_t> &password,
+        const DomainAccountUnlockOptionsIdl &options, const sptr<IDomainAccountCallback> &callback) override;
     ErrCode AuthWithPopup(int32_t userId, const sptr<IDomainAccountCallback> &callback) override;
     ErrCode CancelAuth(const sptr<IDomainAccountCallback> &callback) override;
     ErrCode UpdateAccountToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token) override;

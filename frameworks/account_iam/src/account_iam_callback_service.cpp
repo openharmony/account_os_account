@@ -179,7 +179,21 @@ void DomainAuthCallbackAdapter::OnResult(const int32_t errCode, Parcel &parcel)
     attr.SetUint8ArrayValue(Attributes::AttributeKey::ATTR_SIGNATURE, (*authResult).token);
     attr.SetInt32Value(Attributes::AttributeKey::ATTR_REMAIN_TIMES, (*authResult).authStatusInfo.remainingTimes);
     attr.SetInt32Value(Attributes::AttributeKey::ATTR_FREEZING_TIME, (*authResult).authStatusInfo.freezingTime);
+    attr.SetInt32Value(Attributes::AttributeKey::ATTR_NEXT_FAIL_LOCKOUT_DURATION,
+        (*authResult).authStatusInfo.nextPhaseFreezingTime);
     callback_->OnResult(errCode, attr);
+}
+
+void DomainAuthCallbackAdapter::OnAcquireInfo(int32_t module, uint32_t acquireInfo,
+    const DomainAccountUnlockExtraInfo &extraInfo)
+{
+    if (callback_ == nullptr) {
+        ACCOUNT_LOGE("callback is nullptr");
+        return;
+    }
+    Attributes attr;
+    attr.SetUint8ArrayValue(Attributes::AttributeKey::ATTR_EXTRA_INFO, extraInfo.successExtraInfo);
+    callback_->OnAcquireInfo(module, acquireInfo, attr);
 }
 
 #ifdef HAS_PIN_AUTH_PART

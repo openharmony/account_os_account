@@ -48,7 +48,8 @@ bool StartDomainAuthFuzzTest(const uint8_t* data, size_t size)
     FuzzData fuzzData(data, size);
     int32_t userId = fuzzData.GetData<int32_t>();
     std::shared_ptr<IDMCallback> callback = make_shared<MockIDMCallback1>();
-    int32_t result = AccountIAMClient::GetInstance().StartDomainAuth(userId, callback);
+    int32_t result = AccountIAMClient::GetInstance().StartDomainAuth(
+        userId, DomainAccountUnlockOptions(), callback);
     return result == ERR_OK;
 }
 

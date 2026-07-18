@@ -56,6 +56,8 @@ public:
         PluginDomainAccountInfo** pDomainAccountInfo);
     static void GetAndCleanPluginAuthResultInfo(PluginAuthResultInfo** authResultInfo, DomainAuthResult& result);
     static void GetAndCleanPluginAuthStatusInfo(PluginAuthStatusInfo** statusInfo, AuthStatusInfo& result);
+    static void GetAndCleanPluginUnlockDeviceConfigResult(PluginUnlockDeviceConfigResult** configResult,
+        bool& enableUnlockDevice, int32_t& unlockDeviceMode);
     static void GetAndCleanPluginDomainAccountPolicy(PluginDomainAccountPolicy** accountPolicy, std::string& policy);
     static void SetPluginGetDomainAccessTokenOptions(const GetAccessTokenOptions& option,
         const std::vector<uint8_t>& token,

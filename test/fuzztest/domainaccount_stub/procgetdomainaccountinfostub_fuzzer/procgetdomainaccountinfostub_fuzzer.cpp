@@ -34,6 +34,8 @@ public:
     TestGetDomainAccountInfoCallback() {};
     virtual ~TestGetDomainAccountInfoCallback();
     ErrCode OnResult(int32_t errCode, const DomainAccountParcel &parcel) override;
+    ErrCode OnAcquireInfo(
+        int32_t module, uint32_t acquireInfo, const DomainAccountUnlockExtraInfoIdl &extraInfo) override;
     void WaitForCallbackResult();
 private:
     std::mutex mutex_;
@@ -54,6 +56,12 @@ ErrCode TestGetDomainAccountInfoCallback::OnResult(int32_t errCode, const Domain
     isCalled_ = true;
     cv_.notify_one();
     return 0;
+}
+
+ErrCode TestGetDomainAccountInfoCallback::OnAcquireInfo(
+    int32_t module, uint32_t acquireInfo, const DomainAccountUnlockExtraInfoIdl &extraInfo)
+{
+    return ERR_OK;
 }
 
 void TestGetDomainAccountInfoCallback::WaitForCallbackResult()

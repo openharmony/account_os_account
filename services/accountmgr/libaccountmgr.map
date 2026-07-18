@@ -39,7 +39,6 @@
         "OHOS::AccountSA::AccountStateMachine::StateChangeProcess(int)";
         "OHOS::AccountSA::DomainAccountManagerService::DomainAccountManagerService()";
         "OHOS::AccountSA::AccountStub::OnRemoteRequest(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
-        "OHOS::AccountSA::AddCredCallback::AddCredCallback(unsigned int, OHOS::UserIam::UserAuth::CredentialParameters const&, OHOS::sptr<OHOS::AccountSA::IIDMCallback> const&)";
         "OHOS::AccountSA::UpdateCredCallback::UpdateCredCallback(unsigned int, OHOS::UserIam::UserAuth::CredentialParameters const&, OHOS::sptr<OHOS::AccountSA::IIDMCallback> const&)";
         "OHOS::AccountSA::AppAccountAuthenticatorCallback::AppAccountAuthenticatorCallback(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::AccountSA::AppAccountAuthenticatorManager::AppAccountAuthenticatorManager()";
@@ -116,7 +115,6 @@
         "OHOS::AccountSA::AppAccountSubscribeManager::SubscribeAppAccount(std::__h::shared_ptr<OHOS::AccountSA::AppAccountSubscribeInfo> const&, OHOS::sptr<OHOS::IRemoteObject> const&, unsigned int const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned int const&)";
         "OHOS::AccountSA::AppAccountSubscribeManager::UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener)";
         *OHOS::AccountSA::AuthCallback*;
-        "OHOS::AccountSA::DelCredCallback::DelCredCallback(int, bool, std::__h::vector<unsigned char, std::__h::allocator<unsigned char>>, OHOS::sptr<OHOS::AccountSA::IIDMCallback> const&)";
         "OHOS::AccountSA::DomainAccountPluginProxy::DomainAccountPluginProxy(OHOS::sptr<OHOS::IRemoteObject> const&)";
         "OHOS::AccountSA::GetCredInfoCallbackWrapper::GetCredInfoCallbackWrapper(int, int, OHOS::sptr<OHOS::AccountSA::IGetCredInfoCallback> const&)";
         "OHOS::AccountSA::GetPropCallbackWrapper::GetPropCallbackWrapper(int, OHOS::sptr<OHOS::AccountSA::IGetSetPropCallback> const&)";
@@ -286,6 +284,7 @@
         "OHOS::AccountSA::InnerDomainAccountManager::Auth(OHOS::AccountSA::DomainAccountInfo const&, std::__h::vector<unsigned char, std::__h::allocator<unsigned char>> const&, OHOS::sptr<OHOS::AccountSA::IDomainAccountCallback> const&)";
         "OHOS::AccountSA::InnerDomainAccountManager::AuthWithParameters(OHOS::AccountSA::DomainAccountInfo const&, std::__h::vector<unsigned char, std::__h::allocator<unsigned char>> const&, OHOS::AccountSA::DomainAccountAuthOptions const&, OHOS::sptr<OHOS::AccountSA::IDomainAccountCallback> const&)";
         "OHOS::AccountSA::InnerDomainAccountManager::AuthUser(int, std::__h::vector<unsigned char, std::__h::allocator<unsigned char>> const&, OHOS::sptr<OHOS::AccountSA::IDomainAccountCallback> const&)";
+        "OHOS::AccountSA::InnerDomainAccountManager::AuthUserWithUnlockOptions(int, std::__h::vector<unsigned char, std::__h::allocator<unsigned char>> const&, OHOS::AccountSA::DomainAccountUnlockOptions const&, OHOS::sptr<OHOS::AccountSA::IDomainAccountCallback> const&)";
         "OHOS::AccountSA::InnerDomainAccountManager::AuthWithPopup(int, OHOS::sptr<OHOS::AccountSA::IDomainAccountCallback> const&)";
         "OHOS::AccountSA::InnerDomainAccountManager::GetAccountStatus(OHOS::AccountSA::DomainAccountInfo const&, OHOS::AccountSA::DomainAccountStatus&)";
         "OHOS::AccountSA::InnerDomainAccountManager::RegisterAccountStatusListener(OHOS::sptr<OHOS::AccountSA::IDomainAccountCallback> const&)";
@@ -404,9 +403,6 @@
         "OHOS::AccountSA::GetSecUserInfoCallbackWrapper::GetSecUserInfoCallbackWrapper(int, OHOS::UserIam::UserAuth::AuthType, OHOS::sptr<OHOS::AccountSA::IGetEnrolledIdCallback> const&)";
         "OHOS::AccountSA::UpdateCredInfo::UpdateCredInfo(OHOS::UserIam::UserAuth::Attributes const&)";
         "OHOS::AccountSA::CommitCredUpdateCallback::InnerOnResult(int, OHOS::UserIam::UserAuth::Attributes const&)";
-        "OHOS::AccountSA::CommitDelCredCallback::CommitDelCredCallback(unsigned int, OHOS::sptr<OHOS::AccountSA::IIDMCallback>)";
-        "OHOS::AccountSA::VerifyTokenCallbackWrapper::InnerOnResult(int, OHOS::UserIam::UserAuth::Attributes const&)";
-        "OHOS::AccountSA::VerifyTokenCallbackWrapper::VerifyTokenCallbackWrapper(unsigned int, std::__h::vector<unsigned char, std::__h::allocator<unsigned char>> const&, unsigned int, OHOS::sptr<OHOS::AccountSA::IIDMCallback> const&)";
         "OHOS::AccountSA::UpdateCredCallback::InnerOnResult(int, OHOS::UserIam::UserAuth::Attributes const&)";
         "OHOS::AccountSA::IDMCallbackDeathRecipient::IDMCallbackDeathRecipient(unsigned int)";
         "OHOS::AccountSA::GetDomainAuthStatusInfoCallback::OnResult(int, OHOS::Parcel&)";

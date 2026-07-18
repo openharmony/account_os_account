@@ -20,6 +20,7 @@
 #include "account_iam_client.h"
 #undef private
 #include "account_iam_client_test_callback.h"
+#include "mock_iaccount_iam.h"
 #include "account_log_wrapper.h"
 #include "account_iam_callback_service.h"
 #ifdef PROXY_MOCK
@@ -1124,7 +1125,8 @@ HWTEST_F(AccountIAMClientTest, StartDomainAuth001, TestSize.Level3)
     EXPECT_CALL(*callback, OnResult(ERR_ACCOUNT_IAM_KIT_INPUTER_NOT_REGISTERED, _)).Times(Exactly(1));
     auto testCallback = std::make_shared<TestIDMCallback>(callback);
     AccountIAMClient::GetInstance().domainInputer_ = nullptr;
-    uint64_t ret = AccountIAMClient::GetInstance().StartDomainAuth(TEST_USER_ID, testCallback);
+    uint64_t ret = AccountIAMClient::GetInstance().StartDomainAuth(
+        TEST_USER_ID, DomainAccountUnlockOptions(), testCallback);
     std::unique_lock<std::mutex> lock(testCallback->mutex);
     testCallback->cv.wait_for(
         lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
@@ -1165,7 +1167,8 @@ HWTEST_F(AccountIAMClientTest, StartDomainAuth002, TestSize.Level3)
     std::shared_ptr<IInputer> inputer = std::make_shared<TestAsyncIInputer>();
     AccountIAMClient::GetInstance().domainInputer_ = inputer;
     
-    uint64_t ret = AccountIAMClient::GetInstance().StartDomainAuth(TEST_USER_ID, testCallback);
+    uint64_t ret = AccountIAMClient::GetInstance().StartDomainAuth(
+        TEST_USER_ID, DomainAccountUnlockOptions(), testCallback);
     std::unique_lock<std::mutex> lock(testCallback->mutex);
     testCallback->cv.wait_for(
         lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
@@ -1262,6 +1265,72 @@ HWTEST_F(AccountIAMClientTest, ResetAccountIAMProxy001, TestSize.Level3)
     AccountIAMClient::GetInstance().ResetAccountIAMProxy(remote);
     AccountIAMClient::GetInstance().proxy_ = proxy;
 }
+
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+/**
+ * @tc.name: SetDomainAuthUnlockEnabled_ForwardEnabled_001
+ * @tc.desc: SetDomainAuthUnlockEnabled forwards to the proxy with enabled=1 and returns its result.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMClientTest, SetDomainAuthUnlockEnabled_ForwardEnabled_001, TestSize.Level1)
+{
+    std::vector<uint8_t> token = {1, 2, 3, 4};
+    std::vector<uint8_t> secret = {5, 6, 7, 8};
+    sptr<IAccountIAM> savedProxy = AccountIAMClient::GetInstance().proxy_;
+    auto mockProxy = sptr<MockIAccountIAM>(new MockIAccountIAM());
+    ASSERT_NE(mockProxy, nullptr);
+    AccountIAMClient::GetInstance().proxy_ = mockProxy;
+    EXPECT_CALL(*mockProxy, SetDomainAuthUnlockEnabled(TEST_USER_ID, _, _, 1)).WillOnce(Return(ERR_OK));
+    ErrCode ret = AccountIAMClient::GetInstance().SetDomainAuthUnlockEnabled(
+        TEST_USER_ID, token, secret, true);
+    EXPECT_EQ(ret, ERR_OK);
+    AccountIAMClient::GetInstance().proxy_ = savedProxy;
+    std::fill(token.begin(), token.end(), 0);
+    std::fill(secret.begin(), secret.end(), 0);
+}
+
+/**
+ * @tc.name: SetDomainAuthUnlockEnabled_ForwardDisabled_001
+ * @tc.desc: SetDomainAuthUnlockEnabled forwards with enabled=0 and transparently propagates the proxy result.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMClientTest, SetDomainAuthUnlockEnabled_ForwardDisabled_001, TestSize.Level1)
+{
+    std::vector<uint8_t> token = {1, 2, 3, 4};
+    std::vector<uint8_t> secret = {5, 6, 7, 8};
+    sptr<IAccountIAM> savedProxy = AccountIAMClient::GetInstance().proxy_;
+    auto mockProxy = sptr<MockIAccountIAM>(new MockIAccountIAM());
+    ASSERT_NE(mockProxy, nullptr);
+    AccountIAMClient::GetInstance().proxy_ = mockProxy;
+    EXPECT_CALL(*mockProxy, SetDomainAuthUnlockEnabled(TEST_USER_ID, _, _, 0))
+        .WillOnce(Return(ERR_ACCOUNT_IAM_AUTH_TOKEN_INVALID));
+    ErrCode ret = AccountIAMClient::GetInstance().SetDomainAuthUnlockEnabled(
+        TEST_USER_ID, token, secret, false);
+    EXPECT_EQ(ret, ERR_ACCOUNT_IAM_AUTH_TOKEN_INVALID);
+    AccountIAMClient::GetInstance().proxy_ = savedProxy;
+    std::fill(token.begin(), token.end(), 0);
+    std::fill(secret.begin(), secret.end(), 0);
+}
+#else
+/**
+ * @tc.name: SetDomainAuthUnlockEnabled_NotSupported_001
+ * @tc.desc: SetDomainAuthUnlockEnabled returns not-supported when domain accounts are disabled.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMClientTest, SetDomainAuthUnlockEnabled_NotSupported_001, TestSize.Level1)
+{
+    std::vector<uint8_t> token = {1, 2, 3, 4};
+    std::vector<uint8_t> secret = {5, 6, 7, 8};
+    ErrCode ret = AccountIAMClient::GetInstance().SetDomainAuthUnlockEnabled(
+        TEST_USER_ID, token, secret, true);
+    EXPECT_EQ(ret, ERR_DOMAIN_ACCOUNT_NOT_SUPPORT);
+    std::fill(token.begin(), token.end(), 0);
+    std::fill(secret.begin(), secret.end(), 0);
+}
+#endif
 
 /**
  * @tc.name: AccountIAMClient_DelUser_0100

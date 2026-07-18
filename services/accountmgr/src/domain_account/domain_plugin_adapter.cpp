@@ -48,6 +48,8 @@ static const std::map<PluginMethodEnum, std::string> METHOD_NAME_MAP = {
     {PluginMethodEnum::SET_ACCOUNT_POLICY, "SetAccountPolicy"},
     {PluginMethodEnum::GET_ACCOUNT_POLICY, "GetAccountPolicy"},
     {PluginMethodEnum::CANCEL_AUTH, "CancelAuth"},
+    {PluginMethodEnum::AUTH_WITH_UNLOCK_INTENT, "AuthWithUnlockIntent"},
+    {PluginMethodEnum::GET_UNLOCK_DEVICE_CONFIG, "GetUnlockDeviceConfigResult"},
 };
 
 std::string GetMethodNameByEnum(PluginMethodEnum methodEnum)
@@ -361,6 +363,7 @@ void DomainPluginAdapter::GetAndCleanPluginAuthResultInfo(PluginAuthResultInfo**
     result.authStatusInfo.nextPhaseFreezingTime = (*authResultInfo)->nextPhaseFreezingTime;
     result.accountId = (*authResultInfo)->localId;
     GetAndCleanPluginUint8Vector((*authResultInfo)->accountToken, result.token);
+    GetAndCleanPluginUint8Vector((*authResultInfo)->secret, result.secret);
     free((*authResultInfo));
     (*authResultInfo) = nullptr;
 }
@@ -376,6 +379,21 @@ void DomainPluginAdapter::GetAndCleanPluginAuthStatusInfo(PluginAuthStatusInfo**
     result.nextPhaseFreezingTime = (*statusInfo)->nextPhaseFreezingTime;
     free((*statusInfo));
     (*statusInfo) = nullptr;
+}
+
+void DomainPluginAdapter::GetAndCleanPluginUnlockDeviceConfigResult(PluginUnlockDeviceConfigResult** configResult,
+    bool& enableUnlockDevice, int32_t& unlockDeviceMode)
+{
+    if (configResult == nullptr || *configResult == nullptr) {
+        ACCOUNT_LOGD("PluginUnlockDeviceConfigResult is null");
+        enableUnlockDevice = false;
+        unlockDeviceMode = 0;
+        return;
+    }
+    enableUnlockDevice = (*configResult)->enableUnlockDevice != 0;
+    unlockDeviceMode = (*configResult)->unlockDeviceMode;
+    free((*configResult));
+    (*configResult) = nullptr;
 }
 
 void DomainPluginAdapter::GetAndCleanPluginDomainAccountPolicy(PluginDomainAccountPolicy** accountPolicy,

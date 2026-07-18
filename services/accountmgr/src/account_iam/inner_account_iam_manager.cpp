@@ -127,17 +127,19 @@ void InnerAccountIAMManager::AddCredential(
         ACCOUNT_LOGE("Failed to add death recipient for AddCred");
         return;
     }
-    if (credInfo.authType == AuthType::PIN) {
-        std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(userId) +
-            Constants::PATH_SEPARATOR + Constants::USER_SECRET_FLAG_FILE_NAME;
-        auto accountFileOperator = std::make_shared<AccountFileOperator>();
-        ErrCode code = accountFileOperator->InputFileByPathAndContent(path, "");
-        if (code != ERR_OK) {
-            ReportOsAccountOperationFail(userId, OPERATION_ADD_CRED, code, "Failed to write iam_fault file");
-            ACCOUNT_LOGE("Input file fail, path=%{public}s", path.c_str());
-        }
+    bool isDomainUnlockEnabled = false;
+    ErrCode ret = IsEnableDomainUnlock(userId, isDomainUnlockEnabled);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Failed to check domain unlock enabled, ret=%{public}d", ret);
+        ReportOsAccountOperationFail(userId, OPERATION_ADD_CRED, ret, "Failed to get domain unlock enabled");
+        Attributes emptyResult;
+        callback->OnResult(ResultCode::GENERAL_ERROR, emptyResult.Serialize());
+        return;
     }
-    auto idmCallbackWrapper = std::make_shared<AddCredCallback>(userId, credInfo, callback);
+    if (credInfo.authType == AuthType::PIN) {
+        (void)CreateSecretFaultFile(userId, OPERATION_ADD_CRED);
+    }
+    auto idmCallbackWrapper = std::make_shared<AddCredCallback>(userId, credInfo, callback, isDomainUnlockEnabled);
     idmCallbackWrapper->SetDeathRecipient(deathRecipient);
     ACCOUNT_LOGI("Start to add credential, userId:%{public}d, authType:%{public}d", userId, credInfo.authType);
     UserIDMClient::GetInstance().AddCredential(userId, credInfo, idmCallbackWrapper);
@@ -197,8 +199,15 @@ void InnerAccountIAMManager::DelCred(
     uint64_t pinCredentialId = 0;
     (void)IInnerOsAccountManager::GetInstance().GetOsAccountCredentialId(userId, pinCredentialId);
     bool isPIN = (pinCredentialId != 0) && (credentialId == pinCredentialId);
-
-    auto idmCallback = std::make_shared<DelCredCallback>(userId, isPIN, authToken, callback);
+    bool isDomainUnlockEnabled = false;
+    ErrCode ret = IsEnableDomainUnlock(userId, isDomainUnlockEnabled);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Failed to check domain unlock enabled, ret=%{public}d", ret);
+        ReportOsAccountOperationFail(userId, OPERATION_DELETE_CRED, ret, "Failed to get domain unlock enabled");
+        callback->OnResult(ResultCode::GENERAL_ERROR, emptyResult.Serialize());
+        return;
+    }
+    auto idmCallback = std::make_shared<DelCredCallback>(userId, isPIN, authToken, callback, isDomainUnlockEnabled);
     ACCOUNT_LOGI("Start to delete credential, userId:%{public}d", userId);
     UserIDMClient::GetInstance().DeleteCredential(userId, credentialId, authToken, idmCallback);
 }
@@ -217,8 +226,18 @@ void InnerAccountIAMManager::DelUser(
         return;
     }
     std::lock_guard<std::mutex> userLock(*GetOperatingUserLock(userId));
+    bool isDomainUnlockEnabled = false;
+    ErrCode ret = IsEnableDomainUnlock(userId, isDomainUnlockEnabled);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Failed to check domain unlock enabled, ret=%{public}d", ret);
+        ReportOsAccountOperationFail(userId, ConstructSubOperationStr(OPERATION_DELETE_CRED, AuthType::PIN), ret,
+            "Failed to get domain unlock enabled");
+        callback->OnResult(ResultCode::GENERAL_ERROR, errResult.Serialize());
+        return;
+    }
     Security::AccessToken::AccessTokenID callerTokenId = IPCSkeleton::GetCallingTokenID();
-    auto verifyTokenCallback = std::make_shared<VerifyTokenCallbackWrapper>(userId, authToken, callerTokenId, callback);
+    auto verifyTokenCallback =
+        std::make_shared<VerifyTokenCallbackWrapper>(userId, authToken, callerTokenId, callback, isDomainUnlockEnabled);
     ACCOUNT_LOGI("Start to verify token before delete user's credential, userId:%{public}d", userId);
     UserAccessCtrlClient::GetInstance().VerifyAuthToken(authToken, TOKEN_ALLOWABLE_DURATION, verifyTokenCallback);
     std::unique_lock<std::mutex> lock(verifyTokenCallback->mutex_);
@@ -939,6 +958,184 @@ ErrCode InnerAccountIAMManager::UnlockEnhancedStorage(int32_t accountId, const s
         }
     }
     return ret;
+}
+
+ErrCode InnerAccountIAMManager::CreateSecretFaultFile(int32_t localId, const std::string &scene)
+{
+    std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(localId) +
+                       Constants::PATH_SEPARATOR + Constants::USER_SECRET_FLAG_FILE_NAME;
+    auto accountFileOperator = std::make_shared<AccountFileOperator>();
+    ErrCode code = accountFileOperator->InputFileByPathAndContent(path, "");
+    if (code != ERR_OK) {
+        ReportOsAccountOperationFail(localId, scene, code, "Failed to write iam_fault file");
+        ACCOUNT_LOGE("Input iam-fault file fail, errCode=%{public}d", code);
+    }
+    return code;
+}
+
+ErrCode InnerAccountIAMManager::DeleteSecretFaultFile(const int32_t localId, const std::string &scene)
+{
+    std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(localId) +
+                       Constants::PATH_SEPARATOR + Constants::USER_SECRET_FLAG_FILE_NAME;
+    auto accountFileOperator = std::make_shared<AccountFileOperator>();
+    ErrCode code = accountFileOperator->DeleteDirOrFile(path);
+    if (code != ERR_OK) {
+        ACCOUNT_LOGE("Delete iam-fault file fail, errCode=%{public}d", code);
+        ReportOsAccountOperationFail(localId, scene, code, "Failed to delete iam_fault file");
+    }
+    return code;
+}
+
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+static ErrCode CheckDomainAuthUnlockParam(int32_t localId, const std::vector<uint8_t> &token)
+{
+    if (!InnerDomainAccountManager::GetInstance().IsSoPluginLoaded()) {
+        ACCOUNT_LOGE("SO plugin is not loaded");
+        return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
+    }
+    DomainAccountInfo domainInfo;
+    ErrCode errCode = InnerDomainAccountManager::GetInstance().GetDomainAccountInfoByUserId(localId, domainInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("GetDomainAccountInfoByUserId failed, errCode=%{public}d, localId=%{public}d", errCode, localId);
+        return errCode;
+    }
+    if (domainInfo.accountName_.empty()) {
+        ACCOUNT_LOGE("localId=%{public}d is not a domain account", localId);
+        return ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT;
+    }
+    auto verifyTokenCallback = std::make_shared<VerifyTokenSyncCallback>();
+    UserAccessCtrlClient::GetInstance().VerifyAuthToken(token, TOKEN_ALLOWABLE_DURATION, verifyTokenCallback);
+    std::unique_lock<std::mutex> tokenLock(verifyTokenCallback->mutex_);
+    verifyTokenCallback->onResultCondition_.wait(
+        tokenLock, [verifyTokenCallback] { return verifyTokenCallback->isCalled_; });
+    if (verifyTokenCallback->result_ != ERR_OK) {
+        ACCOUNT_LOGE("VerifyAuthToken failed, result=%{public}d", verifyTokenCallback->result_);
+        return ERR_ACCOUNT_IAM_AUTH_TOKEN_INVALID;
+    }
+    return ERR_OK;
+}
+
+static ErrCode GetSecureUid(int32_t localId, bool enabled, uint64_t &secureUid)
+{
+    const char *subOp = enabled ? OPERATION_SUB_ADD_KEY : OPERATION_SUB_DELETE_KEY;
+    auto operationStr = ConstructSubOperationStr(OPERATION_SET_DOMAIN_AUTH_UNLOCK, subOp);
+    auto secCallback = std::make_shared<GetSecureUidCallback>(localId);
+    ErrCode ret = UserIDMClient::GetInstance().GetSecUserInfo(localId, secCallback);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("GetSecUserInfo failed, ret=%{public}d", ret);
+        ReportOsAccountOperationFail(localId, operationStr, ret, "GetSecUserInfo failed");
+        return ERR_ACCOUNT_IAM_GET_SECUSER_FAILED;
+    }
+    std::unique_lock<std::mutex> secLock(secCallback->secureMtx_);
+    secCallback->secureCv_.wait(secLock, [secCallback] { return secCallback->isCalled_; });
+    if (secCallback->ret != ERR_OK) {
+        ACCOUNT_LOGE("GetSecUserInfo failed, result=%{public}d, localId=%{public}d", secCallback->ret, localId);
+        ReportOsAccountOperationFail(localId, operationStr, secCallback->ret, "GetSecUserInfo callback failed");
+        return ERR_ACCOUNT_IAM_GET_SECUSER_FAILED;
+    }
+    secureUid = secCallback->secureUid_;
+    return ERR_OK;
+}
+
+static ErrCode HasPinCredential(int32_t localId, const std::string &operationStr, bool &hasPin)
+{
+    hasPin = false;
+    auto credCallback = std::make_shared<GetCredentialInfoSyncCallback>(localId);
+    ErrCode credRet = UserIDMClient::GetInstance().GetCredentialInfo(localId, AuthType::PIN, credCallback);
+    if (credRet != ERR_OK && credRet != UserIam::UserAuth::ResultCode::NOT_ENROLLED) {
+        ACCOUNT_LOGE("GetCredentialInfo failed, ret=%{public}d, localId=%{public}d", credRet, localId);
+        ReportOsAccountOperationFail(localId, operationStr, credRet, "GetCredentialInfo failed");
+        return ERR_ACCOUNT_IAM_GET_CREDINFO_FAILED;
+    }
+    if (credRet == UserIam::UserAuth::ResultCode::NOT_ENROLLED) {
+        ACCOUNT_LOGI("User does not have PIN credential, localId=%{public}d", localId);
+        return ERR_OK;
+    }
+    std::unique_lock<std::mutex> credLock(credCallback->secureMtx_);
+    credCallback->secureCv_.wait(credLock, [credCallback] { return credCallback->isCalled_; });
+    if (credCallback->result_ == ERR_OK && credCallback->hasPIN_) {
+        ACCOUNT_LOGI("User already has PIN credential, skip storage key operation");
+        hasPin = true;
+        return ERR_OK;
+    }
+    if (credCallback->result_ != UserIam::UserAuth::ResultCode::NOT_ENROLLED) {
+        ACCOUNT_LOGE("GetCredentialInfo callback failed, result=%{public}d, localId=%{public}d",
+            credCallback->result_, localId);
+        ReportOsAccountOperationFail(
+            localId, operationStr, credCallback->result_, "GetCredentialInfo callback failed");
+        return ERR_ACCOUNT_IAM_GET_CREDINFO_FAILED;
+    }
+    return ERR_OK;
+}
+
+ErrCode InnerAccountIAMManager::SetDomainAuthUnlockEnabled(
+    int32_t localId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret, bool enabled)
+{
+    ACCOUNT_LOGI("SetDomainAuthUnlockEnabled localId=%{public}d enabled=%{public}d", localId, enabled);
+    ErrCode errCode = CheckDomainAuthUnlockParam(localId, token);
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
+    std::lock_guard<std::mutex> userLock(*GetOperatingUserLock(localId));
+    auto operationStr = ConstructSubOperationStr(
+        OPERATION_SET_DOMAIN_AUTH_UNLOCK, enabled ? OPERATION_SUB_ADD_KEY : OPERATION_SUB_DELETE_KEY);
+    bool hasPin = false;
+    errCode = HasPinCredential(localId, operationStr, hasPin);
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
+    if (hasPin) {
+        ACCOUNT_LOGI("User already has PIN credential when operate domain auth unlock");
+        return ERR_OK;
+    }
+    if (!enabled) {
+        ACCOUNT_LOGW("User does not have PIN credential when disabling domain auth unlock");
+        return ERR_ACCOUNT_IAM_NO_CREDENTIAL;
+    }
+    // If the user does not have PIN credential, we need to set a new one using the provided token and secret.
+    uint64_t secureUid = 0;
+    errCode = GetSecureUid(localId, enabled, secureUid);
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
+    (void)CreateSecretFaultFile(localId, operationStr);
+    errCode = UpdateStorageUserAuth(localId, secureUid, token, {}, secret);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("UpdateStorageUserAuth failed, errCode=%{public}d", errCode);
+        ReportOsAccountOperationFail(localId, operationStr, errCode, "UpdateStorageUserAuth failed");
+        (void)DeleteSecretFaultFile(localId, operationStr);
+        return errCode;
+    }
+    errCode = UpdateStorageKeyContext(localId);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("UpdateStorageKeyContext failed, errCode=%{public}d", errCode);
+        ReportOsAccountOperationFail(localId, operationStr, errCode, "UpdateStorageKeyContext failed");
+        (void)DeleteSecretFaultFile(localId, operationStr);
+        return errCode;
+    }
+    (void)DeleteSecretFaultFile(localId, operationStr);
+    return errCode;
+}
+#endif
+
+ErrCode InnerAccountIAMManager::IsEnableDomainUnlock(int32_t userId, bool &enable)
+{
+    enable = false;
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+    bool enableUnlockDevice = false;
+    int32_t unlockDeviceMode = 0;
+    ErrCode errCode =
+        InnerDomainAccountManager::GetInstance().GetUnlockDeviceConfig(userId, enableUnlockDevice, unlockDeviceMode);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("GetUnlockDeviceConfig failed, errCode=%{public}d, userId=%{public}d", errCode, userId);
+        return errCode;
+    }
+    if (enableUnlockDevice) {
+        ACCOUNT_LOGI("Domain unlock is enabled for userId=%{public}d", userId);
+        enable = true;
+    }
+#endif
+    return ERR_OK;
 }
 }  // namespace AccountSA
 }  // namespace OHOS

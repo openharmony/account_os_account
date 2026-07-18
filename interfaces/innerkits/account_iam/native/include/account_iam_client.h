@@ -45,6 +45,7 @@
 #include "account_iam_client_callback.h"
 #include "account_iam_info.h"
 #include "account_permission_manager.h"
+#include "domain_account_common.h"
 #include "iaccount_i_a_m.h"
 
 namespace OHOS {
@@ -285,6 +286,18 @@ public:
      */
     int32_t GetAuthSubType(int32_t userId);
 
+    /**
+     * @brief Enable or disable domain auth unlock for the specified account.
+     * @permission ohos.permission.MANAGE_USER_IDM (caller uid must be 7058)
+     * @param localId - Indicates the user identification.
+     * @param token - Indicates the auth token for verification.
+     * @param secret - Indicates the secret for storage key.
+     * @param enabled - True to enable, false to disable.
+     * @return error code, see account_error_no.h
+     */
+    ErrCode SetDomainAuthUnlockEnabled(int32_t localId, const std::vector<uint8_t> &token,
+        const std::vector<uint8_t> &secret, bool enabled);
+
 private:
     AccountIAMClient() = default;
     ~AccountIAMClient() = default;
@@ -302,7 +315,8 @@ private:
     sptr<IAccountIAM> GetAccountIAMProxy();
     void ResetAccountIAMProxy(const wptr<IRemoteObject>& remote);
     bool GetCurrentUserId(int32_t &userId);
-    uint64_t StartDomainAuth(int32_t userId, const std::shared_ptr<IDMCallback> &callback);
+    uint64_t StartDomainAuth(int32_t userId, const DomainAccountUnlockOptions &unlockOptions,
+        const std::shared_ptr<IDMCallback> &callback);
     bool CheckAuthOptions(AuthOptions &authOptions);
 #ifdef HAS_PIN_AUTH_PART
     ErrCode RegisterDomainInputer(const std::shared_ptr<IInputer> &inputer);

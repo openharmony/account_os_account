@@ -77,7 +77,10 @@ static const char EDM_FREEZE_BACKGROUND_PARAM[] = "persist.edm.inactive_user_fre
 #ifdef HICOLLIE_ENABLE
 constexpr int32_t DOMAIN_ACCOUNT_RECOVERY_TIMEOUT = 30; // 30s
 #endif // HICOLLIE_ENABLE
-
+// Return code agreed with InnerAccountIAMManager::UnlockUserStorage indicating EL2 activation
+// failed. Declared locally here because domain_account does not depend on the ErrNo definition
+// in account_iam across module boundaries.
+constexpr int32_t E_ACTIVE_EL2_FAILED = 30;
 ErrCode ConvertToAccountErrCode(ErrCode idlErrCode)
 {
     if (idlErrCode == ERR_INVALID_VALUE || idlErrCode == ERR_INVALID_DATA) {
@@ -100,6 +103,25 @@ static bool IsSupportNetRequest()
     bool isForeground = false;
     IInnerOsAccountManager::GetInstance().IsOsAccountForeground(accountId, 0, isForeground);
     return isForeground;
+}
+
+static bool IsOsAccountDeactivatingOrLocking(int32_t userId)
+{
+    bool isDeactivating = false;
+    IInnerOsAccountManager::GetInstance().IsOsAccountDeactivating(userId, isDeactivating);
+    if (isDeactivating) {
+        ACCOUNT_LOGW("The target account is deactivating, localId:%{public}d", userId);
+        return true;
+    }
+#ifdef SUPPORT_LOCK_OS_ACCOUNT
+    bool isLocking = false;
+    IInnerOsAccountManager::GetInstance().IsOsAccountLocking(userId, isLocking);
+    if (isLocking) {
+        ACCOUNT_LOGW("The target account is locking, localId:%{public}d", userId);
+        return true;
+    }
+#endif
+    return false;
 }
 
 static int32_t GetCallingUserID(std::int32_t callingUid = -1)
@@ -159,8 +181,8 @@ InnerDomainAccountManager &InnerDomainAccountManager::GetInstance()
     return *instance;
 }
 
-InnerDomainAuthCallback::InnerDomainAuthCallback(int32_t userId, const sptr<IDomainAccountCallback> &callback)
-    : userId_(userId), callback_(callback)
+InnerDomainAuthCallback::InnerDomainAuthCallback(int32_t userId, const sptr<IDomainAccountCallback> &callback,
+    int32_t authIntent) : userId_(userId), authIntent_(authIntent), callback_(callback)
 {
     if (callback_ == nullptr || callback_->AsObject() == nullptr) {
         ACCOUNT_LOGE("Callback_ or callback_->AsObject() is nullptr.");
@@ -242,6 +264,75 @@ ErrCode InnerDomainAuthCallback::OnResult(int32_t errCode, const DomainAccountPa
     return ERR_OK;
 }
 
+void InnerDomainAuthCallback::OnResultWithUnlock(int32_t errCode, const DomainAuthResult &authResult)
+{
+    Parcel resultParcel;
+    {
+        std::lock_guard<std::recursive_mutex> lock(InnerDomainAccountManager::GetInstance().authContextIdMapMutex_);
+        uint64_t contextId = 0;
+        if (!InnerDomainAccountManager::GetInstance().FindCallbackInContextMap(callback_, contextId)) {
+            ACCOUNT_LOGE("Cannot find contextId for callback, maybe has been cancelled");
+            REPORT_DOMAIN_ACCOUNT_FAIL(ERR_JS_INVALID_CONTEXT_ID, "Cannot find contextId for callback",
+                Constants::DOMAIN_OPT_AUTH, userId_);
+            return;
+        }
+        InnerDomainAccountManager::GetInstance().EraseFromContextMap(contextId);
+    }
+    if ((errCode == ERR_OK) && (userId_ > 0)) {
+        InnerDomainAccountManager::GetInstance().InsertTokenToMap(userId_, authResult.token);
+        DomainAccountInfo domainInfo;
+        InnerDomainAccountManager::GetInstance().GetDomainAccountInfoByUserId(userId_, domainInfo);
+        InnerDomainAccountManager::GetInstance().NotifyDomainAccountEvent(
+            userId_, DomainAccountEvent::LOG_IN, DomainAccountStatus::LOG_END, domainInfo);
+        bool isActivated = false;
+        (void)IInnerOsAccountManager::GetInstance().IsOsAccountActived(userId_, isActivated);
+        DomainAccountStatus status = isActivated ? DomainAccountStatus::LOGIN : DomainAccountStatus::LOGIN_BACKGROUND;
+        IInnerOsAccountManager::GetInstance().UpdateAccountStatusForDomain(userId_, status);
+        errCode = HandleUnlockResult(authResult);
+    }
+    DomainAuthResult resultCopy;
+    resultCopy.token = authResult.token;
+    resultCopy.authStatusInfo = authResult.authStatusInfo;
+    resultCopy.accountId = authResult.accountId;
+    if (!resultCopy.Marshalling(resultParcel)) {
+        ACCOUNT_LOGE("DomainAuthResult Marshalling failed, please check data format");
+        CallbackOnResult(callback_, ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR, resultParcel);
+        return;
+    }
+    AccountInfoReport::ReportSecurityInfo("", userId_, ReportEvent::EVENT_LOGIN, errCode);
+    CallbackOnResult(callback_, errCode, resultParcel);
+}
+
+ErrCode InnerDomainAuthCallback::HandleUnlockResult(const DomainAuthResult &authResult)
+{
+    std::string jsonStr = "{\"authResult\":0,\"userId\":" + std::to_string(userId_) + "}";
+    DomainAccountUnlockExtraInfoIdl idlExtra;
+    idlExtra.successExtraInfo = std::vector<uint8_t>(jsonStr.begin(), jsonStr.end());
+    if (callback_ != nullptr) {
+        callback_->OnAcquireInfo(static_cast<int32_t>(IAMAuthType::DOMAIN), ON_TIP_ID, idlExtra);
+    }
+    if (IsOsAccountDeactivatingOrLocking(userId_)) {
+        return ERR_OK;
+    }
+    bool isUpdateVerifiedStatus = false;
+    ErrCode ret = InnerAccountIAMManager::GetInstance().UnlockUserStorage(
+        userId_, authResult.token, authResult.secret, isUpdateVerifiedStatus);
+    if (ret == E_ACTIVE_EL2_FAILED) {
+        ACCOUNT_LOGE("Failed to activate el2, exit user activation.");
+        return ret;
+    }
+    ret = InnerAccountIAMManager::GetInstance().UnlockEnhancedStorage(
+        userId_, authResult.token, authResult.secret, isUpdateVerifiedStatus);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Failed to unlock enhanced storage, ret=%{public}d", ret);
+        return ret;
+    }
+    if (isUpdateVerifiedStatus) {
+        IInnerOsAccountManager::GetInstance().SetOsAccountIsVerified(userId_, true);
+    }
+    return ERR_OK;
+}
+
 void InnerDomainAuthCallback::SetOpenContextIdCheck(bool isEnabled, uint64_t contextId)
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -249,6 +340,12 @@ void InnerDomainAuthCallback::SetOpenContextIdCheck(bool isEnabled, uint64_t con
     if (deathRecipient_ != nullptr) {
         deathRecipient_->SetContextId(contextId);
     }
+}
+
+ErrCode InnerDomainAuthCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo,
+    const DomainAccountUnlockExtraInfoIdl &extraInfo)
+{
+    return ERR_OK;
 }
 
 bool InnerDomainAccountManager::GenerateContextId(uint64_t &contextId)
@@ -648,9 +745,13 @@ void InnerDomainAccountManager::AuthResultInfoCallback(
     }
     auto callback = it->second;
     DomainAuthResult result;
-    Parcel resultParcel;
     DomainPluginAdapter::GetAndCleanPluginAuthResultInfo(&authResultInfo, result);
     ErrCode errCode = DomainPluginAdapter::GetAndCleanPluginBusinessError(&error, PluginMethodEnum::AUTH, -1);
+    if (callback != nullptr && callback->IsUnlockIntent()) {
+        callback->OnResultWithUnlock(errCode, result);
+        return;
+    }
+    Parcel resultParcel;
     if (!result.Marshalling(resultParcel)) {
         ACCOUNT_LOGE("DomainAuthResult marshalling failed.");
         errCode = ConvertToJSErrCode(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
@@ -691,6 +792,31 @@ ErrCode InnerDomainAccountManager::PluginAuth(const DomainAccountInfo &info, con
         &(domainAccountInfo.serverConfigId.data), domainAccountInfo.serverConfigId.length);
     DomainPluginAdapter::CleanPluginString(&(domainAccountInfo.accountName.data), domainAccountInfo.accountName.length);
     DomainPluginAdapter::CleanPluginString(&(domainAccountInfo.accountId.data), domainAccountInfo.accountId.length);
+    return DomainPluginAdapter::GetAndCleanPluginBusinessError(&error, iter->first, -1, info);
+}
+
+ErrCode InnerDomainAccountManager::PluginAuthWithUnlockIntent(const DomainAccountInfo &info,
+    const std::vector<uint8_t> &password, const std::vector<uint8_t> &challenge, uint64_t &contextId)
+    __attribute__((no_sanitize("cfi")))
+{
+    // This function is used in UserAuth.auth(), need return IAM errcode
+    auto iter = methodMap_.find(PluginMethodEnum::AUTH_WITH_UNLOCK_INTENT);
+    if (iter == methodMap_.end() || iter->second == nullptr) {
+        ACCOUNT_LOGE("Caller method=%{public}d not exist.", PluginMethodEnum::AUTH_WITH_UNLOCK_INTENT);
+        REPORT_DOMAIN_ACCOUNT_FAIL(ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE, "Method AuthWithUnlockIntent not exist",
+            Constants::DOMAIN_OPT_AUTH_WITH_UNLOCK_INTENT, -1, info);
+        return ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE;
+    }
+    int32_t callerLocalId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
+    PluginDomainAccountInfo domainAccountInfo;
+    DomainPluginAdapter::SetPluginDomainAccountInfo(info, domainAccountInfo);
+    PluginUint8Vector credential;
+    DomainPluginAdapter::SetPluginUint8Vector(password, credential);
+    PluginUint8Vector challengeValue;
+    DomainPluginAdapter::SetPluginUint8Vector(challenge, challengeValue);
+    PluginBusinessError* error = (*reinterpret_cast<AuthWithUnlockIntentFunc>(iter->second))(
+        &domainAccountInfo, &credential, callerLocalId, &challengeValue, PluginAuthCallback, &contextId);
+    DomainPluginAdapter::CleanPluginDomainAccountInfo(domainAccountInfo);
     return DomainPluginAdapter::GetAndCleanPluginBusinessError(&error, iter->first, -1, info);
 }
 
@@ -1830,6 +1956,95 @@ bool InnerDomainAccountManager::IsPluginAvailable()
     std::lock_guard<std::mutex> lock1(mutex_, std::adopt_lock);
     std::lock_guard<std::mutex> lock2(libMutex_, std::adopt_lock);
     return plugin_ != nullptr || libHandle_ != nullptr;
+}
+
+bool InnerDomainAccountManager::IsSoPluginLoaded()
+{
+    std::lock_guard<std::mutex> lock(libMutex_);
+    return libHandle_ != nullptr;
+}
+
+ErrCode InnerDomainAccountManager::GetUnlockDeviceConfig(int32_t userId, bool &enableUnlockDevice,
+    int32_t &unlockDeviceMode)
+{
+    enableUnlockDevice = false;
+    unlockDeviceMode = 0;
+    if (!IsSoPluginLoaded()) {
+        return ERR_OK;
+    }
+    DomainAccountInfo domainInfo;
+    ErrCode errCode = GetDomainAccountInfoByUserId(userId, domainInfo);
+    if (errCode == ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT) {
+        ACCOUNT_LOGI("The OS account not bind to domain account.");
+        return ERR_OK;
+    }
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("GetDomainAccountInfoByUserId failed, errCode=%{public}d", errCode);
+        return errCode;
+    }
+    return PluginGetUnlockDeviceConfigWithInfo(domainInfo, enableUnlockDevice, unlockDeviceMode);
+}
+
+ErrCode InnerDomainAccountManager::PluginGetUnlockDeviceConfigWithInfo(const DomainAccountInfo &domainInfo,
+    bool &enableUnlockDevice, int32_t &unlockDeviceMode) __attribute__((no_sanitize("cfi")))
+{
+    enableUnlockDevice = false;
+    unlockDeviceMode = 0;
+    auto iter = methodMap_.find(PluginMethodEnum::GET_UNLOCK_DEVICE_CONFIG);
+    if (iter == methodMap_.end() || iter->second == nullptr) {
+        ACCOUNT_LOGE("Method GET_UNLOCK_DEVICE_CONFIG not exist");
+        return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
+    }
+    PluginDomainAccountInfo pluginDomainAccountInfo;
+    DomainPluginAdapter::SetPluginDomainAccountInfo(domainInfo, pluginDomainAccountInfo);
+    PluginUnlockDeviceConfigResult *configResult = nullptr;
+    PluginBusinessError *error =
+        (*reinterpret_cast<GetUnlockDeviceConfigResultFunc>(iter->second))(&pluginDomainAccountInfo, &configResult);
+    DomainPluginAdapter::CleanPluginDomainAccountInfo(pluginDomainAccountInfo);
+    DomainPluginAdapter::GetAndCleanPluginUnlockDeviceConfigResult(&configResult,
+        enableUnlockDevice, unlockDeviceMode);
+    return DomainPluginAdapter::GetAndCleanPluginBusinessError(&error, iter->first, -1, domainInfo);
+}
+
+ErrCode InnerDomainAccountManager::AuthUserWithUnlockOptions(int32_t localId,
+    const std::vector<uint8_t> &password, const DomainAccountUnlockOptions &unlockOptions,
+    const sptr<IDomainAccountCallback> &callback)
+{
+    if (!IsSoPluginLoaded()) {
+        ACCOUNT_LOGE("So plugin is not loaded");
+        return ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE;
+    }
+    DomainAccountInfo domainInfo;
+    ErrCode errCode = GetDomainAccountInfoByUserId(localId, domainInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("GetDomainAccountInfoByUserId failed, errCode=%{public}d", errCode);
+        return ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT;
+    }
+    bool enableUnlockDevice = false;
+    int32_t unlockDeviceMode = 0;
+    ErrCode configErr = PluginGetUnlockDeviceConfigWithInfo(domainInfo, enableUnlockDevice, unlockDeviceMode);
+    if (configErr != ERR_OK) {
+        ACCOUNT_LOGE("PluginGetUnlockDeviceConfigWithInfo failed, errCode=%{public}d", configErr);
+        return configErr;
+    }
+    if (!enableUnlockDevice) {
+        ACCOUNT_LOGE("Domain auth unlock is not enabled, localId=%{public}d", localId);
+        return ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE;
+    }
+    if (IsOsAccountDeactivatingOrLocking(localId)) {
+        return ERR_IAM_BUSY;
+    }
+    auto innerCallback = sptr<InnerDomainAuthCallback>::MakeSptr(localId, callback, UNLOCK_INTENT);
+    std::lock_guard<std::recursive_mutex> lockContext(authContextIdMapMutex_);
+    uint64_t contextId = 0;
+    errCode = PluginAuthWithUnlockIntent(domainInfo, password, unlockOptions.challenge, contextId);
+    if (errCode == ERR_OK) {
+        if (!AddToContextMap(contextId, innerCallback)) {
+            ACCOUNT_LOGE("AddToContextMap failed");
+            return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+        }
+    }
+    return errCode;
 }
 
 ErrCode InnerDomainAccountManager::StartHasDomainAccount(const sptr<IDomainAccountPlugin> &plugin,

@@ -61,7 +61,18 @@ typedef struct {
     int32_t freezingTime;
     int32_t localId;
     int32_t nextPhaseFreezingTime;
+    PluginUint8Vector secret;
 } PluginAuthResultInfo;
+
+typedef enum {
+    OFFLINE_AUTH_UNLOCK_DEVICE = 1,
+    ONLINE_OFFLINE_AUTH_UNLOCK_DEVICE = 2,
+} UnlockDeviceMode;
+
+typedef struct {
+    int32_t enableUnlockDevice;
+    int32_t unlockDeviceMode;
+} PluginUnlockDeviceConfigResult;
 
 typedef struct {
     PluginDomainAccountInfo domainAccountInfo;
@@ -128,6 +139,11 @@ typedef PluginBusinessError* (*SetAccountPolicyFunc)(const PluginString *paramet
 typedef PluginBusinessError* (*CancelAuthFunc)(const uint64_t contextId);
 typedef PluginBusinessError* (*AuthWithServerConfigFunc)(const PluginString *parameters,
     const PluginDomainAccountInfo *domainAccountInfo, const PluginUint8Vector *credential, const int32_t callerLocalId);
+typedef PluginBusinessError* (*AuthWithUnlockIntentFunc)(const PluginDomainAccountInfo *domainAccountInfo,
+    const PluginUint8Vector *credential, const int32_t callerLocalId, const PluginUint8Vector *challengeValue,
+    PluginAuthResultInfoCallback callback, uint64_t *contextId);
+typedef PluginBusinessError* (*GetUnlockDeviceConfigResultFunc)(const PluginDomainAccountInfo *domainAccountInfo,
+    PluginUnlockDeviceConfigResult **unlockDeviceConfigResult);
 
 enum PluginMethodEnum {
     ADD_SERVER_CONFIG = 0,
@@ -151,6 +167,8 @@ enum PluginMethodEnum {
     GET_ACCOUNT_POLICY,
     CANCEL_AUTH,
     AUTH_WITH_SERVER_CONFIG,
+    AUTH_WITH_UNLOCK_INTENT,
+    GET_UNLOCK_DEVICE_CONFIG,
     //this is last just for count enum
     COUNT,
 };

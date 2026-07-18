@@ -21,6 +21,8 @@ idl_gen_interface("frameworks_domain_account_interface") {
     "IDomainAccountCallback.idl",
     "IDomainAccountPlugin.idl",
   ]
+  sources_common = [ "DomainAccountIpcData.idl" ]
+  inputs = [ "DomainAccountIpcData.idl" ]
   log_domainid = "0xD001B00"
   log_tag = "DomainAccountFwk"
   subsystem_name = "account"
@@ -74,6 +76,27 @@ config("domain_account_innerkits_public_config") {
   ]
 }
 
+ohos_source_set("domain_account_ipc_data") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  configs = [ ":domain_account_innnerkits_config" ]
+  public_configs = [ ":domain_account_innerkits_public_config" ]
+  output_values = get_target_outputs(":frameworks_domain_account_interface")
+  sources = filter_include(output_values, [ "*domain_account_ipc_data.cpp" ])
+  deps = [ ":frameworks_domain_account_interface" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
 ohos_shared_library("domain_account_innerkits") {
   branch_protector_ret = "pac_ret"
 
@@ -115,6 +138,7 @@ ohos_shared_library("domain_account_innerkits") {
   public_configs = [ ":domain_account_innerkits_public_config" ]
 
   deps = [
+    ":domain_account_ipc_data",
     ":frameworks_domain_account_interface",
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
@@ -151,6 +175,7 @@ ohos_source_set("domain_account_callback_proxy") {
     "hilog:libhilog",
     "ipc:ipc_single",
   ]
+  public_deps = [ ":domain_account_ipc_data" ]
   subsystem_name = "account"
   part_name = "os_account"
 }
@@ -173,6 +198,7 @@ ohos_source_set("domain_account_callback_stub") {
     "hilog:libhilog",
     "ipc:ipc_single",
   ]
+  public_deps = [ ":domain_account_ipc_data" ]
   subsystem_name = "account"
   part_name = "os_account"
 }

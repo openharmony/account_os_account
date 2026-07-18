@@ -55,6 +55,8 @@ public:
     int32_t GetEnrolledId(
         int32_t accountId, int32_t authTypeInt, const sptr<IGetEnrolledIdCallback>& getEnrolledIdCallback) override;
     int32_t GetAccountState(int32_t userId, int32_t& funcResult) override;
+    int32_t SetDomainAuthUnlockEnabled(int32_t localId, const std::vector<uint8_t>& token,
+        const std::vector<uint8_t>& secret, int32_t enabled) override;
     int32_t CallbackEnter([[maybe_unused]] uint32_t code) override;
     int32_t CallbackExit([[maybe_unused]] uint32_t code, [[maybe_unused]] int32_t result) override
     {

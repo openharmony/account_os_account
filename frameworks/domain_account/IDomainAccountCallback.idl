@@ -13,8 +13,11 @@
  * limitations under the License.
  */
 
+import DomainAccountIpcData;
 sequenceable OHOS.AccountSA.DomainAccountParcel;
 
 interface OHOS.AccountSA.IDomainAccountCallback {
     [oneway]void OnResult([in] int domainAccountErrCode, [in] DomainAccountParcel domainAccountParcel);
+    [oneway]void OnAcquireInfo([in] int module, [in] unsigned int acquireInfo,
+        [in] DomainAccountUnlockExtraInfoIdl extraInfo);
 }

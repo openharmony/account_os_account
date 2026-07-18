@@ -118,7 +118,8 @@ public:
      * @return error code, see account_error_no.h
      */
     ErrCode AuthUser(int32_t userId, const std::function<std::vector<uint8_t>()> getPasswordHooks,
-        const std::shared_ptr<DomainAccountCallback> &callback, uint64_t &contextId);
+        const std::shared_ptr<DomainAccountCallback> &callback,
+        const DomainAccountUnlockOptions &unlockOptions, uint64_t &contextId);
 
     ErrCode CancelAuth(const uint64_t contextId);
 

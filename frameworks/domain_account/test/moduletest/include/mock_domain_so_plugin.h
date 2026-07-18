@@ -17,6 +17,7 @@
 #define MOCK_DOMAIN_SO_PLUGIN_H
 
 #include <cstdint>
+#include <vector>
 #include "domain_plugin.h"
 
 #ifdef __cplusplus
@@ -52,10 +53,18 @@ PluginBusinessError *AuthBlocking(const PluginDomainAccountInfo *domainAccountIn
 PluginBusinessError *CancelAuth(const uint64_t contextId);
 PluginBusinessError *AuthWithServerConfig(const PluginString *parameters,
     const PluginDomainAccountInfo *domainAccountInfo, const PluginUint8Vector *credential, const int32_t callerLocalId);
+PluginBusinessError *AuthWithUnlockIntent(const PluginDomainAccountInfo *domainAccountInfo,
+    const PluginUint8Vector *credential, const int32_t callerLocalId, const PluginUint8Vector *challengeValue,
+    PluginAuthResultInfoCallback callback, uint64_t *contextId);
+PluginBusinessError *GetUnlockDeviceConfigResult(const PluginDomainAccountInfo *domainAccountInfo,
+    PluginUnlockDeviceConfigResult **unlockDeviceConfigResult);
 
 int32_t GetCallingLocalId();
 void ResetCallingLocalId();
 void SetIsCheckError(bool isCheckError);
+void SetEnableUnlockDevice(bool enable);
+void SetAuthWithUnlockIntentError(bool isError);
+void GetLastChallenge(std::vector<uint8_t> &challenge);
 #ifdef __cplusplus
 }
 #endif

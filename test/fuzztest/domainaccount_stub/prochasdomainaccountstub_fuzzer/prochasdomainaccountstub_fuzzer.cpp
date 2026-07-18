@@ -33,12 +33,20 @@ public:
     TestHasDomainInfoCallback() {};
     virtual ~TestHasDomainInfoCallback();
     ErrCode OnResult(int32_t errCode, const DomainAccountParcel &parcel) override;
+    ErrCode OnAcquireInfo(
+        int32_t module, uint32_t acquireInfo, const DomainAccountUnlockExtraInfoIdl &extraInfo) override;
 };
 
 TestHasDomainInfoCallback::~TestHasDomainInfoCallback()
 {}
 
 ErrCode TestHasDomainInfoCallback::OnResult(int32_t errCode, const DomainAccountParcel &parcel)
+{
+    return ERR_OK;
+}
+
+ErrCode TestHasDomainInfoCallback::OnAcquireInfo(
+    int32_t module, uint32_t acquireInfo, const DomainAccountUnlockExtraInfoIdl &extraInfo)
 {
     return ERR_OK;
 }

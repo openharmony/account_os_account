@@ -103,8 +103,8 @@ private:
 
 class AddCredCallback : public UserIdmClientCallback {
 public:
-    AddCredCallback(uint32_t userId, const CredentialParameters &credInfo,
-        const sptr<IIDMCallback> &callback);
+    AddCredCallback(uint32_t userId, const CredentialParameters &credInfo, const sptr<IIDMCallback> &callback,
+        bool isDomainUnlockEnabled = false);
     virtual ~AddCredCallback();
 
     void SetDeathRecipient(const sptr<IDMCallbackDeathRecipient> &deathRecipient);
@@ -121,6 +121,7 @@ private:
     CredentialParameters credInfo_;
     sptr<IDMCallbackDeathRecipient> deathRecipient_ = nullptr;
     sptr<IIDMCallback> innerCallback_ = nullptr;
+    bool isDomainUnlockEnabled_ = false;
 };
 
 class UpdateCredCallback : public UserIdmClientCallback {
@@ -162,7 +163,8 @@ public:
 class VerifyTokenCallbackWrapper : public VerifyTokenCallback {
 public:
     VerifyTokenCallbackWrapper(uint32_t userId, const std::vector<uint8_t> &token,
-        Security::AccessToken::AccessTokenID callerTokenId, const sptr<IIDMCallback> &callback);
+        Security::AccessToken::AccessTokenID callerTokenId, const sptr<IIDMCallback> &callback,
+        bool isDomainUnlockEnabled = false);
     virtual ~VerifyTokenCallbackWrapper();
     void OnResult(int32_t result, const Attributes &extraInfo) override;
 
@@ -179,11 +181,12 @@ private:
     std::vector<uint8_t> token_;
     Security::AccessToken::AccessTokenID callerTokenId_;
     const sptr<IIDMCallback> innerCallback_ = nullptr;
+    bool isDomainUnlockEnabled_ = false;
 };
 
 class CommitDelCredCallback : public UserIdmClientCallback {
 public:
-    CommitDelCredCallback(uint32_t userId, const sptr<IIDMCallback> callback);
+    CommitDelCredCallback(uint32_t userId, const sptr<IIDMCallback> callback, bool isDomainUnlockEnabled = false);
     virtual ~CommitDelCredCallback() = default;
 
     void OnResult(int32_t result, const UserIam::UserAuth::Attributes &extraInfo) override;
@@ -197,6 +200,7 @@ public:
 private:
     std::uint32_t userId_;
     const sptr<IIDMCallback> innerCallback_ = nullptr;
+    bool isDomainUnlockEnabled_ = false;
 };
 
 struct UpdateCredInfo {
@@ -235,7 +239,8 @@ private:
 
 class DelCredCallback : public UserIdmClientCallback {
 public:
-    DelCredCallback(int32_t userId, bool isPIN, std::vector<uint8_t> token, const sptr<IIDMCallback> &callback);
+    DelCredCallback(int32_t userId, bool isPIN, std::vector<uint8_t> token, const sptr<IIDMCallback> &callback,
+        bool isDomainUnlockEnabled = false);
     virtual ~DelCredCallback();
 
     void OnResult(int32_t result, const Attributes &extraInfo) override;
@@ -246,6 +251,7 @@ private:
     bool isPIN_;
     std::vector<uint8_t> token_;
     sptr<IIDMCallback> innerCallback_ = nullptr;
+    bool isDomainUnlockEnabled_ = false;
 };
 
 class GetCredInfoCallbackWrapper : public GetCredentialInfoCallback {
@@ -274,6 +280,19 @@ public:
     int32_t result_ = -1;
     std::mutex secureMtx_;
     std::condition_variable secureCv_;
+};
+
+class VerifyTokenSyncCallback : public VerifyTokenCallback {
+public:
+    VerifyTokenSyncCallback() = default;
+    virtual ~VerifyTokenSyncCallback() = default;
+
+    void OnResult(int32_t result, const Attributes &extraInfo) override;
+
+    bool isCalled_ = false;
+    int32_t result_ = -1;
+    std::mutex mutex_;
+    std::condition_variable onResultCondition_;
 };
 
 class GetPropCallbackWrapper : public GetPropCallback {
@@ -321,6 +340,7 @@ public:
 
 public:
     int32_t userId_;
+    int32_t ret = -1;
     uint64_t secureUid_ = 0;
     bool isCalled_ = false;
     std::mutex secureMtx_;

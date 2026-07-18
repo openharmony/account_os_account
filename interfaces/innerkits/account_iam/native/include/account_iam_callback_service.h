@@ -97,6 +97,8 @@ class DomainAuthCallbackAdapter final : public DomainAccountCallback {
 public:
     explicit DomainAuthCallbackAdapter(const std::shared_ptr<IDMCallback> &callback);
     void OnResult(const int32_t errCode, Parcel &parcel) override;
+    void OnAcquireInfo(int32_t module, uint32_t acquireInfo,
+        const DomainAccountUnlockExtraInfo &extraInfo) override;
 
 private:
     std::shared_ptr<IDMCallback> callback_;

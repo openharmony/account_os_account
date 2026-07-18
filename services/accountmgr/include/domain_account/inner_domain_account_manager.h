@@ -24,6 +24,7 @@
 #include "domain_account_plugin_death_recipient.h"
 #include "domain_account_callback.h"
 #include "domain_account_callback_stub.h"
+#include "domain_account_ipc_data.h"
 #include "domain_plugin.h"
 #include "idomain_account_plugin.h"
 #include "int_wrapper.h"
@@ -67,6 +68,10 @@ public:
     ErrCode OnAccountUnBound(const DomainAccountInfo &info, const std::shared_ptr<DomainAccountCallback> &callback,
         const int32_t localId);
     bool IsPluginAvailable();
+    bool IsSoPluginLoaded();
+    ErrCode GetUnlockDeviceConfig(int32_t userId, bool &enableUnlockDevice, int32_t &unlockDeviceMode);
+    ErrCode AuthUserWithUnlockOptions(int32_t localId, const std::vector<uint8_t> &password,
+        const DomainAccountUnlockOptions &unlockOptions, const sptr<IDomainAccountCallback> &callback);
     void InsertTokenToMap(int32_t userId, const std::vector<uint8_t> &token);
     bool GetTokenFromMap(int32_t userId, std::vector<uint8_t> &token);
     void RemoveTokenFromMap(int32_t userId);
@@ -156,6 +161,10 @@ private:
     void StartPluginGetDomainAccountInfo(GetDomainAccountInfoOptions options,
         const sptr<IDomainAccountCallback> &callbackService);
     ErrCode CancelAuthWork(const uint64_t &contextId);
+    ErrCode PluginGetUnlockDeviceConfigWithInfo(
+        const DomainAccountInfo &domainInfo, bool &enableUnlockDevice, int32_t &unlockDeviceMode);
+    ErrCode PluginAuthWithUnlockIntent(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
+        const std::vector<uint8_t> &challenge, uint64_t &contextId);
     void StartPluginHasDomainAccount(const GetDomainAccountInfoOptions &options,
         const sptr<IDomainAccountCallback> &callback);
 protected:
@@ -195,12 +204,21 @@ private:
 
 class InnerDomainAuthCallback final: public DomainAccountCallbackStub {
 public:
-    InnerDomainAuthCallback(int32_t userId, const sptr<IDomainAccountCallback> &callback);
+    InnerDomainAuthCallback(int32_t userId, const sptr<IDomainAccountCallback> &callback,
+        int32_t authIntent = 0);
     virtual ~InnerDomainAuthCallback();
     ErrCode OnResult(int32_t errCode, const DomainAccountParcel &domainAccountParcel) override;
+    ErrCode OnAcquireInfo(int32_t module, uint32_t acquireInfo,
+        const DomainAccountUnlockExtraInfoIdl &extraInfo) override;
+    void OnResultWithUnlock(int32_t errCode, const DomainAuthResult &authResult);
     void SetOpenContextIdCheck(bool isEnabled, uint64_t contextId = 0);
+    bool IsUnlockIntent() const { return authIntent_ == UNLOCK_INTENT; }
+
+private:
+    ErrCode HandleUnlockResult(const DomainAuthResult &authResult);
 private:
     int32_t userId_;
+    int32_t authIntent_ = 0;
     sptr<DomainAccountAuthDeathRecipient> deathRecipient_;
     bool needCheckContextId_ = false;
     std::mutex mutex_;

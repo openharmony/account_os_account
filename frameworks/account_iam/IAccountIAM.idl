@@ -62,4 +62,6 @@ interface OHOS.AccountSA.IAccountIAM {
     void GetEnrolledId([in] int accountId, [in] int authTypeInt, [in] IGetEnrolledIdCallback getEnrolledIdCallback);
 
     int GetAccountState([in] int userId);
+
+    void SetDomainAuthUnlockEnabled([in] int localId, [in] unsigned char[] token, [in] unsigned char[] secret, [in] int enabled);
 }

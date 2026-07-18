@@ -161,10 +161,12 @@ struct DomainAuthResult : public Parcelable {
     std::vector<uint8_t> token;
     AuthStatusInfo authStatusInfo;
     int32_t accountId = -1;
+    std::vector<uint8_t> secret;
 
     ~DomainAuthResult()
     {
         std::fill(this->token.begin(), this->token.end(), 0);
+        std::fill(this->secret.begin(), this->secret.end(), 0);
     }
     bool ReadFromParcel(Parcel &parcel);
     bool Marshalling(Parcel &parcel) const override;
@@ -176,6 +178,26 @@ struct DomainAccountEventData {
     DomainAccountInfo domainAccountInfo;
     DomainAccountEvent event;
     DomainAccountStatus status;
+};
+
+constexpr int32_t UNLOCK_INTENT = 1;
+constexpr uint32_t ON_TIP_ID = 1;
+
+struct DomainAccountUnlockOptions {
+    std::vector<uint8_t> challenge;
+    int32_t authIntent = 0;
+
+    DomainAccountUnlockOptions() = default;
+    DomainAccountUnlockOptions(const std::vector<uint8_t> &challenge, int32_t authIntent)
+        : challenge(challenge), authIntent(authIntent) {}
+    ~DomainAccountUnlockOptions()
+    {
+        std::fill(challenge.begin(), challenge.end(), 0);
+    }
+};
+
+struct DomainAccountUnlockExtraInfo {
+    std::vector<uint8_t> successExtraInfo;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

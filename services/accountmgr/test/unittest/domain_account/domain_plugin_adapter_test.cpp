@@ -408,12 +408,50 @@ HWTEST_F(DomainPluginAdapterTest, DomainPluginAdapterTest_GetAndCleanPluginAuthR
     authResultInfo->accountToken.data = nullptr;
     authResultInfo->accountToken.capacity = 0;
     authResultInfo->accountToken.size = 0;
+    authResultInfo->secret.data = nullptr;
+    authResultInfo->secret.capacity = 0;
+    authResultInfo->secret.size = 0;
     DomainPluginAdapter::GetAndCleanPluginAuthResultInfo(&authResultInfo, result);
     EXPECT_EQ(result.authStatusInfo.freezingTime, 100);
     EXPECT_EQ(result.authStatusInfo.remainingTimes, 5);
     EXPECT_EQ(result.authStatusInfo.nextPhaseFreezingTime, 200);
     EXPECT_EQ(result.accountId, 1001);
     EXPECT_EQ(authResultInfo, nullptr);
+}
+
+/**
+ * @tc.name: DomainPluginAdapterTest_GetAndCleanPluginUnlockDeviceConfigResult_003
+ * @tc.desc: GetAndCleanPluginUnlockDeviceConfigResult normal case.
+ * @tc.type: FUNC
+ * @tc.cover: lines 387-396
+ * @tc.require:
+ */
+HWTEST_F(DomainPluginAdapterTest,
+    DomainPluginAdapterTest_GetAndCleanPluginUnlockDeviceConfigResult_003, TestSize.Level3)
+{
+    bool enableUnlockDevice = true;
+    int32_t unlockDeviceMode = 1;
+    DomainPluginAdapter::GetAndCleanPluginUnlockDeviceConfigResult(nullptr, enableUnlockDevice, unlockDeviceMode);
+    EXPECT_FALSE(enableUnlockDevice);
+    EXPECT_EQ(unlockDeviceMode, 0);
+    PluginUnlockDeviceConfigResult* configResult1 = nullptr;
+    enableUnlockDevice = true;
+    unlockDeviceMode = 1;
+    DomainPluginAdapter::GetAndCleanPluginUnlockDeviceConfigResult(&configResult1,
+        enableUnlockDevice, unlockDeviceMode);
+    EXPECT_FALSE(enableUnlockDevice);
+    EXPECT_EQ(unlockDeviceMode, 0);
+    PluginUnlockDeviceConfigResult* configResult =
+        (PluginUnlockDeviceConfigResult*)malloc(sizeof(PluginUnlockDeviceConfigResult));
+    ASSERT_NE(configResult, nullptr);
+    configResult->enableUnlockDevice = 1;
+    configResult->unlockDeviceMode = ONLINE_OFFLINE_AUTH_UNLOCK_DEVICE;
+    enableUnlockDevice = false;
+    unlockDeviceMode = 0;
+    DomainPluginAdapter::GetAndCleanPluginUnlockDeviceConfigResult(&configResult, enableUnlockDevice, unlockDeviceMode);
+    EXPECT_TRUE(enableUnlockDevice);
+    EXPECT_EQ(unlockDeviceMode, ONLINE_OFFLINE_AUTH_UNLOCK_DEVICE);
+    EXPECT_EQ(configResult, nullptr);
 }
 
 /**

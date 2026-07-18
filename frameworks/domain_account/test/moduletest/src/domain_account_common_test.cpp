@@ -351,3 +351,34 @@ HWTEST_F(DomainAccountCommonModuleTest, CreateOsAccountForDomainOptions_ReadFrom
     EXPECT_EQ(result.hasToken, true);
     EXPECT_EQ(result.token.size(), 5);
 }
+
+/**
+ * @tc.name: DomainAccountCommonModuleTest_UnlockOptions_001
+ * @tc.desc: Test DomainAccountUnlockOptions struct fields.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountCommonModuleTest, DomainAccountCommonModuleTest_UnlockOptions_001, TestSize.Level3)
+{
+    DomainAccountUnlockOptions options;
+    EXPECT_TRUE(options.challenge.empty());
+    EXPECT_EQ(options.authIntent, 0);
+    std::vector<uint8_t> challenge = {1, 2, 3, 4, 5};
+    DomainAccountUnlockOptions options2(challenge, 1);
+    EXPECT_EQ(options2.challenge, challenge);
+    EXPECT_EQ(options2.authIntent, 1);
+}
+
+/**
+ * @tc.name: DomainAccountCommonModuleTest_UnlockExtraInfo_001
+ * @tc.desc: Test DomainAccountUnlockExtraInfo struct fields.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountCommonModuleTest, DomainAccountCommonModuleTest_UnlockExtraInfo_001, TestSize.Level3)
+{
+    DomainAccountUnlockExtraInfo extraInfo;
+    EXPECT_TRUE(extraInfo.successExtraInfo.empty());
+    extraInfo.successExtraInfo = {1, 2, 3};
+    EXPECT_EQ(extraInfo.successExtraInfo.size(), 3);
+}

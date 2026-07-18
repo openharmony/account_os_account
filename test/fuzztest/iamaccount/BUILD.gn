@@ -37,6 +37,7 @@ group("fuzztest") {
     "opensession_fuzzer:OpenSessionFuzzTest",
     "prepareremoteauth_fuzzer:PrepareRemoteAuthFuzzTest",
     "setauthsubtype_fuzzer:SetAuthSubTypeFuzzTest",
+    "setdomainauthunlockenabled_fuzzer:SetDomainAuthUnlockEnabledFuzzTest",
     "setproperty_fuzzer:SetPropertyFuzzTest",
     "startdomainauth_fuzzer:StartDomainAuthFuzzTest",
     "updatecredential_fuzzer:UpdateCredentialFuzzTest",

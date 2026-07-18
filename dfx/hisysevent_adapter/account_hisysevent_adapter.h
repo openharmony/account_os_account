@@ -50,6 +50,8 @@ const char DOMAIN_OPT_UNBIND[] = "unbind";
 const char DOMAIN_OPT_CLEAN[] = "clean";
 const char DOMAIN_OPT_RECOVERY[] = "recoveryBind";
 const char DOMAIN_OPT_REBOOT_RECOVERY[] = "rebootRecoveryBind";
+const char DOMAIN_OPT_AUTH_WITH_UNLOCK_INTENT[] = "authWithUnlockIntent";
+const char DOMAIN_OPT_GET_UNLOCK_DEVICE_CONFIG[] = "getUnlockDeviceConfig";
 const size_t INTERCEPT_HEAD_PART_LEN_FOR_NAME = 1;
 const char DEFAULT_ANON_STR[] = "**********";
 

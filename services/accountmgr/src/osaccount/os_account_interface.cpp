@@ -48,6 +48,9 @@
 #include "storage_service_constants.h"
 #endif
 #include "iinner_os_account_manager.h"
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+#include "inner_domain_account_manager.h"
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 #include "system_ability_definition.h"
 #ifdef HAS_USER_IDM_PART
 #include "account_iam_callback.h"
@@ -698,23 +701,40 @@ static void DeleteSecretFlag(int32_t userId)
     }
 }
 
-bool IsExistPIN(int32_t userId)
+ErrCode IsExistPIN(int32_t userId, bool &isExistPIN)
 {
-    bool isExistPIN = false;
-    ErrCode ret = GetPINCredentialInfo(userId, isExistPIN);
+    bool isExist = false;
+    ErrCode ret = GetPINCredentialInfo(userId, isExist);
     if (ret == ERR_IAM_NOT_ENROLLED) {
-        DeleteSecretFlag(userId);
-        return false;
+        isExistPIN = false;
+        return ERR_OK;
     }
-    if (ret == ERR_OK) {
-        if (isExistPIN) {
-            return true;
-        } else {
-            DeleteSecretFlag(userId);
-            return false;
-        }
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("GetPINCredentialInfo failed, ret=%{public}d, userId=%{public}d", ret, userId);
+        return ret;
     }
-    return false;
+    isExistPIN = isExist;
+    return ret;
+}
+
+ErrCode IsDomainUnlockEnabled(int32_t userId, bool &isDomainUnlockEnabled)
+{
+    isDomainUnlockEnabled = false;
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+    bool enableUnlockDevice = false;
+    int32_t unlockDeviceMode = 0;
+    ErrCode errCode =
+        InnerDomainAccountManager::GetInstance().GetUnlockDeviceConfig(userId, enableUnlockDevice, unlockDeviceMode);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("IsDomainUnlockEnabled failed, errCode=%{public}d, userId=%{public}d", errCode, userId);
+        return errCode;
+    }
+    if (enableUnlockDevice) {
+        ACCOUNT_LOGI("Domain unlock is enabled");
+        isDomainUnlockEnabled = true;
+    }
+#endif
+    return ERR_OK;
 }
 
 int32_t NeedSkipActiveUserKey(const int localId, bool &isNeedSkip)
@@ -743,13 +763,25 @@ int32_t NeedSkipActiveUserKey(const int localId, bool &isNeedSkip)
         isNeedSkip = true;
         return ERR_OK; // return ok to send unlock events
     }
-    // Check if the IAM has PIN credential
-    if (IsExistPIN(localId)) {
-        ACCOUNT_LOGW("Secret operation flag and PIN exists, skip empty secret 'ActiveUserKey'!");
-        isNeedSkip = true;
-        return ERR_ACCOUNT_COMMON_SECRET_CHECK; // return err to not send unlock events
+    bool isExistPIN = false;
+    errCode = IsExistPIN(localId, isExistPIN);
+    bool isDomainUnlockEnabled = false;
+    ErrCode domainErrCode = IsDomainUnlockEnabled(localId, isDomainUnlockEnabled);
+    if (errCode != ERR_OK || domainErrCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to check PIN and domain unlock status, errCode=%{public}d, domainErrCode=%{public}d",
+            errCode, domainErrCode);
+        isNeedSkip = false;
+        return (errCode != ERR_OK) ? errCode : domainErrCode;
     }
-    return ERR_OK;
+    if (!isExistPIN && !isDomainUnlockEnabled) {
+        ACCOUNT_LOGW("The PIN does not exist and the domain unlock is not enabled.");
+        DeleteSecretFlag(localId);
+        isNeedSkip = false;
+        return ERR_OK;
+    }
+    ACCOUNT_LOGI("The PIN exists or the domain unlock is enabled, so the storage decryption is skipped.");
+    isNeedSkip = true;
+    return ERR_ACCOUNT_COMMON_SECRET_CHECK;
 }
 #endif // HAS_USER_IDM_PART
 

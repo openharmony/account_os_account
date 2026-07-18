@@ -56,6 +56,7 @@ static const std::map<IDomainAccountIpcCode, std::vector<std::string>> PERMISSIO
     {IDomainAccountIpcCode::COMMAND_AUTH, {ACCESS_USER_AUTH_INTERNAL}},
     {IDomainAccountIpcCode::COMMAND_AUTH_WITH_PARAMETERS, {ACCESS_USER_AUTH_INTERNAL}},
     {IDomainAccountIpcCode::COMMAND_AUTH_USER, {ACCESS_USER_AUTH_INTERNAL}},
+    {IDomainAccountIpcCode::COMMAND_AUTH_USER_WITH_UNLOCK_OPTIONS, {ACCESS_USER_AUTH_INTERNAL}},
     {IDomainAccountIpcCode::COMMAND_GET_DOMAIN_ACCOUNT_INFO, {GET_DOMAIN_ACCOUNTS}},
     {IDomainAccountIpcCode::COMMAND_IS_AUTHENTICATION_EXPIRED,
         {MANAGE_LOCAL_ACCOUNTS, INTERACT_ACROSS_LOCAL_ACCOUNTS}},
@@ -216,6 +217,40 @@ ErrCode DomainAccountManagerService::AuthUser(int32_t userId, const std::vector<
         std::vector<uint8_t> &passwordRef = const_cast<std::vector<uint8_t> &>(password);
         (void)memset_s(passwordRef.data(), passwordRef.size(), 0, passwordRef.size());
     }
+    return result;
+}
+
+ErrCode DomainAccountManagerService::AuthUserWithUnlockOptions(int32_t localId,
+    const std::vector<uint8_t> &password, const DomainAccountUnlockOptionsIdl &options,
+    const sptr<IDomainAccountCallback> &callback)
+{
+    auto cleanSensitiveData = [](const std::vector<uint8_t> &data) {
+        auto &ref = const_cast<std::vector<uint8_t> &>(data);
+        (void)memset_s(ref.data(), ref.size(), 0, ref.size());
+    };
+    auto result = CheckPermission(IDomainAccountIpcCode::COMMAND_AUTH_USER_WITH_UNLOCK_OPTIONS);
+    if (result != ERR_OK) {
+        cleanSensitiveData(password);
+        cleanSensitiveData(options.challenge);
+        return result;
+    }
+    if (localId < START_USER_ID) {
+        ACCOUNT_LOGE("invalid localId, localId=%{public}d", localId);
+        cleanSensitiveData(password);
+        cleanSensitiveData(options.challenge);
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    DomainAccountUnlockOptions innerOptions;
+    innerOptions.challenge = options.challenge;
+    innerOptions.authIntent = options.authIntent;
+    if (innerOptions.authIntent != UNLOCK_INTENT) {
+        result = InnerDomainAccountManager::GetInstance().AuthUser(localId, password, callback);
+    } else {
+        result = InnerDomainAccountManager::GetInstance().AuthUserWithUnlockOptions(
+            localId, password, innerOptions, callback);
+    }
+    cleanSensitiveData(password);
+    cleanSensitiveData(options.challenge);
     return result;
 }
 

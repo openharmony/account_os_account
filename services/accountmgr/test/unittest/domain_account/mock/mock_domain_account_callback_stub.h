@@ -32,6 +32,8 @@ public:
     explicit MockDomainAccountCallbackStub(const std::shared_ptr<MockDomainAccountCallback> &callback);
     virtual ~MockDomainAccountCallbackStub();
     ErrCode OnResult(int32_t errCode, const DomainAccountParcel &parcel) override;
+    ErrCode OnAcquireInfo(int32_t module, uint32_t acquireInfo,
+        const DomainAccountUnlockExtraInfoIdl &extraInfo) override { return ERR_OK; }
     std::condition_variable cv;
     bool isReady = false;
     std::mutex mutex;

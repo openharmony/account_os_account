@@ -19,6 +19,7 @@
 #include <functional>
 #include "domain_account_callback.h"
 #include "domain_account_callback_stub.h"
+#include "domain_account_ipc_data.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -31,6 +32,8 @@ public:
     DomainAccountCallbackService(const DomainAccountCallbackFunc &callback);
     ~DomainAccountCallbackService() override;
     ErrCode OnResult(int32_t errCode, const DomainAccountParcel &domainAccountParcel) override;
+    ErrCode OnAcquireInfo(int32_t module, uint32_t acquireInfo,
+        const DomainAccountUnlockExtraInfoIdl &extraInfo) override;
 
 private:
     std::shared_ptr<DomainAccountCallback> innerCallback_;
