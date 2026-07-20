@@ -56,6 +56,8 @@ public:
      */
     virtual ErrCode OnConnectAbility(const AccountSA::ConnectAbilityInfo &info,
         const sptr<IRemoteObject> &callback) = 0;
+
+    virtual ~AuthorizationCallback() = default;
 };
 }
 }

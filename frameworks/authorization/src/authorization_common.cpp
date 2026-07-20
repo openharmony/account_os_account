@@ -180,6 +180,13 @@ AuthorizationResult::~AuthorizationResult()
     }
 }
 
+AdminAuthorizationResult::~AdminAuthorizationResult()
+{
+    if (token.size() > 0) {
+        (void)memset_s(token.data(), token.size() * sizeof(uint8_t), 0, token.size() * sizeof(uint8_t));
+    }
+}
+
 AuthorizationResult& AuthorizationResult::operator=(const AuthorizationResult& other)
 {
     if (this != &other) {
@@ -265,7 +272,7 @@ AcquireAuthorizationOptions::~AcquireAuthorizationOptions()
 bool AcquireAuthorizationOptions::ReadFromParcel(Parcel &parcel)
 {
     if (!parcel.ReadBool(hasContext)) {
-        ACCOUNT_LOGE("Read challenge failed.");
+        ACCOUNT_LOGE("Read hasContext failed.");
         return false;
     }
     if (!parcel.ReadUInt8Vector(&challenge)) {

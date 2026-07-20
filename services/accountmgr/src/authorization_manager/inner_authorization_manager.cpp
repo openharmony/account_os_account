@@ -201,6 +201,7 @@ void ConnectAbilityCallback::GetConnectInfo(ConnectAbilityInfo &info)
 void ConnectAbilityCallback::UpdateAuthorizationResult(ErrCode errCode, AuthorizationResultCode &resultCode,
     const std::vector<uint8_t> &taToken, int32_t remainValidityTime)
 {
+    std::lock_guard<std::mutex> lock(dataMutex_);
     errCode_ = errCode;
     result_.privilege = info_.privilege;
     result_.resultCode = resultCode;
@@ -233,7 +234,14 @@ ErrCode ConnectAbilityCallback::OnResult(int32_t errorCode, const std::vector<ui
         return func_(ERR_OK, result, info_.callingPid);
     }
     if (hasUpdateAuthInfo_.load(std::memory_order_acquire)) {
-        return func_(errCode_, result_, info_.callingPid);
+        ErrCode savedErrCode;
+        AuthorizationResult savedResult;
+        {
+            std::lock_guard<std::mutex> lock(dataMutex_);
+            savedErrCode = errCode_;
+            savedResult = result_;
+        }
+        return func_(savedErrCode, savedResult, info_.callingPid);
     }
     result.resultCode = AuthorizationResultCode::AUTHORIZATION_CANCELED;
     return func_(ERR_OK, result, info_.callingPid);
@@ -888,6 +896,14 @@ AdminAuthCallback::AdminAuthCallback(
     const std::string &privilege)
     : userId_(userId), callingPid_(callingPid), innerCallback_(callback), challenge_(challenge), privilege_(privilege)
 {
+}
+
+AdminAuthCallback::~AdminAuthCallback()
+{
+    if (challenge_.size() > 0) {
+        (void)memset_s(challenge_.data(), challenge_.size() * sizeof(uint8_t), 0,
+            challenge_.size() * sizeof(uint8_t));
+    }
 }
 
 void AdminAuthCallback::SetDeathRecipient(const sptr<AuthCallbackDeathRecipient> &deathRecipient)

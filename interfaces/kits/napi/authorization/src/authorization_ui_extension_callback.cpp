@@ -40,7 +40,7 @@ void UIExtensionCallbackBase::OnRelease(int32_t releaseCode)
 void UIExtensionCallbackBase::OnError(int32_t code, const std::string& name, const std::string& message)
 {
     ACCOUNT_LOGI(
-        "enter OnError errCode:%{public}d, name:%{public}s, message:%{public}s", code, name.c_str(), message.c_str());
+        "enter OnError errCode:%{public}d, name:%{private}s, message:%{private}s", code, name.c_str(), message.c_str());
     if (isOnResult_.load()) {
         return;
     }

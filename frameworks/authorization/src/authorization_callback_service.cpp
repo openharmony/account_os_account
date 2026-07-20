@@ -104,7 +104,7 @@ ErrCode AdminAuthorizationCallbackService::OnResult(const AdminAuthorizationResu
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("Inner callback OnResult failed, errCode:%{public}d", ret);
     }
-    return ERR_OK;
+    return ret;
 }
 }
 }
