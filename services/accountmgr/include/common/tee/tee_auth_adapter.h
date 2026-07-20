@@ -41,7 +41,7 @@ typedef struct {
     size_t permissionSize;
 } __attribute__((__packed__)) VerifyTokenParam;
 
-typedef struct {
+typedef struct UserTokenDataPlain {
     uint32_t pid;
     uint32_t privilege;
     uint32_t grantTime;
@@ -49,6 +49,11 @@ typedef struct {
     uint8_t challenge[CHALLENGE_LEN];
     uint8_t authToken[AUTH_TOKEN_LEN];
     size_t authTokenSize;
+    ~UserTokenDataPlain()
+    {
+        (void)memset_s(&authToken, authTokenSize * sizeof(uint8_t), 0, authTokenSize * sizeof(uint8_t));
+        (void)memset_s(&challenge, CHALLENGE_LEN * sizeof(uint8_t), 0, CHALLENGE_LEN * sizeof(uint8_t));
+    }
 } __attribute__((__packed__)) UserTokenDataPlain;
 
 typedef struct {
