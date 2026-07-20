@@ -66,7 +66,7 @@ public:
     ErrCode ActivateOsAccount(const int id);
     ErrCode ActivateOsAccount(const int id, const uint64_t displayId);
     ErrCode DeactivateOsAccount(const int id);
-    ErrCode DeactivateAllOsAccounts(const bool isAnimationEnabled = true);
+    ErrCode DeactivateAllOsAccounts();
     ErrCode StartOsAccount(const int id);
     ErrCode SubscribeOsAccount(const std::shared_ptr<OsAccountSubscriber> &subscriber);
     ErrCode UnsubscribeOsAccount(const std::shared_ptr<OsAccountSubscriber> &subscriber);
