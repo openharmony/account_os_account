@@ -288,6 +288,68 @@ Locks protect in-memory account lists and per-UID state. Do not perform disk
 I/O, IPC, or long computations while holding a lock — risk of deadlock or IPC
 thread exhaustion. Follow the lock hierarchy in each module's nested AGENTS.md.
 
+**Pitfall 7 — Verify state must be set on every unlock path, including no-password.**
+After device reboot, features like screenshot, screen recording, and memo
+creation depend on `OsAccountInfo.isVerified == true`. This flag is set via
+`SetOsAccountIsVerified(true)` only when `isUpdateVerifiedStatus` is true
+(`account_iam_callback.cpp:377`). In `UnlockUserStorage()`
+(`inner_account_iam_manager.cpp:898`), `isUpdateVerifiedStatus` is set to true
+only inside the `needActivateKey` branch (line 934). If the account is already
+marked verified (line 902-906), `needActivateKey` may stay false and verify
+state is never propagated. When adding or modifying any unlock code path,
+trace that `SetOsAccountIsVerified(true)` is eventually reached — especially
+no-password / auto-unlock scenarios where authentication is skipped.
+  Historical: "device reboot breaks screenshot/screen-recording/memo — verify
+  state not set to true during no-password unlock"
+
+**Pitfall 8 — Avoid holding per-user lock during slow storage operations; use try_lock in recovery paths.**
+`HandleFileKeyException()` (`inner_account_iam_manager.cpp:533`) restores key
+context after a crash by calling `UpdateStorageUserAuth()` and
+`UpdateStorageKeyContext()` — both involve IPC retry loops (20×100ms). Before
+the fix, it held the per-user lock (`GetOperatingUserLock(userId)`) during the
+entire slow operation. Meanwhile, the normal unlock path (`UnlockUserStorage()`)
+also calls `HandleFileKeyException()` at entry (line 901), then proceeds to
+`ActivateUserKey()` and `UnlockUserScreen()`. Multiple concurrent unlock
+requests would block on the per-user lock, exhausting the `accountmgr` thread
+pool and causing the service to freeze (device black screen). Fix: use
+`try_lock()` in recovery paths that may be slow; if the lock is held, return
+`ERR_ACCOUNT_COMMON_BUSY` immediately. Also ensure `ActivateUserKey()` and
+`UnlockUserScreen()` properly acquire the per-user lock via `lock_guard` to
+serialize storage access.
+  Commit: b2c90559a — Historical: "device black screen then recovers —
+  accountmgr threads exhausted waiting on lock held by slow reenroll"
+
+**Pitfall 9 — Guard against empty/invalid data from OTA migration; prevent cross-module circular calls.**
+OTA upgrades may leave dirty data from old versions (e.g. empty
+`domainServerConfigId`). During boot, `QueryOsAccountById()`
+(`inner_os_account_manager.cpp:1530`) calls `GetDomainAccountStatus()`, which
+queries domain account info. If the domain plugin query encounters empty config
+data and falls back to querying `account_info` again, a circular call chain
+forms: query account → query domain → query account → … — crashing or hanging
+boot, causing repeated reboot loops. Fix patterns: (1) Add empty/null guards at
+every cross-module query entry point (e.g. `GetDomainAccountInfo()` checks
+`accountName_.empty()` before invoking the plugin, line 1588). (2) Provide a
+synchronous overload of cross-module query APIs to avoid callback re-entrancy.
+(3) Always null-check callbacks before invoking them (e.g. `CallbackOnResult()`
+helper wrapping `callback->OnResult()`). When adding cross-module calls,
+explicitly verify no circular dependency exists in the call graph.
+  Commit: 82144eb — Historical: "OTA → device repeatedly reboots —
+  empty domainServerConfigId triggered circular account_info query"
+
+**Pitfall 10 — `GetOsAccountType()` must not call `GetOsAccountInfoById()` — self-referencing circular call.**
+`GetOsAccountType()` (`inner_os_account_manager.cpp:2303`) needs the account
+type. Calling `GetOsAccountInfoById()` to obtain it forms a circular chain:
+`GetOsAccountType` → `GetOsAccountInfoById` → `QueryOsAccountById` →
+`GetDomainAccountStatus` → (potentially back to `GetOsAccountType`). On
+emulator builds without TEE hardware this is especially dangerous because the
+software fallback path hits the same circular dependency. Fix: read the account
+type from an independent data source — TEE hardware (`teeAdapter_.GetOsAccountType()`),
+a type-only cache (`osAccountCacheManager_`), or a direct DB read that bypasses
+the full `QueryOsAccountById` flow. Never use `GetOsAccountInfoById` inside
+`GetOsAccountType` or any function called by `GetOsAccountType`.
+  Commit: 6f0d055 — Historical: "emulator won't boot —
+  GetOsAccountType → GetOsAccountInfoById circular call"
+
 ---
 
 ## 4. Data Storage & Configuration

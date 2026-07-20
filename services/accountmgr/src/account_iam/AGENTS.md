@@ -190,6 +190,26 @@ enum IAMState {
   — risk of deadlock (§4.2 Lock Hierarchy).
 - **Do not change `IAMState` enum values** — state machine persistence and
   validity checks depend on them.
+- **Do not skip `SetOsAccountIsVerified(true)` on any unlock path** — including
+  no-password auto-unlock. In `UnlockUserStorage()` (line 898-936),
+  `isUpdateVerifiedStatus` must be set to true for every path that performs
+  storage unlock. If a new unlock branch is added or the `needActivateKey`
+  condition is modified, trace that `SetOsAccountIsVerified(true)` is still
+  reached at `account_iam_callback.cpp:378`. Missing verified state breaks
+  post-reboot features (screenshot, screen recording, memo, etc.).
+  Historical: "device reboot breaks screenshot/screen-recording/memo — verify state not set to true during no-password unlock"
+- **Do not hold the per-user lock during slow storage operations; use `try_lock` in recovery paths.**
+  `HandleFileKeyException()` (line 533) performs slow storage IPC
+  (`UpdateStorageUserAuth` + `UpdateStorageKeyContext`, each with 20x100ms
+  retries). If it holds the per-user lock (`GetOperatingUserLock()`) during
+  these calls, concurrent `ActivateUserKey()` and `UnlockUserScreen()` will
+  block, exhausting the `accountmgr` thread pool and freezing the service
+  (device black screen). Use `try_lock()` with `ERR_ACCOUNT_COMMON_BUSY`
+  fallback so the recovery path yields to the normal unlock path. Conversely,
+  ensure `ActivateUserKey()` and `UnlockUserScreen()` always acquire the
+  per-user lock via `lock_guard` before storage IPC to serialize access.
+  Commit: b2c90559a — Historical: "accountmgr freeze from lock contention
+  between reenroll and unlock, causing thread pool exhaustion"
 
 ### 4.2 Ask before
 
