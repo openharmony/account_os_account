@@ -38,6 +38,7 @@ const char OAUTH_AUTH_LIST[] = "authList";
 const std::string OAUTH_TOKEN_TO_TYPE = "tokenToType";
 const char HYPHEN[] = "#";
 constexpr uint32_t APP_INDEX = 0;
+const char APP_INDEX_KEY[] = "appIndex";
 constexpr uint32_t MAX_TOKEN_NUMBER = 128;
 constexpr uint32_t MAX_OAUTH_LIST_SIZE = 512;
 constexpr uint32_t MAX_ASSOCIATED_DATA_NUMBER = 1024;

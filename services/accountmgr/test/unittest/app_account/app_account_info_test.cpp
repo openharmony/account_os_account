@@ -943,6 +943,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_Marshalling_0100, TestSize.Level3)
     appAccountInfo.syncEnable_ = syncEnable;
     appAccountInfo.associatedData_ = associatedData;
     appAccountInfo.accountCredential_ = accountCredential;
+    appAccountInfo.appIndex_ = 1;
 
     // marshalling
     Parcel parcel;
@@ -961,6 +962,31 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_Marshalling_0100, TestSize.Level3)
     EXPECT_EQ(syncEnable, infoPtr->syncEnable_);
     EXPECT_EQ(associatedData, infoPtr->associatedData_);
     EXPECT_EQ(accountCredential, infoPtr->accountCredential_);
+    EXPECT_EQ(appAccountInfo.appIndex_, infoPtr->appIndex_);
+}
+
+/**
+ * @tc.name: AppAccountInfo_Marshalling_AppIndex_001
+ * @tc.desc: appIndex_ must survive Marshalling/Unmarshalling round-trip across IPC.
+ *          Regression for IPC Parcel serialization fix (GetAllAccounts return path,
+ *          OnAccountsChanged subscribe event push both rely on Marshalling).
+ * @tc.type: FUNC
+ * @tc.require
+ */
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_Marshalling_AppIndex_001, TestSize.Level1)
+{
+    for (uint32_t idx : std::vector<uint32_t>{0, 1, 2, 100}) {
+        AppAccountInfo info;
+        info.owner_ = STRING_OWNER;
+        info.name_ = STRING_NAME;
+        info.appIndex_ = idx;
+        Parcel parcel;
+        ASSERT_TRUE(info.Marshalling(parcel));
+        auto restored = AppAccountInfo::Unmarshalling(parcel);
+        ASSERT_NE(restored, nullptr);
+        EXPECT_EQ(restored->appIndex_, idx) << "appIndex=" << idx;
+        delete restored;
+    }
 }
 
 /**
@@ -1039,6 +1065,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_ToJson_FromJson_001, TestSize.Level1
     testAppAccountInfo.accountCredential_ = accountCredential;
     testAppAccountInfo.alias_ = STRING_TOKEN;
     testAppAccountInfo.oauthTokens_ = oauthTokens;
+    testAppAccountInfo.appIndex_ = 1;
     auto jsonObject = ToJson(testAppAccountInfo);
 
     // check the data
@@ -1048,6 +1075,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_ToJson_FromJson_001, TestSize.Level1
     EXPECT_EQ(testAppAccountInfo.name_, retAppAccountInfo.name_);
     EXPECT_EQ(testAppAccountInfo.extraInfo_, retAppAccountInfo.extraInfo_);
     EXPECT_EQ(testAppAccountInfo.accountCredential_, retAppAccountInfo.accountCredential_);
+    EXPECT_EQ(testAppAccountInfo.appIndex_, retAppAccountInfo.appIndex_);
 
     // check the credential
     auto jsonOAcc = CreateJsonFromString(retAppAccountInfo.accountCredential_);
@@ -1062,6 +1090,37 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_ToJson_FromJson_001, TestSize.Level1
     isVisible = retAppAccountInfo.oauthTokens_["authType1"].status;
     EXPECT_TRUE(isVisible);
     ASSERT_EQ(retAppAccountInfo.oauthTokens_["authType1"].token, tokenInfo1.token);
+}
+
+/**
+ * @tc.name: AppAccountInfo_ToJson_FromJson_AppIndex_001
+ * @tc.desc: appIndex_ must survive ToJson/FromJson round-trip; legacy JSON without
+ *          appIndex field defaults to 0. Regression for appIndex serialization fix.
+ * @tc.type: FUNC
+ * @tc.require
+ */
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_ToJson_FromJson_AppIndex_001, TestSize.Level1)
+{
+    // non-zero appIndex must survive round-trip
+    for (uint32_t idx : std::vector<uint32_t>{0, 1, 2, 100}) {
+        AppAccountInfo info;
+        info.owner_ = STRING_OWNER;
+        info.name_ = STRING_NAME;
+        info.appIndex_ = idx;
+        auto jsonObject = ToJson(info);
+        ASSERT_NE(jsonObject, nullptr);
+        AppAccountInfo restored;
+        FromJson(jsonObject.get(), restored);
+        EXPECT_EQ(restored.appIndex_, idx) << "appIndex=" << idx;
+    }
+
+    // legacy JSON without appIndex field → FromJson keeps constructor default 0
+    const char *legacyJson = "{\"owner\":\"com.example.owner\",\"name\":\"name\"}";
+    auto legacyObj = CreateJsonFromString(legacyJson);
+    ASSERT_NE(legacyObj, nullptr);
+    AppAccountInfo legacyInfo;
+    FromJson(legacyObj.get(), legacyInfo);
+    EXPECT_EQ(legacyInfo.appIndex_, 0u);
 }
 
 /**

@@ -18,6 +18,8 @@
 #include "account_log_wrapper.h"
 #include "app_account_constants.h"
 #include "app_account_authenticator_manager.h"
+#include "app_account_info_json_parser.h"
+#include "json_utils.h"
 #define private public
 #include "app_account_control_manager.h"
 #include "app_account_manager_service.h"
@@ -49,6 +51,8 @@ public:
         mgr.mockOsAccountInfo = OsAccountInfo();
         mgr.mockReadCtxResult = ERR_OK;
         mgr.mockSubProfileCtx = SubProfileContext();
+        g_mockGetAccountInfoByIdCustom = false;
+        g_mockAccountInfoJson.clear();
     }
     void TearDown(void) override
     {
@@ -57,6 +61,8 @@ public:
         mgr.mockOsAccountInfo = OsAccountInfo();
         mgr.mockReadCtxResult = ERR_OK;
         mgr.mockSubProfileCtx = SubProfileContext();
+        g_mockGetAccountInfoByIdCustom = false;
+        g_mockAccountInfoJson.clear();
     }
 };
 
@@ -1121,4 +1127,53 @@ HWTEST_F(AppAccountControlManagerSubspaceModuleTest,
     ErrCode ret = ctrl.RemoveAppAccountDataFromDataStorage(ds, key, 0);
     EXPECT_EQ(ret, ERR_OK);
     g_mockLoadDataNonEmpty = false; // reset
+}
+
+/**
+ * @tc.name: Subspace_GetAccountsByOwner_AppIndexSerialized_001
+ * @tc.desc: Regression for appIndex serialization. Scenario: appa(appIndex=1) creates
+ *           test_account and authorizes appb(appIndex=1); appb(1) GetAccountsByOwner("appa")
+ *           must find test_account. Before the ToJson/FromJson fix, appIndex was dropped on
+ *           store→load round-trip (defaulted to 0), so FilterAccessibleAccountsByOwner's
+ *           appIndex filter (GetAppIndex()!=1) skipped the account. After fix, the loaded
+ *           appIndex==1 matches and the account is returned.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppAccountControlManagerSubspaceModuleTest,
+    Subspace_GetAccountsByOwner_AppIndexSerialized_001, TestSize.Level1)
+{
+    // appa(appIndex=1) creates test_account and authorizes appb(appIndex=1)
+    AppAccountInfo testAccount;
+    testAccount.owner_ = STRING_OWNER;
+    testAccount.name_ = "test_account";
+    testAccount.appIndex_ = 1;
+    testAccount.authorizedApps_.emplace(AppAccountInfo::EncodeAuthorizedApp("com.example.appb", 1));
+
+    // Simulate store→load round-trip: serialize via real ToJson, inject into mock GetAccountInfoById
+    auto jsonObject = ToJson(testAccount);
+    ASSERT_NE(jsonObject, nullptr);
+    std::string jsonStr = PackJsonToString(jsonObject);
+    ASSERT_FALSE(jsonStr.empty());
+    g_mockGetAccountInfoByIdCustom = true;
+    g_mockAccountInfoJson = jsonStr;
+
+    // appb(appIndex=1) GetAccountsByOwner("appa") → no-permission path → FilterAccessibleAccountsByOwner
+    auto &ctrl = AppAccountControlManager::GetInstance();
+    auto dataStoragePtr = ctrl.GetDataStorage(0, false);
+    ASSERT_NE(dataStoragePtr, nullptr);
+    std::vector<std::string> accessibleAccounts = {testAccount.GetPrimeKey()};
+    std::vector<AppAccountInfo> result;
+    ErrCode filterRet = ctrl.FilterAccessibleAccountsByOwner(
+        accessibleAccounts, STRING_OWNER, 1, dataStoragePtr, result);
+    EXPECT_EQ(filterRet, ERR_OK);
+    // Before fix: loaded appIndex==0 != 1 → filtered out, size==0.
+    // After fix:  loaded appIndex==1 == 1 → kept, size==1.
+    EXPECT_EQ(result.size(), 1u);
+    if (result.size() == 1) {
+        EXPECT_EQ(result[0].GetAppIndex(), 1u);
+        EXPECT_EQ(result[0].GetOwner(), STRING_OWNER);
+    }
+
+    g_mockGetAccountInfoByIdCustom = false;
+    g_mockAccountInfoJson.clear();
 }
