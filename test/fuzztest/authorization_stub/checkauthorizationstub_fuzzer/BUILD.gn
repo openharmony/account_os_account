@@ -124,7 +124,7 @@ ohos_fuzztest("CheckAuthorizationStubFuzzTest") {
     "samgr:samgr_proxy",
     "ability_runtime:extension_manager",
     "ability_runtime:ability_connect_callback_stub",
-    "tee_client:libteec"
+    "tee_client:libteec_vendor"
   ]
   if (has_user_auth_part) {
     cflags += [
@@ -170,7 +170,7 @@ ohos_fuzztest("CheckAuthorizationStubFuzzTest") {
   ]
   external_deps += [
     "ability_runtime:extension_manager",
-    "tee_client:libteec"
+    "tee_client:libteec_vendor"
   ]
 
   cflags += [ "-DENABLE_FILE_WATCHER" ]

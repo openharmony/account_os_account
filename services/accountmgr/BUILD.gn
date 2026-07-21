@@ -326,7 +326,7 @@ ohos_shared_library("accountmgr") {
     if (!is_emulator) {
       # Real device with TEE hardware - use TEE implementation
       sources += [ "./src/common/tee/tee_auth_adapter.cpp" ]
-      external_deps += [ "tee_client:libteec" ]
+      external_deps += [ "tee_client:libteec_vendor" ]
     } else {
       # Emulator without TEE hardware - use software implementation
       sources += [ "./src/common/tee/tee_auth_adapter_soft.cpp" ]
@@ -721,7 +721,7 @@ ohos_source_set("accountmgr_test_source_set") {
     if (!is_emulator) {
       # Real device with TEE hardware - use TEE implementation
       sources += [ "./src/common/tee/tee_auth_adapter.cpp" ]
-      external_deps += [ "tee_client:libteec" ]
+      external_deps += [ "tee_client:libteec_vendor" ]
     } else {
       # Emulator without TEE hardware - use software implementation
       sources += [ "./src/common/tee/tee_auth_adapter_soft.cpp" ]

@@ -215,7 +215,7 @@ ohos_unittest("account_iam_callback_test") {
         [ "${services_path}/accountmgr/include/bundle_manager_adapter" ]
     external_deps += [
       "ability_runtime:extension_manager",
-      "tee_client:libteec",
+      "tee_client:libteec_vendor",
     ]
   }
   if (security_guard_enabled) {
@@ -327,7 +327,7 @@ ohos_unittest("account_iam_manager_test") {
     ]
     external_deps += [
       "ability_runtime:extension_manager",
-      "tee_client:libteec",
+      "tee_client:libteec_vendor",
     ]
   }
   if (security_guard_enabled) {
