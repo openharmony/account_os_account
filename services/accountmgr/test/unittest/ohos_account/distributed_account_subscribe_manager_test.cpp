@@ -48,7 +48,7 @@ void DistributedAccountSubscribeManagerTest::SetUpTestCase()
 void DistributedAccountSubscribeManagerTest::TearDownTestCase()
 {}
 
-void DistributedAccountSubscribeManagerTest::SetUp()
+void DistributedAccountSubscribeManagerTest::SetUp() __attribute__((no_sanitize("cfi")))
 {
     testing::UnitTest *test = testing::UnitTest::GetInstance();
     ASSERT_NE(test, nullptr);
