@@ -279,21 +279,27 @@ ErrCode AccountMgrService::QueryOhosAccountInfo(std::string& accountName, std::s
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
 #ifdef HICOLLIE_ENABLE
-    unsigned int flag = HiviewDFX::XCOLLIE_FLAG_LOG | HiviewDFX::XCOLLIE_FLAG_RECOVERY;
-    XCollieCallback callbackFunc = [callingPid = IPCSkeleton::GetCallingPid(),
-        callingUid = IPCSkeleton::GetCallingUid()](void *) {
-        ACCOUNT_LOGE("QueryOhosAccountInfo failed, callingPid: %{public}d, callingUid: %{public}d.",
-            callingPid, callingUid);
-        REPORT_OHOS_ACCOUNT_FAIL(callingUid, Constants::OPERATION_GET_INFO, -1, "Query ohos account info time out");
-    };
-    int timerId = HiviewDFX::XCollie::GetInstance().SetTimer(TIMER_NAME, RECOVERY_TIMEOUT, callbackFunc, nullptr, flag);
+    int timerId = -1;
+    if (AccountPermissionManager::IsHapCall() &&
+        AccountPermissionManager::CheckSystemApp() == ERR_OK) {
+        unsigned int flag = HiviewDFX::XCOLLIE_FLAG_LOG | HiviewDFX::XCOLLIE_FLAG_RECOVERY;
+        XCollieCallback callbackFunc = [callingPid = IPCSkeleton::GetCallingPid(),
+            callingUid = IPCSkeleton::GetCallingUid()](void *) {
+            ACCOUNT_LOGE("QueryOhosAccountInfo failed, callingPid: %{public}d, callingUid: %{public}d.",
+                callingPid, callingUid);
+            REPORT_OHOS_ACCOUNT_FAIL(callingUid, Constants::OPERATION_GET_INFO, -1, "Query ohos account info time out");
+        };
+        timerId = HiviewDFX::XCollie::GetInstance().SetTimer(TIMER_NAME, RECOVERY_TIMEOUT, callbackFunc, nullptr, flag);
+    }
 #endif // HICOLLIE_ENABLE
     auto ret = InnerQueryOsAccountDistributedInfo(GetCallingUserID(), accountName, uid, status);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("Query ohos account info failed");
     }
 #ifdef HICOLLIE_ENABLE
-    HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+    if (timerId != -1) {
+        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+    }
 #endif // HICOLLIE_ENABLE
     return ret;
 }

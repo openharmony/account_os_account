@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "os_account_manager.h"
+#include <unistd.h>
 #include "account_info.h"
 #include "account_log_wrapper.h"
 #include "account_permission_manager.h"
@@ -105,7 +106,8 @@ ErrCode OsAccountManager::GetCreatedOsAccountsCount(unsigned int &osAccountsCoun
 
 ErrCode OsAccountManager::GetOsAccountLocalIdFromProcess(int &id)
 {
-    return OsAccount::GetInstance().GetOsAccountLocalIdFromProcess(id);
+    id = static_cast<int32_t>(getuid()) / UID_TRANSFORM_DIVISOR;
+    return ERR_OK;
 }
 
 ErrCode OsAccountManager::IsMainOsAccount(bool &isMainOsAccount)
