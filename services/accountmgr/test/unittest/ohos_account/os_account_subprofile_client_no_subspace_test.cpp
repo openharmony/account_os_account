@@ -58,7 +58,7 @@ constexpr ErrCode ERR_EXPECTED_FAILURE = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
 
 class OsAccountSubProfileClientNoSubspaceTest : public testing::Test {
 public:
-    void SetUp() override
+    void SetUp() __attribute__((no_sanitize("cfi"))) override
     {
         OsAccountSubProfileClient::GetInstance().proxy_ = nullptr;
         OsAccountSubProfileClient::GetInstance().deathRecipient_ = nullptr;
@@ -580,7 +580,7 @@ HWTEST_F(OsAccountSubProfileClientNoSubspaceTest, EventService_AddTypes_MergesDu
 // ===== OsAccountInfo subspace methods =====
 class OsAccountInfoSubspaceTest : public testing::Test {
 public:
-    void SetUp() override {}
+    void SetUp() __attribute__((no_sanitize("cfi"))) override {}
     void TearDown() override {}
 };
 
@@ -636,7 +636,7 @@ HWTEST_F(OsAccountInfoSubspaceTest, SetForegroundSubspaceId_Negative_001, TestSi
 // ===== OsAccountSubspaceResult Marshalling =====
 class SubspaceResultMarshallingTest : public testing::Test {
 public:
-    void SetUp() override {}
+    void SetUp() __attribute__((no_sanitize("cfi"))) override {}
     void TearDown() override {}
 };
 
@@ -695,7 +695,7 @@ HWTEST_F(SubspaceResultMarshallingTest, Unmarshalling_EmptyParcel_001, TestSize.
 // ===== SubProfileEventData ReadFromParcel coverage =====
 class SubProfileEventDataReadTest : public testing::Test {
 public:
-    void SetUp() override {}
+    void SetUp() __attribute__((no_sanitize("cfi"))) override {}
     void TearDown() override {}
 };
 
@@ -919,7 +919,7 @@ HWTEST_F(OsAccountSubProfileClientNoSubspaceTest, Unsubscribe_ProxyError_001, Te
 // ===== OsAccountSubProfileManagerService no-macro paths (lines 125-153) =====
 class SubspaceManagerServiceNoMacroTest : public testing::Test {
 public:
-    void SetUp() override {}
+    void SetUp() __attribute__((no_sanitize("cfi"))) override {}
     void TearDown() override {}
 };
 
@@ -972,7 +972,7 @@ HWTEST_F(SubspaceManagerServiceNoMacroTest, Switch_SubspaceMatch_002, TestSize.L
 // ===== OsAccountSubProfileManagerService Subscribe/Unsubscribe common paths (lines 156-208) =====
 class SubspaceManagerServiceSubscribeTest : public testing::Test {
 public:
-    void SetUp() override
+    void SetUp() __attribute__((no_sanitize("cfi"))) override
     {
         service_ = sptr<OsAccountSubProfileManagerService>(new (std::nothrow) OsAccountSubProfileManagerService());
         ASSERT_NE(service_, nullptr);
@@ -1088,7 +1088,7 @@ HWTEST_F(SubspaceManagerServiceSubscribeTest, SubscribeThenUnsubscribe_ValidType
 // ===== OsAccountSubProfileManagerService CheckSystemApp failure paths (lines 160, 187) =====
 class SubspaceManagerServiceCheckSystemAppTest : public testing::Test {
 public:
-    void SetUp() override
+    void SetUp() __attribute__((no_sanitize("cfi"))) override
     {
         oldTokenId_ = IPCSkeleton::GetSelfTokenID();
         uint64_t noPermTokenId = 0;
