@@ -280,8 +280,7 @@ ErrCode AccountMgrService::QueryOhosAccountInfo(std::string& accountName, std::s
     }
 #ifdef HICOLLIE_ENABLE
     int timerId = -1;
-    if (AccountPermissionManager::IsHapCall() &&
-        AccountPermissionManager::CheckSystemApp() == ERR_OK) {
+    if (AccountPermissionManager::IsHapCall() && AccountPermissionManager::CheckSystemApp() == ERR_OK) {
         unsigned int flag = HiviewDFX::XCOLLIE_FLAG_LOG | HiviewDFX::XCOLLIE_FLAG_RECOVERY;
         XCollieCallback callbackFunc = [callingPid = IPCSkeleton::GetCallingPid(),
             callingUid = IPCSkeleton::GetCallingUid()](void *) {
