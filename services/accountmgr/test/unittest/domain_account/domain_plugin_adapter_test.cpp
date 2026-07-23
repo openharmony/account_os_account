@@ -48,7 +48,7 @@ void DomainPluginAdapterTest::SetUpTestCase(void)
 void DomainPluginAdapterTest::TearDownTestCase(void)
 {}
 
-void DomainPluginAdapterTest::SetUp(void)
+void DomainPluginAdapterTest::SetUp(void) __attribute__((no_sanitize("cfi")))
 {
     testing::UnitTest *test = testing::UnitTest::GetInstance();
     ASSERT_NE(test, nullptr);

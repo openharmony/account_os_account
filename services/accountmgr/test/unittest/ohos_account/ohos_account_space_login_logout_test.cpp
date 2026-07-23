@@ -102,7 +102,7 @@ void OhosAccountSpaceLoginLogoutTest::TearDownTestCase()
     }
 }
 
-void OhosAccountSpaceLoginLogoutTest::SetUp()
+void OhosAccountSpaceLoginLogoutTest::SetUp() __attribute__((no_sanitize("cfi")))
 {
     ASSERT_EQ(SetSelfTokenID(allPermTokenId_), 0);
     ResetMockState();
