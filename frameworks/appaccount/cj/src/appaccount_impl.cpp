@@ -596,7 +596,7 @@ int32_t CJAppAccountImpl::setAuthenticatorProperties(
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("setAuthenticatorProperties failed");
         std::string value;
-        callback.onResult(ERR_CJ_SYSTEM_SERVICE_EXCEPTION, Convert2CAuthResult(value, value, value, value));
+        callback.onResult(errCode, Convert2CAuthResult(value, value, value, value));
         return errCode;
     }
     // account: AppAccountInfo
