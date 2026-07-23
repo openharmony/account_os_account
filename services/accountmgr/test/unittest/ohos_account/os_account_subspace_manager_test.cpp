@@ -208,7 +208,7 @@ HWTEST_F(OsAccountSubProfileManagerTest, CreateSubspace_WrapAround_005, TestSize
 
     SubProfileContext subprofileCtx;
     subprofileCtx.nextSubProfileId = base + OsAccountSubProfileDataDeal::OS_ACCOUNT_SUB_PROFILE_ID_MAX;
-    for (int32_t i = 2; i <= MAX_OS_ACCOUNT_SUB_PROFILE_COUNT - 1; ++i) {
+    for (int32_t i = 2; i <= MAX_OS_ACCOUNT_SUB_PROFILE_COUNT; ++i) {
         subprofileCtx.subProfileIdList.push_back(base + i);
     }
     MockForceSubProfileContext(OS_ACCOUNT_ID, subprofileCtx);

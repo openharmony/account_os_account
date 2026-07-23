@@ -109,7 +109,7 @@ ErrCode OsAccountSubProfileManager::CreateSubProfileLocked(int32_t osAccountId, 
     }
 
     auto &subProfileIdList = subprofileCtx.subProfileIdList;
-    if (static_cast<int32_t>(subProfileIdList.size()) > MAX_OS_ACCOUNT_SUB_PROFILE_COUNT) {
+    if (static_cast<int32_t>(subProfileIdList.size()) - 1 >= MAX_OS_ACCOUNT_SUB_PROFILE_COUNT) {
         ErrCode reclaimRet = TryReclaimSubProfileSlots(osAccountId, subprofileCtx);
         if (reclaimRet != ERR_OK) {
             return reclaimRet;
@@ -291,7 +291,7 @@ ErrCode OsAccountSubProfileManager::TryReclaimSubProfileSlots(
         ACCOUNT_LOGE("Refresh SubProfileContext after cleanup failed, ret=%{public}d", refreshRet);
         return ERR_OS_ACCOUNT_SUBSPACE_LIMIT;
     }
-    if (static_cast<int32_t>(subprofileCtx.subProfileIdList.size()) > MAX_OS_ACCOUNT_SUB_PROFILE_COUNT) {
+    if (static_cast<int32_t>(subprofileCtx.subProfileIdList.size()) - 1 >= MAX_OS_ACCOUNT_SUB_PROFILE_COUNT) {
         ACCOUNT_LOGE("Still at limit after cleaning.");
         REPORT_OS_ACCOUNT_FAIL(osAccountId, Constants::OPERATION_SUBPROFILE_CREATE,
             ERR_OS_ACCOUNT_SUBSPACE_LIMIT, "Still at limit after reclaim");
