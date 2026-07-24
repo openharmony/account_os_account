@@ -52,7 +52,7 @@ constexpr int32_t MAX_RETRY_TIMES = 3;
 }  // namespace
 
 const int32_t MAX_OS_ACCOUNT_SUB_PROFILE_COUNT =
-    OHOS::system::GetIntParameter<int32_t>("const.bms.appCloneMaxCount", 1000, 1, 1000);
+    OHOS::system::GetIntParameter<int32_t>("const.bms.appCloneMaxCount", 999, 1, 999);
 
 OsAccountSubProfileDataDeal::OsAccountSubProfileDataDeal(const std::string &configRootDir)
     : configRootDir_(configRootDir), fileOperator_(std::make_shared<AccountFileOperator>())
