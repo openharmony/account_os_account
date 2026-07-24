@@ -29,7 +29,6 @@ namespace AccountSA {
 namespace ACli {
 
 extern const char* TOOL_NAME;
-extern std::string g_programName;
 
 inline void CLI_LOG(const std::string& msg)
 {
@@ -45,7 +44,7 @@ struct Command {
 
 const std::unordered_map<std::string, Command>& GetCommands();
 
-int CmdGetCurrentUserId(int argc, char** argv);
+int CmdGetOsAccountLocalId(int argc, char** argv);
 int CmdHelp(int argc, char** argv);
 
 int OutputSuccess(CJsonUnique data);

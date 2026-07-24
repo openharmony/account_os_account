@@ -27,17 +27,17 @@
 
 | 子命令 | 参数 | 类型 | 说明 | 所需权限 |
 |--------|------|------|------|----------|
-| `get-current-userid` | — | — | 获取当前调用进程所属 OS 账号的本地 ID | 无 |
-| `get-current-userid` | `--help` | boolean | 显示该子命令的帮助信息 | 无 |
+| `get-os-account-local-id` | — | — | 获取当前调用进程所属 OS 账号的本地 ID | 无 |
+| `get-os-account-local-id` | `--help` | boolean | 显示该子命令的帮助信息 | 无 |
 
 ---
 
-### get-current-userid
+### get-os-account-local-id
 
 获取当前调用进程所属 OS 账号的本地 ID。
 
 ```bash
-ohos-acm get-current-userid
+ohos-acm get-os-account-local-id
 ```
 
 **成功输出示例**:
@@ -63,7 +63,7 @@ ohos-acm get-current-userid
 ohos-acm --help
 
 # 显示指定子命令的帮助
-ohos-acm get-current-userid --help
+ohos-acm get-os-account-local-id --help
 ```
 
 **完整帮助输出示例**:
@@ -77,26 +77,26 @@ Parameters:
   --help             Show this help message
 
 SubCommands:
-  get-current-userid Get the local ID of the current OS account
+  get-os-account-local-id Get the local ID of the current OS account
 
 Examples:
   ohos-acm --help
-  ohos-acm get-current-userid
-  ohos-acm get-current-userid --help
+  ohos-acm get-os-account-local-id
+  ohos-acm get-os-account-local-id --help
 ```
 
 **子命令帮助输出示例**:
 ```
-ohos-acm get-current-userid - Get the local ID of the current OS account
+ohos-acm get-os-account-local-id - Get the local ID of the current OS account
 
 Usage:
-  ohos-acm get-current-userid [options]
+  ohos-acm get-os-account-local-id [options]
 
 Parameters:
-  --help             Display this help message
+  --help             Show this help message
 
 Examples:
-  ohos-acm get-current-userid
+  ohos-acm get-os-account-local-id
 ```
 
 ---
@@ -108,7 +108,7 @@ Examples:
 ### 命名规范
 
 - 工具名称: `ohos-<domain>` 格式（`ohos-acm`）
-- 子命令: 小写字母加连字符（`get-current-userid`）
+- 子命令: 小写字母加连字符（`get-os-account-local-id`）
 - 参数: `--<paramname>` 长选项格式
 
 ### 输入格式
@@ -161,25 +161,25 @@ Examples:
 ohos-acm --help
 
 # 获取当前用户 ID
-ohos-acm get-current-userid
+ohos-acm get-os-account-local-id
 
 # 查看子命令帮助
-ohos-acm get-current-userid --help
+ohos-acm get-os-account-local-id --help
 ```
 
 ### JS 应用通过 Claw 框架调用
 
 ```javascript
 // 获取当前用户 ID
-claw.invoke('ohos-acm', { subcommand: 'get-current-userid' })
+claw.invoke('ohos-acm', { subcommand: 'get-os-account-local-id' })
 
 // 查看子命令帮助
-claw.invoke('ohos-acm', { subcommand: 'get-current-userid', params: { help: true } })
+claw.invoke('ohos-acm', { subcommand: 'get-os-account-local-id', params: { help: true } })
 ```
 
 ## 注意事项
 
-1. **权限要求**: `get-current-userid` 子命令无需任何特殊权限。可通过任意进程直接调用。
+1. **权限要求**: `get-os-account-local-id` 子命令无需任何特殊权限。可通过任意进程直接调用。
 
 2. **返回值**: `userId` 为整数类型，表示调用方进程所属 OS 账号的本地 ID。
 
@@ -220,7 +220,7 @@ claw.invoke('ohos-acm', { subcommand: 'get-current-userid', params: { help: true
 ### 问题 3: 子命令 --help 不可用
 
 **现象**:
-JS 应用执行 `ohos-acm get-current-userid --help` 时无法获取帮助信息。
+JS 应用执行 `ohos-acm get-os-account-local-id --help` 时无法获取帮助信息。
 
 **解决方法**:
 - 确认 `ohos-acm.json` 文件中子命令的 `inputSchema.properties` 包含 `help` 属性

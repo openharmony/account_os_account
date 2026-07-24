@@ -25,12 +25,11 @@ namespace AccountSA {
 namespace ACli {
 
 const char* TOOL_NAME = "ohos-acm";
-std::string g_programName = TOOL_NAME;
 
 const std::unordered_map<std::string, Command>& GetCommands()
 {
     static const std::unordered_map<std::string, Command> kCommands = {
-        {"get-current-userid", {"Get the local ID of the current OS account", CmdGetCurrentUserId}},
+        {"get-os-account-local-id", {"Get the local ID of the current OS account", CmdGetOsAccountLocalId}},
     };
     return kCommands;
 }
@@ -74,7 +73,7 @@ int OutputError(const std::string& code, const std::string& message, const std::
     return 1;
 }
 
-int CmdGetCurrentUserId(int argc, char** argv)
+int CmdGetOsAccountLocalId(int argc, char** argv)
 {
     (void)argc;
     (void)argv;
@@ -121,7 +120,7 @@ static void PrintFullHelp()
     CLI_LOG("ohos-acm - OS Account management command-line utility");
     CLI_LOG("");
     CLI_LOG("Usage:");
-    CLI_LOG(std::string("  ") + g_programName + " <command> [options]");
+    CLI_LOG(std::string("  ") + TOOL_NAME + " <command> [options]");
     CLI_LOG("");
     CLI_LOG("Parameters:");
     CLI_LOG("  --help             Show this help message");
@@ -134,9 +133,9 @@ static void PrintFullHelp()
 
     CLI_LOG("");
     CLI_LOG("Examples:");
-    CLI_LOG(std::string("  ") + g_programName + " --help");
-    CLI_LOG(std::string("  ") + g_programName + " get-current-userid");
-    CLI_LOG(std::string("  ") + g_programName + " get-current-userid --help");
+    CLI_LOG(std::string("  ") + TOOL_NAME + " --help");
+    CLI_LOG(std::string("  ") + TOOL_NAME + " get-os-account-local-id");
+    CLI_LOG(std::string("  ") + TOOL_NAME + " get-os-account-local-id --help");
 }
 
 static int PrintCommandHelp(const std::string& targetCmd)
@@ -151,13 +150,13 @@ static int PrintCommandHelp(const std::string& targetCmd)
     CLI_LOG(std::string("ohos-acm ") + targetCmd + " - " + it->second.description);
     CLI_LOG("");
     CLI_LOG("Usage:");
-    CLI_LOG(std::string("  ") + g_programName + " " + targetCmd + " [options]");
+    CLI_LOG(std::string("  ") + TOOL_NAME + " " + targetCmd + " [options]");
     CLI_LOG("");
     CLI_LOG("Parameters:");
-    CLI_LOG("  --help             Display this help message");
+    CLI_LOG("  --help             Show this help message");
     CLI_LOG("");
     CLI_LOG("Examples:");
-    CLI_LOG(std::string("  ") + g_programName + " " + targetCmd);
+    CLI_LOG(std::string("  ") + TOOL_NAME + " " + targetCmd);
 
     return 0;
 }

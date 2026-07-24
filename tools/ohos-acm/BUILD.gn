@@ -35,8 +35,8 @@ ohos_cli_executable("ohos-acm") {
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
-  cflags_cc = cflags
-  cflags_cc += [
+
+  cflags_cc = [
     "-Os",
     "-fno-asynchronous-unwind-tables",
     "-fno-unwind-tables",

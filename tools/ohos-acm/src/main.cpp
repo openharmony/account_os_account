@@ -29,10 +29,8 @@ constexpr int SUBCMD_ARGV_INDEX = 2;
 int main(int argc, char* argv[])
 {
     if (argc < MIN_REQUIRED_ARGS) {
-        g_programName = (argc > 0) ? argv[0] : TOOL_NAME;
         return CmdHelp(argc, argv);
     }
-    g_programName = argv[0];
 
     if (argc == ARG_COUNT_HELP_ONLY && std::strcmp(argv[1], "--help") == 0) {
         return CmdHelp(argc, argv);

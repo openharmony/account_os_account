@@ -44,7 +44,7 @@
     "eventSchemas": {},
     "hasSubCommand": true,
     "subcommands": {
-        "get-current-userid": {
+        "get-os-account-local-id": {
             "description": "Get the local ID of the current OS account for the calling process. Used for querying which OS account the calling process belongs to.",
             "requirePermissions": [],
             "inputSchema": {
