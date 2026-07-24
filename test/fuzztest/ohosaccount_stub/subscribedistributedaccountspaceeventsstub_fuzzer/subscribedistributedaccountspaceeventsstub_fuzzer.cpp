@@ -27,7 +27,7 @@
 #include "accesstoken_kit.h"
 #include "account_info.h"
 #include "account_log_wrapper.h"
-#include "distributed_account_event_service.h"
+#include "os_account_sub_profile_event_service.h"
 #include "nativetoken_kit.h"
 #include "fuzz_data.h"
 #include "token_setproc.h"
@@ -58,7 +58,7 @@ bool SubscribeDistributedAccountSpaceEventsStubFuzzTest(const uint8_t* data, siz
         return false;
     }
     if (fuzzData.GenerateBool()) {
-        if (!datas.WriteRemoteObject(DistributedAccountEventService::GetInstance()->AsObject())) {
+        if (!datas.WriteRemoteObject(OsAccountSubProfileEventService::GetInstance()->AsObject())) {
             return false;
         }
     }
