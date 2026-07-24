@@ -46,7 +46,7 @@ HWTEST_F(OhosAcmTest, Ohos_Acm_CommandMap_0001, Function | MediumTest | Level1)
 {
     const auto& commands = GetCommands();
     EXPECT_GE(commands.size(), static_cast<size_t>(1));
-    EXPECT_NE(commands.find("get-current-userid"), commands.end());
+    EXPECT_NE(commands.find("get-os-account-local-id"), commands.end());
     EXPECT_EQ(commands.find("--help"), commands.end());
 }
 
@@ -130,7 +130,7 @@ HWTEST_F(OhosAcmTest, Ohos_Acm_CmdHelp_0001, Function | MediumTest | Level1)
  */
 HWTEST_F(OhosAcmTest, Ohos_Acm_CmdHelp_0002, Function | MediumTest | Level1)
 {
-    const char* testArgv[] = {"ohos-acm", "get-current-userid"};
+    const char* testArgv[] = {"ohos-acm", "get-os-account-local-id"};
     int argc = 2;
     char* argv[] = {const_cast<char*>(testArgv[0]), const_cast<char*>(testArgv[1])};
     int ret = CmdHelp(argc, argv);
@@ -158,7 +158,7 @@ HWTEST_F(OhosAcmTest, Ohos_Acm_CmdHelp_0003, Function | MediumTest | Level1)
  */
 HWTEST_F(OhosAcmTest, Ohos_Acm_CmdHelp_0004, Function | MediumTest | Level1)
 {
-    const char* testArgv[] = {"ohos-acm", "get-current-userid", "--help"};
+    const char* testArgv[] = {"ohos-acm", "get-os-account-local-id", "--help"};
     int argc = 3;
     char* argv[] = {const_cast<char*>(testArgv[0]), const_cast<char*>(testArgv[1]),
         const_cast<char*>(testArgv[2])};
@@ -167,15 +167,15 @@ HWTEST_F(OhosAcmTest, Ohos_Acm_CmdHelp_0004, Function | MediumTest | Level1)
 }
 
 /**
- * @tc.number: Ohos_Acm_CmdGetCurrentUserId_0001
- * @tc.name: CmdGetCurrentUserId
- * @tc.desc: Test CmdGetCurrentUserId basic invocation
+ * @tc.number: Ohos_Acm_CmdGetOsAccountLocalId_0001
+ * @tc.name: CmdGetOsAccountLocalId
+ * @tc.desc: Test CmdGetOsAccountLocalId basic invocation
  */
-HWTEST_F(OhosAcmTest, Ohos_Acm_CmdGetCurrentUserId_0001, Function | MediumTest | Level1)
+HWTEST_F(OhosAcmTest, Ohos_Acm_CmdGetOsAccountLocalId_0001, Function | MediumTest | Level1)
 {
-    const char* testArgv[] = {"ohos-acm", "get-current-userid"};
+    const char* testArgv[] = {"ohos-acm", "get-os-account-local-id"};
     int argc = 2;
     char* argv[] = {const_cast<char*>(testArgv[0]), const_cast<char*>(testArgv[1])};
-    int ret = CmdGetCurrentUserId(argc, argv);
+    int ret = CmdGetOsAccountLocalId(argc, argv);
     EXPECT_EQ(ret, 0);
 }
