@@ -154,8 +154,6 @@ Examples:
 
 ## 使用示例
 
-### 命令行直接调用
-
 ```bash
 # 查看帮助
 ohos-acm --help
@@ -166,65 +164,6 @@ ohos-acm get-os-account-local-id
 # 查看子命令帮助
 ohos-acm get-os-account-local-id --help
 ```
-
-### JS 应用通过 Claw 框架调用
-
-```javascript
-// 获取当前用户 ID
-claw.invoke('ohos-acm', { subcommand: 'get-os-account-local-id' })
-
-// 查看子命令帮助
-claw.invoke('ohos-acm', { subcommand: 'get-os-account-local-id', params: { help: true } })
-```
-
-## 注意事项
-
-1. **权限要求**: `get-os-account-local-id` 子命令无需任何特殊权限。可通过任意进程直接调用。
-
-2. **返回值**: `userId` 为整数类型，表示调用方进程所属 OS 账号的本地 ID。
-
-3. **JSON 输出格式**: 所有命令返回统一的 JSON 格式，包含 `type`、`status`、`data`（成功时）或 `errCode`、`errMsg`、`suggestion`（失败时）字段。
-
-4. **可执行文件路径**: 安装后位于 `/system/bin/cli_tool/executable/ohos-acm`。
-
-## 使用场景
-
-- **智能体交互**: 智能体通过 CLI 查询当前所属的 OS 账号 ID，确定操作上下文
-- **脚本开发**: Shell 脚本中获取当前用户 ID 用于条件判断
-- **系统诊断**: 运维人员确认进程运行在预期账号下
-
-## 故障排除
-
-### 问题 1: 命令返回未知命令错误
-
-**现象**:
-```json
-{"type":"result","status":"failed","errCode":"ERR_UNKNOWN_COMMAND","errMsg":"Unknown command: xxx","suggestion":"Use --help to see available commands"}
-```
-
-**解决方法**:
-- 使用 `ohos-acm --help` 查看可用命令列表
-- 确认子命令拼写正确
-
-### 问题 2: 获取用户 ID 失败
-
-**现象**:
-```json
-{"type":"result","status":"failed","errCode":"ERR_GET_CURRENT_USERID","errMsg":"Failed to get OS account local ID from process","suggestion":"Check if OS account service is running properly"}
-```
-
-**解决方法**:
-- 确认 `accountmgr` 系统能力（SA 200）已启动
-- 检查系统日志: `hilog | grep -i C01B00`
-
-### 问题 3: 子命令 --help 不可用
-
-**现象**:
-JS 应用执行 `ohos-acm get-os-account-local-id --help` 时无法获取帮助信息。
-
-**解决方法**:
-- 确认 `ohos-acm.json` 文件中子命令的 `inputSchema.properties` 包含 `help` 属性
-- 确保 Claw 框架版本支持子命令级别的参数传递
 
 ## 相关资源
 - [OS Account 账号子系统](https://gitcode.com/openharmony/account_os_account)
