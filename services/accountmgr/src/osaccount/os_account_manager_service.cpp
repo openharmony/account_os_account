@@ -816,22 +816,8 @@ ErrCode OsAccountManagerService::GetCreatedOsAccountsCount(unsigned int &osAccou
 
 ErrCode OsAccountManagerService::GetOsAccountLocalIdFromProcess(int &id)
 {
-#ifdef HICOLLIE_ENABLE
-    unsigned int flag = HiviewDFX::XCOLLIE_FLAG_LOG | HiviewDFX::XCOLLIE_FLAG_RECOVERY;
-    XCollieCallback callbackFunc = [callingPid = IPCSkeleton::GetCallingPid(),
-        callingUid = IPCSkeleton::GetCallingUid()](void *) {
-        ACCOUNT_LOGE("ProcGetOsAccountLocalIdFromProcess failed, callingPid: %{public}d, callingUid: %{public}d.",
-            callingPid, callingUid);
-        ReportOsAccountOperationFail(callingUid, "watchDog", -1, "Get osaccount local id time out");
-    };
-    int timerId = HiviewDFX::XCollie::GetInstance().SetTimer(
-        TIMER_NAME, RECOVERY_TIMEOUT, callbackFunc, nullptr, flag);
-#endif // HICOLLIE_ENABLE
     const std::int32_t uid = IPCSkeleton::GetCallingUid();
     id = uid / UID_TRANSFORM_DIVISOR;
-#ifdef HICOLLIE_ENABLE
-    HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
-#endif // HICOLLIE_ENABLE
     return ERR_OK;
 }
 
@@ -1490,22 +1476,9 @@ ErrCode OsAccountManagerService::StartOsAccount(int32_t id)
 ErrCode OsAccountManagerService::SubscribeOsAccount(
     const OsAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener)
 {
-#ifdef HICOLLIE_ENABLE
-    unsigned int flag = HiviewDFX::XCOLLIE_FLAG_LOG | HiviewDFX::XCOLLIE_FLAG_RECOVERY;
-    XCollieCallback callbackFunc = [callingPid = IPCSkeleton::GetCallingPid(),
-        callingUid = IPCSkeleton::GetCallingUid()](void *) {
-        ACCOUNT_LOGE("ProcSubscribeOsAccount failed, callingPid: %{public}d, callingUid: %{public}d.",
-            callingPid, callingUid);
-        ReportOsAccountOperationFail(callingUid, "watchDog", -1, "Subscribe osaccount time out");
-    };
-    int timerId = HiviewDFX::XCollie::GetInstance().SetTimer(TIMER_NAME, RECOVERY_TIMEOUT, callbackFunc, nullptr, flag);
-#endif // HICOLLIE_ENABLE
     ErrCode checkResult = AccountPermissionManager::CheckSystemApp();
     if (checkResult != ERR_OK) {
         ACCOUNT_LOGE("Is not system application, result = %{public}u.", checkResult);
-#ifdef HICOLLIE_ENABLE
-        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
-#endif // HICOLLIE_ENABLE
         return checkResult;
     }
 
@@ -1516,9 +1489,6 @@ ErrCode OsAccountManagerService::SubscribeOsAccount(
     subscribeInfo.GetStates(states);
     if (osAccountSubscribeType == OsAccountState::INVALID_TYPE && states.empty()) {
         ACCOUNT_LOGE("Invalid subscriber information");
-#ifdef HICOLLIE_ENABLE
-        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
-#endif // HICOLLIE_ENABLE
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     // permission check
@@ -1526,18 +1496,31 @@ ErrCode OsAccountManagerService::SubscribeOsAccount(
           PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, "") ||
           PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, ""))) {
         ACCOUNT_LOGE("Account manager service, permission denied!");
-#ifdef HICOLLIE_ENABLE
-        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
-#endif // HICOLLIE_ENABLE
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
+#ifdef HICOLLIE_ENABLE
+    int timerId = -1;
+    if (AccountPermissionManager::IsHapCall()) {
+        unsigned int flag = HiviewDFX::XCOLLIE_FLAG_LOG | HiviewDFX::XCOLLIE_FLAG_RECOVERY;
+        XCollieCallback callbackFunc = [callingPid = IPCSkeleton::GetCallingPid(),
+            callingUid = IPCSkeleton::GetCallingUid()](void *) {
+            ACCOUNT_LOGE("ProcSubscribeOsAccount failed, callingPid: %{public}d, callingUid: %{public}d.",
+                callingPid, callingUid);
+            ReportOsAccountOperationFail(callingUid, "watchDog", -1, "Subscribe osaccount time out");
+        };
+        timerId = HiviewDFX::XCollie::GetInstance().SetTimer(
+            TIMER_NAME, RECOVERY_TIMEOUT, callbackFunc, nullptr, flag);
+    }
+#endif // HICOLLIE_ENABLE
     ErrCode result = innerManager_.SubscribeOsAccount(subscribeInfo, eventListener);
     if (result != ERR_OK) {
         REPORT_OS_ACCOUNT_FAIL(IPCSkeleton::GetCallingUid(), Constants::OPERATION_LOG_ERROR,
             result, "Subscribe os account failed.");
     }
 #ifdef HICOLLIE_ENABLE
-    HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+    if (timerId != -1) {
+        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+    }
 #endif // HICOLLIE_ENABLE
     return result;
 }
@@ -1857,25 +1840,11 @@ ErrCode OsAccountManagerService::DumpStateByAccounts(
 #endif
 ErrCode OsAccountManagerService::QueryActiveOsAccountIds(std::vector<int32_t>& ids)
 {
-#ifdef HICOLLIE_ENABLE
-    unsigned int flag = HiviewDFX::XCOLLIE_FLAG_LOG | HiviewDFX::XCOLLIE_FLAG_RECOVERY;
-    XCollieCallback callbackFunc = [callingPid = IPCSkeleton::GetCallingPid(),
-        callingUid = IPCSkeleton::GetCallingUid()](void *) {
-        ACCOUNT_LOGE("ProcQueryActiveOsAccountIds failed, callingPid: %{public}d, callingUid: %{public}d.",
-            callingPid, callingUid);
-        ReportOsAccountOperationFail(callingUid, "watchDog", -1, "Query active account id time out");
-    };
-    int timerId = HiviewDFX::XCollie::GetInstance().SetTimer(
-        TIMER_NAME, RECOVERY_TIMEOUT, callbackFunc, nullptr, flag);
-#endif // HICOLLIE_ENABLE
     ErrCode result = innerManager_.QueryActiveOsAccountIds(ids);
     if (result != ERR_OK) {
         REPORT_OS_ACCOUNT_FAIL(IPCSkeleton::GetCallingUid(), Constants::OPERATION_LOG_ERROR,
             result, "Query active os accountIds failed.");
     }
-#ifdef HICOLLIE_ENABLE
-    HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
-#endif // HICOLLIE_ENABLE
     return result;
 }
 #ifdef FUZZ_TEST

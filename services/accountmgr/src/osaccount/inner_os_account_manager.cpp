@@ -2014,6 +2014,8 @@ ErrCode IInnerOsAccountManager::SetGlobalOsAccountConstraints(const std::vector<
     errCode = osAccountControl_->UpdateGlobalOAConstraints(std::to_string(enforcerId), constraints, enable);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Update global OA constraints failed, errCode = %{public}d", errCode);
+        REPORT_OS_ACCOUNT_FAIL(enforcerId, Constants::OPERATION_SET_GLOBAL_CONSTRAINTS, errCode,
+            "Update global OA constraints failed");
     }
 
     errCode = DealWithDeviceOwnerId(isDeviceOwner, enforcerId);
@@ -3224,6 +3226,7 @@ ErrCode  IInnerOsAccountManager::SendToStorageAccountStart(OsAccountInfo &osAcco
     ErrCode err = OsAccountInterface::SendToStorageAccountStart(osAccountInfo);
     if (err != ERR_OK) {
         ACCOUNT_LOGE("Failed to SendToStorageAccountStart, localId %{public}d, error: %{public}d.", localId, err);
+        REPORT_OS_ACCOUNT_FAIL(localId, Constants::OPERATION_UNLOCK, err, "Send to storage account start failed");
         return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
     }
     if (osAccountInfo.GetIsVerified()) {
