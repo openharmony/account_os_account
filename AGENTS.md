@@ -6,6 +6,40 @@
 
 ---
 
+## 0. Quick Index
+
+### By task type
+| Task | Read first |
+|---|---|
+| Locate a feature | §1.4 Where to Look table → §1.3 Nested AGENTS.md routing table |
+| Understand a mechanism | §2.1–2.2 vocabulary/path routing → matching nested AGENTS.md §1–3 |
+| Verify whether a risk holds | §3.4 Pitfalls (incl. CE checklists) → §2.3 pre-edit protocol |
+| Modify code | §5 Verification Loop → §3.1 Do-not → §3.4 Pitfall |
+
+### By pitfall (quick lookup)
+| Risk | Pitfall | CE checklist | Key function (grep to locate) |
+|---|---|---|---|
+| SA startup blocking | P1 | CE6 | AccountMgrService::Init |
+| Data consistency | P2 | — | Transaction-related functions |
+| Sensitive-data clearing | P3 | — | memset_s / std::fill |
+| errno clobbered by HILOG | P4 | — | errno save point |
+| First-user path | P5 | CE6 | CreateBaseStandardAccount / ActivateDefaultOsAccount |
+| Slow operation inside lock | P6 | CE6 | Functions doing I/O/IPC while holding lock_guard/unique_lock |
+| Verify state not propagated | P7 | CE7 | UnlockUserStorage / SetOsAccountIsVerified / preVerified |
+| Slow recovery while holding lock | P8 | CE8 | HandleFileKeyException / try_lock |
+| OTA dirty-data loop | P9 | CE9 | GetDomainAccountInfo / accountName_.empty() |
+| GetOsAccountType loop | P10 | CE10 | GetOsAccountType / GetOsAccountInfoById |
+
+### Non-greppable information (unique value of AGENTS.md)
+The following information **cannot be obtained via code grep** and must be sourced from this file:
+- Constraint file names (base/global/specific_os_account_constraints.json) — the constant names are in os_account_constants.h, but "which is which" needs this file
+- DVID algorithm parameters (PBKDF2_HMAC-SHA256, iter=1000, keylen=32) — the GenerateDVID function body has them, but "this is DVID" needs this file
+- Pitfall mapping (which function has loop risk / slow-in-lock) — code does not self-label "I have risk"
+- EL2/EL3/EL4 level definitions — code has StorageManager calls but "EL2=user key / EL3=screen lock" needs this file
+- Standard call chain vs real code divergence (e.g. DVID is generated on the query path, not the login path) — code is readable but "the standard chain is wrong" needs this file
+
+---
+
 ## 1. Code Map
 
 ### 1.1 Responsibility
@@ -14,48 +48,15 @@ The OS Account subsystem (SA 200) manages account lifecycle, authentication, and
 distributed account data storage for OpenHarmony. It exposes **public NAPI/C APIs**
 to applications and **internal C++ inner APIs** to other system abilities.
 
-### 1.2 Directory Structure
+### 1.2 Key Paths Quick Reference
 
-```
-os_account/
-├── frameworks/                # Framework implementations per account type
-│   ├── osaccount/             #   OS account framework
-│   ├── appaccount/            #   App account framework
-│   ├── domain_account/        #   Domain account framework
-│   ├── account_iam/           #   Identity and authentication framework
-│   ├── ohosaccount/           #   Distributed account framework
-│   ├── authorization/         #   Authorization framework (optional)
-│   ├── common/                #   Shared utilities (log, json, database, error)
-│   ├── ets/                   #   Static native APIs (ArkTS)
-│   └── cj/                    #   CJ (FFI) bindings
-├── services/accountmgr/       # Main service (SA 200) — HIGH-RISK, frequently modified
-│   ├── src/
-│   │   ├── osaccount/         #   OS account service logic
-│   │   ├── appaccount/        #   App account service logic
-│   │   ├── domain_account/    #   Domain account service logic
-│   │   ├── account_iam/       #   IAM service logic
-│   │   └── ohos_account_manager.cpp  # Distributed account manager
-│   ├── include/               #   Internal headers
-│   ├── test/                  #   Unit & module tests
-│   └── *.json                 #   SA config files
-├── interfaces/
-│   ├── innerkits/             # Internal C++ APIs (inter-SA) — compatibility-sensitive
-│   │   ├── osaccount/native/
-│   │   ├── appaccount/native/
-│   │   ├── domain_account/native/
-│   │   ├── account_iam/native/
-│   │   └── common/            #   Shared interfaces + error codes
-│   └── kits/                  # External APIs (NAPI, C API, CJ) — PUBLIC API, do-not-break
-│       ├── napi/              #   Node.js API (JS/TS)
-│       ├── capi/              #   C API
-│       └── cj/                #   CJ (FFI) bindings
-├── sa_profile/                # SA profile (accountmgr.json)
-├── tools/acm/                 # ACM CLI tool
-├── dfx/                       # HiDumper / HiSysEvent / HiTrace adapters
-├── test/                      # unittest / moduletest / fuzztest / systemtest
-├── .refdocs/                  # Deep-dive docs (architecture, dev guide, FAQ)
-└── os_account.gni             # Global build + feature-flag config
-```
+(Use `codegraph_files` or `ls` for the full tree on demand; below are high-frequency modification paths.)
+
+- `services/accountmgr/src/<type>/` — service logic (osaccount / appaccount / domain_account / account_iam); `account_mgr_service.cpp` is the SA 200 entry, HIGH-RISK
+- `frameworks/<type>/native/` — per-account-type framework implementation
+- `interfaces/innerkits/<type>/native/include/` — internal C++ API (inter-SA, compatibility-sensitive)
+- `interfaces/kits/{napi,capi,cj}/` — public external API (do-not-break)
+- `os_account.gni` (feature flags) / `dfx/` (HiDumper·HiSysEvent·HiTrace) / `sa_profile/accountmgr.json` (SA profile) / `tools/acm/` (CLI) / `.refdocs/` (architecture/dev guide/FAQ)
 
 ### 1.3 Nested AGENTS.md (read these first when working in the module)
 
@@ -70,22 +71,28 @@ editing that module.**
 | `services/accountmgr/src/distributed_account/` | [services/accountmgr/src/distributed_account/AGENTS.md](services/accountmgr/src/distributed_account/AGENTS.md) — OhosAccountManager, DVID generation, anonymization, JSON schema |
 | `services/accountmgr/src/account_iam/` | [services/accountmgr/src/account_iam/AGENTS.md](services/accountmgr/src/account_iam/AGENTS.md) — credential management, EL2/EL3/EL4 unlock, IAM state machine, token validity |
 
-### 1.4 Where to Look (task → path)
+### 1.4 Where to Look (task / path → primary location + read-first)
 
-| Task type | Primary path | Key files |
-|-----------|-------------|-----------|
-| Add/change a **public API** (NAPI) | `interfaces/kits/napi/` | `@ohos.account.osAccount.d.ts`, `appAccount.d.ts`, `distributedAccount.d.ts` |
-| Add/change a **public C API** | `interfaces/kits/capi/` | CAPI headers + `capi-osaccount.md` docs |
-| Add/change an **internal C++ API** | `interfaces/innerkits/<type>/native/include/` | `os_account_manager.h`, `app_account_manager.h`, `domain_account_client.h`, `account_iam_client.h` |
-| Implement **service logic** | `services/accountmgr/src/<type>/` | See Nested AGENTS.md above |
-| Implement **framework logic** | `frameworks/<type>/native/` | Per-type framework dirs |
-| Add/modify a **feature flag** | `os_account.gni` | Feature flags table below |
-| Add a **unit/module test** | `services/accountmgr/test/` or `test/unittest/`, `test/moduletest/` | `*_test.cpp`, `*_moduletest.cpp` |
-| Add a **fuzz test** | `test/fuzztest/` | `*_fuzztest.cpp` |
-| Change **SA profile** | `sa_profile/accountmgr.json` | SA 200 config |
-| Change **DFX / diagnostics** | `dfx/` | `hidumper_adapter/`, `hisysevent_adapter/`, `hitrace_adapter/` |
-| Change **ACM CLI tool** | `tools/acm/` | `acm` executable |
-| Debug **persistent data** | on-device `/data/service/el1/public/account/` | See Configuration Files table below |
+(Merges the former §1.4 task→path and §2.2 path→read-first tables.)
+
+| Path / Task type | Primary location | Read first (also-read) |
+|------------------|------------------|------------------------|
+| Public API (NAPI) | `interfaces/kits/napi/` + matching `d.ts` | §3.1 Do-not; error-code docs |
+| Public C API | `interfaces/kits/capi/` | §3.1 Do-not |
+| Internal C++ API | `interfaces/innerkits/<type>/native/include/` | Nested AGENTS.md (contract may affect callers) |
+| Service logic — osaccount | `services/accountmgr/src/osaccount/` | [osaccount/AGENTS.md](services/accountmgr/src/osaccount/AGENTS.md) |
+| Service logic — appaccount | `services/accountmgr/src/appaccount/` | [appaccount/AGENTS.md](services/accountmgr/src/appaccount/AGENTS.md) |
+| Service logic — distributed_account | `services/accountmgr/src/distributed_account/` | [distributed_account/AGENTS.md](services/accountmgr/src/distributed_account/AGENTS.md) |
+| Service logic — account_iam | `services/accountmgr/src/account_iam/` | [account_iam/AGENTS.md](services/accountmgr/src/account_iam/AGENTS.md) |
+| Framework logic | `frameworks/<type>/native/` | Per-type framework dirs |
+| Feature flag / build | `os_account.gni` | §1.6 (flag affects whole subsystem) |
+| Unit/module test | `services/accountmgr/test/` or `test/{unittest,moduletest}/` | `*_test.cpp` / `*_moduletest.cpp` |
+| Fuzz test | `test/fuzztest/` | `*_fuzztest.cpp` |
+| SA profile | `sa_profile/accountmgr.json` | §3.2 (ask before changing) |
+| DFX / diagnostics | `dfx/` | HiSysEvent schema must not break consumers |
+| ACM CLI | `tools/acm/` | `acm` executable |
+| Persistent data | on-device `/data/service/el1/public/account/` | §4 Configuration Files |
+| SA startup entry | `services/accountmgr/src/account_mgr_service.cpp` | Pitfall 1 & 5 (high-risk) |
 
 ### 1.5 Key Entry Points
 
@@ -156,21 +163,7 @@ Read deeper docs **based on the task**, not in full every time.
 | Build config / feature flag / GN target | `os_account.gni`; `BUILD.gn` in the target dir |
 | Locking / concurrency / deadlock | Nested AGENTS.md §"Thread Safety" / "Lock Hierarchy" for the module |
 
-### 2.2 Path-based routing
-
-| When editing files under… | Also read |
-|--------------------------|-----------|
-| `interfaces/kits/` | §3.1 (public API do-not); the matching `d.ts` and error-code docs |
-| `interfaces/innerkits/` | The matching nested AGENTS.md (interface contract may affect callers) |
-| `services/accountmgr/src/osaccount/` | [osaccount/AGENTS.md](services/accountmgr/src/osaccount/AGENTS.md) |
-| `services/accountmgr/src/appaccount/` | [appaccount/AGENTS.md](services/accountmgr/src/appaccount/AGENTS.md) |
-| `services/accountmgr/src/distributed_account/` | [distributed_account/AGENTS.md](services/accountmgr/src/distributed_account/AGENTS.md) |
-| `services/accountmgr/src/account_iam/` | [account_iam/AGENTS.md](services/accountmgr/src/account_iam/AGENTS.md) |
-| `services/accountmgr/src/account_mgr_service.cpp` | Pitfall 1 & 5 (SA startup is high-risk) |
-| `os_account.gni` | §1.6 Feature Flags (flag changes affect whole subsystem) |
-| `dfx/` | HiSysEvent schema must not break existing consumers |
-
-### 2.3 Vocabulary routing
+### 2.2 Vocabulary routing
 
 When the task, a log, an issue, or a file mentions these terms, read the
 indicated source before editing:
@@ -189,15 +182,20 @@ indicated source before editing:
 | `OsAccountInfo` | Core struct: `localId`, `localName`, `type`, `constraints`, `isActived` | [osaccount/AGENTS.md](services/accountmgr/src/osaccount/AGENTS.md) §"Key Data Structures" |
 | IAM fault flag | File marking a user needs key-context restoration after a crash | [account_iam/AGENTS.md](services/accountmgr/src/account_iam/AGENTS.md) §"IAM Fault Flag" |
 
-### 2.4 Pre-edit protocol
+### 2.3 Pre-edit protocol
 
 Before writing any code, state in your response:
 1. **Task category**: which of (public API / inner API / service logic / framework / build config / DFX / test / other).
-2. **Documents read**: which nested AGENTS.md, `.refdocs/`, or external docs you loaded (per §2.1–2.3).
+2. **Documents read**: which nested AGENTS.md, `.refdocs/`, or external docs you loaded (per §2.1–2.2).
 3. **Constraints found**: which Do-not / Ask-before rules (§3) apply to this task.
 
 If you cannot identify the task category or relevant constraints, **ask the user
 before editing**.
+
+- **Document references are not code evidence**: citing AGENTS.md / FAQ / nested AGENTS.md sections in a final answer **does not count as code-level evidence** — it is only a knowledge-routing record. Every judgment must be backed by an independent source line number. Citing a doc section cannot replace tracing code details.
+- **Do not stop at concepts**: AGENTS.md gives you the "what" (concept) and the "where" (entry point), but the "how" (code-level evidence) must be traced by you to file:line. Citing an AGENTS.md concept description is not completion — you must trace into function bodies, service-layer call sites, secondary gating, and early-return paths.
+- **Do not read without verifying**: AGENTS.md references are now by function name (line numbers drift with code). You must use grep/codegraph to locate the current line number in real time; do not assume positions given in AGENTS.md are still accurate.
+- **Quick-lookup → deep-trace two-step method**: first use the quick index (§0) to fast-locate relevant knowledge entries, then trace code evidence item by item against the CE checklists. Every CE checklist item is a "code detail that must be traced", not an "optional reference".
 
 ---
 
@@ -288,67 +286,108 @@ Locks protect in-memory account lists and per-UID state. Do not perform disk
 I/O, IPC, or long computations while holding a lock — risk of deadlock or IPC
 thread exhaustion. Follow the lock hierarchy in each module's nested AGENTS.md.
 
+**Code-level evidence checklist (CE6):**
+- Trace lock-holding functions (e.g. `CreateOsAccount` holding `createOsAccountMutex_`) for whether they contain disk I/O (`UpdateOsAccount`/DB write), IPC (`AccountIAMClient` calls), or long compute loops.
+- Confirm that `WriteOsAccountFile` / `SaveAccountList` and other persistence calls occur only after the lock is released.
+- Check whether a per-UID lock calls a function that reverse-acquires the same lock or a higher-level lock (lock-hierarchy inversion).
+
+⚠ **Common omissions**: ① only checking `lock_guard` but not `unique_lock`/`shared_lock` ② ignoring in-lock Common Event Service event-publishing IPC ③ ignoring in-lock Bundle Manager Service / Ability Manager Service IPC.
+
 **Pitfall 7 — Verify state must be set on every unlock path, including no-password.**
 After device reboot, features like screenshot, screen recording, and memo
 creation depend on `OsAccountInfo.isVerified == true`. This flag is set via
 `SetOsAccountIsVerified(true)` only when `isUpdateVerifiedStatus` is true
-(`account_iam_callback.cpp:377`). In `UnlockUserStorage()`
-(`inner_account_iam_manager.cpp:898`), `isUpdateVerifiedStatus` is set to true
-only inside the `needActivateKey` branch (line 934). If the account is already
-marked verified (line 902-906), `needActivateKey` may stay false and verify
-state is never propagated. When adding or modifying any unlock code path,
-trace that `SetOsAccountIsVerified(true)` is eventually reached — especially
-no-password / auto-unlock scenarios where authentication is skipped.
+(at the `SetOsAccountIsVerified` call site in `account_iam_callback.cpp`). In
+`UnlockUserStorage()` (the `UnlockUserStorage()` entry in
+`inner_account_iam_manager.cpp`), `isUpdateVerifiedStatus` is set to true only
+inside the `needActivateKey` branch. If the account is already marked verified
+(verified branch), `needActivateKey` may stay false and the verify state is
+never propagated. When adding or modifying any unlock code path, trace that
+`SetOsAccountIsVerified(true)` is eventually reached — especially no-password /
+auto-unlock scenarios where authentication is skipped.
   Historical: "device reboot breaks screenshot/screen-recording/memo — verify
   state not set to true during no-password unlock"
 
+**Code-level evidence checklist (CE7):**
+- Trace the internal sub-call chain of `HandleFileKeyException()`: whether `UpdateStorageUserAuth()` / `UpdateStorageKeyContext()` finally triggers `SetOsAccountIsVerified(true)`.
+- Inside `SetOsAccountIsVerified()`, confirm the `preVerified` secondary gating logic — an unverified account does not short-circuit past propagation.
+- Trace the `OnResult` path of `account_iam_callback`: confirm every branch either calls `SetOsAccountIsVerified(true)` or has a justified early return; specifically check whether the no-password / already-verified branch returns early and skips `SetOsAccountIsVerified`.
+
+⚠ **Common omissions**: ① missing the `UpdateStorageUserAuth`/`UpdateStorageKeyContext` sub-calls inside `HandleFileKeyException` ② missing the `preVerified` secondary gating (`if(!preVerified && isVerified)` inside `SetOsAccountIsVerified`) ③ missing the 4 early returns in `OnResult` before `SetOsAccountIsVerified` ④ no-password scenario `secret.empty()` early return.
+
 **Pitfall 8 — Avoid holding per-user lock during slow storage operations; use try_lock in recovery paths.**
-`HandleFileKeyException()` (`inner_account_iam_manager.cpp:533`) restores key
-context after a crash by calling `UpdateStorageUserAuth()` and
-`UpdateStorageKeyContext()` — both involve IPC retry loops (20×100ms). Before
-the fix, it held the per-user lock (`GetOperatingUserLock(userId)`) during the
-entire slow operation. Meanwhile, the normal unlock path (`UnlockUserStorage()`)
-also calls `HandleFileKeyException()` at entry (line 901), then proceeds to
-`ActivateUserKey()` and `UnlockUserScreen()`. Multiple concurrent unlock
-requests would block on the per-user lock, exhausting the `accountmgr` thread
-pool and causing the service to freeze (device black screen). Fix: use
-`try_lock()` in recovery paths that may be slow; if the lock is held, return
-`ERR_ACCOUNT_COMMON_BUSY` immediately. Also ensure `ActivateUserKey()` and
-`UnlockUserScreen()` properly acquire the per-user lock via `lock_guard` to
-serialize storage access.
-  Commit: b2c90559a — Historical: "device black screen then recovers —
-  accountmgr threads exhausted waiting on lock held by slow reenroll"
+`HandleFileKeyException()` (at the `HandleFileKeyException()` definition in
+`inner_account_iam_manager.cpp`) restores key context after a crash by calling
+`UpdateStorageUserAuth()` and `UpdateStorageKeyContext()` — both involve IPC
+retry loops (20×100ms). Before the fix, it held the per-user lock
+(`GetOperatingUserLock(userId)`) during the entire slow operation. Meanwhile,
+the normal unlock path (`UnlockUserStorage()`) also calls
+`HandleFileKeyException()` at entry (the `HandleFileKeyException` call at the
+`UnlockUserStorage()` entry), then proceeds to `ActivateUserKey()` and
+`UnlockUserScreen()`. Multiple concurrent unlock requests would block on the
+per-user lock, exhausting the `accountmgr` thread pool and causing the service
+to freeze (device black screen). Fix: use `try_lock()` in recovery paths that
+may be slow; if the lock is held, return `ERR_ACCOUNT_COMMON_BUSY` immediately.
+Also ensure `ActivateUserKey()` and `UnlockUserScreen()` properly acquire the
+per-user lock via `lock_guard` to serialize storage access.
+  Historical: "device black screen then recovers — accountmgr threads exhausted
+  waiting on lock held by slow reenroll"
+
+**Code-level evidence checklist (CE8):**
+- At the `HandleFileKeyException()` definition, confirm the recovery path uses `try_lock()` rather than `lock()`, returning `ERR_ACCOUNT_COMMON_BUSY` when the lock is held.
+- Confirm `ActivateUserKey()` / `UnlockUserScreen()` use `lock_guard` to acquire the per-user lock and serialize storage access.
+- Verify that after `UnlockUserStorage()` calls `HandleFileKeyException()` at entry, it does not re-hold the lock to do slow operations.
+
+⚠ **Common omissions**: ① only checking `try_lock` but not `lock_guard` serialization ② ignoring the thread occupancy of the 20×100ms retry loop ③ missing the `lock_guard` in `ActivateUserKey`/`UnlockUserScreen`.
 
 **Pitfall 9 — Guard against empty/invalid data from OTA migration; prevent cross-module circular calls.**
 OTA upgrades may leave dirty data from old versions (e.g. empty
 `domainServerConfigId`). During boot, `QueryOsAccountById()`
-(`inner_os_account_manager.cpp:1530`) calls `GetDomainAccountStatus()`, which
-queries domain account info. If the domain plugin query encounters empty config
-data and falls back to querying `account_info` again, a circular call chain
-forms: query account → query domain → query account → … — crashing or hanging
-boot, causing repeated reboot loops. Fix patterns: (1) Add empty/null guards at
-every cross-module query entry point (e.g. `GetDomainAccountInfo()` checks
-`accountName_.empty()` before invoking the plugin, line 1588). (2) Provide a
-synchronous overload of cross-module query APIs to avoid callback re-entrancy.
-(3) Always null-check callbacks before invoking them (e.g. `CallbackOnResult()`
-helper wrapping `callback->OnResult()`). When adding cross-module calls,
-explicitly verify no circular dependency exists in the call graph.
-  Commit: 82144eb — Historical: "OTA → device repeatedly reboots —
-  empty domainServerConfigId triggered circular account_info query"
+(at the `QueryOsAccountById()` definition in `inner_os_account_manager.cpp`)
+calls `GetDomainAccountStatus()`, which queries domain account info. If the
+domain plugin query encounters empty config data and falls back to querying
+`account_info` again, a circular call chain forms: query account → query
+domain → query account → … — crashing or hanging boot, causing repeated reboot
+loops. Fix patterns: (1) Add empty/null guards at every cross-module query entry
+point (e.g. `GetDomainAccountInfo()` checks `accountName_.empty()` before
+invoking the plugin, at the `accountName_.empty()` check site in
+`GetDomainAccountInfo()`). (2) Provide a synchronous overload of cross-module
+query APIs to avoid callback re-entrancy. (3) Always null-check callbacks
+before invoking them (e.g. `CallbackOnResult()` helper wrapping
+`callback->OnResult()`). When adding cross-module calls, explicitly verify no
+circular dependency exists in the call graph.
+  Historical: "OTA → device repeatedly reboots — empty domainServerConfigId
+  triggered circular account_info query"
+
+**Code-level evidence checklist (CE9):**
+- At the `GetDomainAccountInfo()` entry, confirm the `accountName_.empty()` / `domainServerConfigId.empty()` null guard — on empty it returns directly without triggering the plugin query.
+- Confirm cross-module query APIs have a synchronous overload to avoid the account→domain→account loop caused by callback re-entrancy.
+- Trace whether the `CallbackOnResult()` wrapper null-checks before calling `callback->OnResult()`.
+
+⚠ **Common omissions**: ① missing the `accountName_.empty()` null guard ② missing the `CallbackOnResult` null-pointer check ③ not distinguishing sync vs async overload callback re-entrancy risk.
 
 **Pitfall 10 — `GetOsAccountType()` must not call `GetOsAccountInfoById()` — self-referencing circular call.**
-`GetOsAccountType()` (`inner_os_account_manager.cpp:2303`) needs the account
-type. Calling `GetOsAccountInfoById()` to obtain it forms a circular chain:
+`GetOsAccountType()` (at the `GetOsAccountType()` definition in
+`inner_os_account_manager.cpp`) needs the account type. Calling
+`GetOsAccountInfoById()` to obtain it forms a circular chain:
 `GetOsAccountType` → `GetOsAccountInfoById` → `QueryOsAccountById` →
 `GetDomainAccountStatus` → (potentially back to `GetOsAccountType`). On
 emulator builds without TEE hardware this is especially dangerous because the
 software fallback path hits the same circular dependency. Fix: read the account
-type from an independent data source — TEE hardware (`teeAdapter_.GetOsAccountType()`),
-a type-only cache (`osAccountCacheManager_`), or a direct DB read that bypasses
-the full `QueryOsAccountById` flow. Never use `GetOsAccountInfoById` inside
+type from an independent data source — TEE hardware
+(`teeAdapter_.GetOsAccountType()`), a type-only cache
+(`osAccountCacheManager_`), or a direct DB read that bypasses the full
+`QueryOsAccountById` flow. Never use `GetOsAccountInfoById` inside
 `GetOsAccountType` or any function called by `GetOsAccountType`.
-  Commit: 6f0d055 — Historical: "emulator won't boot —
-  GetOsAccountType → GetOsAccountInfoById circular call"
+  Historical: "emulator won't boot — GetOsAccountType → GetOsAccountInfoById
+  circular call"
+
+**Code-level evidence checklist (CE10):**
+- Distinguish the two same-named methods: `IInnerOsAccountManager::GetOsAccountInfoById()` (goes through the full `QueryOsAccountById` flow, has loop risk) vs `OsAccountControlFileManager::GetOsAccountInfoById()` (direct file read, safe).
+- At the `GetOsAccountType()` definition, confirm the type source is `teeAdapter_.GetOsAccountType()` / `osAccountCacheManager_` / direct DB read, not `IInnerOsAccountManager::GetOsAccountInfoById()`.
+- Trace all callees of `GetOsAccountType` and confirm none can reach `GetOsAccountType` again via `QueryOsAccountById`.
+
+⚠ **Common omissions**: ① not distinguishing `IInnerOsAccountManager::GetOsAccountInfoById` (full `QueryOsAccountById` flow, loop risk) vs `OsAccountControlFileManager::GetOsAccountInfoById` (direct file read, safe) ② missing the emulator no-TEE software fallback path.
 
 ---
 
@@ -441,35 +480,12 @@ cd {OpenHarmonyRootFolder}/test/testfwk/developer_test
 | Unstripped (symbols) | `out/{product}/lib.unstripped/account/os_account` |
 | Test executables | `out/{product}/tests/unittest/os_account`, `out/{product}/tests/moduletest/os_account` |
 
-### 5.5 Done definition
+### 5.5 Done definition, escalation & fallback
 
-A change is **done** when **all** of the following hold:
-1. `./build.sh --product-name rk3568 --build-target os_account` succeeds with no errors.
-2. The relevant test suite passes: `./start.sh run -p rk3568 -t UT MST -tp os_account -ts <suite>`
-   — report the suite name and pass/fail counts.
-3. No new compiler warnings in changed files (treat warnings as errors).
-4. If `interfaces/kits/` or `interfaces/innerkits/` changed: API-diff / caller
-   build confirmed; **explicitly state whether any public surface changed**.
-5. If the change touches SA startup, first-user path, permissions, or on-disk
-   schema: user has approved (§3.1 / §3.2).
-
-### 5.6 Final response expectations
-
-When reporting a completed task, include:
-- **Summary**: one-line description of the change.
-- **Files changed**: list of paths.
-- **Build status**: command + result.
-- **Test status**: suite name, pass/fail counts (or "not run — reason").
-- **Compatibility**: whether public API / inner API / on-disk schema / permissions
-  were affected (yes/no + detail).
-- **Constraints checked**: which §3 Do-not / Ask-before rules were reviewed.
-
-### 5.7 Fallback if validation cannot run
-
-If you cannot run the build or tests (e.g., no OpenHarmony root, no toolchain):
-1. State explicitly: "I could not run the build/tests because <reason>."
-2. Ask the user to run the commands in §5.1–5.3 and share the output.
-3. Do **not** claim the change is verified or done.
+- **Done**: build + relevant test suite pass, with no new compiler warnings (warnings as errors).
+- **Escalate before committing** (module-specific, §3.1 / §3.2): public API surface changed / inner API signature changed / on-disk schema changed / permissions changed / SA startup or first-user path touched.
+- **Final response must include**: summary, files changed, build/test status (suite name + pass/fail counts), compatibility impact (public API / inner API / schema / permissions yes/no), constraints checked.
+- **Fallback**: if build/tests cannot run (no OpenHarmony root / toolchain), explicitly state the reason + ask the user to run §5.1–5.3 and return the output; **must not** claim verified/done.
 
 ---
 
@@ -521,14 +537,4 @@ acm switch -i <accountId>       # Activate account — MUTATES DEVICE STATE
 
 ## 8. Coding Standards
 
-- [C Coding Style Guide](https://gitcode.com/openharmony/docs/blob/master/en/contribute/OpenHarmony-c-coding-style-guide.md)
-- [C/C++ Secure Coding Guide](https://gitcode.com/openharmony/docs/blob/master/en/contribute/OpenHarmony-c-cpp-secure-coding-guide.md)
-
----
-
-## Version History
-
-| Version | Date | Changes | Maintainer |
-|---------|------|---------|------------|
-| v1.0 | 2026-01-31 | Initial AGENTS.md creation | AI Assistant |
-| v2.0 | 2026-07-09 | Rewritten per agent-instruction quality review: added code map, knowledge routing, constraints & boundaries, verification loop | AI Assistant |
+Follow the official OpenHarmony [C Coding Style Guide](https://gitcode.com/openharmony/docs/blob/master/en/contribute/OpenHarmony-c-coding-style-guide.md) and [C/C++ Secure Coding Guide](https://gitcode.com/openharmony/docs/blob/master/en/contribute/OpenHarmony-c-cpp-secure-coding-guide.md) (change history in `git log`).

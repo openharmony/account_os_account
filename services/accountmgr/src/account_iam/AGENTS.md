@@ -3,7 +3,7 @@
 > Scope: **directory** `services/accountmgr/src/account_iam/` — Identity and Access Management (IAM) service logic.
 > Parent: [../../../../AGENTS.md](../../../../AGENTS.md) (root, §1–8 framework applies here too).
 > Target: any coding agent editing this module.
-> IAM fault flag path: `/data/service/el2/account_user_{userId}/iam_fault`
+> IAM fault flag path: `/data/service/el1/public/account/{userId}/iam_fault`
 
 ---
 
@@ -24,11 +24,11 @@ Manager for key management.
 
 ### 1.3 Key Files
 
-| File | Responsibility |
-|------|----------------|
-| [account_iam_service.cpp](account_iam_service.cpp) | IPC service layer; permission validation; account ID normalization |
-| [inner_account_iam_manager.cpp](inner_account_iam_manager.cpp) | Core IAM business logic; state machine; storage key operations |
-| [account_iam_callback.cpp](account_iam_callback.cpp) | Async operation callbacks; auth result processing; unlock logic |
+| File | Responsibility | Thread Safety |
+|------|----------------|---------------|
+| [account_iam_service.cpp](account_iam_service.cpp) | IPC service layer; permission validation; account ID normalization | Stateless IPC stub (binder threads) |
+| [inner_account_iam_manager.cpp](inner_account_iam_manager.cpp) | Core IAM business logic; state machine; storage key operations | `operatingMutex_` (map lock), `userLocks_[userId]` (per-user lock), `mutex_` (state lock) |
+| [account_iam_callback.cpp](account_iam_callback.cpp) | Async operation callbacks; auth result processing; unlock logic | Relies on manager locks; cond-var wait pattern (5s secure UID / 6s re-enroll) |
 
 ### 1.4 Where to Look (task → path)
 
@@ -36,12 +36,12 @@ Manager for key management.
 |------|------------|
 | Add/change an IAM IPC method | `account_iam_service.cpp` → `inner_account_iam_manager.cpp` |
 | Credential management (add/update/delete) | `inner_account_iam_manager.cpp` §2.2 |
-| Authentication flow | `inner_account_iam_manager.cpp:297` + `account_iam_callback.cpp:356` |
-| EL2/EL3/EL4 unlock logic | `inner_account_iam_manager.cpp` §2.4 (Storage Key Management) |
+| Authentication flow | `AuthUser()` + `AuthCallback::OnResult()` |
+| EL2/EL3/EL4 unlock logic | `inner_account_iam_manager.cpp` §3.4 (Storage Key Management) |
 | IAM state machine | `inner_account_iam_manager.cpp` — `userStateMap_` with `GetState()/SetState()` |
-| Remote auth | `inner_account_iam_manager.cpp:261` (`PrepareRemoteAuth`) |
-| Callback wrappers | `account_iam_callback.cpp` §4 (Callbacks table) |
-| Token validity | `account_iam_callback.cpp:615` (`VerifyTokenCallbackWrapper`) |
+| Remote auth | `PrepareRemoteAuth()` |
+| Callback wrappers | `account_iam_callback.cpp` §6 (Callbacks table) |
+| Token validity | `VerifyTokenCallbackWrapper()` |
 | Data types (AuthType, AuthTrustLevel, etc.) | `interfaces/innerkits/account_iam/native/include/account_iam_info.h` |
 
 ---
@@ -72,17 +72,17 @@ Manager for key management.
 |------|---------|------|
 | EL1/EL2/EL3/EL4 | Encryption levels: EL1=system (no key), EL2=user key, EL3/EL4=screen-lock key | §3.4 Storage Key Management |
 | `IAMState` | Enum tracking operation state: IDLE, AFTER_OPEN_SESSION, DURING_AUTHENTICATE, etc. | §3.1 IAM State Machine |
-| `AuthType` | PIN=1, FACE=2, FINGERPRINT=4, RECOVERY_KEY=8, PRIVATE_PIN=16, DOMAIN=1024 | §3.6 AuthType |
-| `AuthTrustLevel` | ATL1=10000, ATL2=20000, ATL3=30000 (default), ATL4=40000 (high security) | §3.7 AuthTrustLevel |
-| `AuthIntent` | DEFAULT=0, UNLOCK=1, SILENT_AUTH=2, QUESTION_AUTH=3, ABANDONED_PIN_AUTH=4 | §3.8 AuthIntent |
-| IAM fault flag | File at `/data/service/el2/account_user_{userId}/iam_fault` marking users needing key restoration | §4.5 IAM Fault Flag |
+| `AuthType` | PIN/face/fingerprint/recovery-key/private-pin/domain auth enum | §8 Key Data Types |
+| `AuthTrustLevel` | ATL1–ATL4 security tiers (ATL3 default) | §8 Key Data Types |
+| `AuthIntent` | DEFAULT/UNLOCK/SILENT_AUTH/QUESTION_AUTH/ABANDONED_PIN_AUTH | §8 Key Data Types |
+| IAM fault flag | File at `/data/service/el1/public/account/{userId}/iam_fault` marking users needing key restoration | §4.5 IAM Fault Flag |
 | Token validity | 60-second window for credential deletion operations | §4.5 Token Validity |
 | `operatingMutex_` → `userLocks_[userId]` → `mutex_` | Lock hierarchy to prevent deadlock | §4.2 Lock Hierarchy |
 | `ATTR_RE_ENROLL_FLAG` | IAM-set flag triggering PIN re-enrollment | §5.3 PIN Re-enrollment |
 
 ### 2.3 Pre-edit protocol
 
-See root [AGENTS.md](../../../../AGENTS.md) §2.4. Before writing code, state:
+See root [AGENTS.md](../../../../AGENTS.md) §2.3. Before writing code, state:
 1. **Task category** (credential / auth / storage key / state machine / callback / permission / other).
 2. **Documents read** (per §2.1–2.2 above).
 3. **Constraints found** (§4 Do-not / Ask-before rules that apply).
@@ -107,20 +107,20 @@ enum IAMState {
 
 ### 3.2 Credential Management
 
-| Function | Purpose | Key Points | File |
-|----------|---------|-------------|-------|
-| `AddCredential()` | Enroll PIN/fingerprint/face | Creates IAM fault flag, updates storage auth, activates EL2 | [inner_account_iam_manager.cpp:114](inner_account_iam_manager.cpp) |
-| `UpdateCredential()` | Change credential | Validates token, handles re-enrollment, supports recovery key | [inner_account_iam_manager.cpp:149](inner_account_iam_manager.cpp) |
-| `DelCred()` | Delete specific credential | Resets PIN credentialId to 0, updates storage | [inner_account_iam_manager.cpp:182](inner_account_iam_manager.cpp) |
-| `DelUser()` | Delete all credentials | Verifies token (60s validity), creates fault flag | [inner_account_iam_manager.cpp:204](inner_account_iam_manager.cpp#L204) |
+| Function | Purpose | Key Points |
+|----------|---------|-------------|
+| `AddCredential()` | Enroll PIN/fingerprint/face | Creates IAM fault flag, updates storage auth, activates EL2 |
+| `UpdateCredential()` | Change credential | Validates token, handles re-enrollment, supports recovery key |
+| `DelCred()` | Delete specific credential | Resets PIN credentialId to 0, updates storage |
+| `DelUser()` | Delete all credentials | Verifies token (60s validity), creates fault flag |
 
 ### 3.3 User Authentication
 
-| Function | Purpose | File |
-|----------|---------|-------|
-| `AuthUser()` | Start authentication, return contextId for cancel | [inner_account_iam_manager.cpp:297](inner_account_iam_manager.cpp#L297) |
-| `AuthCallback::OnResult()` | Handle auth result: extract token/secret, unlock EL2/EL3/EL4, update verified status | [account_iam_callback.cpp:356](account_iam_callback.cpp#L356) |
-| `CancelAuth()` | Cancel ongoing authentication | [inner_account_iam_manager.cpp:343](inner_account_iam_manager.cpp#L343) |
+| Function | Purpose |
+|----------|---------|
+| `AuthUser()` | Start authentication, return contextId for cancel |
+| `AuthCallback::OnResult()` | Handle auth result: extract token/secret, unlock EL2/EL3/EL4, update verified status |
+| `CancelAuth()` | Cancel ongoing authentication |
 
 **Authentication unlock flow:**
 1. Check IAM fault flag → restore key context if present
@@ -131,38 +131,45 @@ enum IAMState {
 
 ### 3.4 Storage Key Management
 
-| Function | Purpose | Retry | File |
-|----------|---------|--------|-------|
-| `UpdateStorageUserAuth()` | Update auth keys in storage service | 20×100ms | [inner_account_iam_manager.cpp:593](inner_account_iam_manager.cpp#L593) |
-| `UpdateStorageKeyContext()` | Update encryption context after credential changes | 20×100ms | [inner_account_iam_manager.cpp:559](inner_account_iam_manager.cpp#L559) |
-| `ActivateUserKey()` | Activate user key for EL2 decryption | 20×100ms | [inner_account_iam_manager.cpp:723](inner_account_iam_manager.cpp#L723) |
-| `UnlockUserScreen()` | Unlock EL3/EL4 encrypted files | 20×100ms | [inner_account_iam_manager.cpp:688](inner_account_iam_manager.cpp#L688) |
-| `GetLockScreenStatus()` | Query lock state before unlock | 20×100ms | [inner_account_iam_manager.cpp:655](inner_account_iam_manager.cpp#L655) |
-| `PrepareStartUser()` | Prepare user environment | 20×100ms | [inner_account_iam_manager.cpp:759](inner_account_iam_manager.cpp#L759) |
+| Function | Purpose | Retry |
+|----------|---------|--------|
+| `UpdateStorageUserAuth()` | Update auth keys in storage service | 20×100ms |
+| `UpdateStorageKeyContext()` | Update encryption context after credential changes | 20×100ms |
+| `ActivateUserKey()` | Activate user key for EL2 decryption | 20×100ms |
+| `UnlockUserScreen()` | Unlock EL3/EL4 encrypted files | 20×100ms |
+| `GetLockScreenStatus()` | Query lock state before unlock | 20×100ms |
+| `PrepareStartUser()` | Prepare user environment | 20×100ms |
 
 **Encryption levels:**
 - **EL1**: System level (no key)
 - **EL2**: User key encryption → `ActivateUserKey()` after auth
 - **EL3/EL4**: Enhanced encryption → `UnlockUserScreen()` after auth
 
+### Code details that must be verified
+- The `UpdateStorageUserAuth` + `UpdateStorageKeyContext` calls inside `HandleFileKeyException` (both contain a 20×100ms IPC retry loop).
+- The `needActivateKey` branch condition of `UnlockUserStorage` (`isVerified && !CheckNeedReactivateUserKey → false → skips isUpdateVerifiedStatus=true`).
+- The 4 early-return paths of `OnResult` (auth failed / private PIN / remote auth / account being deactivated, before `SetOsAccountIsVerified`).
+- `preVerified` secondary gating (the `if(!preVerified && isVerified)` transition detection inside `SetOsAccountIsVerified`).
+- `try_lock` downgrade point (`HandleFileKeyException`'s `try_lock` → `ERR_ACCOUNT_COMMON_BUSY`).
+
 ### 3.5 Query & Property Operations
 
-| Function | Purpose | File |
-|----------|---------|-------|
-| `GetCredentialInfo()` | Get enrolled credentials (includes domain if available) | [inner_account_iam_manager.cpp:228](inner_account_iam_manager.cpp#L228) |
-| `GetEnrolledId()` | Get credential ID for auth type | [inner_account_iam_manager.cpp:467](inner_account_iam_manager.cpp#L467) |
-| `GetAvailableStatus()` | Check if auth type/trust level available | [inner_account_iam_manager.cpp:349](inner_account_iam_manager.cpp#L349) |
-| `GetProperty()` | Get auth properties (remain times, freeze time) | [inner_account_iam_manager.cpp:416](inner_account_iam_manager.cpp#L416) |
-| `SetProperty()` | Set auth properties (freeze, update algorithm) | [inner_account_iam_manager.cpp:454](inner_account_iam_manager.cpp#L454) |
-| `GetPropertyByCredentialId()` | Query credential without userId | [inner_account_iam_manager.cpp:441](inner_account_iam_manager.cpp#L441) |
+| Function | Purpose |
+|----------|---------|
+| `GetCredentialInfo()` | Get enrolled credentials (includes domain if available) |
+| `GetEnrolledId()` | Get credential ID for auth type |
+| `GetAvailableStatus()` | Check if auth type/trust level available |
+| `GetProperty()` | Get auth properties (remain times, freeze time) |
+| `SetProperty()` | Set auth properties (freeze, update algorithm) |
+| `GetPropertyByCredentialId()` | Query credential without userId |
 
 ### 3.6 Remote & Recovery
 
-| Function | Purpose | File |
-|----------|---------|-------|
-| `PrepareRemoteAuth()` | Prepare cross-device auth (phone→tablet) | [inner_account_iam_manager.cpp:261](inner_account_iam_manager.cpp#L261) |
-| `HandleFileKeyException()` | Restore key context when IAM fault flag exists | [inner_account_iam_manager.cpp:481](inner_account_iam_manager.cpp#L481) |
-| `UpdateUserAuthWithRecoveryKey()` | Update auth using recovery key (dynamically loads `librecovery_key_service_client`) | [inner_account_iam_manager.cpp:630](inner_account_iam_manager.cpp#L630) |
+| Function | Purpose |
+|----------|---------|
+| `PrepareRemoteAuth()` | Prepare cross-device auth (phone→tablet) |
+| `HandleFileKeyException()` | Restore key context when IAM fault flag exists |
+| `UpdateUserAuthWithRecoveryKey()` | Update auth using recovery key (dynamically loads `librecovery_key_service_client`) |
 
 ---
 
@@ -180,7 +187,7 @@ enum IAMState {
 - **Do not change retry parameters** (`MAX_RETRY_TIMES=20`, `DELAY_FOR_EXCEPTION=100ms`)
   without escalation — tuned for StorageManager startup timing (~2s).
 - **Do not change the IAM fault flag path**
-  (`/data/service/el2/account_user_{userId}/iam_fault`) — crash-recovery
+  (`/data/service/el1/public/account/{userId}/iam_fault`) — crash-recovery
   mechanism depends on this exact path.
 - **Do not remove token/secret zeroing** (`std::fill(vector.begin(), vector.end(), 0)`)
   — security boundary; IPC marshalling may copy buffers.
@@ -190,26 +197,11 @@ enum IAMState {
   — risk of deadlock (§4.2 Lock Hierarchy).
 - **Do not change `IAMState` enum values** — state machine persistence and
   validity checks depend on them.
-- **Do not skip `SetOsAccountIsVerified(true)` on any unlock path** — including
-  no-password auto-unlock. In `UnlockUserStorage()` (line 898-936),
-  `isUpdateVerifiedStatus` must be set to true for every path that performs
-  storage unlock. If a new unlock branch is added or the `needActivateKey`
-  condition is modified, trace that `SetOsAccountIsVerified(true)` is still
-  reached at `account_iam_callback.cpp:378`. Missing verified state breaks
-  post-reboot features (screenshot, screen recording, memo, etc.).
-  Historical: "device reboot breaks screenshot/screen-recording/memo — verify state not set to true during no-password unlock"
-- **Do not hold the per-user lock during slow storage operations; use `try_lock` in recovery paths.**
-  `HandleFileKeyException()` (line 533) performs slow storage IPC
-  (`UpdateStorageUserAuth` + `UpdateStorageKeyContext`, each with 20x100ms
-  retries). If it holds the per-user lock (`GetOperatingUserLock()`) during
-  these calls, concurrent `ActivateUserKey()` and `UnlockUserScreen()` will
-  block, exhausting the `accountmgr` thread pool and freezing the service
-  (device black screen). Use `try_lock()` with `ERR_ACCOUNT_COMMON_BUSY`
-  fallback so the recovery path yields to the normal unlock path. Conversely,
-  ensure `ActivateUserKey()` and `UnlockUserScreen()` always acquire the
-  per-user lock via `lock_guard` before storage IPC to serialize access.
-  Commit: b2c90559a — Historical: "accountmgr freeze from lock contention
-  between reenroll and unlock, causing thread pool exhaustion"
+- **Verify-state on every unlock path (incl. no-password):** See root Pitfall 7.
+  Trace that `SetOsAccountIsVerified(true)` is reached at `AuthCallback::OnResult()`.
+- **Per-user lock during slow storage ops; use `try_lock` in recovery:** See root
+  Pitfall 8. `HandleFileKeyException()` must not hold the per-user lock during
+  storage IPC (`UpdateStorageUserAuth` + `UpdateStorageKeyContext`).
 
 ### 4.2 Ask before
 
@@ -229,7 +221,7 @@ enum IAMState {
 | `ACCESS_USER_AUTH_INTERNAL` | Internal auth operations | AuthUser, CancelAuth, GetAvailableStatus, GetProperty, SetProperty, PrepareRemoteAuth |
 
 **System app required**: All operations except `GetAccountState` and `AuthUser`.
-**Location**: [account_iam_service.cpp:351](account_iam_service.cpp#L351)
+**Location**: `AccountIAMService` permission-check entry (see `account_iam_service.cpp`).
 
 ### 4.4 Lock Hierarchy
 
@@ -259,7 +251,7 @@ use via `std::fill(vector.begin(), vector.end(), 0)`. IPC marshalling may copy
 buffers — explicit zeroing ensures clearing even with compiler optimizations.
 
 **IAM fault flag**:
-- Path: `/data/service/el2/account_user_{userId}/iam_fault`
+- Path: `/data/service/el1/public/account/{userId}/iam_fault`
 - Purpose: Marks users needing key context restoration.
 - Created: Before credential operations.
 - Deleted: After successful restoration in `HandleFileKeyException()`.
@@ -284,30 +276,17 @@ buffers — explicit zeroing ensures clearing even with compiler optimizations.
 | LOCKED (9) | Too many failed attempts | Wait for freeze time |
 | BUSY (7) | Operation in progress | Wait/retry |
 
-### 4.7 Conditional Compilation
+### 4.7 Conditional Compilation & Constants
 
-| Macro | Purpose |
-|-------|---------|
-| `SUPPORT_DOMAIN_ACCOUNTS` | Domain account support |
-| `HAS_STORAGE_PART` | Storage manager integration |
-| `SUPPORT_LOCK_OS_ACCOUNT` | Account locking |
-| `HAS_PIN_AUTH_PART` | PIN authentication |
-| `HICOLLIE_ENABLE` | Re-enroll watchdog |
+**Conditional macros** (see `os_account.gni`): `SUPPORT_DOMAIN_ACCOUNTS` (domain),
+`HAS_STORAGE_PART` (storage manager), `SUPPORT_LOCK_OS_ACCOUNT` (account lock),
+`HAS_PIN_AUTH_PART` (PIN auth), `HICOLLIE_ENABLE` (re-enroll watchdog).
 
-### 4.8 Important Constants
-
-```cpp
-DELAY_FOR_EXCEPTION = 100      // Retry delay (ms)
-MAX_RETRY_TIMES = 20            // Maximum retries
-TIME_WAIT_TIME_OUT = 5           // Wait timeout (seconds)
-TOKEN_ALLOWABLE_DURATION = 60000  // Token validity (ms)
-REENROLL_TIME_OUT = 6            // Re-enroll timeout (seconds)
-```
-
-**Design rationale:**
-- 20 retries: ~2s StorageManager startup time.
-- 100ms delay: Responsiveness vs retry frequency.
-- 60s token: Security vs usability tradeoff.
+**Tuned constants** (do not change without escalation, §4.1 / §4.2):
+`DELAY_FOR_EXCEPTION=100ms`, `MAX_RETRY_TIMES=20` (~2s StorageManager startup),
+`TIME_WAIT_TIME_OUT=5s`, `TOKEN_ALLOWABLE_DURATION=60000ms` (60s, security vs
+usability), `REENROLL_TIME_OUT=6s`. Retry parameters apply to all StorageManager
+operations (retryable codes: `E_IPC_ERROR`, `E_IPC_SA_DIED`).
 
 ---
 
@@ -338,20 +317,22 @@ Triggered when IAM sets `ATTR_RE_ENROLL_FLAG`:
 
 ## 6. Callbacks
 
-| Callback | Purpose | File |
-|----------|---------|-------|
-| `AuthCallback` | Auth results, unlocks EL2/EL3/EL4, handles re-enroll | [account_iam_callback.cpp:73](account_iam_callback.cpp#L73) |
-| `AddCredCallback` | Add credential, updates storage auth | [account_iam_callback.cpp:426](account_iam_callback.cpp#L426) |
-| `UpdateCredCallback` | Update credential, deletes old credential | [account_iam_callback.cpp:527](account_iam_callback.cpp#L527) |
-| `DelCredCallback` | Delete credential results | [account_iam_callback.cpp:754](account_iam_callback.cpp#L754) |
-| `CommitCredUpdateCallback` | Commit update after new credential active | [account_iam_callback.cpp:702](account_iam_callback.cpp#L702) |
-| `CommitDelCredCallback` | Commit deletion cleanup | [account_iam_callback.cpp:672](account_iam_callback.cpp#L672) |
-| `VerifyTokenCallbackWrapper` | Verify 60s token validity before delete | [account_iam_callback.cpp:615](account_iam_callback.cpp#L615) |
-| `GetCredInfoCallbackWrapper` | Get credential info with domain support | [account_iam_callback.cpp:811](account_iam_callback.cpp#L811) |
-| `GetPropCallbackWrapper` / `SetPropCallbackWrapper` | Property get/set wrappers | [account_iam_callback.cpp:872](account_iam_callback.cpp#L872) |
-| `GetSecUserInfoCallbackWrapper` | Extract enrolled ID from secure user info | [account_iam_callback.cpp:906](account_iam_callback.cpp#L906) |
-| `PrepareRemoteAuthCallbackWrapper` | Remote auth preparation result | [account_iam_callback.cpp:946](account_iam_callback.cpp#L946) |
-| `GetDomainAuthStatusInfoCallback` | Domain auth status (frozen time, remaining attempts) | [account_iam_callback.cpp:965](account_iam_callback.cpp#L965) |
+All callbacks live in `account_iam_callback.cpp`; look up by class name via codegraph.
+
+| Callback | Purpose |
+|----------|---------|
+| `AuthCallback` | Auth results, unlocks EL2/EL3/EL4, handles re-enroll |
+| `AddCredCallback` | Add credential, updates storage auth |
+| `UpdateCredCallback` | Update credential, deletes old credential |
+| `DelCredCallback` | Delete credential results |
+| `CommitCredUpdateCallback` | Commit update after new credential active |
+| `CommitDelCredCallback` | Commit deletion cleanup |
+| `VerifyTokenCallbackWrapper` | Verify 60s token validity before delete |
+| `GetCredInfoCallbackWrapper` | Get credential info with domain support |
+| `GetPropCallbackWrapper` / `SetPropCallbackWrapper` | Property get/set wrappers |
+| `GetSecUserInfoCallbackWrapper` | Extract enrolled ID from secure user info |
+| `PrepareRemoteAuthCallbackWrapper` | Remote auth preparation result |
+| `GetDomainAuthStatusInfoCallback` | Domain auth status (frozen time, remaining attempts) |
 
 ---
 
@@ -385,35 +366,11 @@ Triggered when IAM sets `ATTR_RE_ENROLL_FLAG`:
 
 ## 8. Key Data Types
 
-### 8.1 AuthType
-
-| Type | Value | Description |
-|-------|--------|-------------|
-| PIN | 1 | 6-digit/4-digit/mixed password |
-| FACE | 2 | Face recognition |
-| FINGERPRINT | 4 | Fingerprint |
-| RECOVERY_KEY | 8 | Recovery key for forgotten PIN |
-| PRIVATE_PIN | 16 | Private PIN for secure ops |
-| DOMAIN | 1024 | Domain account auth |
-
-### 8.2 AuthTrustLevel
-
-| Level | Value | Use Case |
-|-------|--------|-----------|
-| ATL1 | 10000 | Low security, convenience |
-| ATL2 | 20000 | Medium-low |
-| ATL3 | 30000 | Default for most ops |
-| ATL4 | 40000 | High security, sensitive ops |
-
-### 8.3 AuthIntent
-
-| Intent | Value | Purpose |
-|---------|--------|---------|
-| DEFAULT | 0 | Normal authentication |
-| UNLOCK | 1 | Device/screen unlock |
-| SILENT_AUTH | 2 | Background auth (no UI) |
-| QUESTION_AUTH | 3 | Security question |
-| ABANDONED_PIN_AUTH | 4 | Abandoned PIN fallback |
+Enum definitions (`AuthType`, `AuthTrustLevel`, `AuthIntent`) and `ResultCode`
+values live in `account_iam_info.h` / the User IAM framework
+(`iam_common_defines.h`). **Values are persisted across IPC and on disk — do
+not change them (§4.1).** Look up current values there or via codegraph rather
+than relying on this doc.
 
 ---
 
@@ -440,7 +397,7 @@ cd {OpenHarmonyRootFolder}/test/testfwk/developer_test
 | `inner_account_iam_manager.cpp` (credential/auth) | Run credential tests; verify state machine transitions; verify EL2/EL3/EL4 unlock |
 | `account_iam_callback.cpp` (callbacks) | Verify token/secret zeroing intact; verify death recipients; test async wait timeouts |
 | `AuthType` / `AuthTrustLevel` / `AuthIntent` enums | Verify no existing value changed (§4.1) |
-| Retry/timeout constants | Verify values unchanged (§4.8); test StorageManager retry path |
+| Retry/timeout constants | Verify values unchanged (§4.7); test StorageManager retry path |
 | Lock hierarchy | Trace all lock acquisitions; verify no `mutex_` held during external calls |
 | Conditional compilation macros | Build with each macro on and off |
 
@@ -460,21 +417,3 @@ A change is **done** when:
 
 If build/tests cannot run locally, state "I could not run the build/tests because
 \<reason\>" and ask the user to run §9.1 commands. Do not claim the change is verified.
-
----
-
-## 10. Related Files
-
-- [IAM Info](../../../interfaces/innerkits/account_iam/native/include/account_iam_info.h) — Data types
-- [IAM Common Defines](../../../../../useriam/user_auth_framework/interfaces/inner_api/iam_common_defines.h) — AuthType/ResultCode enums
-- [Inner OS Account Manager](../osaccount/inner_os_account_manager.cpp) — Account operations
-- [Domain Account Manager](../domain_account/inner_domain_account_manager.cpp) — Domain support
-
----
-
-## Version History
-
-| Version | Date | Changes | Maintainer |
-|---------|------|---------|------------|
-| v1.0 | 2026-01-31 | Initial AGENTS.md creation | AI Assistant |
-| v2.0 | 2026-07-09 | Rewritten per agent-instruction quality review: added code map, knowledge routing, constraints, verification | AI Assistant |
