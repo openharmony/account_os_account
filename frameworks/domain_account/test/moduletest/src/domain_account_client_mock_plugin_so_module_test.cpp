@@ -26,6 +26,7 @@
 #include "account_permission_manager.h"
 #include "account_test_common.h"
 #include "domain_account_callback_service.h"
+#include "domain_account_plugin_service.h"
 #ifdef BUNDLE_ADAPTER_MOCK
 #include "domain_account_manager_service.h"
 #include "domain_account_proxy.h"
@@ -2362,6 +2363,65 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountPlugin_004, Tes
         userId, enableUnlockDevice, unlockDeviceMode);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_FALSE(enableUnlockDevice);
+}
+
+/**
+ * @tc.name: DomainAccountPlugin_JsPlugin_001
+ * @tc.desc: Test GetUnlockDeviceConfig returns disabled when JS plugin is registered.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountPlugin_JsPlugin_001, TestSize.Level3)
+{
+    LoadPluginMethods();
+    SetEnableUnlockDevice(true);
+    int32_t userId = CreateAndBindDomainAccount("pluginJs001");
+    ASSERT_GT(userId, 0);
+    auto innerPlugin = std::make_shared<MockDomainPlugin>();
+    sptr<DomainAccountPluginService> pluginService = new (std::nothrow) DomainAccountPluginService(innerPlugin);
+    ASSERT_NE(pluginService, nullptr);
+    InnerDomainAccountManager::GetInstance().plugin_ = pluginService;
+    bool enableUnlockDevice = true;
+    int32_t unlockDeviceMode = 0;
+    ErrCode ret = InnerDomainAccountManager::GetInstance().GetUnlockDeviceConfig(
+        userId, enableUnlockDevice, unlockDeviceMode);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_FALSE(enableUnlockDevice);
+    InnerDomainAccountManager::GetInstance().plugin_ = nullptr;
+    UnloadPluginMethods();
+}
+
+/**
+ * @tc.name: DomainAccountUnlock_JsPlugin_001
+ * @tc.desc: Test AuthUserWithUnlockOptions returns unsupported when JS plugin is registered.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountUnlock_JsPlugin_001, TestSize.Level3)
+{
+    LoadPluginMethods();
+    SetEnableUnlockDevice(true);
+    int32_t userId = CreateAndBindDomainAccount("unlockJs001");
+    ASSERT_GT(userId, 0);
+    auto innerPlugin = std::make_shared<MockDomainPlugin>();
+    sptr<DomainAccountPluginService> pluginService = new (std::nothrow) DomainAccountPluginService(innerPlugin);
+    ASSERT_NE(pluginService, nullptr);
+    InnerDomainAccountManager::GetInstance().plugin_ = pluginService;
+    auto callback = std::make_shared<UnlockAuthCallback>();
+    DomainAccountUnlockOptions options;
+    options.authIntent = UNLOCK_INTENT;
+    options.challenge = {1, 2, 3};
+    uint64_t contextId = 0;
+    ErrCode ret = DomainAccountClient::GetInstance().AuthUser(
+        userId, []() { return std::vector<uint8_t>{49, 50, 51}; },
+        callback, options, contextId);
+    EXPECT_EQ(ret, ERR_OK);
+    std::unique_lock<std::mutex> lock(callback->mutex);
+    callback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
+                          [callback]() { return callback->isReady; });
+    EXPECT_EQ(callback->resultErrCode, ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE);
+    InnerDomainAccountManager::GetInstance().plugin_ = nullptr;
+    UnloadPluginMethods();
 }
 
 // F2 test cases

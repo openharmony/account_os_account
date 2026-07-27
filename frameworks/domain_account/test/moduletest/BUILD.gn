@@ -225,6 +225,7 @@ ohos_moduletest("domain_account_client_mock_plugin_so_module_test") {
     "src/domain_account_client_mock_plugin_so_module_test.cpp",
     "src/mock_domain_get_access_token_callback.cpp",
     "src/mock_domain_has_domain_info_callback.cpp",
+    "src/mock_domain_plugin.cpp",
     "src/mock_domain_so_plugin.cpp",
   ]
   sources += account_iam_source

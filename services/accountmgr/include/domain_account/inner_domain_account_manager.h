@@ -69,6 +69,7 @@ public:
         const int32_t localId);
     bool IsPluginAvailable();
     bool IsSoPluginLoaded();
+    bool IsJsPluginRegistered();
     ErrCode GetUnlockDeviceConfig(int32_t userId, bool &enableUnlockDevice, int32_t &unlockDeviceMode);
     ErrCode AuthUserWithUnlockOptions(int32_t localId, const std::vector<uint8_t> &password,
         const DomainAccountUnlockOptions &unlockOptions, const sptr<IDomainAccountCallback> &callback);
