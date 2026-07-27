@@ -15,22 +15,41 @@ App Account provides application-level account management: apps create/manage
 accounts, share data with authorized apps, support OAuth via pluggable
 authenticators, and enable cross-device sync.
 
-### 1.2 Architecture
+### 1.2 Architecture & Auth Flow
 
 ```mermaid
 graph LR
-    A[NAPI Layer<br/>JS/TS] -->|Direct Call| B[AppAccountManager<br/>Client Layer]
-    B -->|IPC| C[AppAccountManagerService<br/>Service Layer<br/>IPC entry]
-    C --> D[Framework Layer]
-
+    A[NAPI Layer<br/>JS/TS] -->|Direct Call| B[AppAccountManager<br/>Client]
+    B -->|IPC| C[AppAccountManagerService<br/>IPC/permission/UID-lock/memset_s]
     C --> C1[InnerAppAccountManager<br/>coordinator]
-    C1 --> C2[AppAccountControlManager<br/>data/access]
-    C1 --> C3[AppAccountAuthenticatorSessionManager<br/>auth]
+    C1 --> C2[AppAccountControlManager<br/>data/access/tokens]
+    C1 --> C3[AppAccountAuthenticatorSessionManager]
     C1 --> C4[AppAccountSubscribeManager<br/>events]
+    C2 --> C21[AppAccountDataStorage<br/>SQLite or KV]
+    C3 -.->|ConnectAbility| F[Authenticator Ability<br/>ability_runtime]
+    F --> G[IAppAccountAuthenticatorCallback] --> H[OnResult]
 
-    C2 --> C21[AppAccountDataStorage]
-    C3 --> C31[Authenticator Ability]
+    subgraph Session States [max 256 concurrent]
+        INIT --> OPENING --> CONNECTED --> AUTHENTICATING --> COMPLETED
+        OPENING --> FAILED
+        CONNECTED --> TIMEOUT
+        AUTHENTICATING --> FAILED
+        AUTHENTICATING --> TIMEOUT
+    end
 ```
+
+**Authenticator discovery** (`app_account_authenticator_manager.cpp`):
+actions `ohos.appAccount.action.auth` (standard) and
+`ohos.account.appAccount.action.oauth` (OAuth); `QueryAbilityInfos()` →
+fallback `QueryExtensionAbilityInfos()` → returns `AuthenticatorInfo`
+(owner, abilityName, iconId, labelId).
+
+### Code details that must be verified
+- OAuth token storage key format: alias = SHA256(owner#appIndex#name#) + SHA256(authType); the JSON `oauthTokens_` stores only the alias, not the real token.
+- The real token goes through `SaveDataToAsset` → `AssetAdd` into the asset backend (`SEC_ASSET_TAG_SECRET`).
+- hapLabel batch deletion uses `SEC_ASSET_TAG_DATA_LABEL_NORMAL_1`; accountLabel uses `NORMAL_2`.
+- localId = callerUid / 200000 (`UID_TRANSFORM_DIVISOR`).
+- Visibility (`IsAppIndexVisibleWithFg`) and authorization (`authorizedApps_`) are two independent boundaries; do not conflate them.
 
 ### 1.3 Core Components
 
@@ -66,79 +85,39 @@ Key macros in service: `RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE`, `RETURN_IF_STRIN
 
 | If the task involves… | Read this first |
 |----------------------|-----------------|
-| Authenticator discovery / OAuth flow | §3 Authenticator Architecture below |
-| Locking / deadlock prevention | §4.2 Lock Hierarchy below |
-| Sensitive data (credentials/tokens) | §4.3 Security Considerations below |
+| Authenticator discovery / OAuth flow | §1.2 Architecture & Auth Flow above |
+| Locking / deadlock prevention | §4.3 Lock Hierarchy below |
+| Sensitive data (credentials/tokens) | §4.4 Security Considerations below |
 | Data persistence / storage backend | §1.3 AppAccountDataStorage row; Root AGENTS.md §4 |
 | Event publishing | §1.3 AppAccountSubscribeManager row |
 | Parameter validation | `RETURN_IF_*` macros in `app_account_manager_service.cpp` |
 | Permission checks | Root AGENTS.md §3.1 (Do-not: permission checks) |
-| Error codes | §4.4 Error Codes below; `interfaces/innerkits/common/include/account_error_no.h` |
-| Constants / size limits | §4.5 Constants and Limits below |
+| Error codes | §4.5 below; `interfaces/innerkits/common/include/account_error_no.h` |
+| Constants / size limits | §4.6 below |
 
 ### 2.2 Vocabulary routing
 
 | Term | Meaning | Read |
 |------|---------|------|
-| `AppAccountInfo` | Core struct: owner, name, alias, extraInfo, authorizedApps, oauthTokens | §4.6 Key Data Structures |
-| Authenticator | App extension providing authentication (OAuth); discovered via `ohos.appAccount.action.auth` / `ohos.account.appAccount.action.oauth` | §3 Authenticator Architecture |
-| `AppAccountLock` | UID-based mutex; each UID has its own mutex shared via `weak_ptr` | §4.2 Lock Hierarchy |
-| `memset_s` | Secure-clear sensitive data (credentials/tokens) after use | §4.3 Security Considerations |
-| `SESSION_MAX_NUM` | Max concurrent authenticator sessions (256) | §4.5 Constants |
-| Asset storage | Optional secure storage for credentials/tokens (`HAS_ASSET_PART` flag) | §4.3 Security Considerations |
+| `AppAccountInfo` | Core struct: owner, name, alias, extraInfo, authorizedApps, oauthTokens | §4.7 Key Data Structures |
+| Authenticator | App extension providing authentication (OAuth); discovered via `ohos.appAccount.action.auth` / `ohos.account.appAccount.action.oauth` | §1.2 Architecture & Auth Flow |
+| `AppAccountLock` | UID-based mutex; each UID has its own mutex shared via `weak_ptr` | §4.3 Lock Hierarchy |
+| `memset_s` | Secure-clear sensitive data (credentials/tokens) after use | §4.4 Security Considerations |
+| `SESSION_MAX_NUM` | Max concurrent authenticator sessions (256) | §4.6 Constants |
+| Asset storage | Optional secure storage for credentials/tokens (`HAS_ASSET_PART` flag) | §4.4 Security Considerations |
 | `SQLITE_DLCLOSE_ENABLE` | Flag selecting SQLite vs KV Store backend | §1.3 AppAccountDataStorage |
 
 ### 2.3 Pre-edit protocol
 
-See root [AGENTS.md](../../../../AGENTS.md) §2.4. Before writing code, state:
-1. **Task category** (service logic / authenticator / persistence / security / test / other).
-2. **Documents read** (per §2.1–2.2 above).
-3. **Constraints found** (§4 Do-not / Ask-before rules that apply).
+See root [AGENTS.md](../../../../AGENTS.md) §2.3. Task categories for this
+module: service logic / authenticator / persistence / security / test.
 
 ---
 
 ## 3. Authenticator Architecture
 
-### 3.1 Discovery
-
-**File**: [app_account_authenticator_manager.cpp](app_account_authenticator_manager.cpp)
-
-**Actions**:
-- `ohos.appAccount.action.auth` — standard authenticator
-- `ohos.account.appAccount.action.oauth` — OAuth authenticator
-
-**Process**: `QueryAbilityInfos()` → if not found, `QueryExtensionAbilityInfos()` → try both actions in sequence → return `AuthenticatorInfo` (owner, abilityName, iconId, labelId).
-
-### 3.2 Communication Flow
-
-```mermaid
-graph LR
-    A[Caller App] --> B[AppAccountManagerService]
-    B --> C[InnerAppAccountManager]
-    C --> D[AppAccountAuthenticatorSessionManager<br/>create session]
-    D --> E[AppAccountAuthenticatorSession]
-    E -->|ConnectAbility| F[Authenticator Ability<br/>ability_runtime]
-    F --> G[IAppAccountAuthenticatorCallback]
-    G --> H[OnResult]
-```
-
-### 3.3 Session States
-
-```mermaid
-stateDiagram-v2
-    [*] --> INIT
-    INIT --> OPENING
-    OPENING --> CONNECTED
-    OPENING --> FAILED
-    CONNECTED --> AUTHENTICATING
-    CONNECTED --> TIMEOUT
-    AUTHENTICATING --> COMPLETED
-    AUTHENTICATING --> TIMEOUT
-    AUTHENTICATING --> FAILED
-    COMPLETED --> [*]
-    FAILED --> [*]
-    TIMEOUT --> [*]
-```
+Discovery, communication flow, and session state diagram have been merged into
+[§1.2 Architecture & Auth Flow](#12-architecture--auth-flow); not repeated here.
 
 ---
 
@@ -156,7 +135,7 @@ stateDiagram-v2
   `BUNDLE_NAME_MAX_SIZE`, `CREDENTIAL_MAX_SIZE`, `TOKEN_MAX_SIZE`,
   `SESSION_MAX_NUM`, `APP_ACCOUNT_SUBSCRIBER_MAX_SIZE`) without compatibility
   review — applications depend on these limits.
-- **Do not change lock hierarchy order** (§4.2) — wrong order causes deadlock.
+- **Do not change lock hierarchy order** (§4.3) — wrong order causes deadlock.
 - **Do not remove `memset_s()` calls** on credentials/tokens — these are a
   security boundary; IPC marshalling may copy buffers.
 - **Do not remove or weaken permission checks** in `AppAccountManagerService`.
@@ -188,11 +167,11 @@ stateDiagram-v2
 auto credStr = const_cast<std::string *>(&credential);
 (void)memset_s(credStr->data(), credStr->size(), 0, credStr->size());
 ```
-Locations: [app_account_manager_service.cpp:476, 484, 576, 586, 614, 641](app_account_manager_service.cpp#L476)
+Location: all `memset_s` call sites in [app_account_manager_service.cpp](app_account_manager_service.cpp) (grep `memset_s` to locate).
 
 **Asset storage** (optional, `HAS_ASSET_PART`):
 - `SaveDataToAsset()` / `GetDataFromAsset()` / `RemoveDataFromAsset()` in
-  [app_account_control_manager.cpp:58-174](app_account_control_manager.cpp#L58)
+  [app_account_control_manager.cpp](app_account_control_manager.cpp) (the three functions above).
 
 **Required permissions**:
 - `ohos.permission.DISTRIBUTED_DATASYNC` — cross-device data sync
@@ -200,77 +179,28 @@ Locations: [app_account_manager_service.cpp:476, 484, 576, 586, 614, 641](app_ac
 
 ### 4.5 Error Codes
 
-**File**: [account_error_no.h](../../../../interfaces/innerkits/common/include/account_error_no.h)
-
-| Error Code | Description |
-|------------|-------------|
-| `ERR_OK` | Success |
-| `ERR_ACCOUNT_COMMON_INVALID_PARAMETER` | Invalid parameter |
-| `ERR_ACCOUNT_COMMON_PERMISSION_DENIED` | Permission denied |
-| `ERR_ACCOUNT_COMMON_NULL_PTR_ERROR` | Null pointer |
-| `ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR` | Account not found |
-| `ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST` | Account not exist |
-| `ERR_APPACCOUNT_SERVICE_ACCOUNT_MAX_SIZE` | Max accounts reached |
-| `ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST` | OAuth token not exist |
-| `ERR_APPACCOUNT_SERVICE_OAUTH_AUTHENTICATOR_NOT_EXIST` | Authenticator not found |
-| `ERR_APPACCOUNT_SERVICE_OAUTH_SESSION_NOT_EXIST` | Session not exist |
-| `ERR_APPACCOUNT_SERVICE_OAUTH_BUSY` | Service busy |
+Error-code definitions are in [account_error_no.h](../../../../interfaces/innerkits/common/include/account_error_no.h); the `ERR_APPACCOUNT_*` prefix is module-specific.
 
 ### 4.6 Constants and Limits
 
-**File**: [app_account_constants.h](../../../../frameworks/appaccount/native/include/app_account_constants.h)
-
-| Constant | Value | Description |
-|-----------|-------|-------------|
-| `NAME_MAX_SIZE` | 512 | Account name max length |
-| `EXTRA_INFO_MAX_SIZE` | 1024 | Extra info max length |
-| `BUNDLE_NAME_MAX_SIZE` | 512 | Bundle name max length |
-| `CREDENTIAL_MAX_SIZE` | 1024 | Credential max length |
-| `TOKEN_MAX_SIZE` | 1024 | Token max length |
-| `SESSION_MAX_NUM` | 256 | Max concurrent sessions |
-| `APP_ACCOUNT_SUBSCRIBER_MAX_SIZE` | 200 | Max subscribers |
-
-**API Versions**: `API_VERSION7`, `API_VERSION8` (OAuth), `API_VERSION9` (Enhanced OAuth)
+Constant definitions are in [app_account_constants.h](../../../../frameworks/appaccount/native/include/app_account_constants.h); values must not change (see §4.1). API version constants: `API_VERSION7`, `API_VERSION8` (OAuth), `API_VERSION9` (enhanced OAuth).
 
 ### 4.7 Key Data Structures
 
-**AppAccountInfo** — [app_account_info.h](../../../../frameworks/appaccount/native/include/app_account_info.h):
-```cpp
-std::string owner_;                           // Bundle name of account owner
-std::string name_;                            // Account name
-std::string alias_;                           // Account alias
-uint32_t appIndex_;                          // Application index
-std::string extraInfo_;                       // Extra information
-std::set<std::string> authorizedApps_;        // Authorized applications
-bool syncEnable_;                              // Cross-device sync enabled
-std::string associatedData_;                   // JSON string of associated data
-std::string accountCredential_;                // JSON string of credentials
-std::map<std::string, OAuthTokenInfo> oauthTokens_; // OAuth tokens by auth type
-```
+Struct definitions are in the corresponding headers; key semantic fields:
 
-**AuthenticatorSessionRequest** — [app_account_common.h](../../../../frameworks/appaccount/native/include/app_account_common.h):
-```cpp
-std::string action, sessionId, name, owner, authType, token;
-std::string bundleName, callerBundleName;
-uint32_t appIndex;
-bool isTokenVisible;
-pid_t callerPid, callerUid;
-AAFwk::Want options;
-std::vector<std::string> labels;
-VerifyCredentialOptions verifyCredOptions;
-SetPropertiesOptions setPropOptions;
-CreateAccountImplicitlyOptions createOptions;
-sptr<IAppAccountAuthenticatorCallback> callback;
-```
+- **AppAccountInfo** ([app_account_info.h](../../../../frameworks/appaccount/native/include/app_account_info.h)): `owner_` (account owner bundle name), `name_` (account name), `alias_` (alias), `authorizedApps_` (authorized app set), `oauthTokens_` (OAuth tokens indexed by authType), `accountCredential_` (credential JSON), `associatedData_` (associated data JSON), `syncEnable_` (cross-device sync toggle).
+- **AuthenticatorSessionRequest** ([app_account_common.h](../../../../frameworks/appaccount/native/include/app_account_common.h)): `action`/`sessionId`/`name`/`owner`/`authType`/`token`, `callerPid`/`callerUid`, `callback`.
 
 ### 4.8 Common Pitfalls
 
 **Pitfall 1 — Sensitive Data Leakage.** Credentials/tokens contain sensitive
-data. Always clear with `memset_s()` immediately after use. See
-[app_account_manager_service.cpp:476, 484, 576, 586](app_account_manager_service.cpp#L476).
+data. Always clear with `memset_s()` immediately after use. Location: all
+`memset_s` call sites in [app_account_manager_service.cpp](app_account_manager_service.cpp)
+(grep to locate).
 
 **Pitfall 2 — Deadlock from Lock Ordering.** Acquiring locks in different order
-causes deadlocks. Always follow §4.2 lock hierarchy.
+causes deadlocks. Always follow §4.3 lock hierarchy.
 
 **Pitfall 3 — Race Conditions in UID-based Locking.** Concurrent access to same
 account data. Use `AppAccountLock` for UID-based locking:
@@ -278,8 +208,8 @@ account data. Use `AppAccountLock` for UID-based locking:
 
 **Pitfall 4 — Authenticator Session Leaks.** Authenticator ability may die
 during authentication. Handle death notifications via `OnSessionServerDied()`
-and `OnSessionAbilityDisconnectDone()`. See
-[app_account_authenticator_session_manager.cpp:186-217](app_account_authenticator_session_manager.cpp).
+and `OnSessionAbilityDisconnectDone()` in
+[app_account_authenticator_session_manager.cpp](app_account_authenticator_session_manager.cpp).
 
 **Pitfall 5 — Parameter Validation Bypass.** Invalid input causes security
 issues or crashes. Always validate with `RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE`
@@ -297,13 +227,10 @@ block main operations. Log errors but continue operation.
 
 ### 5.1 Minimum checks
 
-See root [AGENTS.md](../../../../AGENTS.md) §5.1 for build commands. For this module:
+See root [AGENTS.md](../../../../AGENTS.md) §5.1 for the full build commands.
+Module test suite:
 
 ```bash
-# Build
-./build.sh --product-name rk3568 --build-target os_account account_build_unittest account_build_moduletest
-
-# Run app account test suites
 cd {OpenHarmonyRootFolder}/test/testfwk/developer_test
 ./start.sh run -p rk3568 -t UT MST -tp os_account -ts AppAccountManagerServiceModuleTest
 ```
@@ -321,56 +248,12 @@ cd {OpenHarmonyRootFolder}/test/testfwk/developer_test
 
 ### 5.3 Done definition
 
-A change is **done** when:
-1. Build succeeds: `./build.sh --product-name rk3568 --build-target os_account` (no errors).
-2. Relevant test suite passes — report suite name + pass/fail counts.
-3. No new compiler warnings in changed files.
-4. If `AppAccountInfo` serialization, constants, or authenticator action strings
-   changed: **escalate to user** (compatibility risk, §4.1).
-5. If `memset_s` calls or permission checks removed/changed: **escalate to user**
-   (security boundary, §4.1).
+See root [AGENTS.md](../../../../AGENTS.md) §5.5. Additional module requirements:
+- If `AppAccountInfo` serialization format, constant values, or authenticator action strings change: **user approval required** (compatibility risk, §4.1).
+- If `memset_s` calls or permission checks are changed: **user approval required** (security boundary, §4.1).
 
 ### 5.4 Fallback
 
-If build/tests cannot run locally, state "I could not run the build/tests because
-\<reason\>" and ask the user to run §5.1 commands. Do not claim the change is verified.
-
----
-
-## 6. Diagnostics
-
-### 6.1 HiSysEvent
-```bash
-hdc shell "hisysevent -l -o ACCOUNT | grep APP_ACCOUNT_FAILED"
-```
-
-### 6.2 Log Domain
-- **Domain**: `0xD001B00` · **Tag**: `AppAccountService`
-```bash
-hdc shell "hilog | grep -i C01B00"
-```
-
----
-
-## 7. Dependencies
-
-| Dependency | Purpose |
-|------------|---------|
-| `bundle_manager` | Query authenticator abilities and bundle info |
-| `ability_runtime` | Connect to authenticator abilities |
-| `distributeddata_inner` | KV store for account data |
-| `common_event_service` | Publish account change events |
-| `access_token` | Permission verification |
-| `asset` (optional) | Secure storage for sensitive data |
-| `hilog` | Logging |
-| `hisysevent` | Event reporting |
-
----
-
-## Version History
-
-| Version | Date | Changes | Maintainer |
-|---------|------|---------|------------|
-| v1.0 | 2026-02-24 | Initial AGENTS.md creation | AI Assistant |
-| v1.1 | 2026-02-24 | Optimized for AI knowledge base (condensed) | AI Assistant |
-| v2.0 | 2026-07-09 | Rewritten per agent-instruction quality review: added code map, knowledge routing, constraints, verification | AI Assistant |
+See root [AGENTS.md](../../../../AGENTS.md) §5.5. If build/tests cannot run
+locally, state the reason and ask the user to run §5.1 commands. Do not claim
+the change is verified.
