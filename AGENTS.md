@@ -70,6 +70,7 @@ editing that module.**
 | `services/accountmgr/src/appaccount/` | [services/accountmgr/src/appaccount/AGENTS.md](services/accountmgr/src/appaccount/AGENTS.md) — AppAccountControlManager, authenticator sessions, UID-based locking, OAuth |
 | `services/accountmgr/src/distributed_account/` | [services/accountmgr/src/distributed_account/AGENTS.md](services/accountmgr/src/distributed_account/AGENTS.md) — OhosAccountManager, DVID generation, anonymization, JSON schema |
 | `services/accountmgr/src/account_iam/` | [services/accountmgr/src/account_iam/AGENTS.md](services/accountmgr/src/account_iam/AGENTS.md) — credential management, EL2/EL3/EL4 unlock, IAM state machine, token validity |
+| `services/accountmgr/src/domain_account/` | [services/accountmgr/src/domain_account/AGENTS.md](services/accountmgr/src/domain_account/AGENTS.md) — InnerDomainAccountManager, SO/JS plugin dispatch, domain bind/unbind, domain unlock, PluginMethodEnum, server configs |
 
 ### 1.4 Where to Look (task / path → primary location + read-first)
 

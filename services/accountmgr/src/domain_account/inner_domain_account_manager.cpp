@@ -1965,11 +1965,21 @@ bool InnerDomainAccountManager::IsSoPluginLoaded()
     return libHandle_ != nullptr;
 }
 
+bool InnerDomainAccountManager::IsJsPluginRegistered()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return plugin_ != nullptr;
+}
+
 ErrCode InnerDomainAccountManager::GetUnlockDeviceConfig(int32_t userId, bool &enableUnlockDevice,
     int32_t &unlockDeviceMode)
 {
     enableUnlockDevice = false;
     unlockDeviceMode = 0;
+    if (IsJsPluginRegistered()) {
+        ACCOUNT_LOGI("JS plugin is in use, domain unlock is not supported");
+        return ERR_OK;
+    }
     if (!IsSoPluginLoaded()) {
         return ERR_OK;
     }
@@ -2011,6 +2021,10 @@ ErrCode InnerDomainAccountManager::AuthUserWithUnlockOptions(int32_t localId,
     const std::vector<uint8_t> &password, const DomainAccountUnlockOptions &unlockOptions,
     const sptr<IDomainAccountCallback> &callback)
 {
+    if (IsJsPluginRegistered()) {
+        ACCOUNT_LOGE("JS plugin is in use, unlock auth is not supported");
+        return ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE;
+    }
     if (!IsSoPluginLoaded()) {
         ACCOUNT_LOGE("So plugin is not loaded");
         return ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE;
