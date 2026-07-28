@@ -413,6 +413,8 @@ void AuthorizationAuthCallback::OnResult(int32_t result, const Attributes &extra
         extraInfo.GetUint8ArrayValue(Attributes::ATTR_SIGNATURE, token);
         ErrCode errCode = InnerAuthorizationManager::GetInstance().UpdateAuthInfo(token, authedAccountId, callingPid_,
             sessionId_);
+        (void)memset_s(token.data(), token.size(), 0, token.size());
+        const_cast<Attributes&>(extraInfo).SetUint8ArrayValue(Attributes::ATTR_SIGNATURE, token);
         if (errCode != ERR_OK) {
             innerCallback_->OnResult(errCode, extraInfo.Serialize());
             return;

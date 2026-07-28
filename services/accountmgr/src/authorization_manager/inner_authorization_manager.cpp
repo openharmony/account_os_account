@@ -545,9 +545,7 @@ ErrCode InnerAuthorizationManager::UpdateAuthInfo(const std::vector<uint8_t> &ia
         it->second->UpdateAuthorizationResult(errCode, resultCode, token, tokenResult.remainValidityTime);
     }
     // Security practice: clear sensitive token data after use
-    if (!token.empty()) {
-        std::fill(token.begin(), token.end(), 0);
-    }
+    (void)memset_s(token.data(), token.size(), 0, token.size());
     return ret;
 }
 
@@ -937,6 +935,7 @@ void AdminAuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
             adminAuthResult.resultCode = ERR_AUTHORIZATION_INVALID_ADMIN_ACCOUNT_OR_PASSWORD;
             innerCallback_->OnResult(adminAuthResult);
             ACCOUNT_LOGE("Authentication failed, errCode: %{public}d", result);
+            (void)memset_s(iamToken.data(), iamToken.size(), 0, iamToken.size());
             return;
         }
     } else {
@@ -944,15 +943,18 @@ void AdminAuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
     }
     std::vector<uint8_t> taToken;
     ErrCode errCode = AdminAuthCallback::CallTAForToken(accountId, iamToken, taToken);
+    (void)memset_s(iamToken.data(), iamToken.size(), 0, iamToken.size());
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Failed to call TA for token, errCode: %{public}d", errCode);
         adminAuthResult.resultCode = errCode;
         innerCallback_->OnResult(adminAuthResult);
+        (void)memset_s(taToken.data(), taToken.size(), 0, taToken.size());
         return;
     }
     adminAuthResult.resultCode = ERR_OK;
     adminAuthResult.token = taToken;
     innerCallback_->OnResult(adminAuthResult);
+    (void)memset_s(taToken.data(), taToken.size(), 0, taToken.size());
 }
 }
 }
