@@ -24,6 +24,7 @@
 #include <cstring>
 #include <variant>
 #include <vector>
+#include <securec.h>
 #include "account_constants.h"
 #include "account_info_report.h"
 #include "account_log_wrapper.h"
@@ -81,6 +82,7 @@ constexpr int32_t DOMAIN_ACCOUNT_RECOVERY_TIMEOUT = 30; // 30s
 // failed. Declared locally here because domain_account does not depend on the ErrNo definition
 // in account_iam across module boundaries.
 constexpr int32_t E_ACTIVE_EL2_FAILED = 30;
+
 ErrCode ConvertToAccountErrCode(ErrCode idlErrCode)
 {
     if (idlErrCode == ERR_INVALID_VALUE || idlErrCode == ERR_INVALID_DATA) {
@@ -839,9 +841,7 @@ ErrCode InnerDomainAccountManager::Auth(const DomainAccountInfo &info, const std
             auto task = [this, info, passwordCopy = password,
                          innerCallback, plugin = plugin_]() mutable {
                 this->StartAuth(plugin, info, passwordCopy, innerCallback, AUTH_WITH_CREDENTIAL_MODE);
-                if (!passwordCopy.empty()) {
-                    (void)memset_s(passwordCopy.data(), passwordCopy.size(), 0, passwordCopy.size());
-                }
+                (void)memset_s(passwordCopy.data(), passwordCopy.size(), 0, passwordCopy.size());
             };
 #ifdef FUZZ_TEST
             task();
@@ -860,9 +860,7 @@ ErrCode InnerDomainAccountManager::Auth(const DomainAccountInfo &info, const std
     {
         std::lock_guard<std::recursive_mutex> lock(authContextIdMapMutex_);
         err = PluginAuth(info, passwordCopy, contextId);
-        if (!passwordCopy.empty()) {
-            (void)memset_s(passwordCopy.data(), passwordCopy.size(), 0, passwordCopy.size());
-        }
+        (void)memset_s(passwordCopy.data(), passwordCopy.size(), 0, passwordCopy.size());
         if (err == ERR_OK) {
             if (!AddToContextMap(contextId, innerCallback)) {
                 return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
@@ -938,9 +936,7 @@ ErrCode InnerDomainAccountManager::AuthWithParameters(const DomainAccountInfo &i
         Parcel emptyParcel;
         AccountSA::DomainAuthResult result;
         ErrCode err = this->PluginAuthWithParameters(info, passwordCopy, authOptions.serverParams_);
-        if (!passwordCopy.empty()) {
-            (void)memset_s(passwordCopy.data(), passwordCopy.size(), 0, passwordCopy.size());
-        }
+        (void)memset_s(passwordCopy.data(), passwordCopy.size(), 0, passwordCopy.size());
 
         if (!result.Marshalling(emptyParcel)) {
             ACCOUNT_LOGE("DomainAuthResult marshalling failed.");
@@ -1252,9 +1248,7 @@ ErrCode InnerDomainAccountManager::InnerAuth(int32_t userId, const std::vector<u
             auto task = [this, domainInfo, authDataCopy = authData,
                         innerCallback, authMode, plugin = plugin_]() mutable {
                 this->StartAuth(plugin, domainInfo, authDataCopy, innerCallback, authMode);
-                if (!authDataCopy.empty()) {
-                    (void)memset_s(authDataCopy.data(), authDataCopy.size(), 0, authDataCopy.size());
-                }
+                (void)memset_s(authDataCopy.data(), authDataCopy.size(), 0, authDataCopy.size());
             };
 #ifdef FUZZ_TEST
             task();
@@ -1266,14 +1260,12 @@ ErrCode InnerDomainAccountManager::InnerAuth(int32_t userId, const std::vector<u
             return ERR_OK;
         }
     }
-    auto task = [this, userId, domainInfo, authDataCopy = authData,
-                      innerCallback, authMode]() mutable {
-        this->StartPluginAuth(userId, authDataCopy, domainInfo, innerCallback, authMode);
-        if (!authDataCopy.empty()) {
-            (void)memset_s(authDataCopy.data(), authDataCopy.size(), 0, authDataCopy.size());
-        }
-    };
     if (authMode != AUTH_WITH_CREDENTIAL_MODE) {
+        auto task = [this, userId, domainInfo, authDataCopy = authData,
+                      innerCallback, authMode]() mutable {
+            this->StartPluginAuth(userId, authDataCopy, domainInfo, innerCallback, authMode);
+            (void)memset_s(authDataCopy.data(), authDataCopy.size(), 0, authDataCopy.size());
+        };
 #ifdef FUZZ_TEST
         task();
 #else
@@ -1424,7 +1416,11 @@ bool InnerDomainAccountManager::GetTokenFromMap(int32_t userId, std::vector<uint
 void InnerDomainAccountManager::RemoveTokenFromMap(int32_t userId)
 {
     std::lock_guard<std::mutex> lock(tokenMutex_);
-    userTokenMap_.erase(userId);
+    auto it = userTokenMap_.find(userId);
+    if (it != userTokenMap_.end()) {
+        (void)memset_s(it->second.data(), it->second.size(), 0, it->second.size());
+        userTokenMap_.erase(it);
+    }
     return;
 }
 
@@ -1610,12 +1606,14 @@ ErrCode InnerDomainAccountManager::GetAccessToken(
     std::function<void()> task;
     std::lock_guard<std::mutex> lock(mutex_);
     if (plugin_ == nullptr) {
-        task = [this, accountToken, targetInfo, option, callback] {
+        task = [this, accountToken, targetInfo, option, callback]() mutable {
             this->StartPluginGetAccessToken(accountToken, targetInfo, option, callback);
+            (void)memset_s(accountToken.data(), accountToken.size(), 0, accountToken.size());
         };
     } else {
-        task = [this, accountToken, targetInfo, option, callback, plugin = plugin_] {
+        task = [this, accountToken, targetInfo, option, callback, plugin = plugin_]() mutable {
             this->StartGetAccessToken(plugin, accountToken, targetInfo, option, callback);
+            (void)memset_s(accountToken.data(), accountToken.size(), 0, accountToken.size());
         };
     }
 #ifdef FUZZ_TEST
@@ -1625,6 +1623,7 @@ ErrCode InnerDomainAccountManager::GetAccessToken(
     pthread_setname_np(taskThread.native_handle(), THREAD_GET_ACCESS_TOKEN);
     taskThread.detach();
 #endif
+    (void)memset_s(accountToken.data(), accountToken.size(), 0, accountToken.size());
     return ERR_OK;
 }
 
@@ -1679,6 +1678,7 @@ ErrCode InnerDomainAccountManager::IsAuthenticationExpired(
     PluginBusinessError* error =
         (*reinterpret_cast<IsAuthenticationExpiredFunc>(iter->second))(&domainAccountInfo, &pToken, &isValid);
     DomainPluginAdapter::CleanPluginDomainAccountInfo(domainAccountInfo);
+    (void)memset_s(accountToken.data(), accountToken.size(), 0, accountToken.size());
     if (error == nullptr) {
         ACCOUNT_LOGE("Error is nullptr.");
         REPORT_DOMAIN_ACCOUNT_FAIL(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, "Error is nullptr",
@@ -1877,6 +1877,7 @@ ErrCode InnerDomainAccountManager::GetAccountStatus(const DomainAccountInfo &inf
 
     bool isValid = false;
     res = CheckUserToken(token, isValid, info);
+    (void)memset_s(token.data(), token.size(), 0, token.size());
     if (!isValid) {
         ACCOUNT_LOGI("Token is invalid.");
         return res;
@@ -2461,12 +2462,14 @@ ErrCode InnerDomainAccountManager::IsAccountTokenValid(const DomainAccountInfo &
     std::function<void()> task;
     std::lock_guard<std::mutex> lock(mutex_);
     if (plugin_ == nullptr) {
-        task = [this, info, token, callbackService] {
+        task = [this, info, token, callbackService]() mutable {
             this->StartPluginIsAccountTokenValid(info, token, callbackService);
+            (void)memset_s(const_cast<std::vector<uint8_t> &>(token).data(), token.size(), 0, token.size());
         };
     } else {
-        task = [this, info, token, callbackService, plugin = plugin_] {
+        task = [this, info, token, callbackService, plugin = plugin_]() mutable {
             this->StartIsAccountTokenValid(plugin, info, token, callbackService);
+            (void)memset_s(const_cast<std::vector<uint8_t> &>(token).data(), token.size(), 0, token.size());
         };
     }
 #ifdef FUZZ_TEST
@@ -2476,6 +2479,7 @@ ErrCode InnerDomainAccountManager::IsAccountTokenValid(const DomainAccountInfo &
     pthread_setname_np(taskThread.native_handle(), THREAD_IS_ACCOUNT_VALID);
     taskThread.detach();
 #endif
+    (void)memset_s(const_cast<std::vector<uint8_t> &>(token).data(), token.size(), 0, token.size());
     return ERR_OK;
 }
 

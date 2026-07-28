@@ -33,6 +33,7 @@ const char ACCESS_USER_AUTH_INTERNAL[] = "ohos.permission.ACCESS_USER_AUTH_INTER
 const char GET_DOMAIN_ACCOUNTS[] = "ohos.permission.GET_DOMAIN_ACCOUNTS";
 const char INTERACT_ACROSS_LOCAL_ACCOUNTS[] = "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS";
 const char MANAGE_DOMAIN_ACCOUNT_SERVER_CONFIGS[] = "ohos.permission.MANAGE_DOMAIN_ACCOUNT_SERVER_CONFIGS";
+
 static const std::set<IDomainAccountIpcCode> NON_SYSTEM_API_SET = {
     IDomainAccountIpcCode::COMMAND_UPDATE_ACCOUNT_INFO,
     IDomainAccountIpcCode::COMMAND_UPDATE_SERVER_CONFIG,
@@ -122,9 +123,12 @@ ErrCode DomainAccountManagerService::UpdateAccountToken(
 {
     auto result = CheckPermission(IDomainAccountIpcCode::COMMAND_UPDATE_ACCOUNT_TOKEN);
     if (result != ERR_OK) {
+        (void)memset_s(const_cast<std::vector<uint8_t> &>(token).data(), token.size(), 0, token.size());
         return result;
     }
-    return InnerDomainAccountManager::GetInstance().UpdateAccountToken(info, token);
+    result = InnerDomainAccountManager::GetInstance().UpdateAccountToken(info, token);
+    (void)memset_s(const_cast<std::vector<uint8_t> &>(token).data(), token.size(), 0, token.size());
+    return result;
 }
 
 static bool CheckManageExpiryThresholdWhiteList()
@@ -174,13 +178,11 @@ ErrCode DomainAccountManagerService::Auth(const DomainAccountInfo &info, const s
 {
     auto result = CheckPermission(IDomainAccountIpcCode::COMMAND_AUTH);
     if (result != ERR_OK) {
+        (void)memset_s(const_cast<std::vector<uint8_t> &>(password).data(), password.size(), 0, password.size());
         return result;
     }
     result = InnerDomainAccountManager::GetInstance().Auth(info, password, callback);
-    if (!password.empty()) {
-        std::vector<uint8_t> &passwordRef = const_cast<std::vector<uint8_t> &>(password);
-        (void)memset_s(passwordRef.data(), passwordRef.size(), 0, passwordRef.size());
-    }
+    (void)memset_s(const_cast<std::vector<uint8_t> &>(password).data(), password.size(), 0, password.size());
     return result;
 }
 
@@ -191,13 +193,11 @@ ErrCode DomainAccountManagerService::AuthWithParameters(const DomainAccountInfo 
     auto result = CheckPermission(IDomainAccountIpcCode::COMMAND_AUTH_WITH_PARAMETERS);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("auth with parameters, check permission failed.");
+        (void)memset_s(const_cast<std::vector<uint8_t> &>(password).data(), password.size(), 0, password.size());
         return result;
     }
     result = InnerDomainAccountManager::GetInstance().AuthWithParameters(info, password, authOptions, callback);
-    if (!password.empty()) {
-        std::vector<uint8_t> &passwordRef = const_cast<std::vector<uint8_t> &>(password);
-        (void)memset_s(passwordRef.data(), passwordRef.size(), 0, passwordRef.size());
-    }
+    (void)memset_s(const_cast<std::vector<uint8_t> &>(password).data(), password.size(), 0, password.size());
     return result;
 }
 
@@ -206,17 +206,16 @@ ErrCode DomainAccountManagerService::AuthUser(int32_t userId, const std::vector<
 {
     auto result = CheckPermission(IDomainAccountIpcCode::COMMAND_AUTH_USER);
     if (result != ERR_OK) {
+        (void)memset_s(const_cast<std::vector<uint8_t> &>(password).data(), password.size(), 0, password.size());
         return result;
     }
     if (userId < START_USER_ID) {
         ACCOUNT_LOGE("invalid userId, userId=%{public}d", userId);
+        (void)memset_s(const_cast<std::vector<uint8_t> &>(password).data(), password.size(), 0, password.size());
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     result = InnerDomainAccountManager::GetInstance().AuthUser(userId, password, callback);
-    if (!password.empty()) {
-        std::vector<uint8_t> &passwordRef = const_cast<std::vector<uint8_t> &>(password);
-        (void)memset_s(passwordRef.data(), passwordRef.size(), 0, passwordRef.size());
-    }
+    (void)memset_s(const_cast<std::vector<uint8_t> &>(password).data(), password.size(), 0, password.size());
     return result;
 }
 
