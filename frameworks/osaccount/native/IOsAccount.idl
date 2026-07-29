@@ -60,7 +60,7 @@ interface OHOS.AccountSA.IOsAccount {
     void IsOsAccountVerified([in] int id, [out] boolean isVerified);
     void IsOsAccountDeactivating([in] int id, [out] boolean isDeactivating);
     void GetCreatedOsAccountsCount([out] unsigned int osAccountsCount);
-    void GetOsAccountLocalIdFromProcess([out] int id);
+    [customMsgOption flags=MessageOption::TF_IMAGE]void GetOsAccountLocalIdFromProcess([out] int id);
     void IsMainOsAccount([out] boolean isMainOsAccount);
     void GetOsAccountLocalIdFromDomain([in] DomainAccountInfo domainInfo, [out] int id);
     void QueryMaxOsAccountNumber([out] unsigned int maxOsAccountNumber);
@@ -102,7 +102,7 @@ interface OHOS.AccountSA.IOsAccount {
         [out] StringRawData stringRawData);
     void GetOsAccountListFromDatabase([in] String storeID,
         [out] StringRawData osAccountInfos);
-    void QueryActiveOsAccountIds([out] int[] ids);
+    [customMsgOption flags=MessageOption::TF_IMAGE]void QueryActiveOsAccountIds([out] int[] ids);
     void GetUnlockedOsAccountLocalIds([out] int[] ids);
     void QueryOsAccountConstraintSourceTypes([in] int id,
         [in] String constraint, [out] ConstraintSourceTypeInfo[] constraintSourceTypeInfos);
