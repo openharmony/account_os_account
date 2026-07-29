@@ -385,9 +385,9 @@ public:
 private:
     sptr<IIDMCallback> innerCallback_;
 #ifdef HICOLLIE_ENABLE
-    int32_t timerId_;
+    int32_t timerId_ = 0;
 #endif // HICOLLIE_ENABLE
-    int32_t localId_;
+    int32_t localId_ = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
