@@ -437,6 +437,15 @@ ErrCode IInnerOsAccountManager::GetRealOsAccountInfoById(const int id, OsAccount
     } else {
         refreshedCachedType = cachedType.value();
     }
+
+    if (refreshedCachedType.first == OsAccountType::ADMIN && refreshedCachedType.second) {
+        // If the account type is ADMIN but it does not exist in TEE, add the admin authorization constraint.
+        std::vector<std::string> constraints = osAccountInfo.GetConstraints();
+        if (std::find(constraints.begin(), constraints.end(), CONSTRAINT_ADMIN_AUTHORIZE) == constraints.end()) {
+            constraints.push_back(CONSTRAINT_ADMIN_AUTHORIZE);
+            osAccountInfo.SetConstraints(constraints);
+        }
+    }
     osAccountInfo.SetType(refreshedCachedType.first);
 #endif // SUPPORT_AUTHORIZATION
 
@@ -1741,7 +1750,7 @@ ErrCode IInnerOsAccountManager::IsOsAccountConstraintEnable(
 {
     isOsAccountConstraintEnable = false;
     OsAccountInfo osAccountInfo;
-    ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
+    ErrCode errCode = GetRealOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Get osaccount info failed, errCode = %{public}d", errCode);
         REPORT_OS_ACCOUNT_FAIL(id, Constants::OPERATION_CONSTRAINT, errCode, "Get osaccount info failed");
@@ -1876,7 +1885,7 @@ ErrCode IInnerOsAccountManager::QueryMaxLoggedInOsAccountNumber(uint32_t &maxNum
 ErrCode IInnerOsAccountManager::GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints)
 {
     OsAccountInfo osAccountInfo;
-    ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
+    ErrCode errCode = GetRealOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Get osaccount info failed, errCode = %{public}d", errCode);
         REPORT_OS_ACCOUNT_FAIL(id, Constants::OPERATION_CONSTRAINT, errCode, "Get osaccount info failed");
