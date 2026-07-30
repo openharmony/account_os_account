@@ -345,7 +345,7 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest012, TestSize.Level3)
     AccountInfo curOhosAccountInfo;
     OhosAccountInfo newOhosAccountInfo;
     EXPECT_EQ(OhosAccountManager::GetInstance().CheckOhosAccountCanBind(curOhosAccountInfo, newOhosAccountInfo, "test"),
-        false);
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -472,27 +472,32 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest016, TestSize.Level3)
     std::string input = "";
     AccountInfo info;
     std::string inputUid;
-    bool result = OhosAccountManager::GetInstance().GetCurOhosAccountAndCheckMatch(info, input, input, 100);
-    EXPECT_EQ(result, false);
+    ErrCode result = OhosAccountManager::GetInstance().GetCurOhosAccountAndCheckMatch(info, input, input, 100);
+    EXPECT_NE(result, ERR_OK);
     result = OhosAccountManager::GetInstance().GetCurOhosAccountAndCheckMatch(info, TEST_NAME, TEST_NAME, 100);
-    EXPECT_EQ(result, false);
+    EXPECT_NE(result, ERR_OK);
 }
 
 /**
  * @tc.name: OhosAccountManagerTest017
- * @tc.desc: Test GetOsAccountLocalIdForSubProfile in non-macro mode accepts base+1 subProfileId.
+ * @tc.desc: test CheckOhosAccountCanBind account already bound with different uid.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest017, TestSize.Level1)
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest017, TestSize.Level3)
 {
-    constexpr int32_t osAccountId = 100;
-    constexpr int32_t subProfileId = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 1;
-    int32_t resultOsAccountId = -1;
-    ErrCode ret = OhosAccountManager::GetInstance().GetOsAccountLocalIdForSubProfile(
-        subProfileId, resultOsAccountId);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(resultOsAccountId, osAccountId);
+    AccountInfo curOhosAccountInfo;
+    curOhosAccountInfo.ohosAccountInfo_.status_ = ACCOUNT_STATE_LOGIN;
+    curOhosAccountInfo.ohosAccountInfo_.uid_ = std::string(64, 'A');
+    curOhosAccountInfo.ohosAccountInfo_.name_ = "existingAccount";
+    
+    OhosAccountInfo newOhosAccountInfo;
+    newOhosAccountInfo.name_ = "differentAccount";
+    
+    std::string newOhosUid(64, 'B');
+    EXPECT_EQ(OhosAccountManager::GetInstance().CheckOhosAccountCanBind(
+        curOhosAccountInfo, newOhosAccountInfo, newOhosUid),
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
 /**
@@ -542,4 +547,21 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest020, TestSize.Level1)
         osAccountId, subProfileId, index);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(index, 0);
+}
+
+/**
+ * @tc.name: OhosAccountManagerTest021
+ * @tc.desc: Test GetOsAccountLocalIdForSubProfile in non-macro mode accepts base+1 subProfileId.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest021, TestSize.Level1)
+{
+    constexpr int32_t osAccountId = 100;
+    constexpr int32_t subProfileId = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 1;
+    int32_t resultOsAccountId = -1;
+    ErrCode ret = OhosAccountManager::GetInstance().GetOsAccountLocalIdForSubProfile(
+        subProfileId, resultOsAccountId);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(resultOsAccountId, osAccountId);
 }

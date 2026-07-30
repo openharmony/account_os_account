@@ -1,0 +1,125 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("../../../os_account.gni")
+import("../../../services/accountmgr/os_account_service.gni")
+import("//build/config/features.gni")
+import("//build/ohos.gni")
+import("//build/test.gni")
+
+authorization_stub_common_sources = [
+  "${os_account_path}/services/accountmgr/src/authorization_manager/authorization_manager_service.cpp",
+  "${os_account_path}/services/accountmgr/src/authorization_manager/inner_authorization_manager.cpp",
+  "${os_account_path}/services/accountmgr/src/authorization_manager/privilege_cache_manager.cpp",
+  "${os_account_path}/services/accountmgr/src/authorization_manager/privilege_utils.cpp",
+  "${os_account_path}/services/accountmgr/src/authorization_manager/service_extension_connect.cpp",
+  "${os_account_path}/services/accountmgr/src/common/tee/tee_auth_adapter.cpp",
+  "${os_account_path}/services/accountmgr/src/ability_manager_adapter/ability_manager_adapter.cpp",
+  "${os_account_path}/services/accountmgr/src/bundle_manager_adapter/bundle_manager_adapter.cpp",
+  "${domain_account_framework_path}/src/domain_account_common.cpp",
+] + account_service_sources_mock
+
+if (os_account_support_domain_accounts) {
+  authorization_stub_common_sources += [
+    "${domain_account_framework_path}/src/domain_account_callback_service.cpp",
+    "${domain_account_framework_path}/src/domain_account_parcel.cpp",
+  ]
+}
+
+authorization_stub_deps = [
+  "${account_iam_framework_path}:account_iam_innerkits",
+  "${account_iam_framework_path}:account_iam_stub",
+  "${innerkits_native_path}:account_stub",
+  "${innerkits_native_path}:libaccountkits",
+  "${os_account_innerkits_native_path}:os_account_event_proxy",
+  "${os_account_innerkits_native_path}:os_account_event_stub",
+  "${os_account_innerkits_native_path}:os_account_innerkits",
+  "${os_account_innerkits_native_path}:os_account_state_reply_callback_stub",
+  "${os_account_innerkits_native_path}:os_account_stub",
+  "${authorization_framework_path}:authorization_callback_stub",
+  "${authorization_framework_path}:authorization_proxy",
+  "${authorization_framework_path}:authorization_innerkits",
+  "${common_path}:libaccount_common",
+  "${os_account_path}/services/accountmgr:accountmgr",
+  "${authorization_framework_path}:authorization_callback_proxy",
+  "${authorization_framework_path}:authorization_stub",
+  "${authorization_framework_path}:connect_ability_callback_stub",
+]
+
+if (has_kv_store_part) {
+  authorization_stub_deps += [
+    "${app_account_innerkits_native_path}:app_account_authenticator_callback_proxy",
+    "${app_account_innerkits_native_path}:app_account_authenticator_callback_stub",
+    "${app_account_innerkits_native_path}:app_account_authenticator_proxy",
+    "${app_account_innerkits_native_path}:app_account_event_proxy",
+    "${app_account_innerkits_native_path}:app_account_event_stub",
+    "${app_account_innerkits_native_path}:app_account_stub",
+    "${os_account_innerkits_native_path}:os_account_event_stub",
+  ]
+}
+
+if (os_account_support_domain_accounts) {
+  authorization_stub_deps += [
+    "${domain_account_framework_path}:domain_account_callback_proxy",
+    "${domain_account_framework_path}:domain_account_callback_stub",
+    "${domain_account_framework_path}:domain_account_plugin_proxy",
+  ]
+}
+
+authorization_stub_ext_deps = [
+  "ability_base:base",
+  "ability_base:want",
+  "ability_runtime:ability_manager",
+  "ability_runtime:app_manager",
+  "ability_runtime:extension_manager",
+  "ability_runtime:wantagent_innerkits",
+  "access_token:libaccesstoken_sdk",
+  "access_token:libnativetoken_shared",
+  "access_token:libtokenid_sdk",
+  "access_token:libtokensetproc_shared",
+  "bundle_framework:appexecfwk_base",
+  "bundle_framework:appexecfwk_core",
+  "cJSON:cjson",
+  "c_utils:utils",
+  "config_policy:configpolicy_util",
+  "hilog:libhilog",
+  "init:libbegetutil",
+  "ipc:ipc_single",
+  "kv_store:distributeddata_inner",
+  "openssl:libcrypto_shared",
+  "safwk:system_ability_fwk",
+  "samgr:samgr_proxy",
+  "ability_runtime:ability_connect_callback_stub",
+  "tee_client:libteec_vendor",
+]
+
+if (has_user_auth_part) {
+  authorization_stub_ext_deps += [ "user_auth_framework:userauth_client" ]
+}
+if (hicollie_enable == true) {
+  authorization_stub_ext_deps += [ "hicollie:libhicollie" ]
+}
+if (security_guard_enabled) {
+  authorization_stub_ext_deps += [
+    "security_guard:libsg_collect_sdk",
+    "time_service:time_client",
+  ]
+}
+if (has_ces_part) {
+  authorization_stub_ext_deps += [ "common_event_service:cesfwk_innerkits" ]
+}
+if (has_huks_part) {
+  authorization_stub_ext_deps += [ "huks:libhukssdk" ]
+}
+
+

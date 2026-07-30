@@ -18,11 +18,11 @@
 #include "account_constants.h"
 #include "account_info.h"
 #include "account_log_wrapper.h"
-#include "account_hisysevent_adapter.h"
 #include "account_permission_manager.h"
 #include "distributed_account_subscribe_death_recipient.h"
 #include "distributed_account_subscribe_manager.h"
 #include "ipc_skeleton.h"
+#include "ohos_account_dfx_constants.h"
 
 namespace OHOS {
 namespace AccountSA {

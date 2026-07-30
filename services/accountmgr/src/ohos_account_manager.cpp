@@ -47,6 +47,7 @@
 #endif
 #include "ipc_skeleton.h"
 #include "ohos_account_constants.h"
+#include "ohos_account_dfx_constants.h"
 #include "os_account_constants.h"
 #include "os_account_sub_profile_subscribe_manager.h"
 #include "system_ability_definition.h"
@@ -307,8 +308,6 @@ static ErrCode ProcDistributedAccountStateChange(
     auto itFunc = eventFuncMap.find(eventStr);
     if (itFunc == eventFuncMap.end()) {
         ACCOUNT_LOGE("invalid event: %{public}s", eventStr.c_str());
-        REPORT_OHOS_ACCOUNT_FAIL(userId, Constants::OPERATION_SET_INFO, ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
-            eventStr.c_str());
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     return (itFunc->second)(userId, info, eventStr);
@@ -358,8 +357,6 @@ static ErrCode ProcDistributedAccountSpaceStateChange(
     auto itFunc = eventFuncMap.find(eventStr);
     if (itFunc == eventFuncMap.end()) {
         ACCOUNT_LOGE("invalid event for space: %{public}s", eventStr.c_str());
-        REPORT_OHOS_ACCOUNT_FAIL(userId, Constants::OPERATION_SET_INFO, ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
-            eventStr.c_str());
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     return (itFunc->second)(userId, subspaceId, info, eventStr);
@@ -401,31 +398,30 @@ ErrCode OhosAccountManager::OhosAccountStateChange(
 /**
  * Clear current account information
  */
-bool OhosAccountManager::ClearOhosAccount(AccountInfo &curOhosAccountInfo, std::int32_t clrStatus) const
+ErrCode OhosAccountManager::ClearOhosAccount(AccountInfo &curOhosAccountInfo, std::int32_t clrStatus) const
 {
     curOhosAccountInfo.clear(clrStatus);
     ErrCode errCode = dataDealer_->AccountInfoToJson(curOhosAccountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("AccountInfoToJson error");
-        return false;
+        ACCOUNT_LOGE("AccountInfoToJson error, err %{public}d.", errCode);
     }
-    return true;
+    return errCode;
 }
 
 /**
  * Config current account config.
  *
  * @param ohosAccountInfo distribute account information.
- * @return true if success.
+ * @return ERR_OK if success, specific error code if failed.
  */
-bool OhosAccountManager::SaveOhosAccountInfo(AccountInfo &ohosAccountInfo) const
+ErrCode OhosAccountManager::SaveOhosAccountInfo(AccountInfo &ohosAccountInfo) const
 {
     ErrCode errCode = dataDealer_->AccountInfoToJson(ohosAccountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("AccountInfoToJson error.");
-        return false;
+        ACCOUNT_LOGE("AccountInfoToJson error, err %{public}d.", errCode);
+        return errCode;
     }
-    return true;
+    return ERR_OK;
 }
 
 /**
@@ -555,7 +551,6 @@ ErrCode OhosAccountManager::GetOhosAccountDistributedInfo(const int32_t userId, 
     if (isSystemApp || bundleName.empty()) {
         return ERR_OK;
     }
-    ReportOsAccountLifeCycle(userId, "GetDistributedInfo_" + bundleName);
     AnonymizeOhosAccountInfo(ohosAccountInfo, bundleName);
     return ERR_OK;
 }
@@ -933,6 +928,8 @@ bool OhosAccountManager::HandleEvent(AccountInfo &curOhosAccount, const std::str
     bool ret = accountState_->StateChangeProcess(event);
     if (!ret) {
         ACCOUNT_LOGE("Handle event %{public}d failed", event);
+        REPORT_OHOS_ACCOUNT_FAIL(-1, Constants::OPERATION_STATE_CHANGE, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR,
+            eventStr);
         return false;
     }
     std::int32_t newState = accountState_->GetAccountState();
@@ -976,10 +973,11 @@ ErrCode OhosAccountManager::LoginOhosAccount(const int32_t userId, const OhosAcc
     }
     std::string ohosAccountUid = GenerateOhosUdidWithSha256(ohosAccountInfo.name_, ohosAccountInfo.uid_);
     // current local user cannot be bound again when it has already been bound to an ohos account
-    if (!CheckOhosAccountCanBind(currAccountInfo, ohosAccountInfo, ohosAccountUid)) {
-        REPORT_OHOS_ACCOUNT_FAIL(userId, Constants::OPERATION_LOGIN, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR,
+    ErrCode bindErr = CheckOhosAccountCanBind(currAccountInfo, ohosAccountInfo, ohosAccountUid);
+    if (bindErr != ERR_OK) {
+        REPORT_OHOS_ACCOUNT_FAIL(userId, Constants::OPERATION_LOGIN, bindErr,
             "Call checkOhosAccountCanBind failed.");
-        ACCOUNT_LOGE("check can be bound failed, userId %{public}d.", userId);
+        ACCOUNT_LOGE("check can be bound failed, userId %{public}d, err %{public}d.", userId, bindErr);
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     int32_t originalStatus = currAccountInfo.ohosAccountInfo_.status_;
@@ -991,8 +989,10 @@ ErrCode OhosAccountManager::LoginOhosAccount(const int32_t userId, const OhosAcc
     }
     // update account info
     UpdateOhosAccountInfo(ohosAccountInfo, ohosAccountUid, currAccountInfo);
-    if (!SaveOhosAccountInfo(currAccountInfo)) {
-        ACCOUNT_LOGE("SaveOhosAccountInfo failed! userId %{public}d.", userId);
+    ErrCode saveErr = SaveOhosAccountInfo(currAccountInfo);
+    if (saveErr != ERR_OK) {
+        ACCOUNT_LOGE("SaveOhosAccountInfo failed! userId %{public}d, err %{public}d.", userId, saveErr);
+        REPORT_OHOS_ACCOUNT_FAIL(userId, Constants::OPERATION_LOGIN, saveErr, "Save account failed");
         return ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR;
     }
     if (ohosAccountInfo.avatar_.empty()) {
@@ -1036,11 +1036,12 @@ ErrCode OhosAccountManager::LogoutOhosAccount(
     std::lock_guard<std::mutex> mutexLock(mgrMutex_);
 
     AccountInfo currentAccount;
-    if (!GetCurOhosAccountAndCheckMatch(currentAccount, ohosAccountInfo.name_,
-                                        ohosAccountInfo.uid_, userId)) {
-        REPORT_OHOS_ACCOUNT_FAIL(userId, Constants::OPERATION_LOGOUT, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR,
+    ErrCode matchErr = GetCurOhosAccountAndCheckMatch(currentAccount, ohosAccountInfo.name_,
+        ohosAccountInfo.uid_, userId);
+    if (matchErr != ERR_OK) {
+        REPORT_OHOS_ACCOUNT_FAIL(userId, Constants::OPERATION_LOGOUT, matchErr,
             "Call getCurOhosAccountAndCheckMatch failed.");
-        ACCOUNT_LOGE("check match failed, userId %{public}d.", userId);
+        ACCOUNT_LOGE("check match failed, userId %{public}d, err %{public}d.", userId, matchErr);
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
 
@@ -1052,9 +1053,10 @@ ErrCode OhosAccountManager::LogoutOhosAccount(
         return ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR;
     }
 
-    ret = ClearOhosAccount(currentAccount); // clear account info with ACCOUNT_STATE_UNBOUND
-    if (!ret) {
-        ACCOUNT_LOGE("ClearOhosAccount failed! userId %{public}d.", userId);
+    ErrCode clearErr = ClearOhosAccount(currentAccount); // clear account info with ACCOUNT_STATE_UNBOUND
+    if (clearErr != ERR_OK) {
+        ACCOUNT_LOGE("ClearOhosAccount failed! userId %{public}d, err %{public}d.", userId, clearErr);
+        REPORT_OHOS_ACCOUNT_FAIL(userId, Constants::OPERATION_LOGOUT, clearErr, "Clear account failed");
         return ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR;
     }
     subscribeManager_.Publish(userId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGOUT);
@@ -1080,10 +1082,12 @@ ErrCode OhosAccountManager::LogoffOhosAccount(
     std::lock_guard<std::mutex> mutexLock(mgrMutex_);
 
     AccountInfo currentAccount;
-    if (!GetCurOhosAccountAndCheckMatch(currentAccount, ohosAccountInfo.name_, ohosAccountInfo.uid_, userId)) {
-        REPORT_OHOS_ACCOUNT_FAIL(userId, Constants::OPERATION_LOGOFF, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR,
+    ErrCode matchErr = GetCurOhosAccountAndCheckMatch(currentAccount, ohosAccountInfo.name_,
+        ohosAccountInfo.uid_, userId);
+    if (matchErr != ERR_OK) {
+        REPORT_OHOS_ACCOUNT_FAIL(userId, Constants::OPERATION_LOGOFF, matchErr,
             "Call getCurOhosAccountAndCheckMatch failed.");
-        ACCOUNT_LOGE("check match failed, userId %{public}d.", userId);
+        ACCOUNT_LOGE("check match failed, userId %{public}d, err %{public}d.", userId, matchErr);
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
 
@@ -1095,9 +1099,10 @@ ErrCode OhosAccountManager::LogoffOhosAccount(
         return ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR;
     }
 
-    ret = ClearOhosAccount(currentAccount); // clear account info with ACCOUNT_STATE_UNBOUND
-    if (!ret) {
-        ACCOUNT_LOGE("ClearOhosAccount failed, userId %{public}d.", userId);
+    ErrCode clearErr = ClearOhosAccount(currentAccount); // clear account info with ACCOUNT_STATE_UNBOUND
+    if (clearErr != ERR_OK) {
+        ACCOUNT_LOGE("ClearOhosAccount failed, userId %{public}d, err %{public}d.", userId, clearErr);
+        REPORT_OHOS_ACCOUNT_FAIL(userId, Constants::OPERATION_LOGOFF, clearErr, "Clear account failed");
         return ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR;
     }
     subscribeManager_.Publish(userId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGOFF);
@@ -1123,11 +1128,12 @@ ErrCode OhosAccountManager::HandleOhosAccountTokenInvalidEvent(
     std::lock_guard<std::mutex> mutexLock(mgrMutex_);
 
     AccountInfo currentOhosAccount;
-    if (!GetCurOhosAccountAndCheckMatch(currentOhosAccount, ohosAccountInfo.name_,
-                                        ohosAccountInfo.uid_, userId)) {
-        REPORT_OHOS_ACCOUNT_FAIL(userId, Constants::OPERATION_TOKEN_INVALID, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR,
+    ErrCode matchErr = GetCurOhosAccountAndCheckMatch(currentOhosAccount, ohosAccountInfo.name_,
+        ohosAccountInfo.uid_, userId);
+    if (matchErr != ERR_OK) {
+        REPORT_OHOS_ACCOUNT_FAIL(userId, Constants::OPERATION_TOKEN_INVALID, matchErr,
             "Call getCurOhosAccountAndCheckMatch failed.");
-        ACCOUNT_LOGE("check match failed, userId %{public}d.", userId);
+        ACCOUNT_LOGE("check match failed, userId %{public}d, err %{public}d.", userId, matchErr);
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
 
@@ -1139,10 +1145,11 @@ ErrCode OhosAccountManager::HandleOhosAccountTokenInvalidEvent(
         return ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR;
     }
 
-    ret = SaveOhosAccountInfo(currentOhosAccount);
-    if (!ret) {
+    ErrCode saveErr = SaveOhosAccountInfo(currentOhosAccount);
+    if (saveErr != ERR_OK) {
         // moving on even if failed to update account info
-        ACCOUNT_LOGW("SaveOhosAccountInfo failed, userId %{public}d.", userId);
+        ACCOUNT_LOGW("SaveOhosAccountInfo failed, userId %{public}d, err %{public}d.", userId, saveErr);
+        REPORT_OHOS_ACCOUNT_FAIL(userId, Constants::OPERATION_TOKEN_INVALID, saveErr, "Save account failed");
     }
     subscribeManager_.Publish(userId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::TOKEN_INVALID);
     AccountEventProvider::EventPublishAsUser(COMMON_EVENT_HWID_TOKEN_INVALID, userId);
@@ -1186,6 +1193,8 @@ bool OhosAccountManager::OnInitialize()
         // when json file corrupted, have it another try
         if ((tryTimes == MAX_RETRY_TIMES) || (errCode != ERR_ACCOUNT_DATADEAL_JSON_FILE_CORRUPTION)) {
             ACCOUNT_LOGE("parse json file failed: %{public}d, tryTime: %{public}d", errCode, tryTimes);
+            REPORT_OHOS_ACCOUNT_FAIL(-1, Constants::OPERATION_INIT, errCode,
+                "OhosAccountManager initialization failed");
             return false;
         }
     }
@@ -1295,6 +1304,8 @@ ErrCode OhosAccountManager::HandleSpaceStateChange(OsAccountSubspaceInfo &spaceI
     bool ret = accountState_->StateChangeProcess(event);
     if (!ret) {
         ACCOUNT_LOGE("Handle space event %{public}d failed", event);
+        REPORT_OHOS_ACCOUNT_FAIL(-1, Constants::OPERATION_STATE_CHANGE, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR,
+            eventStr);
         return ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR;
     }
     std::int32_t newState = accountState_->GetAccountState();
@@ -1535,12 +1546,12 @@ ErrCode OhosAccountManager::LogoffOhosAccountSpace(int32_t userId, int32_t subsp
 #endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 
 #ifndef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-bool OhosAccountManager::CheckOhosAccountCanBind(const AccountInfo &currAccountInfo,
+ErrCode OhosAccountManager::CheckOhosAccountCanBind(const AccountInfo &currAccountInfo,
     const OhosAccountInfo &newOhosAccountInfo, const std::string &newOhosUid) const
 {
     if (newOhosUid.length() != OHOS_ACCOUNT_UDID_LENGTH) {
         ACCOUNT_LOGE("newOhosUid invalid length, %{public}zu.", newOhosUid.length());
-        return false;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
     // check if current account has been bound or not
@@ -1549,9 +1560,9 @@ bool OhosAccountManager::CheckOhosAccountCanBind(const AccountInfo &currAccountI
         (currAccountInfo.ohosAccountInfo_.name_ != newOhosAccountInfo.name_))) {
         ACCOUNT_LOGE("current account has already been bounded. callingUserId %{public}d.",
             AccountMgrService::GetInstance().GetCallingUserID());
-        return false;
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
-    return true;
+    return ERR_OK;
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 
@@ -1568,20 +1579,22 @@ bool OhosAccountManager::CheckSameDistributedAccount(const OhosAccountInfo &curr
     return true;
 }
 
-bool OhosAccountManager::GetCurOhosAccountAndCheckMatch(AccountInfo &curAccountInfo,
-                                                        const std::string &inputName,
-                                                        const std::string &inputUid,
-                                                        const std::int32_t callingUserId) const
+ErrCode OhosAccountManager::GetCurOhosAccountAndCheckMatch(AccountInfo &curAccountInfo, const std::string &inputName,
+    const std::string &inputUid, const std::int32_t callingUserId) const
 {
-    if (dataDealer_->AccountInfoFromJson(curAccountInfo, callingUserId) != ERR_OK) {
+    ErrCode errCode = dataDealer_->AccountInfoFromJson(curAccountInfo, callingUserId);
+    if (errCode != ERR_OK) {
         ACCOUNT_LOGE("cannot read from config, inputName %{public}s.", AnonymizeNameStr(inputName).c_str());
-        return false;
+        return errCode;
     }
 
     OhosAccountInfo newInfo;
     newInfo.name_ = inputName;
     newInfo.uid_ = inputUid;
-    return CheckSameDistributedAccount(curAccountInfo.ohosAccountInfo_, newInfo, callingUserId);
+    if (!CheckSameDistributedAccount(curAccountInfo.ohosAccountInfo_, newInfo, callingUserId)) {
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
+    return ERR_OK;
 }
 
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE

@@ -1,4 +1,4 @@
-# Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+# Copyright (c) 2023-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -10,11 +10,39 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+import("../../../os_account.gni")
+
+config("account_stub_fuzztest_config") {
+  include_dirs = [
+    "${innerkits_path}/include",
+    "${os_account_core_path}/include",
+    "${os_account_interfaces_native_path}/include",
+    "${os_account_path}/dfx/hidumper_adapter",
+    "${os_account_path}/dfx/hitrace_adapter",
+    "${services_path}/accountmgr/include",
+    "${services_path}/accountmgr/include/os_account_subprofile",
+    "${services_path}/accountmgr/include/distributed_account",
+    "${os_account_path}/test/fuzztest/appaccount_stub/fuzz_data",
+  ]
+  cflags = [
+    "-g",
+    "-O0",
+    "-Wno-unused-variable",
+    "-fno-omit-frame-pointer",
+  ]
+  if (target_cpu == "arm") {
+    cflags += [ "-DBINDER_IPC_32BIT" ]
+  }
+  defines = [
+    "ACCOUNT_LOG_TAG = \"AppAccountFuzzTest\"",
+    "LOG_DOMAIN = 0xD001B00",
+  ]
+}
+
 group("fuzztest") {
   testonly = true
-
   deps = [
-    # deps file
     "cmdgetohosaccountinfobyuseridstub_fuzzer:CmdGetOhosAccountInfoByUserIdStubFuzzTest",
     "cmdgetosaccountservicestub_fuzzer:CmdGetOsAccountServiceStubFuzzTest",
     "cmdqueryohosaccountinfobyuseridstub_fuzzer:CmdQueryOhosAccountInfoByUserIdStubFuzzTest",

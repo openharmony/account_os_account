@@ -11,70 +11,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("../../../../os_account.gni")
+import("../account_stub_shared.gni")
 
-#####################hydra-fuzz###################
-import("//build/config/features.gni")
-import("//build/ohos.gni")
-import("//build/test.gni")
-
-##############################fuzztest##########################################
 ohos_fuzztest("CmdGetOsAccountServiceStubFuzzTest") {
   module_out_path = fuzz_output_path
-
   fuzz_config_file = "."
-  include_dirs = [
-    "${innerkits_path}/include",
-    "${os_account_core_path}/include",
-    "${os_account_interfaces_native_path}/include",
-    "${os_account_path}/dfx/hidumper_adapter",
-    "${os_account_path}/dfx/hitrace_adapter",
-    "${services_path}/accountmgr/include",
-    "${services_path}/accountmgr/include/distributed_account",
-    "${os_account_path}/test/fuzztest/appaccount_stub/fuzz_data",
+  configs = [
+    "${os_account_path}/test/fuzztest/account_stub:account_stub_fuzztest_config",
+    "${domain_account_framework_path}:frameworks_domain_account_interface_public_config",
   ]
-  cflags = [
-    "-g",
-    "-O0",
-    "-Wno-unused-variable",
-    "-fno-omit-frame-pointer",
-  ]
-  if (target_cpu == "arm") {
-    cflags += [ "-DBINDER_IPC_32BIT" ]
-  }
-  configs = [ "${domain_account_framework_path}:frameworks_domain_account_interface_public_config" ]
   sources = [
-    "${os_account_path}/services/accountmgr/src/account_mgr_service.cpp",
+    "${app_account_services_path}/src/account_mgr_service.cpp",
     "cmdgetosaccountservicestub_fuzzer.cpp",
   ]
-
-  deps = [
-    "${innerkits_native_path}:account_stub",
-    "${os_account_innerkits_native_path}:os_account_innerkits",
-    "${os_account_innerkits_native_path}:os_account_stub",
-    "${os_account_path}/frameworks/appaccount/native:app_account_innerkits",
-    "${os_account_path}/frameworks/common:libaccount_common",
-    "${os_account_path}/services/accountmgr:accountmgr",
-  ]
-
-  external_deps = [
-    "ability_base:want",
-    "ability_runtime:app_manager",
-    "ability_runtime:wantagent_innerkits",
-    "access_token:libaccesstoken_sdk",
-    "access_token:libtokenid_sdk",
-    "bundle_framework:appexecfwk_base",
-    "cJSON:cjson",
-    "c_utils:utils",
-    "hilog:libhilog",
-    "ipc:ipc_single",
-    "kv_store:distributeddata_inner",
-    "safwk:system_ability_fwk",
-    "samgr:samgr_proxy",
-  ]
-
-  defines = [
-    "ACCOUNT_LOG_TAG = \"AppAccountFuzzTest\"",
-    "LOG_DOMAIN = 0xD001B00",
-  ]
+  deps = account_stub_deps
+  external_deps = account_stub_ext_deps
 }

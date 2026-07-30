@@ -23,10 +23,10 @@
 #include "account_log_wrapper.h"
 #include "directory_ex.h"
 #include "file_ex.h"
-#include "account_hisysevent_adapter.h"
 #include "iinner_os_account_manager.h"
 #include "data_size_report_adapter.h"
 #include "ohos_account_data_deal.h"
+#include "ohos_account_dfx_constants.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -165,7 +165,7 @@ ErrCode OhosAccountDataDeal::Init(int32_t userId)
     if (!fin) {
         int32_t err = errno;
         ACCOUNT_LOGE("Failed to open config file %{public}s, errno %{public}d.", configFile.c_str(), err);
-        ReportOhosAccountOperationFail(userId, OPERATION_INIT_OPEN_FILE_TO_READ, err, configFile);
+        ReportOhosAccountOperationFail(userId, Constants::OPERATION_INIT_OPEN_FILE_TO_READ, err, configFile);
         return ERR_ACCOUNT_DATADEAL_INPUT_FILE_ERROR;
     }
 
@@ -179,7 +179,7 @@ ErrCode OhosAccountDataDeal::Init(int32_t userId)
         if (RemoveFile(configFile)) {
             int32_t err = errno;
             ACCOUNT_LOGE("Remove invalid json file %{public}s failed, errno %{public}d.", configFile.c_str(), err);
-            ReportOhosAccountOperationFail(userId, OPERATION_REMOVE_FILE, err, configFile);
+            ReportOhosAccountOperationFail(userId, Constants::OPERATION_REMOVE_FILE, err, configFile);
         }
         return ERR_ACCOUNT_DATADEAL_JSON_FILE_CORRUPTION;
     }
@@ -236,6 +236,8 @@ ErrCode OhosAccountDataDeal::SaveAccountInfo(const AccountInfo &accountInfo)
         avatarFile, accountInfo.ohosAccountInfo_.avatar_);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("Failed to save avatar! ret = %{public}d", ret);
+        ReportOhosAccountOperationFail(accountInfo.userId_, Constants::OPERATION_OPEN_FILE_TO_WRITE, ret,
+            "Failed to save avatar");
         return ret;
     }
     std::string accountInfoValue = PackJsonToString(jsonData);
@@ -243,10 +245,10 @@ ErrCode OhosAccountDataDeal::SaveAccountInfo(const AccountInfo &accountInfo)
 
     ret = accountFileOperator_->InputFileByPathAndContent(configFile, accountInfoValue);
     if (ret == ERR_OHOSACCOUNT_SERVICE_FILE_CHANGE_DIR_MODE_ERROR) {
-        ReportOhosAccountOperationFail(accountInfo.userId_, OPERATION_CHANGE_MODE_FILE, ret, configFile);
+        ReportOhosAccountOperationFail(accountInfo.userId_, Constants::OPERATION_CHANGE_MODE_FILE, ret, configFile);
     }
     if (ret != ERR_OK && ret != ERR_OHOSACCOUNT_SERVICE_FILE_CHANGE_DIR_MODE_ERROR) {
-        ReportOhosAccountOperationFail(accountInfo.userId_, OPERATION_OPEN_FILE_TO_WRITE, ret, configFile);
+        ReportOhosAccountOperationFail(accountInfo.userId_, Constants::OPERATION_OPEN_FILE_TO_WRITE, ret, configFile);
     }
 
     // report data_size when distributed account profile photo updated
@@ -264,7 +266,7 @@ ErrCode OhosAccountDataDeal::ParseJsonFromFile(const std::string &filePath, CJso
     if (!fin) {
         int32_t err = errno;
         ACCOUNT_LOGE("Failed to open config file %{public}s, errno %{public}d.", filePath.c_str(), err);
-        ReportOhosAccountOperationFail(userId, OPERATION_OPEN_FILE_TO_READ, err, filePath);
+        ReportOhosAccountOperationFail(userId, Constants::OPERATION_OPEN_FILE_TO_READ, err, filePath);
         return ERR_ACCOUNT_DATADEAL_INPUT_FILE_ERROR;
     }
     std::string fileContent((std::istreambuf_iterator<char>(fin)), std::istreambuf_iterator<char>());
@@ -272,6 +274,7 @@ ErrCode OhosAccountDataDeal::ParseJsonFromFile(const std::string &filePath, CJso
     jsonData = CreateJsonFromString(fileContent);
     if (jsonData == nullptr || !IsObject(jsonData)) {
         ACCOUNT_LOGE("Invalid json file,  %{public}s, remove", filePath.c_str());
+        ReportOhosAccountOperationFail(userId, Constants::OPERATION_OPEN_FILE_TO_READ, -1, "Invalid json file");
         return ERR_ACCOUNT_DATADEAL_JSON_FILE_CORRUPTION;
     }
     std::string avatarData;
@@ -373,7 +376,7 @@ ErrCode OhosAccountDataDeal::GetAccountInfo(AccountInfo &accountInfo, const int3
     if (ret != ERR_OK) {
         if (ret != ERR_ACCOUNT_COMMON_FILE_NOT_EXIST) {
             std::string errorMsg = "Stat " + configFile + " failed";
-            ReportOhosAccountOperationFail(userId, OPERATION_OPEN_FILE_TO_READ, ret, errorMsg);
+            ReportOhosAccountOperationFail(userId, Constants::OPERATION_OPEN_FILE_TO_READ, ret, errorMsg);
             return ERR_ACCOUNT_DATADEAL_INPUT_FILE_ERROR;
         } else {
             ACCOUNT_LOGI("File %{public}s not exist, create!", configFile.c_str());
