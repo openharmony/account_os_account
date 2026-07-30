@@ -58,7 +58,7 @@ using UserAuthClient = UserIam::UserAuth::UserAuthClient;
 
 const std::vector<uint8_t> TEMP_PIN = {50, 48, 50, 52, 48, 56};
 
-void AuthCallbackDeathRecipient::SetContextId(uint16_t contextId)
+void AuthCallbackDeathRecipient::SetContextId(uint64_t contextId)
 {
     contextId_ = contextId;
 }

@@ -375,6 +375,7 @@ public:
         onResultCalled = true;
         if (retCode != ERR_OK) {
             this->result = retCode;
+            cv.notify_one();
             return;
         }
         this->result = ERR_OK;
