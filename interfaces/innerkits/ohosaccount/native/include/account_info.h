@@ -54,11 +54,6 @@ const char OHOS_ACCOUNT_EVENT_LOGOFF[]           = "Ohos.account.event.LOGOFF";
 const char OHOS_ACCOUNT_EVENT_DISTRIBUTED_SPACE_CREATE[]    = "Ohos.account.event.DISTRIBUTED_SPACE_CREATE";
 const char OHOS_ACCOUNT_EVENT_DISTRIBUTED_SPACE_DELETED[]   = "Ohos.account.event.DISTRIBUTED_SPACE_DELETE";
 const char OHOS_ACCOUNT_EVENT_DISTRIBUTED_SPACE_SWITCHED[]  = "Ohos.account.event.DISTRIBUTED_SPACE_SWITCH";
-const char OPERATION_INIT_OPEN_FILE_TO_READ[] = "InitOpenFileToRead";
-const char OPERATION_REMOVE_FILE[] = "RemoveFile";
-const char OPERATION_OPEN_FILE_TO_READ[] = "OpenFileToRead";
-const char OPERATION_OPEN_FILE_TO_WRITE[] = "OpenFileToWrite";
-const char OPERATION_CHANGE_MODE_FILE[] = "ChangeModeFile";
 const char OPERATION_FORCE_CREATE_DIRECTORY[] = "ForceCreateDirectory";
 const char OPERATION_CHANGE_MODE_DIRECTORY[] = "ChangeModeDirectory";
 /**

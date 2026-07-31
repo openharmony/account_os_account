@@ -25,6 +25,9 @@
 namespace OHOS {
 namespace AccountSA {
 namespace Constants {
+// publish
+const char OPERATION_EVENT_PUBLISH[] = "eventPublish";
+const char OPERATION_GET_INFO[] = "getInfo";
 //DOMAIN_DFX
 const char DOMAIN_OPT_REGISTER[] = "registerPlugin";
 const char DOMAIN_OPT_UNREGISTER[] = "unregisterPlugin";

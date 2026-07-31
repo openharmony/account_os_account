@@ -23,6 +23,7 @@
 #include "account_log_wrapper.h"
 #include "account_permission_manager.h"
 #include "ipc_skeleton.h"
+#include "ohos_account_dfx_constants.h"
 #include "os_account_sub_profile_subscribe_death_recipient.h"
 
 namespace OHOS {

@@ -11,15 +11,87 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("../../../os_account.gni")
+import("../../../services/accountmgr/os_account_service.gni")
+import("authorization_stub_shared.gni")
+
+#####################hydra-fuzz###################
+
+config("authorization_stub_fuzztest_config") {
+  include_dirs = [
+    "${authorization_interfaces_native_path}/include",
+    "${os_account_path}/services/accountmgr/include/ability_manager_adapter",
+    "${os_account_path}/services/accountmgr/include/authorization_manager",
+    "${os_account_path}/services/accountmgr/include/bundle_manager_adapter",
+    "${os_account_path}/services/accountmgr/include/common/tee",
+    "${os_account_path}/services/accountmgr/include/common/database",
+    "${os_account_path}/services/accountmgr/include/common/database/kvstore",
+    "${os_account_path}/services/accountmgr/include/osaccount",
+    "${os_account_path}/services/accountmgr/include/domain_account",
+    "${os_account_path}/services/accountmgr/include/distributed_account",
+    "${os_account_path}/services/accountmgr/include/os_account_subprofile",
+    "${os_account_path}/services/accountmgr/include/appaccount",
+    "${os_account_path}/services/accountmgr/include/account_iam",
+    "${os_account_path}/services/accountmgr/include",
+    "${authorization_framework_path}/include",
+    "${os_account_path}/test/fuzztest/authorization/common",
+    "${common_path}/include",
+    "${common_path}/json_utils/include",
+    "${os_account_dfx_path}/hitrace_adapter",
+    "${os_account_path}/dfx/hidumper_adapter",
+  ]
+  cflags = [
+    "-g",
+    "-O0",
+    "-Wno-unused-variable",
+    "-fno-omit-frame-pointer",
+  ]
+  if (target_cpu == "arm") {
+    cflags += [ "-DBINDER_IPC_32BIT" ]
+  }
+  defines = [
+    "ACCOUNT_LOG_TAG = \"AuthorizationFuzzTest\"",
+    "LOG_DOMAIN = 0xD001B00",
+  ]
+}
+
+config("authorization_stub_config") {
+  cflags = [
+    "-DENABLE_FILE_WATCHER",
+    "-DSUPPORT_AUTHORIZATION",
+  ]
+
+  if (has_user_auth_part) {
+    cflags += [
+      "-DHAS_USER_AUTH_PART",
+      "-DHAS_USER_IDM_PART",
+    ]
+  }
+  if (os_account_support_domain_accounts) {
+    cflags += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+  }
+  if (hicollie_enable == true) {
+    cflags += [ "-DHICOLLIE_ENABLE" ]
+  }
+  if (security_guard_enabled) {
+    cflags += [ "-DSECURITY_GUARDE_ENABLE" ]
+  }
+  if (has_ces_part) {
+    cflags += [ "-DHAS_CES_PART" ]
+  }
+  if (has_huks_part) {
+    cflags += [ "-DHAS_HUKS_PART" ]
+  }
+  if (has_hiviewdfx_hisysevent_part) {
+    cflags += [ "-DHAS_HISYSEVENT_PART" ]
+  }
+}
+
 group("fuzztest") {
   testonly = true
-  deps = []
-
-  deps += [
-    # deps file
+  deps = [
     "checkauthorizationstub_fuzzer:CheckAuthorizationStubFuzzTest",
     "checkauthorizationtokenstub_fuzzer:CheckAuthorizationTokenStubFuzzTest",
     "releaseauthorizationstub_fuzzer:ReleaseAuthorizationStubFuzzTest",
   ]
-
 }

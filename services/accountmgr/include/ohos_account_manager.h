@@ -255,29 +255,30 @@ private:
      * Config current account config.
      *
      * @param ohosAccountInfo target ohos account information.
-     * @return true if success.
+     * @return ERR_OK if success, specific error code if failed.
      */
-    bool SaveOhosAccountInfo(AccountInfo &ohosAccountInfo) const;
+    ErrCode SaveOhosAccountInfo(AccountInfo &ohosAccountInfo) const;
 
     /**
      * Clear current account config.
      * @param curOhosAccountInfo current ohos account info.
      * @param clrStatus account status.
+     * @return ERR_OK if success, specific error code if failed.
      */
-    bool ClearOhosAccount(AccountInfo &curOhosAccountInfo, std::int32_t clrStatus = ACCOUNT_STATE_UNBOUND) const;
+    ErrCode ClearOhosAccount(AccountInfo &curOhosAccountInfo, std::int32_t clrStatus = ACCOUNT_STATE_UNBOUND) const;
 
     /**
      * Check whether the ohos account can be bound to the current user or not
-     * @return true if can.
+     * @return ERR_OK if can bind, specific error code if cannot.
      */
-    bool CheckOhosAccountCanBind(const AccountInfo &currAccountInfo,
+    ErrCode CheckOhosAccountCanBind(const AccountInfo &currAccountInfo,
         const OhosAccountInfo &newOhosAccountInfo, const std::string &newOhosUid) const;
 
     /**
      * Get current ohos account info and check whether input information match or not
-     * @return true if matches.
+     * @return ERR_OK if matches, specific error code if not match or read failed.
      */
-    bool GetCurOhosAccountAndCheckMatch(AccountInfo &curOhosAccountInfo,
+    ErrCode GetCurOhosAccountAndCheckMatch(AccountInfo &curOhosAccountInfo,
                                         const std::string &inputName,
                                         const std::string &inputUid,
                                         const std::int32_t callingUserId) const;

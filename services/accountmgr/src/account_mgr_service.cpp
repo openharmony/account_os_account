@@ -19,7 +19,6 @@
 #include "accesstoken_kit.h"
 #include "account_constants.h"
 #include "account_dump_helper.h"
-#include "account_hisysevent_adapter.h"
 #ifdef HAS_USER_AUTH_PART
 #include "account_iam_service.h"
 #endif
@@ -48,6 +47,7 @@
 #include "iinner_os_account_manager.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
+#include "ohos_account_dfx_constants.h"
 #include "os_account_info.h"
 #include "perf_stat.h"
 #include "string_ex.h"
