@@ -49,7 +49,7 @@ interface OHOS.AccountSA.IAccount {
 
     IRemoteObject GetAppAccountService();
 
-    IRemoteObject GetOsAccountService();
+    [customMsgOption flags=MessageOption::TF_IMAGE]IRemoteObject GetOsAccountService();
 
     IRemoteObject GetAccountIAMService();
 

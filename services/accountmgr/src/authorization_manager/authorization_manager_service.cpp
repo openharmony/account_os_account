@@ -445,7 +445,12 @@ ErrCode AuthorizationManagerService::AcquireAdminAuthorization(const std::string
     }
 
     if (targetAccountId == -1) {
-        ACCOUNT_LOGE("Admin account not found, adminName: %{public}s", adminName.c_str());
+        ACCOUNT_LOGE("Admin account not found");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    if (!privilege.empty() && !IsDefinedPrivilege(privilege)) {
+        ACCOUNT_LOGE("Privilege is not defined");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
