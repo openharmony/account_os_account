@@ -104,7 +104,7 @@ typedef struct ApplyUserTokenResult {
     uint32_t grantTime;
     ~ApplyUserTokenResult()
     {
-        (void)memset_s(&userToken, userTokenSize * sizeof(uint8_t), 0, userTokenSize * sizeof(uint8_t));
+        (void)memset_s(&userToken, USER_TOKEN_LEN, 0, USER_TOKEN_LEN);
     }
 } __attribute__((__packed__)) ApplyUserTokenResult;
 

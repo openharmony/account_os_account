@@ -207,6 +207,7 @@ public:
         if (osAccountInfo == nullptr) {
             this->onResultCalled_ = true;
             ACCOUNT_LOGE("failed to unmarshalling OsAccountInfo");
+            cv_.notify_one();
             return;
         }
         if (this->onResultCalled_) {

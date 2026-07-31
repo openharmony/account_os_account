@@ -39,7 +39,7 @@ public:
     AuthCallbackDeathRecipient() = default;
     ~AuthCallbackDeathRecipient() override = default;
 
-    void SetContextId(uint16_t context);
+    void SetContextId(uint64_t contextId);
     void OnRemoteDied(const wptr<IRemoteObject> &remote) override;
 
 private:

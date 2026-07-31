@@ -222,6 +222,36 @@ HWTEST_F(AccountIamCallbackTest, AuthCallback_OnResult_0100, TestSize.Level0)
 }
 
 /**
+ * @tc.name: AuthCallbackDeathRecipient_SetContextId_0100
+ * @tc.desc: SetContextId with large value (0xFFFFFFFFFFFFFFFF) should not be truncated.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIamCallbackTest, AuthCallbackDeathRecipient_SetContextId_0100, TestSize.Level0)
+{
+    sptr<AuthCallbackDeathRecipient> deathRecipient = new (std::nothrow) AuthCallbackDeathRecipient();
+    ASSERT_NE(deathRecipient, nullptr);
+    uint64_t testContextId = 0xFFFFFFFFFFFFFFFF;
+    deathRecipient->SetContextId(testContextId);
+    EXPECT_EQ(deathRecipient->contextId_, testContextId);
+}
+
+/**
+ * @tc.name: AuthCallbackDeathRecipient_SetContextId_0200
+ * @tc.desc: SetContextId with 0 should not cause any error.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIamCallbackTest, AuthCallbackDeathRecipient_SetContextId_0200, TestSize.Level0)
+{
+    sptr<AuthCallbackDeathRecipient> deathRecipient = new (std::nothrow) AuthCallbackDeathRecipient();
+    ASSERT_NE(deathRecipient, nullptr);
+    uint64_t testContextId = 0;
+    deathRecipient->SetContextId(testContextId);
+    EXPECT_EQ(deathRecipient->contextId_, testContextId);
+}
+
+/**
  * @tc.name: AuthCallback_OnResult_0200
  * @tc.desc: OnResult test with PIN.
  * @tc.type: FUNC
