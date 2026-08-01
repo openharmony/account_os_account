@@ -100,6 +100,8 @@ static const std::unordered_map<uint32_t, std::string> g_errorStringMap = {
         "The OS account subspace cannot be deleted because it is foreground"},
     {ERR_JS_OS_ACCOUNT_SUBSPACE_SWITCH_HAS_ACTIVE_SESSION,
         "The foreground OS account subspace cannot be switched because it has an active session"},
+    {ERR_JS_OS_ACCOUNT_SUBPROFILE_DISTRIBUTE_ACC_ALREADY_BOUND,
+        "The distributed account information has already been bound to a sub-profile of the target OS account"},
 };
 
 const std::unordered_map<int32_t, int32_t> errorMap = {
@@ -114,6 +116,8 @@ const std::unordered_map<int32_t, int32_t> errorMap = {
     { ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED, ERR_JS_OS_ACCOUNT_SUBSPACE_RESTRICTED },
     { ERR_OS_ACCOUNT_SUBSPACE_IS_FOREGROUND, ERR_JS_OS_ACCOUNT_SUBSPACE_DELETE_FOREGROUND_RESTRICTED },
     { ERR_OS_ACCOUNT_SUBSPACE_HAS_ACTIVE_SESSION, ERR_JS_OS_ACCOUNT_SUBSPACE_SWITCH_HAS_ACTIVE_SESSION },
+    { ERR_OS_ACCOUNT_SUBPROFILE_DISTRIBUTE_ACC_ALREADY_BOUND,
+        ERR_JS_OS_ACCOUNT_SUBPROFILE_DISTRIBUTE_ACC_ALREADY_BOUND },
 };
 
 static const std::unordered_map<int32_t, int32_t> IAM_ERRCODE_MAP = {

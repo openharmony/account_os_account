@@ -301,12 +301,12 @@ private:
 #ifndef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
     ErrCode PublishLoginEvents(int32_t userId, int32_t originalStatus);
 #else
-    ErrCode VerifySpaceAccountBinding(int32_t userId, int32_t subspaceId,
+    ErrCode VerifySpaceAccountBinding(int32_t localId, int32_t subspaceId,
         const OhosAccountInfo &accountInfo, const OsAccountSubspaceInfo &spaceInfo);
-    ErrCode PublishLoginSpaceEvents(int32_t userId, int32_t subspaceId,
+    ErrCode PublishLoginSpaceEvents(int32_t localId, int32_t subspaceId,
         const OsAccountSubspaceInfo &spaceInfo, int32_t originalStatus);
     void PublishLogoutSpaceEvents(int32_t localId, int32_t subspaceId, bool isUnbound);
-    ErrCode GetDistributedAccountSpaceInfo(int32_t userId, int32_t subspaceId, OsAccountSubspaceInfo &spaceInfo);
+    ErrCode GetDistributedAccountSpaceInfo(int32_t localId, int32_t subspaceId, OsAccountSubspaceInfo &spaceInfo);
     ErrCode SetDistributedAccountSpaceInfo(const OsAccountSubspaceInfo &spaceInfo);
     ErrCode SendMultiSpaceLogoutOnDelOsAccount(int32_t localId);
 #endif
