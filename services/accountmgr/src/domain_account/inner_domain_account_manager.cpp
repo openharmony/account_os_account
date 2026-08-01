@@ -51,6 +51,9 @@
 #ifdef HICOLLIE_ENABLE
 #include "xcollie/xcollie.h"
 #endif // HICOLLIE_ENABLE
+#ifdef SUPPORT_AUTHORIZATION
+#include "inner_authorization_manager.h"
+#endif // SUPPORT_AUTHORIZATION
 
 namespace OHOS {
 namespace AccountSA {
@@ -184,7 +187,8 @@ InnerDomainAccountManager &InnerDomainAccountManager::GetInstance()
 }
 
 InnerDomainAuthCallback::InnerDomainAuthCallback(int32_t userId, const sptr<IDomainAccountCallback> &callback,
-    int32_t authIntent) : userId_(userId), authIntent_(authIntent), callback_(callback)
+    int32_t authIntent, const std::string &sessionId) : userId_(userId), authIntent_(authIntent),
+    sessionId_(sessionId), callingPid_(IPCSkeleton::GetCallingPid()), callback_(callback)
 {
     if (callback_ == nullptr || callback_->AsObject() == nullptr) {
         ACCOUNT_LOGE("Callback_ or callback_->AsObject() is nullptr.");
@@ -206,6 +210,16 @@ InnerDomainAuthCallback::~InnerDomainAuthCallback()
     if (!callback_->AsObject()->RemoveDeathRecipient(deathRecipient_)) {
         ACCOUNT_LOGE("Plugin RemoveDeathRecipient failed, please check callback status");
     }
+}
+
+bool InnerDomainAuthCallback::IsUnlockIntent() const
+{
+    return authIntent_ == UNLOCK_INTENT;
+}
+
+bool InnerDomainAuthCallback::IsAuthorizationIntent() const
+{
+    return authIntent_ == Constants::AUTHORIZATION_INTENT;
 }
 
 static void CallbackOnResult(sptr<IDomainAccountCallback> &callback, const int32_t errCode, Parcel &resultParcel)
@@ -281,16 +295,26 @@ void InnerDomainAuthCallback::OnResultWithUnlock(int32_t errCode, const DomainAu
         InnerDomainAccountManager::GetInstance().EraseFromContextMap(contextId);
     }
     if ((errCode == ERR_OK) && (userId_ > 0)) {
-        InnerDomainAccountManager::GetInstance().InsertTokenToMap(userId_, authResult.token);
-        DomainAccountInfo domainInfo;
-        InnerDomainAccountManager::GetInstance().GetDomainAccountInfoByUserId(userId_, domainInfo);
-        InnerDomainAccountManager::GetInstance().NotifyDomainAccountEvent(
-            userId_, DomainAccountEvent::LOG_IN, DomainAccountStatus::LOG_END, domainInfo);
-        bool isActivated = false;
-        (void)IInnerOsAccountManager::GetInstance().IsOsAccountActived(userId_, isActivated);
-        DomainAccountStatus status = isActivated ? DomainAccountStatus::LOGIN : DomainAccountStatus::LOGIN_BACKGROUND;
-        IInnerOsAccountManager::GetInstance().UpdateAccountStatusForDomain(userId_, status);
-        errCode = HandleUnlockResult(authResult);
+        if (authIntent_ == Constants::AUTHORIZATION_INTENT) {
+#ifdef SUPPORT_AUTHORIZATION
+            errCode = InnerAuthorizationManager::GetInstance().UpdateAuthInfo(
+                authResult.token, userId_, callingPid_, sessionId_);
+#else
+            errCode = ERR_AUTHORIZATION_NOT_SUPPORT;
+#endif
+        } else {
+            InnerDomainAccountManager::GetInstance().InsertTokenToMap(userId_, authResult.token);
+            DomainAccountInfo domainInfo;
+            InnerDomainAccountManager::GetInstance().GetDomainAccountInfoByUserId(userId_, domainInfo);
+            InnerDomainAccountManager::GetInstance().NotifyDomainAccountEvent(
+                userId_, DomainAccountEvent::LOG_IN, DomainAccountStatus::LOG_END, domainInfo);
+            bool isActivated = false;
+            (void)IInnerOsAccountManager::GetInstance().IsOsAccountActived(userId_, isActivated);
+            DomainAccountStatus status = isActivated ?
+                DomainAccountStatus::LOGIN : DomainAccountStatus::LOGIN_BACKGROUND;
+            IInnerOsAccountManager::GetInstance().UpdateAccountStatusForDomain(userId_, status);
+            errCode = HandleUnlockResult(authResult);
+        }
     }
     DomainAuthResult resultCopy;
     resultCopy.token = authResult.token;
@@ -749,7 +773,7 @@ void InnerDomainAccountManager::AuthResultInfoCallback(
     DomainAuthResult result;
     DomainPluginAdapter::GetAndCleanPluginAuthResultInfo(&authResultInfo, result);
     ErrCode errCode = DomainPluginAdapter::GetAndCleanPluginBusinessError(&error, PluginMethodEnum::AUTH, -1);
-    if (callback != nullptr && callback->IsUnlockIntent()) {
+    if (callback != nullptr && (callback->IsUnlockIntent() || callback->IsAuthorizationIntent())) {
         callback->OnResultWithUnlock(errCode, result);
         return;
     }
@@ -2046,13 +2070,22 @@ ErrCode InnerDomainAccountManager::AuthUserWithUnlockOptions(int32_t localId,
         ACCOUNT_LOGE("Domain auth unlock is not enabled, localId=%{public}d", localId);
         return ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE;
     }
-    if (IsOsAccountDeactivatingOrLocking(localId)) {
+
+    if (unlockOptions.authIntent != Constants::AUTHORIZATION_INTENT && IsOsAccountDeactivatingOrLocking(localId)) {
         return ERR_IAM_BUSY;
     }
-    auto innerCallback = sptr<InnerDomainAuthCallback>::MakeSptr(localId, callback, UNLOCK_INTENT);
+
+    std::vector<uint8_t> challenge;
+    sptr<InnerDomainAuthCallback> innerCallback =
+        CreateAuthCallbackForUnlock(localId, callback, unlockOptions, challenge);
+    if (innerCallback == nullptr) {
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
     std::lock_guard<std::recursive_mutex> lockContext(authContextIdMapMutex_);
     uint64_t contextId = 0;
-    errCode = PluginAuthWithUnlockIntent(domainInfo, password, unlockOptions.challenge, contextId);
+    errCode = PluginAuthWithUnlockIntent(domainInfo, password, challenge, contextId);
+    std::fill(challenge.begin(), challenge.end(), 0);
     if (errCode == ERR_OK) {
         if (!AddToContextMap(contextId, innerCallback)) {
             ACCOUNT_LOGE("AddToContextMap failed");
@@ -2060,6 +2093,26 @@ ErrCode InnerDomainAccountManager::AuthUserWithUnlockOptions(int32_t localId,
         }
     }
     return errCode;
+}
+
+sptr<InnerDomainAuthCallback> InnerDomainAccountManager::CreateAuthCallbackForUnlock(
+    int32_t localId, const sptr<IDomainAccountCallback> &callback,
+    const DomainAccountUnlockOptions &unlockOptions, std::vector<uint8_t> &outChallenge)
+{
+#ifdef SUPPORT_AUTHORIZATION
+    if (unlockOptions.authIntent == Constants::AUTHORIZATION_INTENT) {
+        std::string sessionId;
+        bool ret = InnerAuthorizationManager::GetInstance().GetAuthSessionInfo(
+            unlockOptions.challenge, sessionId, outChallenge, IPCSkeleton::GetCallingPid());
+        if (!ret) {
+            ACCOUNT_LOGE("GetAuthSessionInfo failed, sessionId=%{private}s", sessionId.c_str());
+            return nullptr;
+        }
+        return sptr<InnerDomainAuthCallback>::MakeSptr(
+            localId, callback, Constants::AUTHORIZATION_INTENT, sessionId);
+    }
+#endif
+    return sptr<InnerDomainAuthCallback>::MakeSptr(localId, callback, UNLOCK_INTENT);
 }
 
 ErrCode InnerDomainAccountManager::StartHasDomainAccount(const sptr<IDomainAccountPlugin> &plugin,

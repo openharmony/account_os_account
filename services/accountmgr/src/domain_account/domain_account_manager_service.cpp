@@ -15,6 +15,7 @@
 
 #include "domain_account_manager_service.h"
 #include <securec.h>
+#include "account_constants.h"
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "account_permission_manager.h"
@@ -242,7 +243,7 @@ ErrCode DomainAccountManagerService::AuthUserWithUnlockOptions(int32_t localId,
     DomainAccountUnlockOptions innerOptions;
     innerOptions.challenge = options.challenge;
     innerOptions.authIntent = options.authIntent;
-    if (innerOptions.authIntent != UNLOCK_INTENT) {
+    if (innerOptions.authIntent != UNLOCK_INTENT && innerOptions.authIntent != Constants::AUTHORIZATION_INTENT) {
         result = InnerDomainAccountManager::GetInstance().AuthUser(localId, password, callback);
     } else {
         result = InnerDomainAccountManager::GetInstance().AuthUserWithUnlockOptions(

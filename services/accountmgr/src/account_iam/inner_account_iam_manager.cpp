@@ -297,7 +297,7 @@ void InnerAccountIAMManager::CopyAuthParam(const AuthParam &authParam, UserIam::
     iamAuthParam.challenge = authParam.challenge;
     iamAuthParam.authType = authParam.authType;
     iamAuthParam.authTrustLevel = authParam.authTrustLevel;
-    if (static_cast<int32_t>(authParam.authIntent) == AUTHORIZATION_INTENT_NUM) {
+    if (static_cast<int32_t>(authParam.authIntent) == Constants::AUTHORIZATION_INTENT) {
         iamAuthParam.authIntent = UserIam::UserAuth::AuthIntent::DEFAULT;
     } else {
         iamAuthParam.authIntent = static_cast<UserIam::UserAuth::AuthIntent>(authParam.authIntent);
@@ -373,7 +373,7 @@ std::shared_ptr<AuthCallback> InnerAccountIAMManager::CreateAuthCallbackWrapper(
     AuthParam &authParam, const sptr<IIDMCallback> &callback)
 {
 #ifdef SUPPORT_AUTHORIZATION
-    if (static_cast<int32_t>(authParam.authIntent) == AUTHORIZATION_INTENT_NUM) {
+    if (static_cast<int32_t>(authParam.authIntent) == Constants::AUTHORIZATION_INTENT) {
         std::string sessionId;
         std::vector<uint8_t> challenge;
         bool ret = InnerAuthorizationManager::GetInstance().GetAuthSessionInfo(
