@@ -57,6 +57,19 @@ ErrCode IInnerOsAccountManager::IsOsAccountForeground(const int32_t localId, con
     return ERR_OK;
 }
 
+ErrCode IInnerOsAccountManager::IsOsAccountActived(const int32_t localId, bool &isActivated)
+{
+    ACCOUNT_LOGI("mock IInnerOsAccountManager IsOsAccountActived enter");
+    isActivated = false;
+    return ERR_OK;
+}
+
+ErrCode IInnerOsAccountManager::UpdateAccountStatusForDomain(const int32_t localId, DomainAccountStatus status)
+{
+    ACCOUNT_LOGI("mock IInnerOsAccountManager UpdateAccountStatusForDomain enter");
+    return ERR_OK;
+}
+
 OsAccountControlFileManager &IInnerOsAccountManager::GetFileController()
 {
     return *std::reinterpret_pointer_cast<OsAccountControlFileManager>(osAccountControl_);

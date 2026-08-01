@@ -635,17 +635,11 @@ ErrCode AccountIAMClient::RegisterPINInputer(const std::shared_ptr<IInputer> &in
     }
     auto iamInputer = std::make_shared<IAMInputer>(userId, inputer);
     if (UserIam::PinAuth::PinAuthRegister::GetInstance().RegisterInputer(iamInputer)) {
-#ifdef SUPPORT_AUTHORIZATION
-        // service will check again
-        if (CheckSelfPermission(PERMISSION_START_SYSTEM_DIALOG)) {
-            result = AuthorizationClient::GetInstance().RegisterAuthAppRemoteObject();
-            if (result != ERR_OK) {
-                ACCOUNT_LOGI("RegisterAuthAppRemoteObject fail, error:%{public}d", result);
-                UserIam::PinAuth::PinAuthRegister::GetInstance().UnRegisterInputer();
-                return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
-            }
+        ErrCode authResult = RegisterAuthRemoteObject();
+        if (authResult != ERR_OK) {
+            UserIam::PinAuth::PinAuthRegister::GetInstance().UnRegisterInputer();
+            return authResult;
         }
-#endif // SUPPORT_AUTHORIZATION
         pinInputer_ = inputer;
         ACCOUNT_LOGI("Register inputer successful!");
         return ERR_OK;
@@ -659,6 +653,10 @@ ErrCode AccountIAMClient::RegisterDomainInputer(const std::shared_ptr<IInputer> 
     if (domainInputer_ != nullptr) {
         ACCOUNT_LOGE("inputer is already registered");
         return ERR_ACCOUNT_IAM_KIT_INPUTER_ALREADY_REGISTERED;
+    }
+    ErrCode authResult = RegisterAuthRemoteObject();
+    if (authResult != ERR_OK) {
+        return authResult;
     }
     domainInputer_ = inputer;
     return ERR_OK;
@@ -723,11 +721,7 @@ ErrCode AccountIAMClient::UnregisterPINInputer()
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     UserIam::PinAuth::PinAuthRegister::GetInstance().UnRegisterInputer();
-#ifdef SUPPORT_AUTHORIZATION
-    if (CheckSelfPermission(PERMISSION_START_SYSTEM_DIALOG)) {
-        AuthorizationClient::GetInstance().UnRegisterAuthAppRemoteObject();
-    }
-#endif // SUPPORT_AUTHORIZATION
+    UnregisterAuthRemoteObject();
     std::lock_guard<std::mutex> lock(pinMutex_);
     pinInputer_ = nullptr;
     ACCOUNT_LOGI("Unregister PIN inputer successful!");
@@ -737,6 +731,7 @@ ErrCode AccountIAMClient::UnregisterPINInputer()
 ErrCode AccountIAMClient::UnregisterDomainInputer()
 {
     std::lock_guard<std::mutex> lock(domainMutex_);
+    UnregisterAuthRemoteObject();
     domainInputer_ = nullptr;
     return ERR_OK;
 }
@@ -856,6 +851,30 @@ ErrCode AccountIAMClient::SetDomainAuthUnlockEnabled(int32_t localId, const std:
 #else
     return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
 #endif
+}
+
+ErrCode AccountIAMClient::RegisterAuthRemoteObject()
+{
+#ifdef SUPPORT_AUTHORIZATION
+    if (!CheckSelfPermission(PERMISSION_START_SYSTEM_DIALOG)) {
+        return ERR_OK;
+    }
+    ErrCode result = AuthorizationClient::GetInstance().RegisterAuthAppRemoteObject();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGI("RegisterAuthAppRemoteObject fail, error:%{public}d", result);
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+#endif // SUPPORT_AUTHORIZATION
+    return ERR_OK;
+}
+
+void AccountIAMClient::UnregisterAuthRemoteObject()
+{
+#ifdef SUPPORT_AUTHORIZATION
+    if (CheckSelfPermission(PERMISSION_START_SYSTEM_DIALOG)) {
+        AuthorizationClient::GetInstance().UnRegisterAuthAppRemoteObject();
+    }
+#endif // SUPPORT_AUTHORIZATION
 }
 }  // namespace AccountSA
 }  // namespace OHOS

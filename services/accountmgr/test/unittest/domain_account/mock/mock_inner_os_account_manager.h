@@ -27,7 +27,9 @@ public:
     ErrCode GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id);
     ErrCode QueryActiveOsAccountIds(std::vector<int32_t>& ids);
     ErrCode IsOsAccountForeground(const int32_t localId, const uint64_t displayId,
-                                                      bool &isForeground);
+                                                       bool &isForeground);
+    ErrCode IsOsAccountActived(const int32_t localId, bool &isActivated);
+    ErrCode UpdateAccountStatusForDomain(const int32_t localId, DomainAccountStatus status);
     OsAccountControlFileManager &GetFileController();
 private:
     std::shared_ptr<IOsAccountControl> osAccountControl_ = std::make_shared<OsAccountControlFileManager>();

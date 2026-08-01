@@ -322,7 +322,9 @@ private:
     ErrCode RegisterDomainInputer(const std::shared_ptr<IInputer> &inputer);
     ErrCode UnregisterDomainInputer();
 #endif
-bool CheckSelfPermission(const std::string &permissionName);
+    bool CheckSelfPermission(const std::string &permissionName);
+    ErrCode RegisterAuthRemoteObject();
+    void UnregisterAuthRemoteObject();
 
 private:
     std::mutex mutex_;

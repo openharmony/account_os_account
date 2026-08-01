@@ -48,6 +48,7 @@ const std::string TEST_DOMAIN = "test_domain";
 const std::string TEST_ACCOUNT_ID = "test_account_id";
 const std::int32_t MAIN_ACCOUNT_ID = 100;
 const int32_t WAIT_TIME = 20;
+constexpr int32_t TEST_AUTHORIZATION_INTENT = 100001;
 const std::vector<uint8_t> TEST_TOKEN = {0};
 const std::vector<uint8_t> TEST_PASSWORD = {0};
 std::shared_ptr<MockDomainPlugin> g_plugin = std::make_shared<MockDomainPlugin>();
@@ -702,6 +703,150 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
     EXPECT_EQ(instance->PluginAuthToken(info, password, resultParcel), ERR_JS_CAPABILITY_NOT_SUPPORTED);
     EXPECT_EQ(instance->PluginGetAuthStatusInfo(info, authInfo), ERR_JS_CAPABILITY_NOT_SUPPORTED);
     EXPECT_EQ(instance->PluginGetDomainAccountInfo(options, info), ERR_JS_CAPABILITY_NOT_SUPPORTED);
+}
+
+/**
+ * @tc.name: InnerDomainAuthCallbackIsUnlockIntent001
+ * @tc.desc: IsUnlockIntent returns true when authIntent is UNLOCK_INTENT
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountManagerInnerServiceTest, InnerDomainAuthCallbackIsUnlockIntent001, TestSize.Level1)
+{
+    sptr<InnerDomainAuthCallback> callback =
+        new (std::nothrow) InnerDomainAuthCallback(1, nullptr, UNLOCK_INTENT);
+    ASSERT_NE(callback, nullptr);
+    EXPECT_TRUE(callback->IsUnlockIntent());
+    EXPECT_FALSE(callback->IsAuthorizationIntent());
+}
+
+/**
+ * @tc.name: InnerDomainAuthCallbackIsAuthorizationIntent001
+ * @tc.desc: IsAuthorizationIntent returns true when authIntent is AUTHORIZATION_INTENT
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountManagerInnerServiceTest, InnerDomainAuthCallbackIsAuthorizationIntent001, TestSize.Level1)
+{
+    sptr<InnerDomainAuthCallback> callback =
+        new (std::nothrow) InnerDomainAuthCallback(1, nullptr, TEST_AUTHORIZATION_INTENT);
+    ASSERT_NE(callback, nullptr);
+    EXPECT_FALSE(callback->IsUnlockIntent());
+    EXPECT_TRUE(callback->IsAuthorizationIntent());
+}
+
+/**
+ * @tc.name: InnerDomainAuthCallbackIntentCheck001
+ * @tc.desc: Both IsUnlockIntent and IsAuthorizationIntent return false when authIntent is neither
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountManagerInnerServiceTest, InnerDomainAuthCallbackIntentCheck001, TestSize.Level1)
+{
+    sptr<InnerDomainAuthCallback> callback =
+        new (std::nothrow) InnerDomainAuthCallback(1, nullptr, 0);
+    ASSERT_NE(callback, nullptr);
+    EXPECT_FALSE(callback->IsUnlockIntent());
+    EXPECT_FALSE(callback->IsAuthorizationIntent());
+}
+
+/**
+ * @tc.name: InnerDomainAuthCallbackConstructor001
+ * @tc.desc: Constructor stores sessionId and authIntent correctly
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountManagerInnerServiceTest, InnerDomainAuthCallbackConstructor001, TestSize.Level1)
+{
+    std::string testSessionId = "test_session_123";
+    sptr<InnerDomainAuthCallback> callback =
+        new (std::nothrow) InnerDomainAuthCallback(1, nullptr, UNLOCK_INTENT, testSessionId);
+    ASSERT_NE(callback, nullptr);
+    EXPECT_EQ(callback->sessionId_, testSessionId);
+    EXPECT_EQ(callback->authIntent_, UNLOCK_INTENT);
+}
+
+/**
+ * @tc.name: CreateAuthCallbackForUnlock001
+ * @tc.desc: CreateAuthCallbackForUnlock returns callback with UNLOCK_INTENT when SUPPORT_AUTHORIZATION is not defined
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountManagerInnerServiceTest, CreateAuthCallbackForUnlock001, TestSize.Level1)
+{
+    InnerDomainAccountManager *instance = new (std::nothrow) InnerDomainAccountManager();
+    ASSERT_NE(instance, nullptr);
+    DomainAccountUnlockOptions unlockOptions;
+    std::vector<uint8_t> challenge;
+    sptr<InnerDomainAuthCallback> callback =
+        instance->CreateAuthCallbackForUnlock(1, nullptr, unlockOptions, challenge);
+    ASSERT_NE(callback, nullptr);
+    EXPECT_TRUE(callback->IsUnlockIntent() || callback->IsAuthorizationIntent());
+    EXPECT_EQ(callback->authIntent_, UNLOCK_INTENT);
+    delete instance;
+}
+
+/**
+ * @tc.name: AuthUserWithUnlockOptions001
+ * @tc.desc: AuthUserWithUnlockOptions returns error when SO plugin is not loaded
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountManagerInnerServiceTest, AuthUserWithUnlockOptions001, TestSize.Level1)
+{
+    InnerDomainAccountManager *instance = new (std::nothrow) InnerDomainAccountManager();
+    ASSERT_NE(instance, nullptr);
+    instance->libHandle_ = nullptr;
+    std::vector<uint8_t> password;
+    DomainAccountUnlockOptions unlockOptions;
+    EXPECT_EQ(instance->AuthUserWithUnlockOptions(1, password, unlockOptions, nullptr),
+        ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE);
+    delete instance;
+}
+
+/**
+ * @tc.name: OnResultWithUnlock001
+ * @tc.desc: OnResultWithUnlock returns when callback not found in context map
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountManagerInnerServiceTest, OnResultWithUnlock001, TestSize.Level1)
+{
+    sptr<InnerDomainAuthCallback> callback =
+        new (std::nothrow) InnerDomainAuthCallback(1, nullptr, UNLOCK_INTENT);
+    ASSERT_NE(callback, nullptr);
+    DomainAuthResult authResult;
+    callback->OnResultWithUnlock(ERR_OK, authResult);
+}
+
+/**
+ * @tc.name: OnResultWithUnlock002
+ * @tc.desc: OnResultWithUnlock with errCode != ERR_OK skips success block
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountManagerInnerServiceTest, OnResultWithUnlock002, TestSize.Level1)
+{
+    auto mockCb = std::make_shared<MockDomainAccountCallback>();
+    ASSERT_NE(mockCb, nullptr);
+    EXPECT_CALL(*mockCb, OnResult(_, _)).Times(Exactly(1));
+    sptr<MockDomainAccountCallbackStub> testCallback =
+        new (std::nothrow) MockDomainAccountCallbackStub(mockCb);
+    ASSERT_NE(testCallback, nullptr);
+
+    InnerDomainAccountManager &instance = InnerDomainAccountManager::GetInstance();
+    sptr<InnerDomainAuthCallback> innerCallback =
+        new (std::nothrow) InnerDomainAuthCallback(1, testCallback, UNLOCK_INTENT);
+    ASSERT_NE(innerCallback, nullptr);
+    ASSERT_TRUE(instance.AddToContextMap(1, innerCallback));
+
+    DomainAuthResult authResult;
+    innerCallback->OnResultWithUnlock(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, authResult);
+
+    std::unique_lock<std::mutex> lock(testCallback->mutex);
+    testCallback->cv.wait_for(
+        lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
+    EXPECT_TRUE(testCallback->isReady);
 }
 
 /**

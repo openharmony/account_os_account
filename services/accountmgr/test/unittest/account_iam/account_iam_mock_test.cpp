@@ -49,6 +49,7 @@ const int32_t TEST_NON_EXIST_ID = 999;
 const std::vector<uint8_t> TEST_TOKEN = {1, 2, 3, 4, 5};
 const std::vector<uint8_t> TEST_SECRET = {10, 20, 30, 40, 50};
 const uint64_t TEST_SECURE_UID = 12345;
+constexpr int32_t TEST_AUTHORIZATION_INTENT = 100001;
 }
 
 class AccountIamDomainUnlockTest : public testing::Test {
@@ -393,6 +394,24 @@ HWTEST_F(AccountIamDomainUnlockTest, SetDomainAuthUnlockEnabled_GetSecUserIpcFai
     ErrCode ret = InnerAccountIAMManager::GetInstance().SetDomainAuthUnlockEnabled(
         TEST_USER_ID, TEST_TOKEN, TEST_SECRET, true);
     EXPECT_EQ(ret, ERR_ACCOUNT_IAM_GET_SECUSER_FAILED);
+}
+/**
+ * @tc.name: AuthUser_AuthIntentAuthorization_001
+ * @tc.desc: CopyAuthParam should convert AUTHORIZATION_INTENT to AuthIntent::DEFAULT.
+ * @tc.type: FUNC
+ * @tc.require: issuesI64KAM
+ */
+HWTEST_F(AccountIamDomainUnlockTest, AuthUser_AuthIntentAuthorization_001, TestSize.Level1)
+{
+    OHOS::AccountSA::AuthParam authParam;
+    authParam.userId = TEST_USER_ID;
+    authParam.authIntent = static_cast<OHOS::AccountSA::AuthIntent>(TEST_AUTHORIZATION_INTENT);
+
+    OHOS::UserIam::UserAuth::AuthParam iamAuthParam;
+    InnerAccountIAMManager::GetInstance().CopyAuthParam(authParam, iamAuthParam);
+
+    EXPECT_EQ(static_cast<int32_t>(iamAuthParam.authIntent),
+        static_cast<int32_t>(UserIam::UserAuth::AuthIntent::DEFAULT));
 }
 } // namespace AccountTest
 } // namespace OHOS

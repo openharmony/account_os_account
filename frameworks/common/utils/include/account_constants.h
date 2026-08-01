@@ -44,6 +44,7 @@ const char OPERATION_GET_SERVICE[] = "getService";
 const int32_t E_IPC_ERROR = 29189;
 const int32_t E_IPC_SA_DIED = 32;
 constexpr int32_t UID_TRANSFORM_DIVISOR = 200000; // local account id = uid / UID_TRANSFORM_DIVISOR
+constexpr int32_t AUTHORIZATION_INTENT = 100001;
 }
 } // namespace AccountSA
 } // namespace OHOS

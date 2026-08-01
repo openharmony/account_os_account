@@ -165,6 +165,9 @@ private:
         const DomainAccountInfo &domainInfo, bool &enableUnlockDevice, int32_t &unlockDeviceMode);
     ErrCode PluginAuthWithUnlockIntent(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
         const std::vector<uint8_t> &challenge, uint64_t &contextId);
+    sptr<InnerDomainAuthCallback> CreateAuthCallbackForUnlock(int32_t localId,
+        const sptr<IDomainAccountCallback> &callback, const DomainAccountUnlockOptions &unlockOptions,
+        std::vector<uint8_t> &outChallenge);
     void StartPluginHasDomainAccount(const GetDomainAccountInfoOptions &options,
         const sptr<IDomainAccountCallback> &callback);
 protected:
@@ -205,20 +208,23 @@ private:
 class InnerDomainAuthCallback final: public DomainAccountCallbackStub {
 public:
     InnerDomainAuthCallback(int32_t userId, const sptr<IDomainAccountCallback> &callback,
-        int32_t authIntent = 0);
+        int32_t authIntent = 0, const std::string &sessionId = "");
     virtual ~InnerDomainAuthCallback();
     ErrCode OnResult(int32_t errCode, const DomainAccountParcel &domainAccountParcel) override;
     ErrCode OnAcquireInfo(int32_t module, uint32_t acquireInfo,
         const DomainAccountUnlockExtraInfoIdl &extraInfo) override;
     void OnResultWithUnlock(int32_t errCode, const DomainAuthResult &authResult);
     void SetOpenContextIdCheck(bool isEnabled, uint64_t contextId = 0);
-    bool IsUnlockIntent() const { return authIntent_ == UNLOCK_INTENT; }
+    bool IsUnlockIntent() const;
+    bool IsAuthorizationIntent() const;
 
 private:
     ErrCode HandleUnlockResult(const DomainAuthResult &authResult);
 private:
     int32_t userId_;
     int32_t authIntent_ = 0;
+    std::string sessionId_;
+    int32_t callingPid_ = -1;
     sptr<DomainAccountAuthDeathRecipient> deathRecipient_;
     bool needCheckContextId_ = false;
     std::mutex mutex_;
