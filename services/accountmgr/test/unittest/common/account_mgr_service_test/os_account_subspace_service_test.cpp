@@ -102,7 +102,7 @@ HWTEST_F(OsAccountSubspaceServiceTest, DeleteOsAccountSubspace_OwnershipMismatch
 {
     int32_t wrongDistId = 200001;
     ErrCode ret = service_->DeleteOsAccountSubProfile(TEST_OS_ACCOUNT_ID, wrongDistId);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND);
 }
 
 /**
@@ -113,7 +113,7 @@ HWTEST_F(OsAccountSubspaceServiceTest, DeleteOsAccountSubspace_OwnershipMismatch
 HWTEST_F(OsAccountSubspaceServiceTest, DeleteOsAccountSubProfile_RemoveZeroSubspace_002, TestSize.Level1)
 {
     ErrCode ret = service_->DeleteOsAccountSubProfile(TEST_OS_ACCOUNT_ID, TEST_SUBSPACE_ID_BASE);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_RESTRICTED);
 }
 
 /**
@@ -125,7 +125,7 @@ HWTEST_F(OsAccountSubspaceServiceTest, SwitchOsAccountSubProfile_OwnershipMismat
 {
     int32_t wrongDistId = 200001;
     ErrCode ret = service_->SwitchOsAccountSubProfile(TEST_OS_ACCOUNT_ID, wrongDistId);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND);
 }
 
 /**
@@ -216,7 +216,7 @@ HWTEST_F(OsAccountSubspaceServiceTest, SwitchOsAccountSubspace_PermissionDenied_
 HWTEST_F(OsAccountSubspaceServiceTest, DeleteOsAccountSubProfile_NegativeSubspaceId_001, TestSize.Level1)
 {
     ErrCode ret = service_->DeleteOsAccountSubProfile(TEST_OS_ACCOUNT_ID, -1);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND);
 }
 
 /**
@@ -228,7 +228,7 @@ HWTEST_F(OsAccountSubspaceServiceTest, DeleteOsAccountSubProfile_NegativeSubspac
 HWTEST_F(OsAccountSubspaceServiceTest, DeleteOsAccountSubProfile_ZeroIndexOwnershipMismatch_001, TestSize.Level1)
 {
     ErrCode ret = service_->DeleteOsAccountSubProfile(TEST_OS_ACCOUNT_ID, 0);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND);
 }
 
 /**
@@ -240,7 +240,7 @@ HWTEST_F(OsAccountSubspaceServiceTest, DeleteOsAccountSubProfile_ZeroIndexOwners
 HWTEST_F(OsAccountSubspaceServiceTest, DeleteOsAccountSubProfile_ZeroIndexOwnershipConsistent_001, TestSize.Level1)
 {
     ErrCode ret = service_->DeleteOsAccountSubProfile(0, 0);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND);
 }
 
 /**
@@ -251,7 +251,7 @@ HWTEST_F(OsAccountSubspaceServiceTest, DeleteOsAccountSubProfile_ZeroIndexOwners
 HWTEST_F(OsAccountSubspaceServiceTest, DeleteOsAccountSubProfile_OwnershipMismatch_LargeId_001, TestSize.Level1)
 {
     ErrCode ret = service_->DeleteOsAccountSubProfile(TEST_OS_ACCOUNT_ID, 999999);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND);
 }
 
 /**
@@ -262,6 +262,6 @@ HWTEST_F(OsAccountSubspaceServiceTest, DeleteOsAccountSubProfile_OwnershipMismat
 HWTEST_F(OsAccountSubspaceServiceTest, SwitchOsAccountSubProfile_OwnershipMismatch_LargeId_001, TestSize.Level1)
 {
     ErrCode ret = service_->SwitchOsAccountSubProfile(TEST_OS_ACCOUNT_ID, 999999);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND);
 }
 #endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE

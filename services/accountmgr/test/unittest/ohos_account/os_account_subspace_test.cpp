@@ -131,7 +131,7 @@ HWTEST_F(OsAccountSubspaceTest, AllocateOsAccountSubProfileId_003, TestSize.Leve
     int32_t outId = 0;
     ErrCode ret = dataDeal_->AllocateOsAccountSubProfileId(
         TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdList, outId);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_LIMIT);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_LIMIT);
 }
 
 /**
@@ -292,7 +292,7 @@ HWTEST_F(OsAccountSubspaceTest, AllocateOsAccountSubProfileId_MaxReachedNoHoles_
     int32_t outId = 0;
     ErrCode ret = dataDeal_->AllocateOsAccountSubProfileId(
         TEST_OS_ACCOUNT_ID, nextSubProfileId, subProfileIdList, outId);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_LIMIT);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_LIMIT);
 }
 
 /**

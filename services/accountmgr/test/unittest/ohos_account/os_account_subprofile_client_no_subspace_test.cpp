@@ -86,7 +86,7 @@ HWTEST_F(OsAccountSubProfileClientNoSubspaceTest, GetInstance_Singleton_001, Tes
 
 /**
  * @tc.name: OsAccountSubProfileClientNoSubspaceTest_Create_Fails_Without_Macro
- * @tc.desc: CreateOsAccountSubProfile returns ERR_OS_ACCOUNT_SUBSPACE_LIMIT
+ * @tc.desc: CreateOsAccountSubProfile returns ERR_OS_ACCOUNT_SUBPROFILE_LIMIT
  *           when ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE is not defined.
  */
 HWTEST_F(OsAccountSubProfileClientNoSubspaceTest, Create_Fails_Without_Macro, TestSize.Level1)
@@ -94,24 +94,24 @@ HWTEST_F(OsAccountSubProfileClientNoSubspaceTest, Create_Fails_Without_Macro, Te
     OsAccountSubspaceResult result;
     ErrCode ret = OsAccountSubProfileClient::GetInstance().CreateOsAccountSubProfile(
         TEST_OS_ACCOUNT_ID, result);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_LIMIT);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_LIMIT);
 }
 
 /**
  * @tc.name: OsAccountSubProfileClientNoSubspaceTest_Delete_Headless_Fails
- * @tc.desc: DeleteOsAccountSubProfile returns ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED
+ * @tc.desc: DeleteOsAccountSubProfile returns ERR_OS_ACCOUNT_SUBPROFILE_RESTRICTED
  *           for the headless subspace (index=0) regardless of the macro.
  */
 HWTEST_F(OsAccountSubProfileClientNoSubspaceTest, Delete_Headless_Fails, TestSize.Level1)
 {
     ErrCode ret = OsAccountSubProfileClient::GetInstance().DeleteOsAccountSubProfile(
         TEST_OS_ACCOUNT_ID, HEADLESS_SUBSPACE_ID);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_RESTRICTED);
 }
 
 /**
  * @tc.name: OsAccountSubProfileClientNoSubspaceTest_Delete_NonHeadless_Fails
- * @tc.desc: DeleteOsAccountSubProfile returns ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED
+ * @tc.desc: DeleteOsAccountSubProfile returns ERR_OS_ACCOUNT_SUBPROFILE_RESTRICTED
  *           for a non-headless subspace when ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
  *           is not defined.
  */
@@ -119,24 +119,24 @@ HWTEST_F(OsAccountSubProfileClientNoSubspaceTest, Delete_NonHeadless_Fails, Test
 {
     ErrCode ret = OsAccountSubProfileClient::GetInstance().DeleteOsAccountSubProfile(
         TEST_OS_ACCOUNT_ID, TEST_SUBSPACE_ID);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_RESTRICTED);
 }
 
 /**
  * @tc.name: OsAccountSubProfileClientNoSubspaceTest_Switch_Headless_Fails
- * @tc.desc: SwitchOsAccountSubProfile returns ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED
+ * @tc.desc: SwitchOsAccountSubProfile returns ERR_OS_ACCOUNT_SUBPROFILE_RESTRICTED
  *           when trying to switch to the headless subspace.
  */
 HWTEST_F(OsAccountSubProfileClientNoSubspaceTest, Switch_Headless_Fails, TestSize.Level1)
 {
     ErrCode ret = OsAccountSubProfileClient::GetInstance().SwitchOsAccountSubProfile(
         TEST_OS_ACCOUNT_ID, HEADLESS_SUBSPACE_ID);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_RESTRICTED);
 }
 
 /**
  * @tc.name: OsAccountSubProfileClientNoSubspaceTest_Switch_NonHeadless_Fails
- * @tc.desc: SwitchOsAccountSubProfile returns ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND
+ * @tc.desc: SwitchOsAccountSubProfile returns ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND
  *           for a non-headless subspace when ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
  *           is not defined.
  */
@@ -144,7 +144,7 @@ HWTEST_F(OsAccountSubProfileClientNoSubspaceTest, Switch_NonHeadless_Fails, Test
 {
     ErrCode ret = OsAccountSubProfileClient::GetInstance().SwitchOsAccountSubProfile(
         TEST_OS_ACCOUNT_ID, TEST_SUBSPACE_ID);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND);
 }
 
 // ===== Subscribe/Unsubscribe tests (common paths) =====
@@ -925,25 +925,25 @@ public:
 
 /**
  * @tc.name: SubspaceManagerServiceNoMacroTest_Create_ReturnsLimit_001
- * @tc.desc: CreateOsAccountSubProfile in no-macro build returns ERR_OS_ACCOUNT_SUBSPACE_LIMIT (line 131).
+ * @tc.desc: CreateOsAccountSubProfile in no-macro build returns ERR_OS_ACCOUNT_SUBPROFILE_LIMIT (line 131).
  */
 HWTEST_F(SubspaceManagerServiceNoMacroTest, Create_ReturnsLimit_001, TestSize.Level1)
 {
     OsAccountSubProfileManagerService service;
     OsAccountSubspaceResult result;
     ErrCode ret = service.CreateOsAccountSubProfile(TEST_OS_ACCOUNT_ID, result);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_LIMIT);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_LIMIT);
 }
 
 /**
  * @tc.name: SubspaceManagerServiceNoMacroTest_Delete_ReturnsRestricted_001
- * @tc.desc: DeleteOsAccountSubProfile in no-macro build returns ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED (line 140).
+ * @tc.desc: DeleteOsAccountSubProfile in no-macro build returns ERR_OS_ACCOUNT_SUBPROFILE_RESTRICTED (line 140).
  */
 HWTEST_F(SubspaceManagerServiceNoMacroTest, Delete_ReturnsRestricted_001, TestSize.Level1)
 {
     OsAccountSubProfileManagerService service;
     ErrCode ret = service.DeleteOsAccountSubProfile(TEST_OS_ACCOUNT_ID, TEST_SUBSPACE_ID);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_RESTRICTED);
 }
 
 /**
@@ -954,7 +954,7 @@ HWTEST_F(SubspaceManagerServiceNoMacroTest, Switch_SubspaceMismatch_001, TestSiz
 {
     OsAccountSubProfileManagerService service;
     ErrCode ret = service.SwitchOsAccountSubProfile(TEST_OS_ACCOUNT_ID, TEST_SUBSPACE_ID);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND);
 }
 
 /**

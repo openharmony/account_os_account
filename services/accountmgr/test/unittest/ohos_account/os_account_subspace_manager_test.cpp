@@ -155,7 +155,7 @@ HWTEST_F(OsAccountSubProfileManagerTest, CreateSubspace_LimitReached_003, TestSi
     int32_t newSubspaceId = 0;
     int32_t index = 0;
     ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, newSubspaceId, index);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_LIMIT);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_LIMIT);
 }
 
 /**
@@ -330,7 +330,7 @@ HWTEST_F(OsAccountSubProfileManagerTest, RemoveSpace_ZeroIndex_001, TestSize.Lev
     auto &mgr = OsAccountSubProfileManager::GetInstance();
     int32_t zeroDistId = OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
     ErrCode ret = mgr.RemoveSubProfile(OS_ACCOUNT_ID, zeroDistId);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_RESTRICTED);
 }
 
 /**
@@ -366,7 +366,7 @@ HWTEST_F(OsAccountSubProfileManagerTest, RemoveSpace_NotFound_002, TestSize.Leve
     auto &mgr = OsAccountSubProfileManager::GetInstance();
     int32_t nonExistDistId = OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 999;
     ErrCode ret = mgr.RemoveSubProfile(OS_ACCOUNT_ID, nonExistDistId);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND);
 }
 
 /**
@@ -380,7 +380,7 @@ HWTEST_F(OsAccountSubProfileManagerTest, SwitchSpace_NotFound_001, TestSize.Leve
     int32_t nonExistDistId = OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 999;
     int32_t fromSubspaceId = 0;
     ErrCode ret = mgr.SwitchSubProfile(OS_ACCOUNT_ID, nonExistDistId, fromSubspaceId);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND);
 }
 
 /**

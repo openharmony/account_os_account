@@ -513,7 +513,7 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest018, TestSize.Level1)
     int32_t resultOsAccountId = -1;
     ErrCode ret = OhosAccountManager::GetInstance().GetOsAccountLocalIdForSubProfile(
         subProfileId, resultOsAccountId);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND);
 }
 
 /**

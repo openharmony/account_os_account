@@ -208,11 +208,11 @@ ErrCode OsAccountSubProfileManager::RemoveSubProfileLocked(int32_t osAccountId, 
     int32_t base = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
     if (subspaceId == base) {
         ACCOUNT_LOGE("Cannot remove headless subprofile (index=0, subspaceId=%{public}d)", subspaceId);
-        return ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED;
+        return ERR_OS_ACCOUNT_SUBPROFILE_RESTRICTED;
     }
     if (!subProfileDataDeal_->IsValidSubProfileExists(osAccountId, subspaceId)) {
         ACCOUNT_LOGE("Distributed account space %{public}d does not exist or is not valid", subspaceId);
-        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+        return ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND;
     }
 
     OsAccountInfo osAccountInfo;
@@ -220,7 +220,7 @@ ErrCode OsAccountSubProfileManager::RemoveSubProfileLocked(int32_t osAccountId, 
     if (infoRet == ERR_OK) {
         if (osAccountInfo.GetForegroundSubProfileId() == subspaceId) {
             ACCOUNT_LOGE("Cannot remove foreground distributed account space %{public}d", subspaceId);
-            return ERR_OS_ACCOUNT_SUBSPACE_IS_FOREGROUND;
+            return ERR_OS_ACCOUNT_SUBPROFILE_IS_FOREGROUND;
         }
     }
 
@@ -280,8 +280,8 @@ ErrCode OsAccountSubProfileManager::TryReclaimSubProfileSlots(
     if (cleaned <= 0) {
         ACCOUNT_LOGE("Distributed account space count reached limit for osAccountId=%{public}d", osAccountId);
         REPORT_OS_ACCOUNT_FAIL(osAccountId, Constants::OPERATION_SUBPROFILE_CREATE,
-            ERR_OS_ACCOUNT_SUBSPACE_LIMIT, "No garbage to reclaim, at limit");
-        return ERR_OS_ACCOUNT_SUBSPACE_LIMIT;
+            ERR_OS_ACCOUNT_SUBPROFILE_LIMIT, "No garbage to reclaim, at limit");
+        return ERR_OS_ACCOUNT_SUBPROFILE_LIMIT;
     }
     ErrCode refreshRet = IInnerOsAccountManager::GetInstance().ReadSubProfileContext(
         osAccountId, subprofileCtx);
@@ -289,13 +289,13 @@ ErrCode OsAccountSubProfileManager::TryReclaimSubProfileSlots(
         subprofileCtx = SubProfileContext::CreateWithHeadlessDefault(osAccountId);
     } else if (refreshRet != ERR_OK) {
         ACCOUNT_LOGE("Refresh SubProfileContext after cleanup failed, ret=%{public}d", refreshRet);
-        return ERR_OS_ACCOUNT_SUBSPACE_LIMIT;
+        return ERR_OS_ACCOUNT_SUBPROFILE_LIMIT;
     }
     if (static_cast<int32_t>(subprofileCtx.subProfileIdList.size()) - 1 >= MAX_OS_ACCOUNT_SUB_PROFILE_COUNT) {
         ACCOUNT_LOGE("Still at limit after cleaning.");
         REPORT_OS_ACCOUNT_FAIL(osAccountId, Constants::OPERATION_SUBPROFILE_CREATE,
-            ERR_OS_ACCOUNT_SUBSPACE_LIMIT, "Still at limit after reclaim");
-        return ERR_OS_ACCOUNT_SUBSPACE_LIMIT;
+            ERR_OS_ACCOUNT_SUBPROFILE_LIMIT, "Still at limit after reclaim");
+        return ERR_OS_ACCOUNT_SUBPROFILE_LIMIT;
     }
     ACCOUNT_LOGI(
         "Cleaned %{public}d garbage sub-profiles, retrying create for osAccountId=%{public}d", cleaned, osAccountId);
@@ -407,21 +407,21 @@ ErrCode OsAccountSubProfileManager::SwitchSubProfileLocked(
     int32_t base = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
     if (subspaceId == base) {
         ACCOUNT_LOGE("Cannot switch to headless subprofile (index=0, subspaceId=%{public}d)", subspaceId);
-        return ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED;
+        return ERR_OS_ACCOUNT_SUBPROFILE_RESTRICTED;
     }
     if (!subProfileDataDeal_->IsValidSubProfileExists(osAccountId, subspaceId)) {
         ACCOUNT_LOGE("OS account subspace %{public}d does not exist or is not valid", subspaceId);
-        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+        return ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND;
     }
     OsAccountInfo osAccountInfo;
     if (IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(osAccountId, osAccountInfo) != ERR_OK) {
         ACCOUNT_LOGE("GetOsAccountInfoById failed for osAccountId=%{public}d", osAccountId);
-        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+        return ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND;
     }
     fromSubspaceId = osAccountInfo.GetForegroundSubProfileId();
     if (CheckActiveSessionStatus(subProfileDataDeal_.get(), osAccountId, fromSubspaceId)) {
         ACCOUNT_LOGE("Current foreground OS account subspace has active session");
-        return ERR_OS_ACCOUNT_SUBSPACE_HAS_ACTIVE_SESSION;
+        return ERR_OS_ACCOUNT_SUBPROFILE_HAS_ACTIVE_SESSION;
     }
     ErrCode ret = IInnerOsAccountManager::GetInstance().SetOsAccountForegroundSubspaceId(
         osAccountId, subspaceId);
@@ -535,7 +535,7 @@ ErrCode OsAccountSubProfileManager::GetLocalIdForSubProfile(
     }
     if (!subProfileDataDeal_->IsValidSubProfileExists(osAccountId, subProfileId)) {
         ACCOUNT_LOGE("SubProfile %{public}d does not exist", subProfileId);
-        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+        return ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND;
     }
     return ERR_OK;
 }
@@ -550,7 +550,7 @@ ErrCode OsAccountSubProfileManager::ResolveSubProfileIndexFromContext(
         osAccountId, subprofileCtx);
     if (ctxRet == ERR_ACCOUNT_COMMON_FILE_NOT_EXIST) {
         ACCOUNT_LOGE("SubProfileContext not found for osAccountId=%{public}d", osAccountId);
-        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+        return ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND;
     }
     if (ctxRet != ERR_OK) {
         ACCOUNT_LOGE("ReadSubProfileContext failed, osAccountId=%{public}d, ret=%{public}d",
@@ -565,7 +565,7 @@ ErrCode OsAccountSubProfileManager::ResolveSubProfileIndexFromContext(
     }
     ACCOUNT_LOGW("subProfileId=%{public}d not found in subProfileIndexMap for osAccountId=%{public}d",
         subProfileId, osAccountId);
-    return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+    return ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND;
 }
 
 ErrCode OsAccountSubProfileManager::GetHeadlessSubProfile(
@@ -577,7 +577,7 @@ ErrCode OsAccountSubProfileManager::GetHeadlessSubProfile(
     subspaceResult.index = OsAccountSubProfileDataDeal::HEADLESS_SUBPROFILE_INDEX;
     ErrCode ret = ResolveSubProfileIndexFromContext(osAccountId, subProfileId,
         subspaceResult.index);
-    if (ret == ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND) {
+    if (ret == ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND) {
         // SubProfileContext missing or index not found is acceptable for headless —
         // account.json always exists independently; use canonical HEADLESS_SUBPROFILE_INDEX.
         ACCOUNT_LOGW("No SubProfileContext or index for headless osAccountId=%{public}d, "
@@ -602,7 +602,7 @@ ErrCode OsAccountSubProfileManager::GetSubProfile(int32_t osAccountId, int32_t s
     if (subProfileId != base &&
         !subProfileDataDeal_->IsValidSubProfileExists(osAccountId, subProfileId)) {
         ACCOUNT_LOGE("SubProfile %{public}d does not exist", subProfileId);
-        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+        return ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND;
     }
     subspaceResult.id = subProfileId;
     subspaceResult.osAccountId = osAccountId;
@@ -638,7 +638,7 @@ ErrCode OsAccountSubProfileManager::GetSubProfileIdByLocalIdAndAppIndex(
         osAccountId, subprofileCtx);
     if (ret == ERR_ACCOUNT_COMMON_FILE_NOT_EXIST) {
         ACCOUNT_LOGE("SubProfileContext not found for osAccountId=%{public}d", osAccountId);
-        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+        return ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND;
     }
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("ReadSubProfileContext failed, osAccountId=%{public}d, ret=%{public}d",
@@ -649,7 +649,7 @@ ErrCode OsAccountSubProfileManager::GetSubProfileIdByLocalIdAndAppIndex(
     if (it == subprofileCtx.subProfileIndexMap.end()) {
         ACCOUNT_LOGE("SubProfile with appIndex=%{public}d not found for osAccountId=%{public}d",
             appIndex, osAccountId);
-        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+        return ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND;
     }
     subProfileId = it->second;
     return ERR_OK;

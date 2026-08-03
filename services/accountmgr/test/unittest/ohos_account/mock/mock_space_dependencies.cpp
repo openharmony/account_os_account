@@ -178,7 +178,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountForegroundSubspaceId(int32_t localId
             return ERR_OK;
         }
     }
-    return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+    return ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND;
 }
 
 ErrCode IInnerOsAccountManager::UpdateOsAccountSubspaceInfo(

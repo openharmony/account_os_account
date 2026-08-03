@@ -118,14 +118,14 @@ HWTEST_F(SubProfileManagerServiceTest, DeleteOsAccountSubProfile_InvalidSubspace
 {
     auto service = std::make_shared<OsAccountSubProfileManagerService>();
     ErrCode ret = service->DeleteOsAccountSubProfile(TEST_OS_ACCOUNT_ID, -1);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND);
 }
 
 HWTEST_F(SubProfileManagerServiceTest, SwitchOsAccountSubProfile_InvalidSubspaceId_001, TestSize.Level1)
 {
     auto service = std::make_shared<OsAccountSubProfileManagerService>();
     ErrCode ret = service->SwitchOsAccountSubProfile(TEST_OS_ACCOUNT_ID, -1);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND);
 }
 
 HWTEST_F(SubProfileManagerServiceTest, CreateOsAccountSubProfile_Success_001, TestSize.Level1)
@@ -184,7 +184,7 @@ HWTEST_F(SubProfileManagerServiceTest, SwitchOsAccountSubProfile_Success_001, Te
     auto service = std::make_shared<OsAccountSubProfileManagerService>();
     int32_t baseId = TEST_SUBSPACE_BASE;
     ErrCode ret = service->SwitchOsAccountSubProfile(TEST_OS_ACCOUNT_ID, baseId);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_RESTRICTED);
 
     std::filesystem::remove_all(testDir, ec);
 }

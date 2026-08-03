@@ -79,16 +79,16 @@ int32_t OsAccountSubProfileManagerService::DeleteOsAccountSubProfile(
     // SUBSPACE_RESTRICTED is reserved for attempts to delete the index-0 subspace.
     ErrCode restrictedRet = IInnerOsAccountManager::GetInstance().CheckLocalIdRestricted(osAccountId);
     if (restrictedRet != ERR_OK) {
-        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+        return ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND;
     }
     if (subspaceId / Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER != osAccountId) {
         ACCOUNT_LOGE("subspaceId %{public}d does not belong to osAccountId %{public}d",
             subspaceId, osAccountId);
-        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+        return ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND;
     }
     if (subspaceId % Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER == 0) {
         ACCOUNT_LOGE("Cannot delete the primary subspace (index 0)");
-        return ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED;
+        return ERR_OS_ACCOUNT_SUBPROFILE_RESTRICTED;
     }
     ErrCode ret = OhosAccountManager::GetInstance().DeleteOsAccountSubspace(
         osAccountId, subspaceId);
@@ -104,16 +104,16 @@ int32_t OsAccountSubProfileManagerService::SwitchOsAccountSubProfile(
     }
     // Restricted accounts (e.g. ADMIN) cannot create subspaces, so there are no
     // subspaces to switch to. SUBSPACE_NOT_FOUND is the correct response.
-    // ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED was designed for switch but is not yet
+    // ERR_OS_ACCOUNT_SUBPROFILE_RESTRICTED was designed for switch but is not yet
     // returned from any code path.
     ErrCode restrictedRet = IInnerOsAccountManager::GetInstance().CheckLocalIdRestricted(osAccountId);
     if (restrictedRet != ERR_OK) {
-        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+        return ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND;
     }
     if (subspaceId / Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER != osAccountId) {
         ACCOUNT_LOGE("subspaceId %{public}d does not belong to osAccountId %{public}d",
             subspaceId, osAccountId);
-        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+        return ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND;
     }
     int32_t fromSubspaceId = 0;
     ErrCode ret = OhosAccountManager::GetInstance().SwitchOsAccountSubspace(
@@ -128,7 +128,7 @@ int32_t OsAccountSubProfileManagerService::CreateOsAccountSubProfile(
     (void)osAccountId;
     (void)subspaceResult;
     ACCOUNT_LOGE("CreateOsAccountSubProfile failed, subspace feature not enabled.");
-    return ERR_OS_ACCOUNT_SUBSPACE_LIMIT;
+    return ERR_OS_ACCOUNT_SUBPROFILE_LIMIT;
 }
 
 int32_t OsAccountSubProfileManagerService::DeleteOsAccountSubProfile(
@@ -137,7 +137,7 @@ int32_t OsAccountSubProfileManagerService::DeleteOsAccountSubProfile(
     (void)osAccountId;
     (void)subspaceId;
     ACCOUNT_LOGE("DeleteOsAccountSubProfile failed, subspace feature not enabled.");
-    return ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED;
+    return ERR_OS_ACCOUNT_SUBPROFILE_RESTRICTED;
 }
 
 int32_t OsAccountSubProfileManagerService::SwitchOsAccountSubProfile(
@@ -147,7 +147,7 @@ int32_t OsAccountSubProfileManagerService::SwitchOsAccountSubProfile(
     if (subspaceId != osAccountId * singleSubspaceMultiplier) {
         ACCOUNT_LOGE("SwitchOsAccountSubProfile failed, subspace feature not enabled, "
             "subspaceId=%{public}d, osAccountId=%{public}d.", subspaceId, osAccountId);
-        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+        return ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND;
     }
     return ERR_OK;
 }

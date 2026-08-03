@@ -85,8 +85,8 @@ ErrCode OsAccountSubProfileDataDeal::AllocateSubProfileIndex(
     // Phase 2 (exhausted): all slots are occupied
     ACCOUNT_LOGE("No available index slot, all %{public}d slots used.", totalRange);
     REPORT_OS_ACCOUNT_FAIL(0, Constants::OPERATION_SUBPROFILE_CREATE,
-        ERR_OS_ACCOUNT_SUBSPACE_LIMIT, "All index slots used");
-    return ERR_OS_ACCOUNT_SUBSPACE_LIMIT;
+        ERR_OS_ACCOUNT_SUBPROFILE_LIMIT, "All index slots used");
+    return ERR_OS_ACCOUNT_SUBPROFILE_LIMIT;
 }
 
 ErrCode OsAccountSubProfileDataDeal::AllocateOsAccountSubProfileId(
@@ -119,7 +119,7 @@ ErrCode OsAccountSubProfileDataDeal::AllocateOsAccountSubProfileId(
         if (searchCount >= totalRange) {
             ACCOUNT_LOGE("No available index for osAccountId=%{public}d, all %{public}d slots used.",
                 osAccountId, OS_ACCOUNT_SUB_PROFILE_ID_MAX);
-            return ERR_OS_ACCOUNT_SUBSPACE_LIMIT;
+            return ERR_OS_ACCOUNT_SUBPROFILE_LIMIT;
         }
     } while (true);
 }

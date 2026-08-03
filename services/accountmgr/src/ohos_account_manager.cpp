@@ -688,7 +688,7 @@ ErrCode OhosAccountManager::DeleteOsAccountSubspace(int32_t osAccountId, int32_t
     int32_t base = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
     if (subspaceId == base) {
         ACCOUNT_LOGE("Cannot delete headless subprofile (index=0)");
-        return ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED;
+        return ERR_OS_ACCOUNT_SUBPROFILE_RESTRICTED;
     }
     OsAccountSubspaceInfo profileInfo;
     ErrCode ret = GetDistributedAccountSpaceInfo(osAccountId, subspaceId, profileInfo);
@@ -697,7 +697,7 @@ ErrCode OhosAccountManager::DeleteOsAccountSubspace(int32_t osAccountId, int32_t
             osAccountId, subspaceId, ret);
         REPORT_OHOS_ACCOUNT_FAIL(osAccountId, Constants::OPERATION_SUBPROFILE_DELETE,
             ret, "Get ohos space info failed");
-        return ret == ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR ? ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND : ret;
+        return ret == ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR ? ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND : ret;
     }
     ret = OsAccountSubProfileManager::GetInstance().RemoveSubProfile(osAccountId, subspaceId);
     if (ret != ERR_OK) {
@@ -798,7 +798,7 @@ ErrCode OhosAccountManager::GetOsAccountLocalIdForSubProfile(
     auto id = subProfileId / Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
     if (subProfileId != id * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 1) {
         ACCOUNT_LOGE("SubProfile %{public}d does not exist", subProfileId);
-        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+        return ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND;
     }
     osAccountId = id;
 #endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
@@ -831,7 +831,7 @@ ErrCode OhosAccountManager::GetOsAccountSubProfile(int32_t osAccountId, int32_t 
     int32_t base = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 1;
     if (subProfileId != base) {
         ACCOUNT_LOGE("SubProfile %{public}d does not exist", subProfileId);
-        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+        return ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND;
     }
     subspaceResult.id = subProfileId;
     subspaceResult.osAccountId = osAccountId;
@@ -858,7 +858,7 @@ ErrCode OhosAccountManager::GetOsAccountSubProfileId(
         return ERR_OK;
     }
     ACCOUNT_LOGE("Extra subProfile with appIndex=%{public}d does not exist", appIndex);
-    return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+    return ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND;
 #endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 }
 
@@ -874,7 +874,7 @@ ErrCode OhosAccountManager::GetOsAccountSubProfileIndex(
         return ERR_OK;
     }
     ACCOUNT_LOGE("Extra subProfile with subProfileId=%{public}d does not exist", subProfileId);
-    return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+    return ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND;
 #endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 }
 
