@@ -2112,6 +2112,7 @@ sptr<InnerDomainAuthCallback> InnerDomainAccountManager::CreateAuthCallbackForUn
             localId, callback, Constants::AUTHORIZATION_INTENT, sessionId);
     }
 #endif
+    outChallenge = unlockOptions.challenge;
     return sptr<InnerDomainAuthCallback>::MakeSptr(localId, callback, UNLOCK_INTENT);
 }
 
