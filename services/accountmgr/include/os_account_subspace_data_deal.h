@@ -58,7 +58,7 @@ public:
      * @param nextSubProfileId  hint from OsAccountInfo.nextSubProfileId_ (-1 if first)
      * @param subProfileIdList existing subspace IDs from OsAccountInfo.subProfileIdList_
      * @param outId              output: the allocated subspaceId
-     * @return ERR_OK on success, ERR_OS_ACCOUNT_SUBSPACE_LIMIT if all indices exhausted
+     * @return ERR_OK on success, ERR_OS_ACCOUNT_SUBPROFILE_LIMIT if all indices exhausted
      */
     ErrCode AllocateOsAccountSubProfileId(int32_t osAccountId, int32_t nextSubProfileId,
         const std::vector<int32_t> &subProfileIdList, int32_t &outId);

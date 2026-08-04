@@ -67,14 +67,14 @@ HWTEST_F(SetForegroundSubspaceIdTest, SetForegroundSubspaceId_AccountNotFound_00
 {
     ErrCode ret = IInnerOsAccountManager::GetInstance().SetOsAccountForegroundSubspaceId(
         -1, TEST_SUBSPACE_BASE + 1);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND);
 }
 
 HWTEST_F(SetForegroundSubspaceIdTest, SetForegroundSubspaceId_AccountNotFound_002, TestSize.Level1)
 {
     ErrCode ret = IInnerOsAccountManager::GetInstance().SetOsAccountForegroundSubspaceId(
         99999, TEST_SUBSPACE_BASE + 1);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND);
 }
 
 HWTEST_F(SetForegroundSubspaceIdTest, SetForegroundSubspaceId_Success_001, TestSize.Level1)
@@ -291,21 +291,21 @@ HWTEST_F(OhosAccountManagerSubspaceTest, CreateOsAccountSubspace_LimitReached_00
 
     OsAccountSubspaceResult result;
     ErrCode ret = OhosAccountManager::GetInstance().CreateOsAccountSubspace(TEST_OS_ACCOUNT_ID, result);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_LIMIT);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_LIMIT);
 }
 
 HWTEST_F(OhosAccountManagerSubspaceTest, DeleteOsAccountSubspace_NotFound_001, TestSize.Level1)
 {
     ErrCode ret = OhosAccountManager::GetInstance().DeleteOsAccountSubspace(
         TEST_OS_ACCOUNT_ID, TEST_SUBSPACE_BASE + 999);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND);
 }
 
 HWTEST_F(OhosAccountManagerSubspaceTest, DeleteOsAccountSubspace_ZeroIndex_001, TestSize.Level1)
 {
     ErrCode ret = OhosAccountManager::GetInstance().DeleteOsAccountSubspace(
         TEST_OS_ACCOUNT_ID, TEST_SUBSPACE_BASE);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_RESTRICTED);
 }
 
 HWTEST_F(OhosAccountManagerSubspaceTest, SwitchOsAccountSubspace_NotFound_001, TestSize.Level1)
@@ -313,7 +313,7 @@ HWTEST_F(OhosAccountManagerSubspaceTest, SwitchOsAccountSubspace_NotFound_001, T
     int32_t fromSubspaceId = 0;
     ErrCode ret = OhosAccountManager::GetInstance().SwitchOsAccountSubspace(
         TEST_OS_ACCOUNT_ID, TEST_SUBSPACE_BASE + 999, fromSubspaceId);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND);
 }
 
 HWTEST_F(OhosAccountManagerSubspaceTest, CreateOsAccountSubspace_Success_001, TestSize.Level1)
@@ -511,7 +511,7 @@ HWTEST_F(SubspaceManagerInternalTest, SwitchSubspaceLocked_BaseSubspace_001, Tes
     int32_t baseId = TEST_SUBSPACE_BASE;
     int32_t fromSubspaceId = 0;
     ErrCode ret = mgr.SwitchSubProfile(TEST_OS_ACCOUNT_ID, baseId, fromSubspaceId);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_RESTRICTED);
 }
 
 HWTEST_F(SubspaceManagerInternalTest, SwitchSubspaceLocked_GetOsAccountInfoByIdFail_001, TestSize.Level1)
@@ -521,7 +521,7 @@ HWTEST_F(SubspaceManagerInternalTest, SwitchSubspaceLocked_GetOsAccountInfoByIdF
     int32_t baseId = TEST_SUBSPACE_BASE;
     int32_t fromSubspaceId = -1;
     ErrCode ret = mgr.SwitchSubProfile(TEST_OS_ACCOUNT_ID, baseId, fromSubspaceId);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_RESTRICTED);
     EXPECT_EQ(fromSubspaceId, -1);
     MockClearForceFailFlags();
 }
@@ -537,7 +537,7 @@ HWTEST_F(SubspaceManagerInternalTest, SwitchSubspaceLocked_GetOsAccountInfoSucce
     int32_t baseId = TEST_SUBSPACE_BASE;
     int32_t fromSubspaceId = -1;
     ErrCode ret = mgr.SwitchSubProfile(TEST_OS_ACCOUNT_ID, baseId, fromSubspaceId);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_RESTRICTED);
     EXPECT_EQ(fromSubspaceId, -1);
 }
 
@@ -733,7 +733,7 @@ HWTEST_F(SubspaceManagerInternalTest, TryReclaimSubProfileSlots_RefreshFail_001,
     MockForceReadSubProfileContextFail(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 
     ErrCode ret = mgr.TryReclaimSubProfileSlots(TEST_OS_ACCOUNT_ID, subprofileCtx);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_LIMIT);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_LIMIT);
 
     MockClearForceFailFlags();
 }
@@ -767,7 +767,7 @@ HWTEST_F(SubspaceManagerInternalTest, TryReclaimSubProfileSlots_StillAtLimit_002
     int32_t newSubspaceId = 0;
     int32_t index = 0;
     ErrCode ret = mgr.CreateSubProfile(TEST_OS_ACCOUNT_ID, newSubspaceId, index);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_LIMIT);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_LIMIT);
 
     MockClearForceFailFlags();
 }
@@ -849,7 +849,7 @@ HWTEST_F(SubspaceManagerInternalTest, AllocateSubProfileIndex_AllSlotsUsed_004, 
     }
     int32_t outIndex = 0;
     ErrCode ret = dataDeal.AllocateSubProfileIndex(1, fullMap, outIndex);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_LIMIT);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_LIMIT);
 }
 
 HWTEST_F(SubspaceManagerInternalTest, AllocateSubProfileIndex_HintOutOfBounds_005, TestSize.Level1)

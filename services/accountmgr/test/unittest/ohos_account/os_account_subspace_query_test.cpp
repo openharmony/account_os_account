@@ -318,7 +318,7 @@ HWTEST_F(SubProfileQuerySubspaceMgrTest, GetLocalIdForSubProfile_NotFound_001, T
     int32_t osAccountId = -1;
     int32_t invalidId = QUERY_BASE + 999;
     ErrCode ret = mgr.GetLocalIdForSubProfile(invalidId, osAccountId);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND);
 }
 
 HWTEST_F(SubProfileQuerySubspaceMgrTest, GetSubProfileIdByLocalIdAndAppIndex_OnlyBase_001, TestSize.Level1)
@@ -326,7 +326,7 @@ HWTEST_F(SubProfileQuerySubspaceMgrTest, GetSubProfileIdByLocalIdAndAppIndex_Onl
     auto &mgr = OsAccountSubProfileManager::GetInstance();
     int32_t subProfileId = -1;
     ErrCode ret = mgr.GetSubProfileIdByLocalIdAndAppIndex(QUERY_USER_ID, 1, subProfileId);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND);
 }
 
 HWTEST_F(SubProfileQuerySubspaceMgrTest, GetSubProfileIdByLocalIdAndAppIndex_NoMatch_001, TestSize.Level1)
@@ -336,7 +336,7 @@ HWTEST_F(SubProfileQuerySubspaceMgrTest, GetSubProfileIdByLocalIdAndAppIndex_NoM
     auto &mgr = OsAccountSubProfileManager::GetInstance();
     int32_t subProfileId = -1;
     ErrCode ret = mgr.GetSubProfileIdByLocalIdAndAppIndex(QUERY_USER_ID, 5, subProfileId);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND);
 }
 
 HWTEST_F(SubProfileQuerySubspaceMgrTest, GetSubProfile_HeadlessSuccess_001, TestSize.Level1)
@@ -415,7 +415,7 @@ HWTEST_F(SubProfileQuerySubspaceMgrTest, GetSubProfile_NotFound_001, TestSize.Le
     OhosAccountInfo distributedInfo;
     int32_t invalidId = QUERY_BASE + 999;
     ErrCode ret = mgr.GetSubProfile(QUERY_USER_ID, invalidId, subspaceResult, distributedInfo);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND);
 }
 
 HWTEST_F(SubProfileQuerySubspaceMgrTest, GetSubProfile_ContextReadFail_001, TestSize.Level1)
@@ -472,7 +472,7 @@ HWTEST_F(SubProfileQuerySubspaceMgrTest, GetSubProfile_IndexNotInContextMap_001,
     OsAccountSubspaceResult subspaceResult;
     OhosAccountInfo distributedInfo;
     ErrCode ret = mgr.GetSubProfile(QUERY_USER_ID, distId, subspaceResult, distributedInfo);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND);
 }
 
 HWTEST_F(SubProfileQuerySubspaceMgrTest, GetSubProfile_HeadlessIndexNotFoundInMap_001, TestSize.Level1)
@@ -569,7 +569,7 @@ HWTEST_F(SubProfileQueryOhosMgrTest, GetOsAccountLocalIdForSubProfile_NotFound_0
     int32_t invalidId = OHOS_QUERY_BASE + 999;
     ErrCode ret = OhosAccountManager::GetInstance().GetOsAccountLocalIdForSubProfile(
         invalidId, osAccountId);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND);
 }
 
 HWTEST_F(SubProfileQueryOhosMgrTest, GetOsAccountSubProfile_BaseSubspace_NoJson_001, TestSize.Level1)
@@ -578,7 +578,7 @@ HWTEST_F(SubProfileQueryOhosMgrTest, GetOsAccountSubProfile_BaseSubspace_NoJson_
     OhosAccountInfo distributedInfo;
     ErrCode ret = OhosAccountManager::GetInstance().GetOsAccountSubProfile(
         OHOS_QUERY_USER_ID, OHOS_QUERY_BASE, subspaceResult, distributedInfo);
-    EXPECT_NE(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    EXPECT_NE(ret, ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND);
     EXPECT_EQ(subspaceResult.id, OHOS_QUERY_BASE);
     EXPECT_EQ(subspaceResult.osAccountId, OHOS_QUERY_USER_ID);
     EXPECT_EQ(subspaceResult.index, 0);
@@ -628,7 +628,7 @@ HWTEST_F(SubProfileQueryOhosMgrTest, GetOsAccountSubProfile_NonBaseNotFound_001,
     int32_t invalidId = OHOS_QUERY_BASE + 999;
     ErrCode ret = OhosAccountManager::GetInstance().GetOsAccountSubProfile(
         OHOS_QUERY_USER_ID, invalidId, subspaceResult, distributedInfo);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND);
 }
 
 HWTEST_F(SubProfileQueryOhosMgrTest, GetOsAccountSubProfile_DefaultUid_NoAnonymize_001, TestSize.Level1)
@@ -679,7 +679,7 @@ HWTEST_F(SubProfileQueryOhosMgrTest, GetOsAccountSubProfileId_NotFound_001, Test
     int32_t subProfileId = -1;
     ErrCode ret = OhosAccountManager::GetInstance().GetOsAccountSubProfileId(
         OHOS_QUERY_USER_ID, 1, subProfileId);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND);
 }
 
 // ===== Task 12: AccountMgrService query methods =====
@@ -733,7 +733,7 @@ HWTEST_F(SubProfileQueryServiceTest, GetOsAccountFgSubProfileId_NoArg_Restricted
 {
     int32_t subProfileId = -1;
     auto ret = AccountMgrService::GetInstance().GetOsAccountForegroundSubProfileId(subProfileId);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND);
 }
 
 HWTEST_F(SubProfileQueryServiceTest, GetOsAccountFgSubProfileId_WithId_AccountNotFound_001, TestSize.Level1)
@@ -798,7 +798,7 @@ HWTEST_F(SubProfileQueryServiceTest, GetOsAccountSubProfile_SingleArg_OwnershipM
     OhosAccountInfo distributedInfo;
     auto ret = AccountMgrService::GetInstance().GetOsAccountSubProfile(
         SVC_TEST_BASE, subspaceResult, distributedInfo);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND);
 }
 
 HWTEST_F(SubProfileQueryServiceNoPermTest, GetOsAccountSubProfile_DualArg_PermDenied_001, TestSize.Level1)
@@ -816,7 +816,7 @@ HWTEST_F(SubProfileQueryServiceTest, GetOsAccountSubProfile_DualArg_OwnershipMis
     OhosAccountInfo distributedInfo;
     auto ret = AccountMgrService::GetInstance().GetOsAccountSubProfile(
         200, SVC_TEST_BASE, subspaceResult, distributedInfo);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND);
 }
 
 HWTEST_F(SubProfileQueryServiceTest, GetOsAccountSubProfile_DualArg_SubProfileMismatch_001, TestSize.Level1)
@@ -826,7 +826,7 @@ HWTEST_F(SubProfileQueryServiceTest, GetOsAccountSubProfile_DualArg_SubProfileMi
     int32_t subProfileId = 200 * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
     auto ret = AccountMgrService::GetInstance().GetOsAccountSubProfile(
         SVC_TEST_USER_ID, subProfileId, subspaceResult, distributedInfo);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND);
 }
 
 #endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE

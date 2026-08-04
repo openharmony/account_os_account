@@ -462,7 +462,7 @@ int32_t AccountMgrService::GetOsAccountForegroundSubProfileId(int32_t &subProfil
     int32_t osAccountId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
     ret = IInnerOsAccountManager::GetInstance().CheckLocalIdRestricted(osAccountId);
     if (ret != ERR_OK) {
-        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+        return ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND;
     }
     return OhosAccountManager::GetInstance().GetOsAccountForegroundSubProfileId(osAccountId, subProfileId);
 }
@@ -484,7 +484,7 @@ int32_t AccountMgrService::GetOsAccountForegroundSubProfileId(
     }
     ret = IInnerOsAccountManager::GetInstance().CheckLocalIdRestricted(osAccountId);
     if (ret != ERR_OK) {
-        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+        return ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND;
     }
     return OhosAccountManager::GetInstance().GetOsAccountForegroundSubProfileId(osAccountId, subProfileId);
 }
@@ -552,11 +552,11 @@ int32_t AccountMgrService::GetOsAccountLocalIdForSubProfile(
     OsAccountInfo osAccountInfo;
     ret = IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(id, osAccountInfo);
     if (ret != ERR_OK) {
-        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+        return ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND;
     }
     ret = IInnerOsAccountManager::GetInstance().CheckLocalIdRestricted(id);
     if (ret != ERR_OK) {
-        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+        return ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND;
     }
 
     return OhosAccountManager::GetInstance().GetOsAccountLocalIdForSubProfile(subProfileId, osAccountId);
@@ -581,11 +581,11 @@ int32_t AccountMgrService::GetOsAccountSubProfile(
     if (subProfileId / Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER != osAccountId) {
         ACCOUNT_LOGE("subProfileId %{public}d does not belong to osAccountId %{public}d",
             subProfileId, osAccountId);
-        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+        return ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND;
     }
     ret = IInnerOsAccountManager::GetInstance().CheckLocalIdRestricted(osAccountId);
     if (ret != ERR_OK) {
-        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+        return ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND;
     }
     return OhosAccountManager::GetInstance().GetOsAccountSubProfile(
         osAccountId, subProfileId, subspaceResult, distributedInfo);
@@ -614,16 +614,16 @@ int32_t AccountMgrService::GetOsAccountSubProfile(
     if (subProfileId / Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER != osAccountId) {
         ACCOUNT_LOGE("subProfileId %{public}d does not belong to osAccountId %{public}d",
             subProfileId, osAccountId);
-        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+        return ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND;
     }
     OsAccountInfo osAccountInfo;
     ret = IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(osAccountId, osAccountInfo);
     if (ret != ERR_OK) {
-        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+        return ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND;
     }
     ret = IInnerOsAccountManager::GetInstance().CheckLocalIdRestricted(osAccountId);
     if (ret != ERR_OK) {
-        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+        return ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND;
     }
     return OhosAccountManager::GetInstance().GetOsAccountSubProfile(
         osAccountId, subProfileId, subspaceResult, distributedInfo);
@@ -650,7 +650,7 @@ int32_t AccountMgrService::GetOsAccountSubProfileId(
     }
     ret = IInnerOsAccountManager::GetInstance().CheckLocalIdRestricted(osAccountId);
     if (ret != ERR_OK) {
-        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+        return ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND;
     }
     return OhosAccountManager::GetInstance().GetOsAccountSubProfileId(
         osAccountId, appIndex, subProfileId);
@@ -684,7 +684,7 @@ int32_t AccountMgrService::GetOsAccountSubProfileId(
     }
     ret = IInnerOsAccountManager::GetInstance().CheckLocalIdRestricted(hapTokenInfo.userID);
     if (ret != ERR_OK) {
-        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+        return ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND;
     }
     return OhosAccountManager::GetInstance().GetOsAccountSubProfileId(
         hapTokenInfo.userID, static_cast<int32_t>(hapTokenInfo.instIndex), subProfileId);
@@ -702,18 +702,18 @@ int32_t AccountMgrService::GetOsAccountSubProfileIndex(
     if (subProfileId / Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER != osAccountId) {
         ACCOUNT_LOGE("subProfileId %{public}d does not belong to osAccountId %{public}d",
             subProfileId, osAccountId);
-        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+        return ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND;
     }
 
     OsAccountInfo osAccountInfo;
     ret = IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(osAccountId, osAccountInfo);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("OsAccount not exist, osAccountId=%{public}d, ret=%{public}d", osAccountId, ret);
-        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+        return ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND;
     }
     ret = IInnerOsAccountManager::GetInstance().CheckLocalIdRestricted(osAccountId);
     if (ret != ERR_OK) {
-        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+        return ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND;
     }
     return OhosAccountManager::GetInstance().GetOsAccountSubProfileIndex(
         osAccountId, subProfileId, index);

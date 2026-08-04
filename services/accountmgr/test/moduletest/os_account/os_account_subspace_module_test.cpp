@@ -653,7 +653,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchSpace_NotFound_001, TestSize.Level1)
     int32_t nonExistDistId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 999;
     int32_t fromSubspaceId = 0;
     ErrCode ret = mgr.SwitchSubProfile(OS_ACCOUNT_ID_A, nonExistDistId, fromSubspaceId);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND);
 }
 
 /**
@@ -667,7 +667,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, RemoveSpace_NotFound_001, TestSize.Level1)
     mgr.Init(TEST_ROOT_DIR);
     int32_t nonExistDistId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 999;
     ErrCode ret = mgr.RemoveSubProfile(OS_ACCOUNT_ID_A, nonExistDistId);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND);
 }
 
 /**
@@ -711,7 +711,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchSpace_ToBase_001, TestSize.Level1)
     int32_t fromSubspaceId = 0;
 
     ErrCode ret = mgr.SwitchSubProfile(OS_ACCOUNT_ID_A, baseDistId, fromSubspaceId);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_RESTRICTED);
 }
 
 /**
@@ -754,7 +754,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, RemoveSpace_Foreground_001, TestSize.Level
     mgr.SwitchSubProfile(OS_ACCOUNT_ID_A, distId1, fromSubspaceId);
 
     ErrCode ret = mgr.RemoveSubProfile(OS_ACCOUNT_ID_A, distId1);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_IS_FOREGROUND);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_IS_FOREGROUND);
 
     // Cleanup
     mgr.subProfileDataDeal_->RemoveSubProfileDir(OS_ACCOUNT_ID_A, distId1);
@@ -815,7 +815,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, ScanSubProfileIds_DotAndDotDot_001, TestSi
 /**
  * @tc.name: SwitchOsAccountSubspace_GetOsAccountInfoFailed_001
  * @tc.desc: When GetOsAccountInfoById fails for a non-existent account,
- *           SwitchSubProfileLocked returns ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND.
+ *           SwitchSubProfileLocked returns ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND.
  * @tc.type: FUNC
  */
 HWTEST_F(OsAccountSubspaceModuleTest, SwitchOsAccountSubspace_GetOsAccountInfoFailed_001, TestSize.Level1)
@@ -837,7 +837,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchOsAccountSubspace_GetOsAccountInfoFa
     int32_t fromSubspaceId = -1;
     ErrCode ret = OhosAccountManager::GetInstance().SwitchOsAccountSubspace(
         OS_ACCOUNT_ID_A, distId, fromSubspaceId);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND);
 
     // Cleanup
     mgr.subProfileDataDeal_->RemoveSubProfileDir(OS_ACCOUNT_ID_A, distId);
@@ -1036,7 +1036,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchSubspaceLocked_SetForegroundFailed_0
 
     int32_t fromSubspaceId = -1;
     ErrCode ret = mgr.SwitchSubProfile(ACCOUNT_ID, base, fromSubspaceId);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_RESTRICTED);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_RESTRICTED);
 
     MockClearForceFailFlags();
     IInnerOsAccountManager::GetInstance().SetOsAccountForegroundSubspaceId(ACCOUNT_ID, originalFg);
@@ -1046,7 +1046,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchSubspaceLocked_SetForegroundFailed_0
 /**
  * @tc.name: SwitchOsAccountSubspace_ActiveSessionRejected_001
  * @tc.desc: Verify SwitchSubProfile rejects switch with
- *           ERR_OS_ACCOUNT_SUBSPACE_HAS_ACTIVE_SESSION when the current foreground
+ *           ERR_OS_ACCOUNT_SUBPROFILE_HAS_ACTIVE_SESSION when the current foreground
  *           subProfile has an active LOGIN session. Tests the unified active session
  *           check inside SwitchSubProfileLocked via CheckActiveSessionStatus.
  * @tc.type: FUNC
@@ -1088,7 +1088,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchOsAccountSubspace_ActiveSessionRejec
     int32_t fromSubspaceId = -1;
     ErrCode ret = OhosAccountManager::GetInstance().SwitchOsAccountSubspace(
         ACCOUNT_ID, targetSubspaceId, fromSubspaceId);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBSPACE_HAS_ACTIVE_SESSION);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_HAS_ACTIVE_SESSION);
 
     // Cleanup
     IInnerOsAccountManager::GetInstance().SetOsAccountForegroundSubspaceId(ACCOUNT_ID, originalFg);

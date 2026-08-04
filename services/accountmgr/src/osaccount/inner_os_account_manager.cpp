@@ -4105,7 +4105,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountForegroundSubspaceId(
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(localId, osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("GetOsAccountInfoById failed for localId=%{public}d, errCode=%{public}d", localId, errCode);
-        return ERR_OS_ACCOUNT_SUBSPACE_NOT_FOUND;
+        return ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND;
     }
     osAccountInfo.SetForegroundSubProfileId(subspaceId);
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
