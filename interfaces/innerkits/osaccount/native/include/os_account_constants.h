@@ -116,7 +116,6 @@ const std::int32_t ADMIN_LOCAL_ID = 0;
 const std::int32_t U1_ID = 1;
 const int ADMIN_TYPE = -1;
 const std::int32_t START_USER_ID = 100;
-const std::int32_t MAINTENANCE_USER_ID = 10377;
 const std::int32_t MAX_USER_ID = 10736; // Int32 maximum value divided by 200000
 const std::int32_t MAX_CREATABLE_USER_ID = 999;
 const std::int32_t INVALID_OS_ACCOUNT_ID = -1;

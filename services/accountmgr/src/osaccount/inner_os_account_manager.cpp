@@ -659,7 +659,7 @@ ErrCode IInnerOsAccountManager::FillOsAccountInfo(const std::string &localName, 
     }
     int id = 0;
     if (type == OsAccountType::MAINTENANCE) {
-        id = Constants::MAINTENANCE_USER_ID;
+        id = Constants::MAINTENANCE_MODE_ID;
     } else {
         errCode = osAccountControl_->GetAllowCreateId(id);
         if (errCode != ERR_OK) {
