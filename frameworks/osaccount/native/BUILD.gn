@@ -64,6 +64,7 @@ config("os_account_manager_lite_public_config") {
 
 ohos_shared_library("os_account_innerkits") {
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
 
   sanitize = {
     cfi = true
