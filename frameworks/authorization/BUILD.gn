@@ -69,6 +69,7 @@ idl_gen_interface("authorization_interface") {
 
 ohos_shared_library("authorization_innerkits") {
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
 
   sanitize = {
     cfi = true

@@ -34,6 +34,7 @@ config("authorization_napi_kit_config") {
 
 ohos_shared_library("authorization_napi") {
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
   include_dirs = []
 
   cflags_cc = [

@@ -41,6 +41,7 @@ config("osaccount_kit_config") {
 
 ohos_shared_library("osaccount") {
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
   configs = [ ":osaccount_kit_config" ]
 
   cflags_cc = [

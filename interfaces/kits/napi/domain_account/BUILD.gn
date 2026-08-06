@@ -34,6 +34,7 @@ config("domain_account_napi_kit_config") {
 
 ohos_shared_library("domain_account_napi") {
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
   include_dirs = []
 
   configs = [ ":domain_account_napi_kit_config" ]
