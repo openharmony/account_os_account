@@ -15,6 +15,7 @@
 
 #include "ohos_account_manager.h"
 #include <cerrno>
+#include <chrono>
 #include <codecvt>
 #include <dirent.h>
 #include <dlfcn.h>
@@ -669,6 +670,13 @@ ErrCode OhosAccountManager::CreateOsAccountSubspace(int32_t osAccountId, OsAccou
     result.id = newSubspaceId;
     result.osAccountId = osAccountId;
     result.index = index;
+    // Reuse the authoritative createTime persisted by AllocateAndPersistSubProfile instead of
+    // stamping a second now() (which could drift ~1ms from the value GetSubProfile returns).
+    OsAccountSubspaceInfo persistedInfo;
+    if (OsAccountSubProfileManager::GetInstance().LoadSubProfileInfo(
+        osAccountId, newSubspaceId, persistedInfo) == ERR_OK) {
+        result.createTime = persistedInfo.createTime;
+    }
 
     ErrCode publishRet = OsAccountSubProfileSubscribeManager::GetInstance().Publish(
         OsAccountSubProfileEventType::CREATED, osAccountId, newSubspaceId);
@@ -826,6 +834,7 @@ ErrCode OhosAccountManager::GetOsAccountSubProfile(int32_t osAccountId, int32_t 
             return ret;
         }
         distributedInfo = accountInfo.ohosAccountInfo_;
+        subspaceResult.createTime = accountInfo.createTime_;
     }
 #else
     int32_t base = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 1;
@@ -842,6 +851,7 @@ ErrCode OhosAccountManager::GetOsAccountSubProfile(int32_t osAccountId, int32_t 
         return ret;
     }
     distributedInfo = accountInfo.ohosAccountInfo_;
+    subspaceResult.createTime = accountInfo.createTime_;
 #endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
     return ERR_OK;
 }

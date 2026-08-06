@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include <cerrno>
+#include <chrono>
 #include <cstdio>
 #include <fstream>
 #include <iostream>
@@ -44,6 +45,7 @@ const char DATADEAL_JSON_KEY_OHOSACCOUNT_SCALABLEDATA[] = "account_scalableData"
 const char DATADEAL_JSON_KEY_OHOSACCOUNT_VERSION[] = "version";
 const char DATADEAL_JSON_KEY_USERID[] = "user_id";
 const char DATADEAL_JSON_KEY_BIND_TIME[] = "bind_time";
+const char DATADEAL_JSON_KEY_CREATE_TIME[] = "createTime";
 #ifdef ENABLE_FILE_WATCHER
 const uint32_t ALG_COMMON_SIZE = 32;
 #endif // ENABLE_FILE_WATCHER
@@ -222,6 +224,7 @@ ErrCode OhosAccountDataDeal::SaveAccountInfo(const AccountInfo &accountInfo)
     auto jsonData = CreateJson();
     AddIntToJson(jsonData, DATADEAL_JSON_KEY_OHOSACCOUNT_VERSION, accountInfo.version_);
     AddIntToJson(jsonData, DATADEAL_JSON_KEY_BIND_TIME, accountInfo.bindTime_);
+    AddInt64ToJson(jsonData, DATADEAL_JSON_KEY_CREATE_TIME, accountInfo.createTime_);
     AddIntToJson(jsonData, DATADEAL_JSON_KEY_USERID, accountInfo.userId_);
     AddStringToJson(jsonData, DATADEAL_JSON_KEY_OHOSACCOUNT_NAME, accountInfo.ohosAccountInfo_.name_);
     AddStringToJson(jsonData, DATADEAL_JSON_KEY_OHOSACCOUNT_RAW_UID, accountInfo.ohosAccountInfo_.GetRawUid());
@@ -329,6 +332,11 @@ ErrCode OhosAccountDataDeal::GetAccountInfoFromJson(
         accountInfo.bindTime_ = value;
     });
 
+    GetDataByType<int64_t>(jsonData, DATADEAL_JSON_KEY_CREATE_TIME, accountInfo.createTime_);
+    if (accountInfo.createTime_ == 0) {
+        ACCOUNT_LOGW("createTime not set in account.json for userId=%{public}d, using default 0", userId);
+    }
+
     GetJsonField<std::string>(jsonData, DATADEAL_JSON_KEY_OHOSACCOUNT_NAME, [&](const std::string &value) {
         accountInfo.ohosAccountInfo_.name_ = value;
     });
@@ -397,6 +405,8 @@ void OhosAccountDataDeal::BuildJsonFileFromScratch(int32_t userId)
     AccountInfo accountInfo;
     accountInfo.userId_ = userId;
     accountInfo.bindTime_ = 0;
+    accountInfo.createTime_ = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count();
     accountInfo.ohosAccountInfo_.uid_ = DEFAULT_OHOS_ACCOUNT_UID;
     accountInfo.ohosAccountInfo_.name_ = DEFAULT_OHOS_ACCOUNT_NAME;
     accountInfo.ohosAccountInfo_.status_ = ACCOUNT_STATE_UNBOUND;

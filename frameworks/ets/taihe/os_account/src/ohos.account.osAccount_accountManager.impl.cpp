@@ -1837,6 +1837,7 @@ public:
         result.id = cppResult.id;
         result.osAccountLocalId = cppResult.osAccountId;
         result.index = cppResult.index;
+        result.createTime = cppResult.createTime;
         return result;
     }
 
@@ -2021,6 +2022,7 @@ public:
         result.id = cppResult.id;
         result.osAccountLocalId = cppResult.osAccountId;
         result.index = cppResult.index;
+        result.createTime = cppResult.createTime;
         if (distInfo.status_ != AccountSA::ACCOUNT_STATE_UNBOUND) {
             result.distributedInfo = taihe::optional<ohos::account::distributedAccount::DistributedInfo>(
                 std::in_place_t{}, AccountSA::ConvertToDistributedInfoTH(distInfo));
@@ -2041,6 +2043,7 @@ public:
         result.id = cppResult.id;
         result.osAccountLocalId = cppResult.osAccountId;
         result.index = cppResult.index;
+        result.createTime = cppResult.createTime;
         if (distInfo.status_ != AccountSA::ACCOUNT_STATE_UNBOUND) {
             result.distributedInfo = taihe::optional<ohos::account::distributedAccount::DistributedInfo>(
                 std::in_place_t{}, AccountSA::ConvertToDistributedInfoTH(distInfo));

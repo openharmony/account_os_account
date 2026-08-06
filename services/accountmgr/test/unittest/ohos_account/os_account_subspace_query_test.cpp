@@ -15,6 +15,7 @@
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 
 #include "os_account_subspace_coverage_test_common.h"
+#include "ohos_account_data_deal.h"
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -582,6 +583,7 @@ HWTEST_F(SubProfileQueryOhosMgrTest, GetOsAccountSubProfile_BaseSubspace_NoJson_
     EXPECT_EQ(subspaceResult.id, OHOS_QUERY_BASE);
     EXPECT_EQ(subspaceResult.osAccountId, OHOS_QUERY_USER_ID);
     EXPECT_EQ(subspaceResult.index, 0);
+    EXPECT_GE(subspaceResult.createTime, 0);
 }
 
 HWTEST_F(SubProfileQueryOhosMgrTest, GetOsAccountSubProfile_NonBaseSuccess_001, TestSize.Level1)
@@ -604,6 +606,7 @@ HWTEST_F(SubProfileQueryOhosMgrTest, GetOsAccountSubProfile_NonBaseSuccess_001, 
     info.toBeRemoved = false;
     info.version_ = 1;
     info.bindTime_ = 0;
+    info.createTime = 1234567890000;
     info.ohosAccountInfo_.name_ = "test_profile";
     info.ohosAccountInfo_.uid_ = "test_uid";
     info.ohosAccountInfo_.SetRawUid("test_raw_uid");
@@ -619,6 +622,7 @@ HWTEST_F(SubProfileQueryOhosMgrTest, GetOsAccountSubProfile_NonBaseSuccess_001, 
     EXPECT_EQ(subspaceResult.id, distId);
     EXPECT_EQ(subspaceResult.osAccountId, OHOS_QUERY_USER_ID);
     EXPECT_EQ(subspaceResult.index, 3);
+    EXPECT_EQ(subspaceResult.createTime, 1234567890000);
 }
 
 HWTEST_F(SubProfileQueryOhosMgrTest, GetOsAccountSubProfile_NonBaseNotFound_001, TestSize.Level1)
@@ -827,6 +831,121 @@ HWTEST_F(SubProfileQueryServiceTest, GetOsAccountSubProfile_DualArg_SubProfileMi
     auto ret = AccountMgrService::GetInstance().GetOsAccountSubProfile(
         SVC_TEST_USER_ID, subProfileId, subspaceResult, distributedInfo);
     EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND);
+}
+
+// ===== createTime fault-injection tests =====
+
+HWTEST_F(SubProfileQueryOhosMgrTest, CreateTime_Marshalling_RoundTrip_001, TestSize.Level1)
+{
+    OsAccountSubspaceResult result;
+    result.id = 100;
+    result.osAccountId = 200;
+    result.index = 3;
+    result.createTime = 1234567890123;
+    Parcel parcel;
+    ASSERT_TRUE(result.Marshalling(parcel));
+    auto *unmarshalled = OsAccountSubspaceResult::Unmarshalling(parcel);
+    ASSERT_NE(unmarshalled, nullptr);
+    EXPECT_EQ(unmarshalled->id, 100);
+    EXPECT_EQ(unmarshalled->osAccountId, 200);
+    EXPECT_EQ(unmarshalled->index, 3);
+    EXPECT_EQ(unmarshalled->createTime, 1234567890123);
+    delete unmarshalled;
+}
+
+HWTEST_F(SubProfileQueryOhosMgrTest, CreateTime_OldFileUpgrade_DefaultZero_001, TestSize.Level1)
+{
+    int32_t distId = OHOS_QUERY_BASE + 5;
+    SubProfileContext ctx;
+    ctx.subProfileIndexMap[OsAccountSubProfileDataDeal::HEADLESS_SUBPROFILE_INDEX] = OHOS_QUERY_BASE;
+    ctx.subProfileIndexMap[5] = distId;
+    ctx.subProfileIdList = {OHOS_QUERY_BASE, distId};
+    ctx.nextSubProfileId = OHOS_QUERY_BASE + 6;
+    ctx.nextSubProfileIndex = 6;
+    MockForceSubProfileContext(OHOS_QUERY_USER_ID, ctx);
+
+    std::string oldJson = R"({"subspaceId":)" + std::to_string(distId) +
+        R"(,"osAccountId":)" + std::to_string(OHOS_QUERY_USER_ID) +
+        R"(,"is_create_completed":true,"to_be_removed":false,"bind_time":0,"version":1,)"
+        R"("account_name":"old","raw_uid":"","open_id":"","bind_status":0,"calling_uid":0,)"
+        R"("account_nickname":"","account_scalableData":"","subspaceIndex":5,"subspaceOffset":5})";
+    auto &subspaceMgr = OsAccountSubProfileManager::GetInstance();
+    std::string filePath = subspaceMgr.subProfileDataDeal_->GetSubProfileFilePath(OHOS_QUERY_USER_ID, distId);
+    ASSERT_EQ(subspaceMgr.subProfileDataDeal_->SaveSubProfileFiles(
+        OsAccountSubspaceInfo(OHOS_QUERY_USER_ID, distId, 5, 5), oldJson), ERR_OK);
+
+    OsAccountSubspaceInfo info;
+    ASSERT_EQ(subspaceMgr.subProfileDataDeal_->LoadSubProfileInfo(OHOS_QUERY_USER_ID, distId, info), ERR_OK);
+    EXPECT_EQ(info.createTime, 0);
+}
+
+HWTEST_F(SubProfileQueryOhosMgrTest, CreateTime_CreateSubProfile_Positive_001, TestSize.Level1)
+{
+    auto &subspaceMgr = OsAccountSubProfileManager::GetInstance();
+    int32_t newSubspaceId = 0;
+    int32_t outIndex = 0;
+    ErrCode ret = subspaceMgr.CreateSubProfile(OHOS_QUERY_USER_ID, newSubspaceId, outIndex);
+    ASSERT_EQ(ret, ERR_OK);
+    OsAccountSubspaceInfo info;
+    ASSERT_EQ(subspaceMgr.subProfileDataDeal_->LoadSubProfileInfo(OHOS_QUERY_USER_ID, newSubspaceId, info), ERR_OK);
+    EXPECT_GT(info.createTime, 0);
+}
+
+// AccountInfo::clear() must reset bindTime_ but NOT createTime_ — createTime
+// persists across login/logout (design §3.2 / §9 compatibility table).
+HWTEST_F(SubProfileQueryOhosMgrTest, CreateTime_AccountInfoClear_NoReset_001, TestSize.Level1)
+{
+    AccountInfo info;
+    info.createTime_ = 1700000000000;
+    info.bindTime_ = 999;
+    info.clear();
+    EXPECT_EQ(info.createTime_, 1700000000000);
+    EXPECT_EQ(info.bindTime_, 0);
+}
+
+// Headless sub-profile (base ID) must return accountInfo.createTime_ read from
+// {userId}/account.json (design §6 source matrix). The default test fixture only inits
+// the sub-profile data deal, not the main dataDealer_ — so reset dataDealer_ to the test
+// directory, call Init() (sets initOk_=true, reads our pre-written file), then query.
+HWTEST_F(SubProfileQueryOhosMgrTest, CreateTime_Headless_ReadsAccountInfoCreateTime_001, TestSize.Level1)
+{
+    auto &manager = OhosAccountManager::GetInstance();
+    // Reset main dataDealer_ to the test dir. The ctor pulls accountFileOperator_ from the
+    // watcher-mgr singleton (null in unit-test env), so give it a fresh AccountFileOperator,
+    // otherwise Init()->IsExistFile() derefs null -> SIGSEGV.
+    manager.dataDealer_ = std::make_unique<OhosAccountDataDeal>(OHOS_QUERY_TEST_DIR);
+    manager.dataDealer_->accountFileOperator_ = std::make_shared<AccountFileOperator>();
+
+    // Pre-write account.json with a known createTime so the headless path reads it
+    // (rather than BuildJsonFileFromScratch stamping "now").
+    std::string userDir = OHOS_QUERY_TEST_DIR + std::to_string(OHOS_QUERY_USER_ID);
+    std::error_code ec;
+    std::filesystem::create_directories(userDir, ec);
+    ASSERT_TRUE(std::filesystem::exists(userDir, ec));
+    const int64_t knownCreateTime = 1700000000000;
+    std::string accountJson = R"({"version":1,"bind_time":0,"createTime":)" +
+        std::to_string(knownCreateTime) + R"(,"user_id":)" + std::to_string(OHOS_QUERY_USER_ID) +
+        R"(,"account_name":"","raw_uid":"","open_id":"","bind_status":0,)"
+        R"("calling_uid":0,"account_nickname":"","account_scalableData":""})";
+    std::string jsonPath = userDir + "/account.json";
+    std::ofstream ofs(jsonPath);
+    ASSERT_TRUE(ofs.good());
+    ofs << accountJson;
+    ofs.close();
+    // Mock the post-Init() state directly: Init() would call
+    // IInnerOsAccountManager::QueryAllCreatedOsAccounts (pure-virtual, crashes in unit-test
+    // env). initOk_=true is all AccountInfoFromJson checks; GetAccountInfo only needs
+    // accountFileOperator_ + the pre-written file on disk.
+    manager.dataDealer_->initOk_ = true;
+
+    OsAccountSubspaceResult subspaceResult;
+    OhosAccountInfo distributedInfo;
+    ErrCode ret = manager.GetOsAccountSubProfile(
+        OHOS_QUERY_USER_ID, OHOS_QUERY_BASE, subspaceResult, distributedInfo);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(subspaceResult.id, OHOS_QUERY_BASE);
+    EXPECT_EQ(subspaceResult.index, 0);
+    EXPECT_EQ(subspaceResult.createTime, knownCreateTime);
 }
 
 #endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE

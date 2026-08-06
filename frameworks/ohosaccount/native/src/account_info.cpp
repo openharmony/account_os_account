@@ -125,7 +125,7 @@ OsAccountSubspaceResult* OsAccountSubspaceResult::Unmarshalling(Parcel &parcel)
         return nullptr;
     }
     if (!parcel.ReadInt32(info->id) || !parcel.ReadInt32(info->osAccountId) ||
-        !parcel.ReadInt32(info->index)) {
+        !parcel.ReadInt32(info->index) || !parcel.ReadInt64(info->createTime)) {
         delete info;
         return nullptr;
     }

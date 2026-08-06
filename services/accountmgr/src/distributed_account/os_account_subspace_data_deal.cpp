@@ -48,6 +48,7 @@ const char JSON_KEY_OHOSACCOUNT_SCALABLEDATA[] = "account_scalableData";
 const char SUBSPACE_ACCOUNT_AVATAR[] = "/account_avatar";
 const char JSON_KEY_SUBSPACE_INDEX[] = "subspaceIndex";
 const char JSON_KEY_SUBSPACE_OFFSET[] = "subspaceOffset";
+const char JSON_KEY_SUBSPACE_CREATE_TIME[] = "createTime";
 constexpr int32_t MAX_RETRY_TIMES = 3;
 }  // namespace
 
@@ -286,6 +287,7 @@ std::string OsAccountSubProfileDataDeal::SerializeSubProfileInfoToJson(
     AddStringToJson(jsonObj, JSON_KEY_OHOSACCOUNT_SCALABLEDATA, info.ohosAccountInfo_.scalableData_);
     AddIntToJson(jsonObj, JSON_KEY_SUBSPACE_INDEX, info.index);
     AddIntToJson(jsonObj, JSON_KEY_SUBSPACE_OFFSET, info.subspaceOffset);
+    AddInt64ToJson(jsonObj, JSON_KEY_SUBSPACE_CREATE_TIME, info.createTime);
     return PackJsonToString(jsonObj);
 }
 
@@ -320,6 +322,7 @@ ErrCode OsAccountSubProfileDataDeal::ParseSubProfileInfoFromJson(
     GetDataByType<std::string>(jsonObj.get(), JSON_KEY_OHOSACCOUNT_SCALABLEDATA, info.ohosAccountInfo_.scalableData_);
     GetDataByType<int32_t>(jsonObj.get(), JSON_KEY_SUBSPACE_INDEX, info.index);
     GetDataByType<int32_t>(jsonObj.get(), JSON_KEY_SUBSPACE_OFFSET, info.subspaceOffset);
+    GetDataByType<int64_t>(jsonObj.get(), JSON_KEY_SUBSPACE_CREATE_TIME, info.createTime);
     return ERR_OK;
 }
 
