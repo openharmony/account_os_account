@@ -381,9 +381,10 @@ ErrCode AccountMgrService::QueryOsAccountDistributedInfo(
     std::int32_t localId, std::string& accountName, std::string& uid, int32_t& status)
 {
     [[maybe_unused]] auto timerPtr = RequestTimer(Constants::OPERATION_GET_INFO);
-    if ((!HasAccountRequestPermission(PERMISSION_MANAGE_USERS)) &&
-        (!HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC)) &&
-        (IPCSkeleton::GetCallingUid() != DSOFTBUS_UID)) {
+    if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS) &&
+        (IPCSkeleton::GetCallingUid() != DSOFTBUS_UID) &&
+        !(HasAccountRequestPermission(INTERACT_ACROSS_LOCAL_ACCOUNTS) &&
+        HasAccountRequestPermission(PERMISSION_GET_DISTRIBUTED_ACCOUNTS))) {
         ACCOUNT_LOGE("Check permission failed");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
