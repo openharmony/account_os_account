@@ -439,7 +439,8 @@ ErrCode IInnerOsAccountManager::GetRealOsAccountInfoById(const int id, OsAccount
         refreshedCachedType = cachedType.value();
     }
 
-    if (refreshedCachedType.first == OsAccountType::ADMIN && refreshedCachedType.second) {
+    if (id >= Constants::START_USER_ID &&
+        refreshedCachedType.first == OsAccountType::ADMIN && refreshedCachedType.second) {
         // If the account type is ADMIN but it does not exist in TEE, add the admin authorization constraint.
         std::vector<std::string> constraints = osAccountInfo.GetConstraints();
         if (std::find(constraints.begin(), constraints.end(), CONSTRAINT_ADMIN_AUTHORIZE) == constraints.end()) {
