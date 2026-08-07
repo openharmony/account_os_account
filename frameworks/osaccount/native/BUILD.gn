@@ -208,6 +208,7 @@ ohos_shared_library("os_account_innerkits_lite") {
 
 ohos_source_set("os_account_proxy") {
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -242,6 +243,7 @@ ohos_source_set("os_account_proxy") {
 
 ohos_source_set("os_account_stub") {
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -276,6 +278,7 @@ ohos_source_set("os_account_stub") {
 
 ohos_source_set("os_account_constraint_event_proxy") {
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -304,6 +307,7 @@ ohos_source_set("os_account_constraint_event_proxy") {
 
 ohos_source_set("os_account_constraint_event_stub") {
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -332,6 +336,7 @@ ohos_source_set("os_account_constraint_event_stub") {
 
 ohos_source_set("os_account_event_proxy") {
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -360,6 +365,7 @@ ohos_source_set("os_account_event_proxy") {
 
 ohos_source_set("os_account_event_stub") {
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -388,6 +394,7 @@ ohos_source_set("os_account_event_stub") {
 
 ohos_source_set("os_account_state_reply_callback_proxy") {
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -416,6 +423,7 @@ ohos_source_set("os_account_state_reply_callback_proxy") {
 
 ohos_source_set("os_account_state_reply_callback_stub") {
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
   sanitize = {
     cfi = true
     cfi_cross_dso = true

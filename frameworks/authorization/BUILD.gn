@@ -124,6 +124,7 @@ ohos_shared_library("authorization_innerkits") {
 
 ohos_source_set("authorization_stub") {
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -153,6 +154,7 @@ ohos_source_set("authorization_stub") {
 
 ohos_source_set("authorization_proxy") {
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -182,6 +184,7 @@ ohos_source_set("authorization_proxy") {
 
 ohos_source_set("authorization_callback_proxy") {
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -211,6 +214,7 @@ ohos_source_set("authorization_callback_proxy") {
 
 ohos_source_set("authorization_callback_stub") {
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -240,6 +244,7 @@ ohos_source_set("authorization_callback_stub") {
 
 ohos_source_set("admin_authorization_callback_proxy") {
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -271,6 +276,7 @@ ohos_source_set("admin_authorization_callback_proxy") {
 
 ohos_source_set("admin_authorization_callback_stub") {
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -302,6 +308,7 @@ ohos_source_set("admin_authorization_callback_stub") {
 
 ohos_source_set("connect_ability_callback_proxy") {
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -331,6 +338,7 @@ ohos_source_set("connect_ability_callback_proxy") {
 
 ohos_source_set("connect_ability_callback_stub") {
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
