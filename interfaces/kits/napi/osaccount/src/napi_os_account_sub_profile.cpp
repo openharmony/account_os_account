@@ -58,12 +58,15 @@ static void CreateOsAccountSubProfileCompletedCB(napi_env env, napi_status statu
         napi_value idVal;
         napi_value osAccountIdVal;
         napi_value indexVal;
+        napi_value createTimeVal;
         NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, ctx->result.id, &idVal));
         NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, ctx->result.osAccountId, &osAccountIdVal));
         NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, ctx->result.index, &indexVal));
+        NAPI_CALL_RETURN_VOID(env, napi_create_int64(env, ctx->result.createTime, &createTimeVal));
         NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, obj, "id", idVal));
         NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, obj, "osAccountLocalId", osAccountIdVal));
         NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, obj, "index", indexVal));
+        NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, obj, "createTime", createTimeVal));
         result[1] = obj;
     } else {
         result[0] = GenerateBusinessError(env, ctx->errCode);
@@ -869,13 +872,16 @@ static void GetSubProfileCompletedCB(napi_env env, napi_status status, void *dat
         napi_value idVal;
         napi_value osAccountIdVal;
         napi_value indexVal;
+        napi_value createTimeVal;
         NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, asyncContext->subspaceResult.id, &idVal));
         NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, asyncContext->subspaceResult.osAccountId,
             &osAccountIdVal));
         NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, asyncContext->subspaceResult.index, &indexVal));
+        NAPI_CALL_RETURN_VOID(env, napi_create_int64(env, asyncContext->subspaceResult.createTime, &createTimeVal));
         NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, obj, "id", idVal));
         NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, obj, "osAccountLocalId", osAccountIdVal));
         NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, obj, "index", indexVal));
+        NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, obj, "createTime", createTimeVal));
         if (asyncContext->distributedInfo.status_ != ACCOUNT_STATE_UNBOUND) {
             napi_value distInfo = BuildDistributedInfoFromOhosAccountInfo(env, asyncContext->distributedInfo);
             NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, obj, "distributedInfo", distInfo));

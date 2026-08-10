@@ -145,10 +145,13 @@ struct OsAccountSubspaceResult : public Parcelable {
     // -1 means "not yet resolved"; 0 = HEADLESS_SUBPROFILE_INDEX; 1+ = normal sub-profile index.
     // Do NOT treat 0 as "unset" — 0 is a valid index for headless.
     int32_t index = -1;
+    // Epoch milliseconds when the sub-profile's underlying data was first created.
+    int64_t createTime = 0;
 
     bool Marshalling(Parcel &parcel) const override
     {
-        return parcel.WriteInt32(id) && parcel.WriteInt32(osAccountId) && parcel.WriteInt32(index);
+        return parcel.WriteInt32(id) && parcel.WriteInt32(osAccountId) && parcel.WriteInt32(index) &&
+            parcel.WriteInt64(createTime);
     }
     static OsAccountSubspaceResult* Unmarshalling(Parcel &parcel);
 };
@@ -160,6 +163,10 @@ public:
     std::int32_t userId_;
     std::string digest_;
     std::int32_t version_;
+    // Epoch milliseconds when the distributedAccount data was first created.
+    // NOT reset by clear() — persists across login/logout. Only used internally
+    // by sub-profile queries; NOT exposed via distributedAccount external interfaces.
+    int64_t createTime_ = 0;
     AccountInfo()
     {
         bindTime_ = 0;
@@ -206,7 +213,9 @@ struct OsAccountSubspaceInfo : AccountInfo {
     int32_t subspaceOffset = 0;
     bool isCreateCompleted = false;
     bool toBeRemoved = false;
-
+    // Epoch milliseconds when this sub-profile was created. Stored in the sub-profile's
+    // own account.json (not the distributedAccount account.json).
+    int64_t createTime = 0;
     OsAccountSubspaceInfo() = default;
     OsAccountSubspaceInfo(int32_t osAccountId, int32_t subId, int32_t idx = 0, int32_t offset = 0)
         : AccountInfo(), subspaceId(subId), index(idx), subspaceOffset(offset),

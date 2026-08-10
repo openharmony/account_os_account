@@ -15,6 +15,7 @@
 
 #include "os_account_subspace_manager.h"
 #include <algorithm>
+#include <chrono>
 #include <shared_mutex>
 #include "account_info.h"
 #include "account_log_wrapper.h"
@@ -161,6 +162,8 @@ ErrCode OsAccountSubProfileManager::AllocateAndPersistSubProfile(int32_t osAccou
 
     OsAccountSubspaceInfo info(osAccountId, newSubspaceId, allocatedIndex, subspaceOffset);
     info.isCreateCompleted = true;
+    info.createTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count();
     ErrCode ret = subProfileDataDeal_->SaveSubProfileInfo(info);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("SaveSubProfileInfo failed, subspaceId=%{public}d, ret=%{public}d",
@@ -627,6 +630,7 @@ ErrCode OsAccountSubProfileManager::GetSubProfile(int32_t osAccountId, int32_t s
         return ret;
     }
     distributedInfo = subspaceInfo.ohosAccountInfo_;
+    subspaceResult.createTime = subspaceInfo.createTime;
     return ERR_OK;
 }
 

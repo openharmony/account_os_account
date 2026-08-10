@@ -104,6 +104,7 @@ struct OsAccountSubProfile {
     id: i32;
     osAccountLocalId: i32;
     index: i32;
+    createTime: i64;
     distributedInfo: Optional<distributedAccount.DistributedInfo>;
 }
 interface AccountManager {
