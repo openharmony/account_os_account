@@ -148,6 +148,7 @@ ohos_shared_library("os_account_innerkits") {
   }
 
   external_deps = [
+    "bounds_checking_function:libsec_shared",
     "cJSON:cjson",
     "c_utils:utils",
     "hilog:libhilog",
