@@ -2109,7 +2109,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, MaintenanceTypeTest001, TestSize.Lev
         OsAccountType::NORMAL, osAccountInfoB), ERR_ACCOUNT_COMMON_NAME_HAD_EXISTED);
 
     // test maintenance os account id
-    EXPECT_EQ(osAccountInfoA.GetLocalId(), Constants::MAINTENANCE_USER_ID);
+    EXPECT_EQ(osAccountInfoA.GetLocalId(), Constants::MAINTENANCE_MODE_ID);
 
     // test remove maintenance os account
     ASSERT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoA.GetLocalId()), ERR_OK);
@@ -2118,7 +2118,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, MaintenanceTypeTest001, TestSize.Lev
     OsAccountInfo osAccountInfoC;
     EXPECT_EQ(osAccountManagerService_->CreateOsAccount(maintenanceTestName,
         OsAccountType::MAINTENANCE, osAccountInfoC), ERR_OK);
-    EXPECT_EQ(osAccountInfoC.GetLocalId(), Constants::MAINTENANCE_USER_ID);
+    EXPECT_EQ(osAccountInfoC.GetLocalId(), Constants::MAINTENANCE_MODE_ID);
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoC.GetLocalId()), ERR_OK);
 
     osAccountInfoA.SetType(OsAccountType::NORMAL);

@@ -53,12 +53,7 @@ ErrCode OsAccountInterface::IsBundleInstalled(const std::string &bundleName, int
     int32_t &appIndex, bool &isBundleInstalled)
 {
     ACCOUNT_LOGI("mock OsAccountInterface IsBundleInstalled start");
-    // test not installed
-    if (userId == Constants::MAINTENANCE_MODE_ID) {
-        isBundleInstalled = false;
-    } else {
-        isBundleInstalled = true;
-    }
+    isBundleInstalled = true;
     return ERR_OK;
 }
 
