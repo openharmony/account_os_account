@@ -1374,38 +1374,68 @@ ErrCode OhosAccountManager::LoginOhosAccountSpace(int32_t userId, int32_t subspa
     return PublishLoginSpaceEvents(userId, subspaceId, spaceInfo, originalStatus);
 }
 
-ErrCode OhosAccountManager::VerifySpaceAccountBinding(int32_t userId, int32_t subspaceId,
+ErrCode OhosAccountManager::VerifySpaceAccountBinding(int32_t localId, int32_t subspaceId,
     const OhosAccountInfo &accountInfo, const OsAccountSubspaceInfo &spaceInfo)
 {
-    bool isUnbound = (spaceInfo.ohosAccountInfo_.status_ == ACCOUNT_STATE_UNBOUND);
-    if (isUnbound) {
-        return ERR_OK; // no need to check if space is unbound
+    std::set<int32_t> subSpaceIds;
+    ErrCode ret = OsAccountSubProfileManager::GetInstance().ScanOsAccountSubProfileIds(localId, subSpaceIds);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("ScanOsAccountSubProfileIds failed, localId=%{public}d", localId);
+        REPORT_OHOS_ACCOUNT_FAIL(localId, Constants::OPERATION_LOGIN, ret, "ScanOsAccountSubProfileIds failed");
+        return ret;
     }
-    if (!CheckSameDistributedAccount(spaceInfo.ohosAccountInfo_, accountInfo, userId)) {
-        REPORT_OHOS_ACCOUNT_FAIL(spaceInfo.subspaceId, Constants::OPERATION_LOGIN,
-            ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR, "Call CheckSameDistributedAccount failed.");
-        ACCOUNT_LOGE("uid mismatch for space %{public}d", subspaceId);
-        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    // Check if the target sub-profile is bound to a different distributed account
+    if (spaceInfo.ohosAccountInfo_.status_ != ACCOUNT_STATE_UNBOUND) {
+        // If target sub-profile is already bound to the same distributed account, no need to check other sub-profiles
+        if (CheckSameDistributedAccount(spaceInfo.ohosAccountInfo_, accountInfo, localId)) {
+            return ERR_OK;
+        } else {
+            REPORT_OHOS_ACCOUNT_FAIL(spaceInfo.subspaceId, Constants::OPERATION_LOGIN,
+                ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR, "Distributed account not match when login");
+            ACCOUNT_LOGE("uid mismatch for space %{public}d", subspaceId);
+            return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+        }
+    }
+    // If target sub-profile is unbound, check if any other sub-profile is already bound to the same distributed account
+    for (const auto &curId : subSpaceIds) {
+        if (curId == subspaceId) {
+            continue;
+        }
+        OsAccountSubspaceInfo targetInfo;
+        ret = GetDistributedAccountSpaceInfo(localId, curId, targetInfo);
+        if (ret != ERR_OK) {
+            ACCOUNT_LOGE("Get sub-profile info when binding failed, localId=%{public}d, spaceId=%{public}d, "
+                "ret=%{public}d", localId, curId, ret);
+            REPORT_OHOS_ACCOUNT_FAIL(localId, Constants::OPERATION_LOGIN, ret, "Get ohos space info failed");
+            return ret;
+        }
+        if (CheckSameDistributedAccount(targetInfo.ohosAccountInfo_, accountInfo, localId)) {
+            REPORT_OHOS_ACCOUNT_FAIL(targetInfo.subspaceId, Constants::OPERATION_LOGIN,
+                ERR_OS_ACCOUNT_SUBPROFILE_DISTRIBUTE_ACC_ALREADY_BOUND, "Try to login a exist distributed account");
+            ACCOUNT_LOGE("Distributed account already bound to space %{public}d, rejecting login to space "
+                "%{public}d", targetInfo.subspaceId, subspaceId);
+            return ERR_OS_ACCOUNT_SUBPROFILE_DISTRIBUTE_ACC_ALREADY_BOUND;
+        }
     }
     return ERR_OK;
 }
 
-ErrCode OhosAccountManager::PublishLoginSpaceEvents(int32_t userId, int32_t subspaceId,
+ErrCode OhosAccountManager::PublishLoginSpaceEvents(int32_t localId, int32_t subspaceId,
     const OsAccountSubspaceInfo &spaceInfo, int32_t originalStatus)
 {
     if (originalStatus == ACCOUNT_STATE_UNBOUND) {
-        subscribeManager_.Publish(userId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::BOUND, subspaceId);
-        SendSubProfileCES(userId, subspaceId, COMMON_EVENT_DISTRIBUTED_ACCOUNT_BOUND);
+        subscribeManager_.Publish(localId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::BOUND, subspaceId);
+        SendSubProfileCES(localId, subspaceId, COMMON_EVENT_DISTRIBUTED_ACCOUNT_BOUND);
     }
     bool isPubLoginEvent = (originalStatus != ACCOUNT_STATE_LOGIN);
     if (!isPubLoginEvent) {
-        AccountEventProvider::EventPublish(COMMON_EVENT_USER_INFO_UPDATED, userId, nullptr);
+        AccountEventProvider::EventPublish(COMMON_EVENT_USER_INFO_UPDATED, localId, nullptr);
         return ERR_OK;
     }
-    subscribeManager_.Publish(userId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGIN, subspaceId);
-    SendSubProfileCES(userId, subspaceId, COMMON_EVENT_HWID_LOGIN);
-    SendSubProfileCES(userId, subspaceId, COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGIN);
-    ACCOUNT_LOGI("LoginOhosAccountSpace success, userId=%{public}d, spaceId=%{public}d", userId, subspaceId);
+    subscribeManager_.Publish(localId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGIN, subspaceId);
+    SendSubProfileCES(localId, subspaceId, COMMON_EVENT_HWID_LOGIN);
+    SendSubProfileCES(localId, subspaceId, COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGIN);
+    ACCOUNT_LOGI("LoginOhosAccountSpace success, localId=%{public}d, spaceId=%{public}d", localId, subspaceId);
     return ERR_OK;
 }
 
@@ -1478,8 +1508,8 @@ ErrCode OhosAccountManager::HandleOhosAccountSpaceTokenInvalidEvent(int32_t user
         return ret;
     }
     if (!CheckSameDistributedAccount(spaceInfo.ohosAccountInfo_, ohosAccountInfo, userId)) {
-        REPORT_OHOS_ACCOUNT_FAIL(userId, Constants::OPERATION_TOKEN_INVALID, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR,
-            "Call CheckSameDistributedAccount failed.");
+        REPORT_OHOS_ACCOUNT_FAIL(userId, Constants::OPERATION_TOKEN_INVALID,
+            ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR, "Call CheckSameDistributedAccount failed.");
         ACCOUNT_LOGE("uid mismatch for space %{public}d", subspaceId);
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
@@ -1596,26 +1626,26 @@ bool OhosAccountManager::GetCurOhosAccountAndCheckMatch(AccountInfo &curAccountI
 }
 
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-ErrCode OhosAccountManager::GetDistributedAccountSpaceInfo(int32_t userId,
+ErrCode OhosAccountManager::GetDistributedAccountSpaceInfo(int32_t localId,
     int32_t subspaceId, OsAccountSubspaceInfo &spaceInfo)
 {
-    if (subspaceId == userId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER) {
+    if (subspaceId == localId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER) {
         AccountInfo curInfo;
-        ErrCode res = dataDealer_->AccountInfoFromJson(curInfo, userId);
+        ErrCode res = dataDealer_->AccountInfoFromJson(curInfo, localId);
         if (res != ERR_OK) {
-            ACCOUNT_LOGE("get current ohos account info failed, userId %{public}d.", userId);
+            ACCOUNT_LOGE("get current ohos account info failed, localId %{public}d.", localId);
             return res;
         }
         spaceInfo.ohosAccountInfo_ = curInfo.ohosAccountInfo_;
         spaceInfo.subspaceId = subspaceId;
-        spaceInfo.userId_ = userId;
+        spaceInfo.userId_ = localId;
         spaceInfo.isCreateCompleted = true;
         spaceInfo.toBeRemoved = false;
         spaceInfo.bindTime_ = curInfo.bindTime_;
         spaceInfo.version_ = curInfo.version_;
         return ERR_OK;
     }
-    return OsAccountSubProfileManager::GetInstance().LoadSubProfileInfo(userId, subspaceId, spaceInfo);
+    return OsAccountSubProfileManager::GetInstance().LoadSubProfileInfo(localId, subspaceId, spaceInfo);
 }
 
 ErrCode OhosAccountManager::SetDistributedAccountSpaceInfo(const OsAccountSubspaceInfo &spaceInfo)

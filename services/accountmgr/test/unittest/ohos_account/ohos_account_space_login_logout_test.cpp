@@ -357,6 +357,110 @@ HWTEST_F(OhosAccountSpaceLoginLogoutTest, SpaceLogin_GetSpaceInfoFail, TestSize.
     EXPECT_NE(ERR_OK, ret);
 }
 
+// ======================== Cross-Space Binding Tests ========================
+
+/**
+ * @tc.name: SpaceLoginAlreadyBoundOtherSpaceFailTest001
+ * @tc.desc: Test login a distributed account already bound to another sub-profile is rejected
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountSpaceLoginLogoutTest, SpaceLogin_AlreadyBoundOtherSpace_Fail, TestSize.Level1)
+{
+    OhosAccountInfo boundInfo = MakeTestAccountInfo();
+    std::string ohosAccountUid = GenerateOhosUdidWithSha256(TEST_NAME, TEST_UID);
+    boundInfo.uid_ = ohosAccountUid;
+    boundInfo.status_ = ACCOUNT_STATE_LOGIN;
+    OsAccountSubspaceInfo spaceInfo1 = MakeTestSpaceInfo(OS_ACCOUNT_ID, SPACE_ID_1,
+        ACCOUNT_STATE_LOGIN, boundInfo);
+    SaveSpaceViaApi(spaceInfo1);
+
+    OsAccountSubspaceInfo spaceInfo2 = MakeTestSpaceInfo(OS_ACCOUNT_ID, SPACE_ID_2, ACCOUNT_STATE_UNBOUND);
+    SaveSpaceViaApi(spaceInfo2);
+    SetupOsAccountWithForeground(OS_ACCOUNT_ID, SPACE_ID_2);
+
+    OhosAccountInfo accountInfo = MakeTestAccountInfo();
+    auto ret = OhosAccountManager::GetInstance().LoginOhosAccountSpace(
+        OS_ACCOUNT_ID, SPACE_ID_2, accountInfo, OHOS_ACCOUNT_EVENT_LOGIN);
+
+    EXPECT_EQ(ERR_OS_ACCOUNT_SUBPROFILE_DISTRIBUTE_ACC_ALREADY_BOUND, ret);
+
+    OsAccountSubspaceInfo loadedInfo;
+    LoadSpaceViaApi(OS_ACCOUNT_ID, SPACE_ID_2, loadedInfo);
+    EXPECT_EQ(ACCOUNT_STATE_UNBOUND, loadedInfo.ohosAccountInfo_.status_);
+}
+
+/**
+ * @tc.name: SpaceLoginDifferentAccountsCoexistSuccessTest001
+ * @tc.desc: Test login different distributed accounts to different sub-profiles both succeed
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountSpaceLoginLogoutTest, SpaceLogin_DifferentAccountsCoexist_Success, TestSize.Level1)
+{
+    const std::string nameA = "AccountA";
+    const std::string rawUidA = "UidA";
+    OhosAccountInfo boundInfoA = MakeTestAccountInfo(nameA, rawUidA);
+    boundInfoA.uid_ = GenerateOhosUdidWithSha256(nameA, rawUidA);
+    boundInfoA.status_ = ACCOUNT_STATE_LOGIN;
+    OsAccountSubspaceInfo spaceInfo1 = MakeTestSpaceInfo(OS_ACCOUNT_ID, SPACE_ID_1,
+        ACCOUNT_STATE_LOGIN, boundInfoA);
+    SaveSpaceViaApi(spaceInfo1);
+
+    OsAccountSubspaceInfo spaceInfo2 = MakeTestSpaceInfo(OS_ACCOUNT_ID, SPACE_ID_2, ACCOUNT_STATE_UNBOUND);
+    SaveSpaceViaApi(spaceInfo2);
+    SetupOsAccountWithForeground(OS_ACCOUNT_ID, SPACE_ID_2);
+
+    OhosAccountInfo accountInfoB = MakeTestAccountInfo("AccountB", "UidB");
+    auto ret = OhosAccountManager::GetInstance().LoginOhosAccountSpace(
+        OS_ACCOUNT_ID, SPACE_ID_2, accountInfoB, OHOS_ACCOUNT_EVENT_LOGIN);
+
+    EXPECT_EQ(ERR_OK, ret);
+
+    OsAccountSubspaceInfo loadedInfo;
+    LoadSpaceViaApi(OS_ACCOUNT_ID, SPACE_ID_2, loadedInfo);
+    EXPECT_EQ(ACCOUNT_STATE_LOGIN, loadedInfo.ohosAccountInfo_.status_);
+    EXPECT_EQ("AccountB", loadedInfo.ohosAccountInfo_.name_);
+}
+
+/**
+ * @tc.name: SpaceLoginSameSpaceSkipsSelfInScanSuccessTest001
+ * @tc.desc: Test re-login same account to its own sub-profile skips self in cross-space scan
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountSpaceLoginLogoutTest, SpaceLogin_SameSpaceSkipsSelfInScan_Success, TestSize.Level1)
+{
+    OhosAccountInfo boundInfoA = MakeTestAccountInfo();
+    std::string ohosAccountUidA = GenerateOhosUdidWithSha256(TEST_NAME, TEST_UID);
+    boundInfoA.uid_ = ohosAccountUidA;
+    boundInfoA.status_ = ACCOUNT_STATE_NOTLOGIN;
+    OsAccountSubspaceInfo spaceInfo1 = MakeTestSpaceInfo(OS_ACCOUNT_ID, SPACE_ID_1,
+        ACCOUNT_STATE_NOTLOGIN, boundInfoA);
+    SaveSpaceViaApi(spaceInfo1);
+
+    const std::string nameB = "AccountB";
+    const std::string rawUidB = "UidB";
+    OhosAccountInfo boundInfoB = MakeTestAccountInfo(nameB, rawUidB);
+    boundInfoB.uid_ = GenerateOhosUdidWithSha256(nameB, rawUidB);
+    boundInfoB.status_ = ACCOUNT_STATE_LOGIN;
+    OsAccountSubspaceInfo spaceInfo2 = MakeTestSpaceInfo(OS_ACCOUNT_ID, SPACE_ID_2,
+        ACCOUNT_STATE_LOGIN, boundInfoB);
+    SaveSpaceViaApi(spaceInfo2);
+
+    SetupOsAccountWithForeground(OS_ACCOUNT_ID, SPACE_ID_1);
+
+    OhosAccountInfo accountInfo = MakeTestAccountInfo();
+    auto ret = OhosAccountManager::GetInstance().LoginOhosAccountSpace(
+        OS_ACCOUNT_ID, SPACE_ID_1, accountInfo, OHOS_ACCOUNT_EVENT_LOGIN);
+
+    EXPECT_EQ(ERR_OK, ret);
+
+    OsAccountSubspaceInfo loadedInfo;
+    LoadSpaceViaApi(OS_ACCOUNT_ID, SPACE_ID_1, loadedInfo);
+    EXPECT_EQ(ACCOUNT_STATE_LOGIN, loadedInfo.ohosAccountInfo_.status_);
+}
+
 // ======================== Logout Tests ========================
 
 /**
