@@ -146,6 +146,7 @@ ohos_shared_library("domain_account_innerkits") {
 
   external_deps = [
     "ability_base:want",
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
@@ -171,6 +172,7 @@ ohos_source_set("domain_account_callback_proxy") {
   sources = filter_include(output_values, [ "*domain_account_callback_proxy.cpp" ])
   deps = [ ":frameworks_domain_account_interface" ]
   external_deps = [
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
@@ -194,6 +196,7 @@ ohos_source_set("domain_account_callback_stub") {
       filter_include(output_values, [ "*domain_account_callback_stub.cpp" ])
   deps = [ ":frameworks_domain_account_interface" ]
   external_deps = [
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
@@ -284,6 +287,7 @@ ohos_source_set("domain_account_stub") {
   deps = [ ":frameworks_domain_account_interface" ]
   external_deps = [
     "ability_base:want",
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
