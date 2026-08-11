@@ -81,6 +81,7 @@ config("os_account_subspace_innerkits_public_config") {
 
 ohos_source_set("os_account_subspace_proxy_source") {
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -101,6 +102,7 @@ ohos_source_set("os_account_subspace_proxy_source") {
 
 ohos_source_set("os_account_subspace_stub") {
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -122,6 +124,7 @@ ohos_source_set("os_account_subspace_stub") {
 
 ohos_source_set("os_account_sub_profile_event_proxy") {
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -143,6 +146,7 @@ ohos_source_set("os_account_sub_profile_event_proxy") {
 
 ohos_source_set("os_account_sub_profile_event_stub") {
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
   sanitize = {
     cfi = true
     cfi_cross_dso = true

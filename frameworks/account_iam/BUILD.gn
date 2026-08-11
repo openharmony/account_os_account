@@ -142,6 +142,7 @@ ohos_shared_library("account_iam_innerkits") {
 
 ohos_source_set("account_iam_stub") {
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -171,6 +172,7 @@ ohos_source_set("account_iam_stub") {
 
 ohos_source_set("account_iam_callback_proxy") {
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
