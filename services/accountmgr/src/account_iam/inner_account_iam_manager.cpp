@@ -191,14 +191,14 @@ void InnerAccountIAMManager::DelCred(
         return;
     }
     Attributes emptyResult;
-    if (authToken.empty()) {
+    uint64_t pinCredentialId = 0;
+    (void)IInnerOsAccountManager::GetInstance().GetOsAccountCredentialId(userId, pinCredentialId);
+    bool isPIN = (pinCredentialId != 0) && (credentialId == pinCredentialId);
+    if (isPIN && authToken.empty()) {
         ACCOUNT_LOGD("token is empty");
         callback->OnResult(ResultCode::INVALID_PARAMETERS, emptyResult.Serialize());
         return;
     }
-    uint64_t pinCredentialId = 0;
-    (void)IInnerOsAccountManager::GetInstance().GetOsAccountCredentialId(userId, pinCredentialId);
-    bool isPIN = (pinCredentialId != 0) && (credentialId == pinCredentialId);
     bool isDomainUnlockEnabled = false;
     ErrCode ret = IsEnableDomainUnlock(userId, isDomainUnlockEnabled);
     if (ret != ERR_OK) {
