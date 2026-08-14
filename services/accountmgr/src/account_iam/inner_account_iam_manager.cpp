@@ -898,6 +898,13 @@ ErrCode InnerAccountIAMManager::CheckNeedReactivateUserKey(int32_t userId, bool 
 ErrCode InnerAccountIAMManager::UnlockUserStorage(int32_t accountId, const std::vector<uint8_t> &token,
     const std::vector<uint8_t> &secret, bool &isUpdateVerifiedStatus)
 {
+    if (secret.empty()) {
+        isUpdateVerifiedStatus = false;
+        ACCOUNT_LOGW("Secret is empty, skip unlock user storage");
+        ReportOsAccountOperationFail(accountId, Constants::OPERATION_UNLOCK, ErrNo::E_PARAMS_NULLPTR_ERR,
+            "Secret is empty, skip unlock user storage");
+        return ERR_OK;
+    }
     (void)HandleFileKeyException(accountId, secret, token);
     bool isVerified = false;
     (void)IInnerOsAccountManager::GetInstance().IsOsAccountVerified(accountId, isVerified);

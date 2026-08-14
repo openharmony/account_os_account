@@ -64,6 +64,7 @@ void ResetCallingLocalId();
 void SetIsCheckError(bool isCheckError);
 void SetEnableUnlockDevice(bool enable);
 void SetAuthWithUnlockIntentError(bool isError);
+void SetEmptySecret(bool empty);
 void GetLastChallenge(std::vector<uint8_t> &challenge);
 #ifdef __cplusplus
 }

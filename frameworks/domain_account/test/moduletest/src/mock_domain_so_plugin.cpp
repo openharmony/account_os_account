@@ -37,6 +37,7 @@ static bool g_isCheckError = false;
 static bool g_enableUnlockDevice = true;
 static std::vector<uint8_t> g_lastChallenge;
 static bool g_authWithUnlockIntentError = false;
+static bool g_emptySecret = false;
 static std::mutex g_needWaitCancelMutex;
 static std::mutex g_mutex;
 const int32_t WAIT_TIME = 5;
@@ -89,6 +90,11 @@ void SetEnableUnlockDevice(bool enable)
 void SetAuthWithUnlockIntentError(bool isError)
 {
     g_authWithUnlockIntentError = isError;
+}
+
+void SetEmptySecret(bool empty)
+{
+    g_emptySecret = empty;
 }
 
 void GetLastChallenge(std::vector<uint8_t> &challenge)
@@ -213,7 +219,9 @@ PluginBusinessError *AuthWithUnlockIntent(const PluginDomainAccountInfo *domainA
             return;
         }
         SetPluginUint8Vector({1, 2}, authResultInfo->accountToken);
-        SetPluginUint8Vector({10, 20, 30}, authResultInfo->secret);
+        if (!g_emptySecret) {
+            SetPluginUint8Vector({10, 20, 30}, authResultInfo->secret);
+        }
         authResultInfo->remainTimes = 1;
         authResultInfo->freezingTime = 1;
         authResultInfo->nextPhaseFreezingTime = 0;
