@@ -945,7 +945,7 @@ void UnsubscribeExecuteCB(napi_env env, void *data)
     AsyncContextForUnsubscribe *asyncContextForOff = reinterpret_cast<AsyncContextForUnsubscribe *>(data);
     // DFX log for off_all scenario
     if (asyncContextForOff->callbackRef == nullptr) {
-        ACCOUNT_LOGI("SubEvent op = off_all, kit = appAccountKit, event = change");
+        ACCOUNT_LOGI("SubEvent op = off_all, kit = BasicServicesKit, event = change");
     }
 
     for (auto offSubscriber : asyncContextForOff->subscribers) {

@@ -1786,7 +1786,7 @@ static void UnsubscribeSync(napi_env env, const AsyncContextForUnsubscribe *cont
         }
         // DFX log for off_all scenario
         if (context->callbackRef == nullptr) {
-            ACCOUNT_LOGI("SubEvent op = off_all, kit = appAccountKit, event = accountChange");
+            ACCOUNT_LOGI("SubEvent op = off_all, kit = BasicServicesKit, event = accountChange");
         }
         int errCode = AppAccountManager::UnsubscribeAppAccount(item->subscriber);
         if (errCode != ERR_OK) {
