@@ -525,8 +525,9 @@ ErrCode IInnerOsAccountManager::ActivateDefaultOsAccount()
 {
     int32_t activatedId;
     if (!defaultActivatedIds_.Find(Constants::DEFAULT_DISPLAY_ID, activatedId)) {
-        ACCOUNT_LOGE("Default activated account not found in default display.");
-        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+        ACCOUNT_LOGW("Default activated account not found in default display, degrade to default value.");
+        activatedId = Constants::START_USER_ID;
+        defaultActivatedIds_.EnsureInsert(Constants::DEFAULT_DISPLAY_ID, activatedId);
     }
 #ifdef HICOLLIE_ENABLE
     XCollieCallback callbackFunc = [&](void *) {

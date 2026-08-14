@@ -16,6 +16,7 @@
 #include "account_log_wrapper.h"
 #include "os_account_constants.h"
 #include "os_account_data_storage.h"
+#include "os_account_json_builder.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -41,11 +42,7 @@ bool OsAccountDatabaseOperator::InnerInit()
     if (!accountDataStorage_->IsKeyExists(Constants::ACCOUNT_LIST)) {
         ACCOUNT_LOGI("Database operator inner init, create account list.");
         std::vector<std::string> accountListVec;
-        auto accountList = CreateJson();
-        AddVectorStringToJson(accountList, Constants::ACCOUNT_LIST, accountListVec);
-        AddIntToJson(accountList, Constants::COUNT_ACCOUNT_NUM, 0);
-        AddIntToJson(accountList, Constants::MAX_ALLOW_CREATE_ACCOUNT_ID, Constants::MAX_USER_ID);
-        AddInt64ToJson(accountList, Constants::SERIAL_NUMBER_NUM, Constants::SERIAL_NUMBER_NUM_START);
+        auto accountList = BuildAccountListJson(accountListVec);
         std::string strValue = PackJsonToString(accountList);
         ErrCode errCode = accountDataStorage_->PutValueToKvStore(
             Constants::ACCOUNT_LIST, strValue);

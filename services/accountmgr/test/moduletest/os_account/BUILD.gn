@@ -606,6 +606,7 @@ ohos_moduletest("OsAccountControlFileManagerModuleTest") {
 
   sources = [ "os_account_control_file_manager_test.cpp" ]
   sources += [
+    "${services_path}/accountmgr/src/osaccount/os_account_json_builder.cpp",
     "${services_path}/accountmgr/test/mock/os_account/os_account_interface.cpp",
     "${services_path}/accountmgr/test/mock/os_account/permission_kit.cpp",
   ]

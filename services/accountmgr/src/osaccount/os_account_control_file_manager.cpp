@@ -31,13 +31,13 @@
 #endif
 #include "string_ex.h"
 #include "os_account_constants.h"
+#include "os_account_json_builder.h"
 #include "os_account_info_json_parser.h"
 #include "parameters.h"
 
 namespace OHOS {
 namespace AccountSA {
 namespace {
-const char DEFAULT_ACTIVATED_ACCOUNT_ID[] = "DefaultActivatedAccountID";
 const std::string OS_ACCOUNT_STORE_ID = "os_account_info";
 #ifdef ENABLE_FILE_WATCHER
 constexpr uint32_t ALG_COMMON_SIZE = 32;
@@ -70,8 +70,6 @@ const char USER_PHOTO_BASE_JPG_HEAD[] = "data:image/jpeg;base64,";
 const char USER_PHOTO_BASE_PNG_HEAD[] = "data:image/png;base64,";
 const char START_USER_STRING_ID[] = "100";
 const char DEVICE_OWNER_ID[] = "deviceOwnerId";
-const char NEXT_LOCAL_ID[] = "NextLocalId";
-const char IS_SERIAL_NUMBER_FULL[] = "isSerialNumberFull";
 #ifdef SUPPORT_AUTHORIZATION
 const char AUTH_APP_BUNDLE_NAME[] = "bundleName";
 const char AUTH_APP_UI_ABILITY_NAME[] = "modalAppAbilityName";
@@ -377,6 +375,18 @@ void OsAccountControlFileManager::Init()
     }
     std::vector<std::string> accountIdList;
     GetDataByType<std::vector<std::string>>(accountListJson, Constants::ACCOUNT_LIST, accountIdList);
+    if (accountIdList.empty()) {
+        ACCOUNT_LOGE("Account id list is empty, recover account list json file.");
+        REPORT_OS_ACCOUNT_FAIL(0, Constants::OPERATION_BOOT_ACTIVATED, -1,
+            "Account list is empty, recovery with default account.");
+        RecoverAccountListJsonFile();
+        CJsonUnique recoveredAccountListJson = nullptr;
+        ErrCode recoverResult = GetAccountListFromFile(recoveredAccountListJson);
+        if (recoverResult != ERR_OK) {
+            return;
+        }
+        GetDataByType<std::vector<std::string>>(recoveredAccountListJson, Constants::ACCOUNT_LIST, accountIdList);
+    }
 
 #ifdef ENABLE_FILE_WATCHER
     if (!accountIdList.empty()) {
@@ -447,16 +457,7 @@ void OsAccountControlFileManager::BuildAndSaveAccountListJsonFile(const std::vec
 {
     ACCOUNT_LOGD("Enter.");
     std::lock_guard<std::mutex> lock(accountInfoFileLock_);
-    auto defaultActivatedIds = CreateJson();
-    AddIntToJson(defaultActivatedIds, std::to_string(Constants::DEFAULT_DISPLAY_ID), Constants::START_USER_ID);
-    auto accountList = CreateJson();
-    AddVectorStringToJson(accountList, Constants::ACCOUNT_LIST, accounts);
-    AddIntToJson(accountList, Constants::COUNT_ACCOUNT_NUM, accounts.size());
-    AddObjToJson(accountList, DEFAULT_ACTIVATED_ACCOUNT_ID, defaultActivatedIds);
-    AddIntToJson(accountList, Constants::MAX_ALLOW_CREATE_ACCOUNT_ID, Constants::MAX_USER_ID);
-    AddInt64ToJson(accountList, Constants::SERIAL_NUMBER_NUM, Constants::SERIAL_NUMBER_NUM_START);
-    AddBoolToJson(accountList, IS_SERIAL_NUMBER_FULL, Constants::IS_SERIAL_NUMBER_FULL_INIT_VALUE);
-    AddIntToJson(accountList, NEXT_LOCAL_ID, Constants::START_USER_ID + 1);
+    auto accountList = BuildAccountListJson(accounts);
 
     ErrCode errCode = SaveAccountListToFile(accountList);
     if (errCode != ERR_OK) {
