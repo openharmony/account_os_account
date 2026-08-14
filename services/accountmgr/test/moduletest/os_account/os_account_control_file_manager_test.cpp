@@ -18,6 +18,7 @@
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "os_account_constants.h"
+#include "os_account_json_builder.h"
 #define private public
 #include "os_account_control_file_manager.h"
 #undef private
@@ -125,6 +126,52 @@ HWTEST_F(OsAccountControlFileManagerModuleTest, GetValidAccountID_0004, TestSize
 
     ErrCode ret = OHOS::AccountSA::GetValidAccountID(dirName, accountID);
     EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: OsAccountControlFileManager_BuildAccountListJson_0001
+ * @tc.desc: Test BuildAccountListJson builds account_list with all schema fields and defaults.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountControlFileManagerModuleTest, BuildAccountListJson_0001, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountControlFileManager_BuildAccountListJson_0001");
+
+    std::vector<std::string> accounts = {"100", "101"};
+    auto accountList = BuildAccountListJson(accounts);
+    ASSERT_NE(accountList, nullptr);
+
+    std::vector<std::string> outAccounts;
+    EXPECT_TRUE(GetDataByType<std::vector<std::string>>(accountList, Constants::ACCOUNT_LIST, outAccounts));
+    EXPECT_EQ(outAccounts, accounts);
+
+    int32_t count = -1;
+    EXPECT_TRUE(GetDataByType<int32_t>(accountList, Constants::COUNT_ACCOUNT_NUM, count));
+    EXPECT_EQ(count, static_cast<int32_t>(accounts.size()));
+
+    CJson *defaultActivated = nullptr;
+    EXPECT_TRUE(GetDataByType<CJson *>(accountList, DEFAULT_ACTIVATED_ACCOUNT_ID, defaultActivated));
+    ASSERT_NE(defaultActivated, nullptr);
+    int32_t activatedId = -1;
+    EXPECT_TRUE(GetIntFromJson(defaultActivated, std::to_string(Constants::DEFAULT_DISPLAY_ID), activatedId));
+    EXPECT_EQ(activatedId, Constants::START_USER_ID);
+
+    int32_t maxId = -1;
+    EXPECT_TRUE(GetDataByType<int32_t>(accountList, Constants::MAX_ALLOW_CREATE_ACCOUNT_ID, maxId));
+    EXPECT_EQ(maxId, Constants::MAX_USER_ID);
+
+    int64_t serial = -1;
+    EXPECT_TRUE(GetDataByType<int64_t>(accountList, Constants::SERIAL_NUMBER_NUM, serial));
+    EXPECT_EQ(serial, Constants::SERIAL_NUMBER_NUM_START);
+
+    bool isFull = true;
+    EXPECT_TRUE(GetDataByType<bool>(accountList, IS_SERIAL_NUMBER_FULL, isFull));
+    EXPECT_FALSE(isFull);
+
+    int32_t nextId = -1;
+    EXPECT_TRUE(GetDataByType<int32_t>(accountList, NEXT_LOCAL_ID, nextId));
+    EXPECT_EQ(nextId, Constants::START_USER_ID + 1);
 }
 
 }  // namespace AccountSA

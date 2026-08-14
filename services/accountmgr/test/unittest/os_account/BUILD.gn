@@ -57,6 +57,7 @@ ohos_unittest("OsAccountControlFileManagerUnitTest") {
     "${services_path}/accountmgr/src/account_file_watcher_manager.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_control_file_manager.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_file_operator.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_json_builder.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_photo_operator.cpp",
   ]
 
@@ -136,6 +137,7 @@ ohos_unittest("OsAccountControlFileManagerMockUnitTest") {
     "${services_path}/accountmgr/src/account_file_watcher_manager.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_control_file_manager.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_file_operator.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_json_builder.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_photo_operator.cpp",
   ]
 
