@@ -311,7 +311,9 @@ void DomainAccountClientMockPluginSoModuleTest::SetUp(void) __attribute__((no_sa
 }
 
 void DomainAccountClientMockPluginSoModuleTest::TearDown(void)
-{}
+{
+    SetEmptySecret(false);
+}
 
 /**
  * @tc.name: DomainAccountClientModuleTest_SetAccountPolicy_001
@@ -2298,6 +2300,88 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountUnlock_HandleUn
     EXPECT_EQ(IInnerOsAccountManager::GetInstance().IsOsAccountVerified(userId, verifiedAfter), ERR_OK);
     EXPECT_FALSE(verifiedAfter);
     IInnerOsAccountManager::GetInstance().deactivatingAccounts_.Erase(userId);
+    UnloadPluginMethods();
+}
+
+/**
+ * @tc.name: DomainAccountUnlock_EmptySecret_001
+ * @tc.desc: When AuthWithUnlockIntent returns empty secret, HandleUnlockResult skips UnlockUserStorage
+ *           (avoids E_ACTIVE_EL2_FAILED), still reaches SetOsAccountIsLoggedIn at the end.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountUnlock_EmptySecret_001, TestSize.Level3)
+{
+    LoadPluginMethods();
+    SetEnableUnlockDevice(true);
+    SetAuthWithUnlockIntentError(false);
+    SetEmptySecret(true);
+    int32_t userId = CreateAndBindDomainAccount("unlock_empty_secret");
+    ASSERT_GT(userId, 0);
+    IInnerOsAccountManager::GetInstance().loggedInAccounts_.Erase(userId);
+    auto callback = std::make_shared<UnlockAuthCallback>();
+    DomainAccountUnlockOptions options;
+    options.authIntent = UNLOCK_INTENT;
+    options.challenge = {1, 2, 3};
+    uint64_t contextId = 0;
+    ErrCode ret = DomainAccountClient::GetInstance().AuthUser(
+        userId, []() { return std::vector<uint8_t>{49, 50, 51}; }, callback, options, contextId);
+    EXPECT_EQ(ret, ERR_OK);
+    std::unique_lock<std::mutex> lock(callback->mutex);
+    callback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
+                          [callback]() { return callback->isReady; });
+    EXPECT_TRUE(callback->isReady);
+    EXPECT_EQ(callback->resultErrCode, ERR_OK);
+    EXPECT_TRUE(callback->acquireInfoCalled);
+    // Empty secret skips UnlockUserStorage so isUpdateVerifiedStatus stays false,
+    // SetOsAccountIsVerified is NOT invoked, verified stays false.
+    bool verifiedAfter = true;
+    EXPECT_EQ(IInnerOsAccountManager::GetInstance().IsOsAccountVerified(userId, verifiedAfter), ERR_OK);
+    EXPECT_FALSE(verifiedAfter);
+    // SetOsAccountIsLoggedIn at HandleUnlockResult tail is still reached.
+    bool isLoggedIn = false;
+    IInnerOsAccountManager::GetInstance().loggedInAccounts_.Find(userId, isLoggedIn);
+    EXPECT_TRUE(isLoggedIn);
+    IInnerOsAccountManager::GetInstance().loggedInAccounts_.Erase(userId);
+    SetEmptySecret(false);
+    UnloadPluginMethods();
+}
+
+/**
+ * @tc.name: DomainAccountUnlock_SetLoggedIn_001
+ * @tc.desc: On non-empty secret unlock success, HandleUnlockResult reaches SetOsAccountIsLoggedIn
+ *           so loggedInAccounts_ marks the user logged in.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountUnlock_SetLoggedIn_001, TestSize.Level3)
+{
+    LoadPluginMethods();
+    SetEnableUnlockDevice(true);
+    SetAuthWithUnlockIntentError(false);
+    int32_t userId = CreateAndBindDomainAccount("unlock_logged_in");
+    ASSERT_GT(userId, 0);
+    IInnerOsAccountManager::GetInstance().loggedInAccounts_.Erase(userId);
+    auto callback = std::make_shared<UnlockAuthCallback>();
+    DomainAccountUnlockOptions options;
+    options.authIntent = UNLOCK_INTENT;
+    options.challenge = {1, 2, 3};
+    uint64_t contextId = 0;
+    ErrCode ret = DomainAccountClient::GetInstance().AuthUser(
+        userId, []() { return std::vector<uint8_t>{49, 50, 51}; }, callback, options, contextId);
+    EXPECT_EQ(ret, ERR_OK);
+    std::unique_lock<std::mutex> lock(callback->mutex);
+    callback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
+                          [callback]() { return callback->isReady; });
+    EXPECT_TRUE(callback->isReady);
+    EXPECT_EQ(callback->resultErrCode, ERR_OK);
+    bool verifiedAfter = false;
+    EXPECT_EQ(IInnerOsAccountManager::GetInstance().IsOsAccountVerified(userId, verifiedAfter), ERR_OK);
+    EXPECT_TRUE(verifiedAfter);
+    bool isLoggedIn = false;
+    IInnerOsAccountManager::GetInstance().loggedInAccounts_.Find(userId, isLoggedIn);
+    EXPECT_TRUE(isLoggedIn);
+    IInnerOsAccountManager::GetInstance().loggedInAccounts_.Erase(userId);
     UnloadPluginMethods();
 }
 

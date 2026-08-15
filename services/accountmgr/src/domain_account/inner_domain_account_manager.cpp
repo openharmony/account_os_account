@@ -356,6 +356,10 @@ ErrCode InnerDomainAuthCallback::HandleUnlockResult(const DomainAuthResult &auth
     if (isUpdateVerifiedStatus) {
         IInnerOsAccountManager::GetInstance().SetOsAccountIsVerified(userId_, true);
     }
+    ErrCode loggedInRet = IInnerOsAccountManager::GetInstance().SetOsAccountIsLoggedIn(userId_, true);
+    if (loggedInRet != ERR_OK) {
+        ACCOUNT_LOGE("SetOsAccountIsLoggedIn failed, userId=%{public}d, ret=%{public}d", userId_, loggedInRet);
+    }
     return ERR_OK;
 }
 
