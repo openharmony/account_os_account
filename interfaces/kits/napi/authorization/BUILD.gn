@@ -82,6 +82,7 @@ ohos_shared_library("authorization_napi") {
     "hilog:libhilog",
     "ipc:ipc_single",
     "napi:ace_napi",
+    "node:node_header_notice",
     "window_manager:libwm"
   ]
 

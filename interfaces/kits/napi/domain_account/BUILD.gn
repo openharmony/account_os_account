@@ -70,6 +70,7 @@ ohos_shared_library("domain_account_napi") {
     "hilog:libhilog",
     "ipc:ipc_single",
     "napi:ace_napi",
+    "node:node_header_notice",
   ]
 
   cflags_cc = [

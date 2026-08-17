@@ -68,6 +68,7 @@ ohos_shared_library("distributedaccount") {
     "hilog:libhilog",
     "ipc:ipc_single",
     "napi:ace_napi",
+    "node:node_header_notice",
   ]
 
   part_name = "os_account"
