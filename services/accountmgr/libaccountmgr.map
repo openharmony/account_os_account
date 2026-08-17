@@ -30,6 +30,7 @@
         "OHOS::AccountSA::AccountIAMService::AccountIAMService()";
         "OHOS::AccountSA::AccountMgrService::AccountMgrService()";
         "OHOS::AccountSA::AccountMgrService::Init()";
+        *OHOS::AccountSA::AccountMgrService::ActivateDefaultOsAccountAndRestore*;
         "OHOS::AccountSA::AccountStateMachine::Clean()";
         "OHOS::AccountSA::OhosAccountManager::GetInstance()";
         "OHOS::AccountSA::AccountEventSubscriber::AccountEventSubscriber(OHOS::AccountSA::AccountCommonEventCallback const&)";
@@ -423,6 +424,18 @@
         "OHOS::AccountSA::OsAccountSubProfileManagerService::OsAccountSubProfileManagerService()";
         "vtable for OHOS::AccountSA::OsAccountSubProfileManagerService";
         "VTT for OHOS::AccountSA::OsAccountSubProfileManagerService";
+        *OHOS::AccountSA::DisplayUserZoneConfigManager*;
+        *OHOS::AccountSA::IInnerOsAccountManager::GetDefaultActivatedOsAccount*;
+        *OHOS::AccountSA::IInnerOsAccountManager::GetForegroundOsAccountDisplayIds*;
+        *OHOS::AccountSA::IInnerOsAccountManager::GetUserZoneDisplayIds*;
+        *OHOS::AccountSA::IInnerOsAccountManager::GetOsAccountShortName*;
+        *OHOS::AccountSA::IInnerOsAccountManager::IsOsAccountDeactivating*;
+        *OHOS::AccountSA::IInnerOsAccountManager::IsOsAccountForeground*;
+        *OHOS::AccountSA::IInnerOsAccountManager::GetUserZonePrimaryDisplayId*;
+        *OHOS::AccountSA::IInnerOsAccountManager::ResetDefaultActivatedAccount*;
+        *OHOS::AccountSA::IInnerOsAccountManager::RestoreForegroundAccounts*;
+        *OHOS::AccountSA::IInnerOsAccountManager::SendMsgForAccountActivateInBackground*;
+        *OHOS::AccountSA::IInnerOsAccountManager::ValidateDisplayForActivation*;
     };
   local:
     *;

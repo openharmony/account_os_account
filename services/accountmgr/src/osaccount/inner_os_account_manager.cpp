@@ -37,6 +37,10 @@
 #include "ipc_skeleton.h"
 #include "ohos_account_kits.h"
 #include "os_account_constants.h"
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+#include "display_user_zone_config/display_user_zone_config_manager.h"
+#include "parameters.h"
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 #include "os_account_subspace_data_deal.h"
 #include "os_account_subspace_manager.h"
@@ -194,6 +198,12 @@ IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManager_(OsAccountSu
     osAccountControl_->GetDeviceOwnerId(deviceOwnerId_);
     std::map<uint64_t, int32_t> activatedAccountsMap;
     osAccountControl_->GetAllDefaultActivatedOsAccounts(activatedAccountsMap);
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+    ErrCode errCode = DisplayUserZoneConfigManager::GetInstance().Init();
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to initialize display user zone config, err=%{public}d", errCode);
+    }
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
     for (const auto &[displayId, localId] : activatedAccountsMap) {
         defaultActivatedIds_.EnsureInsert(displayId, localId);
     }
@@ -478,6 +488,37 @@ ErrCode IInnerOsAccountManager::GetRealOsAccountInfoById(const int id, OsAccount
     osAccountInfo.SetIsForeground(displayId != Constants::INVALID_DISPLAY_ID);
     return ERR_OK;
 }
+
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+uint64_t IInnerOsAccountManager::GetUserZonePrimaryDisplayId(uint64_t displayId)
+{
+    if (displayId == Constants::INVALID_DISPLAY_ID) {
+        return displayId;
+    }
+    if (!DisplayUserZoneConfigManager::GetInstance().HasDisplayByLogicalId(displayId)) {
+        // A connected display may be absent from the static XML. Treat it as a standalone
+        // standalone display instead of folding every unknown display into user zone 0.
+        return displayId;
+    }
+    uint64_t userZone = DisplayUserZoneConfigManager::GetInstance().GetUserZoneByLogicalId(displayId);
+    uint64_t primaryDisplayId = Constants::INVALID_DISPLAY_ID;
+    if (DisplayUserZoneConfigManager::GetInstance().GetUserZonePrimaryDisplayId(userZone, primaryDisplayId)) {
+        if (primaryDisplayId != displayId) {
+            ACCOUNT_LOGI("GetUserZonePrimaryDisplayId returns primary %{public}llu for display %{public}llu "
+                "(userZone=%{public}llu)",
+                static_cast<unsigned long long>(primaryDisplayId),
+                static_cast<unsigned long long>(displayId),
+                static_cast<unsigned long long>(userZone));
+        }
+        return primaryDisplayId;
+    }
+    ACCOUNT_LOGW("GetUserZonePrimaryDisplayId found no primary display for %{public}llu "
+        "(userZone=%{public}llu); returning the original display ID",
+        static_cast<unsigned long long>(displayId), static_cast<unsigned long long>(userZone));
+    return displayId;
+}
+
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
 
 #ifdef FUZZ_TEST
 // LCOV_EXCL_START
@@ -2813,6 +2854,18 @@ ErrCode IInnerOsAccountManager::ValidateDisplayId(const uint64_t displayId)
 #endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
 
 #ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+bool IInnerOsAccountManager::IsAccountActiveOnOtherDisplay(const int32_t id, const uint64_t displayId)
+{
+    bool isActiveCrossDisplay = false;
+    auto it = [&isActiveCrossDisplay, displayId, id](uint64_t currentDisplayId, int32_t currentLocalId) {
+        if (currentLocalId == id && currentDisplayId != displayId) {
+            isActiveCrossDisplay = true;
+        }
+    };
+    foregroundAccountMap_.Iterate(it);
+    return isActiveCrossDisplay;
+}
+
 ErrCode IInnerOsAccountManager::ValidateDisplayForActivation(const int id, const uint64_t displayId)
 {
     std::vector<uint64_t> displayIds;
@@ -2832,15 +2885,25 @@ ErrCode IInnerOsAccountManager::ValidateDisplayForActivation(const int id, const
         RemoveLocalIdToOperating(id);
         return ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR;
     }
-    // If this account is already foreground on any other display, disallow activation on target display
-    bool isActiveCrossDisplay = false;
-    auto it = [&isActiveCrossDisplay, displayId, id](uint64_t currentDisplayId, int32_t currentLocalId) {
-        if ((currentLocalId == id) && (currentDisplayId != displayId)) {
-            isActiveCrossDisplay = true;
-        }
-    };
-    foregroundAccountMap_.Iterate(it);
-    if (isActiveCrossDisplay) {
+    bool isPrimary = false;
+    ErrCode errCode = DisplayUserZoneConfigManager::GetInstance().IsDisplayPrimary(displayId, isPrimary);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to load display user zone config, err=%{public}d", errCode);
+        ReportOsAccountOperationFail(id, Constants::OPERATION_ACTIVATE, errCode,
+            "Failed to load display user zone config");
+        RemoveLocalIdToOperating(id);
+        return errCode;
+    }
+    if (!isPrimary) {
+        ACCOUNT_LOGE("Display %{public}llu is not primary of its user zone",
+            static_cast<unsigned long long>(displayId));
+        ReportOsAccountOperationFail(id, Constants::OPERATION_ACTIVATE,
+            ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR,
+            "Target display is not primary of its user zone");
+        RemoveLocalIdToOperating(id);
+        return ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR;
+    }
+    if (IsAccountActiveOnOtherDisplay(id, displayId)) {
         ACCOUNT_LOGE("Failed to activate. Account %{public}d is already foreground on another display.", id);
         ReportOsAccountOperationFail(id, Constants::OPERATION_ACTIVATE,
             ERR_ACCOUNT_COMMON_CROSS_DISPLAY_ACTIVE_ERROR,
@@ -2848,6 +2911,8 @@ ErrCode IInnerOsAccountManager::ValidateDisplayForActivation(const int id, const
         RemoveLocalIdToOperating(id);
         return ERR_ACCOUNT_COMMON_CROSS_DISPLAY_ACTIVE_ERROR;
     }
+    ACCOUNT_LOGI("ValidateDisplayForActivation passed, account %{public}d display %{public}llu",
+        id, static_cast<unsigned long long>(displayId));
     return ERR_OK;
 }
 #endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
@@ -3501,6 +3566,36 @@ ErrCode IInnerOsAccountManager::SetOsAccountCredentialId(const int id, uint64_t 
     return ERR_OK;
 }
 
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+ErrCode IInnerOsAccountManager::ValidateDefaultActivatedDisplay(const int32_t id, const uint64_t displayId)
+{
+    if (displayId != Constants::DEFAULT_DISPLAY_ID) {
+        ErrCode errCode = ValidateDisplayId(displayId);
+        if (errCode != ERR_OK) {
+            ReportOsAccountOperationFail(id, "setDefaultActivated", errCode,
+                "Failed to validate display ID for setting default activated account");
+            return errCode;
+        }
+    }
+    bool isPrimary = false;
+    ErrCode errCode = DisplayUserZoneConfigManager::GetInstance().IsDisplayPrimary(displayId, isPrimary);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to load display user zone config, err=%{public}d", errCode);
+        ReportOsAccountOperationFail(id, "setDefaultActivated", errCode,
+            "Failed to load display user zone config");
+        return errCode;
+    }
+    if (!isPrimary) {
+        ACCOUNT_LOGE("Display %{public}llu is not primary of its user zone",
+            static_cast<unsigned long long>(displayId));
+        ReportOsAccountOperationFail(id, "setDefaultActivated", ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR,
+            "Target display is not primary of its user zone");
+        return ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR;
+    }
+    return ERR_OK;
+}
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+
 ErrCode IInnerOsAccountManager::SetDefaultActivatedOsAccount(const int32_t id)
 {
     return SetDefaultActivatedOsAccount(Constants::DEFAULT_DISPLAY_ID, id);
@@ -3508,26 +3603,25 @@ ErrCode IInnerOsAccountManager::SetDefaultActivatedOsAccount(const int32_t id)
 
 ErrCode IInnerOsAccountManager::SetDefaultActivatedOsAccount(const uint64_t displayId, const int32_t id)
 {
+    ErrCode errCode = ERR_OK;
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+    errCode = ValidateDefaultActivatedDisplay(id, displayId);
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
+#else
+    if (displayId != Constants::DEFAULT_DISPLAY_ID) {
+        return ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR;
+    }
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
     std::lock_guard<std::mutex> lock(operatingMutex_);
     int32_t activatedId;
-    if (defaultActivatedIds_.Find(displayId, activatedId) && (activatedId == id)) {
+    if (defaultActivatedIds_.Find(displayId, activatedId) && activatedId == id) {
         ACCOUNT_LOGW("No need to repeat set initial start id %{public}d", id);
         return ERR_OK;
     }
-    if (displayId != Constants::DEFAULT_DISPLAY_ID) {
-#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
-        ErrCode errCode = ValidateDisplayId(displayId);
-        if (errCode != ERR_OK) {
-            ReportOsAccountOperationFail(id, "setDefaultActivated", errCode,
-                "Failed to validate display ID for setting default activated account");
-            return errCode;
-        }
-#else
-        return ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR;
-#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
-    }
     OsAccountInfo osAccountInfo;
-    ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
+    errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
@@ -3568,13 +3662,21 @@ ErrCode IInnerOsAccountManager::IsOsAccountForeground(const int32_t localId, con
     if (errCode != ERR_OK) {
         return errCode;
     }
+    errCode = DisplayUserZoneConfigManager::GetInstance().EnsureConfigReady();
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
 #else
     if (displayId != Constants::DEFAULT_DISPLAY_ID) {
         return ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR;
     }
 #endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
 
-    if (!foregroundAccountMap_.Find(displayId, id)) {
+    uint64_t primaryDisplayId = displayId;
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+    primaryDisplayId = GetUserZonePrimaryDisplayId(displayId);
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+    if (!foregroundAccountMap_.Find(primaryDisplayId, id)) {
         return ERR_ACCOUNT_COMMON_ACCOUNT_IN_DISPLAY_ID_NOT_FOUND_ERROR;
     }
     isForeground = (id == localId);
@@ -3583,7 +3685,15 @@ ErrCode IInnerOsAccountManager::IsOsAccountForeground(const int32_t localId, con
 
 ErrCode IInnerOsAccountManager::GetForegroundOsAccountLocalId(const uint64_t displayId, int32_t &localId)
 {
-    if (!foregroundAccountMap_.Find(displayId, localId)) {
+    uint64_t primaryDisplayId = displayId;
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+    ErrCode errCode = DisplayUserZoneConfigManager::GetInstance().EnsureConfigReady();
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
+    primaryDisplayId = GetUserZonePrimaryDisplayId(displayId);
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+    if (!foregroundAccountMap_.Find(primaryDisplayId, localId)) {
         return ERR_ACCOUNT_COMMON_ACCOUNT_IN_DISPLAY_ID_NOT_FOUND_ERROR;
     }
     return ERR_OK;
@@ -3602,6 +3712,45 @@ ErrCode IInnerOsAccountManager::GetForegroundOsAccountDisplayId(const int32_t lo
         return ERR_ACCOUNT_COMMON_ACCOUNT_IN_DISPLAY_ID_NOT_FOUND_ERROR;
     }
     return ERR_OK;
+}
+
+ErrCode IInnerOsAccountManager::GetForegroundOsAccountDisplayIds(const int32_t localId,
+    std::vector<uint64_t> &displayIds)
+{
+    displayIds.clear();
+    uint64_t displayId = Constants::INVALID_DISPLAY_ID;
+    ErrCode ret = GetForegroundOsAccountDisplayId(localId, displayId);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("GetForegroundOsAccountDisplayIds get primary display failed, localId=%{public}d err=%{public}d",
+            localId, ret);
+        return ret;
+    }
+#ifndef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+    displayIds.emplace_back(displayId);
+    return ERR_OK;
+#else
+    auto &configManager = DisplayUserZoneConfigManager::GetInstance();
+    ret = configManager.EnsureConfigReady();
+    if (ret != ERR_OK) {
+        return ret;
+    }
+    if (!configManager.HasDisplayByLogicalId(displayId)) {
+        displayIds.emplace_back(displayId);
+        ACCOUNT_LOGI("GetForegroundOsAccountDisplayIds localId=%{public}d display %{public}llu is not configured, "
+            "return standalone display", localId, static_cast<unsigned long long>(displayId));
+        return ERR_OK;
+    }
+    uint64_t userZone = configManager.GetUserZoneByLogicalId(displayId);
+    auto userZoneDisplays = configManager.GetDisplayIdsByUserZone(userZone);
+    for (uint64_t userZoneDisplayId : userZoneDisplays) {
+        displayIds.emplace_back(userZoneDisplayId);
+    }
+    ACCOUNT_LOGI("GetForegroundOsAccountDisplayIds localId=%{public}d primaryDisplay=%{public}llu "
+        "userZone=%{public}llu count=%{public}zu", localId,
+        static_cast<unsigned long long>(displayId),
+        static_cast<unsigned long long>(userZone), displayIds.size());
+    return ERR_OK;
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
 }
 
 ErrCode IInnerOsAccountManager::GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &accounts)
@@ -3645,8 +3794,18 @@ ErrCode IInnerOsAccountManager::GetDefaultActivatedOsAccount(int32_t &id)
 
 ErrCode IInnerOsAccountManager::GetDefaultActivatedOsAccount(const uint64_t displayId, int32_t &id)
 {
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+    ErrCode errCode = DisplayUserZoneConfigManager::GetInstance().EnsureConfigReady();
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
     std::lock_guard<std::mutex> lock(operatingMutex_);
-    if (!defaultActivatedIds_.Find(displayId, id)) {
+    uint64_t primaryDisplayId = displayId;
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+    primaryDisplayId = GetUserZonePrimaryDisplayId(displayId);
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+    if (!defaultActivatedIds_.Find(primaryDisplayId, id)) {
         ACCOUNT_LOGE("Cannot find default activated account for display %{public}llu",
             static_cast<unsigned long long>(displayId));
         return ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR;

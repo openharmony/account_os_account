@@ -446,6 +446,11 @@ ErrCode OsAccountManager::GetForegroundOsAccountDisplayId(const int32_t localId,
     return OsAccount::GetInstance().GetForegroundOsAccountDisplayId(localId, displayId);
 }
 
+ErrCode OsAccountManager::GetForegroundOsAccountDisplayIds(const int32_t localId, std::vector<uint64_t> &displayIds)
+{
+    return OsAccount::GetInstance().GetForegroundOsAccountDisplayIds(localId, displayIds);
+}
+
 ErrCode OsAccountManager::GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &accounts)
 {
     return OsAccount::GetInstance().GetForegroundOsAccounts(accounts);

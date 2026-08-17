@@ -904,6 +904,36 @@ HWTEST_F(OsAccountTest, OsAccountGetForegroundOsAccountDisplayIdTest001, TestSiz
 }
 
 /**
+ * @tc.name: OsAccountGetForegroundOsAccountDisplayIdsTest001
+ * @tc.desc: Test GetForegroundOsAccountDisplayIds (plural) with valid proxy.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountTest, OsAccountGetForegroundOsAccountDisplayIdsTest001, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountGetForegroundOsAccountDisplayIdsTest001");
+
+    std::vector<uint64_t> displayIds;
+    ErrCode result = g_osAccount->GetForegroundOsAccountDisplayIds(MAIN_ACCOUNT_ID, displayIds);
+    EXPECT_NE(result, ERR_ACCOUNT_COMMON_GET_PROXY);
+}
+
+/**
+ * @tc.name: OsAccountGetForegroundOsAccountDisplayIdsTest002
+ * @tc.desc: Test GetForegroundOsAccountDisplayIds (plural) with invalid localId.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountTest, OsAccountGetForegroundOsAccountDisplayIdsTest002, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountGetForegroundOsAccountDisplayIdsTest002");
+
+    std::vector<uint64_t> displayIds;
+    ErrCode result = g_osAccount->GetForegroundOsAccountDisplayIds(ILLEGAL_LOCAL_ID, displayIds);
+    EXPECT_NE(result, ERR_ACCOUNT_COMMON_GET_PROXY);
+}
+
+/**
  * @tc.name: OsAccountIsOsAccountForegroundTest001
  * @tc.desc: Test IsOsAccountForeground without parameters
  * @tc.type: FUNC

@@ -272,7 +272,16 @@ ohos_unittest("OsAccountFileManagerMultipleThreadTest") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+  if (os_account_enable_multiple_foreground_os_accounts) {
+    external_deps += [
+      "window_manager:libdm_lite",
+      "libxml2:libxml2",
+    ]
+  }
   cflags_cc = []
+  if (os_account_enable_multiple_foreground_os_accounts) {
+    cflags_cc += [ "-DENABLE_MULTI_FOREGROUND_OS_ACCOUNTS" ]
+  }
   if (use_libfuzzer) {
     cflags_cc += [ "-DFUZZ_TEST" ]
   }
@@ -619,7 +628,16 @@ ohos_unittest("OsAccountInnerAccmgrCovTest") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+  if (os_account_enable_multiple_foreground_os_accounts) {
+    external_deps += [
+      "window_manager:libdm_lite",
+      "libxml2:libxml2",
+    ]
+  }
   cflags_cc = []
+  if (os_account_enable_multiple_foreground_os_accounts) {
+    cflags_cc += [ "-DENABLE_MULTI_FOREGROUND_OS_ACCOUNTS" ]
+  }
   if (use_libfuzzer) {
     cflags_cc += [ "-DFUZZ_TEST" ]
   }
@@ -785,10 +803,19 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+  if (os_account_enable_multiple_foreground_os_accounts) {
+    external_deps += [
+      "window_manager:libdm_lite",
+      "libxml2:libxml2",
+    ]
+  }
   if (has_storage_service_part) {
     external_deps += [ "storage_service:storage_manager_sa_proxy" ]
   }
   cflags_cc = []
+  if (os_account_enable_multiple_foreground_os_accounts) {
+    cflags_cc += [ "-DENABLE_MULTI_FOREGROUND_OS_ACCOUNTS" ]
+  }
   if (use_libfuzzer) {
     cflags_cc += [ "-DFUZZ_TEST" ]
   }
@@ -952,10 +979,19 @@ ohos_unittest("OsAccountInnerAccmgrPluginMockTest") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+  if (os_account_enable_multiple_foreground_os_accounts) {
+    external_deps += [
+      "window_manager:libdm_lite",
+      "libxml2:libxml2",
+    ]
+  }
   if (has_storage_service_part) {
     external_deps += [ "storage_service:storage_manager_sa_proxy" ]
   }
   cflags_cc = []
+  if (os_account_enable_multiple_foreground_os_accounts) {
+    cflags_cc += [ "-DENABLE_MULTI_FOREGROUND_OS_ACCOUNTS" ]
+  }
   if (use_libfuzzer) {
     cflags_cc += [ "-DFUZZ_TEST" ]
   }
@@ -1103,10 +1139,19 @@ ohos_unittest("OsAccountInnerAccmgrMockCovTest") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+  if (os_account_enable_multiple_foreground_os_accounts) {
+    external_deps += [
+      "window_manager:libdm_lite",
+      "libxml2:libxml2",
+    ]
+  }
   if (has_storage_service_part) {
     external_deps += [ "storage_service:storage_manager_sa_proxy" ]
   }
   cflags_cc = []
+  if (os_account_enable_multiple_foreground_os_accounts) {
+    cflags_cc += [ "-DENABLE_MULTI_FOREGROUND_OS_ACCOUNTS" ]
+  }
   if (use_libfuzzer) {
     cflags_cc += [ "-DFUZZ_TEST" ]
   }
@@ -1254,7 +1299,16 @@ ohos_unittest("OsAccountEventManagerMultipleThreadTest") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+  if (os_account_enable_multiple_foreground_os_accounts) {
+    external_deps += [
+      "window_manager:libdm_lite",
+      "libxml2:libxml2",
+    ]
+  }
   cflags_cc = []
+  if (os_account_enable_multiple_foreground_os_accounts) {
+    cflags_cc += [ "-DENABLE_MULTI_FOREGROUND_OS_ACCOUNTS" ]
+  }
   if (use_libfuzzer) {
     cflags_cc += [ "-DFUZZ_TEST" ]
   }
@@ -1409,6 +1463,12 @@ ohos_unittest("os_account_maintenance_type_mock_test") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+  if (os_account_enable_multiple_foreground_os_accounts) {
+    external_deps += [
+      "window_manager:libdm_lite",
+      "libxml2:libxml2",
+    ]
+  }
 
   external_deps += [
     "ability_runtime:wantagent_innerkits",
@@ -1428,6 +1488,9 @@ ohos_unittest("os_account_maintenance_type_mock_test") {
 
   part_name = "os_account"
   cflags_cc = [ "-DACCOUNT_TEST" ]
+  if (os_account_enable_multiple_foreground_os_accounts) {
+    cflags_cc += [ "-DENABLE_MULTI_FOREGROUND_OS_ACCOUNTS" ]
+  }
 
   if (use_libfuzzer) {
     cflags_cc += [ "-DFUZZ_TEST" ]
@@ -1578,6 +1641,55 @@ ohos_unittest("os_account_state_reply_callback_service_test") {
   part_name = "os_account"
 }
 
+if (os_account_enable_multiple_foreground_os_accounts) {
+  ohos_unittest("DisplayUserZoneConfigManagerTest") {
+    branch_protector_ret = "pac_ret"
+
+    sanitize = {
+      cfi = true
+      cfi_cross_dso = true
+      debug = false
+    }
+
+    module_out_path = module_output_path
+    use_exceptions = true
+    sources = [
+      "${services_path}/accountmgr/src/display_user_zone_config/display_user_zone_config_manager.cpp",
+      "display_user_zone_config_manager_test.cpp",
+    ]
+    configs = [
+      ":display_user_zone_config_manager_test_config",
+      "${services_path}/accountmgr/test:accountmgr_test_config",
+    ]
+    deps = [
+      "${common_path}:libaccount_common",
+      "${os_account_innerkits_native_path}:os_account_innerkits",
+    ]
+    external_deps = [
+      "c_utils:utils",
+      "googletest:gmock_main",
+      "googletest:gtest_main",
+      "hilog:libhilog",
+      "libxml2:libxml2",
+    ]
+    cflags_cc = [ "-DENABLE_MULTI_FOREGROUND_OS_ACCOUNTS" ]
+    part_name = "os_account"
+  }
+
+  config("display_user_zone_config_manager_test_config") {
+    include_dirs = [
+      "${services_path}/accountmgr/include",
+      "${services_path}/accountmgr/include/osaccount",
+      "${common_path}/file_operator/include",
+      "${common_path}/log/include",
+      "${common_path}/perf_stat/include",
+      "${innerkits_common}/include",
+      "${innerkits_path}/include",
+      "${os_account_interfaces_native_path}/include",
+    ]
+  }
+}
+
 ohos_unittest("OsAccountInterfaceSamgrTest") {
   branch_protector_ret = "pac_ret"
 
@@ -1668,6 +1780,10 @@ group("unittest") {
     ":os_account_state_reply_callback_service_test",
     ":os_account_static_subscriber_manager_test",
   ]
+
+  if (os_account_enable_multiple_foreground_os_accounts) {
+    deps += [ ":DisplayUserZoneConfigManagerTest" ]
+  }
 
   if (os_account_support_domain_accounts) {
     deps += [ ":os_account_domain_account_callback_test" ]

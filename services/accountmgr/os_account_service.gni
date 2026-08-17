@@ -49,6 +49,11 @@ account_service_sources = [
   "${services_path}/accountmgr/src/os_account_subprofile/os_account_sub_profile_subscribe_death_recipient.cpp",
   "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager_service.cpp",
 ]
+if (os_account_enable_multiple_foreground_os_accounts) {
+  account_service_sources += [
+    "${services_path}/accountmgr/src/display_user_zone_config/display_user_zone_config_manager.cpp",
+  ]
+}
 if (os_account_support_lock_os_account) {
   account_service_sources += [ "${services_path}/accountmgr/src/osaccount/os_account_lock_os_account_plugin_manager.cpp" ]
 }
@@ -127,6 +132,11 @@ account_service_sources_mock = [
   "${services_path}/accountmgr/src/os_account_subprofile/os_account_sub_profile_subscribe_death_recipient.cpp",
   "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager_service.cpp",
 ]
+if (os_account_enable_multiple_foreground_os_accounts) {
+  account_service_sources_mock += [
+    "${services_path}/accountmgr/src/display_user_zone_config/display_user_zone_config_manager.cpp",
+  ]
+}
 if (os_account_support_lock_os_account) {
   account_service_sources_mock += [ "${services_path}/accountmgr/src/osaccount/os_account_lock_os_account_plugin_manager.cpp" ]
 }

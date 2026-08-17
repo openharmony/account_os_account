@@ -750,6 +750,15 @@ public:
     static ErrCode GetForegroundOsAccountDisplayId(const int32_t localId, uint64_t &displayId);
 
     /**
+     * @brief Gets the display ids in the same display user zone as the specified local id's foreground display.
+     * @param localId - Indicates the local id of the specified OS account.
+     * @param displayIds - Indicates the display ids belonging to the same user zone as the display the
+     *                     specified localId is foreground on (including the foreground display itself).
+     * @return error code, see account_error_no.h
+     */
+    static ErrCode GetForegroundOsAccountDisplayIds(const int32_t localId, std::vector<uint64_t> &displayIds);
+
+    /**
      * @brief Gets the foreground accounts.
      * @param accounts - Indicates the foreground accounts.
      * @return error code, see account_error_no.h

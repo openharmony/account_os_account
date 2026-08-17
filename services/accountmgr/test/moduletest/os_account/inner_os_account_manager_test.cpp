@@ -15,16 +15,22 @@
 
 #include <gtest/gtest.h>
 #include <fcntl.h>
+#include <map>
 #include <poll.h>
 #include <thread>
 #include <unistd.h>
 #include <vector>
+#include "parameter.h"
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "account_test_common.h"
 #include "os_account_info.h"
 #include "os_account_manager.h"
+#include "../../unittest/os_account/mock/mock_os_account_control_file_manager.h"
 #define private public
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+#include "display_user_zone_config/display_user_zone_config_manager.h"
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
 #include "iinner_os_account_manager.h"
 #undef private
 
@@ -458,6 +464,751 @@ HWTEST_F(IInnerOsAccountManagerTest, IsOsAccountForegroundTest003, TestSize.Leve
         innerMgrService_->foregroundAccountMap_.Erase(displayId);
     }
 }
+
+namespace {
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+// Display user zone config test fixtures
+constexpr uint64_t DISPLAY_A_LOGICAL_ID = 100;
+constexpr uint64_t DISPLAY_B_LOGICAL_ID = 200;
+constexpr uint64_t DISPLAY_C_LOGICAL_ID = 300;
+constexpr uint64_t DISPLAY_A_PHYSICAL_ID = 10;
+constexpr uint64_t DISPLAY_B_PHYSICAL_ID = 20;
+constexpr uint64_t DISPLAY_C_PHYSICAL_ID = 30;
+constexpr uint64_t USER_ZONE_ONE = DISPLAY_A_LOGICAL_ID;
+constexpr uint64_t USER_ZONE_TWO = DISPLAY_C_LOGICAL_ID;
+const std::string DISPLAY_NAME_A = "display_a";
+const std::string DISPLAY_NAME_B = "display_b";
+const std::string DISPLAY_NAME_C = "display_c";
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+// Test display/local IDs (chosen to not collide with real display IDs)
+constexpr uint64_t TEST_DISPLAY_ID_FALLBACK = 54321;
+constexpr uint64_t TEST_DISPLAY_ID_FOREGROUND = 13579;
+constexpr int32_t TEST_LOCAL_ID_FOREGROUND = 10086;
+constexpr int32_t TEST_LOCAL_ID_ABSENT = 10087;
+constexpr uint64_t TEST_DISPLAY_ID_NON_DEFAULT = 24680;
+constexpr uint64_t TEST_DISPLAY_ID_NOT_IN_MAP = 77777;
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+constexpr uint64_t TEST_DISPLAY_ID_RESET_1 = 60001;
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+constexpr size_t EXPECTED_USER_ZONE_ONE_SIZE = 2;
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+void SetupDisplayUserZoneLoaded()
+{
+    auto &mgr = DisplayUserZoneConfigManager::GetInstance();
+    mgr.configReadFailed_ = false;
+    mgr.configFormatError_ = false;
+    mgr.configReadRetried_ = false;
+    DisplayConfigInfo infoA;
+    infoA.physicalId = DISPLAY_A_PHYSICAL_ID;
+    infoA.logicalId = DISPLAY_A_LOGICAL_ID;
+    infoA.name = DISPLAY_NAME_A;
+    infoA.userZone = USER_ZONE_ONE;
+    DisplayConfigInfo infoB;
+    infoB.physicalId = DISPLAY_B_PHYSICAL_ID;
+    infoB.logicalId = DISPLAY_B_LOGICAL_ID;
+    infoB.name = DISPLAY_NAME_B;
+    infoB.userZone = USER_ZONE_ONE;
+    DisplayConfigInfo infoC;
+    infoC.physicalId = DISPLAY_C_PHYSICAL_ID;
+    infoC.logicalId = DISPLAY_C_LOGICAL_ID;
+    infoC.name = DISPLAY_NAME_C;
+    infoC.userZone = USER_ZONE_TWO;
+    mgr.logicalIdMap_[DISPLAY_A_LOGICAL_ID] = infoA;
+    mgr.logicalIdMap_[DISPLAY_B_LOGICAL_ID] = infoB;
+    mgr.logicalIdMap_[DISPLAY_C_LOGICAL_ID] = infoC;
+    mgr.userZoneMap_[USER_ZONE_ONE] = {DISPLAY_A_LOGICAL_ID, DISPLAY_B_LOGICAL_ID};
+    mgr.userZoneMap_[USER_ZONE_TWO] = {DISPLAY_C_LOGICAL_ID};
+    mgr.userZonePrimaryMap_[USER_ZONE_ONE] = DISPLAY_A_LOGICAL_ID;
+    mgr.userZonePrimaryMap_[USER_ZONE_TWO] = DISPLAY_C_LOGICAL_ID;
+}
+
+void TeardownDisplayUserZone()
+{
+    auto &mgr = DisplayUserZoneConfigManager::GetInstance();
+    mgr.logicalIdMap_.clear();
+    mgr.userZoneMap_.clear();
+    mgr.userZonePrimaryMap_.clear();
+    mgr.configReadFailed_ = false;
+    mgr.configFormatError_ = false;
+    mgr.configReadRetried_ = false;
+}
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+} // namespace
+
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+namespace {
+struct DefaultActivatedAccountState {
+    std::shared_ptr<IOsAccountControl> originalControl;
+    int32_t oldPrimaryId = Constants::INVALID_OS_ACCOUNT_ID;
+    int32_t oldSecondaryId = Constants::INVALID_OS_ACCOUNT_ID;
+    bool hadPrimary = false;
+    bool hadSecondary = false;
+};
+
+DefaultActivatedAccountState PrepareDefaultActivatedAccountUserZone(IInnerOsAccountManager *innerMgrService)
+{
+    SetupDisplayUserZoneLoaded();
+    auto &configManager = DisplayUserZoneConfigManager::GetInstance();
+    DisplayConfigInfo primaryDisplay;
+    primaryDisplay.logicalId = Constants::DEFAULT_DISPLAY_ID;
+    primaryDisplay.userZone = Constants::DEFAULT_DISPLAY_ID;
+    configManager.logicalIdMap_[Constants::DEFAULT_DISPLAY_ID] = primaryDisplay;
+    configManager.logicalIdMap_[DISPLAY_A_LOGICAL_ID].userZone = Constants::DEFAULT_DISPLAY_ID;
+    configManager.userZoneMap_[Constants::DEFAULT_DISPLAY_ID] = {
+        Constants::DEFAULT_DISPLAY_ID, DISPLAY_A_LOGICAL_ID};
+    configManager.userZonePrimaryMap_[Constants::DEFAULT_DISPLAY_ID] = Constants::DEFAULT_DISPLAY_ID;
+    DefaultActivatedAccountState state;
+    state.originalControl = innerMgrService->osAccountControl_;
+    auto control = std::make_shared<MockOsAccountControlFileManager>();
+    innerMgrService->osAccountControl_ = control;
+    OsAccountInfo accountInfo;
+    accountInfo.SetIsCreateCompleted(true);
+    EXPECT_CALL(*control, GetOsAccountInfoById(Constants::START_USER_ID, testing::_))
+        .WillOnce(testing::DoAll(testing::SetArgReferee<1>(accountInfo), testing::Return(ERR_OK)));
+    EXPECT_CALL(*control, SetDefaultActivatedOsAccount(Constants::DEFAULT_DISPLAY_ID, Constants::START_USER_ID))
+        .WillOnce(testing::Return(ERR_OK));
+    state.hadPrimary = innerMgrService->defaultActivatedIds_.Find(Constants::DEFAULT_DISPLAY_ID, state.oldPrimaryId);
+    state.hadSecondary = innerMgrService->defaultActivatedIds_.Find(DISPLAY_A_LOGICAL_ID, state.oldSecondaryId);
+    innerMgrService->defaultActivatedIds_.EnsureInsert(Constants::DEFAULT_DISPLAY_ID, Constants::START_USER_ID + 1);
+    innerMgrService->defaultActivatedIds_.Erase(DISPLAY_A_LOGICAL_ID);
+    return state;
+}
+
+void RestoreDefaultActivatedAccountUserZone(IInnerOsAccountManager *innerMgrService,
+    const DefaultActivatedAccountState &state)
+{
+    if (state.hadPrimary) {
+        innerMgrService->defaultActivatedIds_.EnsureInsert(Constants::DEFAULT_DISPLAY_ID, state.oldPrimaryId);
+    } else {
+        innerMgrService->defaultActivatedIds_.Erase(Constants::DEFAULT_DISPLAY_ID);
+    }
+    if (state.hadSecondary) {
+        innerMgrService->defaultActivatedIds_.EnsureInsert(DISPLAY_A_LOGICAL_ID, state.oldSecondaryId);
+    } else {
+        innerMgrService->defaultActivatedIds_.Erase(DISPLAY_A_LOGICAL_ID);
+    }
+    innerMgrService->osAccountControl_ = state.originalControl;
+    TeardownDisplayUserZone();
+}
+} // namespace
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+/**
+ * @tc.name: GetForegroundOsAccountDisplayIdsFallback001
+ * @tc.desc: Verify GetForegroundOsAccountDisplayIds returns exactly the single display the account
+ *           is foreground on when the display user zone config is not loaded (fallback mode), so the
+ *           new plural API keeps backward-compatible behavior without config.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(IInnerOsAccountManagerTest, GetForegroundOsAccountDisplayIdsFallback001, TestSize.Level1)
+{
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+    TeardownDisplayUserZone();
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+    const int32_t localId = TEST_LOCAL_ID_FOREGROUND;
+    const uint64_t displayId = TEST_DISPLAY_ID_FOREGROUND;
+    int32_t originalId = -1;
+    bool hadOriginal = innerMgrService_->foregroundAccountMap_.Find(displayId, originalId);
+    innerMgrService_->foregroundAccountMap_.EnsureInsert(displayId, localId);
+
+    std::vector<uint64_t> displayIds;
+    ErrCode ret = innerMgrService_->GetForegroundOsAccountDisplayIds(localId, displayIds);
+    EXPECT_EQ(ret, ERR_OK);
+    ASSERT_EQ(displayIds.size(), 1u);
+    EXPECT_EQ(displayIds[0], displayId);
+
+    if (hadOriginal) {
+        innerMgrService_->foregroundAccountMap_.EnsureInsert(displayId, originalId);
+    } else {
+        innerMgrService_->foregroundAccountMap_.Erase(displayId);
+    }
+}
+
+/**
+ * @tc.name: GetForegroundOsAccountDisplayIdsNotFound001
+ * @tc.desc: Verify GetForegroundOsAccountDisplayIds returns ACCOUNT_IN_DISPLAY_ID_NOT_FOUND_ERROR
+ *           when the given account is not foreground on any display.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(IInnerOsAccountManagerTest, GetForegroundOsAccountDisplayIdsNotFound001, TestSize.Level1)
+{
+    const int32_t absentLocalId = TEST_LOCAL_ID_ABSENT;
+    std::vector<uint64_t> displayIds = { Constants::DEFAULT_DISPLAY_ID };
+    ErrCode ret = innerMgrService_->GetForegroundOsAccountDisplayIds(absentLocalId, displayIds);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_IN_DISPLAY_ID_NOT_FOUND_ERROR);
+    EXPECT_TRUE(displayIds.empty());
+}
+
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+namespace {
+constexpr uint64_t TEST_DISPLAY_ID_UNKNOWN = 97531;
+constexpr uint64_t TEST_DISPLAY_ID_FIRST = 111;
+constexpr uint64_t TEST_DISPLAY_ID_SECOND = 222;
+} // namespace
+/**
+ * @tc.name: ValidateDisplayForActivationFallback001
+ * @tc.desc: Verify ValidateDisplayForActivation accepts DEFAULT_DISPLAY_ID and rejects an unknown
+ *           display id when the display user zone config is not loaded (fallback mode). The default
+ *           display is always exempt from the existence check; an unknown display id must fail
+ *           fast so callers cannot activate on a non-existent display.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(IInnerOsAccountManagerTest, ValidateDisplayForActivationFallback001, TestSize.Level1)
+{
+    TeardownDisplayUserZone();
+    const int32_t testId = Constants::START_USER_ID + 20;
+    // DEFAULT_DISPLAY_ID must always be accepted (exempted from existence + primary checks).
+    ErrCode ret = innerMgrService_->ValidateDisplayForActivation(testId, Constants::DEFAULT_DISPLAY_ID);
+    EXPECT_EQ(ret, ERR_OK);
+
+    // An unknown display id must be rejected with the dedicated not-exist error code.
+    const uint64_t unknownDisplay = TEST_DISPLAY_ID_UNKNOWN;
+    ret = innerMgrService_->ValidateDisplayForActivation(testId, unknownDisplay);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR);
+}
+
+/**
+ * @tc.name: ValidateDisplayForActivationCrossGroupFallback001
+ * @tc.desc: Verify ValidateDisplayForActivation rejects activating an account on a second display
+ *           when it is already foreground elsewhere, in fallback mode where every display is its
+ *           own user zone. This preserves the original one-to-one activation behavior.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(IInnerOsAccountManagerTest, ValidateDisplayForActivationCrossGroupFallback001, TestSize.Level1)
+{
+    TeardownDisplayUserZone();
+    const int32_t testId = Constants::START_USER_ID + 30;
+    const uint64_t firstDisplay = TEST_DISPLAY_ID_FIRST;
+    const uint64_t secondDisplay = TEST_DISPLAY_ID_SECOND;
+
+    int32_t oldFirst = -1;
+    bool hadFirst = innerMgrService_->foregroundAccountMap_.Find(firstDisplay, oldFirst);
+    innerMgrService_->foregroundAccountMap_.EnsureInsert(firstDisplay, testId);
+
+    // In fallback mode, any other display is treated as a different user zone, so activation on a
+    // second display must be rejected to preserve the original one-to-one behavior.
+    ErrCode ret = innerMgrService_->ValidateDisplayForActivation(testId, secondDisplay);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_CROSS_DISPLAY_ACTIVE_ERROR);
+
+    if (hadFirst) {
+        innerMgrService_->foregroundAccountMap_.EnsureInsert(firstDisplay, oldFirst);
+    } else {
+        innerMgrService_->foregroundAccountMap_.Erase(firstDisplay);
+    }
+}
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+
+/**
+ * @tc.name: GetUserZonePrimaryDisplayIdFallback001
+ * @tc.desc: Verify GetUserZonePrimaryDisplayId returns the original displayId unchanged in fallback mode
+ *           (config not loaded), for both INVALID_DISPLAY_ID and a normal display id.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(IInnerOsAccountManagerTest, GetUserZonePrimaryDisplayIdFallback001, TestSize.Level1)
+{
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+    TeardownDisplayUserZone();
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+    EXPECT_EQ(innerMgrService_->GetUserZonePrimaryDisplayId(Constants::INVALID_DISPLAY_ID),
+        Constants::INVALID_DISPLAY_ID);
+    EXPECT_EQ(innerMgrService_->GetUserZonePrimaryDisplayId(TEST_DISPLAY_ID_FALLBACK), TEST_DISPLAY_ID_FALLBACK);
+}
+
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+/**
+ * @tc.name: GetUserZonePrimaryDisplayIdLoaded001
+ * @tc.desc: Verify GetUserZonePrimaryDisplayId returns a non-primary display's user zone primary when
+ *           config is loaded, and returns original for unknown display (no primary in user zone).
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(IInnerOsAccountManagerTest, GetUserZonePrimaryDisplayIdLoaded001, TestSize.Level1)
+{
+    SetupDisplayUserZoneLoaded();
+    auto &configManager = DisplayUserZoneConfigManager::GetInstance();
+    DisplayConfigInfo defaultDisplay;
+    defaultDisplay.logicalId = Constants::DEFAULT_DISPLAY_ID;
+    defaultDisplay.userZone = Constants::DEFAULT_DISPLAY_ID;
+    configManager.logicalIdMap_[Constants::DEFAULT_DISPLAY_ID] = defaultDisplay;
+    configManager.userZoneMap_[Constants::DEFAULT_DISPLAY_ID] = {Constants::DEFAULT_DISPLAY_ID};
+    configManager.userZonePrimaryMap_[Constants::DEFAULT_DISPLAY_ID] = Constants::DEFAULT_DISPLAY_ID;
+    EXPECT_EQ(innerMgrService_->GetUserZonePrimaryDisplayId(DISPLAY_B_LOGICAL_ID), DISPLAY_A_LOGICAL_ID);
+    EXPECT_EQ(innerMgrService_->GetUserZonePrimaryDisplayId(DISPLAY_A_LOGICAL_ID), DISPLAY_A_LOGICAL_ID);
+    // Unknown displays remain standalone even when user zone 0 has a configured primary.
+    EXPECT_EQ(innerMgrService_->GetUserZonePrimaryDisplayId(TEST_DISPLAY_ID_NOT_IN_MAP), TEST_DISPLAY_ID_NOT_IN_MAP);
+    TeardownDisplayUserZone();
+}
+
+/**
+ * @tc.name: GetForegroundOsAccountDisplayIdLoaded001
+ * @tc.desc: Verify foreground state is stored only under the user zone primary and secondary-display
+ *           lookup resolves to that primary.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(IInnerOsAccountManagerTest, GetForegroundOsAccountDisplayIdLoaded001, TestSize.Level1)
+{
+    SetupDisplayUserZoneLoaded();
+    const int32_t localId = Constants::START_USER_ID + 61;
+    int32_t oldForeground = -1;
+    int32_t oldSecondaryForeground = -1;
+    bool hadForeground = innerMgrService_->foregroundAccountMap_.Find(DISPLAY_A_LOGICAL_ID, oldForeground);
+    bool hadSecondaryForeground =
+        innerMgrService_->foregroundAccountMap_.Find(DISPLAY_B_LOGICAL_ID, oldSecondaryForeground);
+    innerMgrService_->foregroundAccountMap_.EnsureInsert(DISPLAY_A_LOGICAL_ID, localId);
+    innerMgrService_->foregroundAccountMap_.Erase(DISPLAY_B_LOGICAL_ID);
+
+    uint64_t displayId = Constants::INVALID_DISPLAY_ID;
+    EXPECT_EQ(innerMgrService_->GetForegroundOsAccountDisplayId(localId, displayId), ERR_OK);
+    EXPECT_EQ(displayId, DISPLAY_A_LOGICAL_ID);
+    int32_t queriedLocalId = Constants::INVALID_OS_ACCOUNT_ID;
+    EXPECT_EQ(innerMgrService_->GetForegroundOsAccountLocalId(DISPLAY_B_LOGICAL_ID, queriedLocalId), ERR_OK);
+    EXPECT_EQ(queriedLocalId, localId);
+
+    if (hadForeground) {
+        innerMgrService_->foregroundAccountMap_.EnsureInsert(DISPLAY_A_LOGICAL_ID, oldForeground);
+    } else {
+        innerMgrService_->foregroundAccountMap_.Erase(DISPLAY_A_LOGICAL_ID);
+    }
+    if (hadSecondaryForeground) {
+        innerMgrService_->foregroundAccountMap_.EnsureInsert(DISPLAY_B_LOGICAL_ID, oldSecondaryForeground);
+    }
+    TeardownDisplayUserZone();
+}
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+/**
+ * @tc.name: GetForegroundOsAccountDisplayIdsLoaded001
+ * @tc.desc: Verify GetForegroundOsAccountDisplayIds returns all displays in the account's user zone
+ *           when config is loaded.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(IInnerOsAccountManagerTest, GetForegroundOsAccountDisplayIdsLoaded001, TestSize.Level1)
+{
+    SetupDisplayUserZoneLoaded();
+    const int32_t localId = Constants::START_USER_ID + 60;
+    const uint64_t displayId = DISPLAY_A_LOGICAL_ID;
+    int32_t oldForeground = -1;
+    bool hadForeground = innerMgrService_->foregroundAccountMap_.Find(displayId, oldForeground);
+    innerMgrService_->foregroundAccountMap_.EnsureInsert(displayId, localId);
+
+    std::vector<uint64_t> displayIds;
+    ErrCode ret = innerMgrService_->GetForegroundOsAccountDisplayIds(localId, displayIds);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(displayIds.size(), EXPECTED_USER_ZONE_ONE_SIZE);
+
+    if (hadForeground) {
+        innerMgrService_->foregroundAccountMap_.EnsureInsert(displayId, oldForeground);
+    } else {
+        innerMgrService_->foregroundAccountMap_.Erase(displayId);
+    }
+    TeardownDisplayUserZone();
+}
+
+/**
+ * @tc.name: GetForegroundOsAccountDisplayIdsUnknown001
+ * @tc.desc: Verify a display absent from the static XML remains a standalone display
+ *           instead of inheriting the configured user zone 0.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(IInnerOsAccountManagerTest, GetForegroundOsAccountDisplayIdsUnknown001, TestSize.Level1)
+{
+    SetupDisplayUserZoneLoaded();
+    auto &configManager = DisplayUserZoneConfigManager::GetInstance();
+    DisplayConfigInfo defaultDisplay;
+    defaultDisplay.logicalId = Constants::DEFAULT_DISPLAY_ID;
+    defaultDisplay.userZone = Constants::DEFAULT_DISPLAY_ID;
+    configManager.logicalIdMap_[Constants::DEFAULT_DISPLAY_ID] = defaultDisplay;
+    configManager.userZoneMap_[Constants::DEFAULT_DISPLAY_ID] = {Constants::DEFAULT_DISPLAY_ID};
+    configManager.userZonePrimaryMap_[Constants::DEFAULT_DISPLAY_ID] = Constants::DEFAULT_DISPLAY_ID;
+
+    const int32_t localId = Constants::START_USER_ID + 62;
+    int32_t oldForeground = Constants::INVALID_OS_ACCOUNT_ID;
+    bool hadForeground =
+        innerMgrService_->foregroundAccountMap_.Find(TEST_DISPLAY_ID_NOT_IN_MAP, oldForeground);
+    innerMgrService_->foregroundAccountMap_.EnsureInsert(TEST_DISPLAY_ID_NOT_IN_MAP, localId);
+
+    std::vector<uint64_t> displayIds;
+    EXPECT_EQ(innerMgrService_->GetForegroundOsAccountDisplayIds(localId, displayIds), ERR_OK);
+    ASSERT_EQ(displayIds.size(), 1u);
+    EXPECT_EQ(displayIds[0], TEST_DISPLAY_ID_NOT_IN_MAP);
+
+    if (hadForeground) {
+        innerMgrService_->foregroundAccountMap_.EnsureInsert(TEST_DISPLAY_ID_NOT_IN_MAP, oldForeground);
+    } else {
+        innerMgrService_->foregroundAccountMap_.Erase(TEST_DISPLAY_ID_NOT_IN_MAP);
+    }
+    TeardownDisplayUserZone();
+}
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+
+/**
+ * @tc.name: ResetDefaultActivatedAccount001
+ * @tc.desc: Verify resetting defaults only updates the default display.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(IInnerOsAccountManagerTest, ResetDefaultActivatedAccount001, TestSize.Level1)
+{
+    const int32_t testLocalId = Constants::START_USER_ID + 70;
+    const int32_t absentLocalId = Constants::START_USER_ID + 71;
+    // Backup
+    int32_t old1 = -1, old2 = -1;
+    bool had1 = innerMgrService_->defaultActivatedIds_.Find(Constants::DEFAULT_DISPLAY_ID, old1);
+    bool had2 = innerMgrService_->defaultActivatedIds_.Find(TEST_DISPLAY_ID_RESET_1, old2);
+
+    innerMgrService_->defaultActivatedIds_.EnsureInsert(Constants::DEFAULT_DISPLAY_ID, testLocalId);
+    innerMgrService_->defaultActivatedIds_.EnsureInsert(TEST_DISPLAY_ID_RESET_1, testLocalId);
+
+    // Case 1: reset display 0 only.
+    ErrCode ret = innerMgrService_->ResetDefaultActivatedAccount(testLocalId);
+    EXPECT_EQ(ret, ERR_OK);
+    int32_t resetId = -1;
+    EXPECT_TRUE(innerMgrService_->defaultActivatedIds_.Find(Constants::DEFAULT_DISPLAY_ID, resetId));
+    EXPECT_EQ(resetId, Constants::START_USER_ID);
+    EXPECT_TRUE(innerMgrService_->defaultActivatedIds_.Find(TEST_DISPLAY_ID_RESET_1, resetId));
+    EXPECT_EQ(resetId, testLocalId);
+
+    // Case 2: no matching display -> no-op, no error
+    ret = innerMgrService_->ResetDefaultActivatedAccount(absentLocalId);
+    EXPECT_EQ(ret, ERR_OK);
+
+    // Restore
+    if (had1) {
+        innerMgrService_->defaultActivatedIds_.EnsureInsert(Constants::DEFAULT_DISPLAY_ID, old1);
+    } else {
+        innerMgrService_->defaultActivatedIds_.Erase(Constants::DEFAULT_DISPLAY_ID);
+    }
+    if (had2) {
+        innerMgrService_->defaultActivatedIds_.EnsureInsert(TEST_DISPLAY_ID_RESET_1, old2);
+    } else {
+        innerMgrService_->defaultActivatedIds_.Erase(TEST_DISPLAY_ID_RESET_1);
+    }
+}
+
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+/**
+ * @tc.name: ValidateDisplayForActivationLoaded001
+ * @tc.desc: Verify ValidateDisplayForActivation rejects a non-primary display with
+ *           DISPLAY_ID_NOT_EXIST_ERROR when config is loaded. Uses DEFAULT_DISPLAY_ID
+ *           marked as non-primary in the map to bypass the QueryAllDisplayIds existence
+ *           check (DEFAULT_DISPLAY_ID is always considered to exist).
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(IInnerOsAccountManagerTest, ValidateDisplayForActivationLoaded001, TestSize.Level1)
+{
+    SetupDisplayUserZoneLoaded();
+    // Mark DEFAULT_DISPLAY_ID (0) as non-primary by setting its user zone to a different logicalId
+    // so that logicalId(0) != group(USER_ZONE_ONE), triggering NOT_PRIMARY error.
+    auto &mgr = DisplayUserZoneConfigManager::GetInstance();
+    DisplayConfigInfo infoDefault;
+    infoDefault.logicalId = Constants::DEFAULT_DISPLAY_ID;
+    infoDefault.userZone = USER_ZONE_ONE;
+    mgr.logicalIdMap_[Constants::DEFAULT_DISPLAY_ID] = infoDefault;
+    const int32_t testId = Constants::START_USER_ID + 80;
+    ErrCode ret = innerMgrService_->ValidateDisplayForActivation(testId, Constants::DEFAULT_DISPLAY_ID);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR);
+    TeardownDisplayUserZone();
+}
+
+/**
+ * @tc.name: ValidateDisplayForActivationLoaded002
+ * @tc.desc: Verify ValidateDisplayForActivation accepts DEFAULT_DISPLAY_ID when config is loaded
+ *           and the account is not foreground elsewhere.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(IInnerOsAccountManagerTest, ValidateDisplayForActivationLoaded002, TestSize.Level1)
+{
+    SetupDisplayUserZoneLoaded();
+    const int32_t testId = Constants::START_USER_ID + 81;
+    // DEFAULT_DISPLAY_ID not in map -> IsDisplayPrimary returns true -> passes primary check.
+    // Account not foreground anywhere -> returns ERR_OK.
+    ErrCode ret = innerMgrService_->ValidateDisplayForActivation(testId, Constants::DEFAULT_DISPLAY_ID);
+    EXPECT_EQ(ret, ERR_OK);
+    TeardownDisplayUserZone();
+}
+
+/**
+ * @tc.name: ValidateDisplayForActivationConfigReadFailure001
+ * @tc.desc: Verify activation returns the configuration read error instead of treating every display as primary.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(IInnerOsAccountManagerTest, ValidateDisplayForActivationConfigReadFailure001, TestSize.Level1)
+{
+    TeardownDisplayUserZone();
+    auto &mgr = DisplayUserZoneConfigManager::GetInstance();
+    mgr.configReadFailed_ = true;
+    mgr.configReadRetried_ = true;
+    const int32_t testId = Constants::START_USER_ID + 82;
+    EXPECT_EQ(innerMgrService_->ValidateDisplayForActivation(testId, Constants::DEFAULT_DISPLAY_ID),
+        ERR_ACCOUNT_COMMON_FILE_READ_FAILED);
+    TeardownDisplayUserZone();
+}
+
+/**
+ * @tc.name: ValidateDisplayForActivationConfigFormatError001
+ * @tc.desc: Verify activation returns the configuration format error without falling back to primary-display logic.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(IInnerOsAccountManagerTest, ValidateDisplayForActivationConfigFormatError001, TestSize.Level1)
+{
+    TeardownDisplayUserZone();
+    auto &mgr = DisplayUserZoneConfigManager::GetInstance();
+    mgr.configFormatError_ = true;
+    const int32_t testId = Constants::START_USER_ID + 83;
+    EXPECT_EQ(innerMgrService_->ValidateDisplayForActivation(testId, Constants::DEFAULT_DISPLAY_ID),
+        ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR);
+    TeardownDisplayUserZone();
+}
+
+/**
+ * @tc.name: UserZoneQueriesConfigFormatError001
+ * @tc.desc: Verify user-zone query entry points return the configuration error instead of consuming empty maps.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(IInnerOsAccountManagerTest, UserZoneQueriesConfigFormatError001, TestSize.Level1)
+{
+    TeardownDisplayUserZone();
+    auto &mgr = DisplayUserZoneConfigManager::GetInstance();
+    mgr.configFormatError_ = true;
+    constexpr int32_t testId = Constants::START_USER_ID + 84;
+    bool isForeground = false;
+    int32_t localId = Constants::INVALID_OS_ACCOUNT_ID;
+    int32_t defaultId = Constants::INVALID_OS_ACCOUNT_ID;
+    std::vector<uint64_t> displayIds;
+    int32_t oldForegroundId = Constants::INVALID_OS_ACCOUNT_ID;
+    const bool hadForeground = innerMgrService_->foregroundAccountMap_.Find(
+        Constants::DEFAULT_DISPLAY_ID, oldForegroundId);
+    innerMgrService_->foregroundAccountMap_.EnsureInsert(Constants::DEFAULT_DISPLAY_ID, testId);
+
+    EXPECT_EQ(innerMgrService_->IsOsAccountForeground(testId, Constants::DEFAULT_DISPLAY_ID, isForeground),
+        ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR);
+    EXPECT_EQ(innerMgrService_->GetForegroundOsAccountLocalId(Constants::DEFAULT_DISPLAY_ID, localId),
+        ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR);
+    EXPECT_EQ(innerMgrService_->GetForegroundOsAccountDisplayIds(testId, displayIds),
+        ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR);
+    EXPECT_EQ(innerMgrService_->GetDefaultActivatedOsAccount(Constants::DEFAULT_DISPLAY_ID, defaultId),
+        ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR);
+
+    if (hadForeground) {
+        innerMgrService_->foregroundAccountMap_.EnsureInsert(Constants::DEFAULT_DISPLAY_ID, oldForegroundId);
+    } else {
+        innerMgrService_->foregroundAccountMap_.Erase(Constants::DEFAULT_DISPLAY_ID);
+    }
+    TeardownDisplayUserZone();
+}
+
+/**
+ * @tc.name: ValidateDisplayForActivationCrossUserZone001
+ * @tc.desc: Verify primary-only foreground keys allow validation to identify cross-zone activation.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(IInnerOsAccountManagerTest, ValidateDisplayForActivationCrossUserZone001, TestSize.Level1)
+{
+    SetupDisplayUserZoneLoaded();
+    const int32_t testId = Constants::START_USER_ID + 90;
+
+    int32_t oldDefault = -1;
+    int32_t oldC = -1;
+    bool hadDefault = innerMgrService_->foregroundAccountMap_.Find(Constants::DEFAULT_DISPLAY_ID, oldDefault);
+    bool hadC = innerMgrService_->foregroundAccountMap_.Find(DISPLAY_C_LOGICAL_ID, oldC);
+
+    // DEFAULT_DISPLAY_ID bypasses the display-existence check and is a different display key.
+    innerMgrService_->foregroundAccountMap_.EnsureInsert(DISPLAY_C_LOGICAL_ID, testId);
+    EXPECT_EQ(innerMgrService_->ValidateDisplayForActivation(testId, Constants::DEFAULT_DISPLAY_ID),
+        ERR_ACCOUNT_COMMON_CROSS_DISPLAY_ACTIVE_ERROR);
+
+    // The same primary key represents the same user zone and is not cross-zone activation.
+    innerMgrService_->foregroundAccountMap_.Erase(DISPLAY_C_LOGICAL_ID);
+    innerMgrService_->foregroundAccountMap_.EnsureInsert(Constants::DEFAULT_DISPLAY_ID, testId);
+    EXPECT_EQ(innerMgrService_->ValidateDisplayForActivation(testId, Constants::DEFAULT_DISPLAY_ID), ERR_OK);
+
+    if (hadDefault) {
+        innerMgrService_->foregroundAccountMap_.EnsureInsert(Constants::DEFAULT_DISPLAY_ID, oldDefault);
+    } else {
+        innerMgrService_->foregroundAccountMap_.Erase(Constants::DEFAULT_DISPLAY_ID);
+    }
+    if (hadC) {
+        innerMgrService_->foregroundAccountMap_.EnsureInsert(DISPLAY_C_LOGICAL_ID, oldC);
+    } else {
+        innerMgrService_->foregroundAccountMap_.Erase(DISPLAY_C_LOGICAL_ID);
+    }
+    TeardownDisplayUserZone();
+}
+
+/**
+ * @tc.name: CleanForegroundAccountMapLoaded001
+ * @tc.desc: Verify CleanForegroundAccountMap removes only the primary display entry because
+ *           secondary displays are never stored in foregroundAccountMap_.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(IInnerOsAccountManagerTest, CleanForegroundAccountMapLoaded001, TestSize.Level1)
+{
+    SetupDisplayUserZoneLoaded();
+    const int32_t localId = Constants::START_USER_ID + 95;
+
+    // Seed only the primary display; keep the secondary absent to enforce the primary-display-only invariant.
+    int32_t oldA = -1, oldB = -1;
+    bool hadA = innerMgrService_->foregroundAccountMap_.Find(DISPLAY_A_LOGICAL_ID, oldA);
+    bool hadB = innerMgrService_->foregroundAccountMap_.Find(DISPLAY_B_LOGICAL_ID, oldB);
+    innerMgrService_->foregroundAccountMap_.EnsureInsert(DISPLAY_A_LOGICAL_ID, localId);
+    innerMgrService_->foregroundAccountMap_.Erase(DISPLAY_B_LOGICAL_ID);
+
+    OsAccountInfo info;
+    info.SetLocalId(localId);
+    info.SetDisplayId(DISPLAY_A_LOGICAL_ID);
+    info.SetIsForeground(true);
+    innerMgrService_->CleanForegroundAccountMap(info);
+
+    int32_t checkId = -1;
+    EXPECT_FALSE(innerMgrService_->foregroundAccountMap_.Find(DISPLAY_A_LOGICAL_ID, checkId));
+    EXPECT_FALSE(innerMgrService_->foregroundAccountMap_.Find(DISPLAY_B_LOGICAL_ID, checkId));
+
+    // Restore
+    if (hadA) {
+        innerMgrService_->foregroundAccountMap_.EnsureInsert(DISPLAY_A_LOGICAL_ID, oldA);
+    }
+    if (hadB) {
+        innerMgrService_->foregroundAccountMap_.EnsureInsert(DISPLAY_B_LOGICAL_ID, oldB);
+    }
+    TeardownDisplayUserZone();
+}
+
+/**
+ * @tc.name: SetDefaultActivatedOsAccountUserZone001
+ * @tc.desc: Verify setting a default account through a secondary display is rejected when
+ *           the display user zone configuration is loaded.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(IInnerOsAccountManagerTest, SetDefaultActivatedOsAccountUserZone001, TestSize.Level1)
+{
+    SetupDisplayUserZoneLoaded();
+
+    int32_t oldDefaultId = Constants::INVALID_OS_ACCOUNT_ID;
+    int32_t oldSecondaryId = Constants::INVALID_OS_ACCOUNT_ID;
+    const bool hadDefault = innerMgrService_->defaultActivatedIds_.Find(DISPLAY_A_LOGICAL_ID, oldDefaultId);
+    const bool hadSecondary = innerMgrService_->defaultActivatedIds_.Find(DISPLAY_B_LOGICAL_ID, oldSecondaryId);
+    innerMgrService_->defaultActivatedIds_.EnsureInsert(DISPLAY_A_LOGICAL_ID, Constants::START_USER_ID);
+    innerMgrService_->defaultActivatedIds_.Erase(DISPLAY_B_LOGICAL_ID);
+
+    EXPECT_EQ(innerMgrService_->SetDefaultActivatedOsAccount(DISPLAY_B_LOGICAL_ID, Constants::START_USER_ID),
+        ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR);
+
+    int32_t activatedId = Constants::INVALID_OS_ACCOUNT_ID;
+    EXPECT_TRUE(innerMgrService_->defaultActivatedIds_.Find(DISPLAY_A_LOGICAL_ID, activatedId));
+    EXPECT_EQ(activatedId, Constants::START_USER_ID);
+    EXPECT_FALSE(innerMgrService_->defaultActivatedIds_.Find(DISPLAY_B_LOGICAL_ID, activatedId));
+
+    if (hadDefault) {
+        innerMgrService_->defaultActivatedIds_.EnsureInsert(DISPLAY_A_LOGICAL_ID, oldDefaultId);
+    } else {
+        innerMgrService_->defaultActivatedIds_.Erase(DISPLAY_A_LOGICAL_ID);
+    }
+    if (hadSecondary) {
+        innerMgrService_->defaultActivatedIds_.EnsureInsert(DISPLAY_B_LOGICAL_ID, oldSecondaryId);
+    } else {
+        innerMgrService_->defaultActivatedIds_.Erase(DISPLAY_B_LOGICAL_ID);
+    }
+    TeardownDisplayUserZone();
+}
+
+/**
+ * @tc.name: SetDefaultActivatedOsAccountUserZone002
+ * @tc.desc: Verify setting a default account persists only the user-zone primary key while a
+ *           secondary-display query resolves through that primary.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(IInnerOsAccountManagerTest, SetDefaultActivatedOsAccountUserZone002, TestSize.Level1)
+{
+    const auto state = PrepareDefaultActivatedAccountUserZone(innerMgrService_);
+
+    EXPECT_EQ(innerMgrService_->SetDefaultActivatedOsAccount(
+        Constants::DEFAULT_DISPLAY_ID, Constants::START_USER_ID), ERR_OK);
+
+    int32_t activatedId = Constants::INVALID_OS_ACCOUNT_ID;
+    EXPECT_TRUE(innerMgrService_->defaultActivatedIds_.Find(Constants::DEFAULT_DISPLAY_ID, activatedId));
+    EXPECT_EQ(activatedId, Constants::START_USER_ID);
+    EXPECT_FALSE(innerMgrService_->defaultActivatedIds_.Find(DISPLAY_A_LOGICAL_ID, activatedId));
+    EXPECT_EQ(innerMgrService_->GetDefaultActivatedOsAccount(DISPLAY_A_LOGICAL_ID, activatedId), ERR_OK);
+    EXPECT_EQ(activatedId, Constants::START_USER_ID);
+
+    RestoreDefaultActivatedAccountUserZone(innerMgrService_, state);
+}
+
+/**
+ * @tc.name: SetDefaultActivatedOsAccountFallback001
+ * @tc.desc: Verify setting a default account uses the legacy single-display persistence path
+ *           when the display user zone configuration is not loaded.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(IInnerOsAccountManagerTest, SetDefaultActivatedOsAccountFallback001, TestSize.Level1)
+{
+    TeardownDisplayUserZone();
+    auto originalControl = innerMgrService_->osAccountControl_;
+    auto control = std::make_shared<MockOsAccountControlFileManager>();
+    innerMgrService_->osAccountControl_ = control;
+    OsAccountInfo accountInfo;
+    accountInfo.SetIsCreateCompleted(true);
+    EXPECT_CALL(*control, GetOsAccountInfoById(Constants::START_USER_ID, testing::_))
+        .WillOnce(testing::DoAll(testing::SetArgReferee<1>(accountInfo), testing::Return(ERR_OK)));
+    EXPECT_CALL(*control, SetDefaultActivatedOsAccount(Constants::DEFAULT_DISPLAY_ID, Constants::START_USER_ID))
+        .WillOnce(testing::Return(ERR_OK));
+
+    int32_t oldDefaultId = Constants::INVALID_OS_ACCOUNT_ID;
+    int32_t oldOtherId = Constants::INVALID_OS_ACCOUNT_ID;
+    const bool hadDefault =
+        innerMgrService_->defaultActivatedIds_.Find(Constants::DEFAULT_DISPLAY_ID, oldDefaultId);
+    const bool hadOther = innerMgrService_->defaultActivatedIds_.Find(DISPLAY_A_LOGICAL_ID, oldOtherId);
+    innerMgrService_->defaultActivatedIds_.EnsureInsert(Constants::DEFAULT_DISPLAY_ID, Constants::START_USER_ID + 1);
+    innerMgrService_->defaultActivatedIds_.EnsureInsert(DISPLAY_A_LOGICAL_ID, Constants::START_USER_ID + 1);
+
+    EXPECT_EQ(innerMgrService_->SetDefaultActivatedOsAccount(
+        Constants::DEFAULT_DISPLAY_ID, Constants::START_USER_ID), ERR_OK);
+
+    int32_t activatedId = Constants::INVALID_OS_ACCOUNT_ID;
+    EXPECT_TRUE(innerMgrService_->defaultActivatedIds_.Find(Constants::DEFAULT_DISPLAY_ID, activatedId));
+    EXPECT_EQ(activatedId, Constants::START_USER_ID);
+    EXPECT_TRUE(innerMgrService_->defaultActivatedIds_.Find(DISPLAY_A_LOGICAL_ID, activatedId));
+    EXPECT_EQ(activatedId, Constants::START_USER_ID + 1);
+
+    if (hadDefault) {
+        innerMgrService_->defaultActivatedIds_.EnsureInsert(Constants::DEFAULT_DISPLAY_ID, oldDefaultId);
+    } else {
+        innerMgrService_->defaultActivatedIds_.Erase(Constants::DEFAULT_DISPLAY_ID);
+    }
+    if (hadOther) {
+        innerMgrService_->defaultActivatedIds_.EnsureInsert(DISPLAY_A_LOGICAL_ID, oldOtherId);
+    } else {
+        innerMgrService_->defaultActivatedIds_.Erase(DISPLAY_A_LOGICAL_ID);
+    }
+    innerMgrService_->osAccountControl_ = originalControl;
+}
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
 
 /**
  * @tc.name: MigrateOsAccountTypesToTEE001

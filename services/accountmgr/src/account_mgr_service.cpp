@@ -14,6 +14,7 @@
  */
 
 #include "account_mgr_service.h"
+#include <chrono>
 #include <cerrno>
 #include <thread>
 #include "accesstoken_kit.h"

@@ -14,14 +14,17 @@
  */
 
 #include <gmock/gmock.h>
+#include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "ohos_account_kits.h"
+#include "os_account.h"
 
 namespace OHOS {
 namespace AccountTest {
 namespace {
 const std::string TEST_ACCOUNT_NAME = "TestAccountNameOS";
 const std::string TEST_ACCOUNT_UID = "123456789os";
+const int32_t TEST_LOCAL_ID = 100;
 }
 
 using namespace testing;
@@ -131,6 +134,19 @@ HWTEST_F(AccountOhosProxyMockTest, QueryDeviceAccountIdTest, TestSize.Level3)
 {
     std::int32_t id;
     ErrCode ret = OhosAccountKits::GetInstance().QueryDeviceAccountId(id);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_PROXY, ret);
+}
+
+/**
+ * @tc.name: GetForegroundOsAccountDisplayIdsProxyMock001
+ * @tc.desc: Test GetForegroundOsAccountDisplayIds returns get proxy error when proxy is unavailable.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountOhosProxyMockTest, GetForegroundOsAccountDisplayIdsProxyMock001, TestSize.Level3)
+{
+    std::vector<uint64_t> displayIds;
+    ErrCode ret = OsAccount::GetInstance().GetForegroundOsAccountDisplayIds(TEST_LOCAL_ID, displayIds);
     ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_PROXY, ret);
 }
 }  // namespace AccountTest

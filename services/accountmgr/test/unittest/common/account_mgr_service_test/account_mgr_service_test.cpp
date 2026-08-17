@@ -15,18 +15,21 @@
 
 #include <gtest/gtest.h>
 
-#include "account_dump_helper.h"
 #include "account_info.h"
 #include "account_log_wrapper.h"
 #include "account_test_common.h"
+#include "parameter.h"
 #define private public
+#include "account_dump_helper.h"
 #include "account_mgr_service.h"
+#include "iinner_os_account_manager.h"
 #undef private
 #include "account_proxy.h"
 #include "iaccount.h"
 #include "if_system_ability_manager.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
+#include "os_account_constants.h"
 #include "string_ex.h"
 #include "system_ability.h"
 #include "system_ability_definition.h"

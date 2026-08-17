@@ -129,6 +129,10 @@ ohos_moduletest("domain_account_frameworks_module_mock_test") {
     "samgr:samgr_proxy",
   ]
 
+  if (os_account_enable_multiple_foreground_os_accounts) {
+    external_deps += [ "libxml2:libxml2" ]
+  }
+
   cflags_cc = []
   if (os_account_distributed_feature && !use_libfuzzer) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
@@ -287,6 +291,10 @@ ohos_moduletest("domain_account_client_mock_plugin_so_module_test") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+
+  if (os_account_enable_multiple_foreground_os_accounts) {
+    external_deps += [ "libxml2:libxml2" ]
+  }
 
   cflags_cc = []
   if (use_libfuzzer) {

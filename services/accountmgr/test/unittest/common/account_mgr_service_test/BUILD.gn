@@ -215,7 +215,10 @@ ohos_unittest("account_mgr_test") {
 
   if (os_account_enable_multiple_foreground_os_accounts) {
     cflags_cc += [ "-DENABLE_MULTI_FOREGROUND_OS_ACCOUNTS" ]
-    external_deps += [ "window_manager:libdm_lite" ]
+    external_deps += [
+      "window_manager:libdm_lite",
+      "libxml2:libxml2",
+    ]
   }
 
   if (os_account_multiple_active_accounts ||
@@ -549,7 +552,10 @@ ohos_unittest("OsAccountSubspaceServiceTest") {
 
   if (os_account_enable_multiple_foreground_os_accounts) {
     cflags_cc += [ "-DENABLE_MULTI_FOREGROUND_OS_ACCOUNTS" ]
-    external_deps += [ "window_manager:libdm_lite" ]
+    external_deps += [
+      "window_manager:libdm_lite",
+      "libxml2:libxml2",
+    ]
   }
 
   if (os_account_multiple_active_accounts ||

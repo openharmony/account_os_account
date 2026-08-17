@@ -453,6 +453,13 @@ ohos_unittest("account_inner_iam_manager_mock_source_file_test") {
     "samgr:samgr_proxy",
     "user_auth_framework:userauth_client",
   ]
+  if (os_account_enable_multiple_foreground_os_accounts) {
+    cflags_cc += [ "-DENABLE_MULTI_FOREGROUND_OS_ACCOUNTS" ]
+    external_deps += [
+      "window_manager:libdm_lite",
+      "libxml2:libxml2",
+    ]
+  }
 
   if (has_storage_service_part) {
     cflags_cc += [ "-DHAS_STORAGE_PART" ]
@@ -617,6 +624,13 @@ ohos_unittest("account_iam_mock_test") {
     "samgr:samgr_proxy",
     "user_auth_framework:userauth_client",
   ]
+  if (os_account_enable_multiple_foreground_os_accounts) {
+    cflags_cc += [ "-DENABLE_MULTI_FOREGROUND_OS_ACCOUNTS" ]
+    external_deps += [
+      "window_manager:libdm_lite",
+      "libxml2:libxml2",
+    ]
+  }
 
   if (has_storage_service_part) {
     external_deps += [ "storage_service:storage_manager_sa_proxy" ]

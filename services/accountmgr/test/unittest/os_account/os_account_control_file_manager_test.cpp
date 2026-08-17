@@ -51,6 +51,11 @@ const int64_t STRING_TEST_USER_SHELLNUMBER = 1000;
 const int32_t INVALID_TYPE = 100000;
 const gid_t ACCOUNT_GID = 3058;
 const uid_t ACCOUNT_UID = 3058;
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+const int32_t TEST_NEW_ACCOUNT_ID = Constants::START_USER_ID + 1;
+const uint64_t TEST_DISPLAY_ID_ONE = 1;
+const uint64_t TEST_DISPLAY_ID_TWO = 2;
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
 #ifdef ENABLE_U1_ACCOUNT
 const char SYSTEM_ACCOUNTS_CONFIG[] = "systemAccounts";
 const char U1_CONFIG[] = "1";
