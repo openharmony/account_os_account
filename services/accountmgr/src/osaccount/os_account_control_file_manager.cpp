@@ -377,8 +377,6 @@ void OsAccountControlFileManager::Init()
     GetDataByType<std::vector<std::string>>(accountListJson, Constants::ACCOUNT_LIST, accountIdList);
     if (accountIdList.empty()) {
         ACCOUNT_LOGE("Account id list is empty, recover account list json file.");
-        REPORT_OS_ACCOUNT_FAIL(0, Constants::OPERATION_BOOT_ACTIVATED, -1,
-            "Account list is empty, recovery with default account.");
         RecoverAccountListJsonFile();
         CJsonUnique recoveredAccountListJson = nullptr;
         ErrCode recoverResult = GetAccountListFromFile(recoveredAccountListJson);
@@ -386,6 +384,10 @@ void OsAccountControlFileManager::Init()
             return;
         }
         GetDataByType<std::vector<std::string>>(recoveredAccountListJson, Constants::ACCOUNT_LIST, accountIdList);
+        if (!accountIdList.empty()) {
+            REPORT_OS_ACCOUNT_FAIL(0, Constants::OPERATION_BOOT_ACTIVATED, -1,
+                "Account list was empty, recovered.");
+        }
     }
 
 #ifdef ENABLE_FILE_WATCHER

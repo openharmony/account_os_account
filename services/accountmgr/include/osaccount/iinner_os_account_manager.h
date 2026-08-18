@@ -256,7 +256,11 @@ private:
     IOsAccountSubscribe &subscribeManager_;
     std::int32_t deviceOwnerId_ = -1;
     mutable std::mutex deviceOwnerLock_;
-    SafeMap<uint64_t, int32_t> defaultActivatedIds_;
+    SafeMap<uint64_t, int32_t> defaultActivatedIds_ = [] {
+        SafeMap<uint64_t, int32_t> defaultMap;
+        defaultMap.EnsureInsert(Constants::DEFAULT_DISPLAY_ID, Constants::START_USER_ID);
+        return defaultMap;
+    }();
     OsAccountConfig config_;
     mutable std::mutex ativeMutex_;
     mutable std::mutex operatingMutex_;
