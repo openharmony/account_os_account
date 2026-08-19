@@ -233,6 +233,26 @@ value with the persisted boolean when reading/writing state.
 structures, and query entry points. Do not mix them when reading or writing
 constraints.
 
+**Pitfall 8 — Permission checks must not filter data values by caller.**
+In `OsAccountManagerService` and `IInnerOsAccountManager`, permission checks
+(`AccountPermissionManager::VerifyPermission`) must only gate access (deny →
+error code, allow → standard data). Never use the permission result to return
+different type values to different callers (e.g., the removed
+`RESTRICTED_ADMIN` pattern: returning -1 to callers with
+`MANAGE_LOCAL_ACCOUNTS` but 0 to those without). This causes data
+inconsistency and dirty-data persistence. See root Pitfall 11. Key functions
+to check: `GetRealOsAccountInfoById`, `GetOsAccountType`,
+`RefreshAccountTypeInCache`.
+
+**Pitfall 9 — Data consistency across callers and persistence.**
+When modifying `OsAccountInfo.type_` or cache entries in
+`osAccountCacheManager_`, trace the full data flow: in-memory value → cache →
+persistence (`OsAccountDataStorage` / `os_account_control_file_manager.cpp`)
+→ IPC marshalling. A temporary value (e.g., `restricted` flag) must not leak
+to disk as a non-standard enum value. The file manager's `#ifdef
+SUPPORT_AUTHORIZATION` correction (converting -1 to `ADMIN` on read) is the
+last line of defense — do not remove it. See root Pitfall 12.
+
 ---
 
 ## 5. Verification
