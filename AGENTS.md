@@ -29,6 +29,8 @@
 | Slow recovery while holding lock | P8 | CE8 | HandleFileKeyException / try_lock |
 | OTA dirty-data loop | P9 | CE9 | GetDomainAccountInfo / accountName_.empty() |
 | GetOsAccountType loop | P10 | CE10 | GetOsAccountType / GetOsAccountInfoById |
+| Permission-based data filtering | P11 | CE11 | VerifyPermission / CheckPermission / data value branches |
+| Data consistency across callers | P12 | CE12 | Query/write/migration paths touching shared fields |
 
 ### Non-greppable information (unique value of AGENTS.md)
 The following information **cannot be obtained via code grep** and must be sourced from this file:
@@ -389,6 +391,51 @@ type from an independent data source — TEE hardware
 - Trace all callees of `GetOsAccountType` and confirm none can reach `GetOsAccountType` again via `QueryOsAccountById`.
 
 ⚠ **Common omissions**: ① not distinguishing `IInnerOsAccountManager::GetOsAccountInfoById` (full `QueryOsAccountById` flow, loop risk) vs `OsAccountControlFileManager::GetOsAccountInfoById` (direct file read, safe) ② missing the emulator no-TEE software fallback path.
+
+**Pitfall 11 — Do NOT use permission checks to filter data values by caller.**
+Permission checks (`AccountPermissionManager::VerifyPermission`) must be used
+**only for access control** — i.e., to decide whether to allow or deny an
+operation. They must **never** be used to decide *what data value* to return
+to different callers (e.g., "if caller has permission X, return value A;
+otherwise return value B"). This anti-pattern causes: (1) data inconsistency —
+different callers querying the same entity get different results, breaking
+update flows; (2) dirty-data persistence — a temporary in-memory value (e.g.
+`RESTRICTED_ADMIN = -1`) leaks to disk when a write path doesn't re-check
+permission context.
+  Historical: "EDM-created admin user type query returned `RESTRICTED_ADMIN`
+  (-1) to callers with `MANAGE_LOCAL_ACCOUNTS` permission but `ADMIN` (0) to
+  those without — causing update failures and -1 being persisted to disk,
+  breaking OTA upgrades. Fixed in commit `da3119de3`."
+
+**Code-level evidence checklist (CE11):**
+- At every `VerifyPermission` / `CheckPermission` / `VerifyAccessToken` call site, confirm the permission result controls **whether** data is returned (access control: deny → error code, allow → standard data), not **what** data value is returned.
+- If a code path branches on a permission result and sets different return values (e.g., `if (VerifyPermission == OK) { SetType(RESTRICTED_ADMIN); } else { SetType(ADMIN); }`), this is the anti-pattern — reject it.
+- When distinguishing "internal" vs "external" callers is genuinely needed, use an independent identity mechanism (caller UID, SA identity, dedicated interface), never `VerifyPermission`.
+- Verify that in-memory temporary values (e.g., restricted flags, cache entries) are never written to persistence files as non-standard enum values.
+
+⚠ **Common omissions**: ① conflating "access control" (deny/allow) with "data-value filtering" (return different values) ② using permission as a proxy for "internal caller" identity ③ not checking that a temporary in-memory type value can leak to disk via a write path that doesn't re-check context.
+
+**Pitfall 12 — Ensure data consistency; changes to one path must not break other callers' data view.**
+When modifying any data query, write, or migration path, the developer must
+verify that the change does not alter the data value observed by other
+callers or other business modules. A modification that changes what value a
+field holds in memory or on disk — even if it seems local — can propagate
+through IPC, persistence, and cache to break unrelated features (e.g., OTA
+upgrade, account activation, distributed sync). Before merging a change,
+trace the full data flow: in-memory value → cache → persistence → IPC
+marshalling → cross-module consumers. A crash mid-write must not corrupt
+data; a temporary value must not be persisted as a permanent one.
+  Historical: "The `RESTRICTED_ADMIN` value (-1) was loaded into memory as
+  a temporary type, then a later write path persisted it to disk — breaking
+  OTA upgrades. The developer had not traced the full write flow."
+
+**Code-level evidence checklist (CE12):**
+- For any field whose value is modified in a code path, trace whether the modified value can reach persistence (file write, DB update, KV store) — if so, confirm the persisted value is a valid, standard enum/constant, not a temporary or internal-only value.
+- For any change to a query path, verify that all callers of that query (not just the one being modified) still receive consistent data — grep for all call sites of the changed function.
+- Check whether a cache (e.g., `osAccountCacheManager_`) can hold a temporary value that a later read returns as if it were the canonical value — if so, ensure cache invalidation or value normalization on read.
+- Verify that crash-recovery / OTA-migration paths handle dirty data (e.g., reading -1 from an old file) by normalizing to a valid value, not by propagating the dirty value.
+
+⚠ **Common omissions**: ① only checking the immediate caller, not all consumers of a query ② not checking whether a cache entry with a temporary value can be read back as canonical ③ not verifying the OTA/migration read path normalizes dirty data.
 
 ---
 
