@@ -943,6 +943,11 @@ bool ParseParametersByUnsubscribe(
 void UnsubscribeExecuteCB(napi_env env, void *data)
 {
     AsyncContextForUnsubscribe *asyncContextForOff = reinterpret_cast<AsyncContextForUnsubscribe *>(data);
+    // DFX log for off_all scenario
+    if (asyncContextForOff->callbackRef == nullptr) {
+        ACCOUNT_LOGI("SubEvent op = off_all, kit = BasicServicesKit, event = change");
+    }
+
     for (auto offSubscriber : asyncContextForOff->subscribers) {
         int errCode = AppAccountManager::UnsubscribeAppAccount(offSubscriber);
         ACCOUNT_LOGD("Unsubscribe errcode parameter is %{public}d", errCode);

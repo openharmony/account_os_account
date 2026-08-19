@@ -1417,6 +1417,7 @@ public:
         if (callback.has_value()) {
             Unsubscribe(context, callback);
         } else {
+            ACCOUNT_LOGI("SubEvent op = off_all, kit = BasicServicesKit, event = accountChange");
             Unsubscribe(context, nullptr);
         }
     }
