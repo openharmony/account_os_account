@@ -882,12 +882,12 @@ HWTEST_F(SubProfileQueryOhosMgrTest, CreateTime_OldFileUpgrade_DefaultZero_001, 
 HWTEST_F(SubProfileQueryOhosMgrTest, CreateTime_CreateSubProfile_Positive_001, TestSize.Level1)
 {
     auto &subspaceMgr = OsAccountSubProfileManager::GetInstance();
-    int32_t newSubspaceId = 0;
-    int32_t outIndex = 0;
-    ErrCode ret = subspaceMgr.CreateSubProfile(OHOS_QUERY_USER_ID, newSubspaceId, outIndex);
+    OsAccountSubspaceInfo createdInfo;
+    ErrCode ret = subspaceMgr.CreateSubProfile(OHOS_QUERY_USER_ID, createdInfo);
     ASSERT_EQ(ret, ERR_OK);
     OsAccountSubspaceInfo info;
-    ASSERT_EQ(subspaceMgr.subProfileDataDeal_->LoadSubProfileInfo(OHOS_QUERY_USER_ID, newSubspaceId, info), ERR_OK);
+    ASSERT_EQ(subspaceMgr.subProfileDataDeal_->LoadSubProfileInfo(
+        OHOS_QUERY_USER_ID, createdInfo.subspaceId, info), ERR_OK);
     EXPECT_GT(info.createTime, 0);
 }
 

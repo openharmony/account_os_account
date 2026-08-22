@@ -72,11 +72,11 @@ void OsAccountSubProfileManager::CleanupOrphanedSubProfiles()
     }
 }
 
-ErrCode OsAccountSubProfileManager::CreateSubProfile(int32_t osAccountId, int32_t &newSubspaceId, int32_t &outIndex)
+ErrCode OsAccountSubProfileManager::CreateSubProfile(int32_t osAccountId, OsAccountSubspaceInfo &createdInfo)
 {
     StartTraceAdapter("CreateSubProfile");
     std::lock_guard<std::shared_mutex> lock(subProfileOpMutex_);
-    ErrCode result = CreateSubProfileLocked(osAccountId, newSubspaceId, outIndex);
+    ErrCode result = CreateSubProfileLocked(osAccountId, createdInfo);
     FinishTraceAdapter();
     return result;
 }
@@ -94,8 +94,7 @@ ErrCode OsAccountSubProfileManager::SwitchSubProfile(
     return SwitchSubProfileLocked(osAccountId, subspaceId, fromSubspaceId);
 }
 
-ErrCode OsAccountSubProfileManager::CreateSubProfileLocked(int32_t osAccountId, int32_t &newSubspaceId,
-    int32_t &outIndex)
+ErrCode OsAccountSubProfileManager::CreateSubProfileLocked(int32_t osAccountId, OsAccountSubspaceInfo &createdInfo)
 {
     SubProfileContext subprofileCtx;
     ErrCode ret = IInnerOsAccountManager::GetInstance().ReadSubProfileContext(osAccountId, subprofileCtx);
@@ -117,6 +116,7 @@ ErrCode OsAccountSubProfileManager::CreateSubProfileLocked(int32_t osAccountId, 
         }
     }
 
+    int32_t newSubspaceId = 0;
     ErrCode allocRet = subProfileDataDeal_->AllocateOsAccountSubProfileId(
         osAccountId, subprofileCtx.nextSubProfileId,
         subprofileCtx.subProfileIdList, newSubspaceId);
@@ -126,11 +126,11 @@ ErrCode OsAccountSubProfileManager::CreateSubProfileLocked(int32_t osAccountId, 
         return allocRet;
     }
 
-    return AllocateAndPersistSubProfile(osAccountId, subprofileCtx, newSubspaceId, outIndex);
+    return AllocateAndPersistSubProfile(osAccountId, subprofileCtx, newSubspaceId, createdInfo);
 }
 
 ErrCode OsAccountSubProfileManager::AllocateAndPersistSubProfile(int32_t osAccountId,
-    SubProfileContext &subprofileCtx, int32_t newSubspaceId, int32_t &outIndex)
+    SubProfileContext &subprofileCtx, int32_t newSubspaceId, OsAccountSubspaceInfo &createdInfo)
 {
     auto &subProfileIndexMap = subprofileCtx.subProfileIndexMap;
     int32_t nextIndex = subprofileCtx.nextSubProfileIndex;
@@ -141,7 +141,6 @@ ErrCode OsAccountSubProfileManager::AllocateAndPersistSubProfile(int32_t osAccou
             osAccountId, indexRet);
         return indexRet;
     }
-    outIndex = allocatedIndex;
 
     int32_t base = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
     int32_t subspaceOffset = newSubspaceId - base;
@@ -171,6 +170,7 @@ ErrCode OsAccountSubProfileManager::AllocateAndPersistSubProfile(int32_t osAccou
         RollbackSubProfileCreation(osAccountId, newSubspaceId, allocatedIndex, subprofileCtx);
         return ret;
     }
+    createdInfo = info;
     return ERR_OK;
 }
 

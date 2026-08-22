@@ -325,9 +325,14 @@ HWTEST_F(OhosAccountManagerSubspaceTest, CreateOsAccountSubspace_Success_001, Te
     EXPECT_EQ(result.osAccountId, TEST_OS_ACCOUNT_ID);
     EXPECT_EQ(result.id, TEST_SUBSPACE_BASE + 1);
     EXPECT_EQ(result.index, 1);
+    EXPECT_GT(result.createTime, 0);
 
     auto &mgr = OsAccountSubProfileManager::GetInstance();
     EXPECT_TRUE(mgr.subProfileDataDeal_->IsValidSubProfileExists(TEST_OS_ACCOUNT_ID, result.id));
+
+    OsAccountSubspaceInfo persisted;
+    ASSERT_EQ(mgr.subProfileDataDeal_->LoadSubProfileInfo(TEST_OS_ACCOUNT_ID, result.id, persisted), ERR_OK);
+    EXPECT_EQ(result.createTime, persisted.createTime);
 
     ErrCode delRet = OhosAccountManager::GetInstance().DeleteOsAccountSubspace(
         TEST_OS_ACCOUNT_ID, result.id);
@@ -568,9 +573,8 @@ HWTEST_F(SubspaceManagerInternalTest, CreateSubspace_SaveIncompleteFail_001, Tes
         ofs.close();
     }
 
-    int32_t newSubspaceId = 0;
-    int32_t index = 0;
-    ErrCode ret = mgr.CreateSubProfile(TEST_OS_ACCOUNT_ID, newSubspaceId, index);
+    OsAccountSubspaceInfo createdInfo;
+    ErrCode ret = mgr.CreateSubProfile(TEST_OS_ACCOUNT_ID, createdInfo);
     EXPECT_NE(ret, ERR_OK);
 
     std::filesystem::remove(osAccountDir, ec);
@@ -624,11 +628,10 @@ HWTEST_F(SubspaceManagerInternalTest, CreateSubspace_UpdateOsAccountSubspaceInfo
     MockSetCreatedOsAccounts({osAccountInfo});
     MockForceUpdateSubspaceInfoFail(ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR);
 
-    int32_t newSubspaceId = 0;
-    int32_t index = 0;
-    ErrCode ret = mgr.CreateSubProfile(TEST_OS_ACCOUNT_ID, newSubspaceId, index);
+    OsAccountSubspaceInfo createdInfo;
+    ErrCode ret = mgr.CreateSubProfile(TEST_OS_ACCOUNT_ID, createdInfo);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR);
-    EXPECT_FALSE(mgr.subProfileDataDeal_->IsValidSubProfileExists(TEST_OS_ACCOUNT_ID, newSubspaceId));
+    EXPECT_FALSE(mgr.subProfileDataDeal_->IsValidSubProfileExists(TEST_OS_ACCOUNT_ID, createdInfo.subspaceId));
 
     MockClearForceFailFlags();
     MockSetCreatedOsAccounts({});
@@ -639,11 +642,10 @@ HWTEST_F(SubspaceManagerInternalTest, CreateSubspace_GetOsAccountInfoByIdFail_00
     auto &mgr = OsAccountSubProfileManager::GetInstance();
     MockForceReadSubProfileContextFail(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 
-    int32_t newSubspaceId = 0;
-    int32_t index = 0;
-    ErrCode ret = mgr.CreateSubProfile(TEST_OS_ACCOUNT_ID, newSubspaceId, index);
+    OsAccountSubspaceInfo createdInfo;
+    ErrCode ret = mgr.CreateSubProfile(TEST_OS_ACCOUNT_ID, createdInfo);
     EXPECT_NE(ret, ERR_OK);
-    EXPECT_EQ(newSubspaceId, 0);
+    EXPECT_EQ(createdInfo.subspaceId, 0);
 
     MockClearForceFailFlags();
 }
@@ -653,12 +655,11 @@ HWTEST_F(SubspaceManagerInternalTest, CreateSubspace_FileNotExist_001, TestSize.
     auto &mgr = OsAccountSubProfileManager::GetInstance();
     MockForceReadSubProfileContextFail(ERR_ACCOUNT_COMMON_FILE_NOT_EXIST);
 
-    int32_t newSubspaceId = 0;
-    int32_t index = 0;
-    ErrCode ret = mgr.CreateSubProfile(TEST_OS_ACCOUNT_ID, newSubspaceId, index);
+    OsAccountSubspaceInfo createdInfo;
+    ErrCode ret = mgr.CreateSubProfile(TEST_OS_ACCOUNT_ID, createdInfo);
     EXPECT_EQ(ret, ERR_OK);
-    EXPECT_NE(newSubspaceId, 0);
-    EXPECT_EQ(index, 1);
+    EXPECT_NE(createdInfo.subspaceId, 0);
+    EXPECT_EQ(createdInfo.index, 1);
 
     MockClearForceFailFlags();
 }
@@ -764,9 +765,8 @@ HWTEST_F(SubspaceManagerInternalTest, TryReclaimSubProfileSlots_StillAtLimit_002
 
     MockForceUpdateSubspaceInfoFail(ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR);
 
-    int32_t newSubspaceId = 0;
-    int32_t index = 0;
-    ErrCode ret = mgr.CreateSubProfile(TEST_OS_ACCOUNT_ID, newSubspaceId, index);
+    OsAccountSubspaceInfo createdInfo;
+    ErrCode ret = mgr.CreateSubProfile(TEST_OS_ACCOUNT_ID, createdInfo);
     EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_LIMIT);
 
     MockClearForceFailFlags();
@@ -978,21 +978,20 @@ HWTEST_F(SubspaceManagerInternalTest, CreateSubProfileLocked_ReclaimRefreshesInd
     garbageInfo.toBeRemoved = true;
     ASSERT_EQ(mgr.subProfileDataDeal_->SaveSubProfileInfo(garbageInfo), ERR_OK);
 
-    int32_t newSubspaceId = 0;
-    int32_t newIndex = 0;
-    ErrCode ret = mgr.CreateSubProfile(TEST_OS_ACCOUNT_ID, newSubspaceId, newIndex);
+    OsAccountSubspaceInfo createdInfo;
+    ErrCode ret = mgr.CreateSubProfile(TEST_OS_ACCOUNT_ID, createdInfo);
     EXPECT_EQ(ret, ERR_OK);
-    EXPECT_GE(newIndex, 0);
-    EXPECT_LT(newIndex, MAX_OS_ACCOUNT_SUB_PROFILE_COUNT + 1);
+    EXPECT_GE(createdInfo.index, 0);
+    EXPECT_LT(createdInfo.index, MAX_OS_ACCOUNT_SUB_PROFILE_COUNT + 1);
 
     SubProfileContext updatedData;
     ErrCode getInfoRet = IInnerOsAccountManager::GetInstance().ReadSubProfileContext(TEST_OS_ACCOUNT_ID, updatedData);
     EXPECT_EQ(getInfoRet, ERR_OK);
     auto updatedMap = updatedData.subProfileIndexMap;
-    EXPECT_EQ(updatedMap[newIndex], newSubspaceId);
+    EXPECT_EQ(updatedMap[createdInfo.index], createdInfo.subspaceId);
     EXPECT_EQ(static_cast<int32_t>(updatedData.subProfileIdList.size()), MAX_OS_ACCOUNT_SUB_PROFILE_COUNT + 1);
 
-    if (newSubspaceId == garbageId) {
+    if (createdInfo.subspaceId == garbageId) {
         OsAccountSubspaceInfo onDiskInfo;
         ErrCode loadRet = mgr.subProfileDataDeal_->LoadSubProfileInfo(TEST_OS_ACCOUNT_ID, garbageId, onDiskInfo);
         EXPECT_EQ(loadRet, ERR_OK);
@@ -1019,9 +1018,8 @@ HWTEST_F(SubspaceManagerInternalTest, CreateSubProfile_WriteSubProfileContextFai
 
     MockForceUpdateSubspaceInfoFail(ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR);
 
-    int32_t newSubspaceId = 0;
-    int32_t newIndex = 0;
-    ErrCode ret = mgr.CreateSubProfile(TEST_OS_ACCOUNT_ID, newSubspaceId, newIndex);
+    OsAccountSubspaceInfo createdInfo;
+    ErrCode ret = mgr.CreateSubProfile(TEST_OS_ACCOUNT_ID, createdInfo);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR);
 
     MockClearForceFailFlags();

@@ -97,13 +97,12 @@ uint64_t OsAccountSubProfileManagerTest::allPermTokenId_ = 0;
 HWTEST_F(OsAccountSubProfileManagerTest, CreateSubspace_Success_001, TestSize.Level1)
 {
     auto &mgr = OsAccountSubProfileManager::GetInstance();
-    int32_t newSubspaceId = 0;
-    int32_t index = 0;
-    ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, newSubspaceId, index);
+    OsAccountSubspaceInfo createdInfo;
+    ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, createdInfo);
     EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(newSubspaceId, OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 1);
+    EXPECT_EQ(createdInfo.subspaceId, OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 1);
 
-    EXPECT_TRUE(mgr.subProfileDataDeal_->IsValidSubProfileExists(OS_ACCOUNT_ID, newSubspaceId));
+    EXPECT_TRUE(mgr.subProfileDataDeal_->IsValidSubProfileExists(OS_ACCOUNT_ID, createdInfo.subspaceId));
 }
 
 /**
@@ -114,20 +113,18 @@ HWTEST_F(OsAccountSubProfileManagerTest, CreateSubspace_Success_001, TestSize.Le
 HWTEST_F(OsAccountSubProfileManagerTest, CreateSubspace_Multiple_002, TestSize.Level1)
 {
     auto &mgr = OsAccountSubProfileManager::GetInstance();
-    int32_t distId1 = 0;
-    int32_t distId2 = 0;
-    int32_t index1 = 0;
-    ErrCode ret1 = mgr.CreateSubProfile(OS_ACCOUNT_ID, distId1, index1);
+    OsAccountSubspaceInfo createdInfo1;
+    ErrCode ret1 = mgr.CreateSubProfile(OS_ACCOUNT_ID, createdInfo1);
     EXPECT_EQ(ret1, ERR_OK);
-    EXPECT_EQ(distId1, OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 1);
+    EXPECT_EQ(createdInfo1.subspaceId, OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 1);
 
-    int32_t index2 = 0;
-    ErrCode ret2 = mgr.CreateSubProfile(OS_ACCOUNT_ID, distId2, index2);
+    OsAccountSubspaceInfo createdInfo2;
+    ErrCode ret2 = mgr.CreateSubProfile(OS_ACCOUNT_ID, createdInfo2);
     EXPECT_EQ(ret2, ERR_OK);
-    EXPECT_EQ(distId2, OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 2);
+    EXPECT_EQ(createdInfo2.subspaceId, OS_ACCOUNT_ID * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 2);
 
-    EXPECT_TRUE(mgr.subProfileDataDeal_->IsValidSubProfileExists(OS_ACCOUNT_ID, distId1));
-    EXPECT_TRUE(mgr.subProfileDataDeal_->IsValidSubProfileExists(OS_ACCOUNT_ID, distId2));
+    EXPECT_TRUE(mgr.subProfileDataDeal_->IsValidSubProfileExists(OS_ACCOUNT_ID, createdInfo1.subspaceId));
+    EXPECT_TRUE(mgr.subProfileDataDeal_->IsValidSubProfileExists(OS_ACCOUNT_ID, createdInfo2.subspaceId));
 }
 
 /**
@@ -152,9 +149,8 @@ HWTEST_F(OsAccountSubProfileManagerTest, CreateSubspace_LimitReached_003, TestSi
     }
     MockForceSubProfileContext(OS_ACCOUNT_ID, subprofileCtx);
 
-    int32_t newSubspaceId = 0;
-    int32_t index = 0;
-    ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, newSubspaceId, index);
+    OsAccountSubspaceInfo createdInfo;
+    ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, createdInfo);
     EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_LIMIT);
 }
 
@@ -182,11 +178,10 @@ HWTEST_F(OsAccountSubProfileManagerTest, CreateSubspace_HintOccupied_004, TestSi
     subprofileCtx.subProfileIdList = {base + 1, base + 2};
     MockForceSubProfileContext(OS_ACCOUNT_ID, subprofileCtx);
 
-    int32_t distId = 0;
-    int32_t index = 0;
-    ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, distId, index);
+    OsAccountSubspaceInfo createdInfo;
+    ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, createdInfo);
     EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(distId, base + 3);
+    EXPECT_EQ(createdInfo.subspaceId, base + 3);
 }
 
 /**
@@ -213,12 +208,11 @@ HWTEST_F(OsAccountSubProfileManagerTest, CreateSubspace_WrapAround_005, TestSize
     }
     MockForceSubProfileContext(OS_ACCOUNT_ID, subprofileCtx);
 
-    int32_t distId = 0;
-    int32_t index = 0;
-    ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, distId, index);
+    OsAccountSubspaceInfo createdInfo;
+    ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, createdInfo);
     EXPECT_EQ(ret, ERR_OK);
     // After wrap: startId = base + MAX + 1 > maxId → wrap to minId = base + 1 → free
-    EXPECT_EQ(distId, base + 1);
+    EXPECT_EQ(createdInfo.subspaceId, base + 1);
 }
 
 /**
@@ -229,13 +223,12 @@ HWTEST_F(OsAccountSubProfileManagerTest, CreateSubspace_WrapAround_005, TestSize
 HWTEST_F(OsAccountSubProfileManagerTest, CreateSubspace_AtomicWrite_001, TestSize.Level1)
 {
     auto &mgr = OsAccountSubProfileManager::GetInstance();
-    int32_t newSubspaceId = 0;
-    int32_t index = 0;
-    ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, newSubspaceId, index);
+    OsAccountSubspaceInfo createdInfo;
+    ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, createdInfo);
     EXPECT_EQ(ret, ERR_OK);
 
     OsAccountSubspaceInfo loaded;
-    ret = mgr.subProfileDataDeal_->LoadSubProfileInfo(OS_ACCOUNT_ID, newSubspaceId, loaded);
+    ret = mgr.subProfileDataDeal_->LoadSubProfileInfo(OS_ACCOUNT_ID, createdInfo.subspaceId, loaded);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_TRUE(loaded.isCreateCompleted);
     EXPECT_FALSE(loaded.toBeRemoved);
@@ -265,18 +258,16 @@ HWTEST_F(OsAccountSubProfileManagerTest, CreateSubspace_Isolation_001, TestSize.
     infoB.SetLocalId(OS_ACCOUNT_ID_B);
     MockSetCreatedOsAccounts({infoA, infoB});
 
-    int32_t distIdA = 0;
-    int32_t distIdB = 0;
-    int32_t indexA = 0;
-    ErrCode retA = mgr.CreateSubProfile(OS_ACCOUNT_ID_A, distIdA, indexA);
-    int32_t indexB = 0;
-    ErrCode retB = mgr.CreateSubProfile(OS_ACCOUNT_ID_B, distIdB, indexB);
+    OsAccountSubspaceInfo createdInfoA;
+    ErrCode retA = mgr.CreateSubProfile(OS_ACCOUNT_ID_A, createdInfoA);
+    OsAccountSubspaceInfo createdInfoB;
+    ErrCode retB = mgr.CreateSubProfile(OS_ACCOUNT_ID_B, createdInfoB);
     EXPECT_EQ(retA, ERR_OK);
     EXPECT_EQ(retB, ERR_OK);
 
-    EXPECT_EQ(distIdA / Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER, OS_ACCOUNT_ID_A);
-    EXPECT_EQ(distIdB / Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER, OS_ACCOUNT_ID_B);
-    EXPECT_NE(distIdA, distIdB);
+    EXPECT_EQ(createdInfoA.subspaceId / Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER, OS_ACCOUNT_ID_A);
+    EXPECT_EQ(createdInfoB.subspaceId / Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER, OS_ACCOUNT_ID_B);
+    EXPECT_NE(createdInfoA.subspaceId, createdInfoB.subspaceId);
 }
 
 /**
@@ -287,14 +278,13 @@ HWTEST_F(OsAccountSubProfileManagerTest, CreateSubspace_Isolation_001, TestSize.
 HWTEST_F(OsAccountSubProfileManagerTest, RemoveSpace_Success_001, TestSize.Level1)
 {
     auto &mgr = OsAccountSubProfileManager::GetInstance();
-    int32_t distId = 0;
-    int32_t index = 0;
-    ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, distId, index);
+    OsAccountSubspaceInfo createdInfo;
+    ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, createdInfo);
     EXPECT_EQ(ret, ERR_OK);
 
-    ret = mgr.RemoveSubProfile(OS_ACCOUNT_ID, distId);
+    ret = mgr.RemoveSubProfile(OS_ACCOUNT_ID, createdInfo.subspaceId);
     EXPECT_EQ(ret, ERR_OK);
-    EXPECT_FALSE(mgr.subProfileDataDeal_->IsValidSubProfileExists(OS_ACCOUNT_ID, distId));
+    EXPECT_FALSE(mgr.subProfileDataDeal_->IsValidSubProfileExists(OS_ACCOUNT_ID, createdInfo.subspaceId));
 }
 
 /**
@@ -305,18 +295,17 @@ HWTEST_F(OsAccountSubProfileManagerTest, RemoveSpace_Success_001, TestSize.Level
 HWTEST_F(OsAccountSubProfileManagerTest, RemoveSpace_ToBeRemoved_001, TestSize.Level1)
 {
     auto &mgr = OsAccountSubProfileManager::GetInstance();
-    int32_t distId = 0;
-    int32_t index = 0;
-    ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, distId, index);
+    OsAccountSubspaceInfo createdInfo;
+    ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, createdInfo);
     EXPECT_EQ(ret, ERR_OK);
 
     OsAccountSubspaceInfo info;
-    mgr.subProfileDataDeal_->LoadSubProfileInfo(OS_ACCOUNT_ID, distId, info);
+    mgr.subProfileDataDeal_->LoadSubProfileInfo(OS_ACCOUNT_ID, createdInfo.subspaceId, info);
     EXPECT_FALSE(info.toBeRemoved);
 
-    ret = mgr.RemoveSubProfile(OS_ACCOUNT_ID, distId);
+    ret = mgr.RemoveSubProfile(OS_ACCOUNT_ID, createdInfo.subspaceId);
     EXPECT_EQ(ret, ERR_OK);
-    EXPECT_FALSE(mgr.subProfileDataDeal_->IsValidSubProfileExists(OS_ACCOUNT_ID, distId));
+    EXPECT_FALSE(mgr.subProfileDataDeal_->IsValidSubProfileExists(OS_ACCOUNT_ID, createdInfo.subspaceId));
 }
 
 /**
@@ -345,15 +334,14 @@ HWTEST_F(OsAccountSubProfileManagerTest, RemoveSpace_ZeroIndex_001, TestSize.Lev
 HWTEST_F(OsAccountSubProfileManagerTest, RemoveSpace_ForegroundCheck_001, TestSize.Level1)
 {
     auto &mgr = OsAccountSubProfileManager::GetInstance();
-    int32_t distId = 0;
-    int32_t index = 0;
-    ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, distId, index);
+    OsAccountSubspaceInfo createdInfo;
+    ErrCode ret = mgr.CreateSubProfile(OS_ACCOUNT_ID, createdInfo);
     EXPECT_EQ(ret, ERR_OK);
 
     // GetOsAccountInfoById succeeds → foregroundId=0 ≠ subspaceId → removal proceeds normally
-    ret = mgr.RemoveSubProfile(OS_ACCOUNT_ID, distId);
+    ret = mgr.RemoveSubProfile(OS_ACCOUNT_ID, createdInfo.subspaceId);
     EXPECT_EQ(ret, ERR_OK);
-    EXPECT_FALSE(mgr.subProfileDataDeal_->IsValidSubProfileExists(OS_ACCOUNT_ID, distId));
+    EXPECT_FALSE(mgr.subProfileDataDeal_->IsValidSubProfileExists(OS_ACCOUNT_ID, createdInfo.subspaceId));
 }
 
 /**
@@ -391,25 +379,23 @@ HWTEST_F(OsAccountSubProfileManagerTest, SwitchSpace_NotFound_001, TestSize.Leve
 HWTEST_F(OsAccountSubProfileManagerTest, RemoveSpace_ToBeRemovedAndCleanup_001, TestSize.Level1)
 {
     auto &mgr = OsAccountSubProfileManager::GetInstance();
-    int32_t distId1 = 0;
-    int32_t distId2 = 0;
-    int32_t index1 = 0;
-    ErrCode ret1 = mgr.CreateSubProfile(OS_ACCOUNT_ID, distId1, index1);
-    int32_t index2 = 0;
-    ErrCode ret2 = mgr.CreateSubProfile(OS_ACCOUNT_ID, distId2, index2);
+    OsAccountSubspaceInfo createdInfo1;
+    ErrCode ret1 = mgr.CreateSubProfile(OS_ACCOUNT_ID, createdInfo1);
+    OsAccountSubspaceInfo createdInfo2;
+    ErrCode ret2 = mgr.CreateSubProfile(OS_ACCOUNT_ID, createdInfo2);
     EXPECT_EQ(ret1, ERR_OK);
     EXPECT_EQ(ret2, ERR_OK);
 
-    ret1 = mgr.RemoveSubProfile(OS_ACCOUNT_ID, distId1);
+    ret1 = mgr.RemoveSubProfile(OS_ACCOUNT_ID, createdInfo1.subspaceId);
     EXPECT_EQ(ret1, ERR_OK);
 
-    EXPECT_TRUE(mgr.subProfileDataDeal_->IsValidSubProfileExists(OS_ACCOUNT_ID, distId2));
-    EXPECT_FALSE(mgr.subProfileDataDeal_->IsValidSubProfileExists(OS_ACCOUNT_ID, distId1));
+    EXPECT_TRUE(mgr.subProfileDataDeal_->IsValidSubProfileExists(OS_ACCOUNT_ID, createdInfo2.subspaceId));
+    EXPECT_FALSE(mgr.subProfileDataDeal_->IsValidSubProfileExists(OS_ACCOUNT_ID, createdInfo1.subspaceId));
 
     std::set<int32_t> validIds;
     EXPECT_EQ(mgr.subProfileDataDeal_->ScanOsAccountSubProfileIds(OS_ACCOUNT_ID, validIds), ERR_OK);
-    EXPECT_EQ(validIds.count(distId1), 0u);
-    EXPECT_EQ(validIds.count(distId2), 1u);
+    EXPECT_EQ(validIds.count(createdInfo1.subspaceId), 0u);
+    EXPECT_EQ(validIds.count(createdInfo2.subspaceId), 1u);
 }
 
 /**
@@ -423,9 +409,8 @@ HWTEST_F(OsAccountSubProfileManagerTest, RemoveSpace_UpdateOsAccountSubspaceInfo
     auto &mgr = OsAccountSubProfileManager::GetInstance();
 
     // Create normally first so mock state is correctly updated with the subspace ID
-    int32_t subspaceId = 0;
-    int32_t index = 0;
-    ErrCode createRet = mgr.CreateSubProfile(OS_ACCOUNT_ID, subspaceId, index);
+    OsAccountSubspaceInfo createdInfo;
+    ErrCode createRet = mgr.CreateSubProfile(OS_ACCOUNT_ID, createdInfo);
     EXPECT_EQ(createRet, ERR_OK);
 
     // Force UpdateOsAccountSubspaceInfo to fail only for the removal path.
@@ -433,7 +418,7 @@ HWTEST_F(OsAccountSubProfileManagerTest, RemoveSpace_UpdateOsAccountSubspaceInfo
     // which fails → hits the err != ERR_OK log branch for coverage.
     MockForceUpdateSubspaceInfoFail(ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 
-    ErrCode removeRet = mgr.RemoveSubProfile(OS_ACCOUNT_ID, subspaceId);
+    ErrCode removeRet = mgr.RemoveSubProfile(OS_ACCOUNT_ID, createdInfo.subspaceId);
     EXPECT_EQ(removeRet, ERR_OK);
 
     MockClearForceFailFlags();

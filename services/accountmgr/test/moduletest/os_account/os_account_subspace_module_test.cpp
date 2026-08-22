@@ -1019,14 +1019,13 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchSubspaceLocked_SetForegroundFailed_0
     ASSERT_EQ(IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(ACCOUNT_ID, originalInfo), ERR_OK);
     int32_t originalFg = originalInfo.GetForegroundSubProfileId();
 
-    int32_t newSubspaceId = 0;
-    int32_t idx = 0;
-    ASSERT_EQ(mgr.CreateSubProfile(ACCOUNT_ID, newSubspaceId, idx), ERR_OK);
+    OsAccountSubspaceInfo createdInfo;
+    ASSERT_EQ(mgr.CreateSubProfile(ACCOUNT_ID, createdInfo), ERR_OK);
     ASSERT_EQ(IInnerOsAccountManager::GetInstance().SetOsAccountForegroundSubspaceId(
-        ACCOUNT_ID, newSubspaceId), ERR_OK);
+        ACCOUNT_ID, createdInfo.subspaceId), ERR_OK);
 
     OsAccountSubspaceInfo info;
-    info.subspaceId = newSubspaceId;
+    info.subspaceId = createdInfo.subspaceId;
     info.userId_ = ACCOUNT_ID;
     info.isCreateCompleted = true;
     info.toBeRemoved = false;
@@ -1040,7 +1039,7 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchSubspaceLocked_SetForegroundFailed_0
 
     MockClearForceFailFlags();
     IInnerOsAccountManager::GetInstance().SetOsAccountForegroundSubspaceId(ACCOUNT_ID, originalFg);
-    mgr.subProfileDataDeal_->RemoveSubProfileDir(ACCOUNT_ID, newSubspaceId);
+    mgr.subProfileDataDeal_->RemoveSubProfileDir(ACCOUNT_ID, createdInfo.subspaceId);
 }
 
 /**
@@ -1067,33 +1066,31 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchOsAccountSubspace_ActiveSessionRejec
     mgr.Init(TEST_ROOT_DIR);
 
     // Create two subprofiles: one as foreground with LOGIN state, one as switch target
-    int32_t fgSubspaceId = 0;
-    int32_t fgIdx = 0;
-    ASSERT_EQ(mgr.CreateSubProfile(ACCOUNT_ID, fgSubspaceId, fgIdx), ERR_OK);
+    OsAccountSubspaceInfo fgCreatedInfo;
+    ASSERT_EQ(mgr.CreateSubProfile(ACCOUNT_ID, fgCreatedInfo), ERR_OK);
 
-    int32_t targetSubspaceId = 0;
-    int32_t targetIdx = 0;
-    ASSERT_EQ(mgr.CreateSubProfile(ACCOUNT_ID, targetSubspaceId, targetIdx), ERR_OK);
+    OsAccountSubspaceInfo targetCreatedInfo;
+    ASSERT_EQ(mgr.CreateSubProfile(ACCOUNT_ID, targetCreatedInfo), ERR_OK);
 
-    // Set foreground subprofile to fgSubspaceId
+    // Set foreground subprofile to the fg subprofile's id
     ASSERT_EQ(IInnerOsAccountManager::GetInstance().SetOsAccountForegroundSubspaceId(
-        ACCOUNT_ID, fgSubspaceId), ERR_OK);
+        ACCOUNT_ID, fgCreatedInfo.subspaceId), ERR_OK);
 
     // Mark foreground subprofile as LOGIN (active session)
     OsAccountSubspaceInfo fgInfo;
-    ASSERT_EQ(mgr.subProfileDataDeal_->LoadSubProfileInfo(ACCOUNT_ID, fgSubspaceId, fgInfo), ERR_OK);
+    ASSERT_EQ(mgr.subProfileDataDeal_->LoadSubProfileInfo(ACCOUNT_ID, fgCreatedInfo.subspaceId, fgInfo), ERR_OK);
     fgInfo.ohosAccountInfo_.status_ = ACCOUNT_STATE_LOGIN;
     ASSERT_EQ(mgr.subProfileDataDeal_->SaveSubProfileInfo(fgInfo), ERR_OK);
 
     int32_t fromSubspaceId = -1;
     ErrCode ret = OhosAccountManager::GetInstance().SwitchOsAccountSubspace(
-        ACCOUNT_ID, targetSubspaceId, fromSubspaceId);
+        ACCOUNT_ID, targetCreatedInfo.subspaceId, fromSubspaceId);
     EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_HAS_ACTIVE_SESSION);
 
     // Cleanup
     IInnerOsAccountManager::GetInstance().SetOsAccountForegroundSubspaceId(ACCOUNT_ID, originalFg);
-    mgr.subProfileDataDeal_->RemoveSubProfileDir(ACCOUNT_ID, fgSubspaceId);
-    mgr.subProfileDataDeal_->RemoveSubProfileDir(ACCOUNT_ID, targetSubspaceId);
+    mgr.subProfileDataDeal_->RemoveSubProfileDir(ACCOUNT_ID, fgCreatedInfo.subspaceId);
+    mgr.subProfileDataDeal_->RemoveSubProfileDir(ACCOUNT_ID, targetCreatedInfo.subspaceId);
 }
 
 #endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
