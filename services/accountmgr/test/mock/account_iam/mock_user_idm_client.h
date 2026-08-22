@@ -47,6 +47,8 @@ public:
     MOCK_METHOD(int32_t, GetSecUserInfo,
         (int32_t userId, const std::shared_ptr<GetSecUserInfoCallback> &callback), (override));
     MOCK_METHOD(void, ClearRedundancyCredential, (const std::shared_ptr<UserIdmClientCallback> &callback), (override));
+    MOCK_METHOD(void, DeleteSubProfile, (int32_t subProfileId,
+        const std::shared_ptr<UserIdmClientCallback> &callback), (override));
     MOCK_METHOD(int32_t, RegistCredChangeEventListener, (const std::vector<AuthType> &authTypes,
         const std::shared_ptr<CredChangeEventListener> &listener), (override));
     MOCK_METHOD(int32_t, UnRegistCredChangeEventListener,
