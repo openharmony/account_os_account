@@ -19,7 +19,7 @@
 #include <condition_variable>
 #include <memory>
 #include <mutex>
-#include <sharedmutex>
+#include <shared_mutex>
 #include "account_info.h"
 #include "account_log_wrapper.h"
 #include "account_state_machine.h"
@@ -42,10 +42,13 @@ constexpr int32_t DELETE_SUB_PROFILE_TIMEOUT_SEC = 5; // seconds to wait for IAM
 // Synchronous wrapper callback for UserIdmClient::DeleteSubProfile.
 // Ignores ResultCode::NOT_ENROLLED (no credential to delete is not an error);
 // reports other non-success results via ReportOsAccountOperationFail.
-class DeleteSubProfileCallback : public UserIam::UserAuth::UserIdmClientCallback {
+class DeleteSubProfileCallback final : public UserIam::UserAuth::UserIdmClientCallback {
 public:
     DeleteSubProfileCallback(int32_t osAccountId, int32_t subProfileId)
-        : osAccountId_(osAccountId), subProfileId_(subProfileId) {}
+        : subProfileId_(subProfileId)
+    {
+        (void)osAccountId;
+    }
     ~DeleteSubProfileCallback() = default;
 
     void OnResult(int32_t result, const UserIam::UserAuth::Attributes &extraInfo) override;
@@ -59,7 +62,6 @@ public:
     std::condition_variable onResultCondition_;
 
 private:
-    int32_t osAccountId_;
     int32_t subProfileId_;
     int32_t result_ = 0;
     bool isCalled_ = false;
