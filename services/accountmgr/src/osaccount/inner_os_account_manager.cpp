@@ -4146,30 +4146,28 @@ ErrCode IInnerOsAccountManager::InitOsAccountSubspaceForNewAccount(int32_t local
         return writeRet;
     }
 
-    int32_t newSubspaceId = 0;
-    int32_t outIndex = 0;
-    ErrCode createRet = OsAccountSubProfileManager::GetInstance().CreateSubProfile(
-        localId, newSubspaceId, outIndex);
+    OsAccountSubspaceInfo createdInfo;
+    ErrCode createRet = OsAccountSubProfileManager::GetInstance().CreateSubProfile(localId, createdInfo);
     if (createRet != ERR_OK) {
         ACCOUNT_LOGE("CreateSubProfile failed for new account localId=%{public}d, ret=%{public}d",
             localId, createRet);
         osAccountControl_->DeleteSubProfileContextFile(localId);
         return createRet;
     }
-    ReportOsAccountLifeCycle(newSubspaceId, Constants::OPERATION_SUBPROFILE_CREATE);
+    ReportOsAccountLifeCycle(createdInfo.subspaceId, Constants::OPERATION_SUBPROFILE_CREATE);
 
     int32_t fromSubspaceId = -1;
     ErrCode switchRet = OsAccountSubProfileManager::GetInstance().SwitchSubProfile(
-        localId, newSubspaceId, fromSubspaceId);
+        localId, createdInfo.subspaceId, fromSubspaceId);
     if (switchRet != ERR_OK) {
         ACCOUNT_LOGE("SwitchSubProfile failed for new account localId=%{public}d, ret=%{public}d",
             localId, switchRet);
         osAccountControl_->DeleteSubProfileContextFile(localId);
         return switchRet;
     }
-    foregroundSubProfileId = newSubspaceId;
+    foregroundSubProfileId = createdInfo.subspaceId;
 
-    ReportOsAccountLifeCycle(newSubspaceId, Constants::OPERATION_SUBPROFILE_SWITCH);
+    ReportOsAccountLifeCycle(createdInfo.subspaceId, Constants::OPERATION_SUBPROFILE_SWITCH);
 
     return ERR_OK;
 }

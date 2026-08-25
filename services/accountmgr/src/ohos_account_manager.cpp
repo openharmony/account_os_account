@@ -659,35 +659,28 @@ void OhosAccountManager::InitOsAccountSubProfileManager(const std::string &rootP
 
 ErrCode OhosAccountManager::CreateOsAccountSubspace(int32_t osAccountId, OsAccountSubspaceResult &result)
 {
-    int32_t newSubspaceId = 0;
-    int32_t index = 0;
-    ErrCode ret = OsAccountSubProfileManager::GetInstance().CreateSubProfile(osAccountId, newSubspaceId, index);
+    OsAccountSubspaceInfo createdInfo;
+    ErrCode ret = OsAccountSubProfileManager::GetInstance().CreateSubProfile(osAccountId, createdInfo);
     if (ret != ERR_OK) {
         REPORT_OS_ACCOUNT_FAIL(osAccountId, Constants::OPERATION_SUBPROFILE_CREATE, ret,
             "CreateOsAccountSubspace failed");
         return ret;
     }
-    result.id = newSubspaceId;
+    result.id = createdInfo.subspaceId;
     result.osAccountId = osAccountId;
-    result.index = index;
-    // Reuse the authoritative createTime persisted by AllocateAndPersistSubProfile instead of
-    // stamping a second now() (which could drift ~1ms from the value GetSubProfile returns).
-    OsAccountSubspaceInfo persistedInfo;
-    if (OsAccountSubProfileManager::GetInstance().LoadSubProfileInfo(
-        osAccountId, newSubspaceId, persistedInfo) == ERR_OK) {
-        result.createTime = persistedInfo.createTime;
-    }
+    result.index = createdInfo.index;
+    result.createTime = createdInfo.createTime;
 
     ErrCode publishRet = OsAccountSubProfileSubscribeManager::GetInstance().Publish(
-        OsAccountSubProfileEventType::CREATED, osAccountId, newSubspaceId);
+        OsAccountSubProfileEventType::CREATED, osAccountId, createdInfo.subspaceId);
     if (publishRet != ERR_OK) {
         ACCOUNT_LOGW("Failed to publish CREATE event for distId=%{public}d, ret=%{public}d (space is still valid)",
-            newSubspaceId, publishRet);
+            createdInfo.subspaceId, publishRet);
     }
-    SendSubProfileCES(osAccountId, newSubspaceId, COMMON_EVENT_OS_ACCOUNT_SUB_PROFILE_CREATED);
+    SendSubProfileCES(osAccountId, createdInfo.subspaceId, COMMON_EVENT_OS_ACCOUNT_SUB_PROFILE_CREATED);
     ACCOUNT_LOGI("CreateOsAccountSubspace successful, osAccountId=%{public}d, subspaceId=%{public}d",
-        osAccountId, newSubspaceId);
-    ReportOsAccountLifeCycle(newSubspaceId, Constants::OPERATION_SUBPROFILE_CREATE);
+        osAccountId, createdInfo.subspaceId);
+    ReportOsAccountLifeCycle(createdInfo.subspaceId, Constants::OPERATION_SUBPROFILE_CREATE);
     return ERR_OK;
 }
 

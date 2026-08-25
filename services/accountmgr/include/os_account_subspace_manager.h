@@ -44,7 +44,7 @@ public:
     void Init(const std::string &rootPath);
     void CleanupOrphanedSubProfiles();
 
-    ErrCode CreateSubProfile(int32_t osAccountId, int32_t &newSubspaceId, int32_t &outIndex);
+    ErrCode CreateSubProfile(int32_t osAccountId, OsAccountSubspaceInfo &createdInfo);
     ErrCode RemoveSubProfile(int32_t osAccountId, int32_t subspaceId);
     ErrCode SwitchSubProfile(int32_t osAccountId, int32_t subspaceId, int32_t &fromSubspaceId);
 
@@ -68,9 +68,9 @@ private:
     OsAccountSubProfileManager() = default;
     ~OsAccountSubProfileManager() = default;
 
-    ErrCode CreateSubProfileLocked(int32_t osAccountId, int32_t &newSubspaceId, int32_t &outIndex);
+    ErrCode CreateSubProfileLocked(int32_t osAccountId, OsAccountSubspaceInfo &createdInfo);
     ErrCode AllocateAndPersistSubProfile(int32_t osAccountId, SubProfileContext &subprofileCtx,
-        int32_t newSubspaceId, int32_t &outIndex);
+        int32_t newSubspaceId, OsAccountSubspaceInfo &createdInfo);
     void RollbackSubProfileCreation(int32_t osAccountId, int32_t newSubspaceId,
         int32_t allocatedIndex, SubProfileContext &subprofileCtx);
     ErrCode RemoveSubProfileLocked(int32_t osAccountId, int32_t subspaceId);
