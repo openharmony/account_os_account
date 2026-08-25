@@ -116,6 +116,8 @@ ErrCode DeleteSubProfileCred(int32_t osAccountId, int32_t subProfileId)
             "Failed to delete sub profile credential");
         return result;
     }
+    ACCOUNT_LOGI("DeleteSubProfile success, osAccountId=%{public}d, subProfileId=%{public}d",
+        osAccountId, subProfileId);
     return ERR_OK;
 }
 } // namespace

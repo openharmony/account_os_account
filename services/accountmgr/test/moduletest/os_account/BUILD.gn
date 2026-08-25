@@ -805,6 +805,7 @@ ohos_moduletest("os_account_subspace_module_test") {
   sources = [
     "os_account_subspace_module_test.cpp",
     "${services_path}/accountmgr/test/unittest/ohos_account/mock/mock_space_dependencies.cpp",
+    "${services_path}/accountmgr/test/mock/account_iam/mock_user_idm_client.cpp",
   ]
 
   sources += [
@@ -868,6 +869,7 @@ ohos_moduletest("os_account_subspace_module_test") {
     "${os_account_dfx_path}/data_dfx",
     "${account_iam_interfaces_native_path}/include",
     "${services_path}/accountmgr/include/os_account_subprofile",
+    "${services_path}/accountmgr/test/mock/account_iam",
   ]
 
   deps = [
@@ -912,6 +914,7 @@ ohos_moduletest("os_account_subspace_module_test") {
     "cJSON:cjson",
     "c_utils:utils",
     "googletest:gtest_main",
+    "googletest:gmock_main",
     "hilog:libhilog",
     "init:libbegetutil",
     "ipc:ipc_single",
