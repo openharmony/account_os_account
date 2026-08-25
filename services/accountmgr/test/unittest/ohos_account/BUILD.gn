@@ -527,6 +527,7 @@ ohos_unittest("OsAccountSubProfileManagerTest") {
     "${services_path}/accountmgr/src/common/database/kvstore/kvstore_adapter_impl.cpp",
     "${services_path}/accountmgr/src/distributed_account/os_account_subspace_data_deal.cpp",
     "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager.cpp",
+    "${services_path}/accountmgr/test/mock/account_iam/mock_user_idm_client.cpp",
     "mock/mock_space_dependencies.cpp",
   ]
 
@@ -537,6 +538,7 @@ ohos_unittest("OsAccountSubProfileManagerTest") {
     "${services_path}/accountmgr/include/distributed_account",
     "${services_path}/accountmgr/include/bundle_manager_adapter",
     "${os_account_subspace_interfaces_native_path}/include",
+    "${services_path}/accountmgr/test/mock/account_iam",
     "${common_path}/account_error",
     "${common_path}/log/include",
     "${common_path}/perf_stat/include",
@@ -878,6 +880,7 @@ ohos_unittest("OsAccountSubspaceCoverageTest") {
   sources += [
     "${os_account_innerkits_native_path}/src/os_account_subprofile_client.cpp",
     "${services_path}/accountmgr/test/mock/src/mock_account_mgr_service.cpp",
+    "${services_path}/accountmgr/test/mock/account_iam/mock_user_idm_client.cpp",
     "mock/mock_space_dependencies.cpp",
   ]
 
@@ -889,6 +892,7 @@ ohos_unittest("OsAccountSubspaceCoverageTest") {
     "${services_path}/accountmgr/include/bundle_manager_adapter",
     "${os_account_subspace_interfaces_native_path}/include",
     "${os_account_subspace_framework_path}/src",
+    "${services_path}/accountmgr/test/mock/account_iam",
     "${common_path}/account_error",
     "${common_path}/log/include",
     "${common_path}/perf_stat/include",
