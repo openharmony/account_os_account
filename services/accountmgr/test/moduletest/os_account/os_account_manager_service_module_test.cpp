@@ -54,6 +54,7 @@ const int32_t NATIVE_TOKEN = 1;
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 const std::int32_t ROOT_UID = 0;
 const std::int32_t TEST_UID = 1;
+const std::int32_t EDM_UID = 3057;
 
 const std::vector<std::string> CONSTANTS_VECTOR {
     "constraint.print",
@@ -1581,6 +1582,77 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest129
     EXPECT_EQ(ERR_OK, osAccountManagerService_->RemoveOsAccount(createdInfo.GetLocalId()));
 }
 #endif // SUPPORT_AUTHORIZATION
+
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest131
+ * @tc.desc: Test EDM-created admin type is ADMIN regardless of caller's MANAGE_LOCAL_ACCOUNTS permission.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest131, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest131 start");
+    // Step 1: forge EDM identity and create an admin via the service interface (no token, isEdmCalling branch).
+    setuid(EDM_UID);
+    OsAccountInfo osAccountInfo;
+    ErrCode createErr = osAccountManagerService_->CreateOsAccount("EdmAdmin001", OsAccountType::ADMIN, osAccountInfo);
+    setuid(ROOT_UID);
+    ASSERT_EQ(ERR_OK, createErr);
+    int32_t localId = osAccountInfo.GetLocalId();
+
+    uint64_t oldTokenId = IPCSkeleton::GetSelfTokenID();
+
+#ifdef SUPPORT_AUTHORIZATION
+    // Step 2: cache holds ADMIN with restricted=true; TEE has no role info for this user.
+    {
+        auto cachedType = IInnerOsAccountManager::GetInstance().osAccountCacheManager_.GetAccountTypeFromCache(localId);
+        ASSERT_TRUE(cachedType.has_value());
+        EXPECT_EQ(cachedType->first, OsAccountType::ADMIN);
+        EXPECT_TRUE(cachedType->second);
+    }
+    {
+        int32_t typeTee = 0;
+        EXPECT_EQ(ERR_ACCOUNT_COMMON_TEE_ACCOUNT_NOT_EXIST,
+            IInnerOsAccountManager::GetInstance().teeAdapter_.GetOsAccountType(localId, typeTee));
+    }
+#endif // SUPPORT_AUTHORIZATION
+
+    // Step 3: caller WITH MANAGE_LOCAL_ACCOUNTS queries the type (core regression: old code returned -1 here).
+    {
+        uint64_t tokenWithPerm = 0;
+        ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenWithPerm, true));
+        OsAccountInfo infoWithPerm;
+        EXPECT_EQ(ERR_OK, osAccountManagerService_->QueryOsAccountById(localId, infoWithPerm));
+        EXPECT_EQ(infoWithPerm.GetType(), OsAccountType::ADMIN);
+        ASSERT_TRUE(RecoveryPermission(tokenWithPerm, oldTokenId));
+    }
+
+    // Step 4: caller WITHOUT MANAGE_LOCAL_ACCOUNTS queries the same type (must match step 3).
+    {
+        uint64_t tokenWithoutPerm = 0;
+        ASSERT_TRUE(AllocPermission({"ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION"},
+            tokenWithoutPerm, true));
+        OsAccountInfo infoWithoutPerm;
+        EXPECT_EQ(ERR_OK, osAccountManagerService_->QueryOsAccountById(localId, infoWithoutPerm));
+        EXPECT_EQ(infoWithoutPerm.GetType(), OsAccountType::ADMIN);
+        ASSERT_TRUE(RecoveryPermission(tokenWithoutPerm, oldTokenId));
+    }
+
+    // Step 5: admin.authorize constraint visibility depends on SUPPORT_AUTHORIZATION (needs MANAGE_LOCAL_ACCOUNTS).
+    bool isEnable = false;
+    EXPECT_EQ(ERR_OK, osAccountManagerService_->IsOsAccountConstraintEnable(
+        localId, "constraint.os.account.admin.authorize", isEnable));
+#ifdef SUPPORT_AUTHORIZATION
+    EXPECT_TRUE(isEnable);
+#else
+    EXPECT_FALSE(isEnable);
+#endif // SUPPORT_AUTHORIZATION
+
+    // Cleanup
+    EXPECT_EQ(ERR_OK, osAccountManagerService_->RemoveOsAccount(localId));
+}
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /**
  * @tc.name: DeactivateAllOsAccountsModuleTest001
