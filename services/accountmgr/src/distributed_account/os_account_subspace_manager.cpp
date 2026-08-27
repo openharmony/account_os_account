@@ -37,7 +37,6 @@ namespace AccountSA {
 #ifdef HAS_USER_AUTH_PART
 namespace {
 using UserIDmClient = UserIam::UserAuth::UserIdmClient;
-constexpr int32_t DELETE_SUB_PROFILE_TIMEOUT_SEC = 5; // seconds to wait for IAM DeleteSubProfile result
 
 // Synchronous wrapper callback for UserIdmClient::DeleteSubProfile.
 // Ignores ResultCode::NOT_ENROLLED (no credential to delete is not an error);
@@ -45,9 +44,9 @@ constexpr int32_t DELETE_SUB_PROFILE_TIMEOUT_SEC = 5; // seconds to wait for IAM
 class DeleteSubProfileCallback final : public UserIam::UserAuth::UserIdmClientCallback {
 public:
     DeleteSubProfileCallback(int32_t osAccountId, int32_t subProfileId)
-        : subProfileId_(subProfileId)
     {
         (void)osAccountId;
+        (void)subProfileId;
     }
     ~DeleteSubProfileCallback() = default;
 
@@ -62,7 +61,6 @@ public:
     std::condition_variable onResultCondition_;
 
 private:
-    int32_t subProfileId_;
     int32_t result_ = 0;
     bool isCalled_ = false;
 };
@@ -73,11 +71,6 @@ void DeleteSubProfileCallback::OnResult(int32_t result, const UserIam::UserAuth:
     std::unique_lock<std::mutex> lock(mutex_);
     result_ = result;
     isCalled_ = true;
-    if (result == UserIam::UserAuth::ResultCode::NOT_ENROLLED) {
-        ACCOUNT_LOGI("DeleteSubProfile no credential enrolled, ignore, subProfileId=%{public}d", subProfileId_);
-    } else if (result != UserIam::UserAuth::ResultCode::SUCCESS) {
-        ACCOUNT_LOGE("DeleteSubProfile failed, subProfileId=%{public}d, result=%{public}d", subProfileId_, result);
-    }
     onResultCondition_.notify_one();
 }
 
@@ -88,23 +81,15 @@ void DeleteSubProfileCallback::OnAcquireInfo(int32_t module, uint32_t acquireInf
     ACCOUNT_LOGI("DeleteSubProfile OnAcquireInfo, module=%{public}d, acquireInfo=%{public}u", module, acquireInfo);
 }
 
-// Invokes UserIdmClient::DeleteSubProfile and blocks until the result callback fires
-// (or the timeout elapses). Returns ERR_OK for SUCCESS and NOT_ENROLLED; returns the
-// raw IAM result code otherwise (mapped to ERR_JS_SYSTEM_SERVICE_EXCEPTION=12300001 by NAPI).
+// Invokes UserIdmClient::DeleteSubProfile and blocks until the result callback fires.
+// Returns ERR_OK for SUCCESS and NOT_ENROLLED; returns the raw IAM result code otherwise
+// (mapped to ERR_JS_SYSTEM_SERVICE_EXCEPTION=12300001 by NAPI).
 ErrCode DeleteSubProfileCred(int32_t osAccountId, int32_t subProfileId)
 {
     auto callback = std::make_shared<DeleteSubProfileCallback>(osAccountId, subProfileId);
     UserIDmClient::GetInstance().DeleteSubProfile(subProfileId, callback);
     std::unique_lock<std::mutex> lock(callback->mutex_);
-    bool signaled = callback->onResultCondition_.wait_for(lock,
-        std::chrono::seconds(DELETE_SUB_PROFILE_TIMEOUT_SEC),
-        [callback] { return callback->IsCalled(); });
-    if (!signaled) {
-        ACCOUNT_LOGE("DeleteSubProfile timeout, subProfileId=%{public}d", subProfileId);
-        ReportOsAccountOperationFail(osAccountId, Constants::OPERATION_SUBPROFILE_DELETE,
-            UserIam::UserAuth::ResultCode::GENERAL_ERROR, "DeleteSubProfile timeout");
-        return UserIam::UserAuth::ResultCode::GENERAL_ERROR;
-    }
+    callback->onResultCondition_.wait(lock, [callback] { return callback->IsCalled(); });
     int32_t result = callback->GetResult();
     if (result == UserIam::UserAuth::ResultCode::NOT_ENROLLED) {
         ACCOUNT_LOGI("DeleteSubProfile no credential enrolled, ignore, subProfileId=%{public}d", subProfileId);
