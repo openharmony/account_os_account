@@ -62,6 +62,7 @@
         "ipc",
         "json",
         "libuv",
+        "libxml2",
         "napi",
         "node",
         "pin_auth",

@@ -96,6 +96,7 @@ authorization_stub_ext_deps = [
   "init:libbegetutil",
   "ipc:ipc_single",
   "kv_store:distributeddata_inner",
+  "libxml2:libxml2",
   "openssl:libcrypto_shared",
   "safwk:system_ability_fwk",
   "samgr:samgr_proxy",

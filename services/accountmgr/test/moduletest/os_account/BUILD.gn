@@ -364,7 +364,10 @@ ohos_moduletest("os_account_manager_service_module_test") {
 
   if (os_account_enable_multiple_foreground_os_accounts) {
     cflags_cc += [ "-DENABLE_MULTI_FOREGROUND_OS_ACCOUNTS" ]
-    external_deps += [ "window_manager:libdm_lite" ]
+    external_deps += [
+      "window_manager:libdm_lite",
+      "libxml2:libxml2",
+    ]
   }
 
   if (use_libfuzzer) {
@@ -544,6 +547,13 @@ ohos_moduletest("os_account_manager_service_subscribe_module_test") {
   ]
 
   cflags_cc = []
+  if (os_account_enable_multiple_foreground_os_accounts) {
+    external_deps += [
+      "window_manager:libdm_lite",
+      "libxml2:libxml2",
+    ]
+    cflags_cc += [ "-DENABLE_MULTI_FOREGROUND_OS_ACCOUNTS" ]
+  }
   if (use_libfuzzer) {
     cflags_cc += [ "-DFUZZ_TEST" ]
   }
@@ -922,7 +932,10 @@ ohos_moduletest("os_account_subspace_module_test") {
 
   if (os_account_enable_multiple_foreground_os_accounts) {
     cflags_cc += [ "-DENABLE_MULTI_FOREGROUND_OS_ACCOUNTS" ]
-    external_deps += [ "window_manager:libdm_lite" ]
+    external_deps += [
+      "window_manager:libdm_lite",
+      "libxml2:libxml2",
+    ]
   }
 
   if (os_account_multiple_active_accounts ||

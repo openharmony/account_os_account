@@ -112,6 +112,7 @@ public:
     ErrCode GetForegroundOsAccountLocalId(int32_t &localId);
     ErrCode GetForegroundOsAccountLocalId(const uint64_t displayId, int32_t &localId);
     ErrCode GetForegroundOsAccountDisplayId(const int32_t localId, uint64_t &displayId);
+    ErrCode GetForegroundOsAccountDisplayIds(const int32_t localId, std::vector<uint64_t> &displayIds);
     ErrCode GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &accounts);
     ErrCode GetBackgroundOsAccountLocalIds(std::vector<int32_t> &localIds);
     ErrCode SetOsAccountToBeRemoved(int32_t localId, bool toBeRemoved);

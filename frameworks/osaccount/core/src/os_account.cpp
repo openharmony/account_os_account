@@ -1265,6 +1265,16 @@ ErrCode OsAccount::GetForegroundOsAccountDisplayId(const int32_t localId, uint64
     return ConvertToAccountErrCode(errCode);
 }
 
+ErrCode OsAccount::GetForegroundOsAccountDisplayIds(const int32_t localId, std::vector<uint64_t> &displayIds)
+{
+    auto proxy = GetOsAccountProxy();
+    if (proxy == nullptr) {
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    auto errCode = proxy->GetForegroundOsAccountDisplayIds(localId, displayIds);
+    return ConvertToAccountErrCode(errCode);
+}
+
 ErrCode OsAccount::GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &accounts)
 {
     auto proxy = GetOsAccountProxy();

@@ -120,6 +120,9 @@ ohos_moduletest("AccountInnerSdkModuleMockTest") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+  if (os_account_enable_multiple_foreground_os_accounts) {
+    external_deps += [ "libxml2:libxml2" ]
+  }
   cflags_cc = []
   if (use_libfuzzer) {
     cflags_cc += [ "-DFUZZ_TEST" ]

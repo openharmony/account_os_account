@@ -20,6 +20,8 @@
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <utility>
+#include <vector>
 #include "iinner_os_account.h"
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
 #include "inner_domain_account_manager.h"
@@ -128,6 +130,7 @@ public:
     ErrCode IsOsAccountForeground(const int32_t localId, const uint64_t displayId, bool &isForeground) override;
     ErrCode GetForegroundOsAccountLocalId(const uint64_t displayId, int32_t &localId) override;
     ErrCode GetForegroundOsAccountDisplayId(const int32_t localId, uint64_t &displayId) override;
+    ErrCode GetForegroundOsAccountDisplayIds(const int32_t localId, std::vector<uint64_t> &displayIds) override;
     ErrCode GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &accounts) override;
     ErrCode GetBackgroundOsAccountLocalIds(std::vector<int32_t> &localIds) override;
     ErrCode SetOsAccountToBeRemoved(int32_t localId, bool toBeRemoved) override;
@@ -243,6 +246,7 @@ private:
     ErrCode UpdateOsAccountConstraintsInfo(int32_t id, OsAccountInfo &osAccountInfo,
         const std::vector<std::string> &constraints);
 #ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+    uint64_t GetUserZonePrimaryDisplayId(uint64_t displayId);
     void QueryAllDisplayIds(std::vector<uint64_t> &displayIds);
     ErrCode ValidateDisplayForActivation(const int id, const uint64_t displayId);
     ErrCode ValidateDisplayId(const uint64_t displayId);
@@ -250,12 +254,17 @@ private:
     void OsAccountCreateOnComplete(OsAccountInfo &osAccountInfo);
 
 private:
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+    bool IsAccountActiveOnOtherDisplay(int32_t id, uint64_t displayId);
+    ErrCode ValidateDefaultActivatedDisplay(int32_t id, uint64_t displayId);
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
     std::shared_ptr<IOsAccountControl> osAccountControl_;
     std::vector<int32_t> activeAccountId_;
     std::vector<int32_t> operatingId_;
     IOsAccountSubscribe &subscribeManager_;
     std::int32_t deviceOwnerId_ = -1;
     mutable std::mutex deviceOwnerLock_;
+    // In user-zone mode, display keys are primary display IDs only.
     SafeMap<uint64_t, int32_t> defaultActivatedIds_ = [] {
         SafeMap<uint64_t, int32_t> defaultMap;
         defaultMap.EnsureInsert(Constants::DEFAULT_DISPLAY_ID, Constants::START_USER_ID);
@@ -267,6 +276,7 @@ private:
     mutable std::mutex updateLockMutex_;
     mutable std::mutex typeNumberMutex_;  // Protects type number check to avoid race with create
     mutable std::mutex createOsAccountMutex_;
+    // In user-zone mode, display keys are primary display IDs only.
     SafeMap<uint64_t, int32_t> foregroundAccountMap_;
 #ifdef SUPPORT_AUTHORIZATION
     OsAccountCacheManager osAccountCacheManager_;  // Cache for OS account types

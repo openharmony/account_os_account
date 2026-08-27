@@ -125,6 +125,9 @@ ohos_unittest("account_command_test") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+  if (os_account_enable_multiple_foreground_os_accounts) {
+    external_deps += [ "libxml2:libxml2" ]
+  }
   if (has_storage_service_part) {
     external_deps += [ "storage_service:storage_manager_sa_proxy" ]
   }
