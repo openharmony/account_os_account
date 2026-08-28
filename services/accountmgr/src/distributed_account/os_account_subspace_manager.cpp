@@ -16,6 +16,9 @@
 #include "os_account_subspace_manager.h"
 #include <algorithm>
 #include <chrono>
+#include <condition_variable>
+#include <memory>
+#include <mutex>
 #include <shared_mutex>
 #include "account_info.h"
 #include "account_log_wrapper.h"
@@ -25,9 +28,80 @@
 #include "account_hisysevent_adapter.h"
 #include "os_account_constants.h"
 #include "os_account_info.h"
+#ifdef HAS_USER_AUTH_PART
+#include "user_idm_client.h"
+#endif // HAS_USER_AUTH_PART
 
 namespace OHOS {
 namespace AccountSA {
+#ifdef HAS_USER_AUTH_PART
+namespace {
+using UserIDmClient = UserIam::UserAuth::UserIdmClient;
+
+// Synchronous wrapper callback for UserIdmClient::DeleteSubProfile.
+// Ignores ResultCode::NOT_ENROLLED (no credential to delete is not an error);
+// reports other non-success results via ReportOsAccountOperationFail.
+class DeleteSubProfileCallback final : public UserIam::UserAuth::UserIdmClientCallback {
+public:
+    DeleteSubProfileCallback() = default;
+    ~DeleteSubProfileCallback() = default;
+
+    void OnResult(int32_t result, const UserIam::UserAuth::Attributes &extraInfo) override;
+    void OnAcquireInfo(int32_t module, uint32_t acquireInfo,
+        const UserIam::UserAuth::Attributes &extraInfo) override
+    {
+        (void)module;
+        (void)acquireInfo;
+        (void)extraInfo;
+    }
+
+    int32_t GetResult() const { return result_; }
+    bool IsCalled() const { return isCalled_; }
+
+    std::mutex mutex_;
+    std::condition_variable onResultCondition_;
+
+private:
+    int32_t result_ = 0;
+    bool isCalled_ = false;
+};
+
+void DeleteSubProfileCallback::OnResult(int32_t result, const UserIam::UserAuth::Attributes &extraInfo)
+{
+    (void)extraInfo;
+    std::unique_lock<std::mutex> lock(mutex_);
+    result_ = result;
+    isCalled_ = true;
+    onResultCondition_.notify_one();
+}
+
+// Invokes UserIdmClient::DeleteSubProfile and blocks until the result callback fires.
+// Returns ERR_OK for SUCCESS and NOT_ENROLLED; returns the raw IAM result code otherwise
+// (mapped to ERR_JS_SYSTEM_SERVICE_EXCEPTION=12300001 by NAPI).
+ErrCode DeleteSubProfileCred(int32_t osAccountId, int32_t subProfileId)
+{
+    auto callback = std::make_shared<DeleteSubProfileCallback>();
+    UserIDmClient::GetInstance().DeleteSubProfile(subProfileId, callback);
+    std::unique_lock<std::mutex> lock(callback->mutex_);
+    callback->onResultCondition_.wait(lock, [callback] { return callback->IsCalled(); });
+    int32_t result = callback->GetResult();
+    if (result == UserIam::UserAuth::ResultCode::NOT_ENROLLED) {
+        ACCOUNT_LOGI("DeleteSubProfile no credential enrolled, ignore, subProfileId=%{public}d", subProfileId);
+        return ERR_OK;
+    }
+    if (result != UserIam::UserAuth::ResultCode::SUCCESS) {
+        ACCOUNT_LOGE("DeleteSubProfile failed, subProfileId=%{public}d, result=%{public}d", subProfileId, result);
+        ReportOsAccountOperationFail(osAccountId, Constants::OPERATION_SUBPROFILE_DELETE, result,
+            "Failed to delete sub profile credential");
+        return result;
+    }
+    ACCOUNT_LOGI("DeleteSubProfile success, osAccountId=%{public}d, subProfileId=%{public}d",
+        osAccountId, subProfileId);
+    return ERR_OK;
+}
+} // namespace
+#endif // HAS_USER_AUTH_PART
+
 OsAccountSubProfileManager &OsAccountSubProfileManager::GetInstance()
 {
     static OsAccountSubProfileManager instance;
@@ -226,6 +300,15 @@ ErrCode OsAccountSubProfileManager::RemoveSubProfileLocked(int32_t osAccountId, 
             return ERR_OS_ACCOUNT_SUBPROFILE_IS_FOREGROUND;
         }
     }
+
+#ifdef HAS_USER_AUTH_PART
+    // Delete IAM credentials bound to the sub-profile before destroying its directory.
+    // NOT_ENROLLED means no credential exists and is treated as success.
+    ErrCode delRet = DeleteSubProfileCred(osAccountId, subspaceId);
+    if (delRet != ERR_OK) {
+        return delRet;
+    }
+#endif // HAS_USER_AUTH_PART
 
     OsAccountSubspaceInfo info;
     // Safe to ignore: IsValidSubProfileExists above already validated the subspace.

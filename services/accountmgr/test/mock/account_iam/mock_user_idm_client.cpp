@@ -21,6 +21,15 @@ namespace UserAuth {
 static MockUserIdmClient &GetMockInstance()
 {
     static auto *instance = new MockUserIdmClient();
+    // Static singleton: gmock reports it as leaked at program exit; AllowLeak suppresses that.
+    ::testing::Mock::AllowLeak(instance);
+    // Default behavior: DeleteSubProfile immediately invokes the callback with SUCCESS
+    // so tests that call RemoveSubProfile do not block on the 5s wait_for timeout.
+    ON_CALL(*instance, DeleteSubProfile(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke([](int32_t,
+            const std::shared_ptr<UserIdmClientCallback> &callback) {
+            callback->OnResult(ResultCode::SUCCESS, Attributes());
+        }));
     return *instance;
 }
 
