@@ -43,16 +43,17 @@ using UserIDmClient = UserIam::UserAuth::UserIdmClient;
 // reports other non-success results via ReportOsAccountOperationFail.
 class DeleteSubProfileCallback final : public UserIam::UserAuth::UserIdmClientCallback {
 public:
-    DeleteSubProfileCallback(int32_t osAccountId, int32_t subProfileId)
-    {
-        (void)osAccountId;
-        (void)subProfileId;
-    }
+    DeleteSubProfileCallback() = default;
     ~DeleteSubProfileCallback() = default;
 
     void OnResult(int32_t result, const UserIam::UserAuth::Attributes &extraInfo) override;
     void OnAcquireInfo(int32_t module, uint32_t acquireInfo,
-        const UserIam::UserAuth::Attributes &extraInfo) override;
+        const UserIam::UserAuth::Attributes &extraInfo) override
+    {
+        (void)module;
+        (void)acquireInfo;
+        (void)extraInfo;
+    }
 
     int32_t GetResult() const { return result_; }
     bool IsCalled() const { return isCalled_; }
@@ -74,19 +75,12 @@ void DeleteSubProfileCallback::OnResult(int32_t result, const UserIam::UserAuth:
     onResultCondition_.notify_one();
 }
 
-void DeleteSubProfileCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo,
-    const UserIam::UserAuth::Attributes &extraInfo)
-{
-    (void)extraInfo;
-    ACCOUNT_LOGI("DeleteSubProfile OnAcquireInfo, module=%{public}d, acquireInfo=%{public}u", module, acquireInfo);
-}
-
 // Invokes UserIdmClient::DeleteSubProfile and blocks until the result callback fires.
 // Returns ERR_OK for SUCCESS and NOT_ENROLLED; returns the raw IAM result code otherwise
 // (mapped to ERR_JS_SYSTEM_SERVICE_EXCEPTION=12300001 by NAPI).
 ErrCode DeleteSubProfileCred(int32_t osAccountId, int32_t subProfileId)
 {
-    auto callback = std::make_shared<DeleteSubProfileCallback>(osAccountId, subProfileId);
+    auto callback = std::make_shared<DeleteSubProfileCallback>();
     UserIDmClient::GetInstance().DeleteSubProfile(subProfileId, callback);
     std::unique_lock<std::mutex> lock(callback->mutex_);
     callback->onResultCondition_.wait(lock, [callback] { return callback->IsCalled(); });
