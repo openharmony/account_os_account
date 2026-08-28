@@ -14,8 +14,9 @@
  */
 
 #include <gtest/gtest.h>
+#include "account_file_operator.h"
 #define private public
-#include "display_user_zone_config/display_user_zone_config_manager.h"
+#include "osaccount/display_user_zone_config/display_user_zone_config_manager.h"
 #undef private
 #include "os_account_constants.h"
 
@@ -31,6 +32,13 @@ constexpr uint64_t UNKNOWN_USER_ZONE_ID = 777;
 constexpr uint64_t SOME_DISPLAY_ID = 100;
 constexpr uint64_t SOME_USER_ZONE_ID = 200;
 constexpr uint64_t DEFAULT_USER_ZONE_ID = 0;
+
+// File reads are supplied by this test executable; the parser and retry state machine are real.
+ErrCode configReadResult = ERR_ACCOUNT_COMMON_FILE_READ_FAILED;
+size_t configReadCount = 0;
+std::string configContent =
+    "<Configs><displays><display><physicalId>10</physicalId><logicalId>100</logicalId>"
+    "</display></displays></Configs>";
 
 // Display user zone config test fixtures
 constexpr uint64_t DISPLAY_A_LOGICAL_ID = 100;
@@ -51,6 +59,14 @@ constexpr int LOOP_COUNT = 3;
 constexpr size_t USER_ZONE_ONE_DISPLAY_COUNT = 2;
 constexpr size_t USER_ZONE_TWO_DISPLAY_COUNT = 1;
 }  // namespace
+
+ErrCode AccountFileOperator::GetFileContentByPath(const std::string &path, std::string &content)
+{
+    (void)path;
+    ++configReadCount;
+    content = configContent;
+    return configReadResult;
+}
 
 class DisplayUserZoneConfigManagerTest : public testing::Test {
 public:
@@ -94,14 +110,12 @@ void TeardownConfig(DisplayUserZoneConfigManager &mgr)
     mgr.userZonePrimaryMap_.clear();
     mgr.configReadFailed_ = false;
     mgr.configFormatError_ = false;
-    mgr.configReadRetried_ = false;
 }
 
-void SetConfigLoadState(DisplayUserZoneConfigManager &mgr, bool readFailed, bool formatError, bool readRetried)
+void SetConfigLoadState(DisplayUserZoneConfigManager &mgr, bool readFailed, bool formatError)
 {
     mgr.configReadFailed_ = readFailed;
     mgr.configFormatError_ = formatError;
-    mgr.configReadRetried_ = readRetried;
 }
 
 void SetUserZonePrimaryDisplay(DisplayUserZoneConfigManager &mgr, uint64_t userZone, uint64_t logicalId)
@@ -117,10 +131,16 @@ void DisplayUserZoneConfigManagerTest::TearDownTestCase(void)
 {}
 
 void DisplayUserZoneConfigManagerTest::SetUp(void)
-{}
+{
+    TeardownConfig(DisplayUserZoneConfigManager::GetInstance());
+    configReadResult = ERR_ACCOUNT_COMMON_FILE_READ_FAILED;
+    configReadCount = 0;
+}
 
 void DisplayUserZoneConfigManagerTest::TearDown(void)
-{}
+{
+    TeardownConfig(DisplayUserZoneConfigManager::GetInstance());
+}
 
 /**
  * @tc.name: DisplayUserZoneConfigManagerFallback001
@@ -142,16 +162,31 @@ HWTEST_F(DisplayUserZoneConfigManagerTest, DisplayUserZoneConfigManagerFallback0
 
 /**
  * @tc.name: DisplayUserZoneConfigManagerReadFailure001
- * @tc.desc: Verify IsDisplayPrimary returns a file-read error after the one allowed retry has failed.
+ * @tc.desc: Verify every query retries a failed read, and a later successful read is cached.
  * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(DisplayUserZoneConfigManagerTest, DisplayUserZoneConfigManagerReadFailure001, TestSize.Level1)
 {
     auto &mgr = DisplayUserZoneConfigManager::GetInstance();
-    SetConfigLoadState(mgr, true, false, true);
+    SetConfigLoadState(mgr, true, false);
     bool isPrimary = false;
     EXPECT_EQ(mgr.IsDisplayPrimary(SOME_DISPLAY_ID, isPrimary), ERR_ACCOUNT_COMMON_FILE_READ_FAILED);
+    EXPECT_EQ(configReadCount, 1u);
+    uint64_t primaryDisplayId = Constants::INVALID_DISPLAY_ID;
+    EXPECT_EQ(mgr.GetPrimaryDisplayId(SOME_DISPLAY_ID, primaryDisplayId), ERR_ACCOUNT_COMMON_FILE_READ_FAILED);
+    EXPECT_EQ(configReadCount, 2u);
+    std::vector<uint64_t> displayIds;
+    EXPECT_EQ(mgr.GetDisplayIdsByLogicalId(SOME_DISPLAY_ID, displayIds), ERR_ACCOUNT_COMMON_FILE_READ_FAILED);
+    EXPECT_EQ(configReadCount, 3u);
+
+    configReadResult = ERR_OK;
+    EXPECT_EQ(mgr.IsDisplayPrimary(SOME_DISPLAY_ID, isPrimary), ERR_OK);
+    EXPECT_TRUE(isPrimary);
+    EXPECT_EQ(configReadCount, 4u);
+    EXPECT_EQ(mgr.GetPrimaryDisplayId(SOME_DISPLAY_ID, primaryDisplayId), ERR_OK);
+    EXPECT_EQ(primaryDisplayId, SOME_DISPLAY_ID);
+    EXPECT_EQ(configReadCount, 4u);
     TeardownConfig(mgr);
 }
 
@@ -164,9 +199,75 @@ HWTEST_F(DisplayUserZoneConfigManagerTest, DisplayUserZoneConfigManagerReadFailu
 HWTEST_F(DisplayUserZoneConfigManagerTest, DisplayUserZoneConfigManagerFormatError001, TestSize.Level1)
 {
     auto &mgr = DisplayUserZoneConfigManager::GetInstance();
-    SetConfigLoadState(mgr, false, true, false);
+    SetConfigLoadState(mgr, false, true);
     bool isPrimary = false;
     EXPECT_EQ(mgr.IsDisplayPrimary(SOME_DISPLAY_ID, isPrimary), ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR);
+    uint64_t primaryDisplayId = Constants::INVALID_DISPLAY_ID;
+    EXPECT_EQ(mgr.GetPrimaryDisplayId(SOME_DISPLAY_ID, primaryDisplayId),
+        ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR);
+    std::vector<uint64_t> displayIds;
+    EXPECT_EQ(mgr.GetDisplayIdsByLogicalId(SOME_DISPLAY_ID, displayIds),
+        ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR);
+    EXPECT_EQ(configReadCount, 0u);
+    TeardownConfig(mgr);
+}
+
+/**
+ * @tc.name: DisplayUserZoneConfigManagerRetryFormatError001
+ * @tc.desc: A successful read with invalid XML stops further automatic read retries.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DisplayUserZoneConfigManagerTest, DisplayUserZoneConfigManagerRetryFormatError001, TestSize.Level1)
+{
+    auto &mgr = DisplayUserZoneConfigManager::GetInstance();
+    SetConfigLoadState(mgr, true, false);
+    const std::string savedContent = configContent;
+    configReadResult = ERR_OK;
+    configContent = "<Invalid/>";
+    bool isPrimary = false;
+    EXPECT_EQ(mgr.IsDisplayPrimary(SOME_DISPLAY_ID, isPrimary), ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR);
+    EXPECT_EQ(configReadCount, 1u);
+    configContent = savedContent;
+    EXPECT_EQ(mgr.IsDisplayPrimary(SOME_DISPLAY_ID, isPrimary), ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR);
+    EXPECT_EQ(configReadCount, 1u);
+}
+
+/**
+ * @tc.name: DisplayUserZoneConfigManagerPrimaryDisplay001
+ * @tc.desc: Verify primary-display resolution owns configuration readiness and preserves standalone fallback.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DisplayUserZoneConfigManagerTest, DisplayUserZoneConfigManagerPrimaryDisplay001, TestSize.Level1)
+{
+    auto &mgr = DisplayUserZoneConfigManager::GetInstance();
+    SetupLoadedConfig(mgr);
+    uint64_t primaryDisplayId = Constants::INVALID_DISPLAY_ID;
+    EXPECT_EQ(mgr.GetPrimaryDisplayId(DISPLAY_B_LOGICAL_ID, primaryDisplayId), ERR_OK);
+    EXPECT_EQ(primaryDisplayId, DISPLAY_A_LOGICAL_ID);
+    EXPECT_EQ(mgr.GetPrimaryDisplayId(UNKNOWN_DISPLAY_ID, primaryDisplayId), ERR_OK);
+    EXPECT_EQ(primaryDisplayId, UNKNOWN_DISPLAY_ID);
+    TeardownConfig(mgr);
+}
+
+/**
+ * @tc.name: DisplayUserZoneConfigManagerDisplayIds001
+ * @tc.desc: Verify user-zone display lookup owns configuration readiness and preserves standalone fallback.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DisplayUserZoneConfigManagerTest, DisplayUserZoneConfigManagerDisplayIds001, TestSize.Level1)
+{
+    auto &mgr = DisplayUserZoneConfigManager::GetInstance();
+    SetupLoadedConfig(mgr);
+    std::vector<uint64_t> displayIds;
+    EXPECT_EQ(mgr.GetDisplayIdsByLogicalId(DISPLAY_B_LOGICAL_ID, displayIds), ERR_OK);
+    ASSERT_EQ(displayIds.size(), USER_ZONE_ONE_DISPLAY_COUNT);
+    EXPECT_EQ(displayIds[0], DISPLAY_A_LOGICAL_ID);
+    EXPECT_EQ(displayIds[1], DISPLAY_B_LOGICAL_ID);
+    EXPECT_EQ(mgr.GetDisplayIdsByLogicalId(UNKNOWN_DISPLAY_ID, displayIds), ERR_OK);
+    ASSERT_EQ(displayIds.size(), 1u);
+    EXPECT_EQ(displayIds[0], UNKNOWN_DISPLAY_ID);
     TeardownConfig(mgr);
 }
 

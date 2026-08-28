@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_DISPLAY_USER_ZONE_CONFIG_DISPLAY_USER_ZONE_CONFIG_MANAGER_H
-#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_DISPLAY_USER_ZONE_CONFIG_DISPLAY_USER_ZONE_CONFIG_MANAGER_H
+#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_DISPLAY_USER_ZONE_CONFIG_DISPLAY_USER_ZONE_CONFIG_MANAGER_H
+#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_DISPLAY_USER_ZONE_CONFIG_DISPLAY_USER_ZONE_CONFIG_MANAGER_H
 
 #include <cstdint>
 #include <map>
@@ -45,59 +45,44 @@ public:
     /**
      * Read and parse the display user zone config XML file.
      * @return ERR_OK on success; otherwise, the read or format error is recorded
-     *         and reported by EnsureConfigReady before a user-zone query is consumed.
+     *         and reported by a user-zone query before its result is consumed.
      */
     ErrCode Init();
 
     /**
+     * Read failures are retried on every query; format errors are not retried.
      * Whether the given logical display is the primary display of its user zone.
      * A display is primary when its logicalId equals its user zone id (i.e. it is
      * a standalone display or the primary that other secondary displays point to).
      * @param logicalDisplayId Logical display id.
      * @param isPrimary Set to true if the display is primary, false if it is explicitly not primary.
      * @return ERR_OK on success; ERR_ACCOUNT_COMMON_FILE_READ_FAILED when the initial
-     *         configuration read and its single retry fail; ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR
+     *         configuration read fails again on this query; ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR
      *         when the configuration format is invalid.
      */
     ErrCode IsDisplayPrimary(uint64_t logicalDisplayId, bool &isPrimary);
 
     /**
-     * Ensure the display user zone configuration is available before consuming
-     * a query result whose fallback value would be ambiguous.
+     * Resolve a logical display to the primary display of its user zone.
+     * Displays absent from the configuration are treated as standalone.
+     * @param logicalDisplayId Logical display id to resolve.
+     * @param primaryDisplayId Set to the corresponding primary display id.
      * @return ERR_OK on success; ERR_ACCOUNT_COMMON_FILE_READ_FAILED after the
-     *         one allowed read retry fails; ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR
+     *         read retry for this query fails; ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR
      *         if the loaded configuration has an invalid format.
      */
-    ErrCode EnsureConfigReady();
+    ErrCode GetPrimaryDisplayId(uint64_t logicalDisplayId, uint64_t &primaryDisplayId);
 
     /**
-     * Check whether the logical display is present in the configuration.
-     * @param logicalId Logical display id.
-     * @return true if the display is configured, otherwise false.
+     * Get all displays in the user zone containing the given logical display.
+     * A display absent from the configuration is returned as a standalone zone.
+     * @param logicalDisplayId Logical display id to resolve.
+     * @param displayIds Set to the logical display ids in its user zone.
+     * @return ERR_OK on success; ERR_ACCOUNT_COMMON_FILE_READ_FAILED after the
+     *         read retry for this query fails; ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR
+     *         if the loaded configuration has an invalid format.
      */
-    bool HasDisplayByLogicalId(uint64_t logicalId) const;
-
-    /**
-     * Get the primary display id of the given group.
-     * @param group Group id (the logicalId of the primary display).
-     * @param logicalId Set to the primary logical display id when found.
-     * @return true if the group has a primary display, otherwise false.
-     */
-    bool GetUserZonePrimaryDisplayId(uint64_t group, uint64_t &logicalId) const;
-
-    /**
-     * Get the logical display ids belonging to the given group.
-     * @param group Group id (the logicalId of the primary display).
-     * @return A list of logical display ids belonging to the group.
-     */
-    std::vector<uint64_t> GetDisplayIdsByUserZone(uint64_t group) const;
-
-    /**
-     * Get the group id of the given logical display.
-     * @param logicalId Logical display id.
-     * @return Group id, or the original logical id if the display is not found.
-     */
-    uint64_t GetUserZoneByLogicalId(uint64_t logicalId) const;
+    ErrCode GetDisplayIdsByLogicalId(uint64_t logicalDisplayId, std::vector<uint64_t> &displayIds);
 
 private:
     DisplayUserZoneConfigManager() = default;
@@ -114,6 +99,13 @@ private:
     ErrCode FinalizeParsedConfig();
     ErrCode ValidateParsedConfig();
     ErrCode LoadConfigLocked();
+    ErrCode EnsureConfigReady();
+
+    bool HasDisplayByLogicalId(uint64_t logicalId) const;
+    bool GetUserZonePrimaryDisplayId(uint64_t group, uint64_t &logicalId) const;
+    std::vector<uint64_t> GetDisplayIdsByUserZone(uint64_t group) const;
+    uint64_t GetUserZoneByLogicalId(uint64_t logicalId) const;
+
     void ClearParsedData();
     bool ParseUInt64(const std::string &value, uint64_t &result);
 
@@ -124,9 +116,8 @@ private:
     std::map<uint64_t, uint64_t> userZonePrimaryMap_;
     bool configReadFailed_ = false;
     bool configFormatError_ = false;
-    bool configReadRetried_ = false;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
 
-#endif // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_DISPLAY_USER_ZONE_CONFIG_DISPLAY_USER_ZONE_CONFIG_MANAGER_H
+#endif // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_DISPLAY_USER_ZONE_CONFIG_DISPLAY_USER_ZONE_CONFIG_MANAGER_H

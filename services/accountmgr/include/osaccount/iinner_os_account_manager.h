@@ -172,6 +172,10 @@ public:
     bool CheckAndAddLocalIdOperating(int32_t localId);
     OsAccountControlFileManager &GetFileController();
     void UpdateAccountTypeCache(int32_t id, OsAccountType type, bool isRestricted);
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+    ErrCode RestoreAllForegroundAccounts(std::map<uint64_t, int32_t> &pendingAccounts) override;
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+
 private:
     IInnerOsAccountManager();
     ~IInnerOsAccountManager() = default;
@@ -247,8 +251,11 @@ private:
         const std::vector<std::string> &constraints);
 #ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
     uint64_t GetUserZonePrimaryDisplayId(uint64_t displayId);
+    ErrCode RestoreForegroundAccount(uint64_t displayId, int32_t localId,
+        std::map<uint64_t, int32_t> &pendingAccounts);
     void QueryAllDisplayIds(std::vector<uint64_t> &displayIds);
     ErrCode ValidateDisplayForActivation(const int id, const uint64_t displayId);
+    ErrCode ValidatePrimaryDisplayForActivation(int32_t id, uint64_t displayId, bool displayIdExists);
     ErrCode ValidateDisplayId(const uint64_t displayId);
 #endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
     void OsAccountCreateOnComplete(OsAccountInfo &osAccountInfo);
