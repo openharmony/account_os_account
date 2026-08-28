@@ -16,9 +16,10 @@
 #include <gtest/gtest.h>
 
 #include "account_error_no.h"
+#include "account_hisysevent_adapter.h"
 #include "account_log_wrapper.h"
+#include "account_constants.h"
 #include "errors.h"
-#include "ipc_object_stub.h"
 #include "iservice_registry_mock_helper.h"
 #include "mock_system_ability_manager.h"
 #include "os_account_subscribe_info.h"
@@ -46,20 +47,20 @@ public:
 };
 
 void OsAccountInterfaceSamgrTest::SetUpTestCase(void)
-{
-}
+{}
 
 void OsAccountInterfaceSamgrTest::TearDownTestCase(void)
-{
-}
+{}
 
 void OsAccountInterfaceSamgrTest::SetUp(void)
 {
+    g_resultCodeStr = "";
 }
 
 void OsAccountInterfaceSamgrTest::TearDown(void)
 {
     ResetMockSystemAbilityManager();
+    g_resultCodeStr = "";
 }
 
 /**
@@ -78,6 +79,7 @@ HWTEST_F(OsAccountInterfaceSamgrTest, SendToSamgrUserState_Activating_Success_00
     ErrCode result = OsAccountInterface::SendToSamgrUserState(TEST_LOCAL_ID,
         OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING);
     EXPECT_EQ(result, ERR_OK);
+    EXPECT_TRUE(g_resultCodeStr.empty());
     GTEST_LOG_(INFO) << "SendToSamgrUserState_Activating_Success_001 end";
 }
 
@@ -97,6 +99,7 @@ HWTEST_F(OsAccountInterfaceSamgrTest, SendToSamgrUserState_Switching_Success_001
     ErrCode result = OsAccountInterface::SendToSamgrUserState(TEST_LOCAL_ID,
         OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING);
     EXPECT_EQ(result, ERR_OK);
+    EXPECT_TRUE(g_resultCodeStr.empty());
     GTEST_LOG_(INFO) << "SendToSamgrUserState_Switching_Success_001 end";
 }
 
@@ -116,6 +119,7 @@ HWTEST_F(OsAccountInterfaceSamgrTest, SendToSamgrUserState_Stopping_Success_001,
     ErrCode result = OsAccountInterface::SendToSamgrUserState(TEST_LOCAL_ID,
         OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPING);
     EXPECT_EQ(result, ERR_OK);
+    EXPECT_TRUE(g_resultCodeStr.empty());
     GTEST_LOG_(INFO) << "SendToSamgrUserState_Stopping_Success_001 end";
 }
 
@@ -137,7 +141,8 @@ HWTEST_F(OsAccountInterfaceSamgrTest, SendToSamgrUserState_InvalidState_001, Tes
 
 /**
  * @tc.name: SendToSamgrUserState_GetSystemAbilityManagerFailed_001
- * @tc.desc: Test SendToSamgrUserState when GetSystemAbilityManager returns nullptr
+ * @tc.desc: Test SendToSamgrUserState when GetSystemAbilityManager returns nullptr.
+ *          Returns immediately without retry, reports fault.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -149,12 +154,14 @@ HWTEST_F(OsAccountInterfaceSamgrTest, SendToSamgrUserState_GetSystemAbilityManag
     ErrCode result = OsAccountInterface::SendToSamgrUserState(TEST_LOCAL_ID,
         OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING);
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER);
+    EXPECT_EQ(g_resultCodeStr, "samgrActivating");
     GTEST_LOG_(INFO) << "SendToSamgrUserState_GetSystemAbilityManagerFailed_001 end";
 }
 
 /**
  * @tc.name: SendToSamgrUserState_OnUserStateChangedFailed_001
- * @tc.desc: Test SendToSamgrUserState when OnUserStateChanged returns error
+ * @tc.desc: Test SendToSamgrUserState when OnUserStateChanged returns non-IPC error.
+ *          Non-IPC exception breaks immediately, reports fault with original error code.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -168,12 +175,13 @@ HWTEST_F(OsAccountInterfaceSamgrTest, SendToSamgrUserState_OnUserStateChangedFai
     ErrCode result = OsAccountInterface::SendToSamgrUserState(TEST_LOCAL_ID,
         OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING);
     EXPECT_EQ(result, ERR_OSACCOUNT_SERVICE_SAMGR_USER_STATE_FAILED);
+    EXPECT_EQ(g_resultCodeStr, "samgrActivating");
     GTEST_LOG_(INFO) << "SendToSamgrUserState_OnUserStateChangedFailed_001 end";
 }
 
 /**
  * @tc.name: SendToSamgrUserState_OnUserStateChangedFailed_Switching_001
- * @tc.desc: Test SendToSamgrUserState with SWITCHING state when OnUserStateChanged returns error
+ * @tc.desc: Test SendToSamgrUserState with SWITCHING state when OnUserStateChanged returns non-IPC error.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -187,12 +195,13 @@ HWTEST_F(OsAccountInterfaceSamgrTest, SendToSamgrUserState_OnUserStateChangedFai
     ErrCode result = OsAccountInterface::SendToSamgrUserState(TEST_LOCAL_ID,
         OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING);
     EXPECT_EQ(result, ERR_OSACCOUNT_SERVICE_SAMGR_USER_STATE_FAILED);
+    EXPECT_EQ(g_resultCodeStr, "samgrSwitching");
     GTEST_LOG_(INFO) << "SendToSamgrUserState_OnUserStateChangedFailed_Switching_001 end";
 }
 
 /**
  * @tc.name: SendToSamgrUserState_OnUserStateChangedFailed_Stopping_001
- * @tc.desc: Test SendToSamgrUserState with STOPPING state when OnUserStateChanged returns error
+ * @tc.desc: Test SendToSamgrUserState with STOPPING state when OnUserStateChanged returns non-IPC error.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -206,6 +215,7 @@ HWTEST_F(OsAccountInterfaceSamgrTest, SendToSamgrUserState_OnUserStateChangedFai
     ErrCode result = OsAccountInterface::SendToSamgrUserState(TEST_LOCAL_ID,
         OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPING);
     EXPECT_EQ(result, ERR_OSACCOUNT_SERVICE_SAMGR_USER_STATE_FAILED);
+    EXPECT_EQ(g_resultCodeStr, "samgrStopping");
     GTEST_LOG_(INFO) << "SendToSamgrUserState_OnUserStateChangedFailed_Stopping_001 end";
 }
 
@@ -268,7 +278,8 @@ HWTEST_F(OsAccountInterfaceSamgrTest, SendToSamgrUserState_LargeLocalId_001, Tes
 
 /**
  * @tc.name: SendToSamgrUserState_Activating_WithErrorResult_001
- * @tc.desc: Test SendToSamgrUserState with ACTIVATING state when OnUserStateChanged returns specific error
+ * @tc.desc: Test SendToSamgrUserState with ACTIVATING state when OnUserStateChanged returns ERR_INVALID_VALUE.
+ *          ERR_INVALID_VALUE is not an IPC error, breaks immediately, reports fault with original code.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -282,6 +293,7 @@ HWTEST_F(OsAccountInterfaceSamgrTest, SendToSamgrUserState_Activating_WithErrorR
     ErrCode result = OsAccountInterface::SendToSamgrUserState(TEST_LOCAL_ID,
         OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING);
     EXPECT_EQ(result, ERR_OSACCOUNT_SERVICE_SAMGR_USER_STATE_FAILED);
+    EXPECT_EQ(g_resultCodeStr, "samgrActivating");
     GTEST_LOG_(INFO) << "SendToSamgrUserState_Activating_WithErrorResult_001 end";
 }
 
@@ -330,15 +342,200 @@ HWTEST_F(OsAccountInterfaceSamgrTest, SendToSamgrUserState_DynamicResultChange_0
     EXPECT_EQ(result1, ERR_OK);
 
     mockManager->SetMockResult(TEST_ERROR_CODE);
+    g_resultCodeStr = "";
     ErrCode result2 = OsAccountInterface::SendToSamgrUserState(TEST_LOCAL_ID,
         OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING);
     EXPECT_EQ(result2, ERR_OSACCOUNT_SERVICE_SAMGR_USER_STATE_FAILED);
+    EXPECT_EQ(g_resultCodeStr, "samgrActivating");
 
     mockManager->SetMockResult(ERR_OK);
+    g_resultCodeStr = "";
     ErrCode result3 = OsAccountInterface::SendToSamgrUserState(TEST_LOCAL_ID,
         OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING);
     EXPECT_EQ(result3, ERR_OK);
+    EXPECT_TRUE(g_resultCodeStr.empty());
     GTEST_LOG_(INFO) << "SendToSamgrUserState_DynamicResultChange_001 end";
+}
+
+/**
+ * @tc.name: SendToSamgrUserState_IpcErrorRetryExhausted_001
+ * @tc.desc: Test SendToSamgrUserState when OnUserStateChanged returns E_IPC_ERROR.
+ *          IPC exception retried MAX_RETRY_TIMES times, reports fault.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInterfaceSamgrTest, SendToSamgrUserState_IpcErrorRetryExhausted_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SendToSamgrUserState_IpcErrorRetryExhausted_001 start";
+    sptr<MockSystemAbilityManager> mockManager = new MockSystemAbilityManager();
+    mockManager->SetMockResult(Constants::E_IPC_ERROR);
+    SetMockSystemAbilityManager(mockManager);
+
+    ErrCode result = OsAccountInterface::SendToSamgrUserState(TEST_LOCAL_ID,
+        OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING);
+    EXPECT_EQ(result, ERR_OSACCOUNT_SERVICE_SAMGR_USER_STATE_FAILED);
+    EXPECT_EQ(g_resultCodeStr, "samgrActivating");
+    GTEST_LOG_(INFO) << "SendToSamgrUserState_IpcErrorRetryExhausted_001 end";
+}
+
+/**
+ * @tc.name: SendToSamgrUserState_IpcSaDiedRetryExhausted_001
+ * @tc.desc: Test SendToSamgrUserState when OnUserStateChanged returns E_IPC_SA_DIED.
+ *          IPC exception retried MAX_RETRY_TIMES times, reports fault.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInterfaceSamgrTest, SendToSamgrUserState_IpcSaDiedRetryExhausted_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SendToSamgrUserState_IpcSaDiedRetryExhausted_001 start";
+    sptr<MockSystemAbilityManager> mockManager = new MockSystemAbilityManager();
+    mockManager->SetMockResult(Constants::E_IPC_SA_DIED);
+    SetMockSystemAbilityManager(mockManager);
+
+    ErrCode result = OsAccountInterface::SendToSamgrUserState(TEST_LOCAL_ID,
+        OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING);
+    EXPECT_EQ(result, ERR_OSACCOUNT_SERVICE_SAMGR_USER_STATE_FAILED);
+    EXPECT_EQ(g_resultCodeStr, "samgrSwitching");
+    GTEST_LOG_(INFO) << "SendToSamgrUserState_IpcSaDiedRetryExhausted_001 end";
+}
+
+/**
+ * @tc.name: SendToSamgrUserState_StoppingIpcErrorRetryExhausted_001
+ * @tc.desc: Test SendToSamgrUserState with STOPPING state when OnUserStateChanged returns E_IPC_ERROR.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInterfaceSamgrTest, SendToSamgrUserState_StoppingIpcErrorRetryExhausted_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SendToSamgrUserState_StoppingIpcErrorRetryExhausted_001 start";
+    sptr<MockSystemAbilityManager> mockManager = new MockSystemAbilityManager();
+    mockManager->SetMockResult(Constants::E_IPC_ERROR);
+    SetMockSystemAbilityManager(mockManager);
+
+    ErrCode result = OsAccountInterface::SendToSamgrUserState(TEST_LOCAL_ID,
+        OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPING);
+    EXPECT_EQ(result, ERR_OSACCOUNT_SERVICE_SAMGR_USER_STATE_FAILED);
+    EXPECT_EQ(g_resultCodeStr, "samgrStopping");
+    GTEST_LOG_(INFO) << "SendToSamgrUserState_StoppingIpcErrorRetryExhausted_001 end";
+}
+
+/**
+ * @tc.name: SendToSamgrUserState_Switching_IpcError_001
+ * @tc.desc: Test SendToSamgrUserState with SWITCHING state when OnUserStateChanged returns E_IPC_ERROR.
+ *          IPC exception retried MAX_RETRY_TIMES times, reports fault.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInterfaceSamgrTest, SendToSamgrUserState_Switching_IpcError_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SendToSamgrUserState_Switching_IpcError_001 start";
+    sptr<MockSystemAbilityManager> mockManager = new MockSystemAbilityManager();
+    mockManager->SetMockResult(Constants::E_IPC_ERROR);
+    SetMockSystemAbilityManager(mockManager);
+
+    ErrCode result = OsAccountInterface::SendToSamgrUserState(TEST_LOCAL_ID,
+        OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING);
+    EXPECT_EQ(result, ERR_OSACCOUNT_SERVICE_SAMGR_USER_STATE_FAILED);
+    EXPECT_EQ(g_resultCodeStr, "samgrSwitching");
+    GTEST_LOG_(INFO) << "SendToSamgrUserState_Switching_IpcError_001 end";
+}
+
+/**
+ * @tc.name: SendToSamgrUserState_Switching_SamgrNullptr_001
+ * @tc.desc: Test SendToSamgrUserState with SWITCHING state when GetSystemAbilityManager returns nullptr.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInterfaceSamgrTest, SendToSamgrUserState_Switching_SamgrNullptr_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SendToSamgrUserState_Switching_SamgrNullptr_001 start";
+    SetMockSystemAbilityManager(nullptr);
+
+    ErrCode result = OsAccountInterface::SendToSamgrUserState(TEST_LOCAL_ID,
+        OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER);
+    EXPECT_EQ(g_resultCodeStr, "samgrSwitching");
+    GTEST_LOG_(INFO) << "SendToSamgrUserState_Switching_SamgrNullptr_001 end";
+}
+
+/**
+ * @tc.name: SendToSamgrUserState_Stopping_SamgrNullptr_001
+ * @tc.desc: Test SendToSamgrUserState with STOPPING state when GetSystemAbilityManager returns nullptr.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInterfaceSamgrTest, SendToSamgrUserState_Stopping_SamgrNullptr_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SendToSamgrUserState_Stopping_SamgrNullptr_001 start";
+    SetMockSystemAbilityManager(nullptr);
+
+    ErrCode result = OsAccountInterface::SendToSamgrUserState(TEST_LOCAL_ID,
+        OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPING);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER);
+    EXPECT_EQ(g_resultCodeStr, "samgrStopping");
+    GTEST_LOG_(INFO) << "SendToSamgrUserState_Stopping_SamgrNullptr_001 end";
+}
+
+/**
+ * @tc.name: SendToSamgrUserState_Stopping_IpcSaDied_001
+ * @tc.desc: Test SendToSamgrUserState with STOPPING state when OnUserStateChanged returns E_IPC_SA_DIED.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInterfaceSamgrTest, SendToSamgrUserState_Stopping_IpcSaDied_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SendToSamgrUserState_Stopping_IpcSaDied_001 start";
+    sptr<MockSystemAbilityManager> mockManager = new MockSystemAbilityManager();
+    mockManager->SetMockResult(Constants::E_IPC_SA_DIED);
+    SetMockSystemAbilityManager(mockManager);
+
+    ErrCode result = OsAccountInterface::SendToSamgrUserState(TEST_LOCAL_ID,
+        OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPING);
+    EXPECT_EQ(result, ERR_OSACCOUNT_SERVICE_SAMGR_USER_STATE_FAILED);
+    EXPECT_EQ(g_resultCodeStr, "samgrStopping");
+    GTEST_LOG_(INFO) << "SendToSamgrUserState_Stopping_IpcSaDied_001 end";
+}
+
+/**
+ * @tc.name: SendToSamgrUserState_Activating_IpcSaDied_001
+ * @tc.desc: Test SendToSamgrUserState with ACTIVATING state when OnUserStateChanged returns E_IPC_SA_DIED.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInterfaceSamgrTest, SendToSamgrUserState_Activating_IpcSaDied_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SendToSamgrUserState_Activating_IpcSaDied_001 start";
+    sptr<MockSystemAbilityManager> mockManager = new MockSystemAbilityManager();
+    mockManager->SetMockResult(Constants::E_IPC_SA_DIED);
+    SetMockSystemAbilityManager(mockManager);
+
+    ErrCode result = OsAccountInterface::SendToSamgrUserState(TEST_LOCAL_ID,
+        OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING);
+    EXPECT_EQ(result, ERR_OSACCOUNT_SERVICE_SAMGR_USER_STATE_FAILED);
+    EXPECT_EQ(g_resultCodeStr, "samgrActivating");
+    GTEST_LOG_(INFO) << "SendToSamgrUserState_Activating_IpcSaDied_001 end";
+}
+
+/**
+ * @tc.name: SendToSamgrUserState_RetryThenSuccess_001
+ * @tc.desc: Test SendToSamgrUserState when OnUserStateChanged fails with E_IPC_ERROR
+ *          for the first 3 retries, then succeeds on the 4th call.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInterfaceSamgrTest, SendToSamgrUserState_RetryThenSuccess_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SendToSamgrUserState_RetryThenSuccess_001 start";
+    sptr<MockSystemAbilityManager> mockManager = new MockSystemAbilityManager();
+    mockManager->SetMockResult(ERR_OK);
+    mockManager->SetFailBeforeSuccess(3, Constants::E_IPC_ERROR);
+    SetMockSystemAbilityManager(mockManager);
+
+    ErrCode result = OsAccountInterface::SendToSamgrUserState(TEST_LOCAL_ID,
+        OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_TRUE(g_resultCodeStr.empty());
+    GTEST_LOG_(INFO) << "SendToSamgrUserState_RetryThenSuccess_001 end";
 }
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -15,6 +15,7 @@
 #include "os_account_interface.h"
 
 #include <cerrno>
+#include <chrono>
 #include <condition_variable>
 #include <future>
 #include <thread>
@@ -1026,40 +1027,66 @@ ErrCode OsAccountInterface::CheckAllAppDied(int32_t accountId)
     return ERR_ACCOUNT_COMMON_OPERATION_TIMEOUT;
 }
 
+#ifdef SUPPORT_SAMGR_USER_STATE
+static ErrCode InnerSendToSamgrUserState(int32_t localId, SamgrUserState userState,
+    const std::string &operationStr)
+{
+    auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (!systemAbilityManager) {
+        ACCOUNT_LOGE("Failed to get system ability mgr.");
+        ReportOsAccountOperationFail(localId, operationStr,
+            ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, "GetSystemAbilityManager failed");
+        return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
+    }
+    ErrCode errCode = ERR_OK;
+    int32_t retryTimes = 0;
+    while (retryTimes < MAX_RETRY_TIMES) {
+        errCode = systemAbilityManager->OnUserStateChanged(localId, userState);
+        if (errCode == ERR_OK || (errCode != Constants::E_IPC_ERROR &&
+            errCode != Constants::E_IPC_SA_DIED)) {
+            break;
+        }
+        ACCOUNT_LOGE("Failed to call OnUserStateChanged, %{public}d, retry %{public}d", errCode, retryTimes + 1);
+        retryTimes++;
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_EXCEPTION));
+    }
+    if (errCode != ERR_OK) {
+        ReportOsAccountOperationFail(localId, operationStr,
+            errCode, "SAMGR OnUserStateChanged failed after retries");
+        return ERR_OSACCOUNT_SERVICE_SAMGR_USER_STATE_FAILED;
+    }
+    ACCOUNT_LOGI("SendToSamgrUserState success, localId=%{public}d", localId);
+    return ERR_OK;
+}
+#endif // SUPPORT_SAMGR_USER_STATE
+
 ErrCode OsAccountInterface::SendToSamgrUserState(int32_t localId, OsAccountState state)
 {
 #ifdef SUPPORT_SAMGR_USER_STATE
     ACCOUNT_LOGI("SendToSamgrUserState enter, localId=%{public}d, state=%{public}d", localId, state);
     SamgrUserState userState;
+    std::string operationStr;
     switch (state) {
         case OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING:
             userState = SamgrUserState::USER_STATE_ACTIVATING;
+            operationStr = Constants::OPERATION_SAMGR_ACTIVATING;
             break;
         case OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING:
             userState = SamgrUserState::USER_STATE_SWITCHING;
+            operationStr = Constants::OPERATION_SAMGR_SWITCHING;
             break;
         case OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPING:
             userState = SamgrUserState::USER_STATE_STOPPING;
+            operationStr = Constants::OPERATION_SAMGR_STOPPING;
             break;
         default:
             ACCOUNT_LOGE("State is error, state=%{public}d", state);
             return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
-    auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (!systemAbilityManager) {
-        ACCOUNT_LOGE("Failed to get system ability mgr.");
-        return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
-    }
-    auto errCode = systemAbilityManager->OnUserStateChanged(localId, userState);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Failed to call OnUserStateChanged, %{public}d.", errCode);
-        return ERR_OSACCOUNT_SERVICE_SAMGR_USER_STATE_FAILED;
-    }
-    ACCOUNT_LOGI("SendToSamgrUserState success, localId=%{public}d", localId);
-    return ERR_OK;
+    return InnerSendToSamgrUserState(localId, userState, operationStr);
 #else
     return ERR_OK;
-#endif
+#endif // SUPPORT_SAMGR_USER_STATE
 }
 }  // namespace AccountSA
 }  // namespace OHOS

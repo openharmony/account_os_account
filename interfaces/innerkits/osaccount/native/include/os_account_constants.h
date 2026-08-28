@@ -81,6 +81,10 @@ const char OPERATION_SET_TYPE[] = "setType";
 const char OPERATION_SET_TO_BE_REMOVED[] = "setToBeRemoved";
 const char OPERATION_MIGRATE_TYPE_TO_TEE[] = "migrateOSAccountTypeToTee";
 
+const char OPERATION_SAMGR_ACTIVATING[] = "samgrActivating";
+const char OPERATION_SAMGR_SWITCHING[] = "samgrSwitching";
+const char OPERATION_SAMGR_STOPPING[] = "samgrStopping";
+
 // Domain account DFX flag
 const char OPERATION_BIND_DOMAIN_ACCOUNT[] = "bindDomainAccount";
 const char OPERATION_RECOVER_BIND_DOMAIN_ACCOUNT[] = "recoverBindDomainAccount";

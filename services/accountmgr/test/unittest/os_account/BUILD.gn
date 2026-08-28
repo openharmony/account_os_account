@@ -1600,12 +1600,14 @@ ohos_unittest("OsAccountInterfaceSamgrTest") {
     "${common_path}/log/include",
     "${innerkits_common}/include",
     "${os_account_dfx_path}/hitrace_adapter",
+    "mock/hisysevent_adapter",
   ]
   sources = [
     "${common_path}/log/src/account_log_wrapper.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_interface.cpp",
     "${os_account_path}/frameworks/test/unittest/mock/iservice_registry.cpp",
+    "mock/hisysevent_adapter/account_hisysevent_adapter_mock.cpp",
     "os_account_interface_samgr_test.cpp",
   ]
   configs = [ "${services_path}/accountmgr/test:accountmgr_test_config" ]
