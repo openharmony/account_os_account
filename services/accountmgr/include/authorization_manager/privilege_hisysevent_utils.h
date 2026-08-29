@@ -25,6 +25,8 @@ const char PRIVILEGE_OPT_RECOVER_PERSIST_CACHE[] = "recoverPersistCache";
 const char PRIVILEGE_OPT_ACQUIRE_AUTH[] = "acquireAuth";
 const char PRIVILEGE_OPT_RELEASE_AUTH[] = "releasePrivilegeAuth";
 const char PRIVILEGE_OPT_VERIFY_TOKEN[] = "verifyPrivilegeToken";
+const char PRIVILEGE_OPT_ACQUIRE_AUTH_FOR_PUBLIC[] = "acquireAuthForPublic";
+const char PRIVILEGE_OPT_VERIFY_PRIVILEGE_FOR_PUBLIC[] = "verifyPrivilegeForPublic";
 } // namespace AccountSA
 } // namespace OHOS
 #endif // OS_ACCOUNT_PRIVILEGE_HISYSEVENT_UTILS_H

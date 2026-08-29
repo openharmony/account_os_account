@@ -57,6 +57,9 @@ static bool g_getPrivilegeBriefDef = false;
 static bool g_transferPrivilegeToCode = false;
 static bool g_hasExtensionConnect = true;
 static ErrCode g_checkPrivilegeResult = ERR_OK;
+static ErrCode g_hasAuthorizationResult = ERR_OK;
+static bool g_hasAuthorizationAuthorized = true;
+static std::string g_kernelPermission = "test_kernel_perm";
 const ErrCode FAIL_CODE = -1;
 } // namespace
 
@@ -199,7 +202,12 @@ InnerAuthorizationManager& InnerAuthorizationManager::GetInstance()
 
 bool GetPrivilegeBriefDef(const std::string& privilege, PrivilegeBriefDef& privilegeBriefDef)
 {
-    return g_getPrivilegeBriefDef;
+    if (!g_getPrivilegeBriefDef) {
+        return false;
+    }
+    privilegeBriefDef.kernelPermission = g_kernelPermission.empty() ? nullptr :
+        const_cast<char*>(g_kernelPermission.c_str());
+    return true;
 }
 
 bool TransferPrivilegeToCode(const std::string& privilegeName, uint32_t& code) { return g_transferPrivilegeToCode; }
@@ -230,6 +238,13 @@ bool InnerAuthorizationManager::HasExtensionConnect() { return g_hasExtensionCon
 ErrCode InnerAuthorizationManager::CheckAuthorization(const uint32_t privilegeId, const int32_t pid, bool& isAuthorized)
 {
     return ERR_OK;
+}
+
+ErrCode InnerAuthorizationManager::HasKernelAuthorization(uint32_t privilegeId, int32_t callingPid,
+    const std::string& kernelPermission, bool& isAuthorized)
+{
+    isAuthorized = g_hasAuthorizationAuthorized;
+    return g_hasAuthorizationResult;
 }
 
 ErrCode InnerAuthorizationManager::VerifyToken(const std::vector<uint8_t>& token,
@@ -933,6 +948,266 @@ HWTEST_F(AuthorizationManagerServiceModuleTest, AcquireAuthorizationTest_1500, T
 
     EXPECT_EQ(ret, ERR_OK);
 
+    g_hasExtensionConnect = true;
+    g_checkPrivilegeResult = ERR_OK;
+}
+
+/**
+ * @tc.name: HasAuthorizationForPublicTest_0100
+ * @tc.desc: test HasAuthorizationForPublic with empty privilege.
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(AuthorizationManagerServiceModuleTest, HasAuthorizationForPublicTest_0100, TestSize.Level0)
+{
+    ACCOUNT_LOGI("HasAuthorizationForPublicTest_0100");
+    bool isAuthorized = true;
+    ErrCode ret = service_->HasAuthorizationForPublic("", isAuthorized);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    EXPECT_FALSE(isAuthorized);
+}
+
+/**
+ * @tc.name: HasAuthorizationForPublicTest_0200
+ * @tc.desc: test HasAuthorizationForPublic with GetPrivilegeBriefDef failure.
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(AuthorizationManagerServiceModuleTest, HasAuthorizationForPublicTest_0200, TestSize.Level0)
+{
+    ACCOUNT_LOGI("HasAuthorizationForPublicTest_0200");
+    g_getPrivilegeBriefDef = false;
+    bool isAuthorized = true;
+    ErrCode ret = service_->HasAuthorizationForPublic(TEST_PRIVILEGE, isAuthorized);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    EXPECT_FALSE(isAuthorized);
+    g_getPrivilegeBriefDef = true;
+}
+
+/**
+ * @tc.name: HasAuthorizationForPublicTest_0300
+ * @tc.desc: test HasAuthorizationForPublic with empty kernelPermission → routes to CheckAuthorization.
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(AuthorizationManagerServiceModuleTest, HasAuthorizationForPublicTest_0300, TestSize.Level0)
+{
+    ACCOUNT_LOGI("HasAuthorizationForPublicTest_0300");
+    g_getPrivilegeBriefDef = true;
+    g_kernelPermission = "";
+    g_transferPrivilegeToCode = true;
+    g_checkPrivilegeResult = ERR_AUTHORIZATION_PRIVILEGE_DENIED;
+    bool isAuthorized = true;
+    ErrCode ret = service_->HasAuthorizationForPublic(TEST_PRIVILEGE, isAuthorized);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_FALSE(isAuthorized);
+    g_kernelPermission = "test_kernel_perm";
+    g_checkPrivilegeResult = ERR_OK;
+}
+
+/**
+ * @tc.name: HasAuthorizationForPublicTest_0400
+ * @tc.desc: test HasAuthorizationForPublic with TransferPrivilegeToCode failure.
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(AuthorizationManagerServiceModuleTest, HasAuthorizationForPublicTest_0400, TestSize.Level0)
+{
+    ACCOUNT_LOGI("HasAuthorizationForPublicTest_0400");
+    g_getPrivilegeBriefDef = true;
+    g_kernelPermission = "test_kernel_perm";
+    g_transferPrivilegeToCode = false;
+    bool isAuthorized = true;
+    ErrCode ret = service_->HasAuthorizationForPublic(TEST_PRIVILEGE, isAuthorized);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    EXPECT_FALSE(isAuthorized);
+    g_transferPrivilegeToCode = true;
+}
+
+/**
+ * @tc.name: HasAuthorizationForPublicTest_0500
+ * @tc.desc: test HasAuthorizationForPublic success.
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(AuthorizationManagerServiceModuleTest, HasAuthorizationForPublicTest_0500, TestSize.Level0)
+{
+    ACCOUNT_LOGI("HasAuthorizationForPublicTest_0500");
+    g_getPrivilegeBriefDef = true;
+    g_kernelPermission = "test_kernel_perm";
+    g_transferPrivilegeToCode = true;
+    g_hasAuthorizationResult = ERR_OK;
+    g_hasAuthorizationAuthorized = true;
+    bool isAuthorized = false;
+    ErrCode ret = service_->HasAuthorizationForPublic(TEST_PRIVILEGE, isAuthorized);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_TRUE(isAuthorized);
+}
+
+/**
+ * @tc.name: HasAuthorizationForPublicTest_0600
+ * @tc.desc: test HasAuthorizationForPublic with InnerAuthorizationManager failure.
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(AuthorizationManagerServiceModuleTest, HasAuthorizationForPublicTest_0600, TestSize.Level0)
+{
+    ACCOUNT_LOGI("HasAuthorizationForPublicTest_0600");
+    g_getPrivilegeBriefDef = true;
+    g_kernelPermission = "test_kernel_perm";
+    g_transferPrivilegeToCode = true;
+    g_hasAuthorizationResult = ERR_ACCOUNT_COMMON_SYSTEM_SERVICE_EXCEPTION;
+    g_hasAuthorizationAuthorized = false;
+    bool isAuthorized = true;
+    ErrCode ret = service_->HasAuthorizationForPublic(TEST_PRIVILEGE, isAuthorized);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_SYSTEM_SERVICE_EXCEPTION);
+    EXPECT_FALSE(isAuthorized);
+    g_hasAuthorizationResult = ERR_OK;
+    g_hasAuthorizationAuthorized = true;
+}
+
+/**
+ * @tc.name: AcquireAuthorizationForPublicTest_0100
+ * @tc.desc: test AcquireAuthorizationForPublic with permission denied.
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(AuthorizationManagerServiceModuleTest, AcquireAuthorizationForPublicTest_0100, TestSize.Level0)
+{
+    ACCOUNT_LOGI("AcquireAuthorizationForPublicTest_0100");
+    EXPECT_CALL(MockAccountPermissionManager::GetInstance(), VerifyPermission(_))
+        .WillRepeatedly(Return(ERR_ACCOUNT_COMMON_PERMISSION_DENIED));
+    auto callbackObj = new MockAuthorizationCallbackStub();
+    auto requestObj = new MockAuthorizationCallbackStub();
+    ErrCode ret = service_->AcquireAuthorizationForPublic(
+        TEST_PRIVILEGE, true, callbackObj->AsObject(), requestObj->AsObject());
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+}
+
+/**
+ * @tc.name: AcquireAuthorizationForPublicTest_0200
+ * @tc.desc: test AcquireAuthorizationForPublic with null callback.
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(AuthorizationManagerServiceModuleTest, AcquireAuthorizationForPublicTest_0200, TestSize.Level0)
+{
+    ACCOUNT_LOGI("AcquireAuthorizationForPublicTest_0200");
+    EXPECT_CALL(MockAccountPermissionManager::GetInstance(), VerifyPermission(_))
+        .WillRepeatedly(Return(ERR_OK));
+    g_getPrivilegeBriefDef = true;
+    g_kernelPermission = "test_kernel_perm";
+    auto requestObj = new MockAuthorizationCallbackStub();
+    ErrCode ret = service_->AcquireAuthorizationForPublic(
+        TEST_PRIVILEGE, true, nullptr, requestObj->AsObject());
+    EXPECT_EQ(ret, ERR_AUTHORIZATION_GET_PROXY_ERROR);
+}
+
+/**
+ * @tc.name: AcquireAuthorizationForPublicTest_0300
+ * @tc.desc: test AcquireAuthorizationForPublic with invalid context.
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(AuthorizationManagerServiceModuleTest, AcquireAuthorizationForPublicTest_0300, TestSize.Level0)
+{
+    ACCOUNT_LOGI("AcquireAuthorizationForPublicTest_0300");
+    EXPECT_CALL(MockAccountPermissionManager::GetInstance(), VerifyPermission(_))
+        .WillRepeatedly(Return(ERR_OK));
+    auto callbackObj = new MockAuthorizationCallbackStub();
+    auto requestObj = new MockAuthorizationCallbackStub();
+    ErrCode ret = service_->AcquireAuthorizationForPublic(
+        TEST_PRIVILEGE, false, callbackObj->AsObject(), requestObj->AsObject());
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: AcquireAuthorizationForPublicTest_0400
+ * @tc.desc: test AcquireAuthorizationForPublic with GetPrivilegeDefinition failure.
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(AuthorizationManagerServiceModuleTest, AcquireAuthorizationForPublicTest_0400, TestSize.Level0)
+{
+    ACCOUNT_LOGI("AcquireAuthorizationForPublicTest_0400");
+    EXPECT_CALL(MockAccountPermissionManager::GetInstance(), VerifyPermission(_))
+        .WillRepeatedly(Return(ERR_OK));
+    g_getPrivilegeBriefDef = false;
+    auto callbackObj = new MockAuthorizationCallbackStub();
+    auto requestObj = new MockAuthorizationCallbackStub();
+    ErrCode ret = service_->AcquireAuthorizationForPublic(
+        TEST_PRIVILEGE, true, callbackObj->AsObject(), requestObj->AsObject());
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    g_getPrivilegeBriefDef = true;
+}
+
+/**
+ * @tc.name: AcquireAuthorizationForPublicTest_0500
+ * @tc.desc: test AcquireAuthorizationForPublic with empty kernelPermission (no longer rejected).
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(AuthorizationManagerServiceModuleTest, AcquireAuthorizationForPublicTest_0500, TestSize.Level0)
+{
+    ACCOUNT_LOGI("AcquireAuthorizationForPublicTest_0500");
+    EXPECT_CALL(MockAccountPermissionManager::GetInstance(), VerifyPermission(_))
+        .WillRepeatedly(Return(ERR_OK));
+    g_getPrivilegeBriefDef = true;
+    g_kernelPermission = "";
+    auto callbackObj = new MockAuthorizationCallbackStub();
+    auto requestObj = new MockAuthorizationCallbackStub();
+    ErrCode ret = service_->AcquireAuthorizationForPublic(
+        TEST_PRIVILEGE, true, callbackObj->AsObject(), requestObj->AsObject());
+    EXPECT_NE(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    g_kernelPermission = "test_kernel_perm";
+}
+
+/**
+ * @tc.name: AcquireAuthorizationForPublicTest_0600
+ * @tc.desc: test AcquireAuthorizationForPublic with resultCode != AUTHORIZATION_SUCCESS.
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(AuthorizationManagerServiceModuleTest, AcquireAuthorizationForPublicTest_0600, TestSize.Level0)
+{
+    ACCOUNT_LOGI("AcquireAuthorizationForPublicTest_0600");
+    EXPECT_CALL(MockAccountPermissionManager::GetInstance(), VerifyPermission(_))
+        .WillRepeatedly(Return(ERR_OK));
+    g_getPrivilegeBriefDef = true;
+    g_kernelPermission = "test_kernel_perm";
+    g_hasConnect = false;
+    g_hasExtensionConnect = true;
+    auto callbackObj = new MockAuthorizationCallbackStub();
+    auto requestObj = new MockAuthorizationCallbackStub();
+    ErrCode ret = service_->AcquireAuthorizationForPublic(
+        TEST_PRIVILEGE, true, callbackObj->AsObject(), requestObj->AsObject());
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(callbackObj->result_.resultCode, AuthorizationResultCode::AUTHORIZATION_SERVICE_BUSY);
+    g_hasExtensionConnect = true;
+}
+
+/**
+ * @tc.name: AcquireAuthorizationForPublicTest_0700
+ * @tc.desc: test AcquireAuthorizationForPublic with HandleWhenReuse returning ERR_OK.
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(AuthorizationManagerServiceModuleTest, AcquireAuthorizationForPublicTest_0700, TestSize.Level0)
+{
+    ACCOUNT_LOGI("AcquireAuthorizationForPublicTest_0700");
+    EXPECT_CALL(MockAccountPermissionManager::GetInstance(), VerifyPermission(_))
+        .WillRepeatedly(Return(ERR_OK));
+    g_getPrivilegeBriefDef = true;
+    g_kernelPermission = "test_kernel_perm";
+    g_transferPrivilegeToCode = true;
+    g_hasConnect = false;
+    g_hasExtensionConnect = false;
+    g_checkPrivilegeResult = ERR_OK;
+    auto callbackObj = new MockAuthorizationCallbackStub();
+    auto requestObj = new MockAuthorizationCallbackStub();
+    ErrCode ret = service_->AcquireAuthorizationForPublic(
+        TEST_PRIVILEGE, true, callbackObj->AsObject(), requestObj->AsObject());
+    EXPECT_EQ(ret, ERR_OK);
     g_hasExtensionConnect = true;
     g_checkPrivilegeResult = ERR_OK;
 }

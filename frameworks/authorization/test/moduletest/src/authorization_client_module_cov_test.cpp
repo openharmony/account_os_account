@@ -37,6 +37,7 @@ using namespace OHOS::AccountSA::Constants;
 namespace {
 const std::string PRIVILEGE_NAME = "ohos.privilege.manage_local_accounts";
 const std::string PRIVILEGE_NAME_TEST = "test.privilege.manage_local_accounts";
+const std::string PRIVILEGE_PUBLIC_NAME = "ohos.privilege.operate_raw_net_packets";
 }
 
 class AuthorizationClientModuleCovTest : public testing::Test {
@@ -551,6 +552,102 @@ HWTEST_F(AuthorizationClientModuleCovTest, GetInstance001, TestSize.Level0)
     EXPECT_EQ(&instance1, &instance2);
 }
 
+/**
+ * @tc.name: AcquireAuthorizationForPublic001
+ * @tc.desc: acquire authorization for public with nullptr callback.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AuthorizationClientModuleCovTest, AcquireAuthorizationForPublic001, TestSize.Level0)
+{
+    std::string privilege = PRIVILEGE_NAME;
+    std::shared_ptr<MockAuthorizationResultCallback> callback = nullptr;
+    ErrCode errCode = AuthorizationClient::GetInstance().AcquireAuthorizationForPublic(
+        privilege, true, callback);
+    EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: AcquireAuthorizationForPublic002
+ * @tc.desc: acquire authorization for public with valid callback.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AuthorizationClientModuleCovTest, AcquireAuthorizationForPublic002, TestSize.Level0)
+{
+    std::string privilege = PRIVILEGE_NAME;
+    auto callback = std::make_shared<MockAuthorizationResultCallback>();
+    ErrCode errCode = AuthorizationClient::GetInstance().AcquireAuthorizationForPublic(
+        privilege, true, callback);
+    EXPECT_NE(errCode, ERR_OK);
+}
+
+/**
+ * @tc.name: AcquireAuthorizationForPublic003
+ * @tc.desc: acquire authorization for public with invalid privilege.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AuthorizationClientModuleCovTest, AcquireAuthorizationForPublic003, TestSize.Level0)
+{
+    std::string privilege = PRIVILEGE_NAME_TEST;
+    auto callback = std::make_shared<MockAuthorizationResultCallback>();
+    ErrCode errCode = AuthorizationClient::GetInstance().AcquireAuthorizationForPublic(
+        privilege, true, callback);
+    EXPECT_NE(errCode, ERR_OK);
+}
+
+/**
+ * @tc.name: HasAuthorizationForPublic001
+ * @tc.desc: has authorization for public with valid privilege.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AuthorizationClientModuleCovTest, HasAuthorizationForPublic001, TestSize.Level0)
+{
+    std::string privilege = PRIVILEGE_PUBLIC_NAME;
+    bool isAuthorized = true;
+    ErrCode errCode = AuthorizationClient::GetInstance().HasAuthorizationForPublic(privilege, isAuthorized);
+    EXPECT_EQ(errCode, ERR_OK);
+    EXPECT_EQ(isAuthorized, false);
+}
+
+/**
+ * @tc.name: HasAuthorizationForPublic002
+ * @tc.desc: has authorization for public with invalid privilege.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AuthorizationClientModuleCovTest, HasAuthorizationForPublic002, TestSize.Level0)
+{
+    std::string privilege = PRIVILEGE_NAME_TEST;
+    bool isAuthorized = true;
+    ErrCode errCode = AuthorizationClient::GetInstance().HasAuthorizationForPublic(privilege, isAuthorized);
+    EXPECT_NE(errCode, ERR_OK);
+    EXPECT_EQ(isAuthorized, false);
+}
+
+/**
+ * @tc.name: AcquireAuthorizationForPublic004
+ * @tc.desc: acquire authorization for public with allocated permission and public privilege.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AuthorizationClientModuleCovTest, AcquireAuthorizationForPublic004, TestSize.Level0)
+{
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    uint64_t tokenID;
+    std::vector<std::string> authPermissions = ALL_ACCOUNT_PERMISSION_LIST;
+    authPermissions.push_back("ohos.permission.REQUEST_LOCAL_ACCOUNT_AUTHORIZATION");
+    ASSERT_TRUE(AllocPermission(authPermissions, tokenID, true));
+    std::string privilege = PRIVILEGE_PUBLIC_NAME;
+    auto callback = std::make_shared<MockAuthorizationResultCallback>();
+    ErrCode errCode = AuthorizationClient::GetInstance().AcquireAuthorizationForPublic(
+        privilege, true, callback);
+    ACCOUNT_LOGI("AcquireAuthorizationForPublic004 errCode=%{public}d", errCode);
+    ASSERT_TRUE(RecoveryPermission(tokenID, selfTokenId));
+}
+
 #else
 /**
  * @tc.name: RegisterAuthAppRemoteObject001
@@ -622,6 +719,60 @@ HWTEST_F(AuthorizationClientModuleCovTest, GetInstance001, TestSize.Level0)
     auto& instance1 = AuthorizationClient::GetInstance();
     auto& instance2 = AuthorizationClient::GetInstance();
     EXPECT_EQ(&instance1, &instance2);
+}
+
+/**
+ * @tc.name: AcquireAuthorizationForPublic_NoSupport001
+ * @tc.desc: acquire authorization for public without SUPPORT_AUTHORIZATION,
+ *           permission denied.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AuthorizationClientModuleCovTest, AcquireAuthorizationForPublic_NoSupport001, TestSize.Level0)
+{
+    std::string privilege = PRIVILEGE_NAME;
+    auto callback = std::make_shared<MockAuthorizationResultCallback>();
+    ErrCode errCode = AuthorizationClient::GetInstance().AcquireAuthorizationForPublic(
+        privilege, true, callback);
+    EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+}
+
+/**
+ * @tc.name: AcquireAuthorizationForPublic_NoSupport002
+ * @tc.desc: acquire authorization for public without SUPPORT_AUTHORIZATION,
+ *           permission granted, returns ERR_OK with resultCode=PRIVILEGE_NOT_SUPPORTED.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AuthorizationClientModuleCovTest, AcquireAuthorizationForPublic_NoSupport002, TestSize.Level0)
+{
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    uint64_t tokenID;
+    std::vector<std::string> authPermissions = ALL_ACCOUNT_PERMISSION_LIST;
+    authPermissions.push_back("ohos.permission.REQUEST_LOCAL_ACCOUNT_AUTHORIZATION");
+    ASSERT_TRUE(AllocPermission(authPermissions, tokenID, true));
+    std::string privilege = PRIVILEGE_NAME;
+    auto callback = std::make_shared<MockAuthorizationResultCallback>();
+    ErrCode errCode = AuthorizationClient::GetInstance().AcquireAuthorizationForPublic(
+        privilege, true, callback);
+    EXPECT_TRUE(errCode == ERR_OK || errCode == ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    ASSERT_TRUE(RecoveryPermission(tokenID, selfTokenId));
+}
+
+/**
+ * @tc.name: HasAuthorizationForPublic_NoSupport001
+ * @tc.desc: has authorization for public without SUPPORT_AUTHORIZATION,
+ *           returns isAuthorized=false, ERR_OK.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AuthorizationClientModuleCovTest, HasAuthorizationForPublic_NoSupport001, TestSize.Level0)
+{
+    std::string privilege = PRIVILEGE_NAME;
+    bool isAuthorized = true;
+    ErrCode errCode = AuthorizationClient::GetInstance().HasAuthorizationForPublic(privilege, isAuthorized);
+    EXPECT_EQ(errCode, ERR_OK);
+    EXPECT_EQ(isAuthorized, false);
 }
 #endif // SUPPORT_AUTHORIZATION
 

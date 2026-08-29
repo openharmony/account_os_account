@@ -20,6 +20,7 @@
 #include "app_mgr_client.h"
 #include "auth_remote_object_stub.h"
 #include "errors.h"
+#include "ipc_skeleton.h"
 #ifdef SUPPORT_AUTHORIZATION
 #include "ohos_account_kits_impl.h"
 #endif // SUPPORT_AUTHORIZATION
@@ -37,6 +38,8 @@ static sptr<IRemoteObject> g_AuthAppRemoteObj = nullptr;
 static sptr<AuthRemoteObjectStub> g_requestRemoteObj = nullptr;
 #ifndef SUPPORT_AUTHORIZATION
 const char PERMISSION_ACQUIRE_AUTHORIZATION[] = "ohos.permission.ACQUIRE_LOCAL_ACCOUNT_AUTHORIZATION";
+const char PERMISSION_ACQUIRE_AUTHORIZATION_FOR_PUBLIC[] =
+    "ohos.permission.REQUEST_LOCAL_ACCOUNT_AUTHORIZATION";
 #endif
 }
 AuthorizationClient::AuthorizationClient()
@@ -172,7 +175,8 @@ ErrCode AuthorizationClient::AcquireAuthorization(const std::string &privilege,
         ACCOUNT_LOGE("Caller is not system application, errCode: %{public}d", errCode);
         return errCode;
     }
-    errCode = AccountPermissionManager::VerifyPermission(PERMISSION_ACQUIRE_AUTHORIZATION);
+    errCode = AccountPermissionManager::VerifyPermission(IPCSkeleton::GetSelfTokenID(),
+        PERMISSION_ACQUIRE_AUTHORIZATION);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Failed to check permission.");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
@@ -400,5 +404,70 @@ sptr<IAuthorization> AuthorizationClient::GetAuthorizationProxy()
     return proxy_;
 }
 #endif // SUPPORT_AUTHORIZATION
+
+ErrCode AuthorizationClient::AcquireAuthorizationForPublic(const std::string &privilege, bool isContextValid,
+    const std::shared_ptr<AuthorizationCallback> &callback)
+{
+#ifdef SUPPORT_AUTHORIZATION
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("Callback is nullptr");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    sptr<AuthRemoteObjectStub> requestRemoteObj = GetOrCreateRequestRemoteObject();
+    if (requestRemoteObj == nullptr) {
+        ACCOUNT_LOGE("Failed to get or create request remote object");
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    }
+    sptr<AuthorizationCallbackService> resultCallback =
+        sptr<AuthorizationCallbackService>::MakeSptr(callback,
+            []() { AuthorizationClient::GetInstance().EraseAuthCallBack(); });
+    auto proxy = GetAuthorizationProxy();
+    if (proxy == nullptr) {
+        ACCOUNT_LOGE("Failed to get authorization proxy");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    ErrCode errCode = proxy->AcquireAuthorizationForPublic(privilege, isContextValid,
+        resultCallback->AsObject(), requestRemoteObj->AsObject());
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to acquire authorization for public, errCode:%{public}d", errCode);
+        return errCode;
+    }
+    std::lock_guard<std::recursive_mutex> lock(callbackMutex_);
+    if (callbackService_ == nullptr) {
+        callbackService_ = resultCallback;
+    }
+    return ERR_OK;
+#else
+    ErrCode errCode = AccountPermissionManager::VerifyPermission(IPCSkeleton::GetSelfTokenID(),
+        PERMISSION_ACQUIRE_AUTHORIZATION_FOR_PUBLIC);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to check permission.");
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+    AuthorizationResult result;
+    result.privilege = privilege;
+    result.resultCode = AuthorizationResultCode::AUTHORIZATION_PRIVILEGE_NOT_SUPPORTED;
+    if (callback != nullptr) {
+        callback->OnResult(ERR_OK, result);
+    }
+    return ERR_OK;
+#endif // SUPPORT_AUTHORIZATION
+}
+
+ErrCode AuthorizationClient::HasAuthorizationForPublic(const std::string &privilege, bool &isAuthorized)
+{
+#ifdef SUPPORT_AUTHORIZATION
+    isAuthorized = false;
+    auto proxy = GetAuthorizationProxy();
+    if (proxy == nullptr) {
+        ACCOUNT_LOGE("Failed to get authorization proxy");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->HasAuthorizationForPublic(privilege, isAuthorized);
+#else
+    isAuthorized = false;
+    return ERR_OK;
+#endif // SUPPORT_AUTHORIZATION
+}
 }
 }

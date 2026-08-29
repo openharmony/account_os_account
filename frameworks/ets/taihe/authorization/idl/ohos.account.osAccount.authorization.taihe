@@ -1,0 +1,51 @@
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@!namespace("@ohos.account.osAccount.authorization", "authorization")
+@!sts_inject_into_module("import { BusinessError } from '@ohos.base';")
+@!sts_inject_into_module("import Context from 'application.Context';")
+@!sts_inject("""
+static { loadLibrary("authorization_taihe_native.z") }
+""")
+
+enum Privilege: String {
+    PRIVILEGE_OPERATE_RAW_NET_PACKETS = "ohos.privilege.operate_raw_net_packets",
+}
+
+enum AuthorizationResultCode: i32 {
+    AUTHORIZATION_SUCCESS = 0,
+    AUTHORIZATION_CANCELED = 12300301,
+    AUTHORIZATION_INTERACTION_NOT_ALLOWED = 12300302,
+    AUTHORIZATION_DENIED = 12300303,
+    AUTHORIZATION_SERVICE_BUSY = 12300304,
+    AUTHORIZATION_PRIVILEGE_NOT_SUPPORTED = 12300305,
+}
+
+struct AuthorizationResult {
+    resultCode: AuthorizationResultCode;
+    privilege: Privilege;
+}
+
+interface AuthorizationManager {
+    @rename("requestAuthorization")
+    @promise
+    AcquireAuthorizationPromise(privilege: Privilege, context: @sts_type("Context")Opaque): AuthorizationResult;
+
+    @rename("hasAuthorization")
+    @promise
+    HasAuthorizationPromise(privilege: Privilege): bool;
+}
+
+function GetAuthorizationManager(): AuthorizationManager;

@@ -32,4 +32,7 @@ interface OHOS.AccountSA.IAuthorization {
         [out] CheckAuthorizationResult authResult);
     void AcquireAdminAuthorization([in] String adminName, [in] unsigned char[] challenge,
         [in] IRemoteObject adminAuthorizationCallback, [in] String privilege);
+    void AcquireAuthorizationForPublic([in] String privilege, [in] boolean isContextValid,
+        [in] IRemoteObject authorizationResultCallback, [in] IRemoteObject authAppRemoteObject);
+    void HasAuthorizationForPublic([in] String privilege, [out] boolean isAuthorized);
 }

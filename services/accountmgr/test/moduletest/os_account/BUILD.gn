@@ -154,6 +154,7 @@ ohos_moduletest("inner_os_account_manager_test") {
       "${authorization_framework_path}:connect_ability_callback_stub",
     ]
     external_deps += [
+      "ability_runtime:ability_connect_callback_stub",
       "ability_runtime:extension_manager",
       "tee_client:libteec_vendor",
     ]

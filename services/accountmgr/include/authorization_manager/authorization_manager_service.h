@@ -133,6 +133,12 @@ public:
     ErrCode AcquireAdminAuthorization(const std::string &adminName, const std::vector<uint8_t> &challenge,
         const sptr<IRemoteObject> &callback, const std::string &privilege) override;
 
+    ErrCode AcquireAuthorizationForPublic(const std::string &privilege, bool isContextValid,
+        const sptr<IRemoteObject> &authorizationResultCallback,
+        const sptr<IRemoteObject> &requestRemoteObj) override;
+
+    ErrCode HasAuthorizationForPublic(const std::string &privilege, bool &isAuthorized) override;
+
 private:
     ErrCode ValidateAdminAuthParams(const std::string &adminName, const sptr<IRemoteObject> &callback,
         sptr<IAdminAuthorizationCallback> &callbackProxy);
@@ -146,6 +152,10 @@ private:
     ErrCode GetPrivilegeDefinition(AuthorizationResult &authorizationResult, PrivilegeBriefDef &def, int32_t localId);
     ErrCode HandleWhenReuse(AuthorizationResult &authorizationResult, const AcquireAuthorizationOptions &options,
         const sptr<IAuthorizationCallback> &callback, int32_t localId);
+
+    bool VerifyWidget(const std::string &bundleName);
+
+    ErrCode CheckPublicPermission(int32_t localId);
 
     /// OS account configuration
     OsAccountConfig config_;

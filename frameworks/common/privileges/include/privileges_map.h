@@ -25,6 +25,7 @@ struct PrivilegeBriefDef {
     char* privilegeName;
     char* description;
     uint32_t timeout;
+    char* kernelPermission;
 };
 
 bool TransferPrivilegeToCode(const std::string& privilegeName, uint32_t& code);

@@ -16,13 +16,25 @@
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_PRIVILEGE_CACHE_MANAGER_H
 
 #include <optional>
+#include <string>
 #include "ipc_skeleton.h"
 #include "json_utils.h"
+#include "kernel_authorization_adapter.h"
 #include "privilege_utils.h"
 #include "privileges_map.h"
 
 namespace OHOS {
 namespace AccountSA {
+
+enum class PrivilegeAuthStatus {
+    NOT_REQUIRED = 0,
+    UNCONFIRMED = 1,
+    AUTHORIZED = 2,
+};
+
+std::string PrivilegeAuthStatusToString(PrivilegeAuthStatus authType);
+PrivilegeAuthStatus StringToPrivilegeAuthStatus(const std::string &authTypeStr);
+
 class PrivilegeRecord {
     friend class ProcessPrivilegeRecord;
 public:
@@ -36,10 +48,14 @@ public:
     ErrCode GetRemainTimeSec(int64_t currentTimeStamp, int32_t &remainTime);
     bool NeedClean(int64_t currentTimeStamp);
 
+    PrivilegeAuthStatus GetAuthStatus() const { return authStatus_; }
+    void SetAuthStatus(PrivilegeAuthStatus authType) { authStatus_ = authType; }
+
 protected:
     uint32_t privilegeIdx_ = 0;
     int64_t expiredTime_ = 0;
     uint32_t safeStartTime_ = 0;
+    PrivilegeAuthStatus authStatus_ = PrivilegeAuthStatus::NOT_REQUIRED;
 };
 
 struct AuthenCallerInfo {
@@ -62,6 +78,8 @@ public:
 
     ErrCode CheckPrivilege(const uint32_t privilegeIdx, int32_t &remainTime);
     ErrCode AddOrUpdatePrivilege(uint32_t privilegeIdx, uint32_t safeStartTime);
+    std::shared_ptr<PrivilegeRecord> GetPrivilegeRecord(uint32_t privilegeIdx);
+    std::map<uint32_t, std::shared_ptr<PrivilegeRecord>> &GetPrivilegeRecords() { return privilegeRecordMap_; }
     ErrCode RemovePrivilege(uint32_t privilegeIdx, std::shared_ptr<PrivilegeRecord> &removedRecord);
     void RollbackPrivilege(const std::shared_ptr<PrivilegeRecord> &removedRecord);
     ErrCode CleanCurrentExpiredPrivileges(const int64_t currentTimeStamp);
@@ -96,6 +114,10 @@ public:
     ErrCode CheckPrivilege(const AuthenCallerInfo &callerInfo, int32_t &remainTime);
     ErrCode RemoveSingle(const AuthenCallerInfo &callerInfo);
     ErrCode AddCache(const AuthenCallerInfo &callerInfo, uint32_t safeStartTime);
+    ErrCode AddCacheAndNotifyKernel(const AuthenCallerInfo &callerInfo,
+        const std::string &kernelPermission);
+    ErrCode HasKernelAuthorization(int32_t pid, uint32_t privilegeIdx,
+        const std::string &kernelPermission, bool &isAuthorized);
     ErrCode RemoveUser(int32_t localId);
     ErrCode RemoveProcess(int32_t pid);
 
@@ -114,6 +136,11 @@ private:
     ErrCode ToJsonString(const int64_t currTime, const std::string &recordStr,
         const std::vector<uint8_t> &digest, std::string &output);
     ErrCode AddNewProcessCacheInner(const AuthenCallerInfo &callerInfo, uint32_t safeStartTime);
+    ErrCode SetAuthStatusForRecord(const AuthenCallerInfo &callerInfo, PrivilegeAuthStatus authType);
+    ErrCode PrepareKernelAuthCache(const AuthenCallerInfo &callerInfo, int64_t &currTime);
+    ErrCode SetKernelAuthWithTimer(int32_t pid, const std::string &kernelPermission);
+    ErrCode QueryKernelAuthWithTimer(int32_t pid, const std::string &kernelPermission, bool &isAuthorized);
+    ErrCode UpdateToAuthorized(const std::shared_ptr<PrivilegeRecord> &record);
     void StartCleanTask();
     void RollbackDelSingleRecord(const std::shared_ptr<ProcessPrivilegeRecord> &processRecord,
         const std::shared_ptr<PrivilegeRecord> &removedRecord);

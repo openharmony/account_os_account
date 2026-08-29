@@ -17,6 +17,7 @@
 #define OS_ACCOUNT_INTERFACES_KITS_COMMON_INCLUDE_NAPI_ACCOUNT_COMMON_H
 
 #include <map>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <vector>

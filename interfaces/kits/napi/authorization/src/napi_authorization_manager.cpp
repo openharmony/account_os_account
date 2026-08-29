@@ -41,224 +41,8 @@ const size_t ARG_SIZE_TWO = 2;
 const size_t PARAM_ONE = 1;
 const size_t PARAM_ZERO = 0;
 static thread_local napi_ref authorizationRef_ = nullptr;
-
-static ErrCode NotifyAuthorizationResultWithRetry(const sptr<IRemoteObject>& callback, int32_t errCode,
-    const std::vector<uint8_t>& iamToken = std::vector<uint8_t>(), int32_t accountId = -1,
-    int32_t resultCode = -1)
-{
-    if (callback == nullptr) {
-        ACCOUNT_LOGE("Callback is nullptr");
-        return ERR_JS_INVALID_PARAMETER;
-    }
-    auto callbackProxy = iface_cast<AccountSA::IConnectAbilityCallback>(callback);
-    if (callbackProxy == nullptr) {
-        ACCOUNT_LOGE("ConnectAbilityCallback proxy is nullptr");
-        return ERR_JS_INVALID_PARAMETER;
-    }
-    int retryTimes = 0;
-    ErrCode ret = ERR_OK;
-    while (retryTimes < AccountSA::AuthorizationConstants::MAX_RETRY_TIME) {
-        ret = callbackProxy->OnResult(errCode, iamToken, accountId, resultCode);
-        if (ret == ERR_OK || (ret != Constants::E_IPC_ERROR && ret != Constants::E_IPC_SA_DIED)) {
-            break;
-        }
-        retryTimes++;
-        ACCOUNT_LOGE("UIExtensionCallback send result failed, code=%{public}d, retryTimes=%{public}d", ret, retryTimes);
-        std::this_thread::sleep_for(std::chrono::milliseconds(Constants::DELAY_FOR_EXCEPTION));
-    }
-    return ret;
-}
-
-static Ace::UIContent* GetUIContent(const std::shared_ptr<AcquireAuthorizationContext> &context)
-{
-    if (context == nullptr) {
-        return nullptr;
-    }
-    Ace::UIContent* uiContent = nullptr;
-    if (context->uiAbilityFlag) {
-        uiContent = context->abilityContext->GetUIContent();
-    } else if ((context->uiExtensionContext == nullptr) ||
-        (context->uiExtensionContext->GetApplicationInfo() == nullptr)) {
-        return uiContent;
-    } else {
-        uiContent = context->uiExtensionContext->GetUIContent();
-    }
-
-    return uiContent;
-}
 } // namespace
 
-UIExtensionCallback::UIExtensionCallback(const std::shared_ptr<AcquireAuthorizationContext>& context)
-    : context_(context)
-{
-    isOnResult_.exchange(false);
-    isReleased_.exchange(false);
-}
-
-void UIExtensionCallback::ReleaseHandler(int32_t errCode, AuthorizationResultCode resultCode,
-    const std::vector<uint8_t> &iamToken, int32_t accountId)
-{
-    ACCOUNT_LOGI("enter ReleaseHandler code:%{public}d, resultCode:%{public}d", errCode,
-        static_cast<int32_t>(resultCode));
-    int32_t resultCodeInt = static_cast<int32_t>(resultCode);
-    NotifyAuthorizationResultWithRetry(callback_, errCode, iamToken, accountId, resultCodeInt);
-    CloseUIExtension();
-    context_ = nullptr;
-}
-
-OHOS::Ace::UIContent* UIExtensionCallback::GetUIContent()
-{
-    if (context_ == nullptr) {
-        ACCOUNT_LOGE("Context is nullptr");
-        return nullptr;
-    }
-
-    OHOS::Ace::UIContent* uiContent = nullptr;
-    if (context_->uiAbilityFlag) {
-        if (context_->abilityContext != nullptr) {
-            uiContent = context_->abilityContext->GetUIContent();
-        }
-    } else if (context_->uiExtensionContext != nullptr) {
-        uiContent = context_->uiExtensionContext->GetUIContent();
-    }
-
-    return uiContent;
-}
-
-void UIExtensionCallback::CloseUIExtension()
-{
-    OHOS::Ace::UIContent* uiContent = GetUIContent();
-    if (uiContent == nullptr) {
-        ACCOUNT_LOGE("Get ui content failed!");
-        return;
-    }
-
-    uiContent->CloseModalUIExtension(sessionId_);
-    ACCOUNT_LOGI("Close end, sessionId: %{public}d", sessionId_);
-}
-
-static void AuthorizationResultToJs(napi_env env, const AuthorizationResult& result, napi_value &resultJs)
-{
-    NAPI_CALL_RETURN_VOID(env, napi_create_object(env, &resultJs));
-    napi_value privilegeJs;
-    NAPI_CALL_RETURN_VOID(env, napi_create_string_utf8(env, result.privilege.c_str(),
-        NAPI_AUTO_LENGTH, &privilegeJs));
-    NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, resultJs, "privilege", privilegeJs));
-    napi_value number = 0;
-    NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, result.resultCode, &number));
-    NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, resultJs, "resultCode", number));
-    if (result.resultCode != AuthorizationResultCode::AUTHORIZATION_SUCCESS) {
-        return;
-    }
-    napi_value isReusedJS;
-    NAPI_CALL_RETURN_VOID(env, napi_get_boolean(env, result.isReused, &isReusedJS));
-    NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, resultJs, "isReused", isReusedJS));
-    napi_value validityPeriodJs;
-    NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, result.validityPeriod, &validityPeriodJs));
-    NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, resultJs, "validityPeriod", validityPeriodJs));
-    napi_value tokenJS =
-        CreateUint8Array(env, result.token.data(), result.token.size());
-    NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, resultJs, "token", tokenJS));
-}
-
-std::function<void()> OnAuthorizationResultTask(const std::shared_ptr<AcquireAuthorizationContext> &asyncContextPtr)
-{
-    return [asyncContextPtr] {
-        napi_handle_scope scope = nullptr;
-        napi_open_handle_scope(asyncContextPtr->env, &scope);
-        napi_value errJs = nullptr;
-        napi_value resultJs = nullptr;
-        if (asyncContextPtr->errCode == ERR_OK) {
-            errJs = GenerateBusinessSuccess(asyncContextPtr->env, asyncContextPtr->throwErr);
-            AuthorizationResultToJs(asyncContextPtr->env, asyncContextPtr->authorizationResult, resultJs);
-        } else {
-            errJs = GenerateAuthorizationBusinessError(asyncContextPtr->env, asyncContextPtr->errCode);
-        }
-        ReturnPromise(asyncContextPtr->env, asyncContextPtr.get(), errJs, resultJs);
-        napi_close_handle_scope(asyncContextPtr->env, scope);
-    };
-}
-
-ErrCode NapiAuthorizationResultCallback::OnResult(int32_t errCode, const AuthorizationResult& result)
-{
-    ACCOUNT_LOGI("NapiAuthorizationResultCallback OnResult errCode:%{public}d", errCode);
-    auto asyncContextPtr = std::make_shared<AcquireAuthorizationContext>(env_, true);
-    asyncContextPtr->errCode = errCode;
-    asyncContextPtr->deferred = deferred_;
-    asyncContextPtr->authorizationResult = result;
-    if (context_ != nullptr && context_->hasOptions && context_->options.hasContext) {
-        UIExtensionCallbackBase::CloseUIExtension(GetUIContent(context_), context_->sessionId);
-    }
-    auto task = OnAuthorizationResultTask(asyncContextPtr);
-    if (napi_ok != napi_send_event(asyncContextPtr->env, task, napi_eprio_vip, "AuthorizationCallback OnResult")) {
-        ACCOUNT_LOGE("Post AuthorizationCallback OnResult failed.");
-    }
-    asyncContextPtr.reset();
-    deferred_ = nullptr;
-    return ERR_OK;
-}
-
-std::function<void()> OnConnectAbilityTask(const std::shared_ptr<AcquireAuthorizationContext> &context,
-    const ConnectAbilityInfo &info, const sptr<IRemoteObject> &callback)
-{
-    return [context, info = std::move(info), callback] {
-        if (context == nullptr) {
-            ACCOUNT_LOGE("Context is nullptr");
-            return;
-        }
-
-        auto uiExtCallback = std::make_shared<UIExtensionCallback>(context);
-        AAFwk::Want want = UIExtensionCallbackBase::BuildWantFromConnectInfo(info);
-        Ace::ModalUIExtensionCallbacks uiExtensionCallbacks =
-            UIExtensionCallbackBase::CreateUIExtensionCallbacks(uiExtCallback);
-
-        uiExtCallback->SetCallBack(callback);
-
-        OHOS::Ace::UIContent* uiContent = uiExtCallback->GetUIContent();
-        if (uiContent == nullptr) {
-            ACCOUNT_LOGE("Get ui content failed!");
-            auto connectCallback = iface_cast<AccountSA::IConnectAbilityCallback>(callback);
-            if (connectCallback != nullptr) {
-                std::vector<uint8_t> iamToken;
-                connectCallback->OnResult(ERR_AUTHORIZATION_GET_CONTENT_ERROR, iamToken, -1, -1);
-            }
-            return;
-        }
-
-        Ace::ModalUIExtensionConfig config;
-        int32_t sessionId = uiContent->CreateModalUIExtension(want, uiExtensionCallbacks, config);
-        if (sessionId == 0) {
-            ACCOUNT_LOGE("Create component failed, sessionId is 0");
-            NotifyAuthorizationResultWithRetry(callback, ERR_AUTHORIZATION_CREATE_UI_EXTENSION_ERROR);
-            return;
-        }
-
-        uiExtCallback->SetSessionId(sessionId);
-        context->sessionId = sessionId;
-        ACCOUNT_LOGI("CreateUIExtension success, sessionId: %{public}d", sessionId);
-    };
-}
-
-ErrCode NapiAuthorizationResultCallback::OnConnectAbility(const ConnectAbilityInfo &info,
-    const sptr<IRemoteObject> &callback)
-{
-    ACCOUNT_LOGI("NapiAuthorizationResultCallback OnConnectAbility");
-    if (context_ == nullptr) {
-        ACCOUNT_LOGI("CreateUIExtension has not context.");
-        return ERR_AUTHORIZATION_CREATE_UI_EXTENSION_ERROR;
-    }
-    if (!context_->hasOptions || !context_->options.hasContext) {
-        ACCOUNT_LOGI("CreateUIExtension has not context.");
-        return ERR_AUTHORIZATION_CREATE_UI_EXTENSION_ERROR;
-    }
-    auto task = OnConnectAbilityTask(context_, info, callback);
-    if (napi_ok != napi_send_event(env_, task, napi_eprio_vip, "AuthorizationCallback OnConnectAbility")) {
-        ACCOUNT_LOGE("Post authorizationCallback OnConnectAbility failed.");
-        return ERR_AUTHORIZATION_CREATE_UI_EXTENSION_ERROR;
-    }
-    ACCOUNT_LOGI("Post authorizationCallback OnConnectAbility finish.");
-    return ERR_OK;
-}
 
 /**
  * @brief Get interactionContext property value from object.
@@ -296,52 +80,6 @@ static bool GetInteractionContextObject(const napi_env &env, const napi_value &o
 }
 
 /**
- * @brief Convert context object to ability context or ui extension context.
- * @param env The napi environment
- * @param contextValue The context napi value to convert
- * @param asyncContext The authorization context to store converted result
- * @return true if successful, false otherwise
- */
-static bool ConvertContextObject(const napi_env &env, const napi_value &contextValue,
-    AcquireAuthorizationContext *asyncContext)
-{
-    bool stageMode = false;
-    napi_status status = OHOS::AbilityRuntime::IsStageContext(env, contextValue, stageMode);
-    if (status != napi_ok || !stageMode) {
-        ACCOUNT_LOGE("It is not a stage mode");
-        return false;
-    }
-
-    auto context = AbilityRuntime::GetStageModeContext(env, contextValue);
-    if (context == nullptr) {
-        ACCOUNT_LOGE("Get context is nullptr");
-        return false;
-    }
-
-    // Try to convert to AbilityContext first
-    asyncContext->abilityContext = AbilityRuntime::Context::ConvertTo<AbilityRuntime::AbilityContext>(context);
-    if ((asyncContext->abilityContext != nullptr) &&
-        (asyncContext->abilityContext->GetApplicationInfo() != nullptr)) {
-        ACCOUNT_LOGI("Convert to ability context success");
-        asyncContext->uiAbilityFlag = true;
-        asyncContext->options.isContextValid = true;
-        return true;
-    }
-
-    // If AbilityContext conversion fails, try UIExtensionContext
-    ACCOUNT_LOGI("Convert to ability context failed, try ui extension context");
-    asyncContext->uiExtensionContext =
-        AbilityRuntime::Context::ConvertTo<AbilityRuntime::UIExtensionContext>(context);
-    if ((asyncContext->uiExtensionContext == nullptr) ||
-        (asyncContext->uiExtensionContext->GetApplicationInfo() == nullptr)) {
-        ACCOUNT_LOGE("Convert to ui extension context failed");
-        return false;
-    }
-    asyncContext->options.isContextValid = true;
-    return true;
-}
-
-/**
  * @brief Get and convert interaction context from options object.
  * @param env The napi environment
  * @param object The input object containing interactionContext property
@@ -366,6 +104,30 @@ static bool GetContext(
 
     ConvertContextObject(env, contextValue, asyncContext);
     return true;
+}
+
+static void AuthorizationResultToJs(napi_env env, const AuthorizationResult& result, napi_value &resultJs)
+{
+    NAPI_CALL_RETURN_VOID(env, napi_create_object(env, &resultJs));
+    napi_value privilegeJs;
+    NAPI_CALL_RETURN_VOID(env, napi_create_string_utf8(env, result.privilege.c_str(),
+        NAPI_AUTO_LENGTH, &privilegeJs));
+    NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, resultJs, "privilege", privilegeJs));
+    napi_value number = 0;
+    NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, result.resultCode, &number));
+    NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, resultJs, "resultCode", number));
+    if (result.resultCode != AuthorizationResultCode::AUTHORIZATION_SUCCESS) {
+        return;
+    }
+    napi_value isReusedJS;
+    NAPI_CALL_RETURN_VOID(env, napi_get_boolean(env, result.isReused, &isReusedJS));
+    NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, resultJs, "isReused", isReusedJS));
+    napi_value validityPeriodJs;
+    NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, result.validityPeriod, &validityPeriodJs));
+    NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, resultJs, "validityPeriod", validityPeriodJs));
+    napi_value tokenJS =
+        CreateUint8Array(env, result.token.data(), result.token.size());
+    NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, resultJs, "token", tokenJS));
 }
 
 static bool ParseContextForAcquireAuthorizationOptions(napi_env env, napi_value value,
@@ -478,7 +240,10 @@ static void AcquireAuthorizationExecuteCB(napi_env env, void *data)
         return;
     }
 
-    auto callback = std::make_shared<NapiAuthorizationResultCallback>(asyncContext);
+    auto callback = std::make_shared<NapiAuthorizationResultCallback>(asyncContext,
+        [](napi_env env, const AuthorizationResult& result, napi_value& resultJs) {
+            AuthorizationResultToJs(env, result, resultJs);
+        });
 
     asyncContext->errCode = AuthorizationClient::GetInstance().AcquireAuthorization(
         asyncContext->privilege, asyncContext->options, callback);

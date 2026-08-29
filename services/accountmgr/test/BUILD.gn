@@ -16,7 +16,10 @@ import("//build/test.gni")
 import("../../../os_account.gni")
 
 config("accountmgr_test_config") {
-  include_dirs = [ "mock/include" ]
+  include_dirs = [
+    "mock/include",
+    "${services_path}/accountmgr/include/common/kernel",
+  ]
 
   defines = [
     "ACCOUNT_LOG_TAG = \"AccountMgrServiceTest\"",
