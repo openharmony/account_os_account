@@ -1069,15 +1069,15 @@ ErrCode OsAccountInterface::SendToSamgrUserState(int32_t localId, OsAccountState
     switch (state) {
         case OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING:
             userState = SamgrUserState::USER_STATE_ACTIVATING;
-            operationStr = Constants::OPERATION_SAMGR_ACTIVATING;
+            operationStr = Constants::OPERATION_ACTIVATE;
             break;
         case OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING:
             userState = SamgrUserState::USER_STATE_SWITCHING;
-            operationStr = Constants::OPERATION_SAMGR_SWITCHING;
+            operationStr = Constants::OPERATION_SWITCH;
             break;
         case OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPING:
             userState = SamgrUserState::USER_STATE_STOPPING;
-            operationStr = Constants::OPERATION_SAMGR_STOPPING;
+            operationStr = Constants::OPERATION_STOP;
             break;
         default:
             ACCOUNT_LOGE("State is error, state=%{public}d", state);

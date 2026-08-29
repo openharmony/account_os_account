@@ -154,7 +154,7 @@ HWTEST_F(OsAccountInterfaceSamgrTest, SendToSamgrUserState_GetSystemAbilityManag
     ErrCode result = OsAccountInterface::SendToSamgrUserState(TEST_LOCAL_ID,
         OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING);
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER);
-    EXPECT_EQ(g_resultCodeStr, "samgrActivating");
+    EXPECT_EQ(g_resultCodeStr, "activate");
     GTEST_LOG_(INFO) << "SendToSamgrUserState_GetSystemAbilityManagerFailed_001 end";
 }
 
@@ -175,7 +175,7 @@ HWTEST_F(OsAccountInterfaceSamgrTest, SendToSamgrUserState_OnUserStateChangedFai
     ErrCode result = OsAccountInterface::SendToSamgrUserState(TEST_LOCAL_ID,
         OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING);
     EXPECT_EQ(result, ERR_OSACCOUNT_SERVICE_SAMGR_USER_STATE_FAILED);
-    EXPECT_EQ(g_resultCodeStr, "samgrActivating");
+    EXPECT_EQ(g_resultCodeStr, "activate");
     GTEST_LOG_(INFO) << "SendToSamgrUserState_OnUserStateChangedFailed_001 end";
 }
 
@@ -195,7 +195,7 @@ HWTEST_F(OsAccountInterfaceSamgrTest, SendToSamgrUserState_OnUserStateChangedFai
     ErrCode result = OsAccountInterface::SendToSamgrUserState(TEST_LOCAL_ID,
         OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING);
     EXPECT_EQ(result, ERR_OSACCOUNT_SERVICE_SAMGR_USER_STATE_FAILED);
-    EXPECT_EQ(g_resultCodeStr, "samgrSwitching");
+    EXPECT_EQ(g_resultCodeStr, "switch");
     GTEST_LOG_(INFO) << "SendToSamgrUserState_OnUserStateChangedFailed_Switching_001 end";
 }
 
@@ -215,7 +215,7 @@ HWTEST_F(OsAccountInterfaceSamgrTest, SendToSamgrUserState_OnUserStateChangedFai
     ErrCode result = OsAccountInterface::SendToSamgrUserState(TEST_LOCAL_ID,
         OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPING);
     EXPECT_EQ(result, ERR_OSACCOUNT_SERVICE_SAMGR_USER_STATE_FAILED);
-    EXPECT_EQ(g_resultCodeStr, "samgrStopping");
+    EXPECT_EQ(g_resultCodeStr, "stop");
     GTEST_LOG_(INFO) << "SendToSamgrUserState_OnUserStateChangedFailed_Stopping_001 end";
 }
 
@@ -293,7 +293,7 @@ HWTEST_F(OsAccountInterfaceSamgrTest, SendToSamgrUserState_Activating_WithErrorR
     ErrCode result = OsAccountInterface::SendToSamgrUserState(TEST_LOCAL_ID,
         OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING);
     EXPECT_EQ(result, ERR_OSACCOUNT_SERVICE_SAMGR_USER_STATE_FAILED);
-    EXPECT_EQ(g_resultCodeStr, "samgrActivating");
+    EXPECT_EQ(g_resultCodeStr, "activate");
     GTEST_LOG_(INFO) << "SendToSamgrUserState_Activating_WithErrorResult_001 end";
 }
 
@@ -346,7 +346,7 @@ HWTEST_F(OsAccountInterfaceSamgrTest, SendToSamgrUserState_DynamicResultChange_0
     ErrCode result2 = OsAccountInterface::SendToSamgrUserState(TEST_LOCAL_ID,
         OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING);
     EXPECT_EQ(result2, ERR_OSACCOUNT_SERVICE_SAMGR_USER_STATE_FAILED);
-    EXPECT_EQ(g_resultCodeStr, "samgrActivating");
+    EXPECT_EQ(g_resultCodeStr, "activate");
 
     mockManager->SetMockResult(ERR_OK);
     g_resultCodeStr = "";
@@ -374,7 +374,7 @@ HWTEST_F(OsAccountInterfaceSamgrTest, SendToSamgrUserState_IpcErrorRetryExhauste
     ErrCode result = OsAccountInterface::SendToSamgrUserState(TEST_LOCAL_ID,
         OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING);
     EXPECT_EQ(result, ERR_OSACCOUNT_SERVICE_SAMGR_USER_STATE_FAILED);
-    EXPECT_EQ(g_resultCodeStr, "samgrActivating");
+    EXPECT_EQ(g_resultCodeStr, "activate");
     GTEST_LOG_(INFO) << "SendToSamgrUserState_IpcErrorRetryExhausted_001 end";
 }
 
@@ -395,7 +395,7 @@ HWTEST_F(OsAccountInterfaceSamgrTest, SendToSamgrUserState_IpcSaDiedRetryExhaust
     ErrCode result = OsAccountInterface::SendToSamgrUserState(TEST_LOCAL_ID,
         OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING);
     EXPECT_EQ(result, ERR_OSACCOUNT_SERVICE_SAMGR_USER_STATE_FAILED);
-    EXPECT_EQ(g_resultCodeStr, "samgrSwitching");
+    EXPECT_EQ(g_resultCodeStr, "switch");
     GTEST_LOG_(INFO) << "SendToSamgrUserState_IpcSaDiedRetryExhausted_001 end";
 }
 
@@ -415,7 +415,7 @@ HWTEST_F(OsAccountInterfaceSamgrTest, SendToSamgrUserState_StoppingIpcErrorRetry
     ErrCode result = OsAccountInterface::SendToSamgrUserState(TEST_LOCAL_ID,
         OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPING);
     EXPECT_EQ(result, ERR_OSACCOUNT_SERVICE_SAMGR_USER_STATE_FAILED);
-    EXPECT_EQ(g_resultCodeStr, "samgrStopping");
+    EXPECT_EQ(g_resultCodeStr, "stop");
     GTEST_LOG_(INFO) << "SendToSamgrUserState_StoppingIpcErrorRetryExhausted_001 end";
 }
 
@@ -436,7 +436,7 @@ HWTEST_F(OsAccountInterfaceSamgrTest, SendToSamgrUserState_Switching_IpcError_00
     ErrCode result = OsAccountInterface::SendToSamgrUserState(TEST_LOCAL_ID,
         OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING);
     EXPECT_EQ(result, ERR_OSACCOUNT_SERVICE_SAMGR_USER_STATE_FAILED);
-    EXPECT_EQ(g_resultCodeStr, "samgrSwitching");
+    EXPECT_EQ(g_resultCodeStr, "switch");
     GTEST_LOG_(INFO) << "SendToSamgrUserState_Switching_IpcError_001 end";
 }
 
@@ -454,7 +454,7 @@ HWTEST_F(OsAccountInterfaceSamgrTest, SendToSamgrUserState_Switching_SamgrNullpt
     ErrCode result = OsAccountInterface::SendToSamgrUserState(TEST_LOCAL_ID,
         OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING);
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER);
-    EXPECT_EQ(g_resultCodeStr, "samgrSwitching");
+    EXPECT_EQ(g_resultCodeStr, "switch");
     GTEST_LOG_(INFO) << "SendToSamgrUserState_Switching_SamgrNullptr_001 end";
 }
 
@@ -472,7 +472,7 @@ HWTEST_F(OsAccountInterfaceSamgrTest, SendToSamgrUserState_Stopping_SamgrNullptr
     ErrCode result = OsAccountInterface::SendToSamgrUserState(TEST_LOCAL_ID,
         OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPING);
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER);
-    EXPECT_EQ(g_resultCodeStr, "samgrStopping");
+    EXPECT_EQ(g_resultCodeStr, "stop");
     GTEST_LOG_(INFO) << "SendToSamgrUserState_Stopping_SamgrNullptr_001 end";
 }
 
@@ -492,7 +492,7 @@ HWTEST_F(OsAccountInterfaceSamgrTest, SendToSamgrUserState_Stopping_IpcSaDied_00
     ErrCode result = OsAccountInterface::SendToSamgrUserState(TEST_LOCAL_ID,
         OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPING);
     EXPECT_EQ(result, ERR_OSACCOUNT_SERVICE_SAMGR_USER_STATE_FAILED);
-    EXPECT_EQ(g_resultCodeStr, "samgrStopping");
+    EXPECT_EQ(g_resultCodeStr, "stop");
     GTEST_LOG_(INFO) << "SendToSamgrUserState_Stopping_IpcSaDied_001 end";
 }
 
@@ -512,7 +512,7 @@ HWTEST_F(OsAccountInterfaceSamgrTest, SendToSamgrUserState_Activating_IpcSaDied_
     ErrCode result = OsAccountInterface::SendToSamgrUserState(TEST_LOCAL_ID,
         OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING);
     EXPECT_EQ(result, ERR_OSACCOUNT_SERVICE_SAMGR_USER_STATE_FAILED);
-    EXPECT_EQ(g_resultCodeStr, "samgrActivating");
+    EXPECT_EQ(g_resultCodeStr, "activate");
     GTEST_LOG_(INFO) << "SendToSamgrUserState_Activating_IpcSaDied_001 end";
 }
 
