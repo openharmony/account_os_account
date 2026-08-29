@@ -179,14 +179,12 @@ void DomainPluginAdapter::ClosePlugin(void** libHandle, std::map<PluginMethodEnu
 void DomainPluginAdapter::SetPluginString(const std::string& str, PluginString& pStr)
 {
     if (str.empty()) {
-        ACCOUNT_LOGD("Str is empty.");
         pStr.data = nullptr;
         pStr.length = 0;
         return;
     }
     pStr.data = strdup(str.c_str());
     if (pStr.data == nullptr) {
-        ACCOUNT_LOGD("Failed to duplicate string.");
         pStr.length = 0;
         return;
     }
@@ -196,7 +194,6 @@ void DomainPluginAdapter::SetPluginString(const std::string& str, PluginString& 
 void DomainPluginAdapter::CleanPluginString(char** data, size_t length)
 {
     if (data == nullptr || *data == nullptr) {
-        ACCOUNT_LOGD("Data is nullptr.");
         return;
     }
     (void)memset_s(*data, length, 0, length);
@@ -207,7 +204,6 @@ void DomainPluginAdapter::CleanPluginString(char** data, size_t length)
 bool DomainPluginAdapter::SetPluginUint8Vector(const std::vector<uint8_t>& vector, PluginUint8Vector& pVector)
 {
     if (vector.empty()) {
-        ACCOUNT_LOGD("Vector is empty.");
         pVector.data = nullptr;
         pVector.capacity = 0;
         pVector.size = 0;
@@ -222,7 +218,6 @@ bool DomainPluginAdapter::SetPluginUint8Vector(const std::vector<uint8_t>& vecto
 void DomainPluginAdapter::GetAndCleanPluginUint8Vector(PluginUint8Vector& pVector, std::vector<uint8_t>& vector)
 {
     if (pVector.data == nullptr) {
-        ACCOUNT_LOGD("PluginUint8Vector data is null.");
         return;
     }
     vector.assign(pVector.data, pVector.data + pVector.size);
@@ -271,7 +266,6 @@ ErrCode DomainPluginAdapter::GetAndCleanPluginBusinessError(PluginBusinessError*
 ErrCode DomainPluginAdapter::GetAndCleanPluginString(PluginString& pStr, std::string& str)
 {
     if (pStr.data == nullptr) {
-        ACCOUNT_LOGD("PluginString's data is null.");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     str = std::string(pStr.data);
@@ -288,7 +282,6 @@ void DomainPluginAdapter::GetAndCleanPluginServerConfigInfo(PluginServerConfigIn
     std::string& parameters)
 {
     if (pConfigInfo == nullptr || *pConfigInfo == nullptr) {
-        ACCOUNT_LOGD("PluginServerConfigInfo is null");
         return;
     }
     GetAndCleanPluginString((*pConfigInfo)->id, id);
@@ -338,7 +331,6 @@ void DomainPluginAdapter::GetAndCleanPluginDomainAccountInfo(DomainAccountInfo& 
     PluginDomainAccountInfo** pDomainAccountInfo)
 {
     if (pDomainAccountInfo == nullptr || *pDomainAccountInfo == nullptr) {
-        ACCOUNT_LOGD("PluginDomainAccountInfo is null.");
         return;
     }
     GetAndCleanPluginString((*pDomainAccountInfo)->serverConfigId, info.serverConfigId_);
@@ -355,7 +347,6 @@ void DomainPluginAdapter::GetAndCleanPluginAuthResultInfo(PluginAuthResultInfo**
     DomainAuthResult& result)
 {
     if (authResultInfo == nullptr || *authResultInfo == nullptr) {
-        ACCOUNT_LOGD("PluginAuthResultInfo is null");
         return;
     }
     result.authStatusInfo.freezingTime = (*authResultInfo)->freezingTime;
@@ -371,7 +362,6 @@ void DomainPluginAdapter::GetAndCleanPluginAuthResultInfo(PluginAuthResultInfo**
 void DomainPluginAdapter::GetAndCleanPluginAuthStatusInfo(PluginAuthStatusInfo** statusInfo, AuthStatusInfo& result)
 {
     if (statusInfo == nullptr || *statusInfo == nullptr) {
-        ACCOUNT_LOGD("PluginAuthStatusInfo is null.");
         return;
     }
     result.freezingTime = (*statusInfo)->freezingTime;
@@ -385,7 +375,6 @@ void DomainPluginAdapter::GetAndCleanPluginUnlockDeviceConfigResult(PluginUnlock
     bool& enableUnlockDevice, int32_t& unlockDeviceMode)
 {
     if (configResult == nullptr || *configResult == nullptr) {
-        ACCOUNT_LOGD("PluginUnlockDeviceConfigResult is null");
         enableUnlockDevice = false;
         unlockDeviceMode = 0;
         return;
@@ -400,7 +389,6 @@ void DomainPluginAdapter::GetAndCleanPluginDomainAccountPolicy(PluginDomainAccou
     std::string& policy)
 {
     if (accountPolicy == nullptr || *accountPolicy == nullptr) {
-        ACCOUNT_LOGD("PluginDomainAccountPolicy is null.");
         return;
     }
     GetAndCleanPluginString((*accountPolicy)->parameters, policy);

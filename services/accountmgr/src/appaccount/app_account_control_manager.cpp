@@ -294,7 +294,6 @@ bool AppAccountControlManager::IsAppIndexVisibleWithFg(uint32_t callerAppIndex,
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 bool AppAccountControlManager::GetForegroundIndex(int32_t osAccountId, int32_t &foregroundIndex)
 {
-    ACCOUNT_LOGD("GetForegroundIndex enter, osAccountId=%{public}d", osAccountId);
     foregroundIndex = -1;
     OsAccountInfo osAccountInfo;
     ErrCode ret = IInnerOsAccountManager::GetInstance().QueryOsAccountById(osAccountId, osAccountInfo);
@@ -305,7 +304,6 @@ bool AppAccountControlManager::GetForegroundIndex(int32_t osAccountId, int32_t &
     }
     int32_t foregroundSubProfileId = osAccountInfo.GetForegroundSubProfileId();
     if (foregroundSubProfileId < 0) {
-        ACCOUNT_LOGD("foregroundSubProfileId not set, only same appIndex visible");
         return false;
     }
     SubProfileContext subprofileCtx;
@@ -319,7 +317,6 @@ bool AppAccountControlManager::GetForegroundIndex(int32_t osAccountId, int32_t &
     for (const auto &entry : subprofileCtx.subProfileIndexMap) {
         if (entry.second == foregroundSubProfileId) {
             foregroundIndex = entry.first;
-            ACCOUNT_LOGD("GetForegroundIndex found, foregroundIndex=%{public}d", foregroundIndex);
             return true;
         }
     }
@@ -352,8 +349,6 @@ ErrCode AppAccountControlManager::QueryVisibleEnabledAppIndex(const std::string 
     int32_t flag = static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION)
         | static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_DISABLE);
     std::vector<AppExecFwk::BundleInfo> bundleInfos;
-    ACCOUNT_LOGD("GetMainAndCloneBundleInfo before, bundle=%{public}s, osAccountId=%{public}d", bundleName.c_str(),
-        osAccountId);
 #ifdef HAS_HIVIEWDFX_HITRACE_PART
     StartTraceAdapter("QueryVisibleEnabledAppIndex");
 #endif
@@ -362,7 +357,6 @@ ErrCode AppAccountControlManager::QueryVisibleEnabledAppIndex(const std::string 
 #ifdef HAS_HIVIEWDFX_HITRACE_PART
     FinishTraceAdapter();
 #endif
-    ACCOUNT_LOGD("GetMainAndCloneBundleInfo after, ret=%{public}d, size=%{public}zu", ret, bundleInfos.size());
     if (ret != ERR_OK) {
         ACCOUNT_LOGW("GetMainAndCloneBundleInfo failed, bundle=%{public}s, ret=%{public}d", bundleName.c_str(), ret);
         return ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO;
@@ -379,8 +373,6 @@ ErrCode AppAccountControlManager::QueryVisibleEnabledAppIndex(const std::string 
             return ERR_OK;
         }
     }
-    ACCOUNT_LOGD("No visible enabled appIndex found for bundle=%{public}s, default appIndex=0",
-        bundleName.c_str());
     return ERR_OK;
 #else
     appIndex = 0;
@@ -552,8 +544,6 @@ ErrCode AppAccountControlManager::SetAccountExtraInfo(const std::string &name, c
             result, "Save info into data storage failed");
         return result;
     }
-
-    ACCOUNT_LOGD("end, result = %{public}d", result);
 
     return result;
 }
@@ -1571,8 +1561,6 @@ ErrCode AppAccountControlManager::FilterAccessibleAccounts(
     const std::vector<std::string> &accessibleAccounts, uint32_t appIndex,
     const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr, std::vector<AppAccountInfo> &appAccounts)
 {
-    ACCOUNT_LOGD("FilterAccessibleAccounts enter, size=%{public}zu, appIndex=%{public}u",
-        accessibleAccounts.size(), appIndex);
     for (auto account : accessibleAccounts) {
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
         AppAccountInfo appAccountInfo;

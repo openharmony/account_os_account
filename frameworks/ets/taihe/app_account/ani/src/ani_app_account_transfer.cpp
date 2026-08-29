@@ -47,7 +47,6 @@ const std::string APP_ACCOUNT_CLASS_NAME = "AppAccountManager";
 ani_object AniAppAccountTransfer::NativeAppAccountManagerTransferStatic(ani_env *aniEnv,
     ani_class aniCls, ani_object input)
 {
-    ACCOUNT_LOGD("Transfer NativeAppAccountManagerTransferStatic");
     if (aniEnv == nullptr) {
         ACCOUNT_LOGE("AniEnv is null");
         return nullptr;
@@ -132,7 +131,6 @@ ani_ref AniAppAccountTransfer::GenerateAppAccountMangerDynamic(ani_env *aniEnv, 
 ani_ref AniAppAccountTransfer::NativeAppAccountManagerTransferDynamic(ani_env *aniEnv,
     ani_class aniCls, ani_object input)
 {
-    ACCOUNT_LOGD("Transfer NativeAppAccountManagerTransferDynamic");
     if (aniEnv == nullptr) {
         ACCOUNT_LOGE("null aniEnv");
         return nullptr;
@@ -159,7 +157,6 @@ ani_ref AniAppAccountTransfer::NativeAppAccountManagerTransferDynamic(ani_env *a
 
 ani_object AniAppAccountTransfer::NativeAuthCallbackTransferStatic(ani_env *aniEnv, ani_class aniCls, ani_object input)
 {
-    ACCOUNT_LOGD("Transfer NativeAuthCallbackTransferStatic");
     if (aniEnv == nullptr) {
         ACCOUNT_LOGE("AniEnv is null");
         return nullptr;
@@ -241,7 +238,6 @@ ani_ref AniAppAccountTransfer::GenerateCallbackDynamic(ani_env *aniEnv, uint64_t
 
 ani_ref AniAppAccountTransfer::NativeAuthCallbackTransferDynamic(ani_env *aniEnv, ani_class aniCls, ani_object input)
 {
-    ACCOUNT_LOGD("Transfer NativeAuthCallbackTransferDynamic");
     if (aniEnv == nullptr) {
         ACCOUNT_LOGE("null aniEnv");
         return nullptr;
@@ -268,7 +264,6 @@ ani_ref AniAppAccountTransfer::NativeAuthCallbackTransferDynamic(ani_env *aniEnv
 
 void AniAppAccountTransferInit(ani_env *aniEnv)
 {
-    ACCOUNT_LOGD("Init app transfer native method");
     if (aniEnv == nullptr) {
         ACCOUNT_LOGE("null ani env");
         return;
@@ -297,8 +292,6 @@ void AniAppAccountTransferInit(ani_env *aniEnv)
         ACCOUNT_LOGE("Class_BindStaticNativeMethods failed status: %{public}d", status);
         return;
     }
-
-    ACCOUNT_LOGD("Init app transfer native method end");
 }
 }
 }

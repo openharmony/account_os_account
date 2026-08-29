@@ -190,7 +190,6 @@ void OsAccountDatabaseOperator::UpdateOsAccountIDListInDatabase(const CJsonUniqu
         ACCOUNT_LOGE("Update os account id list to database failed! errCode %{public}d.", errCode);
         return;
     }
-    ACCOUNT_LOGD("Update os account id list to database succeed.");
 }
 
 ErrCode OsAccountDatabaseOperator::GetSerialNumberFromDatabase(

@@ -814,7 +814,6 @@ ErrCode InnerDomainAccountManager::PluginAuth(const DomainAccountInfo &info, con
     DomainPluginAdapter::SetPluginDomainAccountInfo(info, domainAccountInfo);
     PluginUint8Vector credential;
     DomainPluginAdapter::SetPluginUint8Vector(password, credential);
-    ACCOUNT_LOGD("Param localId=%{public}d.", localId);
     PluginBusinessError* error = (*reinterpret_cast<AuthFunc>(iter->second))(&domainAccountInfo, &credential, localId,
         PluginAuthCallback, &contextId);
     DomainPluginAdapter::CleanPluginString(&(domainAccountInfo.domain.data), domainAccountInfo.domain.length);
@@ -947,7 +946,6 @@ ErrCode InnerDomainAccountManager::AuthWithParameters(const DomainAccountInfo &i
     const std::vector<uint8_t> &password, const DomainAccountAuthOptions &authOptions,
     const sptr<IDomainAccountCallback> &callback)
 {
-    ACCOUNT_LOGD("domain account auth with server parameters");
     if (!IsSupportNetRequest()) {
         ACCOUNT_LOGE("Not support background account request");
         REPORT_DOMAIN_ACCOUNT_FAIL(ERR_DOMAIN_ACCOUNT_NOT_SUPPORT_BACKGROUND_ACCOUNT_REQUEST,
@@ -997,7 +995,6 @@ ErrCode InnerDomainAccountManager::PluginBindAccount(const DomainAccountInfo &in
             "Method BindAccount not exist", Constants::DOMAIN_OPT_BIND, localId, info);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
-    ACCOUNT_LOGD("Param localId=%{public}d.", localId);
     int32_t callerLocalId = GetCallingUserID(callingUid);
     if (localId == -1) {
         ACCOUNT_LOGE("fail to get activated os account ids");
@@ -1060,7 +1057,6 @@ ErrCode InnerDomainAccountManager::PluginIsAccountTokenValid(const DomainAccount
         &(domainAccountInfo.serverConfigId.data), domainAccountInfo.serverConfigId.length);
     DomainPluginAdapter::CleanPluginString(&(domainAccountInfo.accountName.data), domainAccountInfo.accountName.length);
     DomainPluginAdapter::CleanPluginString(&(domainAccountInfo.accountId.data), domainAccountInfo.accountId.length);
-    ACCOUNT_LOGD("return isValid=%{public}d.", isValid);
     return DomainPluginAdapter::GetAndCleanPluginBusinessError(&error, iter->first, -1, info);
 }
 
@@ -1819,7 +1815,6 @@ static ErrCode ErrorOnResultWithRet(const ErrCode errCode, const sptr<IDomainAcc
 
 void CheckUserTokenCallback::OnResult(int32_t result, Parcel &parcel)
 {
-    ACCOUNT_LOGD("enter");
     if (result == ERR_OK) {
         isValid_ = parcel.ReadBool();
     }

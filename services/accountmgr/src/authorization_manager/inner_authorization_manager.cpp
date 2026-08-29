@@ -477,7 +477,6 @@ bool InnerAuthorizationManager::GetAuthSessionInfo(const std::vector<uint8_t> &i
     // Modal system: query SessionAbilityConnection singleton (single connection, internal mutex protection)
     if (SessionAbilityConnection::GetInstance().GetConnectInfo(widgetPid, info)) {
         if (outSessionId == info.sessionId) {
-            ACCOUNT_LOGD("GetConnectInfo success for modal system");
             outChallenge = info.challenge;
             return true;
         }
@@ -488,7 +487,6 @@ bool InnerAuthorizationManager::GetAuthSessionInfo(const std::vector<uint8_t> &i
         if (it->second->IsSameSession(outSessionId)) {
             it->second->GetConnectInfo(info);
             outChallenge = info.challenge;
-            ACCOUNT_LOGD("GetConnectInfo success for non-modal system");
             return true;
         }
     }

@@ -97,7 +97,6 @@ bool OhosAccountDataDeal::DealWithFileModifyEvent(const std::string &fileName, c
     {
         std::unique_lock<std::shared_timed_mutex> lock(accountFileOperator_->fileLock_);
         if (accountFileOperator_->GetValidModifyFileOperationFlag(fileName)) {
-            ACCOUNT_LOGD("this is valid service operate, no need to deal with it.");
             accountFileOperator_->SetValidModifyFileOperationFlag(fileName, false);
             return true;
         }
@@ -121,7 +120,6 @@ bool OhosAccountDataDeal::DealWithFileModifyEvent(const std::string &fileName, c
         REPORT_OHOS_ACCOUNT_FAIL(id, "fileWatcher", result, "Generate account info digest failed");
     }
     if (memcmp(localDigestData, newDigestData, ALG_COMMON_SIZE) == 0) {
-        ACCOUNT_LOGD("No need to recover local file data.");
         return true;
     }
 #endif // HAS_HUKS_PART
@@ -134,7 +132,6 @@ void OhosAccountDataDeal::DealWithFileDeleteEvent(const std::string &fileName, c
     {
         std::unique_lock<std::shared_timed_mutex> lock(accountFileOperator_->fileLock_);
         if (accountFileOperator_->GetValidDeleteFileOperationFlag(fileName)) {
-            ACCOUNT_LOGD("this is valid service operate, no need to deal with it.");
             accountFileOperator_->SetValidDeleteFileOperationFlag(fileName, false);
             accountFileWatcherMgr_.RemoveFileWatcher(id, fileName);
             return;

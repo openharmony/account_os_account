@@ -139,7 +139,6 @@ ErrCode AppAccountAuthenticatorSessionManager::OpenSession(
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
         if (sessionMap_.size() == SESSION_MAX_NUM) {
-            ACCOUNT_LOGD("app account mgr service is busy");
             REPORT_APP_ACCOUNT_FAIL("", "", Constants::APP_DFX_AUTHENTICATOR_SESSION,
                 ERR_APPACCOUNT_SERVICE_OAUTH_BUSY, "App account mgr service is busy");
             return ERR_APPACCOUNT_SERVICE_OAUTH_BUSY;

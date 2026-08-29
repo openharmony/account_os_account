@@ -108,7 +108,6 @@ static void ServerConfigToJs(napi_env env, const DomainServerConfig& config, nap
 
 static void AddServerConfigCompletedCB(napi_env env, napi_status status, void *data)
 {
-    ACCOUNT_LOGD("napi_create_async_work complete");
     AddServerConfigAsyncContext *asyncContext = reinterpret_cast<AddServerConfigAsyncContext *>(data);
     if (asyncContext == nullptr) {
         ACCOUNT_LOGE("In AddServerConfigCompletedCB asyncContext is nullptr.");

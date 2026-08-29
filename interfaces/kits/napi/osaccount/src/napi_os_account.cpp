@@ -1567,11 +1567,9 @@ napi_value IsMainOsAccount(napi_env env, napi_callback_info cbInfo)
         [](napi_env env, void *data) {
             IsMainOAInfo *isMain = reinterpret_cast<IsMainOAInfo *>(data);
             isMain->errCode = OsAccountManager::IsMainOsAccount(isMain->isMainOsAccount);
-            ACCOUNT_LOGD("error code is %{public}d", isMain->errCode);
             isMain->status = (isMain->errCode == 0) ? napi_ok : napi_generic_failure;
         },
         [](napi_env env, napi_status status, void *data) {
-            ACCOUNT_LOGD("napi_create_async_work complete");
             IsMainOAInfo *isMain = reinterpret_cast<IsMainOAInfo *>(data);
             napi_value result[RESULT_COUNT] = {0};
             result[PARAMZERO] = GenerateBusinessError(env, isMain->errCode);

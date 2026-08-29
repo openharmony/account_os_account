@@ -181,7 +181,6 @@ ErrCode AccountDataStorage::RemoveValueFromKvStore(const std::string &keyStr)
         return ERR_ACCOUNT_COMMON_DELETE_KEY_FROM_KVSTORE_ERROR;
     }
 
-    ACCOUNT_LOGD("delete key from kvStore succeed!");
     return ERR_OK;
 }
 

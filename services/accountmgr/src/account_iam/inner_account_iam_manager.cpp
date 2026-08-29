@@ -195,7 +195,6 @@ void InnerAccountIAMManager::DelCred(
     (void)IInnerOsAccountManager::GetInstance().GetOsAccountCredentialId(userId, pinCredentialId);
     bool isPIN = (pinCredentialId != 0) && (credentialId == pinCredentialId);
     if (isPIN && authToken.empty()) {
-        ACCOUNT_LOGD("token is empty");
         callback->OnResult(ResultCode::INVALID_PARAMETERS, emptyResult.Serialize());
         return;
     }
