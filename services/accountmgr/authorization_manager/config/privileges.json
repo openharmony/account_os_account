@@ -39,6 +39,11 @@
         {
             "name":"ohos.privilege.manage_enterprise_device_management_applications",
             "description":"Manage enterprise device management applications"
+        },
+        {
+            "name":"ohos.privilege.operate_raw_net_packets",
+            "description":"Privilege for operating the raw network packets",
+            "kernelPermission":"ohos.permission.kernel.NET_RAW"
         }
     ]
 }
