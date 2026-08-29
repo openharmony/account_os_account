@@ -69,12 +69,22 @@ void AuthorizationClientModuleCovTest::TearDown(void)
 class MockAuthorizationResultCallback final : public AccountSA::AuthorizationCallback {
 public:
     MockAuthorizationResultCallback() = default;
-    ErrCode OnResult(int32_t resultCode, const AccountSA::AuthorizationResult& result) override { return ERR_OK; }
+    ErrCode OnResult(int32_t resultCode, const AccountSA::AuthorizationResult& result) override
+    {
+        recvErrCode_ = resultCode;
+        recvResult_ = result;
+        called_ = true;
+        return ERR_OK;
+    }
 
     ErrCode OnConnectAbility(const AccountSA::ConnectAbilityInfo& info, const sptr<IRemoteObject>& callback) override
     {
         return ERR_OK;
     }
+
+    int32_t recvErrCode_ = -1;
+    AccountSA::AuthorizationResult recvResult_;
+    bool called_ = false;
 };
 
 /**
@@ -608,6 +618,28 @@ HWTEST_F(AuthorizationClientModuleCovTest, AcquireAuthorization005, TestSize.Lev
     auto callback = std::make_shared<MockAuthorizationResultCallback>();
     ErrCode errCode = AuthorizationClient::GetInstance().AcquireAuthorization(privilege, options, callback);
     EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+    ASSERT_TRUE(RecoveryPermission(tokenID, selfTokenId));
+}
+
+/**
+ * @tc.name: AcquireAuthorization006
+ * @tc.desc: acquire authorization without SUPPORT_AUTHORIZATION when caller is system app with permission.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AuthorizationClientModuleCovTest, AcquireAuthorization006, TestSize.Level0)
+{
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    uint64_t tokenID;
+    std::vector<std::string> permissionList { "ohos.permission.ACQUIRE_LOCAL_ACCOUNT_AUTHORIZATION" };
+    ASSERT_TRUE(AllocPermission(permissionList, tokenID));
+    std::string privilege = PRIVILEGE_NAME;
+    AcquireAuthorizationOptions options;
+    auto callback = std::make_shared<MockAuthorizationResultCallback>();
+    ErrCode errCode = AuthorizationClient::GetInstance().AcquireAuthorization(privilege, options, callback);
+    EXPECT_EQ(errCode, ERR_OK);
+    EXPECT_TRUE(callback->called_);
+    EXPECT_EQ(callback->recvErrCode_, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     ASSERT_TRUE(RecoveryPermission(tokenID, selfTokenId));
 }
 

@@ -135,11 +135,11 @@ sptr<AuthRemoteObjectStub> AuthorizationClient::GetOrCreateRequestRemoteObject()
 ErrCode AuthorizationClient::AcquireAuthorization(const std::string &privilege,
     const AcquireAuthorizationOptions &options, const std::shared_ptr<AuthorizationCallback> &callback)
 {
-#ifdef SUPPORT_AUTHORIZATION
     if (callback == nullptr) {
         ACCOUNT_LOGE("Callback is nullptr");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
+#ifdef SUPPORT_AUTHORIZATION
     sptr<AuthRemoteObjectStub> requestRemoteObj = GetOrCreateRequestRemoteObject();
     if (requestRemoteObj == nullptr) {
         ACCOUNT_LOGE("Failed to get or create request remote object");
@@ -178,9 +178,7 @@ ErrCode AuthorizationClient::AcquireAuthorization(const std::string &privilege,
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     AuthorizationResult result;
-    result.privilege = privilege;
-    result.resultCode = AUTHORIZATION_DENIED;
-    callback->OnResult(ERR_OK, result);
+    callback->OnResult(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, result);
     return ERR_OK;
 #endif // SUPPORT_AUTHORIZATION
 }
