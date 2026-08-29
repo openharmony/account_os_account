@@ -131,7 +131,7 @@ static ErrCode ResetForegroundBeforeRemove(OsAccountInfo &osAccountInfo, int32_t
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_REMOVING_FOREGROUND_OS_ACCOUNT));
 #else
-        OsAccountInterface::SendToSamgrUserState(id, OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPING);
+        (void)OsAccountInterface::SendToSamgrUserState(id, OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPING);
         ACCOUNT_LOGI("Remove foreground account id=%{public}d.", id);
         ErrCode errCode = OsAccountInterface::SendToAMSAccountDeactivate(osAccountInfo);
         if (errCode != ERR_OK) {
@@ -1553,7 +1553,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountDeactivate(OsAccountInfo &osAcc
 {
     int32_t localId = osAccountInfo.GetLocalId();
     CleanForegroundAccountMap(osAccountInfo);
-    OsAccountInterface::SendToSamgrUserState(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPING);
+    (void)OsAccountInterface::SendToSamgrUserState(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPING);
     ErrCode errCode = OsAccountInterface::SendToAMSAccountDeactivate(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("SendToAMSAccountDeactivate failed, id %{public}d, errCode %{public}d", localId, errCode);
@@ -3254,7 +3254,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
     }
 
     if (switched) {
-        OsAccountInterface::SendToSamgrUserState(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING);
+        (void)OsAccountInterface::SendToSamgrUserState(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING);
         OsAccountInterface::PublishCommonEvent(osAccountInfo,
             OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_FOREGROUND, Constants::OPERATION_SWITCH);
     }
@@ -3351,7 +3351,7 @@ ErrCode  IInnerOsAccountManager::SendToAMSAndSamgrAccountStart(OsAccountInfo &os
             osAccountInfo.GetLocalId(), errCode);
         return errCode;
     }
-    OsAccountInterface::SendToSamgrUserState(osAccountInfo.GetLocalId(), OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING);
+    (void)OsAccountInterface::SendToSamgrUserState(osAccountInfo.GetLocalId(), OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING);
     return ERR_OK;
 }
 

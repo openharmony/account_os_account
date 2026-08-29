@@ -29,12 +29,23 @@ public:
 
     int32_t OnUserStateChanged(int32_t userId, SamgrUserState userState) override
     {
+        callCount_++;
+        if (failBeforeSuccess_ > 0 && callCount_ <= failBeforeSuccess_) {
+            return failResult_;
+        }
         return mockResult_;
     }
 
     void SetMockResult(int32_t result)
     {
         mockResult_ = result;
+    }
+
+    void SetFailBeforeSuccess(int32_t count, int32_t failResult)
+    {
+        failBeforeSuccess_ = count;
+        failResult_ = failResult;
+        callCount_ = 0;
     }
 
     static MockSystemAbilityManager& GetInstance()
@@ -267,6 +278,9 @@ public:
 
 private:
     int32_t mockResult_ = ERR_OK;
+    int32_t failBeforeSuccess_ = 0;
+    int32_t failResult_ = ERR_OK;
+    int32_t callCount_ = 0;
 };
 
 }  // namespace OHOS
