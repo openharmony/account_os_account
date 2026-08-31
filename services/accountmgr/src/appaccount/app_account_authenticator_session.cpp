@@ -126,13 +126,11 @@ void AppAccountAuthenticatorSession::Init()
 ErrCode AppAccountAuthenticatorSession::Open()
 {
     if (isOpened_) {
-        ACCOUNT_LOGD("session has been opened");
         REPORT_APP_ACCOUNT_FAIL("", "", Constants::APP_DFX_AUTHENTICATOR_SESSION,
             ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION, "Session has been opened");
         return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
     }
     if (!isInitialized_) {
-        ACCOUNT_LOGD("session has not been initialized");
         REPORT_APP_ACCOUNT_FAIL("", "", Constants::APP_DFX_AUTHENTICATOR_SESSION,
             ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION, "Session has not been initialized");
         return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
@@ -313,12 +311,10 @@ int32_t AppAccountAuthenticatorSession::OnRequestRedirected(AAFwk::Want &newRequ
     AAFwk::Want errResult;
     AppExecFwk::ElementName element = newRequest.GetElement();
     if (element.GetBundleName() != request_.owner) {
-        ACCOUNT_LOGD("invalid response");
         OnResult(ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION, errResult);
         return ERR_JS_SUCCESS;
     }
     if ((!request_.callback) || (!request_.callback->AsObject())) {
-        ACCOUNT_LOGD("app account callback is nullptr");
         if (isConnected_) {
             AbilityManagerAdapter::GetInstance()->DisconnectAbility(conn_);
         }
@@ -341,7 +337,6 @@ int32_t AppAccountAuthenticatorSession::OnRequestRedirected(AAFwk::Want &newRequ
 int32_t AppAccountAuthenticatorSession::OnRequestContinued() const
 {
     if ((!request_.callback) || (!request_.callback->AsObject())) {
-        ACCOUNT_LOGD("app account callback is nullptr");
         if (isConnected_) {
             AbilityManagerAdapter::GetInstance()->DisconnectAbility(conn_);
         }

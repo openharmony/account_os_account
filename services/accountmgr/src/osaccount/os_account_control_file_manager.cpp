@@ -253,7 +253,6 @@ bool OsAccountControlFileManager::DealWithFileModifyEvent(const std::string &fil
     {
         std::unique_lock<std::shared_timed_mutex> lock(accountFileOperator_->fileLock_);
         if (accountFileOperator_->GetValidModifyFileOperationFlag(fileName)) {
-            ACCOUNT_LOGD("This is valid service operate, no need to deal with it.");
             accountFileOperator_->SetValidModifyFileOperationFlag(fileName, false);
             return true;
         }
@@ -277,7 +276,6 @@ bool OsAccountControlFileManager::DealWithFileModifyEvent(const std::string &fil
     }
 
     if (memcmp(localDigestData, newDigestData, ALG_COMMON_SIZE) == EOK) {
-        ACCOUNT_LOGD("No need to recover local file data.");
         return true;
     }
 #endif // HAS_HUKS_PART
@@ -292,7 +290,6 @@ bool OsAccountControlFileManager::DealWithFileDeleteEvent(const std::string &fil
     {
         std::unique_lock<std::shared_timed_mutex> lock(accountFileOperator_->fileLock_);
         if (accountFileOperator_->GetValidDeleteFileOperationFlag(fileName)) {
-            ACCOUNT_LOGD("This is valid service operate, no need to deal with it.");
             accountFileOperator_->SetValidDeleteFileOperationFlag(fileName, false);
             accountFileWatcherMgr_.RemoveFileWatcher(id, fileName);
             return true;
@@ -457,7 +454,6 @@ void OsAccountControlFileManager::InitFileWatcherInfo(std::vector<std::string> &
 
 void OsAccountControlFileManager::BuildAndSaveAccountListJsonFile(const std::vector<std::string>& accounts)
 {
-    ACCOUNT_LOGD("Enter.");
     std::lock_guard<std::mutex> lock(accountInfoFileLock_);
     auto accountList = BuildAccountListJson(accounts);
 
@@ -1197,7 +1193,6 @@ ErrCode OsAccountControlFileManager::InsertOsAccount(OsAccountInfo &osAccountInf
 
 ErrCode OsAccountControlFileManager::DelOsAccount(const int id)
 {
-    ACCOUNT_LOGD("Enter");
     if (id <= Constants::START_USER_ID || id > Constants::MAX_USER_ID) {
         ACCOUNT_LOGE("Ivalid input id %{public}d to delete!", id);
         return ERR_OSACCOUNT_SERVICE_CONTROL_CANNOT_DELETE_ID_ERROR;
@@ -1231,7 +1226,6 @@ ErrCode OsAccountControlFileManager::DelOsAccount(const int id)
 
 ErrCode OsAccountControlFileManager::UpdateOsAccount(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGD("Start");
     std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + osAccountInfo.GetPrimeKey() +
                        Constants::PATH_SEPARATOR + Constants::USER_INFO_FILE_NAME;
     if (!accountFileOperator_->IsExistFile(path)) {
@@ -1267,7 +1261,6 @@ ErrCode OsAccountControlFileManager::UpdateOsAccount(OsAccountInfo &osAccountInf
 #ifdef SUPPORT_POSIX_ADAPTER
     (void)osAccountPosixFileManager_->TryUpdatePosixFileByAccountInfo(osAccountInfo);
 #endif // SUPPORT_POSIX_ADAPTER
-    ACCOUNT_LOGD("End");
     return ERR_OK;
 }
 
@@ -1389,7 +1382,6 @@ ErrCode OsAccountControlFileManager::GetAllowCreateId(int &id)
 
 ErrCode OsAccountControlFileManager::GetAccountListFromFile(CJsonUnique &accountListJson)
 {
-    ACCOUNT_LOGD("Enter");
     std::string accountList;
     std::lock_guard<std::mutex> lock(accountListFileLock_);
     ErrCode errCode = accountFileOperator_->GetFileContentByPath(Constants::ACCOUNT_LIST_FILE_JSON_PATH,
@@ -1407,7 +1399,6 @@ ErrCode OsAccountControlFileManager::GetAccountListFromFile(CJsonUnique &account
         return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
 #endif // defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
     }
-    ACCOUNT_LOGD("End");
     return ERR_OK;
 }
 
@@ -1599,7 +1590,6 @@ ErrCode OsAccountControlFileManager::SaveAccountListToFile(const CJsonUnique &ac
         ACCOUNT_LOGE("Add digest for account list failed, result = %{public}d", result);
     }
 #endif // ENABLE_FILE_WATCHER
-    ACCOUNT_LOGD("Save account list file succeed!");
     return ERR_OK;
 }
 

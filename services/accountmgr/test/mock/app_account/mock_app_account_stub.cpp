@@ -368,7 +368,6 @@ ErrCode MockAppAccountStub::QueryAllAccessibleAccounts(
 ErrCode MockAppAccountStub::CheckAppAccess(
     const std::string &name, const std::string &authorizedApp, bool &isAccessible, int32_t &funcResult)
 {
-    ACCOUNT_LOGD("mock enter");
     (void) name;
     (void) authorizedApp;
     (void) isAccessible;
@@ -379,8 +378,6 @@ ErrCode MockAppAccountStub::CheckAppAccess(
 ErrCode MockAppAccountStub::DeleteAccountCredential(const std::string &name, const std::string &credentialType,
     int32_t &funcResult)
 {
-    ACCOUNT_LOGD("mock enter");
-
     funcResult = ERR_OK;
     return funcResult;
 }
@@ -388,8 +385,6 @@ ErrCode MockAppAccountStub::DeleteAccountCredential(const std::string &name, con
 ErrCode MockAppAccountStub::SelectAccountsByOptions(
     const SelectAccountsOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback, int32_t &funcResult)
 {
-    ACCOUNT_LOGD("mock enter");
-
     funcResult = ERR_OK;
     return funcResult;
 }
@@ -397,8 +392,6 @@ ErrCode MockAppAccountStub::SelectAccountsByOptions(
 ErrCode MockAppAccountStub::VerifyCredential(const std::string &name, const std::string &owner,
     const VerifyCredentialOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback, int32_t &funcResult)
 {
-    ACCOUNT_LOGD("mock enter");
-
     funcResult = ERR_OK;
     return funcResult;
 }
@@ -406,8 +399,6 @@ ErrCode MockAppAccountStub::VerifyCredential(const std::string &name, const std:
 ErrCode MockAppAccountStub::CheckAccountLabels(const std::string &name, const std::string &owner,
     const std::vector<std::string> &labels, const sptr<IAppAccountAuthenticatorCallback> &callback, int32_t &funcResult)
 {
-    ACCOUNT_LOGD("mock enter");
-
     funcResult = ERR_OK;
     return funcResult;
 }
@@ -415,8 +406,6 @@ ErrCode MockAppAccountStub::CheckAccountLabels(const std::string &name, const st
 ErrCode MockAppAccountStub::SetAuthenticatorProperties(const std::string &owner,
     const SetPropertiesOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback, int32_t &funcResult)
 {
-    ACCOUNT_LOGD("mock enter");
-
     funcResult = ERR_OK;
     return funcResult;
 }

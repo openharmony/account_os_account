@@ -30,7 +30,6 @@ OsAccountDataStorage::OsAccountDataStorage(const std::string &appId, const std::
 void OsAccountDataStorage::SaveEntries(const std::vector<DbAdapterEntry> &allEntries,
     std::map<std::string, std::shared_ptr<IAccountInfo>> &infos)
 {
-    ACCOUNT_LOGD("Start, allEntries size is: %{public}zu", allEntries.size());
     for (auto const &item : allEntries) {
         OsAccountInfo osAccountInfo;
         auto jsonObject = CreateJsonFromString(item.value);
@@ -46,7 +45,6 @@ void OsAccountDataStorage::SaveEntries(const std::vector<DbAdapterEntry> &allEnt
         FromJson(jsonObject.get(), osAccountInfo);
         infos.emplace(item.key, std::make_shared<OsAccountInfo>(osAccountInfo));
     }
-    ACCOUNT_LOGD("End");
 }
 }  // namespace AccountSA
 }  // namespace OHOS

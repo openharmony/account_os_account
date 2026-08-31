@@ -118,8 +118,6 @@ ReEnrollCallback::ReEnrollCallback(const sptr<IIDMCallback> &innerCallback,
     };
     timerId_ = HiviewDFX::XCollie::GetInstance().SetTimer(
         TIMER_NAME, REENROLL_TIME_OUT, callbackFunc, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
-#else
-    ACCOUNT_LOGD("ReEnroll: ReEnrollCallback localId_: %{public}d", localId_);
 #endif // HICOLLIE_ENABLE
 }
 

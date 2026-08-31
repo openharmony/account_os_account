@@ -1222,7 +1222,6 @@ void OsAccountManagerService::ConstraintPublish(const std::vector<std::string> &
         bool isEnabledNew =
             std::find(newConstraints.begin(), newConstraints.end(), constraint) != newConstraints.end();
         if (isEnabledNew != isEnabled) {
-            ACCOUNT_LOGD("%{public}s not publish, enable=%{public}d.", constraint.c_str(), isEnabled);
             continue;
         }
         bool isEnabledOld = std::find(oldConstraints.begin(), oldConstraints.end(), constraint) != oldConstraints.end();
@@ -1788,7 +1787,6 @@ ErrCode OsAccountManagerService::GetOsAccountListFromDatabase(const std::string&
 ErrCode OsAccountManagerService::DumpStateByAccounts(
     const std::vector<OsAccountInfo> &osAccountInfos, std::vector<std::string> &state, bool dumpSensitiveInfo)
 {
-    ACCOUNT_LOGD("Enter");
     for (auto osAccountInfo : osAccountInfos) {
         std::string info = "";
 

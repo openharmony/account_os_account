@@ -45,7 +45,6 @@ const char *OS_ACCOUNT_TAIHE_NAME_SPACE = "@ohos.account.osAccount.osAccount";
 
 ani_object AniOsAccountTransfer::NativeIInputDataTransferStatic(ani_env *aniEnv, ani_class aniCls, ani_object input)
 {
-    ACCOUNT_LOGD("Transfer nativeIInputDataTransferStatic");
     if (aniEnv == nullptr) {
         ACCOUNT_LOGE("AniEnv is null");
         return nullptr;
@@ -104,7 +103,6 @@ ani_ref AniOsAccountTransfer::GenerateDynamic(ani_env *aniEnv, int64_t ptr)
     }
     napi_value cons = AccountJsKit::GetCtorIInputerData(jsEnv, inputerData);
     if (cons == nullptr) {
-        ACCOUNT_LOGD("failed to GetCtorIInputerData");
         arkts_napi_scope_close_n(jsEnv, 0, nullptr, nullptr);
         return nullptr;
     }
@@ -128,7 +126,6 @@ ani_ref AniOsAccountTransfer::GenerateDynamic(ani_env *aniEnv, int64_t ptr)
 
 ani_ref AniOsAccountTransfer::NativeIInputDataTransferDynamic(ani_env *aniEnv, ani_class aniCls, ani_object input)
 {
-    ACCOUNT_LOGD("Transfer static NativeIInputDataTransferDynamic");
     if (aniEnv == nullptr) {
         ACCOUNT_LOGE("null aniEnv");
         return nullptr;
@@ -159,7 +156,6 @@ ani_ref AniOsAccountTransfer::NativeIInputDataTransferDynamic(ani_env *aniEnv, a
 
 void AniOsAccountTransferInit(ani_env *aniEnv)
 {
-    ACCOUNT_LOGD("Init transfer native method");
     if (aniEnv == nullptr) {
         ACCOUNT_LOGE("null ani env");
         return;
@@ -183,8 +179,6 @@ void AniOsAccountTransferInit(ani_env *aniEnv)
         ACCOUNT_LOGE("Class_BindStaticNativeMethods failed status: %{public}d", status);
         return;
     }
-
-    ACCOUNT_LOGD("Init transfer native method end");
 }
 }
 }

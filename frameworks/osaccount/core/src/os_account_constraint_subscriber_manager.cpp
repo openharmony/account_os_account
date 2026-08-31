@@ -199,7 +199,6 @@ void OsAccountConstraintSubscriberManager::RestoreConstraintSubscriberRecords(sp
         return;
     }
     if (constraintSet_.empty()) {
-        ACCOUNT_LOGD("RestoreConstraintSubscriberRecords empty.");
         return;
     }
     OsAccountConstraintSubscribeInfo subscribeInfo(constraintSet_);

@@ -1097,7 +1097,6 @@ bool AccountMgrService::HasAccountRequestPermission(const std::string &permissio
 
 int32_t AccountMgrService::CallbackEnter([[maybe_unused]] uint32_t code)
 {
-    ACCOUNT_LOGD("Received stub message: %{public}d, callingUid: %{public}d", code, IPCSkeleton::GetCallingUid());
     if (!IsServiceStarted()) {
         ACCOUNT_LOGE("account mgr not ready");
         return ERR_ACCOUNT_ZIDL_MGR_NOT_READY_ERROR;

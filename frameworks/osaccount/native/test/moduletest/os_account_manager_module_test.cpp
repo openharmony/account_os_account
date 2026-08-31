@@ -1563,10 +1563,6 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest073, TestSize.Lev
     EXPECT_EQ(OsAccountManager::QueryOsAccountConstraintSourceTypes(
         MAIN_ACCOUNT_ID, CONSTRAINT_PRIVATE_DNS_SET, constraintSourceTypeInfos), ERR_OK);
     EXPECT_EQ(constraintSourceTypeInfos.size(), 2);
-    ACCOUNT_LOGD("OsAccountManagerModuleTest073  constraintSourceTypeInfos %{public}d  %{public}d",
-        constraintSourceTypeInfos[0].localId, constraintSourceTypeInfos[0].typeInfo);
-    ACCOUNT_LOGD("OsAccountManagerModuleTest073  constraintSourceTypeInfos %{public}d  %{public}d",
-        constraintSourceTypeInfos[1].localId, constraintSourceTypeInfos[1].typeInfo);
     ASSERT_EQ(RemoveOsAccountForTest(osAccountInfoTwo.GetLocalId()), ERR_OK);
 
     ASSERT_EQ(RemoveOsAccountForTest(osAccountInfoOne.GetLocalId()), ERR_OK);

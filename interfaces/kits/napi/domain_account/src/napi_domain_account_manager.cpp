@@ -932,7 +932,6 @@ napi_value NapiDomainAccountManager::JsConstructor(napi_env env, napi_callback_i
 
 void IsDomainAccountSupportedCompletedCB(napi_env env, napi_status status, void *data)
 {
-    ACCOUNT_LOGD("napi_create_async_work complete");
     IsDomainAccountSupportContext *asyncContext = reinterpret_cast<IsDomainAccountSupportContext *>(data);
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;

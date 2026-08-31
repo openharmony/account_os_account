@@ -75,7 +75,6 @@ static std::function<void()> OnAppAccountsChangedWork(const std::shared_ptr<Subs
                         return subptr->subscriber.get() == subscriber;
                     });
                 if (isFound) {
-                    ACCOUNT_LOGD("AppAccount subscriber has been found.");
                     break;
                 }
             }
@@ -949,8 +948,7 @@ void UnsubscribeExecuteCB(napi_env env, void *data)
     }
 
     for (auto offSubscriber : asyncContextForOff->subscribers) {
-        int errCode = AppAccountManager::UnsubscribeAppAccount(offSubscriber);
-        ACCOUNT_LOGD("Unsubscribe errcode parameter is %{public}d", errCode);
+        (void)AppAccountManager::UnsubscribeAppAccount(offSubscriber);
     }
 }
 
@@ -1266,7 +1264,6 @@ bool ParseAccountVector(napi_env env, napi_value value, std::vector<std::pair<st
         napi_get_element(env, value, i, &item);
         NAPI_CALL_BASE(env, napi_typeof(env, item, &valueType), false);
         if (valueType != napi_object) {
-            ACCOUNT_LOGD("Wrong argument type, Object expected");
             return false;
         }
         std::string name;

@@ -368,8 +368,6 @@ static void HasAuthorizationExecuteCB(napi_env env, void *data)
     }
     asyncContext->errCode = AuthorizationClient::GetInstance().CheckAuthorization(
         asyncContext->privilege, asyncContext->isAuthorized);
-    ACCOUNT_LOGD("errCode is %{public}d, isAuthorized is %{public}d",
-        asyncContext->errCode, asyncContext->isAuthorized);
 }
 
 napi_value NapiAuthorizationManager::HasAuthorization(napi_env env, napi_callback_info cbInfo)

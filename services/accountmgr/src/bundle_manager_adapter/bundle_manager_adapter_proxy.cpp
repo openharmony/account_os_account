@@ -74,7 +74,6 @@ BundleManagerAdapterProxy::~BundleManagerAdapterProxy()
 
 bool BundleManagerAdapterProxy::ParseStr(const char *buf, const int itemLen, int index, std::string &result)
 {
-    ACCOUNT_LOGD("ParseStr itemLen:%{public}d index:%{public}d.", itemLen, index);
     if (buf == nullptr || itemLen <= 0 || index < 0) {
         ACCOUNT_LOGE("param invalid.");
         return false;
@@ -510,7 +509,6 @@ bool BundleManagerAdapterProxy::GetBigParcelableInfo(
         return false;
     }
     parcelableInfo = *info;
-    ACCOUNT_LOGD("get parcelable info success");
     return true;
 }
 
@@ -567,7 +565,6 @@ bool BundleManagerAdapterProxy::GetParcelableFromAshmem(MessageParcel &reply, T 
     }
 
     ClearAshmem(ashmem);
-    ACCOUNT_LOGD("Get parcelable vector from ashmem success");
     return true;
 }
 

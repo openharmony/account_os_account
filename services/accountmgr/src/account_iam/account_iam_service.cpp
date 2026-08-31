@@ -89,7 +89,6 @@ int32_t AccountIAMService::CallbackEnter([[maybe_unused]] uint32_t code)
 {
     Security::AccessToken::AccessTokenID tokenCaller = IPCSkeleton::GetCallingTokenID();
     int32_t result = SetFirstCallerTokenID(tokenCaller);
-    ACCOUNT_LOGD("SetFirstCallerTokenID code: %{public}d, result: %{public}d", code, result);
 
     if (static_cast<IAccountIAMIpcCode>(code) == IAccountIAMIpcCode::COMMAND_GET_ACCOUNT_STATE) {
         return ERR_OK;

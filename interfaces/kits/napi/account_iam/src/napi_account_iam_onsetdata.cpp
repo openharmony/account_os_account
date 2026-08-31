@@ -115,7 +115,6 @@ napi_status GetInputerInstance(InputerContext *context, napi_value *inputerDataV
 {
     napi_value cons = GetCtorIInputerData(context->env, context->inputerData);
     if (cons == nullptr) {
-        ACCOUNT_LOGD("Failed to GetCtorIInputerData");
         return napi_generic_failure;
     }
     return napi_new_instance(context->env, cons, 0, nullptr, inputerDataVarCtor);

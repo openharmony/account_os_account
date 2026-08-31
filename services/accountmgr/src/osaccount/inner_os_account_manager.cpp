@@ -1970,7 +1970,6 @@ ErrCode IInnerOsAccountManager::GetOsAccountAllConstraints(const int id, std::ve
 ErrCode IInnerOsAccountManager::QueryOsAccountConstraintSourceTypes(const int32_t id,
     const std::string &constraint, std::vector<ConstraintSourceTypeInfo> &constraintSourceTypeInfos)
 {
-    ACCOUNT_LOGD("Enter.");
     bool isOsAccountConstraintEnable = false;
     ErrCode errCode = IsOsAccountConstraintEnable(id, constraint, isOsAccountConstraintEnable);
     if (errCode != ERR_OK) {
@@ -2175,7 +2174,6 @@ ErrCode IInnerOsAccountManager::GetOsAccountLocalIds(std::vector<int32_t> &ids)
 
 ErrCode IInnerOsAccountManager::DealWithDeviceOwnerId(const bool isDeviceOwner, const int32_t localId)
 {
-    ACCOUNT_LOGD("Enter.");
     std::lock_guard<std::mutex> lock(deviceOwnerLock_);
 
     if (isDeviceOwner && localId != deviceOwnerId_) {
@@ -2562,7 +2560,6 @@ ErrCode IInnerOsAccountManager::PreloadAccountTypesFromTee(const std::vector<int
         if (teeAdapter_.GetOsAccountType(id, typeTee) == ERR_OK) {
             OsAccountType realType = static_cast<OsAccountType>(typeTee);
             typeMap[id] = {realType, false};
-            ACCOUNT_LOGD("Preloaded account %{public}d type from TEE: %{public}d", id, typeTee);
         } else {
             // If TEE query fails for a specific account, log warning but continue with others
             ACCOUNT_LOGW("Failed to query account %{public}d type from TEE", id);

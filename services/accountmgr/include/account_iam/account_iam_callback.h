@@ -387,7 +387,7 @@ private:
 #ifdef HICOLLIE_ENABLE
     int32_t timerId_ = 0;
 #endif // HICOLLIE_ENABLE
-    int32_t localId_ = 0;
+    [[maybe_unused]] int32_t localId_ = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

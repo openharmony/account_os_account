@@ -36,7 +36,6 @@ OsAccountFileOperator::~OsAccountFileOperator()
 
 ErrCode OsAccountFileOperator::GetConstraintsByType(const int type, std::vector<std::string> &constraints)
 {
-    ACCOUNT_LOGD("Start");
     constraints.clear();
     std::string str;
     ErrCode errCode = accountFileOperator_->GetFileContentByPath(Constants::OS_ACCOUNT_CONSTRAINT_CONFIG_PATH, str);
@@ -51,7 +50,6 @@ ErrCode OsAccountFileOperator::GetConstraintsByType(const int type, std::vector<
         return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
     }
     GetDataByType<std::vector<std::string>>(typeJson, std::to_string(type), constraints);
-    ACCOUNT_LOGD("End");
     return ERR_OK;
 }
 
