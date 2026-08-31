@@ -165,6 +165,7 @@ ohos_unittest("account_iam_callback_test") {
 
   external_deps = [
     "ability_base:want",
+    "ability_runtime:ability_manager",
     "ability_runtime:app_manager",
     "ability_runtime:wantagent_innerkits",
     "access_token:libaccesstoken_sdk",
@@ -326,6 +327,7 @@ ohos_unittest("account_iam_manager_test") {
       "${authorization_framework_path}:connect_ability_callback_stub",
     ]
     external_deps += [
+      "ability_runtime:ability_connect_callback_stub",
       "ability_runtime:extension_manager",
       "tee_client:libteec_vendor",
     ]

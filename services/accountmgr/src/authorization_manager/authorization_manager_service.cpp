@@ -33,6 +33,8 @@ namespace OHOS {
 namespace AccountSA {
 namespace {
 const char PERMISSION_ACQUIRE_AUTHORIZATION[] = "ohos.permission.ACQUIRE_LOCAL_ACCOUNT_AUTHORIZATION";
+const char PERMISSION_ACQUIRE_AUTHORIZATION_FOR_PUBLIC[] =
+    "ohos.permission.REQUEST_LOCAL_ACCOUNT_AUTHORIZATION";
 const char PERMISSION_START_SYSTEM_DIALOG[] = "ohos.permission.START_SYSTEM_DIALOG";
 const char PERMISSION_ACCESS_USER_AUTH_INTERNAL[] = "ohos.permission.ACCESS_USER_AUTH_INTERNAL";
 constexpr std::int32_t MAX_CHALLENGE_LEN = 32;
@@ -309,6 +311,16 @@ static ErrCode CheckAuth(const std::string &privilege, int32_t pid,
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
+    PrivilegeBriefDef def;
+    if (!GetPrivilegeBriefDef(privilege, def)) {
+        ACCOUNT_LOGE("GetPrivilegeBriefDef failed, privilege:%{public}s", privilege.c_str());
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    if (def.kernelPermission != nullptr) {
+        return InnerAuthorizationManager::GetInstance().HasKernelAuthorization(
+            privilegeId, pid, def.kernelPermission, isAuthorized);
+    }
+
     errCode = InnerAuthorizationManager::GetInstance().CheckAuthorization(
         privilegeId, pid, isAuthorized);
     if (errCode != ERR_OK) {
@@ -470,6 +482,84 @@ ErrCode AuthorizationManagerService::AcquireAdminAuthorization(const std::string
 #else
     return ERR_ACCOUNT_COMMON_NOT_SUPPORT;
 #endif // SUPPORT_AUTHORIZATION
+}
+
+ErrCode AuthorizationManagerService::CheckPublicPermission(int32_t localId)
+{
+    ErrCode result = AccountPermissionManager::VerifyPermission(PERMISSION_ACQUIRE_AUTHORIZATION_FOR_PUBLIC);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Failed to verify permission, result = %{public}d", result);
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+    return ERR_OK;
+}
+
+ErrCode AuthorizationManagerService::AcquireAuthorizationForPublic(const std::string &privilege,
+    bool isContextValid, const sptr<IRemoteObject> &authorizationResultCallback,
+    const sptr<IRemoteObject> &requestRemoteObj)
+{
+    int32_t localId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
+    ErrCode result = CheckPublicPermission(localId);
+    if (result != ERR_OK) {
+        return result;
+    }
+    AuthorizationResult authorizationResult;
+    authorizationResult.privilege = privilege;
+    auto callback = iface_cast<IAuthorizationCallback>(authorizationResultCallback);
+    AcquireAuthorizationOptions options;
+    options.hasContext = true;
+    options.isContextValid = isContextValid;
+    if (!options.isContextValid) {
+        ACCOUNT_LOGE("Context is not valid, privilege:%{public}s", privilege.c_str());
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    options.isPublicApi = true;
+    PrivilegeBriefDef def;
+    result = GetPrivilegeDefinition(authorizationResult, def, localId);
+    if (result != ERR_OK) {
+        return result;
+    }
+    result = CheckCallbackAndConnections(callback, options, localId, authorizationResult);
+    if (result != ERR_OK) {
+        return result;
+    }
+    if (authorizationResult.resultCode != AuthorizationResultCode::AUTHORIZATION_SUCCESS) {
+        callback->OnResult(ERR_OK, authorizationResult);
+        return ERR_OK;
+    }
+    result = HandleWhenReuse(authorizationResult, options, callback, localId);
+    if (result != ERR_AUTHORIZATION_NO_CACHE) {
+        return result;
+    }
+    return InnerAuthorizationManager::GetInstance().AcquireAuthorization(
+        def, options, config_, callback->AsObject(), requestRemoteObj);
+}
+
+ErrCode AuthorizationManagerService::HasAuthorizationForPublic(const std::string &privilege,
+    bool &isAuthorized)
+{
+    isAuthorized = false;
+    if (privilege.empty()) {
+        ACCOUNT_LOGE("Privilege is empty");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    PrivilegeBriefDef def;
+    if (!GetPrivilegeBriefDef(privilege, def)) {
+        ACCOUNT_LOGE("Fail to check privilege, privilege:%{public}s", privilege.c_str());
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    uint32_t privilegeId = 0;
+    if (!TransferPrivilegeToCode(privilege, privilegeId)) {
+        ACCOUNT_LOGE("Failed to get privilegeId from privilege");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    int32_t callingPid = IPCSkeleton::GetCallingPid();
+    if (def.kernelPermission != nullptr) {
+        return InnerAuthorizationManager::GetInstance().HasKernelAuthorization(
+            privilegeId, callingPid, def.kernelPermission, isAuthorized);
+    }
+    return InnerAuthorizationManager::GetInstance().CheckAuthorization(
+        privilegeId, callingPid, isAuthorized);
 }
 }
 }

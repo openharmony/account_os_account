@@ -56,6 +56,10 @@ const int32_t TEST_CALLING_PID = 12345;
 const int32_t ERR_PID = -1;
 const int32_t TEST_USER_ID = 100;
 static bool g_transferPrivilegeToCode = true;
+static bool g_getPrivilegeBriefDef = true;
+static bool g_hasAuthorizationFail = false;
+static bool g_openSmartPidFdFail = false;
+static std::string g_kernelPermission = "test_kernel_perm";
 } // namespace
 
 /**
@@ -81,6 +85,7 @@ public:
     {
         std::lock_guard<std::mutex> lock(mutex);
         isReady = true;
+        result_ = result;
         cv.notify_one();
         return 0;
     }
@@ -115,6 +120,7 @@ public:
     std::mutex mutex;
     std::condition_variable cv;
     bool isReady = false;
+    AccountSA::AuthorizationResult result_;
 };
 
 class MockAccountPermissionManager {
@@ -189,6 +195,9 @@ ErrCode SessionAbilityConnection::SessionConnectExtension(const ConnectAbilityIn
 
 ErrCode OpenSmartPidFd(const int32_t pid, SmartPidFd &fdPtr)
 {
+    if (g_openSmartPidFdFail) {
+        return ERR_AUTHORIZATION_GET_PROXY_ERROR;
+    }
     return ERR_OK;
 }
 
@@ -236,7 +245,36 @@ ErrCode PrivilegeCacheManager::AddCache(const AuthenCallerInfo& callerInfo, uint
     return 0;
 }
 
+ErrCode PrivilegeCacheManager::AddCacheAndNotifyKernel(const AuthenCallerInfo& callerInfo,
+    const std::string& tokenResult)
+{
+    if (callerInfo.pid == ERR_PID || g_addCacheFail) {
+        return ERR_AUTHORIZATION_CACHE_ERROR;
+    }
+    return 0;
+}
+
+ErrCode PrivilegeCacheManager::HasKernelAuthorization(int32_t pid, uint32_t privilegeIdx,
+    const std::string& kernelPermission, bool& isAuthorized)
+{
+    if (g_hasAuthorizationFail) {
+        return ERR_ACCOUNT_COMMON_SYSTEM_SERVICE_EXCEPTION;
+    }
+    isAuthorized = true;
+    return 0;
+}
+
 bool TransferPrivilegeToCode(const std::string& privilegeName, uint32_t& code) { return g_transferPrivilegeToCode; }
+
+bool GetPrivilegeBriefDef(const std::string& privilege, PrivilegeBriefDef& privilegeBriefDef)
+{
+    if (!g_getPrivilegeBriefDef) {
+        return false;
+    }
+    privilegeBriefDef.kernelPermission = g_kernelPermission.empty() ? nullptr :
+        const_cast<char*>(g_kernelPermission.c_str());
+    return true;
+}
 
 class InnerAuthorizationManagerModuleTest : public testing::Test {
 public:
@@ -1278,8 +1316,8 @@ HWTEST_F(InnerAuthorizationManagerModuleTest, StoreCallbackMapsTest_0100, TestSi
         [](int32_t, AuthorizationResult&, int32_t) { return ERR_OK; }, AuthorizationResult());
     sptr<IRemoteObject> requestRemoteObj = new MockAuthorizationCallbackStub();
     // Mock OpenSmartPidFd to fail (would need additional mock infrastructure)
-    bool result = manager_.StoreCallbackMaps(uiInfo, callback, connectCallback, requestRemoteObj);
-    EXPECT_TRUE(result);  // Should succeed in normal case
+    ErrCode result = manager_.StoreCallbackMaps(uiInfo, callback, connectCallback, requestRemoteObj);
+    EXPECT_EQ(result, ERR_OK);  // Should succeed in normal case
 }
 
 /**
@@ -1360,6 +1398,320 @@ HWTEST_F(InnerAuthorizationManagerModuleTest, UpdateAuthorizationResultTest_0200
     std::vector<uint8_t> iamToken = {};
     ErrCode ret = callback.OnResult(ERR_OK, iamToken, TEST_USER_ID, ERR_OK);
     EXPECT_EQ(ret, ERR_OK);  // Should handle failure result
+}
+
+/**
+ * @tc.name: UpdatePrivilegeCachePublicApiTest_0100
+ * @tc.desc: test UpdatePrivilegeCache with isPublicApi=true success.
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(InnerAuthorizationManagerModuleTest, UpdatePrivilegeCachePublicApiTest_0100, TestSize.Level0)
+{
+    ACCOUNT_LOGI("UpdatePrivilegeCachePublicApiTest_0100");
+    ConnectAbilityInfo info;
+    info.privilege = TEST_PRIVILEGE;
+    info.callingUid = TEST_CALLING_UID;
+    info.callingPid = TEST_CALLING_PID;
+    info.isPublicApi = true;
+
+    ApplyUserTokenResult tokenResult;
+    tokenResult.grantTime = 1000;
+
+    g_getPrivilegeBriefDef = true;
+    g_kernelPermission = "test_kernel_perm";
+    g_addCacheFail = false;
+    ErrCode ret = manager_.UpdatePrivilegeCache(info, tokenResult);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: UpdatePrivilegeCachePublicApiTest_0200
+ * @tc.desc: test UpdatePrivilegeCache with isPublicApi=true and TransferPrivilegeToCode failure.
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(InnerAuthorizationManagerModuleTest, UpdatePrivilegeCachePublicApiTest_0200, TestSize.Level0)
+{
+    ACCOUNT_LOGI("UpdatePrivilegeCachePublicApiTest_0200");
+    ConnectAbilityInfo info;
+    info.privilege = TEST_PRIVILEGE;
+    info.callingUid = TEST_CALLING_UID;
+    info.callingPid = TEST_CALLING_PID;
+    info.isPublicApi = true;
+
+    ApplyUserTokenResult tokenResult;
+    tokenResult.grantTime = 1000;
+
+    g_transferPrivilegeToCode = false;
+    ErrCode ret = manager_.UpdatePrivilegeCache(info, tokenResult);
+    EXPECT_EQ(ret, ERR_AUTHORIZATION_CACHE_ERROR);
+    g_transferPrivilegeToCode = true;
+}
+
+/**
+ * @tc.name: UpdatePrivilegeCachePublicApiTest_0300
+ * @tc.desc: test UpdatePrivilegeCache with isPublicApi=true and GetPrivilegeBriefDef failure.
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(InnerAuthorizationManagerModuleTest, UpdatePrivilegeCachePublicApiTest_0300, TestSize.Level0)
+{
+    ACCOUNT_LOGI("UpdatePrivilegeCachePublicApiTest_0300");
+    ConnectAbilityInfo info;
+    info.privilege = TEST_PRIVILEGE;
+    info.callingUid = TEST_CALLING_UID;
+    info.callingPid = TEST_CALLING_PID;
+    info.isPublicApi = true;
+
+    ApplyUserTokenResult tokenResult;
+    tokenResult.grantTime = 1000;
+
+    g_getPrivilegeBriefDef = false;
+    ErrCode ret = manager_.UpdatePrivilegeCache(info, tokenResult);
+    EXPECT_EQ(ret, ERR_AUTHORIZATION_CACHE_ERROR);
+    g_getPrivilegeBriefDef = true;
+}
+
+/**
+ * @tc.name: UpdatePrivilegeCachePublicApiTest_0400
+ * @tc.desc: test UpdatePrivilegeCache with no kernelPermission → AddCache path.
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(InnerAuthorizationManagerModuleTest, UpdatePrivilegeCachePublicApiTest_0400, TestSize.Level0)
+{
+    ACCOUNT_LOGI("UpdatePrivilegeCachePublicApiTest_0400");
+    ConnectAbilityInfo info;
+    info.privilege = TEST_PRIVILEGE;
+    info.callingUid = TEST_CALLING_UID;
+    info.callingPid = TEST_CALLING_PID;
+    info.isPublicApi = true;
+
+    ApplyUserTokenResult tokenResult;
+    tokenResult.grantTime = 1000;
+
+    g_getPrivilegeBriefDef = true;
+    g_kernelPermission = "";
+    ErrCode ret = manager_.UpdatePrivilegeCache(info, tokenResult);
+    EXPECT_EQ(ret, ERR_OK);
+    g_kernelPermission = "test_kernel_perm";
+}
+
+/**
+ * @tc.name: UpdatePrivilegeCachePublicApiTest_0500
+ * @tc.desc: test UpdatePrivilegeCache with isPublicApi=true and AddCacheAndNotifyKernel failure.
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(InnerAuthorizationManagerModuleTest, UpdatePrivilegeCachePublicApiTest_0500, TestSize.Level0)
+{
+    ACCOUNT_LOGI("UpdatePrivilegeCachePublicApiTest_0500");
+    ConnectAbilityInfo info;
+    info.privilege = TEST_PRIVILEGE;
+    info.callingUid = TEST_CALLING_UID;
+    info.callingPid = TEST_CALLING_PID;
+    info.isPublicApi = true;
+
+    ApplyUserTokenResult tokenResult;
+    tokenResult.grantTime = 1000;
+
+    g_getPrivilegeBriefDef = true;
+    g_kernelPermission = "test_kernel_perm";
+    g_addCacheFail = true;
+    ErrCode ret = manager_.UpdatePrivilegeCache(info, tokenResult);
+    EXPECT_EQ(ret, ERR_AUTHORIZATION_CACHE_ERROR);
+    g_addCacheFail = false;
+}
+
+/**
+ * @tc.name: HasKernelAuthorizationTest_0100
+ * @tc.desc: test HasKernelAuthorization success.
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(InnerAuthorizationManagerModuleTest, HasKernelAuthorizationTest_0100, TestSize.Level0)
+{
+    ACCOUNT_LOGI("HasKernelAuthorizationTest_0100");
+    g_hasAuthorizationFail = false;
+    bool isAuthorized = false;
+    ErrCode ret = manager_.HasKernelAuthorization(0, TEST_CALLING_PID, "test_kernel_perm", isAuthorized);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_TRUE(isAuthorized);
+}
+
+/**
+ * @tc.name: HasKernelAuthorizationTest_0200
+ * @tc.desc: test HasKernelAuthorization with PrivilegeCacheManager failure.
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(InnerAuthorizationManagerModuleTest, HasKernelAuthorizationTest_0200, TestSize.Level0)
+{
+    ACCOUNT_LOGI("HasKernelAuthorizationTest_0200");
+    g_hasAuthorizationFail = true;
+    bool isAuthorized = false;
+    ErrCode ret = manager_.HasKernelAuthorization(0, TEST_CALLING_PID, "test_kernel_perm", isAuthorized);
+    EXPECT_NE(ret, ERR_OK);
+    EXPECT_FALSE(isAuthorized);
+    g_hasAuthorizationFail = false;
+}
+
+/**
+ * @tc.name: StoreCallbackMapsBusyTest_0100
+ * @tc.desc: test StoreCallbackMaps returns ERR_ACCOUNT_COMMON_BUSY when callback already exists.
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(InnerAuthorizationManagerModuleTest, StoreCallbackMapsBusyTest_0100, TestSize.Level0)
+{
+    ACCOUNT_LOGI("StoreCallbackMapsBusyTest_0100");
+    ConnectAbilityInfo uiInfo;
+    uiInfo.callingPid = 88888;
+    uiInfo.callingUid = TEST_CALLING_UID;
+    uiInfo.sessionId = "busy_test_session_id";
+    sptr<IAuthorizationCallback> callback = new MockAuthorizationCallbackStub();
+    sptr<ConnectAbilityCallback> connectCallback = new ConnectAbilityCallback(uiInfo,
+        [](int32_t, AuthorizationResult&, int32_t) { return ERR_OK; }, AuthorizationResult());
+    sptr<IRemoteObject> requestRemoteObj = new MockAuthorizationCallbackStub();
+
+    // First call should succeed
+    ErrCode ret1 = manager_.StoreCallbackMaps(uiInfo, callback, connectCallback, requestRemoteObj);
+    EXPECT_EQ(ret1, ERR_OK);
+    // Second call with same pid should return BUSY
+    ErrCode ret2 = manager_.StoreCallbackMaps(uiInfo, callback, connectCallback, requestRemoteObj);
+    EXPECT_EQ(ret2, ERR_ACCOUNT_COMMON_BUSY);
+}
+
+/**
+ * @tc.name: StartUIExtensionTaskTest_0100
+ * @tc.desc: test StartUIExtensionTask with StoreCallbackMaps returning BUSY.
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(InnerAuthorizationManagerModuleTest, StartUIExtensionTaskTest_0100, TestSize.Level0)
+{
+    ACCOUNT_LOGI("StartUIExtensionTaskTest_0100");
+    ConnectAbilityInfo uiInfo;
+    uiInfo.callingPid = 77771;
+    uiInfo.callingUid = TEST_CALLING_UID;
+    uiInfo.privilege = TEST_PRIVILEGE;
+    uiInfo.sessionId = "ext_task_busy_session";
+    sptr<ConnectAbilityCallback> connectCallback = new ConnectAbilityCallback(uiInfo,
+        [](int32_t, AuthorizationResult&, int32_t) { return ERR_OK; }, AuthorizationResult());
+    sptr<IRemoteObject> requestRemoteObj = new MockAuthorizationCallbackStub();
+    sptr<IAuthorizationCallback> callback = new MockAuthorizationCallbackStub();
+    ErrCode storeRet = manager_.StoreCallbackMaps(uiInfo, callback, connectCallback, requestRemoteObj);
+    EXPECT_EQ(storeRet, ERR_OK);
+    auto busyCallback = new MockAuthorizationCallbackStub();
+    ErrCode ret = manager_.StartUIExtensionTask(uiInfo, connectCallback, busyCallback, requestRemoteObj);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_TRUE(busyCallback->isReady);
+    EXPECT_EQ(busyCallback->result_.resultCode, AuthorizationResultCode::AUTHORIZATION_SERVICE_BUSY);
+}
+
+/**
+ * @tc.name: StartUIExtensionTaskTest_0200
+ * @tc.desc: test StartUIExtensionTask with StoreCallbackMaps returning non-BUSY error.
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(InnerAuthorizationManagerModuleTest, StartUIExtensionTaskTest_0200, TestSize.Level0)
+{
+    ACCOUNT_LOGI("StartUIExtensionTaskTest_0200");
+    g_openSmartPidFdFail = true;
+    ConnectAbilityInfo uiInfo;
+    uiInfo.callingPid = 77772;
+    uiInfo.callingUid = TEST_CALLING_UID;
+    uiInfo.privilege = TEST_PRIVILEGE;
+    uiInfo.sessionId = "ext_task_err_session";
+    sptr<IAuthorizationCallback> callback = new MockAuthorizationCallbackStub();
+    sptr<ConnectAbilityCallback> connectCallback = new ConnectAbilityCallback(uiInfo,
+        [](int32_t, AuthorizationResult&, int32_t) { return ERR_OK; }, AuthorizationResult());
+    sptr<IRemoteObject> requestRemoteObj = new MockAuthorizationCallbackStub();
+    ErrCode ret = manager_.StartUIExtensionTask(uiInfo, connectCallback, callback, requestRemoteObj);
+    EXPECT_EQ(ret, ERR_AUTHORIZATION_GET_PROXY_ERROR);
+    g_openSmartPidFdFail = false;
+}
+
+/**
+ * @tc.name: ExecuteUIExtensionTaskTest_0100
+ * @tc.desc: test ExecuteUIExtensionTask with null callback → rollbackMaps.
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(InnerAuthorizationManagerModuleTest, ExecuteUIExtensionTaskTest_0100, TestSize.Level0)
+{
+    ACCOUNT_LOGI("ExecuteUIExtensionTaskTest_0100");
+    ConnectAbilityInfo uiInfo;
+    uiInfo.callingPid = 77773;
+    uiInfo.callingUid = TEST_CALLING_UID;
+    uiInfo.privilege = TEST_PRIVILEGE;
+    uiInfo.sessionId = "ext_exec_null_cb";
+    sptr<IAuthorizationCallback> callback = new MockAuthorizationCallbackStub();
+    sptr<ConnectAbilityCallback> connectCallback = new ConnectAbilityCallback(uiInfo,
+        [](int32_t, AuthorizationResult&, int32_t) { return ERR_OK; }, AuthorizationResult());
+    sptr<IRemoteObject> requestRemoteObj = new MockAuthorizationCallbackStub();
+    ASSERT_EQ(ERR_OK, manager_.StoreCallbackMaps(uiInfo, callback, connectCallback, requestRemoteObj));
+    manager_.ExecuteUIExtensionTask(uiInfo, connectCallback, nullptr, requestRemoteObj);
+    // rollbackMaps should have cleaned up g_callbackMap
+    ErrCode ret = manager_.StoreCallbackMaps(uiInfo, callback, connectCallback, requestRemoteObj);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: ExecuteUIExtensionTaskTest_0200
+ * @tc.desc: test ExecuteUIExtensionTask with OnConnectAbility failure → rollbackMaps.
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(InnerAuthorizationManagerModuleTest, ExecuteUIExtensionTaskTest_0200, TestSize.Level0)
+{
+    ACCOUNT_LOGI("ExecuteUIExtensionTaskTest_0200");
+    class FailConnectCallback : public MockAuthorizationCallbackStub {
+    public:
+        ErrCode OnConnectAbility(const ConnectAbilityInfo& info, const sptr<IRemoteObject>& callback) override
+        {
+            return ERR_AUTHORIZATION_TA_ERROR;
+        }
+    };
+    ConnectAbilityInfo uiInfo;
+    uiInfo.callingPid = 77774;
+    uiInfo.callingUid = TEST_CALLING_UID;
+    uiInfo.privilege = TEST_PRIVILEGE;
+    uiInfo.sessionId = "ext_exec_connect_fail";
+    auto callback = sptr<FailConnectCallback>::MakeSptr();
+    sptr<ConnectAbilityCallback> connectCallback = new ConnectAbilityCallback(uiInfo,
+        [](int32_t, AuthorizationResult&, int32_t) { return ERR_OK; }, AuthorizationResult());
+    sptr<IRemoteObject> requestRemoteObj = new MockAuthorizationCallbackStub();
+    ASSERT_EQ(ERR_OK, manager_.StoreCallbackMaps(uiInfo, callback, connectCallback, requestRemoteObj));
+    manager_.ExecuteUIExtensionTask(uiInfo, connectCallback, callback, requestRemoteObj);
+    EXPECT_TRUE(callback->isReady);
+    ErrCode ret = manager_.StoreCallbackMaps(uiInfo, callback, connectCallback, requestRemoteObj);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: ExecuteUIExtensionTaskTest_0300
+ * @tc.desc: test ExecuteUIExtensionTask with null requestRemoteObj → rollbackMaps.
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(InnerAuthorizationManagerModuleTest, ExecuteUIExtensionTaskTest_0300, TestSize.Level0)
+{
+    ACCOUNT_LOGI("ExecuteUIExtensionTaskTest_0300");
+    ConnectAbilityInfo uiInfo;
+    uiInfo.callingPid = 77775;
+    uiInfo.callingUid = TEST_CALLING_UID;
+    uiInfo.privilege = TEST_PRIVILEGE;
+    uiInfo.sessionId = "ext_exec_null_req";
+    sptr<IAuthorizationCallback> callback = new MockAuthorizationCallbackStub();
+    sptr<ConnectAbilityCallback> connectCallback = new ConnectAbilityCallback(uiInfo,
+        [](int32_t, AuthorizationResult&, int32_t) { return ERR_OK; }, AuthorizationResult());
+    ASSERT_EQ(ERR_OK, manager_.StoreCallbackMaps(uiInfo, callback, connectCallback, nullptr));
+    manager_.ExecuteUIExtensionTask(uiInfo, connectCallback, callback, nullptr);
+    ErrCode ret = manager_.StoreCallbackMaps(uiInfo, callback, connectCallback, nullptr);
+    EXPECT_EQ(ret, ERR_OK);
 }
 } // namespace AccountSA
 } // namespace OHOS

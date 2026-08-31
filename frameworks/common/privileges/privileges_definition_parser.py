@@ -61,6 +61,7 @@ const uint32_t MAX_PRIVILEGE_SIZE = sizeof(g_privilegeList) / sizeof(PrivilegeBr
 
 PRIVILEGE_NAME_STRING = "char PRIVILEGE_NAME_%i[] = \"%s\";\n"
 PRIVILEGE_DESCRIPTION_STRING = "char PRIVILEGE_DESCRIPTION_%i[] = \"%s\";\n"
+PRIVILEGE_KERNEL_PERMISSION_STRING = "char PRIVILEGE_KERNEL_PERMISSION_%i[] = \"%s\";\n"
 
 PRIVILEGE_LIST_DECLARE = "const static PrivilegeBriefDef g_privilegeList[] = {"
 
@@ -70,7 +71,16 @@ PRIVILEGE_BRIEF_DEFINE_PATTERN = '''
 {
     .privilegeName = PRIVILEGE_NAME_%i,
     .description = PRIVILEGE_DESCRIPTION_%i,
-    .timeout = %d
+    .timeout = %d,
+    .kernelPermission = PRIVILEGE_KERNEL_PERMISSION_%i
+},'''
+
+PRIVILEGE_BRIEF_DEFINE_PATTERN_NO_KERNEL = '''
+{
+    .privilegeName = PRIVILEGE_NAME_%i,
+    .description = PRIVILEGE_DESCRIPTION_%i,
+    .timeout = %d,
+    .kernelPermission = nullptr
 },'''
 
 BUFFER_SIZE = 4096
@@ -80,6 +90,7 @@ class PrivilegeDef(object):
     def __init__(self, privilege_def_dict, code):
         self.name = privilege_def_dict["name"]
         self.description = privilege_def_dict["description"]
+        self.kernel_permission = privilege_def_dict.get("kernelPermission", "")
         self.timeout = 300
         self.code = code
 
@@ -93,10 +104,22 @@ class PrivilegeDef(object):
             self.code, self.description
         )
 
-    def dump_struct(self):
-        entry = PRIVILEGE_BRIEF_DEFINE_PATTERN % (
-            self.code, self.code, self.timeout
+    def dump_privilege_kernel_permission(self):
+        if not self.kernel_permission:
+            return ""
+        return PRIVILEGE_KERNEL_PERMISSION_STRING % (
+            self.code, self.kernel_permission
         )
+
+    def dump_struct(self):
+        if self.kernel_permission:
+            entry = PRIVILEGE_BRIEF_DEFINE_PATTERN % (
+                self.code, self.code, self.timeout, self.code
+            )
+        else:
+            entry = PRIVILEGE_BRIEF_DEFINE_PATTERN_NO_KERNEL % (
+                self.code, self.code, self.timeout
+            )
         return entry
 
 
@@ -120,6 +143,7 @@ def convert_to_cpp(path, privilege_list, hash_str):
         for priv in privilege_list:
             f.write(priv.dump_privilege_name())
             f.write(priv.dump_privilege_description())
+            f.write(priv.dump_privilege_kernel_permission())
         f.write(PRIVILEGE_LIST_DECLARE)
         for priv in privilege_list:
             f.write(priv.dump_struct())

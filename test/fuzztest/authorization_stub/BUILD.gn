@@ -24,6 +24,7 @@ config("authorization_stub_fuzztest_config") {
     "${os_account_path}/services/accountmgr/include/authorization_manager",
     "${os_account_path}/services/accountmgr/include/bundle_manager_adapter",
     "${os_account_path}/services/accountmgr/include/common/tee",
+    "${os_account_path}/services/accountmgr/include/common/kernel",
     "${os_account_path}/services/accountmgr/include/common/database",
     "${os_account_path}/services/accountmgr/include/common/database/kvstore",
     "${os_account_path}/services/accountmgr/include/osaccount",

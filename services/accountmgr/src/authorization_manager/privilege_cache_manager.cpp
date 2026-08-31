@@ -19,6 +19,7 @@
 #include "account_file_operator.h"
 #include "account_file_watcher_manager.h"
 #include "account_log_wrapper.h"
+#include "kernel_authorization_adapter.h"
 #include "os_account_constants.h"
 #include "privilege_hisysevent_utils.h"
 #include "tee_auth_adapter.h"
@@ -36,6 +37,7 @@ const int32_t MS_TO_SECOND = 1000;
 const char PRIVILEGE_RECORD_NAME[] = "privilegeName";
 const char PRIVILEGE_RECORD_EXPIRED_TIMESTAMP[] = "expiredTimeStamp";
 const char PRIVILEGE_RECORD_SAFE_START_TIME[] = "safeStartTime";
+const char PRIVILEGE_RECORD_AUTH_STATUS[] = "authStatus";
 const char PROCESS_RECORD_PID[] = "pid";
 const char PROCESS_RECORD_UID[] = "uid";
 const char PROCESS_RECORD_START_TIME[] = "processStartTime";
@@ -46,6 +48,32 @@ const char CACHE_MANAGER_UPDATE_TIME[] = "updateTime";
 const std::string PRIVILEGE_CACHE_FILE_PATH = Constants::USER_INFO_BASE +
     Constants::PATH_SEPARATOR + "privilege_cache.json";
 const int32_t HUKS_TIMEOUT = 6; // seconds
+const int32_t KERNEL_IO_TIMEOUT = 5; // seconds
+}
+
+std::string PrivilegeAuthStatusToString(PrivilegeAuthStatus authType)
+{
+    switch (authType) {
+        case PrivilegeAuthStatus::NOT_REQUIRED:
+            return "NOT_REQUIRED";
+        case PrivilegeAuthStatus::UNCONFIRMED:
+            return "UNCONFIRMED";
+        case PrivilegeAuthStatus::AUTHORIZED:
+            return "AUTHORIZED";
+        default:
+            return "NOT_REQUIRED";
+    }
+}
+
+PrivilegeAuthStatus StringToPrivilegeAuthStatus(const std::string &authTypeStr)
+{
+    if (authTypeStr == "AUTHORIZED") {
+        return PrivilegeAuthStatus::AUTHORIZED;
+    }
+    if (authTypeStr == "UNCONFIRMED") {
+        return PrivilegeAuthStatus::UNCONFIRMED;
+    }
+    return PrivilegeAuthStatus::NOT_REQUIRED;
 }
 
 std::shared_ptr<PrivilegeRecord> PrivilegeRecord::FromJson(const cJSON *jsonObjPtr)
@@ -74,7 +102,13 @@ std::shared_ptr<PrivilegeRecord> PrivilegeRecord::FromJson(const cJSON *jsonObjP
         ACCOUNT_LOGE("Get expiredTime failed");
         return nullptr;
     }
-    return std::make_shared<PrivilegeRecord>(privilegeIdx, expiredTime, static_cast<uint32_t>(safeStartTime));
+    auto record = std::make_shared<PrivilegeRecord>(privilegeIdx, expiredTime, static_cast<uint32_t>(safeStartTime));
+    std::string authTypeStr;
+    if (!GetDataByType<std::string>(jsonObjPtr, PRIVILEGE_RECORD_AUTH_STATUS, authTypeStr)) {
+        authTypeStr = "NOT_REQUIRED";
+    }
+    record->SetAuthStatus(StringToPrivilegeAuthStatus(authTypeStr));
+    return record;
 }
 
 ErrCode PrivilegeRecord::ToJson(CJsonUnique &jsonArrPtr)
@@ -99,6 +133,10 @@ ErrCode PrivilegeRecord::ToJson(CJsonUnique &jsonArrPtr)
     }
     if (!AddInt64ToJson(curRecord, PRIVILEGE_RECORD_SAFE_START_TIME, static_cast<int64_t>(safeStartTime_))) {
         ACCOUNT_LOGE("Add safeStartTime to json failed");
+        return ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR;
+    }
+    if (!AddStringToJson(curRecord, PRIVILEGE_RECORD_AUTH_STATUS, PrivilegeAuthStatusToString(authStatus_))) {
+        ACCOUNT_LOGE("Add authType to json failed");
         return ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR;
     }
     if (!AddObjToArray(jsonArrPtr, curRecord)) {
@@ -142,7 +180,9 @@ ErrCode PrivilegeRecord::GetRemainTimeSec(int64_t currentTimeStamp, int32_t &rem
 
 bool PrivilegeRecord::NeedClean(int64_t currentTimeStamp)
 {
-    // if current time is within +2s of expiredTime_, should not delete yet
+    if (authStatus_ != PrivilegeAuthStatus::NOT_REQUIRED) {
+        return false;
+    }
     return !(currentTimeStamp <= AddTimePeriod(expiredTime_, EXPIRED_TIME_OFFSET));
 }
 
@@ -313,6 +353,15 @@ ErrCode ProcessPrivilegeRecord::CheckPrivilege(const uint32_t privilegeIdx, int3
         ACCOUNT_LOGW("Privilege not exist, idx = %{public}d", privilegeIdx);
         return ERR_AUTHORIZATION_PRIVILEGE_DENIED;
     }
+    PrivilegeAuthStatus authStatus = iter->second->GetAuthStatus();
+    if (authStatus == PrivilegeAuthStatus::AUTHORIZED) {
+        remainTime = INT32_MAX;
+        return ERR_OK;
+    }
+    if (authStatus == PrivilegeAuthStatus::UNCONFIRMED) {
+        ACCOUNT_LOGW("Privilege not confirmed yet, idx = %{public}d", privilegeIdx);
+        return ERR_AUTHORIZATION_PRIVILEGE_DENIED;
+    }
     int32_t remainTimeTmp = -1;
     ret = iter->second->GetRemainTimeSec(currTime, remainTimeTmp);
     if (ret != ERR_OK) {
@@ -342,6 +391,16 @@ ErrCode ProcessPrivilegeRecord::AddOrUpdatePrivilege(uint32_t privilegeIdx, uint
         privilegeIdx, AddTimePeriod(currTime, privilegeBriefDef.timeout), safeStartTime);
     privilegeRecordMap_[privilegeIdx] = newRecord;
     return ERR_OK;
+}
+
+std::shared_ptr<PrivilegeRecord> ProcessPrivilegeRecord::GetPrivilegeRecord(uint32_t privilegeIdx)
+{
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    auto iter = privilegeRecordMap_.find(privilegeIdx);
+    if (iter == privilegeRecordMap_.end()) {
+        return nullptr;
+    }
+    return iter->second;
 }
 
 ErrCode ProcessPrivilegeRecord::RemovePrivilege(uint32_t privilegeIdx, std::shared_ptr<PrivilegeRecord> &removedRecord)
@@ -447,9 +506,14 @@ ErrCode PrivilegeCacheManager::CheckPrivilege(const AuthenCallerInfo &callerInfo
             if (ret != ERR_AUTHORIZATION_PRIVILEGE_DENIED) {
                 return ret;
             }
+            // Kernel-based records (UNCONFIRMED/AUTHORIZED) should not check ACL
+            auto record = iter->second->GetPrivilegeRecord(callerInfo.privilegeIdx);
+            if (record != nullptr && record->GetAuthStatus() != PrivilegeAuthStatus::NOT_REQUIRED) {
+                return ERR_AUTHORIZATION_PRIVILEGE_DENIED;
+            }
         }
     }
-    // Step2. Check if it is ACL granted
+    // Step2. Check if it is ACL granted (only for NOT_REQUIRED or cache miss)
     remainTime = -1;
     int32_t aclLevel = -1;
     ErrCode ret = GetAcl(callerInfo.pid, aclLevel);
@@ -524,6 +588,193 @@ ErrCode PrivilegeCacheManager::AddNewProcessCacheInner(const AuthenCallerInfo &c
     (void) CleanExpiredPrivilegesAndSaveToFile();
     ACCOUNT_LOGI("Add privilege cache success, pid=%{public}d, privilegeIdx=%{public}u", callerInfo.pid,
         callerInfo.privilegeIdx);
+    return ERR_OK;
+}
+
+ErrCode PrivilegeCacheManager::SetAuthStatusForRecord(const AuthenCallerInfo &callerInfo, PrivilegeAuthStatus authType)
+{
+    auto iter = processPrivilegeMap_.find(callerInfo.pid);
+    if (iter == processPrivilegeMap_.end()) {
+        ACCOUNT_LOGE("Process privilege record not found, pid=%{public}d", callerInfo.pid);
+        return ERR_AUTHORIZATION_NO_CACHE;
+    }
+    auto record = iter->second->GetPrivilegeRecord(callerInfo.privilegeIdx);
+    if (record == nullptr) {
+        ACCOUNT_LOGE("Privilege record not found, pid=%{public}d, idx=%{public}u", callerInfo.pid,
+            callerInfo.privilegeIdx);
+        return ERR_AUTHORIZATION_NO_CACHE;
+    }
+    record->SetAuthStatus(authType);
+    return ERR_OK;
+}
+
+ErrCode PrivilegeCacheManager::PrepareKernelAuthCache(const AuthenCallerInfo &callerInfo, int64_t &currTime)
+{
+    auto iter = processPrivilegeMap_.find(callerInfo.pid);
+    std::shared_ptr<ProcessPrivilegeRecord> processRecord;
+    if (iter == processPrivilegeMap_.end()) {
+        ErrCode ret = ProcessPrivilegeRecord::CreateEmptyProcessPrivilegeRecord(callerInfo, processRecord);
+        if (ret != ERR_OK) {
+            ACCOUNT_LOGE("CreateEmptyProcessPrivilegeRecord failed, ret=%{public}d", ret);
+            return ret;
+        }
+        processPrivilegeMap_[callerInfo.pid] = processRecord;
+    } else {
+        processRecord = iter->second;
+    }
+    auto newRecord = std::make_shared<PrivilegeRecord>(callerInfo.privilegeIdx, INT64_MAX, 0);
+    newRecord->SetAuthStatus(PrivilegeAuthStatus::UNCONFIRMED);
+    processRecord->GetPrivilegeRecords()[callerInfo.privilegeIdx] = newRecord;
+    ErrCode ret = GetUptimeMs(currTime);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGW("GetUptimeMs failed, ret=%{public}d, use 0 as fallback", ret);
+        currTime = 0;
+    }
+    ret = ToPersistFile(currTime);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("ToPersistFile failed, ret=%{public}d", ret);
+        (void) RemoveSingle(callerInfo);
+        return ret;
+    }
+    return ERR_OK;
+}
+
+ErrCode PrivilegeCacheManager::SetKernelAuthWithTimer(int32_t pid, const std::string &kernelPermission)
+{
+    XCollieCallback kernelSetCallback = [](void *) {
+        ACCOUNT_LOGE("SetKernelAuthorization timeout.");
+        REPORT_OS_ACCOUNT_FAIL(-1, PRIVILEGE_OPT_ACQUIRE_AUTH_FOR_PUBLIC, ERR_ACCOUNT_COMMON_OPERATION_TIMEOUT,
+            "SetKernelAuthorization over time.");
+    };
+    int32_t timerId = HiviewDFX::XCollie::GetInstance().SetTimer(
+        PRIVILEGE_OPT_ACQUIRE_AUTH_FOR_PUBLIC, KERNEL_IO_TIMEOUT, kernelSetCallback, nullptr,
+        HiviewDFX::XCOLLIE_FLAG_LOG);
+    ErrCode ret = KernelAuthorizationAdapter::GetInstance().SetKernelAuthorization(pid, kernelPermission);
+    HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+    return ret;
+}
+
+ErrCode PrivilegeCacheManager::QueryKernelAuthWithTimer(
+    int32_t pid, const std::string &kernelPermission, bool &isAuthorized)
+{
+    XCollieCallback kernelQueryCallback = [](void *) {
+        ACCOUNT_LOGE("QueryKernelAuthorization timeout.");
+        REPORT_OS_ACCOUNT_FAIL(-1, PRIVILEGE_OPT_VERIFY_PRIVILEGE_FOR_PUBLIC, ERR_ACCOUNT_COMMON_OPERATION_TIMEOUT,
+            "QueryKernelAuthorization over time.");
+    };
+    int32_t timerId = HiviewDFX::XCollie::GetInstance().SetTimer(
+        PRIVILEGE_OPT_VERIFY_PRIVILEGE_FOR_PUBLIC, KERNEL_IO_TIMEOUT, kernelQueryCallback, nullptr,
+        HiviewDFX::XCOLLIE_FLAG_LOG);
+    ErrCode ret = KernelAuthorizationAdapter::GetInstance().QueryKernelAuthorization(
+        pid, kernelPermission, isAuthorized);
+    HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+    return ret;
+}
+
+ErrCode PrivilegeCacheManager::AddCacheAndNotifyKernel(const AuthenCallerInfo &callerInfo,
+    const std::string &kernelPermission)
+{
+    std::lock_guard<std::recursive_mutex> lock(mapMutex_);
+    int64_t currTime = 0;
+    ErrCode ret = PrepareKernelAuthCache(callerInfo, currTime);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+    ret = SetKernelAuthWithTimer(callerInfo.pid, kernelPermission);
+    if (ret == ERR_AUTHORIZATION_KERNEL_DEVICE_NOT_FOUND) {
+        ACCOUNT_LOGE("Kernel device not supported, ret=%{public}d", ret);
+        (void) RemoveSingle(callerInfo);
+        return ERR_AUTHORIZATION_KERNEL_DEVICE_NOT_FOUND;
+    }
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("SetKernelAuthorization failed, ret=%{public}d", ret);
+        (void) RemoveSingle(callerInfo);
+        return ERR_AUTHORIZATION_KERNEL_NOTIFY_FAILED;
+    }
+    ret = SetAuthStatusForRecord(callerInfo, PrivilegeAuthStatus::AUTHORIZED);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("SetAuthStatusForRecord failed, ret=%{public}d, kernel already authorized", ret);
+        REPORT_OS_ACCOUNT_FAIL(-1, PRIVILEGE_OPT_ACQUIRE_AUTH_FOR_PUBLIC, ret,
+            "SetAuthStatusForRecord failed, kernel already authorized");
+        return ERR_OK;
+    }
+    ret = ToPersistFile(currTime);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("ToPersistFile failed, rollback authType for self-heal, ret=%{public}d", ret);
+        REPORT_OS_ACCOUNT_FAIL(-1, PRIVILEGE_OPT_ACQUIRE_AUTH_FOR_PUBLIC, ret,
+            "ToPersistFile failed after kernel authorized, rollback for self-heal");
+        (void) SetAuthStatusForRecord(callerInfo, PrivilegeAuthStatus::UNCONFIRMED);
+        return ERR_OK;
+    }
+    ACCOUNT_LOGI("AddCacheAndNotifyKernel success, pid=%{public}d", callerInfo.pid);
+    return ERR_OK;
+}
+
+ErrCode PrivilegeCacheManager::UpdateToAuthorized(const std::shared_ptr<PrivilegeRecord> &record)
+{
+    int64_t currTime = 0;
+    ErrCode uptimeRet = GetUptimeMs(currTime);
+    if (uptimeRet != ERR_OK) {
+        ACCOUNT_LOGE("GetUptimeMs failed, ret=%{public}d", uptimeRet);
+        REPORT_OS_ACCOUNT_FAIL(-1, PRIVILEGE_OPT_VERIFY_PRIVILEGE_FOR_PUBLIC, uptimeRet,
+            "GetUptimeMs failed, skip update");
+        return ERR_OK;
+    }
+    record->SetAuthStatus(PrivilegeAuthStatus::AUTHORIZED);
+    ErrCode persistRet = ToPersistFile(currTime);
+    if (persistRet != ERR_OK) {
+        ACCOUNT_LOGE("ToPersistFile failed, rollback authType for self-heal, ret=%{public}d", persistRet);
+        REPORT_OS_ACCOUNT_FAIL(-1, PRIVILEGE_OPT_VERIFY_PRIVILEGE_FOR_PUBLIC, persistRet,
+            "ToPersistFile failed after kernel authorized, rollback for self-heal");
+        (void) record->SetAuthStatus(PrivilegeAuthStatus::UNCONFIRMED);
+    }
+    return ERR_OK;
+}
+
+ErrCode PrivilegeCacheManager::HasKernelAuthorization(
+    int32_t pid, uint32_t privilegeIdx, const std::string &kernelPermission, bool &isAuthorized)
+{
+    isAuthorized = false;
+    std::lock_guard<std::recursive_mutex> lock(mapMutex_);
+    auto iter = processPrivilegeMap_.find(pid);
+    if (iter == processPrivilegeMap_.end()) {
+        ACCOUNT_LOGE("Process privilege record not found, pid=%{public}d", pid);
+        return ERR_OK;
+    }
+    auto record = iter->second->GetPrivilegeRecord(privilegeIdx);
+    if (record == nullptr) {
+        ACCOUNT_LOGE("Privilege record not found, pid=%{public}d, idx=%{public}u", pid, privilegeIdx);
+        return ERR_OK;
+    }
+    PrivilegeAuthStatus authType = record->GetAuthStatus();
+    if (authType == PrivilegeAuthStatus::AUTHORIZED) {
+        isAuthorized = true;
+        return ERR_OK;
+    }
+    if (authType == PrivilegeAuthStatus::NOT_REQUIRED) {
+        ACCOUNT_LOGE("NOT_REQUIRED record in HasKernelAuthorization, pid=%{public}d", pid);
+        isAuthorized = false;
+        return ERR_OK;
+    }
+    bool kernelAuthorized = false;
+    ErrCode ret = QueryKernelAuthWithTimer(pid, kernelPermission, kernelAuthorized);
+    if (ret == ERR_AUTHORIZATION_KERNEL_DEVICE_NOT_FOUND) {
+        ACCOUNT_LOGE("Kernel device not supported, ret=%{public}d", ret);
+        return ERR_AUTHORIZATION_KERNEL_DEVICE_NOT_FOUND;
+    }
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("QueryKernelAuthorization failed, ret=%{public}d", ret);
+        return ERR_ACCOUNT_COMMON_SYSTEM_SERVICE_EXCEPTION;
+    }
+    if (kernelAuthorized) {
+        (void) UpdateToAuthorized(record);
+        isAuthorized = true;
+        return ERR_OK;
+    }
+    AuthenCallerInfo callerInfo;
+    callerInfo.pid = pid;
+    callerInfo.privilegeIdx = privilegeIdx;
+    (void) RemoveSingle(callerInfo);
     return ERR_OK;
 }
 

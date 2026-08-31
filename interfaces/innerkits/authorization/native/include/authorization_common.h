@@ -52,6 +52,7 @@ public:
         timeout = other.timeout;
         sessionId = other.sessionId;
         callingBundleName = other.callingBundleName;
+        isPublicApi = other.isPublicApi;
     }
     ~ConnectAbilityInfo();
     ConnectAbilityInfo& operator=(const ConnectAbilityInfo& other);
@@ -75,6 +76,7 @@ public:
     /// Challenge data for the authorization request
     std::vector<uint8_t> challenge;
     std::string sessionId = "";
+    bool isPublicApi = false;
     bool ReadFromParcel(Parcel &parcel);
     bool Marshalling(Parcel &parcel) const override;
     static ConnectAbilityInfo *Unmarshalling(Parcel &parcel);
@@ -96,6 +98,7 @@ enum AuthorizationResultCode : int32_t {
     AUTHORIZATION_DENIED = 12300303,
     /// System is busy, cannot process authorization
     AUTHORIZATION_SERVICE_BUSY = 12300304,
+    AUTHORIZATION_PRIVILEGE_NOT_SUPPORTED = 12300305,
 };
 
 /**
@@ -158,6 +161,7 @@ public:
     /// Whether user interaction is allowed
     bool isInteractionAllowed = true;
     bool isContextValid = false;
+    bool isPublicApi = false;
     bool ReadFromParcel(Parcel &parcel);
     bool Marshalling(Parcel &parcel) const override;
     static AcquireAuthorizationOptions *Unmarshalling(Parcel &parcel);

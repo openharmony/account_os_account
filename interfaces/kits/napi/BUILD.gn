@@ -19,6 +19,7 @@ group("napi_packages") {
     deps += [
       "appaccount:appaccount",
       "distributedaccount:distributedaccount",
+      "authorization_public:authorization",
       "osaccount:osaccount",
     ]
   }

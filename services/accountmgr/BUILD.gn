@@ -110,6 +110,7 @@ config("authorization_config") {
     "${authorization_interfaces_native_path}/include",
     "${account_iam_interfaces_native_path}/include",
     "./include/common/tee",
+    "./include/common/kernel",
     "./include/authorization_manager",
   ]
 }
@@ -307,6 +308,7 @@ ohos_shared_library("accountmgr") {
       "${authorization_framework_path}/src/authorization_common.cpp",
       "src/authorization_manager/authorization_manager_service.cpp",
       "src/authorization_manager/inner_authorization_manager.cpp",
+      "src/common/kernel/kernel_authorization_adapter.cpp",
       "src/authorization_manager/privilege_cache_manager.cpp",
       "src/authorization_manager/privilege_utils.cpp",
       "src/authorization_manager/service_extension_connect.cpp",
@@ -705,6 +707,7 @@ ohos_source_set("accountmgr_test_source_set") {
       "${authorization_framework_path}/src/authorization_common.cpp",
       "src/authorization_manager/authorization_manager_service.cpp",
       "src/authorization_manager/inner_authorization_manager.cpp",
+      "src/common/kernel/kernel_authorization_adapter.cpp",
       "src/authorization_manager/privilege_cache_manager.cpp",
       "src/authorization_manager/privilege_utils.cpp",
       "src/authorization_manager/service_extension_connect.cpp",

@@ -157,6 +157,7 @@ ConnectAbilityInfo& ConnectAbilityInfo::operator=(const ConnectAbilityInfo& othe
         challenge = other.challenge;
         sessionId = other.sessionId;
         timeout = other.timeout;
+        isPublicApi = other.isPublicApi;
         callingBundleName = other.callingBundleName;
     }
     return *this;

@@ -15,14 +15,16 @@
 
 #include "inner_authorization_manager.h"
 
+#include <chrono>
 #include <cstdint>
 #include <fcntl.h>
 #include <map>
 #include <mutex>
 #include <securec.h>
 #include <set>
-#include <string>
 #include <sstream>
+#include <string>
+#include <thread>
 #include <utility>
 #include <vector>
 
@@ -37,6 +39,7 @@
 #include "iinner_os_account_manager.h"
 #include "inner_account_iam_manager.h"
 #include "ipc_skeleton.h"
+#include "kernel_authorization_adapter.h"
 #include "os_account_constants.h"
 #include "os_account_info.h"
 #include "privilege_cache_manager.h"
@@ -226,6 +229,7 @@ ErrCode ConnectAbilityCallback::OnResult(int32_t errorCode, const std::vector<ui
         return ERR_AUTHORIZATION_GET_PROXY_ERROR;
     }
     AuthorizationResult result;
+    result.privilege = info_.privilege;
     if (errorCode != ERR_OK) {
         return func_(errorCode, result, info_.callingPid);
     }
@@ -265,6 +269,12 @@ std::pair<ErrCode, AuthorizationResultCode> InnerAuthorizationManager::ApplyTaAu
 
     // 3. Update privilege cache
     errCode = UpdatePrivilegeCache(info, tokenResult);
+    if (errCode == ERR_AUTHORIZATION_KERNEL_DEVICE_NOT_FOUND) {
+        if (info.isPublicApi) {
+            return {ERR_OK, AuthorizationResultCode::AUTHORIZATION_PRIVILEGE_NOT_SUPPORTED};
+        }
+        return {ERR_OK, AuthorizationResultCode::AUTHORIZATION_DENIED};
+    }
     return {errCode, AuthorizationResultCode::AUTHORIZATION_SUCCESS};
 }
 
@@ -391,13 +401,36 @@ ErrCode InnerAuthorizationManager::UpdatePrivilegeCache(ConnectAbilityInfo &info
         g_requestRemoteObjectMap.erase(info.callingPid);
     }
 
-    ErrCode errCode = PrivilegeCacheManager::GetInstance().AddCache(callerInfo, tokenResult.grantTime);
-    if (errCode != ERR_OK) {
-        REPORT_OS_ACCOUNT_FAIL(info.callingUid / UID_TRANSFORM_DIVISOR, PRIVILEGE_OPT_ACQUIRE_AUTH, errCode,
-            "Fail to add cache.");
-        ACCOUNT_LOGE("Fail to add cache privilege=%{public}s approved, errCode:%{public}d",
-            info.privilege.c_str(), errCode);
+    ErrCode errCode;
+    PrivilegeBriefDef def;
+    if (!GetPrivilegeBriefDef(info.privilege, def)) {
+        ACCOUNT_LOGE("GetPrivilegeBriefDef failed, privilege=%{public}s", info.privilege.c_str());
         return ERR_AUTHORIZATION_CACHE_ERROR;
+    }
+    if (def.kernelPermission != nullptr) {
+        errCode = PrivilegeCacheManager::GetInstance().AddCacheAndNotifyKernel(
+            callerInfo, def.kernelPermission);
+        if (errCode == ERR_AUTHORIZATION_KERNEL_DEVICE_NOT_FOUND) {
+            ACCOUNT_LOGE("AddCacheAndNotifyKernel kernel device not found, errCode=%{public}d", errCode);
+            REPORT_OS_ACCOUNT_FAIL(info.callingUid / UID_TRANSFORM_DIVISOR, PRIVILEGE_OPT_ACQUIRE_AUTH, errCode,
+                "Kernel device not found");
+            return ERR_AUTHORIZATION_KERNEL_DEVICE_NOT_FOUND;
+        }
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("AddCacheAndNotifyKernel failed, errCode=%{public}d", errCode);
+            REPORT_OS_ACCOUNT_FAIL(info.callingUid / UID_TRANSFORM_DIVISOR, PRIVILEGE_OPT_ACQUIRE_AUTH, errCode,
+                "AddCacheAndNotifyKernel failed");
+            return ERR_AUTHORIZATION_CACHE_ERROR;
+        }
+    } else {
+        errCode = PrivilegeCacheManager::GetInstance().AddCache(callerInfo, tokenResult.grantTime);
+        if (errCode != ERR_OK) {
+            REPORT_OS_ACCOUNT_FAIL(info.callingUid / UID_TRANSFORM_DIVISOR, PRIVILEGE_OPT_ACQUIRE_AUTH, errCode,
+                "Fail to add cache.");
+            ACCOUNT_LOGE("Fail to add cache privilege=%{public}s approved, errCode:%{public}d",
+                info.privilege.c_str(), errCode);
+            return ERR_AUTHORIZATION_CACHE_ERROR;
+        }
     }
     return ERR_OK;
 }
@@ -424,6 +457,7 @@ ErrCode InnerAuthorizationManager::AcquireAuthorization(const PrivilegeBriefDef 
         ACCOUNT_LOGE("InitializeConnectAbilityInfo failed, errCode=%{public}d", errCode);
         return errCode;
     }
+    info.isPublicApi = options.isPublicApi;
     if (!VerifyWidget(info.bundleName)) {
         ACCOUNT_LOGE("Check bundleName legal failed");
         REPORT_OS_ACCOUNT_FAIL(IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR, PRIVILEGE_OPT_ACQUIRE_AUTH,
@@ -637,6 +671,19 @@ ErrCode InnerAuthorizationManager::StartUIExtensionTask(const ConnectAbilityInfo
     const sptr<ConnectAbilityCallback> &connectCallback, const sptr<IAuthorizationCallback> &callback,
     const sptr<IRemoteObject> &requestRemoteObj)
 {
+    ErrCode storeRet = StoreCallbackMaps(uiInfo, callback, connectCallback, requestRemoteObj);
+    if (storeRet != ERR_OK) {
+        ACCOUNT_LOGE("StoreCallbackMaps failed, errCode:%{public}d", storeRet);
+        if (storeRet == ERR_ACCOUNT_COMMON_BUSY && callback != nullptr) {
+            AuthorizationResult result;
+            result.privilege = uiInfo.privilege;
+            result.resultCode = AuthorizationResultCode::AUTHORIZATION_SERVICE_BUSY;
+            callback->OnResult(ERR_OK, result);
+            return ERR_OK;
+        }
+        return storeRet;
+    }
+
     auto task = [this, uiInfo, connectCallback, callback, requestRemoteObj]() {
         this->ExecuteUIExtensionTask(uiInfo, connectCallback, callback, requestRemoteObj);
     };
@@ -655,10 +702,17 @@ void InnerAuthorizationManager::ExecuteUIExtensionTask(const ConnectAbilityInfo 
     const sptr<ConnectAbilityCallback> &connectCallback, const sptr<IAuthorizationCallback> &callback,
     const sptr<IRemoteObject> &requestRemoteObj)
 {
+    auto rollbackMaps = [&uiInfo]() {
+        std::lock_guard<std::mutex> lock(g_mutex);
+        CleanupAuthorizationSessionMaps(uiInfo.callingPid);
+        g_callbackMap.erase(uiInfo.callingPid);
+    };
+
     if (callback == nullptr) {
         ACCOUNT_LOGE("Callback is nullptr in task thread");
         REPORT_OS_ACCOUNT_FAIL(uiInfo.callingUid / UID_TRANSFORM_DIVISOR, PRIVILEGE_OPT_ACQUIRE_AUTH,
             ERR_ACCOUNT_COMMON_INVALID_PARAMETER, "Callback is null");
+        rollbackMaps();
         return;
     }
 
@@ -667,12 +721,14 @@ void InnerAuthorizationManager::ExecuteUIExtensionTask(const ConnectAbilityInfo 
         ACCOUNT_LOGE("OnConnectAbility failed, errCode:%{public}d", errCode);
         REPORT_OS_ACCOUNT_FAIL(uiInfo.callingUid / UID_TRANSFORM_DIVISOR, PRIVILEGE_OPT_ACQUIRE_AUTH,
             errCode, "OnConnectAbility failed");
+        rollbackMaps();
         AuthorizationResult result;
-        errCode = callback->OnResult(errCode, result);
-        if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("OnResult failed, errCode:%{public}d", errCode);
+        result.privilege = uiInfo.privilege;
+        ErrCode onResultRet = callback->OnResult(errCode, result);
+        if (onResultRet != ERR_OK) {
+            ACCOUNT_LOGE("OnResult failed, errCode:%{public}d", onResultRet);
             REPORT_OS_ACCOUNT_FAIL(uiInfo.callingUid / UID_TRANSFORM_DIVISOR, PRIVILEGE_OPT_ACQUIRE_AUTH,
-                errCode, "ExecuteUIExtensionTask call OnResult failed");
+                onResultRet, "ExecuteUIExtensionTask call OnResult failed");
         }
         return;
     }
@@ -681,24 +737,12 @@ void InnerAuthorizationManager::ExecuteUIExtensionTask(const ConnectAbilityInfo 
         ACCOUNT_LOGE("Request remote object is nullptr");
         REPORT_OS_ACCOUNT_FAIL(uiInfo.callingUid / UID_TRANSFORM_DIVISOR, PRIVILEGE_OPT_ACQUIRE_AUTH,
             ERR_ACCOUNT_COMMON_INVALID_PARAMETER, "Request remote object");
-        return;
-    }
-
-    bool ret = StoreCallbackMaps(uiInfo, callback, connectCallback, requestRemoteObj);
-    if (!ret) {
-        ACCOUNT_LOGE("StoreCallbackMaps failed.");
-        AuthorizationResult result;
-        errCode = callback->OnResult(ERR_AUTHORIZATION_CREATE_UI_EXTENSION_ERROR, result);
-        if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("OnResult failed, errCode:%{public}d", errCode);
-            REPORT_OS_ACCOUNT_FAIL(uiInfo.callingUid / UID_TRANSFORM_DIVISOR, PRIVILEGE_OPT_ACQUIRE_AUTH,
-                errCode, "ExecuteUIExtensionTask call OnResult failed");
-        }
+        rollbackMaps();
         return;
     }
 }
 
-bool InnerAuthorizationManager::StoreCallbackMaps(const ConnectAbilityInfo &uiInfo,
+ErrCode InnerAuthorizationManager::StoreCallbackMaps(const ConnectAbilityInfo &uiInfo,
     const sptr<IAuthorizationCallback> &callback, const sptr<ConnectAbilityCallback> &connectCallback,
     const sptr<IRemoteObject> &requestRemoteObj)
 {
@@ -706,9 +750,8 @@ bool InnerAuthorizationManager::StoreCallbackMaps(const ConnectAbilityInfo &uiIn
 
     auto it = g_callbackMap.find(uiInfo.callingPid);
     if (it != g_callbackMap.end()) {
-        ACCOUNT_LOGI("Removing old callback for uid:%{public}d", uiInfo.callingPid);
-        CleanupAuthorizationSessionMaps(uiInfo.callingPid);
-        g_callbackMap.erase(it);
+        ACCOUNT_LOGE("Callback already exists for pid:%{public}d, previous session not completed", uiInfo.callingPid);
+        return ERR_ACCOUNT_COMMON_BUSY;
     }
     SmartPidFd fdPtr = nullptr;
     auto ret = OpenSmartPidFd(uiInfo.callingPid, fdPtr);
@@ -716,7 +759,7 @@ bool InnerAuthorizationManager::StoreCallbackMaps(const ConnectAbilityInfo &uiIn
         ACCOUNT_LOGE("OpenSmartPidFd failed, ret = %{public}d", ret);
         REPORT_OS_ACCOUNT_FAIL(uiInfo.callingUid / UID_TRANSFORM_DIVISOR, PRIVILEGE_OPT_ACQUIRE_AUTH, ret,
             "OpenSmartPidFd failed");
-        return false;
+        return ERR_AUTHORIZATION_GET_PROXY_ERROR;
     }
     g_pidFdMap[uiInfo.callingPid] = std::move(fdPtr);
     g_pidToUidMap[uiInfo.callingPid] = uiInfo.callingUid;
@@ -725,7 +768,7 @@ bool InnerAuthorizationManager::StoreCallbackMaps(const ConnectAbilityInfo &uiIn
     g_requestRemoteObjectMap[uiInfo.callingPid] = requestRemoteObj;
     g_sessionIdToPidMap[uiInfo.sessionId] = uiInfo.callingPid;
     ACCOUNT_LOGI("Successfully stored callback maps for uid:%{public}d", uiInfo.callingPid);
-    return true;
+    return ERR_OK;
 }
 
 ErrCode InnerAuthorizationManager::StartServiceExtensionConnection(ConnectAbilityInfo &info,
@@ -761,6 +804,28 @@ ErrCode InnerAuthorizationManager::CheckAuthorization(
     }
     ACCOUNT_LOGI("CheckAuthorization successed, isAuthorized: %{public}d, privilegeId: %{public}d, pid: %{public}d",
         isAuthorized, privilegeId, pid);
+    return ERR_OK;
+}
+
+ErrCode InnerAuthorizationManager::HasKernelAuthorization(
+    uint32_t privilegeId, int32_t callingPid, const std::string &kernelPermission, bool &isAuthorized)
+{
+    ErrCode ret = PrivilegeCacheManager::GetInstance().HasKernelAuthorization(
+        callingPid, privilegeId, kernelPermission, isAuthorized);
+    if (ret == ERR_AUTHORIZATION_KERNEL_DEVICE_NOT_FOUND) {
+        ACCOUNT_LOGI("Kernel device not supported, privilege not supported, pid=%{public}d", callingPid);
+        REPORT_OS_ACCOUNT_FAIL(-1, PRIVILEGE_OPT_VERIFY_PRIVILEGE_FOR_PUBLIC, ret,
+            "Kernel device not found, privilege not supported");
+        isAuthorized = false;
+        return ERR_OK;
+    }
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("HasKernelAuthorization failed, ret=%{public}d", ret);
+        REPORT_OS_ACCOUNT_FAIL(-1, PRIVILEGE_OPT_VERIFY_PRIVILEGE_FOR_PUBLIC, ret, "HasKernelAuthorization failed");
+        return ret;
+    }
+    ACCOUNT_LOGI("HasKernelAuthorization result, isAuthorized: %{public}d, privilegeId: %{public}d, pid: %{public}d",
+        isAuthorized, privilegeId, callingPid);
     return ERR_OK;
 }
 

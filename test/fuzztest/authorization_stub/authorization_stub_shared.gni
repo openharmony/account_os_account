@@ -23,6 +23,7 @@ authorization_stub_common_sources = [
   "${os_account_path}/services/accountmgr/src/authorization_manager/privilege_cache_manager.cpp",
   "${os_account_path}/services/accountmgr/src/authorization_manager/privilege_utils.cpp",
   "${os_account_path}/services/accountmgr/src/authorization_manager/service_extension_connect.cpp",
+  "${os_account_path}/services/accountmgr/src/common/kernel/kernel_authorization_adapter.cpp",
   "${os_account_path}/services/accountmgr/src/common/tee/tee_auth_adapter.cpp",
   "${os_account_path}/services/accountmgr/src/ability_manager_adapter/ability_manager_adapter.cpp",
   "${os_account_path}/services/accountmgr/src/bundle_manager_adapter/bundle_manager_adapter.cpp",

@@ -21,6 +21,7 @@ copy_taihe_idl("copy_account") {
     "app_account/idl/ohos.account.appAccount.taihe",
     "distributed_account/idl/ohos.account.distributedAccount.taihe",
     "os_account/idl/ohos.account.osAccount.taihe",
+    "authorization/idl/ohos.account.osAccount.authorization.taihe",
   ]
 }
 
@@ -32,6 +33,8 @@ taihe_generated_file_path_distributed_account =
     "$taihe_file_path/out/$subsystem_name/$part_name/distributed_account"
 taihe_generated_file_path_osaccount =
     "$taihe_file_path/out/$subsystem_name/$part_name/osaccount"
+taihe_generated_file_path_authorization =
+    "$taihe_file_path/out/$subsystem_name/$part_name/authorization"
 
 ohos_taihe("app_account_taihe") {
   taihe_generated_file_path = "${taihe_generated_file_path_app_account}"
@@ -247,6 +250,7 @@ taihe_shared_library("os_account_taihe_native") {
     "os_account/src/ohos.account.osAccount_domainPlugin.impl.cpp",
     "os_account/src/taihe_account_info.cpp",
     "os_account/src/taihe_common.cpp",
+    "./authorization/src/taihe_authorization_callback_base.cpp",
     "${authorization_kits_path}/src/authorization_ui_extension_callback.cpp",
   ]
 
@@ -254,6 +258,7 @@ taihe_shared_library("os_account_taihe_native") {
     "os_account/ani/include",
     "os_account/include",
     "distributed_account/include",
+    "authorization/include",
     "./common/include",
     "${common_path}/log/include",
     "${taihe_generated_file_path}/include",
@@ -320,6 +325,115 @@ taihe_shared_library("os_account_taihe_native") {
 
   defines = [
     "ACCOUNT_LOG_TAG = \"TH_OS_Account\"",
+    "LOG_DOMAIN = 0xD001B00",
+  ]
+}
+
+ohos_taihe("authorization_taihe") {
+  taihe_generated_file_path = "${taihe_generated_file_path_authorization}"
+  deps = [ ":copy_account" ]
+  outputs = [
+    "${taihe_generated_file_path}/src/ohos.account.osAccount.authorization.ani.cpp",
+    "${taihe_generated_file_path}/src/ohos.account.osAccount.authorization.abi.c",
+  ]
+}
+
+taihe_shared_library("authorization_taihe_native") {
+  branch_protector_ret = "pac_ret"
+  shlib_type = "ani"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  cflags_cc = [
+    "-flto=full",
+    "-Os"
+  ]
+
+  ldflags = [
+    "-flto=full",
+  ]
+
+  taihe_generated_file_path = "${taihe_generated_file_path_authorization}"
+  part_name = "$part_name"
+  subsystem_name = "$subsystem_name"
+
+  sources = get_target_outputs(":authorization_taihe")
+  sources += [
+    "./authorization/src/ani_constructor.cpp",
+    "./authorization/src/ohos.account.osAccount.authorization.impl.cpp",
+    "./authorization/src/taihe_authorization_callback_base.cpp",
+    "os_account/ani/src/ani_ui_extension.cpp",
+    "${authorization_kits_path}/src/authorization_ui_extension_callback.cpp",
+  ]
+
+  include_dirs = [
+    "./authorization/include",
+    "./common/include",
+    "os_account/ani/include",
+    "os_account/include",
+    "distributed_account/include",
+    "${common_path}/log/include",
+    "${taihe_generated_file_path}/include",
+    "${innerkits_path}/include",
+    "${common_path}/account_error",
+    "${authorization_kits_path}/include",
+    "${authorization_framework_path}/include",
+    "${os_account_interfaces_native_path}/include",
+  ]
+
+  deps = [
+    ":authorization_taihe",
+    "${account_napi_common_path}:account_napi_common",
+    "${common_path}:libaccount_common",
+    "${authorization_framework_path}:authorization_innerkits",
+  ]
+
+  external_deps = [
+    "ability_base:base",
+    "ability_base:want",
+    "ability_runtime:ability_context_native",
+    "ability_runtime:ability_manager",
+    "ability_runtime:abilitykit_native",
+    "ability_runtime:ani_base_context",
+    "ability_runtime:ani_common",
+    "ability_runtime:app_context",
+    "ability_runtime:extensionkit_native",
+    "ability_runtime:napi_base_context",
+    "ability_runtime:napi_common",
+    "ability_runtime:runtime",
+    "ability_runtime:ui_extension",
+    "ability_runtime:wantagent_innerkits",
+    "access_token:libtokenid_sdk",
+    "access_token:libaccesstoken_sdk",
+    "ace_engine:ace_uicontent",
+    "cJSON:cjson",
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+    "icu:shared_icuuc",
+    "ipc:ipc_single",
+    "libuv:uv",
+    "napi:ace_napi",
+    "node:node_header_notice",
+    "runtime_core:ani",
+    "runtime_core:ani_helpers",
+    "samgr:samgr_proxy",
+    "window_manager:libwm",
+  ]
+
+  cflags_cc += [ "-w" ]
+
+  if (has_user_auth_part) {
+    cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
+    external_deps += [ "user_auth_framework:userauth_client" ]
+  }
+
+  defines = [
+    "ACCOUNT_LOG_TAG = \"TH_Authorization\"",
     "LOG_DOMAIN = 0xD001B00",
   ]
 }
@@ -432,9 +546,33 @@ group("app_account_taihe_gp") {
   ]
 }
 
+group("authorization_taihe_gp") {
+  deps = [
+    ":authorization_etc",
+    ":authorization_taihe_native",
+  ]
+}
+
+generate_static_abc("authorization_abc") {
+  base_url = "${taihe_generated_file_path_authorization}"
+  files = [ "${taihe_generated_file_path_authorization}/@ohos.account.osAccount.authorization.ets" ]
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/authorization_abc.abc"
+  dependencies = [ ":authorization_taihe" ]
+}
+
+ohos_prebuilt_etc("authorization_etc") {
+  source = "${target_out_dir}/authorization_abc.abc"
+  module_install_dir = "framework"
+  part_name = "${part_name}"
+  subsystem_name = "${subsystem_name}"
+  deps = [ ":authorization_abc" ]
+}
+
 group("account_taihe") {
   deps = [
     ":app_account_taihe_gp",
+    ":authorization_taihe_gp",
     ":distributed_account_taihe_gp",
     ":os_account_taihe_gp",
   ]

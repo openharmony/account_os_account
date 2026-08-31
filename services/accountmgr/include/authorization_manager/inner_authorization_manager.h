@@ -180,6 +180,9 @@ public:
     ErrCode CheckAuthorization(const uint32_t privilegeId,
         const int32_t pid, bool &isAuthorized);
 
+    ErrCode HasKernelAuthorization(uint32_t privilegeId, int32_t callingPid,
+        const std::string &kernelPermission, bool &isAuthorized);
+
     /**
      * @brief verify token to TA.
      * @param token The authorization token for authentication
@@ -298,9 +301,11 @@ private:
     void ExecuteUIExtensionTask(const ConnectAbilityInfo &uiInfo,
         const sptr<ConnectAbilityCallback> &connectCallback, const sptr<IAuthorizationCallback> &callback,
         const sptr<IRemoteObject> &requestRemoteObj);
-    bool StoreCallbackMaps(const ConnectAbilityInfo &uiInfo,
+    ErrCode StoreCallbackMaps(const ConnectAbilityInfo &uiInfo,
         const sptr<IAuthorizationCallback> &callback, const sptr<ConnectAbilityCallback> &connectCallback,
         const sptr<IRemoteObject> &requestRemoteObj);
+
+    bool VerifyWidget(const std::string &bundleName);
 
     /**
      * @brief Starts service extension connection.
@@ -314,8 +319,6 @@ private:
     ErrCode StartServiceExtensionConnection(ConnectAbilityInfo &info, const std::string &serviceAbilityName,
         sptr<IAuthorizationCallback> &callback, AuthorizationResult &result,
         const sptr<IRemoteObject> &requestRemoteObj);
-
-    bool VerifyWidget(const std::string &bundleName);
 
     DISALLOW_COPY_AND_MOVE(InnerAuthorizationManager);
 };

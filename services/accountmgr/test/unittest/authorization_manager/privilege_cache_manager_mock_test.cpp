@@ -18,10 +18,17 @@
 #include <memory>
 #include <fstream>
 #include <unistd.h>
+#include <thread>
+#include <chrono>
+#include <fcntl.h>
+#include <cstring>
+#include <cstdarg>
+#include <sys/ioctl.h>
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "account_file_watcher_manager.h"
 #include "json_utils.h"
+#include "kernel_authorization_adapter.h"
 #define protected public
 #define private public
 #include "privilege_cache_manager.h"
@@ -45,6 +52,30 @@ const int32_t DEFAULT_PRIVILEGE_PERIOD = 300; // seconds
 const int32_t TEST_UID = 200000;
 const int32_t EXPIRED_TIME_OFFSET = 2; // seconds
 const int32_t TEST_ERR_CODE = -1;
+const int32_t MOCK_KERNEL_PID = 9999;
+const int32_t MOCK_KERNEL_FD = 99999;
+const int32_t CLEAN_TASK_RETRY_TIMES = 30;
+const int32_t CLEAN_TASK_RETRY_INTERVAL_MS = 100;
+const int32_t INVALID_AUTH_STATUS = 999;
+const int32_t NON_EXISTENT_PRIVILEGE_IDX = 99;
+const int64_t TEST_EXPIRED_TIME_MS = 100;
+const int64_t TEST_CURRENT_TIME_BEFORE_EXPIRY = 50;
+const int64_t TEST_CURRENT_TIME_AFTER_EXPIRY = 3000;
+
+enum class MockKernelState {
+    DEVICE_ABSENT,
+    OPEN_FAILED,
+    IOCTL_FAIL,
+    IOCTL_SUCCESS_QUERY_AUTH,
+    IOCTL_SUCCESS_QUERY_UNAUTH,
+};
+MockKernelState g_mockKernelState = MockKernelState::DEVICE_ABSENT;
+
+static ErrCode PrepareKernelAuthCacheHelper(const AuthenCallerInfo &info)
+{
+    int64_t currTime = 0;
+    return PrivilegeCacheManager::GetInstance().PrepareKernelAuthCache(info, currTime);
+}
 
 // Cleanup test files
 void CleanupTestFiles()
@@ -171,7 +202,18 @@ void PrivilegeCacheManagerTest::SetUp()
         .WillRepeatedly(DoAll(SetArgReferee<2>(MOCK_BOOT_TIME_ONE), SetArgReferee<3>(true), Return(ERR_OK)));
 }
 
-void PrivilegeCacheManagerTest::TearDown() {}
+void PrivilegeCacheManagerTest::TearDown()
+{
+    // Wait for any background StartCleanTask thread to release mapMutex_
+    for (int i = 0; i < CLEAN_TASK_RETRY_TIMES; i++) {
+        std::unique_lock<std::recursive_mutex> testLock(
+            PrivilegeCacheManager::GetInstance().mapMutex_, std::try_to_lock);
+        if (testLock.owns_lock()) {
+            break;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(CLEAN_TASK_RETRY_INTERVAL_MS));
+    }
+}
 
 static void CheckProcessRecordEqual(const std::shared_ptr<ProcessPrivilegeRecord> &record1,
     const std::shared_ptr<ProcessPrivilegeRecord> &record2)
@@ -546,11 +588,9 @@ HWTEST_F(PrivilegeCacheManagerTest, ProcessPrivilegeRecordCovTest003, TestSize.L
     ProcessPrivilegeRecord record;
     auto arrayPtr = GetJsonArrayFromJson(testObj.get(), "privilegeRecords");
     ASSERT_NE(nullptr, arrayPtr);
-    EXPECT_CALL(MockUtils::GetInstance(), AddTimePeriod(_, _))
-        .WillOnce(WithArgs<0, 1>(Invoke([](const int64_t bootTimeStampMs, const uint32_t period) {
-            return 0;
-        })));
-    EXPECT_EQ(ERR_OK, record.ParsePrivilegeRecordJsonArray(MOCK_BOOT_TIME_ONE, arrayPtr));
+    // currentTime(500000) > expiryWithOffset(302100) → NeedClean returns true → record filtered
+    int64_t expiredTime = 500000;
+    EXPECT_EQ(ERR_OK, record.ParsePrivilegeRecordJsonArray(expiredTime, arrayPtr));
     EXPECT_EQ(record.privilegeRecordMap_.size(), 0);
 }
 
@@ -1372,6 +1412,757 @@ HWTEST_F(PrivilegeCacheManagerTest, RollbackConsistencyTest001, TestSize.Level1)
     // Restore normal mock behavior for other tests
     EXPECT_CALL(MockUtils::GetInstance(), GetUptimeMs(_))
         .WillRepeatedly(DoAll(SetArgReferee<0>(MOCK_BOOT_TIME_ONE), Return(ERR_OK)));
+    PrivilegeCacheManager::GetInstance().processPrivilegeMap_.clear();
+}
+
+/**
+ * @tc.name: PrivilegeAuthStatusToStringTest001
+ * @tc.desc: Test PrivilegeAuthStatusToString for all enum values.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, PrivilegeAuthStatusToStringTest001, TestSize.Level1)
+{
+    EXPECT_EQ("NOT_REQUIRED", PrivilegeAuthStatusToString(PrivilegeAuthStatus::NOT_REQUIRED));
+    EXPECT_EQ("UNCONFIRMED", PrivilegeAuthStatusToString(PrivilegeAuthStatus::UNCONFIRMED));
+    EXPECT_EQ("AUTHORIZED", PrivilegeAuthStatusToString(PrivilegeAuthStatus::AUTHORIZED));
+    // default branch maps to NOT_REQUIRED
+    EXPECT_EQ("NOT_REQUIRED", PrivilegeAuthStatusToString(static_cast<PrivilegeAuthStatus>(INVALID_AUTH_STATUS)));
+}
+
+/**
+ * @tc.name: StringToPrivilegeAuthStatusTest001
+ * @tc.desc: Test StringToPrivilegeAuthStatus for all string values.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, StringToPrivilegeAuthStatusTest001, TestSize.Level1)
+{
+    EXPECT_EQ(PrivilegeAuthStatus::AUTHORIZED, StringToPrivilegeAuthStatus("AUTHORIZED"));
+    EXPECT_EQ(PrivilegeAuthStatus::UNCONFIRMED, StringToPrivilegeAuthStatus("UNCONFIRMED"));
+    EXPECT_EQ(PrivilegeAuthStatus::NOT_REQUIRED, StringToPrivilegeAuthStatus("NOT_REQUIRED"));
+    EXPECT_EQ(PrivilegeAuthStatus::NOT_REQUIRED, StringToPrivilegeAuthStatus("UNKNOWN"));
+    EXPECT_EQ(PrivilegeAuthStatus::NOT_REQUIRED, StringToPrivilegeAuthStatus(""));
+}
+
+/**
+ * @tc.name: NeedCleanOverflowTest001
+ * @tc.desc: Test NeedClean returns false for kernel-based records (AUTHORIZED/UNCONFIRMED).
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, NeedCleanOverflowTest001, TestSize.Level1)
+{
+    auto record = std::make_shared<PrivilegeRecord>(0, INT64_MAX, 0);
+    record->SetAuthStatus(PrivilegeAuthStatus::AUTHORIZED);
+    EXPECT_FALSE(record->NeedClean(0));
+    record->SetAuthStatus(PrivilegeAuthStatus::UNCONFIRMED);
+    EXPECT_FALSE(record->NeedClean(0));
+}
+
+/**
+ * @tc.name: NeedCleanNormalTest001
+ * @tc.desc: Test NeedClean returns correct result for normal (non-overflow) cases.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, NeedCleanNormalTest001, TestSize.Level1)
+{
+    auto record = std::make_shared<PrivilegeRecord>(0, TEST_EXPIRED_TIME_MS, 0);
+    EXPECT_FALSE(record->NeedClean(TEST_CURRENT_TIME_BEFORE_EXPIRY));
+    EXPECT_TRUE(record->NeedClean(TEST_CURRENT_TIME_AFTER_EXPIRY));
+}
+
+/**
+ * @tc.name: CheckPrivilegePublicApiTest001
+ * @tc.desc: Test CheckPrivilege with isPublicApi=true and PUBLIC_API_UNCONFIRMED → DENIED.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, CheckPrivilegePublicApiTest001, TestSize.Level1)
+{
+    AuthenCallerInfo info = {.pid = 2000, .uid = TEST_UID, .privilegeIdx = 0};
+    // Add a public cache (authType = PUBLIC_API_UNCONFIRMED)
+    EXPECT_EQ(ERR_OK, PrepareKernelAuthCacheHelper(info));
+    int32_t remainTime = -1;
+    ErrCode ret = PrivilegeCacheManager::GetInstance().CheckPrivilege(info, remainTime);
+    EXPECT_EQ(ERR_AUTHORIZATION_PRIVILEGE_DENIED, ret);
+    PrivilegeCacheManager::GetInstance().processPrivilegeMap_.clear();
+}
+
+/**
+ * @tc.name: CheckPrivilegePublicApiTest002
+ * @tc.desc: Test CheckPrivilege with isPublicApi=true and PUBLIC_API → remainTime=INT32_MAX.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, CheckPrivilegePublicApiTest002, TestSize.Level1)
+{
+    AuthenCallerInfo info = {.pid = 2001, .uid = TEST_UID, .privilegeIdx = 0};
+    EXPECT_EQ(ERR_OK, PrepareKernelAuthCacheHelper(info));
+    EXPECT_EQ(ERR_OK,
+        PrivilegeCacheManager::GetInstance().SetAuthStatusForRecord(info, PrivilegeAuthStatus::AUTHORIZED));
+    int32_t remainTime = -1;
+    ErrCode ret = PrivilegeCacheManager::GetInstance().CheckPrivilege(info, remainTime);
+    EXPECT_EQ(ERR_OK, ret);
+    EXPECT_EQ(INT32_MAX, remainTime);
+    PrivilegeCacheManager::GetInstance().processPrivilegeMap_.clear();
+}
+
+/**
+ * @tc.name: CheckPrivilegePublicApiTest003
+ * @tc.desc: Test CheckPrivilege with isPublicApi=true and cache miss → DENIED.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, CheckPrivilegePublicApiTest003, TestSize.Level1)
+{
+    AuthenCallerInfo info = {.pid = 2999, .uid = TEST_UID, .privilegeIdx = 0};
+    int32_t remainTime = -1;
+    ErrCode ret = PrivilegeCacheManager::GetInstance().CheckPrivilege(info, remainTime);
+    EXPECT_EQ(ERR_AUTHORIZATION_PRIVILEGE_DENIED, ret);
+}
+
+/**
+ * @tc.name: AddCacheForPublicTest001
+ * @tc.desc: Test AddCacheForKernelAuth with a new process.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, AddCacheForPublicTest001, TestSize.Level1)
+{
+    AuthenCallerInfo info = {.pid = 3000, .uid = TEST_UID, .privilegeIdx = 0};
+    EXPECT_EQ(ERR_OK, PrepareKernelAuthCacheHelper(info));
+    ASSERT_EQ(1, PrivilegeCacheManager::GetInstance().processPrivilegeMap_.size());
+    auto record = PrivilegeCacheManager::GetInstance().processPrivilegeMap_[3000]->GetPrivilegeRecord(0);
+    ASSERT_NE(record, nullptr);
+    EXPECT_EQ(PrivilegeAuthStatus::UNCONFIRMED, record->GetAuthStatus());
+    PrivilegeCacheManager::GetInstance().processPrivilegeMap_.clear();
+}
+
+/**
+ * @tc.name: AddCacheForPublicTest002
+ * @tc.desc: Test AddCacheForKernelAuth with an existing process (add second privilege).
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, AddCacheForPublicTest002, TestSize.Level1)
+{
+    AuthenCallerInfo info0 = {.pid = 3001, .uid = TEST_UID, .privilegeIdx = 0};
+    EXPECT_EQ(ERR_OK, PrepareKernelAuthCacheHelper(info0));
+    AuthenCallerInfo info1 = {.pid = 3001, .uid = TEST_UID, .privilegeIdx = 1};
+    EXPECT_EQ(ERR_OK, PrepareKernelAuthCacheHelper(info1));
+    ASSERT_EQ(1, PrivilegeCacheManager::GetInstance().processPrivilegeMap_.size());
+    EXPECT_EQ(2, PrivilegeCacheManager::GetInstance().processPrivilegeMap_[3001]->GetPrivilegeNum());
+    PrivilegeCacheManager::GetInstance().processPrivilegeMap_.clear();
+}
+
+/**
+ * @tc.name: SetAuthStatusForRecordTest001
+ * @tc.desc: Test SetAuthStatusForRecord when process not found.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, SetAuthStatusForRecordTest001, TestSize.Level1)
+{
+    AuthenCallerInfo info = {.pid = 4000, .uid = TEST_UID, .privilegeIdx = 0};
+    ErrCode ret = PrivilegeCacheManager::GetInstance().SetAuthStatusForRecord(info, PrivilegeAuthStatus::AUTHORIZED);
+    EXPECT_EQ(ERR_AUTHORIZATION_NO_CACHE, ret);
+}
+
+/**
+ * @tc.name: SetAuthStatusForRecordTest002
+ * @tc.desc: Test SetAuthStatusForRecord when privilege record not found.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, SetAuthStatusForRecordTest002, TestSize.Level1)
+{
+    AuthenCallerInfo info = {.pid = 4001, .uid = TEST_UID, .privilegeIdx = 0};
+    EXPECT_EQ(ERR_OK, PrepareKernelAuthCacheHelper(info));
+    // Use a different privilegeIdx that doesn't exist
+    AuthenCallerInfo wrongInfo = {.pid = 4001, .uid = TEST_UID, .privilegeIdx = NON_EXISTENT_PRIVILEGE_IDX};
+    ErrCode ret = PrivilegeCacheManager::GetInstance().SetAuthStatusForRecord(
+        wrongInfo, PrivilegeAuthStatus::AUTHORIZED);
+    EXPECT_EQ(ERR_AUTHORIZATION_NO_CACHE, ret);
+    PrivilegeCacheManager::GetInstance().processPrivilegeMap_.clear();
+}
+
+/**
+ * @tc.name: SetAuthStatusForRecordTest003
+ * @tc.desc: Test SetAuthStatusForRecord success.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, SetAuthStatusForRecordTest003, TestSize.Level1)
+{
+    AuthenCallerInfo info = {.pid = 4002, .uid = TEST_UID, .privilegeIdx = 0};
+    EXPECT_EQ(ERR_OK, PrepareKernelAuthCacheHelper(info));
+    ErrCode ret = PrivilegeCacheManager::GetInstance().SetAuthStatusForRecord(info, PrivilegeAuthStatus::AUTHORIZED);
+    EXPECT_EQ(ERR_OK, ret);
+    auto record = PrivilegeCacheManager::GetInstance().processPrivilegeMap_[4002]->GetPrivilegeRecord(0);
+    ASSERT_NE(record, nullptr);
+    EXPECT_EQ(PrivilegeAuthStatus::AUTHORIZED, record->GetAuthStatus());
+    PrivilegeCacheManager::GetInstance().processPrivilegeMap_.clear();
+}
+
+/**
+ * @tc.name: AddCacheAndNotifyKernelTest001
+ * @tc.desc: Test AddCacheAndNotifyKernel success (kernel device absent → fail-open).
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, AddCacheAndNotifyKernelTest001, TestSize.Level1)
+{
+    g_mockKernelState = MockKernelState::IOCTL_SUCCESS_QUERY_AUTH;
+    AuthenCallerInfo info = {.pid = 5000, .uid = TEST_UID, .privilegeIdx = 0};
+    ErrCode ret = PrivilegeCacheManager::GetInstance().AddCacheAndNotifyKernel(info, "test_kernel_perm");
+    EXPECT_EQ(ERR_OK, ret);
+    auto it = PrivilegeCacheManager::GetInstance().processPrivilegeMap_.find(5000);
+    ASSERT_NE(it, PrivilegeCacheManager::GetInstance().processPrivilegeMap_.end());
+    ASSERT_NE(it->second, nullptr);
+    auto record = it->second->GetPrivilegeRecord(0);
+    ASSERT_NE(record, nullptr);
+    EXPECT_EQ(PrivilegeAuthStatus::AUTHORIZED, record->GetAuthStatus());
+    g_mockKernelState = MockKernelState::DEVICE_ABSENT;
+    PrivilegeCacheManager::GetInstance().processPrivilegeMap_.clear();
+}
+
+/**
+ * @tc.name: AddCacheAndNotifyKernelTest002
+ * @tc.desc: Test AddCacheAndNotifyKernel with GetUptimeMs failure.
+ *          ToPersistFile(0) still succeeds, full flow returns ERR_OK.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, AddCacheAndNotifyKernelTest002, TestSize.Level1)
+{
+    g_mockKernelState = MockKernelState::IOCTL_SUCCESS_QUERY_AUTH;
+    EXPECT_CALL(MockUtils::GetInstance(), GetUptimeMs(_))
+        .WillRepeatedly(DoAll(Return(TEST_ERR_CODE)));
+    AuthenCallerInfo info = {.pid = 5001, .uid = TEST_UID, .privilegeIdx = 0};
+    ErrCode ret = PrivilegeCacheManager::GetInstance().AddCacheAndNotifyKernel(info, "test_kernel_perm");
+    EXPECT_EQ(ERR_OK, ret);
+    g_mockKernelState = MockKernelState::DEVICE_ABSENT;
+    EXPECT_CALL(MockUtils::GetInstance(), GetUptimeMs(_))
+        .WillRepeatedly(DoAll(SetArgReferee<0>(MOCK_BOOT_TIME_ONE), Return(ERR_OK)));
+    PrivilegeCacheManager::GetInstance().processPrivilegeMap_.clear();
+}
+
+/**
+ * @tc.name: HasAuthorizationForPublicTest001
+ * @tc.desc: Test HasKernelAuthorization when process not found → isAuthorized=false.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, HasAuthorizationForPublicTest001, TestSize.Level1)
+{
+    bool isAuthorized = true;
+    ErrCode ret = PrivilegeCacheManager::GetInstance().HasKernelAuthorization(
+        6000, 0, "test_kernel_perm", isAuthorized);
+    EXPECT_EQ(ERR_OK, ret);
+    EXPECT_FALSE(isAuthorized);
+}
+
+/**
+ * @tc.name: HasAuthorizationForPublicTest002
+ * @tc.desc: Test HasKernelAuthorization when privilege record not found → isAuthorized=false.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, HasAuthorizationForPublicTest002, TestSize.Level1)
+{
+    AuthenCallerInfo info = {.pid = 6001, .uid = TEST_UID, .privilegeIdx = 0};
+    EXPECT_EQ(ERR_OK, PrepareKernelAuthCacheHelper(info));
+    bool isAuthorized = true;
+    // Use a different privilegeIdx that doesn't exist
+    ErrCode ret = PrivilegeCacheManager::GetInstance().HasKernelAuthorization(
+        6001, 99, "test_kernel_perm", isAuthorized);
+    EXPECT_EQ(ERR_OK, ret);
+    EXPECT_FALSE(isAuthorized);
+    PrivilegeCacheManager::GetInstance().processPrivilegeMap_.clear();
+}
+
+/**
+ * @tc.name: HasAuthorizationForPublicTest003
+ * @tc.desc: Test HasKernelAuthorization when authType is PUBLIC_API → isAuthorized=true.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, HasAuthorizationForPublicTest003, TestSize.Level1)
+{
+    g_mockKernelState = MockKernelState::IOCTL_SUCCESS_QUERY_AUTH;
+    AuthenCallerInfo info = {.pid = 6002, .uid = TEST_UID, .privilegeIdx = 0};
+    EXPECT_EQ(ERR_OK, PrivilegeCacheManager::GetInstance().AddCacheAndNotifyKernel(info, "test_kernel_perm"));
+    bool isAuthorized = false;
+    ErrCode ret = PrivilegeCacheManager::GetInstance().HasKernelAuthorization(
+        6002, 0, "test_kernel_perm", isAuthorized);
+    EXPECT_EQ(ERR_OK, ret);
+    EXPECT_TRUE(isAuthorized);
+    g_mockKernelState = MockKernelState::DEVICE_ABSENT;
+    PrivilegeCacheManager::GetInstance().processPrivilegeMap_.clear();
+}
+
+/**
+ * @tc.name: HasAuthorizationForPublicTest004
+ * @tc.desc: Test HasKernelAuthorization when authType is SYSTEM_API → isAuthorized=false.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, HasAuthorizationForPublicTest004, TestSize.Level1)
+{
+    // AddCache adds a record with default authType = SYSTEM_API
+    AuthenCallerInfo info = {.pid = 6003, .uid = TEST_UID, .privilegeIdx = 0};
+    EXPECT_EQ(ERR_OK, PrivilegeCacheManager::GetInstance().AddCache(info, MOCK_BOOT_TIME_ONE));
+    bool isAuthorized = true;
+    ErrCode ret = PrivilegeCacheManager::GetInstance().HasKernelAuthorization(
+        6003, 0, "test_kernel_perm", isAuthorized);
+    EXPECT_EQ(ERR_OK, ret);
+    EXPECT_FALSE(isAuthorized);
+    PrivilegeCacheManager::GetInstance().processPrivilegeMap_.clear();
+}
+
+/**
+ * @tc.name: HasAuthorizationForPublicTest005
+ * @tc.desc: Test HasKernelAuthorization with PUBLIC_API_UNCONFIRMED, kernel query succeeds (device absent →
+ *          fail-open authorized). Record should be promoted to PUBLIC_API.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, HasAuthorizationForPublicTest005, TestSize.Level1)
+{
+    AuthenCallerInfo info = {.pid = 6004, .uid = TEST_UID, .privilegeIdx = 0};
+    // AddCacheForKernelAuth sets authType = PUBLIC_API_UNCONFIRMED (kernel not notified)
+    EXPECT_EQ(ERR_OK, PrepareKernelAuthCacheHelper(info));
+    g_mockKernelState = MockKernelState::IOCTL_SUCCESS_QUERY_AUTH;
+    bool isAuthorized = false;
+    ErrCode ret = PrivilegeCacheManager::GetInstance().HasKernelAuthorization(
+        6004, 0, "test_kernel_perm", isAuthorized);
+    EXPECT_EQ(ERR_OK, ret);
+    EXPECT_TRUE(isAuthorized);
+    auto record = PrivilegeCacheManager::GetInstance().processPrivilegeMap_[6004]->GetPrivilegeRecord(0);
+    ASSERT_NE(record, nullptr);
+    EXPECT_EQ(PrivilegeAuthStatus::AUTHORIZED, record->GetAuthStatus());
+    g_mockKernelState = MockKernelState::DEVICE_ABSENT;
+    PrivilegeCacheManager::GetInstance().processPrivilegeMap_.clear();
+}
+
+/**
+ * @tc.name: HasAuthorizationForPublicTest006
+ * @tc.desc: Test HasKernelAuthorization with UNCONFIRMED and GetUptimeMs failure.
+ *          Kernel authorized but persist skipped, authType stays UNCONFIRMED, return ERR_OK.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, HasAuthorizationForPublicTest006, TestSize.Level1)
+{
+    AuthenCallerInfo info = {.pid = 6005, .uid = TEST_UID, .privilegeIdx = 0};
+    EXPECT_EQ(ERR_OK, PrepareKernelAuthCacheHelper(info));
+    EXPECT_CALL(MockUtils::GetInstance(), GetUptimeMs(_))
+        .WillRepeatedly(DoAll(Return(TEST_ERR_CODE)));
+    g_mockKernelState = MockKernelState::IOCTL_SUCCESS_QUERY_AUTH;
+    bool isAuthorized = true;
+    ErrCode ret = PrivilegeCacheManager::GetInstance().HasKernelAuthorization(
+        6005, 0, "test_kernel_perm", isAuthorized);
+    EXPECT_EQ(ERR_OK, ret);
+    EXPECT_TRUE(isAuthorized);
+    auto record = PrivilegeCacheManager::GetInstance().processPrivilegeMap_[6005]->GetPrivilegeRecord(0);
+    ASSERT_NE(record, nullptr);
+    EXPECT_EQ(PrivilegeAuthStatus::UNCONFIRMED, record->GetAuthStatus());
+    g_mockKernelState = MockKernelState::DEVICE_ABSENT;
+    EXPECT_CALL(MockUtils::GetInstance(), GetUptimeMs(_))
+        .WillRepeatedly(DoAll(SetArgReferee<0>(MOCK_BOOT_TIME_ONE), Return(ERR_OK)));
+    PrivilegeCacheManager::GetInstance().processPrivilegeMap_.clear();
+}
+
+/**
+ * @tc.name: GetPrivilegeRecordTest001
+ * @tc.desc: Test GetPrivilegeRecord returns nullptr when not found, and returns record when found.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, GetPrivilegeRecordTest001, TestSize.Level1)
+{
+    auto processRecord = std::make_shared<ProcessPrivilegeRecord>();
+    EXPECT_EQ(nullptr, processRecord->GetPrivilegeRecord(0));
+    // Add a privilege record via AddCacheForKernelAuth path
+    AuthenCallerInfo info = {.pid = 7000, .uid = TEST_UID, .privilegeIdx = 5};
+    EXPECT_EQ(ERR_OK, PrepareKernelAuthCacheHelper(info));
+    auto record = PrivilegeCacheManager::GetInstance().processPrivilegeMap_[7000]->GetPrivilegeRecord(5);
+    ASSERT_NE(record, nullptr);
+    EXPECT_EQ(5u, record->privilegeIdx_);
+    PrivilegeCacheManager::GetInstance().processPrivilegeMap_.clear();
+}
+
+/**
+ * @tc.name: KernelAuthorizationAdapterTest001
+ * @tc.desc: Test KernelAuthorizationAdapter SetKernelAuthorization and QueryKernelAuthorization
+ *          when kernel device absent (fail-open path).
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, KernelAuthorizationAdapterTest001, TestSize.Level1)
+{
+    g_mockKernelState = MockKernelState::IOCTL_SUCCESS_QUERY_AUTH;
+    ErrCode setRet = KernelAuthorizationAdapter::GetInstance().SetKernelAuthorization(MOCK_KERNEL_PID, "test_perm");
+    EXPECT_EQ(ERR_OK, setRet);
+    bool isAuthorized = false;
+    ErrCode queryRet = KernelAuthorizationAdapter::GetInstance().QueryKernelAuthorization(MOCK_KERNEL_PID, "test_perm",
+        isAuthorized);
+    EXPECT_EQ(ERR_OK, queryRet);
+    EXPECT_TRUE(isAuthorized);
+    g_mockKernelState = MockKernelState::DEVICE_ABSENT;
+}
+
+// ---- Mock libc functions via --wrap for kernel_authorization_adapter.cpp ----
+extern "C" {
+int __real_access(const char *path, int mode);
+int __wrap_access(const char *path, int mode)
+{
+    if (path != nullptr && std::strcmp(path, KernelAuthorizationAdapter::KERNEL_DEVICE_PATH) == 0) {
+        return (g_mockKernelState == MockKernelState::DEVICE_ABSENT) ? -1 : 0;
+    }
+    return __real_access(path, mode);
+}
+
+int __real_open(const char *path, int flags, ...);
+int __wrap_open(const char *path, int flags, ...)
+{
+    mode_t mode = 0;
+    if (flags & O_CREAT) {
+        va_list args;
+        va_start(args, flags);
+        mode = va_arg(args, mode_t);
+        va_end(args);
+    }
+    if (path != nullptr && std::strcmp(path, KernelAuthorizationAdapter::KERNEL_DEVICE_PATH) == 0) {
+        if (g_mockKernelState == MockKernelState::DEVICE_ABSENT) {
+            errno = ENOENT;
+            return -1;
+        }
+        if (g_mockKernelState == MockKernelState::OPEN_FAILED) {
+            errno = EACCES;
+            return -1;
+        }
+        return MOCK_KERNEL_FD; // fake fd, avoid colliding with real fds
+    }
+    if (flags & O_CREAT) {
+        return __real_open(path, flags, mode);
+    }
+    return __real_open(path, flags);
+}
+
+int __real_ioctl(int fd, unsigned long request, ...);
+int __wrap_ioctl(int fd, unsigned long request, ...)
+{
+    if (fd == MOCK_KERNEL_FD) {
+        if (g_mockKernelState == MockKernelState::IOCTL_FAIL) {
+            errno = EIO;
+            return -1;
+        }
+        if (g_mockKernelState == MockKernelState::IOCTL_SUCCESS_QUERY_UNAUTH) {
+            errno = ENOENT;
+            return -1;
+        }
+        return 0; // success
+    }
+    return __real_ioctl(fd, request);
+}
+
+int __real_close(int fd);
+int __wrap_close(int fd)
+{
+    if (fd == MOCK_KERNEL_FD) {
+        return 0; // don't close real fds
+    }
+    return __real_close(fd);
+}
+}
+
+/**
+ * @tc.name: KernelAuthorizationAdapterTest002
+ * @tc.desc: Test open device failed → ERR_AUTHORIZATION_KERNEL_OPEN_FAILED.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, KernelAuthorizationAdapterTest002, TestSize.Level1)
+{
+    g_mockKernelState = MockKernelState::OPEN_FAILED;
+    ErrCode ret = KernelAuthorizationAdapter::GetInstance().SetKernelAuthorization(MOCK_KERNEL_PID, "test_perm");
+    EXPECT_EQ(EACCES, ret);
+    g_mockKernelState = MockKernelState::DEVICE_ABSENT;
+}
+ 
+/**
+ * @tc.name: KernelAuthorizationAdapterTest003
+ * @tc.desc: Test ioctl set failed → ERR_AUTHORIZATION_KERNEL_SET_FAILED.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, KernelAuthorizationAdapterTest003, TestSize.Level1)
+{
+    g_mockKernelState = MockKernelState::IOCTL_FAIL;
+    ErrCode ret = KernelAuthorizationAdapter::GetInstance().SetKernelAuthorization(MOCK_KERNEL_PID, "test_perm");
+    EXPECT_EQ(EIO, ret);
+    g_mockKernelState = MockKernelState::DEVICE_ABSENT;
+}
+
+/**
+ * @tc.name: KernelAuthorizationAdapterTest004
+ * @tc.desc: Test SetKernelAuthorization success via mock.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, KernelAuthorizationAdapterTest004, TestSize.Level1)
+{
+    g_mockKernelState = MockKernelState::IOCTL_SUCCESS_QUERY_AUTH;
+    ErrCode ret = KernelAuthorizationAdapter::GetInstance().SetKernelAuthorization(MOCK_KERNEL_PID, "test_perm");
+    EXPECT_EQ(ERR_OK, ret);
+    g_mockKernelState = MockKernelState::DEVICE_ABSENT;
+}
+
+/**
+ * @tc.name: KernelAuthorizationAdapterTest005
+ * @tc.desc: Test QueryKernelAuthorization success (authorized=true) via mock.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, KernelAuthorizationAdapterTest005, TestSize.Level1)
+{
+    g_mockKernelState = MockKernelState::IOCTL_SUCCESS_QUERY_AUTH;
+    bool isAuthorized = false;
+    ErrCode ret = KernelAuthorizationAdapter::GetInstance().QueryKernelAuthorization(MOCK_KERNEL_PID, "test_perm",
+        isAuthorized);
+    EXPECT_EQ(ERR_OK, ret);
+    EXPECT_TRUE(isAuthorized);
+    g_mockKernelState = MockKernelState::DEVICE_ABSENT;
+}
+
+/**
+ * @tc.name: KernelAuthorizationAdapterTest006
+ * @tc.desc: Test QueryKernelAuthorization ioctl fail → ERR_AUTHORIZATION_KERNEL_QUERY_FAILED.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, KernelAuthorizationAdapterTest006, TestSize.Level1)
+{
+    g_mockKernelState = MockKernelState::IOCTL_FAIL;
+    bool isAuthorized = false;
+    ErrCode ret = KernelAuthorizationAdapter::GetInstance().QueryKernelAuthorization(MOCK_KERNEL_PID, "test_perm",
+        isAuthorized);
+    EXPECT_EQ(EIO, ret);
+    EXPECT_FALSE(isAuthorized);
+    g_mockKernelState = MockKernelState::DEVICE_ABSENT;
+}
+
+/**
+ * @tc.name: KernelAuthorizationAdapterTest007
+ * @tc.desc: Test SetKernelAuthorization with too long key → strncpy_s fail.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, KernelAuthorizationAdapterTest007, TestSize.Level1)
+{
+    g_mockKernelState = MockKernelState::IOCTL_SUCCESS_QUERY_AUTH;
+    std::string longKey(ENCAPS_MAX_KEY_LEN + 10, 'A');
+    ErrCode ret = KernelAuthorizationAdapter::GetInstance().SetKernelAuthorization(MOCK_KERNEL_PID, longKey);
+    EXPECT_EQ(ERR_AUTHORIZATION_KERNEL_SET_FAILED, ret);
+    g_mockKernelState = MockKernelState::DEVICE_ABSENT;
+}
+
+/**
+ * @tc.name: KernelAuthorizationAdapterTest008
+ * @tc.desc: Test QueryKernelAuthorization with too long key → strncpy_s fail.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, KernelAuthorizationAdapterTest008, TestSize.Level1)
+{
+    g_mockKernelState = MockKernelState::IOCTL_SUCCESS_QUERY_AUTH;
+    std::string longKey(ENCAPS_MAX_KEY_LEN + 10, 'A');
+    bool isAuthorized = false;
+    ErrCode ret = KernelAuthorizationAdapter::GetInstance().QueryKernelAuthorization(
+        MOCK_KERNEL_PID, longKey, isAuthorized);
+    EXPECT_EQ(ERR_AUTHORIZATION_KERNEL_QUERY_FAILED, ret);
+    EXPECT_FALSE(isAuthorized);
+    g_mockKernelState = MockKernelState::DEVICE_ABSENT;
+}
+
+/**
+ * @tc.name: CheckPrivilegeGetUptimeFailTest001
+ * @tc.desc: Test CheckPrivilege with GetUptimeMs failure.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, CheckPrivilegeGetUptimeFailTest001, TestSize.Level1)
+{
+    EXPECT_CALL(MockUtils::GetInstance(), GetUptimeMs(_))
+        .WillRepeatedly(DoAll(Return(TEST_ERR_CODE)));
+    AuthenCallerInfo info = {.pid = 8001, .uid = TEST_UID, .privilegeIdx = 0};
+    int32_t remainTime = -1;
+    ErrCode ret = PrivilegeCacheManager::GetInstance().CheckPrivilege(info, remainTime);
+    EXPECT_NE(ERR_OK, ret);
+    EXPECT_CALL(MockUtils::GetInstance(), GetUptimeMs(_))
+        .WillRepeatedly(DoAll(SetArgReferee<0>(MOCK_BOOT_TIME_ONE), Return(ERR_OK)));
+    PrivilegeCacheManager::GetInstance().processPrivilegeMap_.clear();
+}
+
+/**
+ * @tc.name: AddCacheAndNotifyKernelFailTest001
+ * @tc.desc: Test AddCacheAndNotifyKernel with AddCacheForKernelAuth failure
+ *          (GetProcessStartTime fails).
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, AddCacheAndNotifyKernelFailTest001, TestSize.Level1)
+{
+    EXPECT_CALL(MockUtils::GetInstance(), GetProcessStartTime(_, _))
+        .WillRepeatedly(Return(TEST_ERR_CODE));
+    AuthenCallerInfo info = {.pid = 8002, .uid = TEST_UID, .privilegeIdx = 0};
+    ErrCode ret = PrivilegeCacheManager::GetInstance().AddCacheAndNotifyKernel(info, "test_kernel_perm");
+    EXPECT_NE(ERR_OK, ret);
+    EXPECT_CALL(MockUtils::GetInstance(), GetProcessStartTime(_, _))
+        .WillRepeatedly(DoAll(SetArgReferee<1>(MOCK_BOOT_TIME_ONE), Return(ERR_OK)));
+    PrivilegeCacheManager::GetInstance().processPrivilegeMap_.clear();
+}
+
+/**
+ * @tc.name: HasAuthorizationForPublicUnauthTest001
+ * @tc.desc: Test HasKernelAuthorization with kernel not authorized (ioctl returns 0 but not authorized).
+ *          Uses mock to simulate device present but kernel not authorized.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, HasAuthorizationForPublicUnauthTest001, TestSize.Level1)
+{
+    // AddCacheForKernelAuth sets UNCONFIRMED, then HasKernelAuthorization queries kernel
+    // With IOCTL_FAIL, query fails → SYSTEM_SERVICE_EXCEPTION
+    AuthenCallerInfo info = {.pid = 8003, .uid = TEST_UID, .privilegeIdx = 0};
+    EXPECT_EQ(ERR_OK, PrepareKernelAuthCacheHelper(info));
+    g_mockKernelState = MockKernelState::IOCTL_FAIL;
+    bool isAuthorized = true;
+    ErrCode ret = PrivilegeCacheManager::GetInstance().HasKernelAuthorization(
+        8003, 0, "test_kernel_perm", isAuthorized);
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_SYSTEM_SERVICE_EXCEPTION, ret);
+    EXPECT_FALSE(isAuthorized);
+    g_mockKernelState = MockKernelState::DEVICE_ABSENT;
+    PrivilegeCacheManager::GetInstance().processPrivilegeMap_.clear();
+}
+
+/**
+ * @tc.name: HasAuthorizationForPublicKernelAuthTest001
+ * @tc.desc: Test HasKernelAuthorization with kernel authorized via mock device.
+ *          UNCONFIRMED → query kernel → authorized → promote to PUBLIC_API.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, HasAuthorizationForPublicKernelAuthTest001, TestSize.Level1)
+{
+    AuthenCallerInfo info = {.pid = 8004, .uid = TEST_UID, .privilegeIdx = 0};
+    EXPECT_EQ(ERR_OK, PrepareKernelAuthCacheHelper(info));
+    g_mockKernelState = MockKernelState::IOCTL_SUCCESS_QUERY_AUTH;
+    bool isAuthorized = false;
+    ErrCode ret = PrivilegeCacheManager::GetInstance().HasKernelAuthorization(
+        8004, 0, "test_kernel_perm", isAuthorized);
+    EXPECT_EQ(ERR_OK, ret);
+    EXPECT_TRUE(isAuthorized);
+    auto it = PrivilegeCacheManager::GetInstance().processPrivilegeMap_.find(8004);
+    ASSERT_NE(it, PrivilegeCacheManager::GetInstance().processPrivilegeMap_.end());
+    ASSERT_NE(it->second, nullptr);
+    auto record = it->second->GetPrivilegeRecord(0);
+    ASSERT_NE(record, nullptr);
+    EXPECT_EQ(PrivilegeAuthStatus::AUTHORIZED, record->GetAuthStatus());
+    g_mockKernelState = MockKernelState::DEVICE_ABSENT;
+    PrivilegeCacheManager::GetInstance().processPrivilegeMap_.clear();
+}
+
+/**
+ * @tc.name: AddCacheAndNotifyKernelKernelFailTest001
+ * @tc.desc: Test AddCacheAndNotifyKernel with SetKernelAuthorization failure.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, AddCacheAndNotifyKernelKernelFailTest001, TestSize.Level1)
+{
+    g_mockKernelState = MockKernelState::IOCTL_FAIL;
+    AuthenCallerInfo info = {.pid = 8005, .uid = TEST_UID, .privilegeIdx = 0};
+    ErrCode ret = PrivilegeCacheManager::GetInstance().AddCacheAndNotifyKernel(info, "test_kernel_perm");
+    EXPECT_EQ(ERR_AUTHORIZATION_KERNEL_NOTIFY_FAILED, ret);
+    g_mockKernelState = MockKernelState::DEVICE_ABSENT;
+    PrivilegeCacheManager::GetInstance().processPrivilegeMap_.clear();
+}
+
+/**
+ * @tc.name: HasKernelAuthorizationUnauthRemoveTest001
+ * @tc.desc: Test HasKernelAuthorization with kernel not authorized (ENOENT).
+ *          UNCONFIRMED record should be removed via RemoveSingle.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, HasKernelAuthorizationUnauthRemoveTest001, TestSize.Level1)
+{
+    AuthenCallerInfo info = {.pid = 8006, .uid = TEST_UID, .privilegeIdx = 0};
+    EXPECT_EQ(ERR_OK, PrepareKernelAuthCacheHelper(info));
+    auto it = PrivilegeCacheManager::GetInstance().processPrivilegeMap_.find(8006);
+    ASSERT_NE(it, PrivilegeCacheManager::GetInstance().processPrivilegeMap_.end());
+    ASSERT_NE(it->second->GetPrivilegeRecord(0), nullptr);
+    EXPECT_EQ(PrivilegeAuthStatus::UNCONFIRMED, it->second->GetPrivilegeRecord(0)->GetAuthStatus());
+
+    g_mockKernelState = MockKernelState::IOCTL_SUCCESS_QUERY_UNAUTH;
+    bool isAuthorized = true;
+    ErrCode ret = PrivilegeCacheManager::GetInstance().HasKernelAuthorization(
+        8006, 0, "test_kernel_perm", isAuthorized);
+    EXPECT_EQ(ERR_OK, ret);
+    EXPECT_FALSE(isAuthorized);
+
+    auto itAfter = PrivilegeCacheManager::GetInstance().processPrivilegeMap_.find(8006);
+    if (itAfter != PrivilegeCacheManager::GetInstance().processPrivilegeMap_.end()) {
+        EXPECT_EQ(itAfter->second->GetPrivilegeRecord(0), nullptr)
+            << "UNCONFIRMED record should have been removed by RemoveSingle";
+    }
+
+    g_mockKernelState = MockKernelState::DEVICE_ABSENT;
+    PrivilegeCacheManager::GetInstance().processPrivilegeMap_.clear();
+}
+
+/**
+ * @tc.name: AddCacheAndNotifyKernelDeviceAbsentTest001
+ * @tc.desc: Test AddCacheAndNotifyKernel with kernel device absent.
+ *          Should return ERR_AUTHORIZATION_KERNEL_DEVICE_NOT_FOUND and rollback cache.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, AddCacheAndNotifyKernelDeviceAbsentTest001, TestSize.Level1)
+{
+    g_mockKernelState = MockKernelState::DEVICE_ABSENT;
+    AuthenCallerInfo info = {.pid = 8007, .uid = TEST_UID, .privilegeIdx = 0};
+    ErrCode ret = PrivilegeCacheManager::GetInstance().AddCacheAndNotifyKernel(info, "test_kernel_perm");
+    EXPECT_EQ(ERR_AUTHORIZATION_KERNEL_DEVICE_NOT_FOUND, ret);
+    EXPECT_EQ(PrivilegeCacheManager::GetInstance().processPrivilegeMap_.find(8007),
+        PrivilegeCacheManager::GetInstance().processPrivilegeMap_.end());
+    PrivilegeCacheManager::GetInstance().processPrivilegeMap_.clear();
+}
+
+/**
+ * @tc.name: HasKernelAuthorizationDeviceAbsentTest001
+ * @tc.desc: Test HasKernelAuthorization with kernel device absent and UNCONFIRMED record.
+ *          Should return ERR_AUTHORIZATION_KERNEL_DEVICE_NOT_FOUND.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PrivilegeCacheManagerTest, HasKernelAuthorizationDeviceAbsentTest001, TestSize.Level1)
+{
+    AuthenCallerInfo info = {.pid = 8008, .uid = TEST_UID, .privilegeIdx = 0};
+    EXPECT_EQ(ERR_OK, PrepareKernelAuthCacheHelper(info));
+
+    g_mockKernelState = MockKernelState::DEVICE_ABSENT;
+    bool isAuthorized = true;
+    ErrCode ret = PrivilegeCacheManager::GetInstance().HasKernelAuthorization(
+        8008, 0, "test_kernel_perm", isAuthorized);
+    EXPECT_EQ(ERR_AUTHORIZATION_KERNEL_DEVICE_NOT_FOUND, ret);
+    EXPECT_FALSE(isAuthorized);
+
+    g_mockKernelState = MockKernelState::DEVICE_ABSENT;
     PrivilegeCacheManager::GetInstance().processPrivilegeMap_.clear();
 }
 
