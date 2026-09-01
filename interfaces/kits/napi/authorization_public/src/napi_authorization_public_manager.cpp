@@ -71,15 +71,7 @@ static bool ParsePrivilegeString(napi_env env, napi_value value, std::string &pr
     NAPI_CALL_BASE(env, napi_get_value_string_utf8(env, value, nullptr, 0, &len), false);
     privilege.resize(len);
     NAPI_CALL_BASE(env, napi_get_value_string_utf8(env, value, privilege.data(), len + 1, &len), false);
-    for (const auto &item : AccountSA::PRIVILEGE_MAP) {
-        if (privilege == item.second) {
-            return true;
-        }
-    }
-    ACCOUNT_LOGE("Invalid privilege: %{public}s", privilege.c_str());
-    AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR,
-        "Parameter error. The value of \"privilege\" must be a valid Privilege", throwErr);
-    return false;
+    return true;
 }
 
 static bool ValidateContext(napi_env env, napi_value value, AcquireAuthorizationContext *asyncContext)
@@ -100,6 +92,12 @@ static bool ValidateContext(napi_env env, napi_value value, AcquireAuthorization
     asyncContext->options.hasContext = true;
     asyncContext->options.isContextValid = false;
     ConvertContextObject(env, value, asyncContext);
+    if (!asyncContext->uiAbilityFlag) {
+        ACCOUNT_LOGE("Context is not UIAbilityContext, not supported in public API");
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR,
+            "Parameter error. The type of \"context\" must be UIAbilityContext", asyncContext->throwErr);
+        return false;
+    }
     return true;
 }
 
@@ -138,7 +136,7 @@ static void AcquireAuthorizationPublicExecuteCB(napi_env env, void *data)
     auto callback = std::make_shared<NapiAuthorizationResultCallback>(asyncContext,
         [](napi_env env, const AuthorizationResult& result, napi_value& resultJs) {
             BuildResultJs(env, result, resultJs);
-        });
+        }, true);
     asyncContext->errCode = AccountSA::AuthorizationClient::GetInstance().AcquireAuthorizationForPublic(
         asyncContext->privilege, asyncContext->options.isContextValid, callback);
     if (asyncContext->errCode != ERR_OK) {
@@ -210,32 +208,24 @@ napi_value NapiAuthorizationPublicManager::JsConstructor(napi_env env, napi_call
 napi_value NapiAuthorizationPublicManager::AuthorizationResultCodeConstructor(napi_env env)
 {
     napi_value resultCode = nullptr;
-    napi_value success = nullptr;
+    napi_value granted = nullptr;
     napi_value canceled = nullptr;
-    napi_value notAllowed = nullptr;
     napi_value denied = nullptr;
-    napi_value systemBusy = nullptr;
     napi_value notSupported = nullptr;
     NAPI_CALL(env, napi_create_object(env, &resultCode));
     NAPI_CALL(env, napi_create_int32(env,
-        static_cast<int32_t>(AccountSA::AuthorizationResultCode::AUTHORIZATION_SUCCESS), &success));
+        static_cast<int32_t>(AccountSA::AuthorizationResultCode::AUTHORIZATION_SUCCESS), &granted));
     NAPI_CALL(env, napi_create_int32(env,
         static_cast<int32_t>(AccountSA::AuthorizationResultCode::AUTHORIZATION_CANCELED), &canceled));
     NAPI_CALL(env, napi_create_int32(env,
-        static_cast<int32_t>(AccountSA::AuthorizationResultCode::AUTHORIZATION_INTERACTION_NOT_ALLOWED), &notAllowed));
-    NAPI_CALL(env, napi_create_int32(env,
         static_cast<int32_t>(AccountSA::AuthorizationResultCode::AUTHORIZATION_DENIED), &denied));
-    NAPI_CALL(env, napi_create_int32(env,
-        static_cast<int32_t>(AccountSA::AuthorizationResultCode::AUTHORIZATION_SERVICE_BUSY), &systemBusy));
     NAPI_CALL(env, napi_create_int32(env,
         static_cast<int32_t>(AccountSA::AuthorizationResultCode::AUTHORIZATION_PRIVILEGE_NOT_SUPPORTED),
         &notSupported));
-    NAPI_CALL(env, napi_set_named_property(env, resultCode, "AUTHORIZATION_SUCCESS", success));
+    NAPI_CALL(env, napi_set_named_property(env, resultCode, "AUTHORIZATION_GRANTED", granted));
     NAPI_CALL(env, napi_set_named_property(env, resultCode, "AUTHORIZATION_CANCELED", canceled));
-    NAPI_CALL(env, napi_set_named_property(env, resultCode, "AUTHORIZATION_INTERACTION_NOT_ALLOWED", notAllowed));
     NAPI_CALL(env, napi_set_named_property(env, resultCode, "AUTHORIZATION_DENIED", denied));
-    NAPI_CALL(env, napi_set_named_property(env, resultCode, "AUTHORIZATION_SERVICE_BUSY", systemBusy));
-    NAPI_CALL(env, napi_set_named_property(env, resultCode, "AUTHORIZATION_PRIVILEGE_NOT_SUPPORTED", notSupported));
+    NAPI_CALL(env, napi_set_named_property(env, resultCode, "AUTHORIZATION_NOT_SUPPORTED", notSupported));
     return resultCode;
 }
 
@@ -267,6 +257,7 @@ napi_value NapiAuthorizationPublicManager::GetAuthorizationManager(napi_env env,
 napi_value NapiAuthorizationPublicManager::AcquireAuthorization(napi_env env, napi_callback_info cbInfo)
 {
     auto context = std::make_unique<AcquireAuthorizationContext>(env, true);
+    context->isPublicApi = true;
     if (!ParseContextForAcquireAuthorizationPublic(env, cbInfo, context.get())) {
         ACCOUNT_LOGE("Failed to parse parameter for AcquireAuthorizationContext");
         return nullptr;

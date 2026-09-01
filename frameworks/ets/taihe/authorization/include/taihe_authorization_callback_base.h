@@ -62,7 +62,16 @@ public:
             CloseUIExtension(context_);
         }
         errCode_ = errCode;
-        if (buildResultFunc_ != nullptr) {
+        if (context_ != nullptr && context_->isPublicApi && errCode == ERR_OK) {
+            auto nativeRC = static_cast<int32_t>(result.resultCode);
+            if (nativeRC == static_cast<int32_t>(
+                    AccountSA::AuthorizationResultCode::AUTHORIZATION_INTERACTION_NOT_ALLOWED) ||
+                nativeRC == static_cast<int32_t>(
+                    AccountSA::AuthorizationResultCode::AUTHORIZATION_SERVICE_BUSY)) {
+                errCode_ = nativeRC;
+            }
+        }
+        if (errCode_ == ERR_OK && buildResultFunc_ != nullptr) {
             taiheResult_ = buildResultFunc_(result, privilege_);
         }
         onResultCalled_ = true;

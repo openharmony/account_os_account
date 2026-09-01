@@ -47,6 +47,7 @@ namespace AccountSA {
 namespace {
 const std::string TEST_BUNDLE_NAME = "com.test.bundle";
 const std::string TEST_PRIVILEGE = "ohos.privilege.MANAGE_LOCAL_ACCOUNTS";
+const std::string TEST_PUBLIC_PRIVILEGE = "ohos.privilege.operate_raw_net_packets";
 const std::string TEST_AUTH_APP_BUNDLE = "com.example.authapp";
 const std::string TEST_UI_EXTENSION = "com.example.authapp.UIExtension";
 const std::string TEST_SERVICE_EXTENSION = "com.example.authapp.ServiceExtension";
@@ -978,7 +979,7 @@ HWTEST_F(AuthorizationManagerServiceModuleTest, HasAuthorizationForPublicTest_02
     ACCOUNT_LOGI("HasAuthorizationForPublicTest_0200");
     g_getPrivilegeBriefDef = false;
     bool isAuthorized = true;
-    ErrCode ret = service_->HasAuthorizationForPublic(TEST_PRIVILEGE, isAuthorized);
+    ErrCode ret = service_->HasAuthorizationForPublic(TEST_PUBLIC_PRIVILEGE, isAuthorized);
     EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     EXPECT_FALSE(isAuthorized);
     g_getPrivilegeBriefDef = true;
@@ -998,7 +999,7 @@ HWTEST_F(AuthorizationManagerServiceModuleTest, HasAuthorizationForPublicTest_03
     g_transferPrivilegeToCode = true;
     g_checkPrivilegeResult = ERR_AUTHORIZATION_PRIVILEGE_DENIED;
     bool isAuthorized = true;
-    ErrCode ret = service_->HasAuthorizationForPublic(TEST_PRIVILEGE, isAuthorized);
+    ErrCode ret = service_->HasAuthorizationForPublic(TEST_PUBLIC_PRIVILEGE, isAuthorized);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_FALSE(isAuthorized);
     g_kernelPermission = "test_kernel_perm";
@@ -1018,7 +1019,7 @@ HWTEST_F(AuthorizationManagerServiceModuleTest, HasAuthorizationForPublicTest_04
     g_kernelPermission = "test_kernel_perm";
     g_transferPrivilegeToCode = false;
     bool isAuthorized = true;
-    ErrCode ret = service_->HasAuthorizationForPublic(TEST_PRIVILEGE, isAuthorized);
+    ErrCode ret = service_->HasAuthorizationForPublic(TEST_PUBLIC_PRIVILEGE, isAuthorized);
     EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     EXPECT_FALSE(isAuthorized);
     g_transferPrivilegeToCode = true;
@@ -1039,7 +1040,7 @@ HWTEST_F(AuthorizationManagerServiceModuleTest, HasAuthorizationForPublicTest_05
     g_hasAuthorizationResult = ERR_OK;
     g_hasAuthorizationAuthorized = true;
     bool isAuthorized = false;
-    ErrCode ret = service_->HasAuthorizationForPublic(TEST_PRIVILEGE, isAuthorized);
+    ErrCode ret = service_->HasAuthorizationForPublic(TEST_PUBLIC_PRIVILEGE, isAuthorized);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_TRUE(isAuthorized);
 }
@@ -1059,7 +1060,7 @@ HWTEST_F(AuthorizationManagerServiceModuleTest, HasAuthorizationForPublicTest_06
     g_hasAuthorizationResult = ERR_ACCOUNT_COMMON_SYSTEM_SERVICE_EXCEPTION;
     g_hasAuthorizationAuthorized = false;
     bool isAuthorized = true;
-    ErrCode ret = service_->HasAuthorizationForPublic(TEST_PRIVILEGE, isAuthorized);
+    ErrCode ret = service_->HasAuthorizationForPublic(TEST_PUBLIC_PRIVILEGE, isAuthorized);
     EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_SYSTEM_SERVICE_EXCEPTION);
     EXPECT_FALSE(isAuthorized);
     g_hasAuthorizationResult = ERR_OK;
@@ -1099,13 +1100,13 @@ HWTEST_F(AuthorizationManagerServiceModuleTest, AcquireAuthorizationForPublicTes
     g_kernelPermission = "test_kernel_perm";
     auto requestObj = new MockAuthorizationCallbackStub();
     ErrCode ret = service_->AcquireAuthorizationForPublic(
-        TEST_PRIVILEGE, true, nullptr, requestObj->AsObject());
+        TEST_PUBLIC_PRIVILEGE, true, nullptr, requestObj->AsObject());
     EXPECT_EQ(ret, ERR_AUTHORIZATION_GET_PROXY_ERROR);
 }
 
 /**
  * @tc.name: AcquireAuthorizationForPublicTest_0300
- * @tc.desc: test AcquireAuthorizationForPublic with invalid context.
+ * @tc.desc: test AcquireAuthorizationForPublic with invalid privilege.
  * @tc.type: FUNC
  * @tc.require: issueIXXXXX
  */
@@ -1117,8 +1118,9 @@ HWTEST_F(AuthorizationManagerServiceModuleTest, AcquireAuthorizationForPublicTes
     auto callbackObj = new MockAuthorizationCallbackStub();
     auto requestObj = new MockAuthorizationCallbackStub();
     ErrCode ret = service_->AcquireAuthorizationForPublic(
-        TEST_PRIVILEGE, false, callbackObj->AsObject(), requestObj->AsObject());
-    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+        TEST_PRIVILEGE, true, callbackObj->AsObject(), requestObj->AsObject());
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(callbackObj->result_.resultCode, AuthorizationResultCode::AUTHORIZATION_PRIVILEGE_NOT_SUPPORTED);
 }
 
 /**
@@ -1136,7 +1138,7 @@ HWTEST_F(AuthorizationManagerServiceModuleTest, AcquireAuthorizationForPublicTes
     auto callbackObj = new MockAuthorizationCallbackStub();
     auto requestObj = new MockAuthorizationCallbackStub();
     ErrCode ret = service_->AcquireAuthorizationForPublic(
-        TEST_PRIVILEGE, true, callbackObj->AsObject(), requestObj->AsObject());
+        TEST_PUBLIC_PRIVILEGE, true, callbackObj->AsObject(), requestObj->AsObject());
     EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     g_getPrivilegeBriefDef = true;
 }
@@ -1157,7 +1159,7 @@ HWTEST_F(AuthorizationManagerServiceModuleTest, AcquireAuthorizationForPublicTes
     auto callbackObj = new MockAuthorizationCallbackStub();
     auto requestObj = new MockAuthorizationCallbackStub();
     ErrCode ret = service_->AcquireAuthorizationForPublic(
-        TEST_PRIVILEGE, true, callbackObj->AsObject(), requestObj->AsObject());
+        TEST_PUBLIC_PRIVILEGE, true, callbackObj->AsObject(), requestObj->AsObject());
     EXPECT_NE(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     g_kernelPermission = "test_kernel_perm";
 }
@@ -1180,7 +1182,7 @@ HWTEST_F(AuthorizationManagerServiceModuleTest, AcquireAuthorizationForPublicTes
     auto callbackObj = new MockAuthorizationCallbackStub();
     auto requestObj = new MockAuthorizationCallbackStub();
     ErrCode ret = service_->AcquireAuthorizationForPublic(
-        TEST_PRIVILEGE, true, callbackObj->AsObject(), requestObj->AsObject());
+        TEST_PUBLIC_PRIVILEGE, true, callbackObj->AsObject(), requestObj->AsObject());
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(callbackObj->result_.resultCode, AuthorizationResultCode::AUTHORIZATION_SERVICE_BUSY);
     g_hasExtensionConnect = true;
@@ -1206,7 +1208,7 @@ HWTEST_F(AuthorizationManagerServiceModuleTest, AcquireAuthorizationForPublicTes
     auto callbackObj = new MockAuthorizationCallbackStub();
     auto requestObj = new MockAuthorizationCallbackStub();
     ErrCode ret = service_->AcquireAuthorizationForPublic(
-        TEST_PRIVILEGE, true, callbackObj->AsObject(), requestObj->AsObject());
+        TEST_PUBLIC_PRIVILEGE, true, callbackObj->AsObject(), requestObj->AsObject());
     EXPECT_EQ(ret, ERR_OK);
     g_hasExtensionConnect = true;
     g_checkPrivilegeResult = ERR_OK;

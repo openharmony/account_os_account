@@ -612,42 +612,6 @@ HWTEST_F(AuthorizationClientModuleCovTest, HasAuthorizationForPublic001, TestSiz
     EXPECT_EQ(isAuthorized, false);
 }
 
-/**
- * @tc.name: HasAuthorizationForPublic002
- * @tc.desc: has authorization for public with invalid privilege.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AuthorizationClientModuleCovTest, HasAuthorizationForPublic002, TestSize.Level0)
-{
-    std::string privilege = PRIVILEGE_NAME_TEST;
-    bool isAuthorized = true;
-    ErrCode errCode = AuthorizationClient::GetInstance().HasAuthorizationForPublic(privilege, isAuthorized);
-    EXPECT_NE(errCode, ERR_OK);
-    EXPECT_EQ(isAuthorized, false);
-}
-
-/**
- * @tc.name: AcquireAuthorizationForPublic004
- * @tc.desc: acquire authorization for public with allocated permission and public privilege.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AuthorizationClientModuleCovTest, AcquireAuthorizationForPublic004, TestSize.Level0)
-{
-    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
-    uint64_t tokenID;
-    std::vector<std::string> authPermissions = ALL_ACCOUNT_PERMISSION_LIST;
-    authPermissions.push_back("ohos.permission.REQUEST_LOCAL_ACCOUNT_AUTHORIZATION");
-    ASSERT_TRUE(AllocPermission(authPermissions, tokenID, true));
-    std::string privilege = PRIVILEGE_PUBLIC_NAME;
-    auto callback = std::make_shared<MockAuthorizationResultCallback>();
-    ErrCode errCode = AuthorizationClient::GetInstance().AcquireAuthorizationForPublic(
-        privilege, true, callback);
-    ACCOUNT_LOGI("AcquireAuthorizationForPublic004 errCode=%{public}d", errCode);
-    ASSERT_TRUE(RecoveryPermission(tokenID, selfTokenId));
-}
-
 #else
 /**
  * @tc.name: RegisterAuthAppRemoteObject001
@@ -751,7 +715,7 @@ HWTEST_F(AuthorizationClientModuleCovTest, AcquireAuthorizationForPublic_NoSuppo
     std::vector<std::string> authPermissions = ALL_ACCOUNT_PERMISSION_LIST;
     authPermissions.push_back("ohos.permission.REQUEST_LOCAL_ACCOUNT_AUTHORIZATION");
     ASSERT_TRUE(AllocPermission(authPermissions, tokenID, true));
-    std::string privilege = PRIVILEGE_NAME;
+    std::string privilege = PRIVILEGE_PUBLIC_NAME;
     auto callback = std::make_shared<MockAuthorizationResultCallback>();
     ErrCode errCode = AuthorizationClient::GetInstance().AcquireAuthorizationForPublic(
         privilege, true, callback);

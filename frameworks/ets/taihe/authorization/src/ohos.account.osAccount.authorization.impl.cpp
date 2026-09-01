@@ -35,19 +35,15 @@ AuthorizationResultCode::key_t ConvertToAuthorizationResultCodeKey(AccountSA::Au
 {
     switch (type) {
         case AccountSA::AuthorizationResultCode::AUTHORIZATION_SUCCESS:
-            return AuthorizationResultCode::key_t::AUTHORIZATION_SUCCESS;
+            return AuthorizationResultCode::key_t::AUTHORIZATION_GRANTED;
         case AccountSA::AuthorizationResultCode::AUTHORIZATION_CANCELED:
             return AuthorizationResultCode::key_t::AUTHORIZATION_CANCELED;
-        case AccountSA::AuthorizationResultCode::AUTHORIZATION_INTERACTION_NOT_ALLOWED:
-            return AuthorizationResultCode::key_t::AUTHORIZATION_INTERACTION_NOT_ALLOWED;
         case AccountSA::AuthorizationResultCode::AUTHORIZATION_DENIED:
             return AuthorizationResultCode::key_t::AUTHORIZATION_DENIED;
         case AccountSA::AuthorizationResultCode::AUTHORIZATION_PRIVILEGE_NOT_SUPPORTED:
-            return AuthorizationResultCode::key_t::AUTHORIZATION_PRIVILEGE_NOT_SUPPORTED;
-        case AccountSA::AuthorizationResultCode::AUTHORIZATION_SERVICE_BUSY:
-            return AuthorizationResultCode::key_t::AUTHORIZATION_SERVICE_BUSY;
+            return AuthorizationResultCode::key_t::AUTHORIZATION_NOT_SUPPORTED;
         default:
-            return AuthorizationResultCode::key_t::AUTHORIZATION_SERVICE_BUSY;
+            return AuthorizationResultCode::key_t::AUTHORIZATION_DENIED;
     }
 }
 void SetAuthorizationBusinessError(int32_t nativeErrCode)
@@ -63,7 +59,7 @@ void SetAuthorizationBusinessError(int32_t nativeErrCode)
 static ohos::account::osAccount::authorization::AuthorizationResult InitializeAuthorizationResult()
 {
     return ohos::account::osAccount::authorization::AuthorizationResult{
-        .resultCode = AuthorizationResultCode(AuthorizationResultCode::key_t::AUTHORIZATION_SUCCESS),
+        .resultCode = AuthorizationResultCode(AuthorizationResultCode::key_t::AUTHORIZATION_GRANTED),
         .privilege = Privilege::from_value("")
     };
 }
@@ -88,11 +84,19 @@ static ohos::account::osAccount::authorization::AuthorizationResult WaitForAutho
 
     if (callback->errCode_ != ERR_OK) {
         ACCOUNT_LOGE("AcquireAuthorization failed with errCode: %{public}d", callback->errCode_);
-        SetAuthorizationBusinessError(callback->errCode_);
-        return ohos::account::osAccount::authorization::AuthorizationResult{
-            .resultCode = AuthorizationResultCode(AuthorizationResultCode::key_t::AUTHORIZATION_SERVICE_BUSY),
-            .privilege = Privilege::from_value("")
-        };
+        auto rc = callback->errCode_;
+        if (rc == static_cast<int32_t>(
+                AccountSA::AuthorizationResultCode::AUTHORIZATION_INTERACTION_NOT_ALLOWED)) {
+            std::string errMsg = ConvertToJsErrMsg(ERR_JS_AUTHORIZATION_INTERACTION_NOT_ALLOWED);
+            taihe::set_business_error(ERR_JS_AUTHORIZATION_INTERACTION_NOT_ALLOWED, errMsg.c_str());
+        } else if (rc == static_cast<int32_t>(
+                       AccountSA::AuthorizationResultCode::AUTHORIZATION_SERVICE_BUSY)) {
+            std::string errMsg = ConvertToJsErrMsg(ERR_JS_AUTHORIZATION_SERVICE_BUSY);
+            taihe::set_business_error(ERR_JS_AUTHORIZATION_SERVICE_BUSY, errMsg.c_str());
+        } else {
+            SetAuthorizationBusinessError(callback->errCode_);
+        }
+        return InitializeAuthorizationResult();
     }
     return std::move(*callback->taiheResult_);
 }
@@ -111,11 +115,19 @@ public:
         auto authContext = std::make_shared<OHOS::AccountSA::TaiheAcquireAuthorizationContext>(env);
         authContext->hasOptions = true;
         authContext->options.hasContext = true;
+        authContext->isPublicApi = true;
 
         bool isContextValid = false;
         ani_object aniContext = reinterpret_cast<ani_object>(context);
         if (authContext->FillInfoFromContext(aniContext)) {
-            isContextValid = true;
+            if (authContext->IsUIAbilityContext()) {
+                isContextValid = true;
+            } else {
+                ACCOUNT_LOGE("Context is not UIAbilityContext, not supported in public API");
+                std::string errMsg = ConvertToJsErrMsg(ERR_JS_PARAMETER_ERROR);
+                taihe::set_business_error(ERR_JS_PARAMETER_ERROR, errMsg.c_str());
+                return taiheResult;
+            }
         }
 
         auto callback = std::make_shared<TaiheAuthPublicCallback>(authContext, privilegeStr,

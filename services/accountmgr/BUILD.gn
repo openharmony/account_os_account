@@ -109,8 +109,10 @@ config("authorization_config") {
     "${authorization_framework_path}/include",
     "${authorization_interfaces_native_path}/include",
     "${account_iam_interfaces_native_path}/include",
+    "${common_path}/privileges/include",
     "./include/common/tee",
     "./include/common/kernel",
+    "./include/common",
     "./include/authorization_manager",
   ]
 }

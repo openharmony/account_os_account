@@ -19,6 +19,7 @@
 #include "account_hisysevent_adapter.h"
 #include "account_log_wrapper.h"
 #include "account_permission_manager.h"
+#include "authorization_privilege.h"
 #include "bundle_manager_adapter.h"
 #include "iinner_os_account_manager.h"
 #include "inner_authorization_manager.h"
@@ -509,11 +510,19 @@ ErrCode AuthorizationManagerService::AcquireAuthorizationForPublic(const std::st
     AcquireAuthorizationOptions options;
     options.hasContext = true;
     options.isContextValid = isContextValid;
-    if (!options.isContextValid) {
-        ACCOUNT_LOGE("Context is not valid, privilege:%{public}s", privilege.c_str());
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
     options.isPublicApi = true;
+    bool isValidPrivilege = false;
+    for (const auto &item : AccountSA::PRIVILEGE_MAP) {
+        if (privilege == item.second) {
+            isValidPrivilege = true;
+            break;
+        }
+    }
+    if (!isValidPrivilege) {
+        authorizationResult.resultCode = AuthorizationResultCode::AUTHORIZATION_PRIVILEGE_NOT_SUPPORTED;
+        callback->OnResult(ERR_OK, authorizationResult);
+        return ERR_OK;
+    }
     PrivilegeBriefDef def;
     result = GetPrivilegeDefinition(authorizationResult, def, localId);
     if (result != ERR_OK) {
@@ -542,6 +551,16 @@ ErrCode AuthorizationManagerService::HasAuthorizationForPublic(const std::string
     if (privilege.empty()) {
         ACCOUNT_LOGE("Privilege is empty");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    bool isValidPrivilege = false;
+    for (const auto &item : AccountSA::PRIVILEGE_MAP) {
+        if (privilege == item.second) {
+            isValidPrivilege = true;
+            break;
+        }
+    }
+    if (!isValidPrivilege) {
+        return ERR_OK;
     }
     PrivilegeBriefDef def;
     if (!GetPrivilegeBriefDef(privilege, def)) {
