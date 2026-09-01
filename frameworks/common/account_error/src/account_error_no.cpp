@@ -103,6 +103,11 @@ static const std::unordered_map<uint32_t, std::string> g_errorStringMap = {
         "distributed account cannot be directly switched to the background"},
     {ERR_JS_OS_ACCOUNT_SUBPROFILE_DISTRIBUTE_ACC_ALREADY_BOUND,
         "The distributed account information has already been bound to a sub-profile of the target OS account"},
+    {ERR_JS_AUTHORIZATION_INTERACTION_NOT_ALLOWED,
+        "User interaction is required but not allowed. Possible causes: 1. The specified UI context is invalid; "
+        "2. The application is not in the foreground. Suggested solutions: Ensure the application is in the "
+        "foreground and pass a valid UIAbilityContext."},
+    {ERR_JS_AUTHORIZATION_SERVICE_BUSY, "Authorization service is busy."},
 };
 
 const std::unordered_map<int32_t, int32_t> errorMap = {

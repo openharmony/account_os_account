@@ -37,6 +37,7 @@ struct AcquireAuthorizationContext : public CommonAsyncContext {
     std::string privilege;
     bool hasOptions = false;
     bool uiAbilityFlag = false;
+    bool isPublicApi = false;
     int32_t sessionId = -1;
     std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext;
     std::shared_ptr<AbilityRuntime::UIExtensionContext> uiExtensionContext;
@@ -63,8 +64,9 @@ class NapiAuthorizationResultCallback final : public AccountSA::AuthorizationCal
 public:
     using ResultToJsFunc = std::function<void(napi_env, const AccountSA::AuthorizationResult&, napi_value&)>;
 
-    NapiAuthorizationResultCallback(AcquireAuthorizationContext *asyncContextPtr, ResultToJsFunc resultToJsFunc)
-        : resultToJsFunc_(resultToJsFunc)
+    NapiAuthorizationResultCallback(AcquireAuthorizationContext *asyncContextPtr, ResultToJsFunc resultToJsFunc,
+        bool isPublicApi = false)
+        : resultToJsFunc_(resultToJsFunc), isPublicApi_(isPublicApi)
     {
         env_ = asyncContextPtr->env;
         deferred_ = asyncContextPtr->deferred;
@@ -73,6 +75,7 @@ public:
             context_->hasOptions = asyncContextPtr->hasOptions;
             context_->privilege = asyncContextPtr->privilege;
             context_->uiAbilityFlag = asyncContextPtr->uiAbilityFlag;
+            context_->isPublicApi = asyncContextPtr->isPublicApi;
             context_->sessionId = asyncContextPtr->sessionId;
             context_->abilityContext = asyncContextPtr->abilityContext;
             context_->uiExtensionContext = asyncContextPtr->uiExtensionContext;
@@ -87,6 +90,7 @@ private:
     napi_deferred deferred_ = nullptr;
     std::shared_ptr<AcquireAuthorizationContext> context_ = nullptr;
     ResultToJsFunc resultToJsFunc_;
+    bool isPublicApi_ = false;
 };
 
 bool ConvertContextObject(napi_env env, napi_value contextValue,

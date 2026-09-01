@@ -128,6 +128,16 @@ bool TaiheAcquireAuthorizationContext::FillInfoFromContext(const ani_object& ani
     return true;
 }
 
+bool TaiheAcquireAuthorizationContext::IsUIAbilityContext() const
+{
+    if (stageContext_ == nullptr) {
+        return false;
+    }
+    auto abilityContext = OHOS::AbilityRuntime::Context::ConvertTo<
+        OHOS::AbilityRuntime::AbilityContext>(stageContext_);
+    return abilityContext != nullptr;
+}
+
 ErrCode CreateUIExtension(std::shared_ptr<TaiheAcquireAuthorizationContext> &asyncContext,
     const ConnectAbilityInfo &info, const sptr<IRemoteObject> &callback)
 {

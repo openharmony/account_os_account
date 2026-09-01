@@ -54,6 +54,7 @@ struct TaiheAcquireAuthorizationContext {
      * @return true if successful, false otherwise
      */
     bool FillInfoFromContext(const ani_object& aniContext);
+    bool IsUIAbilityContext() const;
 
     // Authorization options
     AcquireAuthorizationOptions options{};
@@ -63,6 +64,7 @@ struct TaiheAcquireAuthorizationContext {
     int32_t sessionId = -1;
     bool uiAbilityFlag = false;
     bool uiExtensionFlag = false;
+    bool isPublicApi = false;
 
     // Result
     ErrCode errCode = ERR_OK;

@@ -15,7 +15,7 @@
 
 @!namespace("@ohos.account.osAccount.authorization", "authorization")
 @!sts_inject_into_module("import { BusinessError } from '@ohos.base';")
-@!sts_inject_into_module("import Context from 'application.Context';")
+@!sts_inject_into_module("import UIAbilityContext from 'application.UIAbilityContext';")
 @!sts_inject("""
 static { loadLibrary("authorization_taihe_native.z") }
 """)
@@ -25,12 +25,10 @@ enum Privilege: String {
 }
 
 enum AuthorizationResultCode: i32 {
-    AUTHORIZATION_SUCCESS = 0,
+    AUTHORIZATION_GRANTED = 0,
     AUTHORIZATION_CANCELED = 12300301,
-    AUTHORIZATION_INTERACTION_NOT_ALLOWED = 12300302,
     AUTHORIZATION_DENIED = 12300303,
-    AUTHORIZATION_SERVICE_BUSY = 12300304,
-    AUTHORIZATION_PRIVILEGE_NOT_SUPPORTED = 12300305,
+    AUTHORIZATION_NOT_SUPPORTED = 12300305,
 }
 
 struct AuthorizationResult {
@@ -41,7 +39,7 @@ struct AuthorizationResult {
 interface AuthorizationManager {
     @rename("requestAuthorization")
     @promise
-    AcquireAuthorizationPromise(privilege: Privilege, context: @sts_type("Context")Opaque): AuthorizationResult;
+    AcquireAuthorizationPromise(privilege: Privilege, context: @sts_type("UIAbilityContext")Opaque): AuthorizationResult;
 
     @rename("hasAuthorization")
     @promise

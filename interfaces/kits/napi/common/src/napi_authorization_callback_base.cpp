@@ -198,7 +198,18 @@ std::function<void()> OnAuthorizationResultTask(
                 resultToJsFunc(asyncContextPtr->env, asyncContextPtr->authorizationResult, resultJs);
             }
         } else {
-            errJs = GenerateAuthorizationBusinessError(asyncContextPtr->env, asyncContextPtr->errCode);
+            auto rc = asyncContextPtr->errCode;
+            if (rc == static_cast<int32_t>(
+                    AccountSA::AuthorizationResultCode::AUTHORIZATION_INTERACTION_NOT_ALLOWED)) {
+                errJs = GenerateBusinessError(asyncContextPtr->env, ERR_JS_AUTHORIZATION_INTERACTION_NOT_ALLOWED,
+                    ConvertToJsErrMsg(ERR_JS_AUTHORIZATION_INTERACTION_NOT_ALLOWED));
+            } else if (rc == static_cast<int32_t>(
+                           AccountSA::AuthorizationResultCode::AUTHORIZATION_SERVICE_BUSY)) {
+                errJs = GenerateBusinessError(asyncContextPtr->env, ERR_JS_AUTHORIZATION_SERVICE_BUSY,
+                    ConvertToJsErrMsg(ERR_JS_AUTHORIZATION_SERVICE_BUSY));
+            } else {
+                errJs = GenerateAuthorizationBusinessError(asyncContextPtr->env, asyncContextPtr->errCode);
+            }
         }
         ReturnPromise(asyncContextPtr->env, asyncContextPtr.get(), errJs, resultJs);
         napi_close_handle_scope(asyncContextPtr->env, scope);
@@ -213,6 +224,13 @@ ErrCode NapiAuthorizationResultCallback::OnResult(int32_t errCode, const Authori
     asyncContextPtr->authorizationResult = result;
     if (asyncContextPtr->authorizationResult.privilege.empty() && context_ != nullptr) {
         asyncContextPtr->authorizationResult.privilege = context_->privilege;
+    }
+    if (isPublicApi_ && errCode == ERR_OK) {
+        auto rc = static_cast<int32_t>(result.resultCode);
+        if (rc == static_cast<int32_t>(AccountSA::AuthorizationResultCode::AUTHORIZATION_INTERACTION_NOT_ALLOWED) ||
+            rc == static_cast<int32_t>(AccountSA::AuthorizationResultCode::AUTHORIZATION_SERVICE_BUSY)) {
+            asyncContextPtr->errCode = rc;
+        }
     }
     if (context_ != nullptr && context_->hasOptions && context_->options.hasContext) {
         UIExtensionCallbackBase::CloseUIExtension(GetUIContent(context_), context_->sessionId);
