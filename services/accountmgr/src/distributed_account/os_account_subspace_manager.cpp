@@ -81,7 +81,7 @@ void DeleteSubProfileCallback::OnResult(int32_t result, const UserIam::UserAuth:
 ErrCode DeleteSubProfileCred(int32_t osAccountId, int32_t subProfileId)
 {
     auto callback = std::make_shared<DeleteSubProfileCallback>();
-    UserIDmClient::GetInstance().DeleteSubProfile(subProfileId, callback);
+    UserIDmClient::GetInstance().DeleteSubProfile(osAccountId, subProfileId, callback);
     std::unique_lock<std::mutex> lock(callback->mutex_);
     callback->onResultCondition_.wait(lock, [callback] { return callback->IsCalled(); });
     int32_t result = callback->GetResult();

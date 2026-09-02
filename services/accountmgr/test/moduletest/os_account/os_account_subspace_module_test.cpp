@@ -790,8 +790,8 @@ HWTEST_F(OsAccountSubspaceModuleTest, RemoveSpace_Success_WithIamCredCleanup_001
     // Mock DeleteSubProfile to return SUCCESS (invoke callback synchronously)
     auto &mockIdm = OHOS::UserIam::UserAuth::MockUserIdmClient::GetMock();
     ::testing::Mock::AllowLeak(&mockIdm);
-    EXPECT_CALL(mockIdm, DeleteSubProfile(::testing::_, ::testing::_))
-        .WillOnce(::testing::Invoke([](int32_t subProfileId,
+    EXPECT_CALL(mockIdm, DeleteSubProfile(::testing::_, ::testing::_, ::testing::_))
+        .WillOnce(::testing::Invoke([](int32_t, int32_t,
             const std::shared_ptr<OHOS::UserIam::UserAuth::UserIdmClientCallback> &callback) {
             callback->OnResult(OHOS::UserIam::UserAuth::ResultCode::SUCCESS,
                 OHOS::UserIam::UserAuth::Attributes());
@@ -830,8 +830,8 @@ HWTEST_F(OsAccountSubspaceModuleTest, RemoveSpace_IamNotEnrolled_001, TestSize.L
 
     auto &mockIdm = OHOS::UserIam::UserAuth::MockUserIdmClient::GetMock();
     ::testing::Mock::AllowLeak(&mockIdm);
-    EXPECT_CALL(mockIdm, DeleteSubProfile(::testing::_, ::testing::_))
-        .WillOnce(::testing::Invoke([](int32_t,
+    EXPECT_CALL(mockIdm, DeleteSubProfile(::testing::_, ::testing::_, ::testing::_))
+        .WillOnce(::testing::Invoke([](int32_t, int32_t,
             const std::shared_ptr<OHOS::UserIam::UserAuth::UserIdmClientCallback> &callback) {
             callback->OnResult(OHOS::UserIam::UserAuth::ResultCode::NOT_ENROLLED,
                 OHOS::UserIam::UserAuth::Attributes());
@@ -868,8 +868,8 @@ HWTEST_F(OsAccountSubspaceModuleTest, RemoveSpace_IamFailure_001, TestSize.Level
 
     auto &mockIdm = OHOS::UserIam::UserAuth::MockUserIdmClient::GetMock();
     ::testing::Mock::AllowLeak(&mockIdm);
-    EXPECT_CALL(mockIdm, DeleteSubProfile(::testing::_, ::testing::_))
-        .WillOnce(::testing::Invoke([](int32_t,
+    EXPECT_CALL(mockIdm, DeleteSubProfile(::testing::_, ::testing::_, ::testing::_))
+        .WillOnce(::testing::Invoke([](int32_t, int32_t,
             const std::shared_ptr<OHOS::UserIam::UserAuth::UserIdmClientCallback> &callback) {
             callback->OnResult(OHOS::UserIam::UserAuth::ResultCode::GENERAL_ERROR,
                 OHOS::UserIam::UserAuth::Attributes());
