@@ -2641,6 +2641,70 @@ HWTEST_F(OsAccountManagerServiceModuleTest, GetForegroundOsAccountDisplayIdTest0
         EXPECT_NE(displayId, Constants::INVALID_DISPLAY_ID);
     }
 }
+
+/**
+ * @tc.name: GetForegroundOsAccountDisplayIdsTest001
+ * @tc.desc: Test GetForegroundOsAccountDisplayIds with an invalid local ID.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, GetForegroundOsAccountDisplayIdsTest001, TestSize.Level1)
+{
+    std::vector<uint64_t> displayIds;
+    EXPECT_EQ(osAccountManagerService_->GetForegroundOsAccountDisplayIds(-2, displayIds),
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: GetForegroundOsAccountDisplayIdsTest002
+ * @tc.desc: Test GetForegroundOsAccountDisplayIds with a non-existent account.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, GetForegroundOsAccountDisplayIdsTest002, TestSize.Level1)
+{
+    std::vector<uint64_t> displayIds;
+    EXPECT_EQ(osAccountManagerService_->GetForegroundOsAccountDisplayIds(INVALID_ACCOUNT_ID, displayIds),
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+}
+
+/**
+ * @tc.name: GetForegroundOsAccountDisplayIdsTest003
+ * @tc.desc: Test GetForegroundOsAccountDisplayIds returns the foreground displays for an existing account.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, GetForegroundOsAccountDisplayIdsTest003, TestSize.Level1)
+{
+    auto &foregroundAccountMap = osAccountManagerService_->innerManager_.foregroundAccountMap_;
+    std::vector<uint64_t> originalDisplays;
+    foregroundAccountMap.Iterate([&](uint64_t displayId, int32_t localId) {
+        if (localId == MAIN_ACCOUNT_ID) {
+            originalDisplays.emplace_back(displayId);
+        }
+    });
+    int32_t originalDefaultLocalId = Constants::INVALID_OS_ACCOUNT_ID;
+    bool hadDefault = foregroundAccountMap.Find(Constants::DEFAULT_DISPLAY_ID, originalDefaultLocalId);
+    for (uint64_t displayId : originalDisplays) {
+        foregroundAccountMap.Erase(displayId);
+    }
+    foregroundAccountMap.EnsureInsert(Constants::DEFAULT_DISPLAY_ID, MAIN_ACCOUNT_ID);
+
+    std::vector<uint64_t> displayIds;
+    ErrCode result = osAccountManagerService_->GetForegroundOsAccountDisplayIds(MAIN_ACCOUNT_ID, displayIds);
+
+    if (hadDefault) {
+        foregroundAccountMap.EnsureInsert(Constants::DEFAULT_DISPLAY_ID, originalDefaultLocalId);
+    } else {
+        foregroundAccountMap.Erase(Constants::DEFAULT_DISPLAY_ID);
+    }
+    for (uint64_t displayId : originalDisplays) {
+        foregroundAccountMap.EnsureInsert(displayId, MAIN_ACCOUNT_ID);
+    }
+
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_NE(std::find(displayIds.begin(), displayIds.end(), Constants::DEFAULT_DISPLAY_ID), displayIds.end());
+}
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 #ifndef SUPPORT_AUTHORIZATION

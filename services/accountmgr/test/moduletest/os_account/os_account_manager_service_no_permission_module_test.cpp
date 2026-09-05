@@ -641,5 +641,46 @@ HWTEST_F(OsAccountManagerServiceNoPermissionModuleTest, GetOsAccountLocalIdsPerm
     EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
         osAccountManagerService_->GetOsAccountLocalIds(ids));
 }
+
+/**
+ * @tc.name: GetForegroundOsAccountDisplayIdsPermissionTest001
+ * @tc.desc: Test GetForegroundOsAccountDisplayIds without INTERACT_ACROSS_LOCAL_ACCOUNTS permission.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceNoPermissionModuleTest,
+    GetForegroundOsAccountDisplayIdsPermissionTest001, TestSize.Level1)
+{
+    setuid(TEST_UID);
+    std::vector<uint64_t> displayIds;
+    EXPECT_EQ(osAccountManagerService_->GetForegroundOsAccountDisplayIds(MAIN_ACCOUNT_ID, displayIds),
+        ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+}
+
+/**
+ * @tc.name: GetForegroundOsAccountDisplayIdsPermissionTest002
+ * @tc.desc: Test GetForegroundOsAccountDisplayIds called by a non-system application.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceNoPermissionModuleTest,
+    GetForegroundOsAccountDisplayIdsPermissionTest002, TestSize.Level1)
+{
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    uint64_t tokenId = 0;
+    bool allocResult = AllocPermission(ALL_ACCOUNT_PERMISSION_LIST, tokenId, false);
+    if (!allocResult) {
+        if (tokenId != 0) {
+            (void)MockTokenId("foundation");
+            (void)AccessTokenKit::DeleteToken(tokenId);
+        }
+        (void)SetSelfTokenID(selfTokenId);
+    }
+    ASSERT_TRUE(allocResult);
+    std::vector<uint64_t> displayIds;
+    EXPECT_EQ(osAccountManagerService_->GetForegroundOsAccountDisplayIds(MAIN_ACCOUNT_ID, displayIds),
+        ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+    ASSERT_TRUE(RecoveryPermission(tokenId, selfTokenId));
+}
 }  // namespace AccountSA
 }  // namespace OHOS
