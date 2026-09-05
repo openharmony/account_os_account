@@ -57,9 +57,6 @@ napi_value NapiDomainServerConfigManager::Init(napi_env env, napi_value exports)
 
 napi_value NapiDomainServerConfigManager::JsConstructor(napi_env env, napi_callback_info info)
 {
-    if (!IsSystemApp(env)) {
-        return nullptr;
-    }
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr));
     return thisVar;
