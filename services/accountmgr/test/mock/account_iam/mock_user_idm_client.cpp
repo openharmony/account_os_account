@@ -25,8 +25,8 @@ static MockUserIdmClient &GetMockInstance()
     ::testing::Mock::AllowLeak(instance);
     // Default behavior: DeleteSubProfile immediately invokes the callback with SUCCESS
     // so tests that call RemoveSubProfile do not block on the 5s wait_for timeout.
-    ON_CALL(*instance, DeleteSubProfile(::testing::_, ::testing::_))
-        .WillByDefault(::testing::Invoke([](int32_t,
+    ON_CALL(*instance, DeleteSubProfile(::testing::_, ::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke([](int32_t, int32_t,
             const std::shared_ptr<UserIdmClientCallback> &callback) {
             callback->OnResult(ResultCode::SUCCESS, Attributes());
         }));
