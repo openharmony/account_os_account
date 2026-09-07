@@ -37,7 +37,7 @@ DomainAccountCallbackService::~DomainAccountCallbackService()
 
 ErrCode DomainAccountCallbackService::OnResult(int32_t errCode, const DomainAccountParcel &domainAccountParcel)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("OnResult start.");
     Parcel parcel;
     domainAccountParcel.GetParcelData(parcel);
     if (innerCallback_ != nullptr) {
@@ -55,7 +55,7 @@ ErrCode DomainAccountCallbackService::OnResult(int32_t errCode, const DomainAcco
 ErrCode DomainAccountCallbackService::OnAcquireInfo(int32_t module, uint32_t acquireInfo,
     const DomainAccountUnlockExtraInfoIdl &extraInfo)
 {
-    ACCOUNT_LOGI("enter, module=%{public}d, acquireInfo=%{public}u", module, acquireInfo);
+    ACCOUNT_LOGI("OnAcquireInfo start, module=%{public}d, acquireInfo=%{public}u", module, acquireInfo);
     if (innerCallback_ != nullptr) {
         DomainAccountUnlockExtraInfo innerExtra;
         innerExtra.successExtraInfo = extraInfo.successExtraInfo;

@@ -30,7 +30,7 @@ void OsAccountConstraintSubscribeDeathRecipient::OnRemoteDied(const wptr<IRemote
 
     OsAccountConstraintSubscribeManager::GetInstance().UnsubscribeOsAccountConstraints(object);
 
-    ACCOUNT_LOGI("End");
+    ACCOUNT_LOGI("OsAccountConstraintSubscribeDeathRecipient OnRemoteDied end.");
 }
 }  // namespace AccountSA
 }  // namespace OHOS

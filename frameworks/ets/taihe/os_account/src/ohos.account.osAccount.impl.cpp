@@ -1736,7 +1736,7 @@ TaiheGetDataCallback::~TaiheGetDataCallback() {}
 void TaiheGetDataCallback::OnGetData(int32_t authSubType, std::vector<uint8_t> challenge,
                                      const std::shared_ptr<AccountSA::IInputerData> inputerData)
 {
-    ACCOUNT_LOGI("Start!");
+    ACCOUNT_LOGI("OnGetData start.");
     if (inputer_ == nullptr) {
         ACCOUNT_LOGE("The onGetData function is undefined");
         return;

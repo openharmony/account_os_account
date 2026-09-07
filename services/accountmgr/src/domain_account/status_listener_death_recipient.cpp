@@ -23,7 +23,7 @@ namespace AccountSA {
 
 void StatusListenerDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& remote)
 {
-    ACCOUNT_LOGI("OnRemoteDied enter.");
+    ACCOUNT_LOGI("StatusListenerDeathRecipient OnRemoteDied start.");
     if (remote == nullptr) {
         ACCOUNT_LOGE("remote is nullptr.");
         return;
@@ -35,7 +35,7 @@ void StatusListenerDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& remot
         return;
     }
     StatusListenerManager::GetInstance().RemoveListenerByListener(object);
-    ACCOUNT_LOGI("end");
+    ACCOUNT_LOGI("StatusListenerDeathRecipient OnRemoteDied end.");
 }
 } // namespace AccessToken
 } // namespace OHOS

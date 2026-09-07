@@ -22,7 +22,7 @@ namespace OHOS {
 namespace AccountSA {
 void OsAccountSubscribeDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("OsAccountSubscribeDeathRecipient OnRemoteDied start.");
     if (remote == nullptr) {
         ACCOUNT_LOGE("Remote object is nullptr");
         return;
@@ -36,7 +36,7 @@ void OsAccountSubscribeDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &r
 
     OsAccountSubscribeManager::GetInstance().UnsubscribeOsAccount(object);
 
-    ACCOUNT_LOGI("End");
+    ACCOUNT_LOGI("OsAccountSubscribeDeathRecipient OnRemoteDied end.");
 }
 }  // namespace AccountSA
 }  // namespace OHOS

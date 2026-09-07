@@ -1602,7 +1602,7 @@ static bool IsSubscribeInVec(napi_env env, SubscribeCBInfo *subscribeCBInfo)
 
 static void OnEnvCleanup(void* data)
 {
-    ACCOUNT_LOGI("Start.");
+    ACCOUNT_LOGI("OsAccount OnEnvCleanup start.");
     napi_env cleanupEnv = static_cast<napi_env>(data);
     {
         std::lock_guard<std::mutex> lock(g_lockForOsAccountSubscribers);
@@ -2088,7 +2088,7 @@ std::pair<bool, std::shared_ptr<ConstraintSubscriber>> FindAndGetSubscriber(
 
 static void OnConstraintSubEnvCleanup(void* data)
 {
-    ACCOUNT_LOGI("Start.");
+    ACCOUNT_LOGI("OnConstraintSubEnvCleanup start.");
     napi_env cleanupEnv = static_cast<napi_env>(data);
     {
         std::lock_guard<std::mutex> lock(g_lockForConstraintChangeSubscribers);

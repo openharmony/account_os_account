@@ -249,7 +249,7 @@ bool OsAccountControlFileManager::RecoverAccountData(const std::string &fileName
 
 bool OsAccountControlFileManager::DealWithFileModifyEvent(const std::string &fileName, const int32_t id)
 {
-    ACCOUNT_LOGI("Enter");
+    ACCOUNT_LOGI("OsAccountControlFileManager DealWithFileModifyEvent start.");
     {
         std::unique_lock<std::shared_timed_mutex> lock(accountFileOperator_->fileLock_);
         if (accountFileOperator_->GetValidModifyFileOperationFlag(fileName)) {
@@ -288,7 +288,7 @@ bool OsAccountControlFileManager::DealWithFileModifyEvent(const std::string &fil
 
 bool OsAccountControlFileManager::DealWithFileDeleteEvent(const std::string &fileName, const int32_t id)
 {
-    ACCOUNT_LOGI("Enter");
+    ACCOUNT_LOGI("DealWithFileDeleteEvent start.");
     {
         std::unique_lock<std::shared_timed_mutex> lock(accountFileOperator_->fileLock_);
         if (accountFileOperator_->GetValidDeleteFileOperationFlag(fileName)) {
@@ -309,7 +309,7 @@ bool OsAccountControlFileManager::DealWithFileDeleteEvent(const std::string &fil
 
 bool OsAccountControlFileManager::DealWithFileMoveEvent(const std::string &fileName, const int32_t id)
 {
-    ACCOUNT_LOGI("Enter");
+    ACCOUNT_LOGI("DealWithFileMoveEvent start.");
     // delete old file watcher
     accountFileWatcherMgr_.RemoveFileWatcher(id, fileName);
     ReportOsAccountDataTampered(id, fileName, "OS_ACCOUNT_INFO");
@@ -469,7 +469,7 @@ void OsAccountControlFileManager::BuildAndSaveAccountListJsonFile(const std::vec
 
 void OsAccountControlFileManager::BuildAndSaveBaseOAConstraintsJsonFile()
 {
-    ACCOUNT_LOGI("Enter.");
+    ACCOUNT_LOGI("BuildAndSaveBaseOAConstraintsJsonFile start.");
     std::lock_guard<std::mutex> lock(accountInfoFileLock_);
     std::vector<std::string> baseOAConstraints;
     if (osAccountFileOperator_->GetConstraintsByType(OsAccountType::ADMIN, baseOAConstraints) != ERR_OK) {
@@ -486,7 +486,7 @@ void OsAccountControlFileManager::BuildAndSaveBaseOAConstraintsJsonFile()
 
 void OsAccountControlFileManager::BuildAndSaveGlobalOAConstraintsJsonFile()
 {
-    ACCOUNT_LOGI("Enter.");
+    ACCOUNT_LOGI("BuildAndSaveGlobalOAConstraintsJsonFile start.");
     std::lock_guard<std::mutex> lock(accountInfoFileLock_);
     auto globalOsAccountConstraints = CreateJson();
     AddIntToJson(globalOsAccountConstraints, DEVICE_OWNER_ID, -1);
@@ -1147,7 +1147,7 @@ ErrCode OsAccountControlFileManager::SetNextLocalId(const int32_t &nextLocalId)
 
 ErrCode OsAccountControlFileManager::InsertOsAccount(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("Enter");
+    ACCOUNT_LOGI("InsertOsAccount start.");
     if (osAccountInfo.GetLocalId() < Constants::ADMIN_LOCAL_ID) {
         ACCOUNT_LOGE("Error id %{public}d cannot insert", osAccountInfo.GetLocalId());
         return ERR_OSACCOUNT_SERVICE_CONTROL_ID_CANNOT_CREATE_ERROR;
@@ -1191,7 +1191,7 @@ ErrCode OsAccountControlFileManager::InsertOsAccount(OsAccountInfo &osAccountInf
         accountFileWatcherMgr_.AddFileWatcher(osAccountInfo.GetLocalId(), eventCallbackFunc_);
     }
 #endif // ENABLE_FILE_WATCHER
-    ACCOUNT_LOGI("End");
+    ACCOUNT_LOGI("InsertOsAccount end.");
     return ERR_OK;
 }
 
