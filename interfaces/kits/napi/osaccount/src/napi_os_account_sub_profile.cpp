@@ -258,7 +258,7 @@ napi_value NapiOsAccountSubProfileManager::SwitchOsAccountSubProfile(napi_env en
 
 static void OnDistributedAccountEnvCleanup(void* data)
 {
-    ACCOUNT_LOGI("Start.");
+    ACCOUNT_LOGI("OnDistributedAccountEnvCleanup start.");
     napi_env cleanupEnv = static_cast<napi_env>(data);
     {
         std::lock_guard<std::mutex> lock(g_lockForSubspaceSubscribers);

@@ -2199,7 +2199,7 @@ ErrCode IInnerOsAccountManager::DealWithDeviceOwnerId(const bool isDeviceOwner, 
 
 int32_t IInnerOsAccountManager::CleanGarbageOsAccounts(int32_t excludeId)
 {
-    ACCOUNT_LOGI("Enter");
+    ACCOUNT_LOGI("CleanGarbageOsAccounts start.");
     std::vector<int32_t> idList;
     if (osAccountControl_->GetOsAccountIdList(idList) != ERR_OK) {
         ACCOUNT_LOGI("GetOsAccountIdList failed.");
@@ -2243,7 +2243,7 @@ int32_t IInnerOsAccountManager::CleanGarbageOsAccounts(int32_t excludeId)
     if (removeNum > 0) {
         ReportOsAccountLifeCycle(removeNum, Constants::OPERATION_CLEAN);
     }
-    ACCOUNT_LOGI("Finished.");
+    ACCOUNT_LOGI("CleanGarbageOsAccounts end.");
     return removeNum;
 }
 
@@ -3189,7 +3189,7 @@ ErrCode IInnerOsAccountManager::DeactivateOsAccount(const int id, bool isStopSto
 #endif
 void IInnerOsAccountManager::RollBackToEarlierAccount(int32_t fromId, int32_t toId, uint64_t displayId)
 {
-    ACCOUNT_LOGI("Enter.");
+    ACCOUNT_LOGI("RollBackToEarlierAccount start.");
     if (fromId == toId) {
         return;
     }

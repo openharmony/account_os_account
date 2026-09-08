@@ -525,7 +525,7 @@ ErrCode OsAccountManagerService::CreateOsAccountForDomain(const OsAccountType &t
     const DomainAccountInfo &domainInfo, const sptr<IDomainAccountCallback> &callback,
     const CreateOsAccountForDomainOptions &options)
 {
-    ACCOUNT_LOGI("Start");
+    ACCOUNT_LOGI("CreateOsAccountForDomain start.");
     // permission check
     if (!CheckCreateOsAccountForDomainPermission()) {
         ACCOUNT_LOGE("Account manager service, permission denied!");

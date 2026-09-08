@@ -625,7 +625,7 @@ ErrCode InnerAccountIAMManager::UpdateStorageKeyContext(const int32_t userId)
 
 ErrCode InnerAccountIAMManager::InnerUpdateStorageKeyContext(const int32_t userId)
 {
-    ACCOUNT_LOGI("Enter, userId=%{public}d", userId);
+    ACCOUNT_LOGI("InnerUpdateStorageKeyContext start, userId=%{public}d", userId);
 #ifdef HAS_STORAGE_PART
     auto storageMgrProxy = GetStorageManagerProxy();
     if (storageMgrProxy == nullptr) {
@@ -661,7 +661,7 @@ ErrCode InnerAccountIAMManager::UpdateStorageUserAuth(int32_t userId, uint64_t s
 ErrCode InnerAccountIAMManager::InnerUpdateStorageUserAuth(int32_t userId, uint64_t secureUid,
     const std::vector<uint8_t> &token, const std::vector<uint8_t> &oldSecret, const std::vector<uint8_t> &newSecret)
 {
-    ACCOUNT_LOGI("Enter, userId=%{public}d", userId);
+    ACCOUNT_LOGI("InnerUpdateStorageUserAuth start, userId=%{public}d", userId);
 #ifdef HAS_STORAGE_PART
     auto storageMgrProxy = GetStorageManagerProxy();
     if (storageMgrProxy == nullptr) {
@@ -681,7 +681,7 @@ ErrCode InnerAccountIAMManager::InnerUpdateStorageUserAuth(int32_t userId, uint6
 ErrCode InnerAccountIAMManager::UpdateUserAuthWithRecoveryKey(const std::vector<uint8_t> &authToken,
     const std::vector<uint8_t> &newSecret, uint64_t secureUid, uint32_t userId)
 {
-    ACCOUNT_LOGI("Enter, userId=%{public}d", userId);
+    ACCOUNT_LOGI("UpdateUserAuthWithRecoveryKey start, userId=%{public}d", userId);
     void *handle = dlopen(RECOVERY_SO_PATH.c_str(), RTLD_LAZY);
     if (handle == nullptr) {
         ACCOUNT_LOGE("Call dlopen failed, error=%{public}s.", dlerror());

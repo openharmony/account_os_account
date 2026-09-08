@@ -134,7 +134,7 @@ ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo, 
                                      "AbilityManager failed to start user in callback");
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_AM_ACCOUNT_START_ERROR;
     }
-    ACCOUNT_LOGI("End, succeed %{public}d", localId);
+    ACCOUNT_LOGI("SendToAMSAccountStart end, succeed %{public}d", localId);
     return code;
 }
 
@@ -187,7 +187,7 @@ ErrCode OsAccountInterface::SendToAMSAccountStop(OsAccountInfo &osAccountInfo)
             osAccountStopUserCallback->resultCode_, "AbilityManager failed to stop user in callback");
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_AM_ACCOUNT_START_ERROR;
     }
-    ACCOUNT_LOGI("End, succeed %{public}d", localId);
+    ACCOUNT_LOGI("SendToAMSAccountStop end, succeed %{public}d", localId);
     return code;
 }
 
@@ -289,7 +289,7 @@ ErrCode OsAccountInterface::SendToBMSAccountDelete(OsAccountInfo &osAccountInfo)
 void OsAccountInterface::SendToBMSAccountUnlocked(const OsAccountInfo &osAccountInfo)
 {
     auto localId = osAccountInfo.GetLocalId();
-    ACCOUNT_LOGI("Begin, %{public}d", localId);
+    ACCOUNT_LOGI("SendToBMSAccountUnlocked start, %{public}d", localId);
     auto startTime = std::chrono::high_resolution_clock::now();
     ErrCode res = BundleManagerAdapter::GetInstance()->CreateNewBundleDir(localId);
     auto endTime = std::chrono::high_resolution_clock::now();
@@ -305,7 +305,7 @@ void OsAccountInterface::SendToBMSAccountUnlocked(const OsAccountInfo &osAccount
             "Notify bms unlock timeout, total ms: " + std::to_string(durationTime));
     }
     ReportOsAccountLifeCycle(localId, "notifyBmsUnlock");
-    ACCOUNT_LOGI("End, %{public}d", localId);
+    ACCOUNT_LOGI("SendToBMSAccountUnlocked end, %{public}d", localId);
 }
 
 void OsAccountInterface::SendToBMSAccountUnlockedWithTimeout(const OsAccountInfo &osAccountInfo)
@@ -560,7 +560,7 @@ ErrCode OsAccountInterface::InnerSendToStorageAccountCreate(OsAccountInfo &osAcc
 
 ErrCode OsAccountInterface::SendToStorageAccountRemove(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("Start");
+    ACCOUNT_LOGI("SendToStorageAccountRemove start.");
 #ifdef HAS_STORAGE_PART
     auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (!systemAbilityManager) {
@@ -595,7 +595,7 @@ ErrCode OsAccountInterface::SendToStorageAccountRemove(OsAccountInfo &osAccountI
         return err;
     }
 
-    ACCOUNT_LOGI("End, Storage RemoveUser ret %{public}d.", err);
+    ACCOUNT_LOGI("SendToStorageAccountRemove end, Storage RemoveUser ret %{public}d.", err);
     FinishTraceAdapter();
 #endif
     return ERR_OK;
@@ -836,7 +836,7 @@ int32_t OsAccountInterface::UnlockUser(const int localId, bool startUser)
 
 ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("Start");
+    ACCOUNT_LOGI("SendToStorageAccountStart start.");
     bool isUserUnlocked = false;
 #ifdef HAS_STORAGE_PART
     int localId = osAccountInfo.GetLocalId();
@@ -851,7 +851,7 @@ ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountIn
     if (err == ERR_OK) {
         isUserUnlocked = true;
     }
-    ACCOUNT_LOGI("End, Storage PrepareStartUser ret %{public}d.", err);
+    ACCOUNT_LOGI("SendToStorageAccountStart end, Storage PrepareStartUser ret %{public}d.", err);
     FinishTraceAdapter();
 #else
     isUserUnlocked = true;
@@ -867,7 +867,7 @@ ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountIn
                 std::chrono::system_clock::now().time_since_epoch()).count());
         }
     }
-    ACCOUNT_LOGI("End, succeed!");
+    ACCOUNT_LOGI("SendToStorageAccountStart end, succeed!");
     return ERR_OK;
 }
 
@@ -963,7 +963,7 @@ void OsAccountInterface::SendToStorageAccountUnlocked(const OsAccountInfo &osAcc
 {
 #ifdef HAS_STORAGE_PART
     auto localId = osAccountInfo.GetLocalId();
-    ACCOUNT_LOGI("Begin, %{public}d", localId);
+    ACCOUNT_LOGI("SendToStorageAccountUnlocked start, %{public}d", localId);
     sptr<StorageManager::IStorageManager> proxy = nullptr;
     if (GetStorageProxy(proxy) != ERR_OK) {
         ACCOUNT_LOGE("Failed to get STORAGE_MANAGER_MANAGER_ID proxy.");
@@ -987,7 +987,7 @@ void OsAccountInterface::SendToStorageAccountUnlocked(const OsAccountInfo &osAcc
     HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
 #endif // HICOLLIE_ENABLE
     ReportOsAccountLifeCycle(localId, "notifyStorageUnlock");
-    ACCOUNT_LOGI("End, %{public}d", localId);
+    ACCOUNT_LOGI("SendToStorageAccountUnlocked end, %{public}d", localId);
 #endif
 }
 
@@ -995,7 +995,7 @@ void OsAccountInterface::SendToStorageAccountSwitched(const OsAccountInfo &osAcc
 {
 #ifdef HAS_STORAGE_PART
     auto localId = osAccountInfo.GetLocalId();
-    ACCOUNT_LOGI("Begin, %{public}d", localId);
+    ACCOUNT_LOGI("SendToStorageAccountSwitched start, %{public}d", localId);
     sptr<StorageManager::IStorageManager> proxy = nullptr;
     if (GetStorageProxy(proxy) != ERR_OK) {
         ACCOUNT_LOGE("Failed to get STORAGE_MANAGER_MANAGER_ID proxy.");
@@ -1008,7 +1008,7 @@ void OsAccountInterface::SendToStorageAccountSwitched(const OsAccountInfo &osAcc
     proxy->NotifyUserChangedEvent(localId, StorageService::EVENT_USER_SWITCHED);
     FinishTraceAdapter();
     ReportOsAccountLifeCycle(localId, "notifyStorageSwitched");
-    ACCOUNT_LOGI("End, %{public}d", localId);
+    ACCOUNT_LOGI("SendToStorageAccountSwitched end, %{public}d", localId);
 #endif
 }
 

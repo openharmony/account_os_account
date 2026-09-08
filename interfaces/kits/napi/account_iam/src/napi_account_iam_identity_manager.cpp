@@ -583,7 +583,7 @@ napi_value NapiAccountIAMIdentityManager::GetEnrolledId(napi_env env, napi_callb
 
 static void OnEnvCleanup(void* data)
 {
-    ACCOUNT_LOGI("Start.");
+    ACCOUNT_LOGI("AccountIam OnEnvCleanup start.");
     napi_env cleanupEnv = static_cast<napi_env>(data);
     {
         std::lock_guard<std::mutex> lock(g_lockForCredChangeSubscribers);

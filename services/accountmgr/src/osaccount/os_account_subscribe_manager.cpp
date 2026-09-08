@@ -367,10 +367,10 @@ ErrCode OsAccountSubscribeManager::Publish(int32_t fromId, OsAccountState state,
         PublishToAllSubscribers(fromId, state, toId, displayId, cvPtr, safeQueue);
     }
     if ((state == SWITCHING || state == SWITCHED) && displayId.has_value()) {
-        ACCOUNT_LOGI("End, state: %{public}d, fromId: %{public}d, toId: %{public}d, displayId: %{public}d",
+        ACCOUNT_LOGI("Publish end, state: %{public}d, fromId: %{public}d, toId: %{public}d, displayId: %{public}d",
             state, fromId, toId, static_cast<int>(displayId.value()));
     } else {
-        ACCOUNT_LOGI("End, state: %{public}d, fromId: %{public}d, toId: %{public}d", state, fromId, toId);
+        ACCOUNT_LOGI("Publish end, state: %{public}d, fromId: %{public}d, toId: %{public}d", state, fromId, toId);
     }
     ErrCode result = WaitForAllReplies(cvPtr, safeQueue);
     if (result != ERR_OK) {

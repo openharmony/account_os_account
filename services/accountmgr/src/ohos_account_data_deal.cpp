@@ -93,7 +93,7 @@ OhosAccountDataDeal::OhosAccountDataDeal(const std::string &configFileDir)
 #ifdef ENABLE_FILE_WATCHER
 bool OhosAccountDataDeal::DealWithFileModifyEvent(const std::string &fileName, const int32_t id)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("OhosAccountDataDeal DealWithFileModifyEvent start.");
     {
         std::unique_lock<std::shared_timed_mutex> lock(accountFileOperator_->fileLock_);
         if (accountFileOperator_->GetValidModifyFileOperationFlag(fileName)) {
