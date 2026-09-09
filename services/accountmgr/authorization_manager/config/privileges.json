@@ -44,6 +44,10 @@
             "name":"ohos.privilege.operate_raw_net_packets",
             "description":"Privilege for operating the raw network packets",
             "kernelPermission":"ohos.permission.kernel.NET_RAW"
+        },
+        {
+            "name":"ohos.privilege.set_device_security_level",
+            "description":"Set device security level"
         }
     ]
 }
