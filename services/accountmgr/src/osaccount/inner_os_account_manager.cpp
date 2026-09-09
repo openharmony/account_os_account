@@ -94,6 +94,8 @@ constexpr int32_t TOKEN_NATIVE = 1;
 constexpr int32_t DELAY_FOR_EXCEPTION = 50;
 constexpr int32_t MAX_RETRY_TIMES = 50;
 constexpr int32_t MAX_INSERT_RETRY_TIMES = 3;
+constexpr int32_t SET_PARAM_RETRY_DELAY_MS = 5000;
+constexpr int32_t SET_PARAM_MAX_RETRY_TIMES = 3;
 constexpr int32_t MAX_PRIVATE_TYPE_NUMBER = 1;
 constexpr int32_t MAX_MAINTENANCE_TYPE_NUMBER = 1;
 #ifndef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
@@ -562,6 +564,24 @@ ErrCode IInnerOsAccountManager::PrepareForDefaultAccount(int32_t activatedId, Os
     return ERR_OK;
 }
 
+ErrCode IInnerOsAccountManager::SetAccountReadyParamWithRetry(const OsAccountInfo &osAccountInfo)
+{
+    ErrCode errCode = SetParameter(ACCOUNT_READY_EVENT, "true");
+    for (int32_t retryTimes = 0; errCode != ERR_OK && retryTimes < SET_PARAM_MAX_RETRY_TIMES; retryTimes++) {
+        ACCOUNT_LOGE("Set parameter failed, localId: %{public}d, error: %{public}d, retry %{public}d",
+            osAccountInfo.GetLocalId(), errCode, retryTimes + 1);
+        std::this_thread::sleep_for(std::chrono::milliseconds(SET_PARAM_RETRY_DELAY_MS));
+        errCode = SetParameter(ACCOUNT_READY_EVENT, "true");
+    }
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Set parameter failed, localId: %{public}d, error: %{public}d",
+            osAccountInfo.GetLocalId(), errCode);
+        REPORT_OS_ACCOUNT_FAIL(osAccountInfo.GetLocalId(), Constants::OPERATION_BOOT_ACTIVATING, errCode,
+            "Set parameter bootevent.account.ready failed");
+    }
+    return errCode;
+}
+
 ErrCode IInnerOsAccountManager::ActivateDefaultOsAccount()
 {
     int32_t activatedId;
@@ -596,13 +616,8 @@ ErrCode IInnerOsAccountManager::ActivateDefaultOsAccount()
     // Activate account and set parameters
     errCode = SendMsgForAccountActivate(osAccountInfo, true, Constants::DEFAULT_DISPLAY_ID, true);
     if (errCode == ERR_OK) {
-        errCode = SetParameter(ACCOUNT_READY_EVENT, "true");
-        if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("Set parameter failed, localId: %{public}d, error: %{public}d",
-                osAccountInfo.GetLocalId(), errCode);
-            REPORT_OS_ACCOUNT_FAIL(osAccountInfo.GetLocalId(), Constants::OPERATION_BOOT_ACTIVATING, errCode,
-                "Set parameter bootevent.account.ready failed");
-        } else {
+        errCode = SetAccountReadyParamWithRetry(osAccountInfo);
+        if (errCode == ERR_OK) {
             ReportOsAccountLifeCycle(osAccountInfo.GetLocalId(), Constants::OPERATION_BOOT_ACTIVATED);
         }
     }
