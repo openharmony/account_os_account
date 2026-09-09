@@ -109,7 +109,6 @@ ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo, 
     ACCOUNT_LOGI("Start OS account %{public}d", localId);
     sptr<OsAccountUserCallback> osAccountStartUserCallback = new (std::nothrow) OsAccountUserCallback(callbackFunc);
     if (osAccountStartUserCallback == nullptr) {
-        ACCOUNT_LOGE("Alloc memory for start user callback failed!");
         ReportOsAccountOperationFail(localId, OPERATION_START,
             ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR, "malloc for OsAccountUserCallback failed!");
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
@@ -129,7 +128,8 @@ ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo, 
         lock, [osAccountStartUserCallback] { return osAccountStartUserCallback->isCalled_; });
     FinishTraceAdapter();
     if (osAccountStartUserCallback->resultCode_ != ERR_OK) {
-        ACCOUNT_LOGE("Failed to AbilityManagerService in call back");
+        ACCOUNT_LOGE("Failed to AbilityManagerService in call back, errcode %{public}d",
+            osAccountStartUserCallback->resultCode_);
         ReportOsAccountOperationFail(localId, OPERATION_START, osAccountStartUserCallback->resultCode_,
                                      "AbilityManager failed to start user in callback");
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_AM_ACCOUNT_START_ERROR;
@@ -182,7 +182,8 @@ ErrCode OsAccountInterface::SendToAMSAccountStop(OsAccountInfo &osAccountInfo)
     });
     FinishTraceAdapter();
     if (osAccountStopUserCallback->resultCode_ != ERR_OK) {
-        ACCOUNT_LOGE("Failed to AbilityManagerService in call back");
+        ACCOUNT_LOGE("Failed to AbilityManagerService in call back, errcode %{public}d",
+            osAccountStopUserCallback->resultCode_);
         ReportOsAccountOperationFail(localId, Constants::OPERATION_STOP,
             osAccountStopUserCallback->resultCode_, "AbilityManager failed to stop user in callback");
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_AM_ACCOUNT_START_ERROR;
@@ -248,10 +249,12 @@ ErrCode OsAccountInterface::SendToBMSAccountCreate(
     OsAccountInfo &osAccountInfo, const std::vector<std::string> &disallowedHapList,
     const std::optional<std::vector<std::string>> &allowedHapList)
 {
+    int32_t localId = osAccountInfo.GetLocalId();
+    ACCOUNT_LOGI("SendToBMSAccountCreate start, localId=%{public}d", localId);
     ErrCode errCode = ERR_OK;
     int32_t retryTimes = 0;
     while (retryTimes < MAX_RETRY_TIMES) {
-        errCode = BundleManagerAdapter::GetInstance()->CreateNewUser(osAccountInfo.GetLocalId(),
+        errCode = BundleManagerAdapter::GetInstance()->CreateNewUser(localId,
             disallowedHapList, allowedHapList);
         if ((errCode != Constants::E_IPC_ERROR) && (errCode != Constants::E_IPC_SA_DIED)) {
             break;
@@ -260,6 +263,7 @@ ErrCode OsAccountInterface::SendToBMSAccountCreate(
         retryTimes++;
         std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_EXCEPTION));
     }
+    ACCOUNT_LOGI("SendToBMSAccountCreate end, localId=%{public}d, ret=%{public}d", localId, errCode);
     return errCode;
 }
 
@@ -480,6 +484,7 @@ void OsAccountInterface::SendToCESAccountSwitched(int newId, int oldId, uint64_t
 
 ErrCode OsAccountInterface::SendToStorageAccountCreate(OsAccountInfo &osAccountInfo)
 {
+    ACCOUNT_LOGI("SendToStorageAccountCreate start");
     ErrCode errCode = ERR_OK;
     int32_t retryTimes = 0;
     while (retryTimes < MAX_RETRY_TIMES) {
@@ -492,6 +497,7 @@ ErrCode OsAccountInterface::SendToStorageAccountCreate(OsAccountInfo &osAccountI
         retryTimes++;
         std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_EXCEPTION));
     }
+    ACCOUNT_LOGI("SendToStorageAccountCreate end, ret=%{public}d", errCode);
     return errCode;
 }
 
@@ -760,7 +766,8 @@ int32_t NeedSkipActiveUserKey(const int localId, bool &isNeedSkip)
         return errCode;
     }
     if (!isFileEncrypt) {
-        ACCOUNT_LOGW("The storage has been decrypted and does not need to be processed again.");
+        ACCOUNT_LOGW("The storage has been decrypted and does not need to be processed again, localId=%{public}d",
+            localId);
         isNeedSkip = true;
         return ERR_OK; // return ok to send unlock events
     }
@@ -775,12 +782,13 @@ int32_t NeedSkipActiveUserKey(const int localId, bool &isNeedSkip)
         return (errCode != ERR_OK) ? errCode : domainErrCode;
     }
     if (!isExistPIN && !isDomainUnlockEnabled) {
-        ACCOUNT_LOGW("The PIN does not exist and the domain unlock is not enabled.");
+        ACCOUNT_LOGW("The PIN does not exist and the domain unlock is not enabled, localId=%{public}d", localId);
         DeleteSecretFlag(localId);
         isNeedSkip = false;
         return ERR_OK;
     }
-    ACCOUNT_LOGI("The PIN exists or the domain unlock is enabled, so the storage decryption is skipped.");
+    ACCOUNT_LOGI("The PIN exists or the domain unlock is enabled, so the storage decryption is skipped, "
+        "localId=%{public}d", localId);
     isNeedSkip = true;
     return ERR_ACCOUNT_COMMON_SECRET_CHECK;
 }
@@ -788,6 +796,7 @@ int32_t NeedSkipActiveUserKey(const int localId, bool &isNeedSkip)
 
 int32_t OsAccountInterface::UnlockUser(const int localId, bool startUser)
 {
+    ACCOUNT_LOGI("UnlockUser start, localId=%{public}d", localId);
     int32_t retryTimes = 0;
     int32_t errCode = 0;
     while (retryTimes < MAX_RETRY_TIMES) {
@@ -836,7 +845,7 @@ int32_t OsAccountInterface::UnlockUser(const int localId, bool startUser)
 
 ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("SendToStorageAccountStart start.");
+    ACCOUNT_LOGI("SendToStorageAccountStart start, localId=%{public}d", osAccountInfo.GetLocalId());
     bool isUserUnlocked = false;
 #ifdef HAS_STORAGE_PART
     int localId = osAccountInfo.GetLocalId();
@@ -861,7 +870,7 @@ ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountIn
         osAccountInfo.SetIsVerified(true);
         bool hasCredential = osAccountInfo.GetCredentialId() > 0;
         if (!hasCredential) {
-            ACCOUNT_LOGI("OS account:%{public}d is loggen in.", osAccountInfo.GetLocalId());
+            ACCOUNT_LOGI("OS account:%{public}d is logged in.", osAccountInfo.GetLocalId());
             osAccountInfo.SetIsLoggedIn(true);
             osAccountInfo.SetLastLoginTime(std::chrono::duration_cast<std::chrono::seconds>(
                 std::chrono::system_clock::now().time_since_epoch()).count());
@@ -924,6 +933,7 @@ ErrCode OsAccountInterface::SendToStorageAccountStop(OsAccountInfo &osAccountInf
 
 ErrCode OsAccountInterface::SendToStorageAccountCreateComplete(int32_t localId)
 {
+    ACCOUNT_LOGI("SendToStorageAccountCreateComplete start, localId=%{public}d", localId);
     ErrCode errCode = ERR_OK;
     int32_t retryTimes = 0;
     while (retryTimes < MAX_RETRY_TIMES) {
@@ -935,6 +945,7 @@ ErrCode OsAccountInterface::SendToStorageAccountCreateComplete(int32_t localId)
         retryTimes++;
         std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_EXCEPTION));
     }
+    ACCOUNT_LOGI("SendToStorageAccountCreateComplete end, localId=%{public}d, ret=%{public}d", localId, errCode);
     return errCode;
 }
 

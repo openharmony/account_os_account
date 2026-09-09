@@ -420,7 +420,7 @@ void IInnerOsAccountManager::RetryToGetAccount(OsAccountInfo &osAccountInfo)
             osAccountInfo = osAccountInfos[0];
             return;
         }
-        ACCOUNT_LOGE("Fail to query accounts");
+        ACCOUNT_LOGE("Fail to query accounts, errCode %{public}d", errCode);
         retryTimes++;
         std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_EXCEPTION));
     }
@@ -572,14 +572,14 @@ ErrCode IInnerOsAccountManager::ActivateDefaultOsAccount()
     }
 #ifdef HICOLLIE_ENABLE
     XCollieCallback callbackFunc = [&](void *) {
-        ACCOUNT_LOGE("ActivateDefaultOsAccount failed due to timeout.");
+        ACCOUNT_LOGE("ActivateDefaultOsAccount failed due to timeout, localId=%{public}d", activatedId);
         REPORT_OS_ACCOUNT_FAIL(activatedId, Constants::OPERATION_BOOT_ACTIVATING,
             ERR_ACCOUNT_COMMON_OPERATION_TIMEOUT, "Activate default os account over time.");
     };
     int timerId = HiviewDFX::XCollie::GetInstance().SetTimer(TIMER_NAME, BOOT_ACTIVATE_TIMEOUT,
         callbackFunc, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
 #endif // HICOLLIE_ENABLE
-    ACCOUNT_LOGI("Start to activate default account");
+    ACCOUNT_LOGI("Start to activate default account %{public}d", activatedId);
     ReportOsAccountLifeCycle(activatedId, Constants::OPERATION_BOOT_ACTIVATING);
     // Activate U1 account if enabled
     ErrCode errCode = ActivateU1Account();
@@ -609,6 +609,7 @@ ErrCode IInnerOsAccountManager::ActivateDefaultOsAccount()
 #ifdef HICOLLIE_ENABLE
     HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
 #endif // HICOLLIE_ENABLE
+    ACCOUNT_LOGI("ActivateDefaultOsAccount end, localId=%{public}d, ret=%{public}d", activatedId, errCode);
     return errCode;
 }
 #ifdef FUZZ_TEST
@@ -866,8 +867,9 @@ ErrCode IInnerOsAccountManager::CheckHighestHapInstallForCreate(OsAccountInfo &o
 ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
     OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options)
 {
-    ErrCode errCode = OsAccountInterface::SendToStorageAccountCreate(osAccountInfo);
     int32_t localId = osAccountInfo.GetLocalId();
+    ACCOUNT_LOGI("SendMsgForAccountCreate start, localId=%{public}d", localId);
+    ErrCode errCode = OsAccountInterface::SendToStorageAccountCreate(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Create os account SendToStorageAccountCreate failed, errCode %{public}d.", errCode);
         RollbackOsAccount(osAccountInfo, false, false);
@@ -945,7 +947,6 @@ ErrCode IInnerOsAccountManager::FinalizeAccountCreate(OsAccountInfo &osAccountIn
     }
     errCode = OsAccountInterface::SendToStorageAccountCreateComplete(localId);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Failed to send storage account create complete.");
         ReportOsAccountOperationFail(localId, Constants::OPERATION_CREATE, errCode,
             "Failed to send storage account create complete");
     }
@@ -3012,7 +3013,7 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount
         AccountInfoReport::ReportSecurityInfo(osAccountInfo.GetLocalName(), id, ReportEvent::EVENT_LOGIN, 0);
     }
 
-    ACCOUNT_LOGI("Activate end");
+    ACCOUNT_LOGI("Activate end, localId=%{public}d", id);
     return ERR_OK;
 }
 
@@ -3194,7 +3195,7 @@ void IInnerOsAccountManager::RollBackToEarlierAccount(int32_t fromId, int32_t to
         return;
     }
     subscribeManager_.Publish(toId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED, fromId, displayId);
-    ACCOUNT_LOGI("End pushlishing pre switch event.");
+    ACCOUNT_LOGI("RollBackToEarlierAccount end publishing pre switch event.");
     OsAccountInfo osAccountInfo;
     osAccountInfo.SetLocalId(toId);
     subscribeManager_.Publish(fromId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING, toId, displayId);
@@ -3202,7 +3203,7 @@ void IInnerOsAccountManager::RollBackToEarlierAccount(int32_t fromId, int32_t to
         OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_FOREGROUND, Constants::OPERATION_SWITCH);
     subscribeManager_.Publish(fromId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED, toId, displayId);
     ReportOsAccountSwitch(toId, fromId);
-    ACCOUNT_LOGI("End pushlishing post switch event.");
+    ACCOUNT_LOGI("RollBackToEarlierAccount end publishing post switch event.");
 }
 #ifdef FUZZ_TEST
 // LCOV_EXCL_STOP
@@ -3232,9 +3233,10 @@ ErrCode IInnerOsAccountManager::SendToStorageAndAMSAccountStart(OsAccountInfo &o
 ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccountInfo, const bool startStorage,
     const uint64_t displayId, const bool isAppRecovery)
 {
+    int32_t localId = static_cast<int32_t>(osAccountInfo.GetLocalId());
+    ACCOUNT_LOGI("SendMsgForAccountActivate start, localId=%{public}d", localId);
     int32_t oldId = -1;
     bool oldIdExist = foregroundAccountMap_.Find(displayId, oldId);
-    int32_t localId = static_cast<int32_t>(osAccountInfo.GetLocalId());
     bool preActivated = osAccountInfo.GetIsActived();
     bool switched = (oldId != localId);
 
@@ -3285,7 +3287,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
             ReportOsAccountLifeCycle(activatedId, Constants::OPERATION_ACTIVATE);
     }
 
-    ACCOUNT_LOGI("SendMsgForAccountActivate ok");
+    ACCOUNT_LOGI("SendMsgForAccountActivate end, localId=%{public}d", localId);
     return errCode;
 }
 
