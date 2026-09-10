@@ -3015,6 +3015,19 @@ HWTEST_F(OsAccountManagerModuleTest, GetForegroundOsAccountDisplayId001, TestSiz
 }
 
 /**
+ * @tc.name: GetForegroundOsAccountDisplayIds001
+ * @tc.desc: Test GetForegroundOsAccountDisplayIds with invalid localId.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, GetForegroundOsAccountDisplayIds001, TestSize.Level1)
+{
+    std::vector<uint64_t> displayIds;
+    EXPECT_EQ(OsAccountManager::GetForegroundOsAccountDisplayIds(-2, displayIds),
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+/**
  * @tc.name: GetForegroundOsAccounts001
  * @tc.desc: Test GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &accounts) success.
  * @tc.type: FUNC
