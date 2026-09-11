@@ -369,6 +369,23 @@ ErrCode InnerAuthorizationManager::CallTaAuthorization(const std::vector<uint8_t
         param.authTokenSize = iamToken.size();
     }
 
+    (void)memset_s(param.challenge, sizeof(param.challenge), 0, sizeof(param.challenge));
+    if (info.challenge.size() > CHALLENGE_LEN) {
+        ACCOUNT_LOGE("Challenge size %{public}zu exceeds maximum", info.challenge.size());
+        REPORT_OS_ACCOUNT_FAIL(accountId, PRIVILEGE_OPT_ACQUIRE_AUTH, ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
+            "Challenge size exceeds maximum");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    if (info.challenge.size() != 0) {
+        ret = memcpy_s(param.challenge, sizeof(param.challenge), info.challenge.data(), info.challenge.size());
+        if (ret != EOK) {
+            ACCOUNT_LOGE("Get challenge failed due to memcpy_s failed, %{public}d", ret);
+            REPORT_OS_ACCOUNT_FAIL(accountId, PRIVILEGE_OPT_ACQUIRE_AUTH, ret,
+                "Get challenge failed due to memcpy_s failed");
+            return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+        }
+    }
+
     param.grantValidityPeriod = info.timeout;
 
     OsAccountTeeAdapter teeAdapter;

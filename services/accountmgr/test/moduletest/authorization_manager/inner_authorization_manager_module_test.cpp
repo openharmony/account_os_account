@@ -571,6 +571,96 @@ HWTEST_F(InnerAuthorizationManagerModuleTest, CallTaAuthorizationTest_0200, Test
 }
 
 /**
+ * @tc.name: CallTaAuthorizationTest_0300
+ * @tc.desc: test CallTaAuthorization passes challenge to TEE correctly.
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(InnerAuthorizationManagerModuleTest, CallTaAuthorizationTest_0300, TestSize.Level0)
+{
+    ACCOUNT_LOGI("CallTaAuthorizationTest_0300");
+
+    std::vector<uint8_t> iamToken = {1, 2, 3, 4, 5};
+    ConnectAbilityInfo info;
+    info.privilege = TEST_PRIVILEGE;
+    info.callingPid = TEST_CALLING_PID;
+    info.timeout = 300;
+    info.challenge = {0xAA, 0xBB, 0xCC};
+    ApplyUserTokenResult tokenResult;
+
+    EXPECT_CALL(MockOsAccountTeeAdapter::GetInstance(), TaAcquireAuthorization(_, _))
+        .WillOnce(Invoke([](const ApplyUserTokenParam &param, ApplyUserTokenResult &result) {
+            EXPECT_EQ(param.challenge[0], 0xAA);
+            EXPECT_EQ(param.challenge[1], 0xBB);
+            EXPECT_EQ(param.challenge[2], 0xCC);
+            for (size_t i = 3; i < CHALLENGE_LEN; ++i) {
+                EXPECT_EQ(param.challenge[i], 0);
+            }
+            return ERR_OK;
+        }));
+
+    ErrCode ret = manager_.CallTaAuthorization(iamToken, TEST_USER_ID, tokenResult, info);
+
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: CallTaAuthorizationTest_0400
+ * @tc.desc: test CallTaAuthorization with challenge size exceeding CHALLENGE_LEN.
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(InnerAuthorizationManagerModuleTest, CallTaAuthorizationTest_0400, TestSize.Level0)
+{
+    ACCOUNT_LOGI("CallTaAuthorizationTest_0400");
+
+    std::vector<uint8_t> iamToken = {1, 2, 3, 4, 5};
+    ConnectAbilityInfo info;
+    info.privilege = TEST_PRIVILEGE;
+    info.callingPid = TEST_CALLING_PID;
+    info.timeout = 300;
+    info.challenge = std::vector<uint8_t>(CHALLENGE_LEN + 1, 0x01);
+    ApplyUserTokenResult tokenResult;
+
+    EXPECT_CALL(MockOsAccountTeeAdapter::GetInstance(), TaAcquireAuthorization(_, _)).Times(0);
+
+    ErrCode ret = manager_.CallTaAuthorization(iamToken, TEST_USER_ID, tokenResult, info);
+
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: CallTaAuthorizationTest_0500
+ * @tc.desc: test CallTaAuthorization with challenge size exactly CHALLENGE_LEN.
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(InnerAuthorizationManagerModuleTest, CallTaAuthorizationTest_0500, TestSize.Level0)
+{
+    ACCOUNT_LOGI("CallTaAuthorizationTest_0500");
+
+    std::vector<uint8_t> iamToken = {1, 2, 3, 4, 5};
+    ConnectAbilityInfo info;
+    info.privilege = TEST_PRIVILEGE;
+    info.callingPid = TEST_CALLING_PID;
+    info.timeout = 300;
+    info.challenge = std::vector<uint8_t>(CHALLENGE_LEN, 0xFF);
+    ApplyUserTokenResult tokenResult;
+
+    EXPECT_CALL(MockOsAccountTeeAdapter::GetInstance(), TaAcquireAuthorization(_, _))
+        .WillOnce(Invoke([](const ApplyUserTokenParam &param, ApplyUserTokenResult &result) {
+            for (size_t i = 0; i < CHALLENGE_LEN; ++i) {
+                EXPECT_EQ(param.challenge[i], 0xFF);
+            }
+            return ERR_OK;
+        }));
+
+    ErrCode ret = manager_.CallTaAuthorization(iamToken, TEST_USER_ID, tokenResult, info);
+
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
  * @tc.name: AdminAuthCallbackCallTaForTokenTest_0100
  * @tc.desc: test admin auth callback passes privilege to TEE.
  * @tc.type: FUNC
