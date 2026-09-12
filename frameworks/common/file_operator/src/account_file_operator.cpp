@@ -612,6 +612,20 @@ bool AccountFileOperator::IsExistFile(const std::string &path)
     return FileExists(path);
 }
 
+bool AccountFileOperator::IsFileSizeExceedsLimit(const std::string &path, int64_t maxSize)
+{
+    if (path.empty()) {
+        ACCOUNT_LOGE("Path is empty.");
+        return false;
+    }
+    std::shared_lock<std::shared_timed_mutex> lock(fileLock_);
+    struct stat fileStat = {};
+    if (stat(path.c_str(), &fileStat) != 0) {
+        return false;
+    }
+    return fileStat.st_size > maxSize;
+}
+
 ErrCode AccountFileOperator::CheckFileExistence(const std::string &path)
 {
     if (path.empty()) {

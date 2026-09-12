@@ -86,6 +86,7 @@ public:
     ErrCode InputFileByPathAndContentWithTransaction(
         const std::string &path, const std::string &content, const mode_t mode = S_IRUSR | S_IWUSR);
     bool IsExistFile(const std::string &path);
+    bool IsFileSizeExceedsLimit(const std::string &path, int64_t maxSize);
 #ifndef INCLUDE_FILE_OPT_ONLY
     bool IsJsonFormat(const std::string &path);
     bool IsJsonFileReady(const std::string &path);

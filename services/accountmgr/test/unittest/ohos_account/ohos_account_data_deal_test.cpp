@@ -14,13 +14,14 @@
  */
 
 #include <fstream>
-#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <iostream>
+#include <sys/stat.h>
 
 #include "account_error_no.h"
 #include "account_info.h"
 #include "account_log_wrapper.h"
+#include "directory_ex.h"
 #define private public
 #include "ohos_account_data_deal.h"
 #undef private
@@ -213,4 +214,143 @@ HWTEST_F(OhosAccountDataDealTest, InvalidOhosAccountJsonTest001, TestSize.Level3
     EXPECT_EQ(accountInfoNew.ohosAccountInfo_.status_, ACCOUNT_STATE_UNBOUND);
     EXPECT_EQ(accountInfoNew.ohosAccountInfo_.name_, TEST_STR_ACCOUNT_NAME);
     EXPECT_EQ(accountInfoNew.ohosAccountInfo_.uid_, TEST_STR_OPEN_ID);
+}
+
+/**
+ * @tc.name: OversizedOhosAccountJsonTest001
+ * @tc.desc: Test oversized account.json is detected and rebuilt during Init
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountDataDealTest, OversizedOhosAccountJsonTest001, TestSize.Level3)
+{
+    int32_t testOversizedUserId = 300;
+    std::string oversizedDir = RESOURCE_ROOT_PATH + std::to_string(testOversizedUserId) + "/";
+    ASSERT_TRUE(OHOS::ForceCreateDirectory(oversizedDir));
+
+    std::string oversizedFile = oversizedDir + "account.json";
+    std::ofstream fout(oversizedFile, std::ios::binary);
+    ASSERT_TRUE(fout.is_open());
+    std::string garbage(1024 * 1024, 'x');
+    for (int i = 0; i < 17; i++) {
+        fout.write(garbage.data(), garbage.size());
+    }
+    fout.close();
+
+    OhosAccountDataDeal dataDeal(RESOURCE_ROOT_PATH);
+#ifdef ENABLE_FILE_WATCHER
+    dataDeal.checkCallbackFunc_ = nullptr;
+#endif // ENABLE_FILE_WATCHER
+    ErrCode errCode = dataDeal.Init(testOversizedUserId);
+    EXPECT_EQ(errCode, ERR_OK);
+    EXPECT_TRUE(dataDeal.initOk_);
+
+    struct stat fileStat = {};
+    EXPECT_EQ(stat(oversizedFile.c_str(), &fileStat), 0);
+    EXPECT_LT(fileStat.st_size, 1024);
+
+    AccountInfo accountInfo;
+    errCode = dataDeal.AccountInfoFromJson(accountInfo, testOversizedUserId);
+    EXPECT_EQ(errCode, ERR_OK);
+    EXPECT_EQ(accountInfo.ohosAccountInfo_.status_, ACCOUNT_STATE_UNBOUND);
+    EXPECT_EQ(accountInfo.ohosAccountInfo_.name_, DEFAULT_OHOS_ACCOUNT_NAME);
+    EXPECT_EQ(accountInfo.ohosAccountInfo_.uid_, DEFAULT_OHOS_ACCOUNT_UID);
+
+    OHOS::ForceRemoveDirectory(oversizedDir);
+}
+
+/**
+ * @tc.name: OversizedOhosAccountJsonBoundaryTest001
+ * @tc.desc: Test exactly 16MB file does NOT trigger oversized removal
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountDataDealTest, OversizedOhosAccountJsonBoundaryTest001, TestSize.Level3)
+{
+    int32_t testUserId = 303;
+    std::string testDir = RESOURCE_ROOT_PATH + std::to_string(testUserId) + "/";
+    ASSERT_TRUE(OHOS::ForceCreateDirectory(testDir));
+
+    std::string testFile = testDir + "account.json";
+    std::ofstream fout(testFile, std::ios::binary);
+    ASSERT_TRUE(fout.is_open());
+    std::string garbage(16 * 1024 * 1024, 'x');
+    fout.write(garbage.data(), garbage.size());
+    fout.close();
+
+    OhosAccountDataDeal dataDeal(RESOURCE_ROOT_PATH);
+#ifdef ENABLE_FILE_WATCHER
+    dataDeal.checkCallbackFunc_ = nullptr;
+#endif // ENABLE_FILE_WATCHER
+    ErrCode errCode = dataDeal.Init(testUserId);
+    EXPECT_EQ(errCode, ERR_ACCOUNT_DATADEAL_JSON_FILE_CORRUPTION);
+
+    OHOS::ForceRemoveDirectory(testDir);
+}
+
+/**
+ * @tc.name: OversizedOhosAccountJsonBoundaryTest002
+ * @tc.desc: Test 16MB+1 byte file triggers oversized removal and rebuild
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountDataDealTest, OversizedOhosAccountJsonBoundaryTest002, TestSize.Level3)
+{
+    int32_t testUserId = 304;
+    std::string testDir = RESOURCE_ROOT_PATH + std::to_string(testUserId) + "/";
+    ASSERT_TRUE(OHOS::ForceCreateDirectory(testDir));
+
+    std::string testFile = testDir + "account.json";
+    std::ofstream fout(testFile, std::ios::binary);
+    ASSERT_TRUE(fout.is_open());
+    std::string garbage(16 * 1024 * 1024, 'x');
+    fout.write(garbage.data(), garbage.size());
+    fout.put('x');
+    fout.close();
+
+    OhosAccountDataDeal dataDeal(RESOURCE_ROOT_PATH);
+#ifdef ENABLE_FILE_WATCHER
+    dataDeal.checkCallbackFunc_ = nullptr;
+#endif // ENABLE_FILE_WATCHER
+    ErrCode errCode = dataDeal.Init(testUserId);
+    EXPECT_EQ(errCode, ERR_OK);
+    EXPECT_TRUE(dataDeal.initOk_);
+
+    OHOS::ForceRemoveDirectory(testDir);
+}
+
+/**
+ * @tc.name: OversizedOhosAccountJsonTest002
+ * @tc.desc: Test oversized account.json is detected and rebuilt during ParseJsonFromFile
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountDataDealTest, OversizedOhosAccountJsonTest002, TestSize.Level3)
+{
+    int32_t testOversizedUserId = 301;
+    std::string oversizedDir = RESOURCE_ROOT_PATH + std::to_string(testOversizedUserId) + "/";
+    ASSERT_TRUE(OHOS::ForceCreateDirectory(oversizedDir));
+
+    std::string oversizedFile = oversizedDir + "account.json";
+    std::ofstream fout(oversizedFile, std::ios::binary);
+    ASSERT_TRUE(fout.is_open());
+    std::string garbage(1024 * 1024, 'x');
+    for (int i = 0; i < 17; i++) {
+        fout.write(garbage.data(), garbage.size());
+    }
+    fout.close();
+
+    OhosAccountDataDeal dataDeal(RESOURCE_ROOT_PATH);
+#ifdef ENABLE_FILE_WATCHER
+    dataDeal.checkCallbackFunc_ = nullptr;
+#endif // ENABLE_FILE_WATCHER
+    dataDeal.initOk_ = true;
+
+    AccountInfo accountInfo;
+    ErrCode errCode = dataDeal.AccountInfoFromJson(accountInfo, testOversizedUserId);
+    EXPECT_EQ(errCode, ERR_OK);
+    EXPECT_EQ(accountInfo.ohosAccountInfo_.status_, ACCOUNT_STATE_UNBOUND);
+    EXPECT_EQ(accountInfo.ohosAccountInfo_.name_, DEFAULT_OHOS_ACCOUNT_NAME);
+
+    OHOS::ForceRemoveDirectory(oversizedDir);
 }
