@@ -14,6 +14,7 @@
  */
 
 #include <memory>
+#include <string>
 #include <gtest/gtest.h>
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
@@ -141,6 +142,47 @@ HWTEST_F(AccountFileOperatorTest, AccountFileOperatorTest006, TestSize.Level3)
         osAccountFileOperator_.GetFileContentByPath(
             "/system/etc/account/os_account_constraint_definition.json", str), ERR_OK);
     GTEST_LOG_(INFO) << str;
+}
+
+/**
+ * @tc.name: AccountFileOperatorTest007
+ * @tc.desc: Test IsFileSizeExceedsLimit with empty path
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountFileOperatorTest, AccountFileOperatorTest007, TestSize.Level3)
+{
+    EXPECT_EQ(osAccountFileOperator_.IsFileSizeExceedsLimit("", 1024), false);
+}
+
+/**
+ * @tc.name: AccountFileOperatorTest008
+ * @tc.desc: Test IsFileSizeExceedsLimit with non-existent file
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountFileOperatorTest, AccountFileOperatorTest008, TestSize.Level3)
+{
+    EXPECT_EQ(osAccountFileOperator_.IsFileSizeExceedsLimit(
+        "/data/service/el1/public/account/nonexistent_file", 1024), false);
+}
+
+/**
+ * @tc.name: AccountFileOperatorTest009
+ * @tc.desc: Test IsFileSizeExceedsLimit with normal and oversized file
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountFileOperatorTest, AccountFileOperatorTest009, TestSize.Level3)
+{
+    std::string testPath = TEST_DIR_1 + "/" + TEST_FILE_1;
+    EXPECT_EQ(osAccountFileOperator_.CreateDir(TEST_DIR_1), ERR_OK);
+    EXPECT_EQ(osAccountFileOperator_.InputFileByPathAndContent(testPath, "hello"), ERR_OK);
+
+    EXPECT_EQ(osAccountFileOperator_.IsFileSizeExceedsLimit(testPath, 1), true);
+    EXPECT_EQ(osAccountFileOperator_.IsFileSizeExceedsLimit(testPath, 100), false);
+
+    EXPECT_EQ(osAccountFileOperator_.DeleteDirOrFile(TEST_DIR_1), ERR_OK);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

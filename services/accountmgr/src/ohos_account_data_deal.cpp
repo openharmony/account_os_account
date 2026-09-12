@@ -46,6 +46,7 @@ const char DATADEAL_JSON_KEY_OHOSACCOUNT_VERSION[] = "version";
 const char DATADEAL_JSON_KEY_USERID[] = "user_id";
 const char DATADEAL_JSON_KEY_BIND_TIME[] = "bind_time";
 const char DATADEAL_JSON_KEY_CREATE_TIME[] = "createTime";
+const int64_t MAX_ACCOUNT_JSON_FILE_SIZE = 16 * 1024 * 1024; // 16MB
 #ifdef ENABLE_FILE_WATCHER
 const uint32_t ALG_COMMON_SIZE = 32;
 #endif // ENABLE_FILE_WATCHER
@@ -160,25 +161,41 @@ ErrCode OhosAccountDataDeal::Init(int32_t userId)
         BuildJsonFileFromScratch(userId);
     }
 
+    if (accountFileOperator_->IsFileSizeExceedsLimit(configFile, MAX_ACCOUNT_JSON_FILE_SIZE)) {
+        ACCOUNT_LOGE("Config file %{public}s size exceeds limit, remove and rebuild.", configFile.c_str());
+        ReportOhosAccountOperationFail(userId, Constants::OPERATION_INIT,
+            ERR_ACCOUNT_DATADEAL_INPUT_FILE_ERROR, "File size exceeds limit: " + configFile);
+        if (!RemoveFile(configFile)) {
+            int32_t err = errno;
+            ACCOUNT_LOGW("Remove oversized json file %{public}s failed.", configFile.c_str());
+            ReportOhosAccountOperationFail(userId, Constants::OPERATION_INIT,
+                err, "Remove oversized file failed: " + configFile);
+        }
+        BuildJsonFileFromScratch(userId);
+    }
+
     std::ifstream fin(configFile);
     if (!fin) {
         int32_t err = errno;
         ACCOUNT_LOGE("Failed to open config file %{public}s, errno %{public}d.", configFile.c_str(), err);
-        ReportOhosAccountOperationFail(userId, Constants::OPERATION_INIT_OPEN_FILE_TO_READ, err, configFile);
+        ReportOhosAccountOperationFail(userId, Constants::OPERATION_INIT,
+            err, "Open config file failed: " + configFile);
         return ERR_ACCOUNT_DATADEAL_INPUT_FILE_ERROR;
     }
 
-    // NOT-allow exceptions when parse json file
     std::lock_guard<std::mutex> lock(mutex_);
     std::string fileContent((std::istreambuf_iterator<char>(fin)), std::istreambuf_iterator<char>());
     fin.close();
     auto jsonData = CreateJsonFromString(fileContent);
     if (jsonData == nullptr || !IsObject(jsonData)) {
         ACCOUNT_LOGE("Invalid json file, remove");
-        if (RemoveFile(configFile)) {
+        ReportOhosAccountOperationFail(userId, Constants::OPERATION_INIT,
+            ERR_ACCOUNT_DATADEAL_JSON_FILE_CORRUPTION, "Invalid json file: " + configFile);
+        if (!RemoveFile(configFile)) {
             int32_t err = errno;
             ACCOUNT_LOGE("Remove invalid json file %{public}s failed, errno %{public}d.", configFile.c_str(), err);
-            ReportOhosAccountOperationFail(userId, Constants::OPERATION_REMOVE_FILE, err, configFile);
+            ReportOhosAccountOperationFail(userId, Constants::OPERATION_INIT,
+                err, "Remove invalid file failed: " + configFile);
         }
         return ERR_ACCOUNT_DATADEAL_JSON_FILE_CORRUPTION;
     }
@@ -262,11 +279,26 @@ ErrCode OhosAccountDataDeal::SaveAccountInfo(const AccountInfo &accountInfo)
 
 ErrCode OhosAccountDataDeal::ParseJsonFromFile(const std::string &filePath, CJsonUnique &jsonData, int32_t userId)
 {
+    if (accountFileOperator_->IsFileSizeExceedsLimit(filePath, MAX_ACCOUNT_JSON_FILE_SIZE)) {
+        ACCOUNT_LOGE("Config file %{public}s size exceeds limit, remove and rebuild.", filePath.c_str());
+        ReportOhosAccountOperationFail(userId, Constants::OPERATION_OPEN_FILE_TO_READ,
+            ERR_ACCOUNT_DATADEAL_INPUT_FILE_ERROR, "File size exceeds limit: " + filePath);
+        if (!RemoveFile(filePath)) {
+            int32_t err = errno;
+            ACCOUNT_LOGE("Remove oversized json file %{public}s failed, errno %{public}d.", filePath.c_str(), err);
+            ReportOhosAccountOperationFail(userId, Constants::OPERATION_OPEN_FILE_TO_READ,
+                err, "Remove oversized file failed: " + filePath);
+            return ERR_ACCOUNT_DATADEAL_INPUT_FILE_ERROR;
+        }
+        BuildJsonFileFromScratch(userId);
+    }
+
     std::ifstream fin(filePath);
     if (!fin) {
         int32_t err = errno;
         ACCOUNT_LOGE("Failed to open config file %{public}s, errno %{public}d.", filePath.c_str(), err);
-        ReportOhosAccountOperationFail(userId, Constants::OPERATION_OPEN_FILE_TO_READ, err, filePath);
+        ReportOhosAccountOperationFail(userId, Constants::OPERATION_OPEN_FILE_TO_READ,
+            err, "Open config file failed: " + filePath);
         return ERR_ACCOUNT_DATADEAL_INPUT_FILE_ERROR;
     }
     std::string fileContent((std::istreambuf_iterator<char>(fin)), std::istreambuf_iterator<char>());
@@ -274,7 +306,8 @@ ErrCode OhosAccountDataDeal::ParseJsonFromFile(const std::string &filePath, CJso
     jsonData = CreateJsonFromString(fileContent);
     if (jsonData == nullptr || !IsObject(jsonData)) {
         ACCOUNT_LOGE("Invalid json file,  %{public}s, remove", filePath.c_str());
-        ReportOhosAccountOperationFail(userId, Constants::OPERATION_OPEN_FILE_TO_READ, -1, "Invalid json file");
+        ReportOhosAccountOperationFail(userId, Constants::OPERATION_OPEN_FILE_TO_READ,
+            ERR_ACCOUNT_DATADEAL_JSON_FILE_CORRUPTION, "Invalid json file: " + filePath);
         return ERR_ACCOUNT_DATADEAL_JSON_FILE_CORRUPTION;
     }
     std::string avatarData;
