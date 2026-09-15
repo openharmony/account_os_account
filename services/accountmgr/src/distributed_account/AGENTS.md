@@ -16,6 +16,15 @@ Distributed Account (OHOS Account) provides account management for OpenHarmony
 distributed scenarios: login/logout, state management, event subscription, data
 persistence, and account anonymization for privacy.
 
+This directory also hosts the **SubProfile lifecycle manager**
+(`os_account_subspace_manager.cpp`, feature-flagged `ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE`)
+and its IPC stub (`os_account_subspace_manager_service.cpp`) and data layer
+(`os_account_subspace_data_deal.cpp`). These manage SubProfile create/remove/switch,
+IAM credential cleanup (`DeleteSubProfileCred`), and CES event publishing
+(`SendSubProfileCES` / `SendSubProfileSwitchCES`). See
+[os_account_subprofile/AGENTS.md](../os_account_subprofile/AGENTS.md) for the
+subscribe/event side.
+
 ### 1.2 Architecture
 
 ```mermaid
@@ -45,6 +54,9 @@ graph LR
 |-----------|------|
 | AccountMgrService (SA 1401) | [../account_mgr_service.cpp](../account_mgr_service.cpp) |
 | OhosAccountManager | [../ohos_account_manager.cpp](../ohos_account_manager.cpp) |
+| SubProfile manager (singleton, `#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE`) | [os_account_subspace_manager.cpp](os_account_subspace_manager.cpp) |
+| SubProfile IPC stub | [os_account_subspace_manager_service.cpp](os_account_subspace_manager_service.cpp) |
+| SubProfile data layer | [os_account_subspace_data_deal.cpp](os_account_subspace_data_deal.cpp) |
 
 ### 1.4 Where to Look (task → path)
 
@@ -57,6 +69,9 @@ graph LR
 | Event subscription / publishing | `distributed_account_subscribe_manager.cpp` |
 | State machine transitions | state-machine transition functions in `../ohos_account_manager.cpp` |
 | SA interactions (StorageManager, BundleManager, etc.) | `AccountMgrService` SA-interaction aggregation in `../account_mgr_service.cpp` |
+| SubProfile lifecycle (create/remove/switch) | `os_account_subspace_manager.cpp` `OsAccountSubProfileManager::CreateSubProfile()` / `RemoveSubProfile()` / `SwitchSubProfile()` |
+| SubProfile IAM credential cleanup | `os_account_subspace_manager.cpp` `DeleteSubProfileCred()` (called from `RemoveSubProfileLocked`, `#ifdef HAS_USER_AUTH_PART`) |
+| SubProfile CES event publishing | `../ohos_account_manager.cpp` `SendSubProfileCES()` / `SendSubProfileSwitchCES()` |
 
 ---
 

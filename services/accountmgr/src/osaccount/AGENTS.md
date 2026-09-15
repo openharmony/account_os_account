@@ -31,6 +31,7 @@ and plugin-based extensions. Runs inside SA 200 (`accountmgr`).
 | **OsAccountConstraintManager** | `include/osaccount/os_account_constraint_manager.h` | `os_account_constraint_manager.cpp` | Check per-account constraints (e.g. `constraint.wifi.set`); load defaults from system config | own mutex |
 | **OsAccountSubscribeManager** | — | `os_account_subscribe_manager.cpp` | Manage dynamic subscribers; publish account status events | `recursive_mutex` |
 | **OsAccountPluginManager** | — | `os_account_plugin_manager.cpp` | Load/execute feature-specific logic during activation or locking | — |
+| **SubProfile context** | `include/osaccount/ios_account_control.h` | `os_account_control_file_manager.cpp` (R/W/Delete context, `#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE`) | Persist SubProfile context (`subprofile_info.json`) per OS account | `accountInfoFileLock_` |
 
 ### 1.4 Where to Look (task → path)
 
@@ -44,6 +45,11 @@ Component-to-file mapping is in §1.3; below are additional location hints:
 | Debug first-user creation during boot | `inner_os_account_manager.cpp` → `CreateBaseStandardAccount` / `ActivateDefaultOsAccount` |
 | Add/modify a plugin behavior for activation/locking | `os_account_plugin_manager.cpp` |
 | Change the lifecycle state machine (§4.6) | `inner_os_account_manager.cpp` — state transition functions |
+| SubProfile context persistence (read/write/delete) | `os_account_control_file_manager.cpp` `ReadSubProfileContext()` / `WriteSubProfileContext()` / `DeleteSubProfileContextFile()` (all `#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE`) |
+| SubProfile boot init for new account | `inner_os_account_manager.cpp` `InitOsAccountSubspaceForNewAccount()` |
+| SubProfile foreground ID persistence | `inner_os_account_manager.cpp` `SetOsAccountForegroundSubspaceId()` / `OsAccountInfo::GetForegroundSubProfileId()` |
+| SubProfile IAM credential cleanup | `distributed_account/os_account_subspace_manager.cpp` `DeleteSubProfileCred()` (triggered from `RemoveSubProfileLocked`) |
+| SubProfile lifecycle (create/remove/switch) | `distributed_account/os_account_subspace_manager.cpp` `OsAccountSubProfileManager` (see [distributed_account/AGENTS.md](../distributed_account/AGENTS.md)) |
 
 ---
 
@@ -68,7 +74,7 @@ Component-to-file mapping is in §1.3; below are additional location hints:
 | Term | Meaning | Read |
 |------|---------|------|
 | `localId` | Unique integer ID of an OS account (e.g. 100) | §4.7 OsAccountInfo |
-| `OsAccountType` | Account type: Admin, Normal, Guest | §4.7 OsAccountInfo |
+| `OsAccountType` | Account type: `ADMIN(0)`, `NORMAL(1)`, `GUEST(2)`, `MAINTENANCE(512)`, `PRIVATE(1024)` | §4.7 OsAccountInfo |
 | `constraints` | Per-account capability restrictions (e.g. `constraint.wifi.set`) | §1.3 OsAccountConstraintManager |
 | `isActived` / `isVerified` | Runtime account state flags | §4.7 OsAccountInfo |
 | `osAccountLock_` | Mutex protecting the in-memory account list `osAccountList_` | §4.4 Concurrency |
@@ -99,6 +105,29 @@ module: service logic / inner API / persistence / constraint / test.
 4. Updates status to `ACTIVATE`.
 5. Triggers `OsAccountSubscribeManager` to notify listeners.
 
+### 3.3 SubProfile Context Persistence & Boot Init
+
+> Feature-flagged (`ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE`). The lifecycle
+> (create/remove/switch) itself is owned by `OsAccountSubProfileManager` in
+> `distributed_account/os_account_subspace_manager.cpp`; this module owns the
+> **persistence layer** and the **boot initialization** for new accounts.
+
+**Persistence** (`os_account_control_file_manager.cpp`, all `#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE`):
+- `ReadSubProfileContext(id, data)` (`:1992`) — reads `{userId}/subprofile_info.json`, deserializes `SubProfileContext`.
+- `WriteSubProfileContext(id, data)` (`:2011`) — serializes `SubProfileContext`, writes to file. Acquires `accountInfoFileLock_`.
+- `DeleteSubProfileContextFile(id)` (`:2025`) — deletes the file; returns `ERR_OK` if not found.
+- `SubProfileContext` struct: `frameworks/common/json_utils/include/sub_profile_context.h:29` — fields `nextSubProfileId`, `subProfileIdList`, `nextSubProfileIndex`, `subProfileIndexMap`.
+
+**Boot init** (`inner_os_account_manager.cpp`):
+- `InitOsAccountSubspaceForNewAccount()` (`:4296`) — called during new-account creation; creates headless base SubProfile, then switches foreground. On failure, cleans up via `DeleteSubProfileContextFile(localId)` (`:4312, :4323`).
+- `SetOsAccountForegroundSubspaceId()` (`:4266`) — reads `OsAccountInfo` via `osAccountControl_->GetOsAccountInfoById`, sets `foregroundSubProfileId_`, persists via `UpdateOsAccount`.
+- `UpdateOsAccountSubspaceInfo()` (`:4285`) — forwards to `WriteSubProfileContext`.
+- `ReadSubProfileContext()` (`:4291`) — forwards to `osAccountControl_->ReadSubProfileContext`.
+
+**Account-create finalization** (`inner_os_account_manager.cpp:903-920`): publishes SubProfile CREATED + SWITCHING + SWITCHED events via `OsAccountSubProfileSubscribeManager::GetInstance().Publish(...)` and CES events via `OhosAccountManager::SendSubProfileCES` / `SendSubProfileSwitchCES`.
+
+**IAM credential cleanup**: `DeleteSubProfileCred()` at `distributed_account/os_account_subspace_manager.cpp:81` is triggered from `RemoveSubProfileLocked` (`:307`) before the SubProfile directory is destroyed (`RemoveSubProfileDir`, `:324`). Blocks on a condition variable (synchronous wrapper). Guarded by `#ifdef HAS_USER_AUTH_PART`.
+
 ---
 
 ## 4. Constraints & Boundaries
@@ -114,11 +143,17 @@ IDL-generated code, HiSysEvent definitions) — see root
   SA of the accountmgr process).
 - **Do not change event names** (`OS_ACCOUNT_ON_ACTIVE`, `OS_ACCOUNT_ON_STOPPING`)
   — subscribers depend on them.
-- **Do not change `OsAccountType` enum values** (Admin, Normal, Guest) —
-  persisted and used across IPC; changing values breaks compatibility.
+- **Do not change `OsAccountType` enum values** (`ADMIN=0`, `NORMAL=1`,
+  `GUEST=2`, `MAINTENANCE=512`, `PRIVATE=1024`) — persisted and used across IPC;
+  changing values breaks compatibility. The `RESTRICTED_ADMIN = -1` value was
+  removed; any type `< 0` is rejected by `IsTypeOutOfRange`.
 - **Do not change `OsAccountInfo` serialization format** — the JSON schema is
   persisted on disk and crosses IPC; changing field names breaks upgrade
   compatibility (Root AGENTS.md §3.1).
+- **Do not change `subprofile_info.json` schema** (`SubProfileContext`:
+  `nextSubProfileId`, `subProfileIdList`, `nextSubProfileIndex`,
+  `subProfileIndexMap`) — persisted per OS account under
+  `#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE` (Root AGENTS.md §4.2).
 - **Do not hold `osAccountLock_` during IPC or disk I/O** — risk of deadlock or
   IPC thread exhaustion (Root AGENTS.md §3.4 Pitfall 6). Release the lock before
   I/O or move work to an async path.
@@ -179,6 +214,10 @@ stateDiagram-v2
     }
 ```
 
+> **State name aliases** (used in some API/docs as lowercase -ing forms):
+> `CREATED` ≈ `created`/`creating`, `ACTIVATE` ≈ `activating`, `ACTIVATED` ≈ `active`,
+> `STOPPING` ≈ `stopping`, `REMOVING` ≈ `removing`. The `OsAccountState` enum in code uses uppercase.
+
 ### 4.7 Key Data Structure: OsAccountInfo
 
 - **File**: `interfaces/innerkits/osaccount/native/include/os_account_info.h`
@@ -189,6 +228,7 @@ stateDiagram-v2
   - `std::vector<std::string> constraints_` — applied constraints
   - `bool isActived_` — runtime active state
   - `bool isVerified_` — whether the account is verified
+  - `int32_t foregroundSubProfileId_ = -1` — foreground SubProfile ID (`#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE`); `-1` means no foreground subprofile set (NOT implicitly mapped to headless base; callers must handle `-1` explicitly). See `os_account_info.h:219-244`.
 - **Persistence**: Serialized to JSON string for `OsAccountDataStorage`.
 - **OsAccountDomainAccountCallback** (`os_account_domain_account_callback.cpp`):
   Handles domain account callbacks for enterprise scenarios.
