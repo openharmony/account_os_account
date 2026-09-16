@@ -54,10 +54,12 @@ to applications and **internal C++ inner APIs** to other system abilities.
 
 (Use `codegraph_files` or `ls` for the full tree on demand; below are high-frequency modification paths.)
 
-- `services/accountmgr/src/<type>/` — service logic (osaccount / appaccount / domain_account / account_iam); `account_mgr_service.cpp` is the SA 200 entry, HIGH-RISK
-- `frameworks/<type>/native/` — per-account-type framework implementation
-- `interfaces/innerkits/<type>/native/include/` — internal C++ API (inter-SA, compatibility-sensitive)
-- `interfaces/kits/{napi,capi,cj}/` — public external API (do-not-break)
+- `services/accountmgr/src/<type>/` — service logic (osaccount / appaccount / domain_account / account_iam / authorization_manager); `account_mgr_service.cpp` is the SA 200 entry, HIGH-RISK
+- `services/accountmgr/src/os_account_subprofile/` — SubProfile subscribe manager + death recipient (feature-flagged; see `os_account_enable_multiple_os_account_sub_profiles`)
+- `services/accountmgr/src/authorization_manager/` — privilege authorization service: TEE token issuance, privilege cache, UI-extension connection (feature-flagged; see `os_account_support_authorization`)
+- `frameworks/<type>/native/` — per-account-type framework implementation (also `frameworks/authorization/` for authorization client + IDL, `frameworks/os_account_subspace/` for SubProfile framework)
+- `interfaces/innerkits/<type>/native/include/` — internal C++ API (inter-SA, compatibility-sensitive); also `interfaces/innerkits/authorization/` and `interfaces/innerkits/os_account_subspace/`
+- `interfaces/kits/{napi,capi,cj}/` — public external API (do-not-break); NAPI authorization public at `interfaces/kits/napi/authorization_public/`
 - `os_account.gni` (feature flags) / `dfx/` (HiDumper·HiSysEvent·HiTrace) / `sa_profile/accountmgr.json` (SA profile) / `tools/acm/` (CLI) / `.refdocs/` (architecture/dev guide/FAQ)
 
 ### 1.3 Nested AGENTS.md (read these first when working in the module)
@@ -73,6 +75,8 @@ editing that module.**
 | `services/accountmgr/src/distributed_account/` | [services/accountmgr/src/distributed_account/AGENTS.md](services/accountmgr/src/distributed_account/AGENTS.md) — OhosAccountManager, DVID generation, anonymization, JSON schema |
 | `services/accountmgr/src/account_iam/` | [services/accountmgr/src/account_iam/AGENTS.md](services/accountmgr/src/account_iam/AGENTS.md) — credential management, EL2/EL3/EL4 unlock, IAM state machine, token validity |
 | `services/accountmgr/src/domain_account/` | [services/accountmgr/src/domain_account/AGENTS.md](services/accountmgr/src/domain_account/AGENTS.md) — InnerDomainAccountManager, SO/JS plugin dispatch, domain bind/unbind, domain unlock, PluginMethodEnum, server configs |
+| `services/accountmgr/src/os_account_subprofile/` | [services/accountmgr/src/os_account_subprofile/AGENTS.md](services/accountmgr/src/os_account_subprofile/AGENTS.md) — OsAccountSubProfileSubscribeManager, SubProfile event types (CREATED/DELETED/SWITCHING/SWITCHED), death recipient |
+| `services/accountmgr/src/authorization_manager/` | [services/accountmgr/src/authorization_manager/AGENTS.md](services/accountmgr/src/authorization_manager/AGENTS.md) — AuthorizationManagerService, InnerAuthorizationManager, PrivilegeCacheManager, SessionAbilityConnection, TEE token, privilege cache persistence |
 
 ### 1.4 Where to Look (task / path → primary location + read-first)
 
@@ -106,7 +110,9 @@ editing that module.**
 | App account inner | `services/accountmgr/src/appaccount/inner_app_account_manager.cpp` | Coordinator; delegates to control/session/subscribe managers |
 | Distributed account | `services/accountmgr/src/ohos_account_manager.cpp` | Login/logout state machine; DVID generation |
 | IAM inner | `services/accountmgr/src/account_iam/inner_account_iam_manager.cpp` | Credential lifecycle; EL2/EL3/EL4 unlock |
-| Error codes | `interfaces/innerkits/common/include/account_error_no.h` | All `ERR_*` definitions |
+| SubProfile manager | `services/accountmgr/src/distributed_account/os_account_subspace_manager.cpp` | SubProfile create/remove/switch lifecycle; singleton; feature-flagged (`ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE`) |
+| Authorization inner | `services/accountmgr/src/authorization_manager/inner_authorization_manager.cpp` | TEE token issuance, privilege cache updates, UI-extension orchestration; singleton; feature-flagged (`SUPPORT_AUTHORIZATION`) |
+| Error codes | `interfaces/innerkits/common/include/account_error_no.h` (declaration) + `frameworks/common/account_error/src/account_error_no.cpp` (conversion impl) | `ERR_*` enums + offset constants; `ConvertToJSErrCode` → `g_errorStringMap` → JS error code mapping |
 
 ### 1.6 Feature Flags
 
@@ -127,6 +133,8 @@ behavior across the entire subsystem — check impact before toggling.
 | `os_account_enable_account_1` | User 1 support |
 | `os_account_support_lock_os_account` | Account lock feature |
 | `os_account_support_authorization` | Authorization manager |
+| `os_account_enable_multiple_os_account_sub_profiles` | Multiple OS account sub-profiles (SubProfile); C++ macro `ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE` |
+| `os_account_support_posix_adapter` | POSIX adapter support (forced on when `os_account_support_authorization` is enabled) |
 
 ### 1.7 API Reference
 
@@ -135,6 +143,7 @@ behavior across the entire subsystem — check impact before toggling.
 - [app_account_manager.h](interfaces/innerkits/appaccount/native/include/app_account_manager.h)
 - [domain_account_client.h](interfaces/innerkits/domain_account/native/include/domain_account_client.h)
 - [account_iam_client.h](interfaces/innerkits/account_iam/native/include/account_iam_client.h)
+- [authorization_client.h](interfaces/innerkits/authorization/native/include/authorization_client.h)
 - [account_error_no.h](interfaces/innerkits/common/include/account_error_no.h) — error codes
 
 **External NAPI APIs** (public, do-not-break):
@@ -183,6 +192,7 @@ indicated source before editing:
 | KV Store / SQLite | Distributed KV (`distributeddata_inner`) or local SQLite fallback | §4 Data Storage; `os_account_distributed_feature` flag |
 | `memset_s` | Secure-clear sensitive data (credentials/tokens) after use | [appaccount/AGENTS.md](services/accountmgr/src/appaccount/AGENTS.md) §"Security Considerations" |
 | `OsAccountInfo` | Core struct: `localId`, `localName`, `type`, `constraints`, `isActived` | [osaccount/AGENTS.md](services/accountmgr/src/osaccount/AGENTS.md) §"Key Data Structures" |
+| `ERR_*` / error codes | Declarations in `account_error_no.h`; conversion impl in `account_error_no.cpp` (`ConvertToJSErrCode` → `g_errorStringMap` → JS error codes) | §1.5 Error codes row |
 | IAM fault flag | File marking a user needs key-context restoration after a crash | [account_iam/AGENTS.md](services/accountmgr/src/account_iam/AGENTS.md) §"IAM Fault Flag" |
 
 ### 2.3 Pre-edit protocol
@@ -405,7 +415,10 @@ permission context.
   Historical: "EDM-created admin user type query returned `RESTRICTED_ADMIN`
   (-1) to callers with `MANAGE_LOCAL_ACCOUNTS` permission but `ADMIN` (0) to
   those without — causing update failures and -1 being persisted to disk,
-  breaking OTA upgrades. Fixed in commit `da3119de3`."
+  breaking OTA upgrades. The anti-pattern was introduced in commit
+  `da3119de3` and removed in commit `bb813e253` (which also deleted the
+  `RESTRICTED_ADMIN = -1` enum value). A read-side normalization (-1 → ADMIN)
+  remains in `os_account_control_file_manager.cpp` as OTA dirty-data defense."
 
 **Code-level evidence checklist (CE11):**
 - At every `VerifyPermission` / `CheckPermission` / `VerifyAccessToken` call site, confirm the permission result controls **whether** data is returned (access control: deny → error code, allow → standard data), not **what** data value is returned.
@@ -466,9 +479,13 @@ without upgrade-compatibility handling** (see §3.1).
 | `{userId}\account.json` | Restore base info for distributed account |
 | `{userId}\account_avatar` | Restore avatar for distributed accounts |
 | `{userId}\account_info.json` | Restore base info for current OS account |
+| `{userId}\subprofile_info.json` | Restore SubProfile context (nextSubProfileId, subProfileIdList, indexMap); feature-flagged (`ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE`) |
+| `privilege_cache.json` | Restore privilege cache (per-process granted privileges + expiry); feature-flagged (`SUPPORT_AUTHORIZATION`) |
 
 See [distributed_account/AGENTS.md](services/accountmgr/src/distributed_account/AGENTS.md)
 for the distributed-account JSON schema (version, bind_time, user_id, etc.).
+See [authorization_manager/AGENTS.md](services/accountmgr/src/authorization_manager/AGENTS.md)
+for the privilege_cache.json schema (HUKS-digest-protected).
 
 ---
 
