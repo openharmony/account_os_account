@@ -108,6 +108,28 @@ public:
     bool QueryExtensionAbilityInfos(const Want &want, const ExtensionAbilityType &extensionType,
         const int32_t &flag, const int32_t &userId, std::vector<ExtensionAbilityInfo> &extensionInfos) override;
 
+    /**
+     * @brief Queries extension ability infos via the V9 interface with error code.
+     * @param want Indicates the information of the extension ability to query.
+     * @param flags Indicates the query flag which filters specified info in the extension info.
+     * @param userId Indicates the user ID.
+     * @param extensionInfos Indicates the obtained extension ability infos.
+     * @return Returns ERR_OK if successfully called; returns an error code otherwise.
+     */
+    ErrCode QueryExtensionAbilityInfosV9(const Want &want, int32_t flags, int32_t userId,
+        std::vector<ExtensionAbilityInfo> &extensionInfos) override;
+
+    /**
+     * @brief Obtains the main and clone bundle infos for a given bundle name.
+     * @param bundleName Indicates the bundle name to be queried.
+     * @param flags Indicates the information contained in the BundleInfo to be returned.
+     * @param userId Indicates the user ID.
+     * @param bundleInfos Indicates the obtained main and clone BundleInfo vector.
+     * @return Returns ERR_OK if successfully called; returns an error code otherwise.
+     */
+    ErrCode GetMainAndCloneBundleInfo(const std::string &bundleName, uint32_t flags,
+        int32_t userId, std::vector<BundleInfo> &bundleInfos) override;
+
     template<typename T>
     ErrCode GetParcelableInfosWithErrCode(BundleMgrInterfaceCode code, MessageParcel &data,
         std::vector<T> &parcelableInfos);

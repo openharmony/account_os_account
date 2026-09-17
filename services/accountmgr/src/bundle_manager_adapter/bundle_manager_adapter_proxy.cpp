@@ -395,6 +395,95 @@ bool BundleManagerAdapterProxy::QueryExtensionAbilityInfos(const Want &want, con
     return true;
 }
 
+ErrCode BundleManagerAdapterProxy::QueryExtensionAbilityInfosV9(const Want &want, int32_t flags, int32_t userId,
+    std::vector<ExtensionAbilityInfo> &extensionInfos)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("fail to QueryExtensionAbilityInfosV9 due to write InterfaceToken fail");
+        return ERR_APPEXECFWK_PARCEL_ERROR;
+    }
+    if (!data.WriteParcelable(&want)) {
+        ACCOUNT_LOGE("fail to QueryExtensionAbilityInfosV9 due to write want fail");
+        return ERR_APPEXECFWK_PARCEL_ERROR;
+    }
+    if (!data.WriteInt32(flags)) {
+        ACCOUNT_LOGE("fail to QueryExtensionAbilityInfosV9 due to write flags fail");
+        return ERR_APPEXECFWK_PARCEL_ERROR;
+    }
+    if (!data.WriteInt32(userId)) {
+        ACCOUNT_LOGE("fail to QueryExtensionAbilityInfosV9 due to write userId fail");
+        return ERR_APPEXECFWK_PARCEL_ERROR;
+    }
+
+    MessageParcel reply;
+    if (!SendTransactCmd(BundleMgrInterfaceCode::QUERY_EXTENSION_INFO_WITHOUT_TYPE_V9, data, reply)) {
+        ACCOUNT_LOGE("fail to QueryExtensionAbilityInfosV9 from server");
+        return ERR_BUNDLE_MANAGER_IPC_TRANSACTION;
+    }
+    ErrCode ret = reply.ReadInt32();
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("QueryExtensionAbilityInfosV9 err: %{public}d", ret);
+        return ret;
+    }
+    int32_t infoSize = reply.ReadInt32();
+    if (infoSize < 0 || infoSize > MAX_INFO_SIZE) {
+        ACCOUNT_LOGE("invalid infoSize: %{public}d", infoSize);
+        return ERR_BUNDLE_MANAGER_INTERNAL_ERROR;
+    }
+    for (int32_t i = 0; i < infoSize; i++) {
+        std::unique_ptr<ExtensionAbilityInfo> info(reply.ReadParcelable<ExtensionAbilityInfo>());
+        if (info == nullptr) {
+            ACCOUNT_LOGE("Read Parcelable infos failed");
+            return ERR_BUNDLE_MANAGER_INTERNAL_ERROR;
+        }
+        extensionInfos.emplace_back(*info);
+    }
+    return ERR_OK;
+}
+
+ErrCode BundleManagerAdapterProxy::GetMainAndCloneBundleInfo(const std::string &bundleName, uint32_t flags,
+    int32_t userId, std::vector<BundleInfo> &bundleInfos)
+{
+    if (bundleName.empty()) {
+        ACCOUNT_LOGE("fail to GetMainAndCloneBundleInfo due to bundleName empty");
+        return ERR_APPEXECFWK_PARCEL_ERROR;
+    }
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("fail to GetMainAndCloneBundleInfo due to write InterfaceToken fail");
+        return ERR_APPEXECFWK_PARCEL_ERROR;
+    }
+    if (!data.WriteString(bundleName)) {
+        ACCOUNT_LOGE("fail to GetMainAndCloneBundleInfo due to write bundleName fail");
+        return ERR_APPEXECFWK_PARCEL_ERROR;
+    }
+    if (!data.WriteUint32(flags)) {
+        ACCOUNT_LOGE("fail to GetMainAndCloneBundleInfo due to write flags fail");
+        return ERR_APPEXECFWK_PARCEL_ERROR;
+    }
+    if (!data.WriteInt32(userId)) {
+        ACCOUNT_LOGE("fail to GetMainAndCloneBundleInfo due to write userId fail");
+        return ERR_APPEXECFWK_PARCEL_ERROR;
+    }
+
+    MessageParcel reply;
+    if (!SendTransactCmd(BundleMgrInterfaceCode::GET_MAIN_AND_CLONE_BUNDLE_INFO, data, reply)) {
+        ACCOUNT_LOGE("fail to GetMainAndCloneBundleInfo from server");
+        return ERR_BUNDLE_MANAGER_IPC_TRANSACTION;
+    }
+    ErrCode ret = reply.ReadInt32();
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("GetMainAndCloneBundleInfo err: %{public}d", ret);
+        return ret;
+    }
+    if (InnerGetVectorFromParcelIntelligent<BundleInfo>(reply, bundleInfos) != ERR_OK) {
+        ACCOUNT_LOGE("GetMainAndCloneBundleInfo parse vector failed");
+        return ERR_BUNDLE_MANAGER_INTERNAL_ERROR;
+    }
+    return ERR_OK;
+}
+
 bool BundleManagerAdapterProxy::GetData(void *&buffer, size_t size, const void *data)
 {
     if (data == nullptr) {
