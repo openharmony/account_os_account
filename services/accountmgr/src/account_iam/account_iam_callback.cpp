@@ -156,11 +156,13 @@ ErrCode AuthCallback::InnerHandleReEnroll(const std::vector<uint8_t> &token)
         ACCOUNT_LOGE("ReEnroll: failed to allocate callback");
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
+    constexpr char REENROLL_ADDITIONAL_INFO[] = "{\"enrollIntent\":1}";
     CredentialParameters credInfo = {
         .authType = AuthType::PIN,
         // `pinType` is unused in iam
         .pinType = PinSubType::PIN_SIX,
-        .token = token
+        .token = token,
+        .additionalInfo = REENROLL_ADDITIONAL_INFO
     };
     InnerAccountIAMManager::GetInstance().UpdateCredential(userId_, credInfo, callback);
     std::fill(credInfo.token.begin(), credInfo.token.end(), 0);
