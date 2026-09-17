@@ -16,6 +16,8 @@
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_TEST_MOCK_APP_ACCOUNT_INFO_ERROR_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_TEST_MOCK_APP_ACCOUNT_INFO_ERROR_H
 
+#include <string>
+
 namespace OHOS {
 namespace AccountSA {
 enum AccountDataStorageErrType {
@@ -31,6 +33,8 @@ enum AccountDataStorageErrType {
 
 extern int g_accountDataStorageErrType;
 extern bool g_mockLoadDataNonEmpty;
+extern bool g_mockGetAccountInfoByIdCustom;
+extern std::string g_mockAccountInfoJson;
 }
 }
 #endif // OS_ACCOUNT_SERVICES_ACCOUNTMGR_TEST_MOCK_APP_ACCOUNT_INFO_ERROR_H
