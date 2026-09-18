@@ -22,6 +22,7 @@ static { loadLibrary("authorization_taihe_native.z") }
 
 enum Privilege: String {
     PRIVILEGE_OPERATE_RAW_NET_PACKETS = "ohos.privilege.operate_raw_net_packets",
+    PRIVILEGE_MONITOR_RAW_USB_PACKETS = "ohos.privilege.monitor_raw_usb_packets",
 }
 
 enum AuthorizationResultCode: i32 {
