@@ -743,6 +743,25 @@ HWTEST_F(OsAccountTest, StringRawData_001, TestSize.Level3)
 }
 
 /**
+ * @tc.name: StringRawData_002
+ * @tc.desc: Test Unmarshalling with length exceeding the upper limit.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountTest, StringRawData_002, TestSize.Level3)
+{
+    StringRawData rawData;
+    uint32_t oversizeLength = Constants::IPC_WRITE_RAW_DATA_MAX_SIZE;
+    std::string oversizeData(sizeof(uint32_t), 'a');
+    rawData.serializedData = std::string(reinterpret_cast<const char *>(&oversizeLength), sizeof(oversizeLength)) +
+        oversizeData;
+    rawData.data = reinterpret_cast<const void *>(rawData.serializedData.data());
+    rawData.size = rawData.serializedData.length();
+    string out = STRING_NAME;
+    EXPECT_EQ(rawData.Unmarshalling(out), ERR_OK);
+    EXPECT_EQ(out, STRING_NAME);
+}
+
+/**
  * @tc.name: OnComplete_001
  * @tc.desc: Test that neither cv_ nor callbackCounter is empty.
  * @tc.type: FUNC
