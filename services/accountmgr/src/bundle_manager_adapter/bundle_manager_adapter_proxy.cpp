@@ -843,6 +843,52 @@ bool BundleManagerAdapterProxy::SendData(void *&buffer, size_t size, const void 
     return true;
 }
 
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+ErrCode BundleManagerAdapterProxy::BatchSetApplicationEnabled(int32_t userId, int32_t enableAppIndex,
+    int32_t disableAppIndex, bool killProcess, bool needSendEvent)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("BatchSetApplicationEnabled write InterfaceToken failed");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteInt32(userId)) {
+        ACCOUNT_LOGE("BatchSetApplicationEnabled write userId failed");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteInt32(enableAppIndex)) {
+        ACCOUNT_LOGE("BatchSetApplicationEnabled write enableAppIndex failed");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteInt32(disableAppIndex)) {
+        ACCOUNT_LOGE("BatchSetApplicationEnabled write disableAppIndex failed");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteBool(killProcess)) {
+        ACCOUNT_LOGE("BatchSetApplicationEnabled write killProcess failed");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteBool(needSendEvent)) {
+        ACCOUNT_LOGE("BatchSetApplicationEnabled write needSendEvent failed");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        ACCOUNT_LOGE("BatchSetApplicationEnabled remote is null");
+        return ERR_BUNDLE_MANAGER_IPC_TRANSACTION;
+    }
+    int32_t result = remote->SendRequest(
+        static_cast<uint32_t>(BundleMgrInterfaceCode::BATCH_SET_CLONE_APPLICATION_ENABLED), data, reply, option);
+    if (result != NO_ERROR) {
+        ACCOUNT_LOGE("BatchSetApplicationEnabled SendRequest failed, result=%{public}d", result);
+        return result;
+    }
+    return reply.ReadInt32();
+}
+#endif
+
 bool BundleManagerAdapterProxy::SendTransactCmd(
     BundleMgrInterfaceCode code, MessageParcel &data, MessageParcel &reply)
 {

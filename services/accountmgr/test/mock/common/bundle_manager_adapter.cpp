@@ -334,5 +334,14 @@ ErrCode BundleManagerAdapter::GetMainAndCloneBundleInfo(
     }
     return ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST;
 }
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+ErrCode BundleManagerAdapter::BatchSetApplicationEnabled(int32_t userId, int32_t enableAppIndex,
+    int32_t disableAppIndex, bool killProcess, bool needSendEvent)
+{
+    ACCOUNT_LOGI("BatchSetApplicationEnabled mock, userId=%{public}d, enable=%{public}d",
+        userId, enableAppIndex);
+    return g_resultCode;
+}
+#endif
 }  // namespace AccountSA
 }  // namespace OHOS

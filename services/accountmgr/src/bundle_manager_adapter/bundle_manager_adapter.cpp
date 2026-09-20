@@ -243,6 +243,28 @@ ErrCode BundleManagerAdapter::RemoveUser(int32_t userId)
     return ERR_OK;
 }
 
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+ErrCode BundleManagerAdapter::BatchSetApplicationEnabled(int32_t userId, int32_t enableAppIndex,
+    int32_t disableAppIndex, bool killProcess, bool needSendEvent)
+{
+    std::lock_guard<std::mutex> lock(proxyMutex_);
+    ErrCode err = Connect();
+    if (err != ERR_OK) {
+        ACCOUNT_LOGE("Connect BundleManager failed, err=%{public}d", err);
+        return err;
+    }
+    if (proxy_ == nullptr) {
+        ACCOUNT_LOGE("BundleMgr proxy is null");
+        return ERR_ACCOUNT_COMMON_CONNECT_BUNDLE_MANAGER_SERVICE_ERROR;
+    }
+    StartTraceAdapter("BatchSetApplicationEnabled");
+    ErrCode result = proxy_->BatchSetApplicationEnabled(
+        userId, enableAppIndex, disableAppIndex, killProcess, needSendEvent);
+    FinishTraceAdapter();
+    return result;
+}
+#endif
+
 ErrCode BundleManagerAdapter::Connect()
 {
     if (proxy_ == nullptr) {

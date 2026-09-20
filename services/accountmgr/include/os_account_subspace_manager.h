@@ -75,9 +75,9 @@ private:
         int32_t allocatedIndex, SubProfileContext &subprofileCtx);
     ErrCode RemoveSubProfileLocked(int32_t osAccountId, int32_t subspaceId);
     void UpdateContextAfterRemove(int32_t osAccountId, int32_t subspaceId);
-    ErrCode SwitchSubProfileLocked(int32_t osAccountId, int32_t subspaceId, int32_t &fromSubspaceId);
     void RemoveOsAccountSubProfileInfo(int32_t osAccountId, int32_t subspaceId,
         const SubProfileContext &subprofileCtx);
+    ErrCode InnerSwitchSubProfile(int32_t osAccountId, int32_t subspaceId, int32_t fromSubspaceId);
     ErrCode TryReclaimSubProfileSlots(int32_t osAccountId, SubProfileContext &subprofileCtx);
     int32_t RemoveGarbageSubProfiles(int32_t osAccountId);
     void PurgeGarbageIdsFromContext(int32_t osAccountId, const std::set<int32_t> &garbageIds);
@@ -85,13 +85,22 @@ private:
         OsAccountSubspaceResult &subspaceResult, OhosAccountInfo &distributedInfo);
     ErrCode ResolveSubProfileIndexFromContext(int32_t osAccountId, int32_t subProfileId,
         int32_t &resolvedIndex);
+    ErrCode ResolveSwitchAppIndices(int32_t osAccountId, int32_t enableSubprofileId,
+        int32_t disableSubprofileId, int32_t &enableAppIndex, int32_t &disableAppIndex);
+    ErrCode SyncBMSApplicationState(int32_t osAccountId, int32_t enableAppIndex, int32_t disableAppIndex);
+    int32_t GetRuntimeForegroundSubProfileId(int32_t osAccountId);
+    void SetRuntimeForegroundSubProfileId(int32_t osAccountId, int32_t subProfileId);
     ErrCode FilterValidSubProfileIdsLocked(int32_t base,
         const std::vector<std::pair<int32_t, OsAccountSubspaceInfo>> &loadedProfiles,
         std::vector<int32_t> &subProfileIds);
 
     std::shared_mutex subProfileOpMutex_;
+    std::mutex switchSerializeMutex_;
+    std::set<int32_t> switchingAccounts_;
+    std::shared_mutex runtimeMapMutex_;
     std::string rootPath_;
     std::unique_ptr<OsAccountSubProfileDataDeal> subProfileDataDeal_;
+    std::map<int32_t, int32_t> foregroundSubProfileRuntimeMap_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

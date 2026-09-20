@@ -34,11 +34,13 @@
 #include "os_account_subspace_manager.h"
 #undef private
 
+#include "account_constants.h"
 #include "account_error_no.h"
 #include "account_info.h"
 #include "account_log_wrapper.h"
 #include "account_test_common.h"
 #include "accesstoken_kit.h"
+#include "bundle_manager_adapter.h"
 #include "mock_space_dependencies.h"
 #include "mock_user_idm_client.h"
 #include "os_account_constants.h"
@@ -693,6 +695,12 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchSpace_Success_001, TestSize.Level1)
     info.toBeRemoved = false;
     ASSERT_EQ(mgr.subProfileDataDeal_->SaveSubProfileInfo(info), ERR_OK);
 
+    SubProfileContext ctx;
+    ctx.subProfileIdList.push_back(OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER);
+    ctx.subProfileIdList.push_back(distId);
+    ctx.subProfileIndexMap[1] = distId;
+    ASSERT_EQ(IInnerOsAccountManager::GetInstance().UpdateOsAccountSubspaceInfo(OS_ACCOUNT_ID_A, ctx), ERR_OK);
+
     int32_t fromSubspaceId = 0;
     ErrCode ret = mgr.SwitchSubProfile(OS_ACCOUNT_ID_A, distId, fromSubspaceId);
     EXPECT_EQ(ret, ERR_OK);
@@ -749,6 +757,12 @@ HWTEST_F(OsAccountSubspaceModuleTest, RemoveSpace_Foreground_001, TestSize.Level
     info2.isCreateCompleted = true;
     info2.toBeRemoved = false;
     ASSERT_EQ(mgr.subProfileDataDeal_->SaveSubProfileInfo(info2), ERR_OK);
+
+    SubProfileContext ctx;
+    ctx.subProfileIdList.push_back(OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER);
+    ctx.subProfileIdList.push_back(distId1);
+    ctx.subProfileIndexMap[1] = distId1;
+    ASSERT_EQ(IInnerOsAccountManager::GetInstance().UpdateOsAccountSubspaceInfo(OS_ACCOUNT_ID_A, ctx), ERR_OK);
 
     // Try to switch to distId1 to make it foreground
     int32_t fromSubspaceId = 0;
@@ -991,6 +1005,12 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchOsAccountSubspace_Publish_001, TestS
     info.toBeRemoved = false;
     ASSERT_EQ(mgr.subProfileDataDeal_->SaveSubProfileInfo(info), ERR_OK);
 
+    SubProfileContext ctx;
+    ctx.subProfileIdList.push_back(OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER);
+    ctx.subProfileIdList.push_back(distId);
+    ctx.subProfileIndexMap[1] = distId;
+    ASSERT_EQ(IInnerOsAccountManager::GetInstance().UpdateOsAccountSubspaceInfo(OS_ACCOUNT_ID_A, ctx), ERR_OK);
+
     int32_t fromSubspaceId = -1;
     ErrCode ret = OhosAccountManager::GetInstance().SwitchOsAccountSubspace(
         OS_ACCOUNT_ID_A, distId, fromSubspaceId);
@@ -1212,6 +1232,157 @@ HWTEST_F(OsAccountSubspaceModuleTest, SwitchOsAccountSubspace_ActiveSessionRejec
     IInnerOsAccountManager::GetInstance().SetOsAccountForegroundSubspaceId(ACCOUNT_ID, originalFg);
     mgr.subProfileDataDeal_->RemoveSubProfileDir(ACCOUNT_ID, fgCreatedInfo.subspaceId);
     mgr.subProfileDataDeal_->RemoveSubProfileDir(ACCOUNT_ID, targetCreatedInfo.subspaceId);
+}
+
+/**
+ * @tc.name: SwitchSpace_BMS_Success_001
+ * @tc.desc: SwitchSubProfile with BMS sync success, verify runtime cache updated.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountSubspaceModuleTest, SwitchSpace_BMS_Success_001, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfoA;
+    osAccountInfoA.SetLocalId(OS_ACCOUNT_ID_A);
+    MockSetCreatedOsAccounts({osAccountInfoA});
+
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
+    mgr.Init(TEST_ROOT_DIR);
+
+    int32_t distId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 10;
+    OsAccountSubspaceInfo info;
+    info.userId_ = OS_ACCOUNT_ID_A;
+    info.subspaceId = distId;
+    info.isCreateCompleted = true;
+    info.toBeRemoved = false;
+    ASSERT_EQ(mgr.subProfileDataDeal_->SaveSubProfileInfo(info), ERR_OK);
+
+    // Create SubProfileContext with index mapping
+    SubProfileContext ctx;
+    ctx.nextSubProfileId = distId + 1;
+    ctx.subProfileIdList.push_back(OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER);
+    ctx.subProfileIdList.push_back(distId);
+    ctx.subProfileIndexMap[1] = distId;
+    ASSERT_EQ(IInnerOsAccountManager::GetInstance().UpdateOsAccountSubspaceInfo(OS_ACCOUNT_ID_A, ctx), ERR_OK);
+
+    int32_t fromSubspaceId = 0;
+    ErrCode ret = mgr.SwitchSubProfile(OS_ACCOUNT_ID_A, distId, fromSubspaceId);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(mgr.GetRuntimeForegroundSubProfileId(OS_ACCOUNT_ID_A), distId);
+}
+
+/**
+ * @tc.name: SwitchSpace_BMS_Failure_Rollback_001
+ * @tc.desc: SwitchSubProfile BMS sync failure, verify runtime cache rolled back.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountSubspaceModuleTest, SwitchSpace_BMS_Failure_Rollback_001, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfoA;
+    osAccountInfoA.SetLocalId(OS_ACCOUNT_ID_A);
+    MockSetCreatedOsAccounts({osAccountInfoA});
+
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
+    mgr.Init(TEST_ROOT_DIR);
+
+    int32_t distId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 11;
+    OsAccountSubspaceInfo info;
+    info.userId_ = OS_ACCOUNT_ID_A;
+    info.subspaceId = distId;
+    info.isCreateCompleted = true;
+    info.toBeRemoved = false;
+    ASSERT_EQ(mgr.subProfileDataDeal_->SaveSubProfileInfo(info), ERR_OK);
+
+    SubProfileContext ctx;
+    ctx.subProfileIdList.push_back(OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER);
+    ctx.subProfileIdList.push_back(distId);
+    ctx.subProfileIndexMap[1] = distId;
+    ASSERT_EQ(IInnerOsAccountManager::GetInstance().UpdateOsAccountSubspaceInfo(OS_ACCOUNT_ID_A, ctx), ERR_OK);
+
+    BundleManagerAdapter::GetInstance()->g_resultCode = ERR_ACCOUNT_COMMON_CONNECT_BUNDLE_MANAGER_SERVICE_ERROR;
+
+    int32_t fromSubspaceId = 0;
+    ErrCode ret = mgr.SwitchSubProfile(OS_ACCOUNT_ID_A, distId, fromSubspaceId);
+    EXPECT_NE(ret, ERR_OK);
+    EXPECT_NE(mgr.GetRuntimeForegroundSubProfileId(OS_ACCOUNT_ID_A), distId);
+
+    BundleManagerAdapter::GetInstance()->g_resultCode = ERR_OK;
+}
+
+/**
+ * @tc.name: SyncBMSApplicationState_IPC_Retry_001
+ * @tc.desc: SyncBMSApplicationState retries on IPC error then succeeds.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountSubspaceModuleTest, SyncBMSApplicationState_IPC_Retry_001, TestSize.Level1)
+{
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
+    mgr.Init(TEST_ROOT_DIR);
+
+    // E_IPC_SA_DIED = 32, should trigger retry
+    BundleManagerAdapter::GetInstance()->g_resultCode = Constants::E_IPC_SA_DIED;
+
+    ErrCode ret = mgr.SyncBMSApplicationState(OS_ACCOUNT_ID_A, 1, -1);
+    EXPECT_NE(ret, ERR_OK);
+    EXPECT_EQ(ret, Constants::E_IPC_SA_DIED);
+
+    BundleManagerAdapter::GetInstance()->g_resultCode = ERR_OK;
+}
+
+/**
+ * @tc.name: SyncBMSApplicationState_BusinessError_NoRetry_001
+ * @tc.desc: SyncBMSApplicationState does not retry on business error (non-IPC).
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountSubspaceModuleTest, SyncBMSApplicationState_BusinessError_NoRetry_001, TestSize.Level1)
+{
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
+    mgr.Init(TEST_ROOT_DIR);
+
+    // Business error code, not IPC error
+    BundleManagerAdapter::GetInstance()->g_resultCode = ERR_ACCOUNT_COMMON_CONNECT_BUNDLE_MANAGER_SERVICE_ERROR;
+
+    ErrCode ret = mgr.SyncBMSApplicationState(OS_ACCOUNT_ID_A, 1, -1);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_CONNECT_BUNDLE_MANAGER_SERVICE_ERROR);
+
+    BundleManagerAdapter::GetInstance()->g_resultCode = ERR_OK;
+}
+
+/**
+ * @tc.name: ResolveSwitchAppIndices_TargetNotFound_001
+ * @tc.desc: ResolveSwitchAppIndices returns NOT_FOUND when target subspaceId not in context.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountSubspaceModuleTest, ResolveSwitchAppIndices_TargetNotFound_001, TestSize.Level1)
+{
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
+    mgr.Init(TEST_ROOT_DIR);
+
+    int32_t enableAppIndex = 0;
+    int32_t disableAppIndex = -1;
+    ErrCode ret = mgr.ResolveSwitchAppIndices(OS_ACCOUNT_ID_A,
+        OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 99,
+        -1, enableAppIndex, disableAppIndex);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND);
+}
+
+/**
+ * @tc.name: GetRuntimeForegroundSubProfileId_LazyFill_001
+ * @tc.desc: GetRuntimeForegroundSubProfileId lazy-fills from OsAccountInfo when cache miss.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountSubspaceModuleTest, GetRuntimeForegroundSubProfileId_LazyFill_001, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfoA;
+    osAccountInfoA.SetLocalId(OS_ACCOUNT_ID_B);
+    osAccountInfoA.SetForegroundSubProfileId(
+        OS_ACCOUNT_ID_B * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 5);
+    MockSetCreatedOsAccounts({osAccountInfoA});
+
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
+    mgr.Init(TEST_ROOT_DIR);
+
+    int32_t fgId = mgr.GetRuntimeForegroundSubProfileId(OS_ACCOUNT_ID_B);
+    EXPECT_EQ(fgId, OS_ACCOUNT_ID_B * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 5);
 }
 
 #endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE

@@ -108,6 +108,11 @@ public:
     bool QueryExtensionAbilityInfos(const Want &want, const ExtensionAbilityType &extensionType,
         const int32_t &flag, const int32_t &userId, std::vector<ExtensionAbilityInfo> &extensionInfos) override;
 
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    ErrCode BatchSetApplicationEnabled(int32_t userId, int32_t enableAppIndex,
+        int32_t disableAppIndex, bool killProcess, bool needSendEvent) override;
+#endif
+
     /**
      * @brief Queries extension ability infos via the V9 interface with error code.
      * @param want Indicates the information of the extension ability to query.
