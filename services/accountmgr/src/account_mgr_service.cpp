@@ -26,6 +26,9 @@
 #include "account_info.h"
 #include "account_log_wrapper.h"
 #include "account_file_operator.h"
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+#include "parameters.h"
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
 #ifdef HICOLLIE_ENABLE
 #include "account_timer.h"
 #endif // HICOLLIE_ENABLE
@@ -98,6 +101,10 @@ const std::set<int32_t> INIT_ACCOUNT_ID_SET = {
 const bool REGISTER_RESULT =
     SystemAbility::MakeAndRegisterAbility(&DelayedRefSingleton<AccountMgrService>::GetInstance());
 const char DEVICE_OWNER_DIR[] = "/data/service/el1/public/account/0/";
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+constexpr int32_t MAX_FOREGROUND_RESTORE_RETRY_TIMES = 3;
+constexpr uint32_t FOREGROUND_RESTORE_RETRY_DELAY_MS = 300;
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
 #ifdef SUPPORT_AUTHORIZATION
 const int32_t MAX_RETRY_TIMES = 3;
 const uint32_t RETRY_SLEEP_MS = 10;
@@ -855,6 +862,12 @@ void AccountMgrService::OnStart()
         ACCOUNT_LOGI("AccountMgrService has already started.");
         return;
     }
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+    // Capture this before this process can activate the default account and set
+    // bootevent.account.ready to "true". The snapshot is consumed once the
+    // Storage and Ability Manager dependencies are ready.
+    isProcessRestart_ = OHOS::system::GetBoolParameter("bootevent.account.ready", false);
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
     UpdateTraceLabelAdapter();
     StartTraceAdapter("accountmgr service onstart");
     CountTraceAdapter("activeid", -1);
@@ -973,15 +986,53 @@ void AccountMgrService::OnAddSystemAbility(int32_t systemAbilityId, const std::s
     }
 
     if (!isDefaultOsAccountActivated_ && isAmsReady_) {
-        ErrCode errCode = IInnerOsAccountManager::GetInstance().ActivateDefaultOsAccount();
-        if (errCode == ERR_OK) {
-            isDefaultOsAccountActivated_ = true;
-        }
+        ActivateDefaultOsAccountAndRestore();
     }
     if (isBmsReady_ && IsDefaultOsAccountVerified()) {
         IInnerOsAccountManager::GetInstance().CleanGarbageOsAccountsAsync();
     }
 }
+
+void AccountMgrService::ActivateDefaultOsAccountAndRestore()
+{
+    ACCOUNT_LOGI("Activate default os account and restore.");
+    ErrCode errCode = IInnerOsAccountManager::GetInstance().ActivateDefaultOsAccount();
+    if (errCode != ERR_OK) {
+        return;
+    }
+    isDefaultOsAccountActivated_ = true;
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+    if (!isProcessRestart_) {
+        return;
+    }
+    std::map<uint64_t, int32_t> pendingAccounts;
+    ErrCode restoreErrCode = IInnerOsAccountManager::GetInstance().RestoreAllForegroundAccounts(pendingAccounts);
+    if (restoreErrCode == ERR_OK) {
+        return;
+    }
+    ACCOUNT_LOGW("Foreground account restore incomplete, err=%{public}d, retryable count=%{public}zu",
+        restoreErrCode, pendingAccounts.size());
+    if (!pendingAccounts.empty()) {
+        RetryForegroundAccountsRestore(pendingAccounts);
+    }
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+}
+
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+void AccountMgrService::RetryForegroundAccountsRestore(std::map<uint64_t, int32_t> &pendingAccounts)
+{
+    for (int32_t retry = 1; retry <= MAX_FOREGROUND_RESTORE_RETRY_TIMES && !pendingAccounts.empty(); ++retry) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(FOREGROUND_RESTORE_RETRY_DELAY_MS));
+        ErrCode errCode = IInnerOsAccountManager::GetInstance().RestoreAllForegroundAccounts(pendingAccounts);
+        if (pendingAccounts.empty()) {
+            ACCOUNT_LOGI("Foreground account restore retry %{public}d finished, err=%{public}d", retry, errCode);
+            return;
+        }
+        ACCOUNT_LOGW("Foreground account restore retry %{public}d/%{public}d failed, err=%{public}d",
+            retry, MAX_FOREGROUND_RESTORE_RETRY_TIMES, errCode);
+    }
+}
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
 
 bool AccountMgrService::Init()
 {
