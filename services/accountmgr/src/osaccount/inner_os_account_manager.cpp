@@ -912,13 +912,6 @@ void IInnerOsAccountManager::OsAccountCreateOnComplete(OsAccountInfo &osAccountI
         COMMON_EVENT_OS_ACCOUNT_SUB_PROFILE_CREATED);
     (void) OsAccountSubProfileSubscribeManager::GetInstance().Publish(
         OsAccountSubProfileEventType::CREATED, localId, foregroundProfileId);
-    // Send sub profile switch event to CES
-    OhosAccountManager::GetInstance().SendSubProfileSwitchCES(localId, foregroundProfileId, -1, true);
-    (void) OsAccountSubProfileSubscribeManager::GetInstance().Publish(
-        OsAccountSubProfileEventType::SWITCHING, localId, foregroundProfileId, -1);
-    OhosAccountManager::GetInstance().SendSubProfileSwitchCES(localId, foregroundProfileId, -1, false);
-    (void) OsAccountSubProfileSubscribeManager::GetInstance().Publish(
-        OsAccountSubProfileEventType::SWITCHED, localId, foregroundProfileId, -1);
 }
 
 ErrCode IInnerOsAccountManager::FinalizeAccountCreate(OsAccountInfo &osAccountInfo)
@@ -3285,10 +3278,28 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
         int32_t activatedId = -1;
         if (defaultActivatedIds_.Find(displayId, activatedId))
             ReportOsAccountLifeCycle(activatedId, Constants::OPERATION_ACTIVATE);
+        ActivateSubprofile(osAccountInfo);
     }
 
     ACCOUNT_LOGI("SendMsgForAccountActivate end, localId=%{public}d", localId);
     return errCode;
+}
+
+void IInnerOsAccountManager::ActivateSubprofile(const OsAccountInfo &osAccountInfo)
+{
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    int32_t fgSubProfileId = osAccountInfo.GetForegroundSubProfileId();
+    if (fgSubProfileId <= 0) {
+        return;
+    }
+    int32_t fromSubspaceId = -1;
+    ErrCode subRet = OhosAccountManager::GetInstance().SwitchOsAccountSubspace(osAccountInfo.GetLocalId(),
+        fgSubProfileId, fromSubspaceId);
+    if (subRet != ERR_OK) {
+        REPORT_OS_ACCOUNT_FAIL(osAccountInfo.GetLocalId(), Constants::OPERATION_SUBPROFILE_SWITCH, subRet,
+            "ActivateSubprofile failed on account activation");
+    }
+#endif
 }
 
 ErrCode  IInnerOsAccountManager::SendToStorageAccountStart(OsAccountInfo &osAccountInfo)
@@ -4313,19 +4324,14 @@ ErrCode IInnerOsAccountManager::InitOsAccountSubspaceForNewAccount(int32_t local
         return createRet;
     }
     ReportOsAccountLifeCycle(createdInfo.subspaceId, Constants::OPERATION_SUBPROFILE_CREATE);
-
-    int32_t fromSubspaceId = -1;
-    ErrCode switchRet = OsAccountSubProfileManager::GetInstance().SwitchSubProfile(
-        localId, createdInfo.subspaceId, fromSubspaceId);
+    ErrCode switchRet = IInnerOsAccountManager::GetInstance().SetOsAccountForegroundSubspaceId(
+        localId, createdInfo.subspaceId);
     if (switchRet != ERR_OK) {
-        ACCOUNT_LOGE("SwitchSubProfile failed for new account localId=%{public}d, ret=%{public}d",
-            localId, switchRet);
+        ACCOUNT_LOGE("SetOsAccountForegroundSubspaceId failed, localId=%{public}d", localId);
         osAccountControl_->DeleteSubProfileContextFile(localId);
         return switchRet;
     }
     foregroundSubProfileId = createdInfo.subspaceId;
-
-    ReportOsAccountLifeCycle(createdInfo.subspaceId, Constants::OPERATION_SUBPROFILE_SWITCH);
 
     return ERR_OK;
 }

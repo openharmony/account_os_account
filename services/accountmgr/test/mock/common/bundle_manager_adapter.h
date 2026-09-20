@@ -53,6 +53,10 @@ public:
         std::vector<AppExecFwk::ExtensionAbilityInfo> &extensionInfos);
     ErrCode GetMainAndCloneBundleInfo(const std::string &bundleName, int32_t flags,
         int32_t userId, std::vector<AppExecFwk::BundleInfo> &bundleInfos);
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    ErrCode BatchSetApplicationEnabled(int32_t userId, int32_t enableAppIndex,
+        int32_t disableAppIndex, bool killProcess, bool needSendEvent);
+#endif
     ErrCode g_resultCode = ERR_OK;
 };
 }  // namespace AccountSA
