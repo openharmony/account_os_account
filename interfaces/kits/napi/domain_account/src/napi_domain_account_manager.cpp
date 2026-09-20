@@ -932,18 +932,18 @@ napi_value NapiDomainAccountManager::JsConstructor(napi_env env, napi_callback_i
 
 void IsDomainAccountSupportedCompletedCB(napi_env env, napi_status status, void *data)
 {
-    IsDomainAccountSupportContext *asyncContext = reinterpret_cast<IsDomainAccountSupportContext *>(data);
+    std::unique_ptr<IsDomainAccountSupportContext> asyncContextPtr(
+        reinterpret_cast<IsDomainAccountSupportContext *>(data));
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;
-    if (asyncContext->errCode == ERR_OK) {
+    if (asyncContextPtr->errCode == ERR_OK) {
         NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &errJs));
-        NAPI_CALL_RETURN_VOID(env, napi_get_boolean(env, asyncContext->isDomainAccountSupport, &dataJs));
+        NAPI_CALL_RETURN_VOID(env, napi_get_boolean(env, asyncContextPtr->isDomainAccountSupport, &dataJs));
     } else {
-        errJs = GenerateBusinessError(env, asyncContext->errCode);
+        errJs = GenerateBusinessError(env, asyncContextPtr->errCode);
         NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &dataJs));
     }
-    ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
-    delete asyncContext;
+    ProcessCallbackOrPromise(env, asyncContextPtr.get(), errJs, dataJs);
 }
 
 static void IsDomainAccountSupportedExecuteCB(napi_env env, void *data)

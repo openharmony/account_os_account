@@ -1238,26 +1238,25 @@ void GetOsAccountLocalIdsExecuteCB(napi_env env, void *data)
 
 void GetOsAccountLocalIdsCallbackCompletedCB(napi_env env, napi_status status, void *data)
 {
-    GetOsAccountLocalIdsAsyncContext *asyncContext =
-        reinterpret_cast<GetOsAccountLocalIdsAsyncContext *>(data);
+    std::unique_ptr<GetOsAccountLocalIdsAsyncContext> asyncContextPtr(
+        reinterpret_cast<GetOsAccountLocalIdsAsyncContext *>(data));
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;
-    if (asyncContext->errCode == ERR_OK) {
+    if (asyncContextPtr->errCode == ERR_OK) {
         NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &errJs));
         NAPI_CALL_RETURN_VOID(env, napi_create_array(env, &dataJs));
         uint32_t index = 0;
-        for (auto id : asyncContext->osAccountIds) {
+        for (auto id : asyncContextPtr->osAccountIds) {
             napi_value jsId = nullptr;
             NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, id, &jsId));
             NAPI_CALL_RETURN_VOID(env, napi_set_element(env, dataJs, index, jsId));
             index++;
         }
     } else {
-        errJs = GenerateBusinessError(env, asyncContext->errCode, asyncContext->throwErr);
+        errJs = GenerateBusinessError(env, asyncContextPtr->errCode, asyncContextPtr->throwErr);
         NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &dataJs));
     }
-    ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
-    delete asyncContext;
+    ProcessCallbackOrPromise(env, asyncContextPtr.get(), errJs, dataJs);
 }
 
 bool ParseParaGetForegroundOALocalId(napi_env env, napi_callback_info cbInfo,
@@ -1427,18 +1426,19 @@ void GetOsAccountNameByIdExecuteCB(napi_env env, void *data)
 
 void GetOsAccountNameByIdCallbackCompletedCB(napi_env env, napi_status status, void *data)
 {
-    GetOsAccountNameByIdContext *asyncContext = reinterpret_cast<GetOsAccountNameByIdContext *>(data);
+    std::unique_ptr<GetOsAccountNameByIdContext> asyncContextPtr(
+        reinterpret_cast<GetOsAccountNameByIdContext *>(data));
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;
-    if (asyncContext->errCode == ERR_OK) {
+    if (asyncContextPtr->errCode == ERR_OK) {
         NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &errJs));
-        NAPI_CALL_RETURN_VOID(env, napi_create_string_utf8(env, asyncContext->name.c_str(), NAPI_AUTO_LENGTH, &dataJs));
+        NAPI_CALL_RETURN_VOID(env, napi_create_string_utf8(env,
+            asyncContextPtr->name.c_str(), NAPI_AUTO_LENGTH, &dataJs));
     } else {
-        errJs = GenerateBusinessError(env, asyncContext->errCode);
+        errJs = GenerateBusinessError(env, asyncContextPtr->errCode);
         NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &dataJs));
     }
-    ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
-    delete asyncContext;
+    ProcessCallbackOrPromise(env, asyncContextPtr.get(), errJs, dataJs);
 }
 
 void GetOAPhotoExecuteCB(napi_env env, void *data)
@@ -1976,18 +1976,17 @@ void SetTypeExecuteCB(napi_env env, void *data)
 
 void SetTypeCompletedCB(napi_env env, napi_status status, void *data)
 {
-    SetTypeAsyncContext *asyncContext = reinterpret_cast<SetTypeAsyncContext *>(data);
+    std::unique_ptr<SetTypeAsyncContext> asyncContextPtr(reinterpret_cast<SetTypeAsyncContext *>(data));
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;
-    if (asyncContext->errCode == ERR_OK) {
-        errJs = GenerateBusinessSuccess(env, asyncContext->throwErr);
+    if (asyncContextPtr->errCode == ERR_OK) {
+        errJs = GenerateBusinessSuccess(env, asyncContextPtr->throwErr);
         NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &dataJs));
     } else {
-        errJs = GenerateBusinessError(env, asyncContext->errCode, asyncContext->throwErr);
+        errJs = GenerateBusinessError(env, asyncContextPtr->errCode, asyncContextPtr->throwErr);
         NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &dataJs));
     }
-    ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
-    delete asyncContext;
+    ProcessCallbackOrPromise(env, asyncContextPtr.get(), errJs, dataJs);
 }
 
 bool ParseParaIsMultiEn(napi_env env, napi_callback_info cbInfo, IsMultiEnAsyncContext *asyncContext)

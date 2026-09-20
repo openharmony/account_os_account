@@ -350,7 +350,9 @@ int32_t InnerAccountIAMManager::AuthUser(
     }
 #endif
     sptr<AuthCallbackDeathRecipient> deathRecipient = new (std::nothrow) AuthCallbackDeathRecipient();
-    if ((deathRecipient == nullptr) || (!callback->AsObject()->AddDeathRecipient(deathRecipient))) {
+    auto callbackObj = callback->AsObject();
+    if ((deathRecipient == nullptr) || (callbackObj == nullptr) ||
+        (!callbackObj->AddDeathRecipient(deathRecipient))) {
         ACCOUNT_LOGE("failed to add death recipient for auth callback");
         return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
     }

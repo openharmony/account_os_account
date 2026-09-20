@@ -663,7 +663,7 @@ ErrCode InnerAuthorizationManager::ValidateUIExtensionParams(const ConnectAbilit
         return ERR_AUTHORIZATION_GET_PROXY_ERROR;
     }
 
-    auto deathRecipient = new (std::nothrow) AppDeathRecipient();
+    sptr<AppDeathRecipient> deathRecipient = new (std::nothrow) AppDeathRecipient();
     if (deathRecipient == nullptr) {
         ACCOUNT_LOGE("DeathRecipient is nullptr");
         REPORT_OS_ACCOUNT_FAIL(info.callingUid / UID_TRANSFORM_DIVISOR, PRIVILEGE_OPT_ACQUIRE_AUTH,
@@ -671,11 +671,11 @@ ErrCode InnerAuthorizationManager::ValidateUIExtensionParams(const ConnectAbilit
         return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
     }
 
-    if (callback->AsObject() == nullptr || !callback->AsObject()->AddDeathRecipient(deathRecipient)) {
+    auto callbackObj = callback->AsObject();
+    if (callbackObj == nullptr || !callbackObj->AddDeathRecipient(deathRecipient)) {
         ACCOUNT_LOGE("Fail to AddDeathRecipient");
         REPORT_OS_ACCOUNT_FAIL(info.callingUid / UID_TRANSFORM_DIVISOR, PRIVILEGE_OPT_ACQUIRE_AUTH,
             ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT, "Fail to AddDeathRecipient");
-        deathRecipient = nullptr;
         return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
     }
 
@@ -901,7 +901,9 @@ ErrCode InnerAuthorizationManager::AcquireAdminAuthorization(int32_t accountId,
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     sptr<AuthCallbackDeathRecipient> deathRecipient = new (std::nothrow) AuthCallbackDeathRecipient();
-    if ((deathRecipient == nullptr) || (!callback->AsObject()->AddDeathRecipient(deathRecipient))) {
+    auto callbackObj = callback->AsObject();
+    if ((deathRecipient == nullptr) || (callbackObj == nullptr) ||
+        (!callbackObj->AddDeathRecipient(deathRecipient))) {
         ACCOUNT_LOGE("Add death recipient failed");
         return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
     }
