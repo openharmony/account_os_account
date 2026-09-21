@@ -51,7 +51,7 @@ account_service_sources = [
 ]
 if (os_account_enable_multiple_foreground_os_accounts) {
   account_service_sources += [
-    "${services_path}/accountmgr/src/display_user_zone_config/display_user_zone_config_manager.cpp",
+    "${services_path}/accountmgr/src/osaccount/display_user_zone_config/display_user_zone_config_manager.cpp",
   ]
 }
 if (os_account_support_lock_os_account) {
@@ -134,7 +134,7 @@ account_service_sources_mock = [
 ]
 if (os_account_enable_multiple_foreground_os_accounts) {
   account_service_sources_mock += [
-    "${services_path}/accountmgr/src/display_user_zone_config/display_user_zone_config_manager.cpp",
+    "${services_path}/accountmgr/src/osaccount/display_user_zone_config/display_user_zone_config_manager.cpp",
   ]
 }
 if (os_account_support_lock_os_account) {

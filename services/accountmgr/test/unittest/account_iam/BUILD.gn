@@ -601,14 +601,6 @@ ohos_unittest("account_iam_mock_test") {
   if (use_libfuzzer) {
     cflags_cc += [ "-DFUZZ_TEST" ]
   }
-  if (os_account_enable_multiple_os_account_sub_profiles) {
-    cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE" ]
-    sources += [
-      "${services_path}/accountmgr/src/distributed_account/os_account_subspace_data_deal.cpp",
-      "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager.cpp",
-    ]
-    external_deps += [ "bundle_framework:appexecfwk_base", "bundle_framework:appexecfwk_core" ]
-  }
 
   external_deps = [
     "ability_base:want",
@@ -628,6 +620,14 @@ ohos_unittest("account_iam_mock_test") {
     "samgr:samgr_proxy",
     "user_auth_framework:userauth_client",
   ]
+  if (os_account_enable_multiple_os_account_sub_profiles) {
+    cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE" ]
+    sources += [
+      "${services_path}/accountmgr/src/distributed_account/os_account_subspace_data_deal.cpp",
+      "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager.cpp",
+    ]
+    external_deps += [ "bundle_framework:appexecfwk_base", "bundle_framework:appexecfwk_core" ]
+  }
   if (os_account_enable_multiple_foreground_os_accounts) {
     cflags_cc += [ "-DENABLE_MULTI_FOREGROUND_OS_ACCOUNTS" ]
     external_deps += [

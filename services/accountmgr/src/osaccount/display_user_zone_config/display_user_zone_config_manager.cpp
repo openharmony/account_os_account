@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "display_user_zone_config/display_user_zone_config_manager.h"
+#include "osaccount/display_user_zone_config/display_user_zone_config_manager.h"
 
 #include "account_log_wrapper.h"
 
@@ -50,6 +50,66 @@ ErrCode DisplayUserZoneConfigManager::IsDisplayPrimary(uint64_t logicalDisplayId
         return ERR_OK;
     }
     isPrimary = iter->second.logicalId == iter->second.userZone;
+    return ERR_OK;
+}
+
+ErrCode DisplayUserZoneConfigManager::GetPrimaryDisplayId(uint64_t logicalDisplayId, uint64_t &primaryDisplayId)
+{
+    ErrCode errCode = EnsureConfigReady();
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto displayIter = logicalIdMap_.find(logicalDisplayId);
+    if (displayIter == logicalIdMap_.end()) {
+        primaryDisplayId = logicalDisplayId;
+        return ERR_OK;
+    }
+    auto primaryIter = userZonePrimaryMap_.find(displayIter->second.userZone);
+    if (primaryIter == userZonePrimaryMap_.end() ||
+        logicalIdMap_.find(primaryIter->second) == logicalIdMap_.end()) {
+        primaryDisplayId = logicalDisplayId;
+        ACCOUNT_LOGW("GetPrimaryDisplayId found no primary display for %{public}llu "
+            "(userZone=%{public}llu); returning the original display ID",
+            static_cast<unsigned long long>(logicalDisplayId),
+            static_cast<unsigned long long>(displayIter->second.userZone));
+        return ERR_OK;
+    }
+    primaryDisplayId = primaryIter->second;
+    if (primaryDisplayId != logicalDisplayId) {
+        ACCOUNT_LOGI("GetPrimaryDisplayId returns primary %{public}llu for display %{public}llu "
+            "(userZone=%{public}llu)",
+            static_cast<unsigned long long>(primaryDisplayId),
+            static_cast<unsigned long long>(logicalDisplayId),
+            static_cast<unsigned long long>(displayIter->second.userZone));
+    }
+    return ERR_OK;
+}
+
+ErrCode DisplayUserZoneConfigManager::GetDisplayIdsByLogicalId(uint64_t logicalDisplayId,
+    std::vector<uint64_t> &displayIds)
+{
+    displayIds.clear();
+    ErrCode errCode = EnsureConfigReady();
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto displayIter = logicalIdMap_.find(logicalDisplayId);
+    if (displayIter == logicalIdMap_.end()) {
+        displayIds.emplace_back(logicalDisplayId);
+        return ERR_OK;
+    }
+    auto userZoneIter = userZoneMap_.find(displayIter->second.userZone);
+    if (userZoneIter == userZoneMap_.end()) {
+        return ERR_OK;
+    }
+    for (uint64_t displayId : userZoneIter->second) {
+        auto userZoneDisplayIter = logicalIdMap_.find(displayId);
+        if (userZoneDisplayIter != logicalIdMap_.end()) {
+            displayIds.emplace_back(userZoneDisplayIter->second.logicalId);
+        }
+    }
     return ERR_OK;
 }
 
@@ -106,7 +166,6 @@ ErrCode DisplayUserZoneConfigManager::Init()
     std::lock_guard<std::mutex> lock(mutex_);
     configReadFailed_ = false;
     configFormatError_ = false;
-    configReadRetried_ = false;
     return LoadConfigLocked();
 }
 
@@ -154,10 +213,6 @@ ErrCode DisplayUserZoneConfigManager::EnsureConfigReady()
     if (!configReadFailed_) {
         return ERR_OK;
     }
-    if (configReadRetried_) {
-        return ERR_ACCOUNT_COMMON_FILE_READ_FAILED;
-    }
-    configReadRetried_ = true;
     ErrCode errCode = LoadConfigLocked();
     if (errCode == ERR_OK) {
         return ERR_OK;
