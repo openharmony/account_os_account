@@ -46,7 +46,8 @@ public:
 
     ErrCode CreateSubProfile(int32_t osAccountId, OsAccountSubspaceInfo &createdInfo);
     ErrCode RemoveSubProfile(int32_t osAccountId, int32_t subspaceId);
-    ErrCode SwitchSubProfile(int32_t osAccountId, int32_t subspaceId, int32_t &fromSubspaceId);
+    ErrCode SwitchSubProfile(int32_t osAccountId, int32_t subspaceId, int32_t &fromSubspaceId,
+        bool isActivate = false);
 
     ErrCode GetSubProfileIds(int32_t osAccountId, std::vector<int32_t> &subProfileIds);
     ErrCode GetLocalIdForSubProfile(int32_t subProfileId, int32_t &osAccountId);
@@ -90,6 +91,7 @@ private:
     ErrCode SyncBMSApplicationState(int32_t osAccountId, int32_t enableAppIndex, int32_t disableAppIndex);
     int32_t GetRuntimeForegroundSubProfileId(int32_t osAccountId);
     void SetRuntimeForegroundSubProfileId(int32_t osAccountId, int32_t subProfileId);
+    void RollbackSubProfileSwitch(int32_t osAccountId, int32_t toSubspaceId, int32_t fromSubspaceId);
     ErrCode FilterValidSubProfileIdsLocked(int32_t base,
         const std::vector<std::pair<int32_t, OsAccountSubspaceInfo>> &loadedProfiles,
         std::vector<int32_t> &subProfileIds);

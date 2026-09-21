@@ -30,6 +30,8 @@
 #include "account_hisysevent_adapter.h"
 #include "os_account_constants.h"
 #include "os_account_info.h"
+#include "os_account_sub_profile_subscribe_manager.h"
+#include "ohos_account_manager.h"
 #ifdef HAS_USER_AUTH_PART
 #include "user_idm_client.h"
 #endif // HAS_USER_AUTH_PART
@@ -164,7 +166,7 @@ ErrCode OsAccountSubProfileManager::RemoveSubProfile(int32_t osAccountId, int32_
 }
 
 ErrCode OsAccountSubProfileManager::SwitchSubProfile(
-    int32_t osAccountId, int32_t subspaceId, int32_t &fromSubspaceId)
+    int32_t osAccountId, int32_t subspaceId, int32_t &fromSubspaceId, bool isActivate)
 {
     StartTraceAdapter("SwitchSubProfile");
     int32_t base = osAccountId * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER;
@@ -181,10 +183,16 @@ ErrCode OsAccountSubProfileManager::SwitchSubProfile(
         FinishTraceAdapter();
         return ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND;
     }
-    fromSubspaceId = GetRuntimeForegroundSubProfileId(osAccountId);
-    if (fromSubspaceId == subspaceId && fromSubspaceId != -1) {
-        FinishTraceAdapter();
-        return ERR_OK;
+    if (isActivate) {
+        fromSubspaceId = -1;
+    } else {
+        fromSubspaceId = GetRuntimeForegroundSubProfileId(osAccountId);
+        if (fromSubspaceId == subspaceId && fromSubspaceId != -1) {
+            ACCOUNT_LOGI("Subspace already foreground, skip switch, osAccountId=%{public}d, subspaceId=%{public}d",
+                osAccountId, subspaceId);
+            FinishTraceAdapter();
+            return ERR_OK;
+        }
     }
     if (CheckActiveSessionStatus(subProfileDataDeal_.get(), osAccountId, fromSubspaceId)) {
         FinishTraceAdapter();
@@ -215,11 +223,13 @@ ErrCode OsAccountSubProfileManager::InnerSwitchSubProfile(int32_t osAccountId, i
     ErrCode idxRet = ResolveSwitchAppIndices(osAccountId, subspaceId, fromSubspaceId, enableAppIndex, disableAppIndex);
     if (idxRet != ERR_OK) {
         ACCOUNT_LOGE("ResolveSwitchAppIndices failed, ret=%{public}d", idxRet);
+        RollbackSubProfileSwitch(osAccountId, subspaceId, fromSubspaceId);
         return idxRet;
     }
     ErrCode bmsRet = SyncBMSApplicationState(osAccountId, enableAppIndex, disableAppIndex);
     if (bmsRet != ERR_OK) {
         REPORT_OS_ACCOUNT_FAIL(osAccountId, Constants::OPERATION_SUBPROFILE_SWITCH, bmsRet, "BMS sync failed");
+        RollbackSubProfileSwitch(osAccountId, subspaceId, fromSubspaceId);
         return bmsRet;
     }
     SetRuntimeForegroundSubProfileId(osAccountId, subspaceId);
@@ -229,7 +239,7 @@ ErrCode OsAccountSubProfileManager::InnerSwitchSubProfile(int32_t osAccountId, i
         REPORT_OS_ACCOUNT_FAIL(osAccountId, Constants::OPERATION_SUBPROFILE_SWITCH, ret,
             "Persist failed, runtime cache kept");
     }
-    return ret;
+    return ERR_OK;
 }
 
 ErrCode OsAccountSubProfileManager::CreateSubProfileLocked(int32_t osAccountId, OsAccountSubspaceInfo &createdInfo)
@@ -803,6 +813,21 @@ void OsAccountSubProfileManager::SetRuntimeForegroundSubProfileId(int32_t osAcco
 {
     std::lock_guard<std::shared_mutex> lock(runtimeMapMutex_);
     foregroundSubProfileRuntimeMap_[osAccountId] = subProfileId;
+}
+
+void OsAccountSubProfileManager::RollbackSubProfileSwitch(
+    int32_t osAccountId, int32_t toSubspaceId, int32_t fromSubspaceId)
+{
+    SetRuntimeForegroundSubProfileId(osAccountId, fromSubspaceId);
+    OhosAccountManager::GetInstance().SendSubProfileSwitchCES(osAccountId, toSubspaceId, fromSubspaceId, false);
+    (void) OsAccountSubProfileSubscribeManager::GetInstance().Publish(
+        OsAccountSubProfileEventType::SWITCHED, osAccountId, toSubspaceId, fromSubspaceId);
+    OhosAccountManager::GetInstance().SendSubProfileSwitchCES(osAccountId, fromSubspaceId, toSubspaceId, true);
+    (void) OsAccountSubProfileSubscribeManager::GetInstance().Publish(
+        OsAccountSubProfileEventType::SWITCHING, osAccountId, fromSubspaceId, toSubspaceId);
+    OhosAccountManager::GetInstance().SendSubProfileSwitchCES(osAccountId, fromSubspaceId, toSubspaceId, false);
+    (void) OsAccountSubProfileSubscribeManager::GetInstance().Publish(
+        OsAccountSubProfileEventType::SWITCHED, osAccountId, fromSubspaceId, toSubspaceId);
 }
 
 ErrCode OsAccountSubProfileManager::ResolveSwitchAppIndices(int32_t osAccountId, int32_t enableSubprofileId,

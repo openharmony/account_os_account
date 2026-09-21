@@ -3356,7 +3356,7 @@ void IInnerOsAccountManager::ActivateSubprofile(const OsAccountInfo &osAccountIn
     }
     int32_t fromSubspaceId = -1;
     ErrCode subRet = OhosAccountManager::GetInstance().SwitchOsAccountSubspace(osAccountInfo.GetLocalId(),
-        fgSubProfileId, fromSubspaceId);
+        fgSubProfileId, fromSubspaceId, true);
     if (subRet != ERR_OK) {
         REPORT_OS_ACCOUNT_FAIL(osAccountInfo.GetLocalId(), Constants::OPERATION_SUBPROFILE_SWITCH, subRet,
             "ActivateSubprofile failed on account activation");
