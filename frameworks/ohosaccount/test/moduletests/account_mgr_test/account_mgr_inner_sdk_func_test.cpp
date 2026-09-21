@@ -1260,16 +1260,17 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, QueryOsAccountDistributedInfo_NoPermission_
 }
 
 /**
- * @tc.name: QueryOsAccountDistributedInfo_DataSyncPerm_Declined_001
+ * @tc.name: QueryOsAccountDistributedInfo_DataSyncInteractPerm_CrossUser_001
  * @tc.desc: Test QueryOsAccountDistributedInfo with INTERACT_ACROSS_LOCAL_ACCOUNTS and DISTRIBUTED_DATASYNC
- *           permissions. New policy: DISTRIBUTED_DATASYNC no longer grants access; INTERACT without
- *           GET_DISTRIBUTED_ACCOUNTS is denied.
+ *           permissions querying another user's account. INTERACT alone (without GET_DISTRIBUTED_ACCOUNTS
+ *           or INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION) is NOT sufficient; must have EXTENSION or
+ *           GET_LOCAL_ACCOUNTS. Expected: denied.
  * @tc.type: FUNC
  * @tc.require: issueI7RST1
  */
-HWTEST_F(AccountMgrInnerSdkFuncTest, QueryOsAccountDistributedInfo_DataSyncPerm_Declined_001, TestSize.Level0)
+HWTEST_F(AccountMgrInnerSdkFuncTest, QueryOsAccountDistributedInfo_DataSyncInteractPerm_CrossUser_001, TestSize.Level0)
 {
-    GTEST_LOG_(INFO) << "QueryOsAccountDistributedInfo_DataSyncPerm_Declined_001 start";
+    GTEST_LOG_(INFO) << "QueryOsAccountDistributedInfo_DataSyncInteractPerm_CrossUser_001 start";
 
     uint64_t tokenId;
     ASSERT_TRUE(AllocPermission({
@@ -1284,7 +1285,222 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, QueryOsAccountDistributedInfo_DataSyncPerm_
     setuid(0);
     ASSERT_TRUE(RecoveryPermission(tokenId, 0));
 
-    GTEST_LOG_(INFO) << "QueryOsAccountDistributedInfo_DataSyncPerm_Declined_001 end";
+    GTEST_LOG_(INFO) << "QueryOsAccountDistributedInfo_DataSyncInteractPerm_CrossUser_001 end";
+}
+
+/**
+ * @tc.name: QueryOsAccountDistributedInfo_DataSyncOnly_SameUser_001
+ * @tc.desc: Test QueryOsAccountDistributedInfo with only DISTRIBUTED_DATASYNC permission
+ *           querying own account (localId == callingUserId). DATASYNC alone is NOT sufficient;
+ *           must also have GET_LOCAL_ACCOUNTS or INTERACT_ACROSS_LOCAL_ACCOUNTS[_EXTENSION].
+ *           Expected: denied.
+ * @tc.type: FUNC
+ * @tc.require: issueI7RST1
+ */
+HWTEST_F(AccountMgrInnerSdkFuncTest, QueryOsAccountDistributedInfo_DataSyncOnly_SameUser_001, TestSize.Level0)
+{
+    GTEST_LOG_(INFO) << "QueryOsAccountDistributedInfo_DataSyncOnly_SameUser_001 start";
+
+    uint64_t tokenId;
+    ASSERT_TRUE(AllocPermission({"ohos.permission.DISTRIBUTED_DATASYNC"}, tokenId));
+    setuid(ACCOUNT_SA_UID);
+    std::int32_t targetUserId = 0;
+    OhosAccountInfo queryInfo;
+    ErrCode ret = OhosAccountKitsImpl::GetInstance().QueryOsAccountDistributedInfo(targetUserId, queryInfo);
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED, ret);
+    setuid(0);
+    ASSERT_TRUE(RecoveryPermission(tokenId, 0));
+
+    GTEST_LOG_(INFO) << "QueryOsAccountDistributedInfo_DataSyncOnly_SameUser_001 end";
+}
+
+/**
+ * @tc.name: QueryOsAccountDistributedInfo_DataSyncLocalAcct_SameUser_001
+ * @tc.desc: Test QueryOsAccountDistributedInfo with DISTRIBUTED_DATASYNC and GET_LOCAL_ACCOUNTS
+ *           permissions querying own account. DATASYNC + GET_LOCAL_ACCOUNTS is sufficient
+ *           for own-account distributed info access.
+ * @tc.type: FUNC
+ * @tc.require: issueI7RST1
+ */
+HWTEST_F(AccountMgrInnerSdkFuncTest, QueryOsAccountDistributedInfo_DataSyncLocalAcct_SameUser_001, TestSize.Level0)
+{
+    GTEST_LOG_(INFO) << "QueryOsAccountDistributedInfo_DataSyncLocalAcct_SameUser_001 start";
+
+    uint64_t tokenId;
+    ASSERT_TRUE(AllocPermission({
+        "ohos.permission.DISTRIBUTED_DATASYNC",
+        "ohos.permission.GET_LOCAL_ACCOUNTS"
+    }, tokenId));
+    setuid(ACCOUNT_SA_UID);
+    std::int32_t targetUserId = 0;
+    OhosAccountInfo queryInfo;
+    ErrCode ret = OhosAccountKitsImpl::GetInstance().QueryOsAccountDistributedInfo(targetUserId, queryInfo);
+    EXPECT_EQ(ERR_OK, ret);
+    setuid(0);
+    ASSERT_TRUE(RecoveryPermission(tokenId, 0));
+
+    GTEST_LOG_(INFO) << "QueryOsAccountDistributedInfo_DataSyncLocalAcct_SameUser_001 end";
+}
+
+/**
+ * @tc.name: QueryOsAccountDistributedInfo_DataSyncLocalAcct_CrossUser_001
+ * @tc.desc: Test QueryOsAccountDistributedInfo with DISTRIBUTED_DATASYNC and GET_LOCAL_ACCOUNTS
+ *           permissions querying another user's account. GET_LOCAL_ACCOUNTS only allows
+ *           own-account access; cross-user requires INTERACT or INTERACT_EXTENSION.
+ *           Expected: denied.
+ * @tc.type: FUNC
+ * @tc.require: issueI7RST1
+ */
+HWTEST_F(AccountMgrInnerSdkFuncTest, QueryOsAccountDistributedInfo_DataSyncLocalAcct_CrossUser_001, TestSize.Level0)
+{
+    GTEST_LOG_(INFO) << "QueryOsAccountDistributedInfo_DataSyncLocalAcct_CrossUser_001 start";
+
+    uint64_t tokenId;
+    ASSERT_TRUE(AllocPermission({
+        "ohos.permission.DISTRIBUTED_DATASYNC",
+        "ohos.permission.GET_LOCAL_ACCOUNTS"
+    }, tokenId));
+    setuid(ACCOUNT_SA_UID);
+    std::int32_t targetUserId = 100;
+    OhosAccountInfo queryInfo;
+    ErrCode ret = OhosAccountKitsImpl::GetInstance().QueryOsAccountDistributedInfo(targetUserId, queryInfo);
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED, ret);
+    setuid(0);
+    ASSERT_TRUE(RecoveryPermission(tokenId, 0));
+
+    GTEST_LOG_(INFO) << "QueryOsAccountDistributedInfo_DataSyncLocalAcct_CrossUser_001 end";
+}
+
+/**
+ * @tc.name: QueryOsAccountDistributedInfo_DataSyncOnly_CrossUser_001
+ * @tc.desc: Test QueryOsAccountDistributedInfo with only DISTRIBUTED_DATASYNC permission
+ *           querying another user's account (localId != callingUserId). DATASYNC alone is
+ *           NOT sufficient for cross-user; must also have INTERACT_ACROSS_LOCAL_ACCOUNTS or
+ *           INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION. Expected: denied.
+ * @tc.type: FUNC
+ * @tc.require: issueI7RST1
+ */
+HWTEST_F(AccountMgrInnerSdkFuncTest, QueryOsAccountDistributedInfo_DataSyncOnly_CrossUser_001, TestSize.Level0)
+{
+    GTEST_LOG_(INFO) << "QueryOsAccountDistributedInfo_DataSyncOnly_CrossUser_001 start";
+
+    uint64_t tokenId;
+    ASSERT_TRUE(AllocPermission({"ohos.permission.DISTRIBUTED_DATASYNC"}, tokenId));
+    setuid(ACCOUNT_SA_UID);
+    std::int32_t targetUserId = 100;
+    OhosAccountInfo queryInfo;
+    ErrCode ret = OhosAccountKitsImpl::GetInstance().QueryOsAccountDistributedInfo(targetUserId, queryInfo);
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED, ret);
+    setuid(0);
+    ASSERT_TRUE(RecoveryPermission(tokenId, 0));
+
+    GTEST_LOG_(INFO) << "QueryOsAccountDistributedInfo_DataSyncOnly_CrossUser_001 end";
+}
+
+/**
+ * @tc.name: QueryOsAccountDistributedInfo_DataSyncInteractExt_CrossUser_001
+ * @tc.desc: Test QueryOsAccountDistributedInfo with DISTRIBUTED_DATASYNC and
+ *           INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION permissions querying another user's account.
+ *           DATASYNC + INTERACT_EXTENSION is sufficient for cross-user distributed info access.
+ * @tc.type: FUNC
+ * @tc.require: issueI7RST1
+ */
+HWTEST_F(AccountMgrInnerSdkFuncTest, QueryOsAccountDistributedInfo_DataSyncInteractExt_CrossUser_001, TestSize.Level0)
+{
+    GTEST_LOG_(INFO) << "QueryOsAccountDistributedInfo_DataSyncInteractExt_CrossUser_001 start";
+
+    uint64_t tokenId;
+    ASSERT_TRUE(AllocPermission({
+        "ohos.permission.DISTRIBUTED_DATASYNC",
+        "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION"
+    }, tokenId));
+    setuid(ACCOUNT_SA_UID);
+    std::int32_t targetUserId = 100;
+    OhosAccountInfo queryInfo;
+    ErrCode ret = OhosAccountKitsImpl::GetInstance().QueryOsAccountDistributedInfo(targetUserId, queryInfo);
+    EXPECT_EQ(ERR_OK, ret);
+    setuid(0);
+    ASSERT_TRUE(RecoveryPermission(tokenId, 0));
+
+    GTEST_LOG_(INFO) << "QueryOsAccountDistributedInfo_DataSyncInteractExt_CrossUser_001 end";
+}
+
+/**
+ * @tc.name: QueryOsAccountDistributedInfo_DataSyncInteractExt_SameUser_001
+ * @tc.desc: Test QueryOsAccountDistributedInfo with DISTRIBUTED_DATASYNC and
+ *           INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION permissions querying own account.
+ *           DATASYNC + INTERACT_EXTENSION is sufficient for own-account distributed info access.
+ * @tc.type: FUNC
+ * @tc.require: issueI7RST1
+ */
+HWTEST_F(AccountMgrInnerSdkFuncTest, QueryOsAccountDistributedInfo_DataSyncInteractExt_SameUser_001, TestSize.Level0)
+{
+    GTEST_LOG_(INFO) << "QueryOsAccountDistributedInfo_DataSyncInteractExt_SameUser_001 start";
+
+    uint64_t tokenId;
+    ASSERT_TRUE(AllocPermission({
+        "ohos.permission.DISTRIBUTED_DATASYNC",
+        "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION"
+    }, tokenId));
+    setuid(ACCOUNT_SA_UID);
+    std::int32_t targetUserId = 0;
+    OhosAccountInfo queryInfo;
+    ErrCode ret = OhosAccountKitsImpl::GetInstance().QueryOsAccountDistributedInfo(targetUserId, queryInfo);
+    EXPECT_EQ(ERR_OK, ret);
+    setuid(0);
+    ASSERT_TRUE(RecoveryPermission(tokenId, 0));
+
+    GTEST_LOG_(INFO) << "QueryOsAccountDistributedInfo_DataSyncInteractExt_SameUser_001 end";
+}
+
+/**
+ * @tc.name: QueryOsAccountDistributedInfo_GetLocalAccountsOnly_001
+ * @tc.desc: Test QueryOsAccountDistributedInfo with only GET_LOCAL_ACCOUNTS permission.
+ *           GET_LOCAL_ACCOUNTS alone does NOT grant distributed info access; must also have
+ *           MANAGE_LOCAL_ACCOUNTS or DISTRIBUTED_DATASYNC. Expected: denied.
+ * @tc.type: FUNC
+ * @tc.require: issueI7RST1
+ */
+HWTEST_F(AccountMgrInnerSdkFuncTest, QueryOsAccountDistributedInfo_GetLocalAccountsOnly_001, TestSize.Level0)
+{
+    GTEST_LOG_(INFO) << "QueryOsAccountDistributedInfo_GetLocalAccountsOnly_001 start";
+
+    uint64_t tokenId;
+    ASSERT_TRUE(AllocPermission({"ohos.permission.GET_LOCAL_ACCOUNTS"}, tokenId));
+    setuid(ACCOUNT_SA_UID);
+    std::int32_t targetUserId = 0;
+    OhosAccountInfo queryInfo;
+    ErrCode ret = OhosAccountKitsImpl::GetInstance().QueryOsAccountDistributedInfo(targetUserId, queryInfo);
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED, ret);
+    setuid(0);
+    ASSERT_TRUE(RecoveryPermission(tokenId, 0));
+
+    GTEST_LOG_(INFO) << "QueryOsAccountDistributedInfo_GetLocalAccountsOnly_001 end";
+}
+
+/**
+ * @tc.name: QueryOsAccountDistributedInfo_InteractExtOnly_001
+ * @tc.desc: Test QueryOsAccountDistributedInfo with only INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION
+ *           permission. INTERACT_EXTENSION alone does NOT grant distributed info access; must also
+ *           have MANAGE_LOCAL_ACCOUNTS or DISTRIBUTED_DATASYNC. Expected: denied.
+ * @tc.type: FUNC
+ * @tc.require: issueI7RST1
+ */
+HWTEST_F(AccountMgrInnerSdkFuncTest, QueryOsAccountDistributedInfo_InteractExtOnly_001, TestSize.Level0)
+{
+    GTEST_LOG_(INFO) << "QueryOsAccountDistributedInfo_InteractExtOnly_001 start";
+
+    uint64_t tokenId;
+    ASSERT_TRUE(AllocPermission({"ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION"}, tokenId));
+    setuid(ACCOUNT_SA_UID);
+    std::int32_t targetUserId = 100;
+    OhosAccountInfo queryInfo;
+    ErrCode ret = OhosAccountKitsImpl::GetInstance().QueryOsAccountDistributedInfo(targetUserId, queryInfo);
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED, ret);
+    setuid(0);
+    ASSERT_TRUE(RecoveryPermission(tokenId, 0));
+
+    GTEST_LOG_(INFO) << "QueryOsAccountDistributedInfo_InteractExtOnly_001 end";
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
