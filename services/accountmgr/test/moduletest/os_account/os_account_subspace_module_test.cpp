@@ -1385,4 +1385,248 @@ HWTEST_F(OsAccountSubspaceModuleTest, GetRuntimeForegroundSubProfileId_LazyFill_
     EXPECT_EQ(fgId, OS_ACCOUNT_ID_B * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 5);
 }
 
+/**
+ * @tc.name: SwitchOsAccountSubspace_AlreadyForeground_EarlyReturn_001
+ * @tc.desc: When persisted fg == target and isActivate=false, switch is skipped (early return).
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountSubspaceModuleTest, SwitchOsAccountSubspace_AlreadyForeground_EarlyReturn_001, TestSize.Level1)
+{
+    int32_t distId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 10;
+    OsAccountInfo osAccountInfoA;
+    osAccountInfoA.SetLocalId(OS_ACCOUNT_ID_A);
+    osAccountInfoA.SetForegroundSubProfileId(distId);
+    MockSetCreatedOsAccounts({osAccountInfoA});
+
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
+    mgr.Init(TEST_ROOT_DIR);
+
+    OsAccountSubspaceInfo info;
+    info.userId_ = OS_ACCOUNT_ID_A;
+    info.subspaceId = distId;
+    info.isCreateCompleted = true;
+    info.toBeRemoved = false;
+    ASSERT_EQ(mgr.subProfileDataDeal_->SaveSubProfileInfo(info), ERR_OK);
+
+    SubProfileContext ctx;
+    ctx.subProfileIdList.push_back(OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER);
+    ctx.subProfileIdList.push_back(distId);
+    ctx.subProfileIndexMap[1] = distId;
+    ASSERT_EQ(IInnerOsAccountManager::GetInstance().UpdateOsAccountSubspaceInfo(OS_ACCOUNT_ID_A, ctx), ERR_OK);
+
+    // First switch to populate runtime cache
+    int32_t fromSubspaceId = -1;
+    ASSERT_EQ(mgr.SwitchSubProfile(OS_ACCOUNT_ID_A, distId, fromSubspaceId), ERR_OK);
+    ASSERT_EQ(mgr.GetRuntimeForegroundSubProfileId(OS_ACCOUNT_ID_A), distId);
+
+    // Second switch to same target with isActivate=false should early return
+    fromSubspaceId = 0;
+    ErrCode ret = OhosAccountManager::GetInstance().SwitchOsAccountSubspace(
+        OS_ACCOUNT_ID_A, distId, fromSubspaceId);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(fromSubspaceId, distId);
+
+    mgr.subProfileDataDeal_->RemoveSubProfileDir(OS_ACCOUNT_ID_A, distId);
+}
+
+/**
+ * @tc.name: SwitchOsAccountSubspace_ActivationForceBMS_001
+ * @tc.desc: When persisted fg == target and isActivate=true, switch is NOT skipped.
+ *           BMS sync executes even though persisted foreground matches target.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountSubspaceModuleTest, SwitchOsAccountSubspace_ActivationForceBMS_001, TestSize.Level1)
+{
+    int32_t distId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 20;
+    OsAccountInfo osAccountInfoA;
+    osAccountInfoA.SetLocalId(OS_ACCOUNT_ID_A);
+    osAccountInfoA.SetForegroundSubProfileId(distId);
+    MockSetCreatedOsAccounts({osAccountInfoA});
+
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
+    mgr.Init(TEST_ROOT_DIR);
+
+    OsAccountSubspaceInfo info;
+    info.userId_ = OS_ACCOUNT_ID_A;
+    info.subspaceId = distId;
+    info.isCreateCompleted = true;
+    info.toBeRemoved = false;
+    ASSERT_EQ(mgr.subProfileDataDeal_->SaveSubProfileInfo(info), ERR_OK);
+
+    SubProfileContext ctx;
+    ctx.subProfileIdList.push_back(OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER);
+    ctx.subProfileIdList.push_back(distId);
+    ctx.subProfileIndexMap[1] = distId;
+    ASSERT_EQ(IInnerOsAccountManager::GetInstance().UpdateOsAccountSubspaceInfo(OS_ACCOUNT_ID_A, ctx), ERR_OK);
+
+    // isActivate=true: persisted==target but switch should still execute
+    int32_t fromSubspaceId = 0;
+    ErrCode ret = OhosAccountManager::GetInstance().SwitchOsAccountSubspace(
+        OS_ACCOUNT_ID_A, distId, fromSubspaceId, true);
+    EXPECT_EQ(ret, ERR_OK);
+    // Runtime cache should be populated (BMS sync executed)
+    EXPECT_EQ(mgr.GetRuntimeForegroundSubProfileId(OS_ACCOUNT_ID_A), distId);
+
+    mgr.subProfileDataDeal_->RemoveSubProfileDir(OS_ACCOUNT_ID_A, distId);
+}
+
+/**
+ * @tc.name: SwitchOsAccountSubspace_BMSFailure_RollbackEvent_001
+ * @tc.desc: BMS failure during switch with fromSubspaceId > 0 triggers RollbackSubProfileSwitch
+ *           which restores runtime cache to the previous foreground.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountSubspaceModuleTest, SwitchOsAccountSubspace_BMSFailure_RollbackEvent_001, TestSize.Level1)
+{
+    int32_t distId1 = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 30;
+    int32_t distId2 = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 31;
+    OsAccountInfo osAccountInfoA;
+    osAccountInfoA.SetLocalId(OS_ACCOUNT_ID_A);
+    MockSetCreatedOsAccounts({osAccountInfoA});
+
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
+    mgr.Init(TEST_ROOT_DIR);
+
+    OsAccountSubspaceInfo info1;
+    info1.userId_ = OS_ACCOUNT_ID_A;
+    info1.subspaceId = distId1;
+    info1.isCreateCompleted = true;
+    info1.toBeRemoved = false;
+    ASSERT_EQ(mgr.subProfileDataDeal_->SaveSubProfileInfo(info1), ERR_OK);
+
+    OsAccountSubspaceInfo info2;
+    info2.userId_ = OS_ACCOUNT_ID_A;
+    info2.subspaceId = distId2;
+    info2.isCreateCompleted = true;
+    info2.toBeRemoved = false;
+    ASSERT_EQ(mgr.subProfileDataDeal_->SaveSubProfileInfo(info2), ERR_OK);
+
+    SubProfileContext ctx;
+    ctx.subProfileIdList.push_back(OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER);
+    ctx.subProfileIdList.push_back(distId1);
+    ctx.subProfileIdList.push_back(distId2);
+    ctx.subProfileIndexMap[1] = distId1;
+    ctx.subProfileIndexMap[2] = distId2;
+    ASSERT_EQ(IInnerOsAccountManager::GetInstance().UpdateOsAccountSubspaceInfo(OS_ACCOUNT_ID_A, ctx), ERR_OK);
+
+    // First: successful switch to distId1 (populates runtime cache)
+    int32_t fromSubspaceId = -1;
+    ASSERT_EQ(OhosAccountManager::GetInstance().SwitchOsAccountSubspace(
+        OS_ACCOUNT_ID_A, distId1, fromSubspaceId), ERR_OK);
+    ASSERT_EQ(mgr.GetRuntimeForegroundSubProfileId(OS_ACCOUNT_ID_A), distId1);
+
+    // Second: BMS failure switch to distId2
+    BundleManagerAdapter::GetInstance()->g_resultCode = ERR_ACCOUNT_COMMON_CONNECT_BUNDLE_MANAGER_SERVICE_ERROR;
+    fromSubspaceId = 0;
+    ErrCode ret = OhosAccountManager::GetInstance().SwitchOsAccountSubspace(
+        OS_ACCOUNT_ID_A, distId2, fromSubspaceId);
+    EXPECT_NE(ret, ERR_OK);
+    // RollbackSubProfileSwitch should have restored cache to distId1
+    EXPECT_EQ(mgr.GetRuntimeForegroundSubProfileId(OS_ACCOUNT_ID_A), distId1);
+
+    BundleManagerAdapter::GetInstance()->g_resultCode = ERR_OK;
+    mgr.subProfileDataDeal_->RemoveSubProfileDir(OS_ACCOUNT_ID_A, distId1);
+    mgr.subProfileDataDeal_->RemoveSubProfileDir(OS_ACCOUNT_ID_A, distId2);
+}
+
+/**
+ * @tc.name: SwitchOsAccountSubspace_BMSFailure_Activation_001
+ * @tc.desc: BMS failure during activation (isActivate=true, fromSubspaceId=-1).
+ *           RollbackSubProfileSwitch sends events with from=-1 and sets cache to -1.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountSubspaceModuleTest, SwitchOsAccountSubspace_BMSFailure_Activation_001, TestSize.Level1)
+{
+    int32_t distId = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 40;
+    OsAccountInfo osAccountInfoA;
+    osAccountInfoA.SetLocalId(OS_ACCOUNT_ID_A);
+    osAccountInfoA.SetForegroundSubProfileId(distId);
+    MockSetCreatedOsAccounts({osAccountInfoA});
+
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
+    mgr.Init(TEST_ROOT_DIR);
+
+    OsAccountSubspaceInfo info;
+    info.userId_ = OS_ACCOUNT_ID_A;
+    info.subspaceId = distId;
+    info.isCreateCompleted = true;
+    info.toBeRemoved = false;
+    ASSERT_EQ(mgr.subProfileDataDeal_->SaveSubProfileInfo(info), ERR_OK);
+
+    SubProfileContext ctx;
+    ctx.subProfileIdList.push_back(OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER);
+    ctx.subProfileIdList.push_back(distId);
+    ctx.subProfileIndexMap[1] = distId;
+    ASSERT_EQ(IInnerOsAccountManager::GetInstance().UpdateOsAccountSubspaceInfo(OS_ACCOUNT_ID_A, ctx), ERR_OK);
+
+    // isActivate=true + BMS failure → RollbackSubProfileSwitch with fromSubspaceId=-1
+    BundleManagerAdapter::GetInstance()->g_resultCode = ERR_ACCOUNT_COMMON_CONNECT_BUNDLE_MANAGER_SERVICE_ERROR;
+    int32_t fromSubspaceId = 0;
+    ErrCode ret = OhosAccountManager::GetInstance().SwitchOsAccountSubspace(
+        OS_ACCOUNT_ID_A, distId, fromSubspaceId, true);
+    EXPECT_NE(ret, ERR_OK);
+    // RollbackSubProfileSwitch should have set cache to -1
+    EXPECT_EQ(mgr.GetRuntimeForegroundSubProfileId(OS_ACCOUNT_ID_A), -1);
+
+    BundleManagerAdapter::GetInstance()->g_resultCode = ERR_OK;
+    mgr.subProfileDataDeal_->RemoveSubProfileDir(OS_ACCOUNT_ID_A, distId);
+}
+
+/**
+ * @tc.name: SwitchOsAccountSubspace_ResolveFailed_RollbackEvent_001
+ * @tc.desc: ResolveSwitchAppIndices failure (target not in context) triggers
+ *           RollbackSubProfileSwitch which restores runtime cache to previous foreground.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountSubspaceModuleTest, SwitchOsAccountSubspace_ResolveFailed_RollbackEvent_001, TestSize.Level1)
+{
+    int32_t distId1 = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 50;
+    int32_t distId2 = OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER + 51;
+    OsAccountInfo osAccountInfoA;
+    osAccountInfoA.SetLocalId(OS_ACCOUNT_ID_A);
+    MockSetCreatedOsAccounts({osAccountInfoA});
+
+    auto &mgr = OsAccountSubProfileManager::GetInstance();
+    mgr.Init(TEST_ROOT_DIR);
+
+    // Create both subprofiles on disk
+    OsAccountSubspaceInfo info1;
+    info1.userId_ = OS_ACCOUNT_ID_A;
+    info1.subspaceId = distId1;
+    info1.isCreateCompleted = true;
+    info1.toBeRemoved = false;
+    ASSERT_EQ(mgr.subProfileDataDeal_->SaveSubProfileInfo(info1), ERR_OK);
+
+    OsAccountSubspaceInfo info2;
+    info2.userId_ = OS_ACCOUNT_ID_A;
+    info2.subspaceId = distId2;
+    info2.isCreateCompleted = true;
+    info2.toBeRemoved = false;
+    ASSERT_EQ(mgr.subProfileDataDeal_->SaveSubProfileInfo(info2), ERR_OK);
+
+    // Context only has distId1 (not distId2)
+    SubProfileContext ctx;
+    ctx.subProfileIdList.push_back(OS_ACCOUNT_ID_A * Constants::OS_ACCOUNT_SUBSPACE_ID_MULTIPLIER);
+    ctx.subProfileIdList.push_back(distId1);
+    ctx.subProfileIndexMap[1] = distId1;
+    ASSERT_EQ(IInnerOsAccountManager::GetInstance().UpdateOsAccountSubspaceInfo(OS_ACCOUNT_ID_A, ctx), ERR_OK);
+
+    // First: successful switch to distId1 (populates cache)
+    int32_t fromSubspaceId = -1;
+    ASSERT_EQ(OhosAccountManager::GetInstance().SwitchOsAccountSubspace(
+        OS_ACCOUNT_ID_A, distId1, fromSubspaceId), ERR_OK);
+    ASSERT_EQ(mgr.GetRuntimeForegroundSubProfileId(OS_ACCOUNT_ID_A), distId1);
+
+    // Second: switch to distId2 → ResolveSwitchAppIndices fails (not in context)
+    fromSubspaceId = 0;
+    ErrCode ret = OhosAccountManager::GetInstance().SwitchOsAccountSubspace(
+        OS_ACCOUNT_ID_A, distId2, fromSubspaceId);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SUBPROFILE_NOT_FOUND);
+    // RollbackSubProfileSwitch should have restored cache to distId1
+    EXPECT_EQ(mgr.GetRuntimeForegroundSubProfileId(OS_ACCOUNT_ID_A), distId1);
+
+    mgr.subProfileDataDeal_->RemoveSubProfileDir(OS_ACCOUNT_ID_A, distId1);
+    mgr.subProfileDataDeal_->RemoveSubProfileDir(OS_ACCOUNT_ID_A, distId2);
+}
+
 #endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
