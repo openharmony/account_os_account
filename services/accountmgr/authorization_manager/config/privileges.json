@@ -49,6 +49,10 @@
             "name":"ohos.privilege.monitor_raw_usb_packets",
             "description":"Privilege for monitoring the raw usb packets",
             "kernelPermission":"ohos.permission.kernel.USB_CAPTURE"
+        },
+        {
+            "name":"ohos.privilege.set_device_security_level",
+            "description":"Set device security level"
         }
     ]
 }

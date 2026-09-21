@@ -846,6 +846,10 @@ bool AppAccountInfo::Marshalling(Parcel &parcel) const
         ACCOUNT_LOGE("failed to write string map for oauthTokens_");
         return false;
     }
+    if (!parcel.WriteUint32(appIndex_)) {
+        ACCOUNT_LOGE("failed to write uint32 for appIndex_");
+        return false;
+    }
     return true;
 }
 
@@ -927,6 +931,10 @@ bool AppAccountInfo::ReadFromParcel(Parcel &parcel)
 
     if (!ReadTokenInfos(oauthTokens_, parcel)) {
         ACCOUNT_LOGE("failed to read string map for oauthTokens_");
+        return false;
+    }
+    if (!parcel.ReadUint32(appIndex_)) {
+        ACCOUNT_LOGE("failed to read uint32 for appIndex_");
         return false;
     }
     return true;

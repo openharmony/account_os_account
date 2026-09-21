@@ -503,6 +503,7 @@ ohos_unittest("account_inner_iam_manager_mock_source_file_test") {
       "${services_path}/accountmgr/src/distributed_account/os_account_subspace_data_deal.cpp",
       "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager.cpp",
     ]
+    external_deps += [ "bundle_framework:appexecfwk_base", "bundle_framework:appexecfwk_core" ]
   }
 }
 
@@ -606,6 +607,7 @@ ohos_unittest("account_iam_mock_test") {
       "${services_path}/accountmgr/src/distributed_account/os_account_subspace_data_deal.cpp",
       "${services_path}/accountmgr/src/distributed_account/os_account_subspace_manager.cpp",
     ]
+    external_deps += [ "bundle_framework:appexecfwk_base", "bundle_framework:appexecfwk_core" ]
   }
 
   external_deps = [

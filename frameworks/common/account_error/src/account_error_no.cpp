@@ -88,7 +88,7 @@ static const std::unordered_map<uint32_t, std::string> g_errorStringMap = {
     {ERR_JS_ACCOUNT_CROSS_DEVICE_CAPABILITY_NOT_SUPPORT, "Cross-device capability not supported"},
     {ERR_JS_ACCOUNT_CROSS_DEVICE_COMMUNICATION_FAILED, "Cross-device communication failed"},
     {ERR_JS_FOREGROUND_OS_ACCOUNT_NOT_FOUND, "The foreground OS account is not found"},
-    {ERR_JS_DISPLAY_NOT_FOUND, "Display not found"},
+    {ERR_JS_DISPLAY_NOT_FOUND, "Display not found or not primary"},
     {ERR_JS_CROSS_DISPLAY_ACTIVATION_NOT_SUPPORTED, "Cross-display activation not supported"},
     {ERR_JS_OS_ACCOUNT_SUBPROFILE_NOT_FOUND,
         "OS account sub-profile not found"},

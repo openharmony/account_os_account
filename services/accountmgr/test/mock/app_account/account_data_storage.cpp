@@ -27,6 +27,8 @@ namespace AccountSA {
 
 int g_accountDataStorageErrType = 0;
 bool g_mockLoadDataNonEmpty = false;
+bool g_mockGetAccountInfoByIdCustom = false;
+std::string g_mockAccountInfoJson;
 
 AccountDataStorage::AccountDataStorage(const std::string &appId, const std::string &storeId,
     const DbAdapterOptions &options)
@@ -149,6 +151,7 @@ public:
         AddStringToJson(jsonObject, "name", name_);
         AddStringToJson(jsonObject, "alias", alias_);
         AddStringToJson(jsonObject, "extraInfo", extraInfo_);
+        AddIntToJson(jsonObject, APP_INDEX_KEY, static_cast<int>(appIndex_));
         AddSetStringToJson(jsonObject, "authorizedApps", authorizedApps_);
         AddBoolToJson(jsonObject, "syncEnable", syncEnable_);
         AddStringToJson(jsonObject, "associatedData", associatedData_);
@@ -180,6 +183,7 @@ public:
         GetDataByType<std::string>(jsonObject, NAME, accountInfo.name_);
         GetDataByType<std::string>(jsonObject, ALIAS, accountInfo.alias_);
         GetDataByType<std::string>(jsonObject, EXTRA_INFO, accountInfo.extraInfo_);
+        GetDataByType<uint32_t>(jsonObject, APP_INDEX_KEY, accountInfo.appIndex_);
         GetDataByType<bool>(jsonObject, SYNC_ENABLE, accountInfo.syncEnable_);
         GetDataByType<std::set<std::string>>(jsonObject, AUTHORIZED_APPS, accountInfo.authorizedApps_);
         GetDataByType<std::string>(jsonObject, ASSOCIATED_DATA, accountInfo.associatedData_);
@@ -241,6 +245,13 @@ public:
 ErrCode AccountDataStorage::GetAccountInfoById(const std::string id, AppAccountInfo &accountInfo)
 {
     ACCOUNT_LOGI("mock enter,id = %{public}s", id.c_str());
+    if (g_mockGetAccountInfoByIdCustom && !g_mockAccountInfoJson.empty()) {
+        auto jsonObject = CreateJsonFromString(g_mockAccountInfoJson);
+        if (jsonObject != nullptr && IsObject(jsonObject)) {
+            FromJson(jsonObject.get(), accountInfo);
+            return ERR_OK;
+        }
+    }
     if (id != "com.example.ownermax#0#name#") {
         AccountInfoMOCK appAccountInfo("name", "key");
         appAccountInfo.SetOAuthToken("test_authType1", "test_authToken1");

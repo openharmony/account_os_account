@@ -63,6 +63,7 @@ CJsonUnique ToJson(const AppAccountInfo &accountInfo)
     AddStringToJson(jsonObject, NAME, accountInfo.name_);
     AddStringToJson(jsonObject, ALIAS, accountInfo.alias_);
     AddStringToJson(jsonObject, EXTRA_INFO, accountInfo.extraInfo_);
+    AddIntToJson(jsonObject, APP_INDEX_KEY, static_cast<int>(accountInfo.appIndex_));
     AddSetStringToJson(jsonObject, AUTHORIZED_APPS, accountInfo.authorizedApps_);
     AddBoolToJson(jsonObject, SYNC_ENABLE, accountInfo.syncEnable_);
     AddStringToJson(jsonObject, ASSOCIATED_DATA, accountInfo.associatedData_);
@@ -82,6 +83,7 @@ bool FromJson(cJSON *jsonObject, AppAccountInfo &accountInfo)
     GetDataByType<std::string>(jsonObject, NAME, accountInfo.name_);
     GetDataByType<std::string>(jsonObject, ALIAS, accountInfo.alias_);
     GetDataByType<std::string>(jsonObject, EXTRA_INFO, accountInfo.extraInfo_);
+    GetDataByType<uint32_t>(jsonObject, APP_INDEX_KEY, accountInfo.appIndex_);
     GetDataByType<bool>(jsonObject, SYNC_ENABLE, accountInfo.syncEnable_);
     GetDataByType<std::set<std::string>>(jsonObject, AUTHORIZED_APPS, accountInfo.authorizedApps_);
     GetDataByType<std::string>(jsonObject, ASSOCIATED_DATA, accountInfo.associatedData_);

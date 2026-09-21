@@ -433,7 +433,7 @@
         *OHOS::AccountSA::IInnerOsAccountManager::IsOsAccountForeground*;
         *OHOS::AccountSA::IInnerOsAccountManager::GetUserZonePrimaryDisplayId*;
         *OHOS::AccountSA::IInnerOsAccountManager::ResetDefaultActivatedAccount*;
-        *OHOS::AccountSA::IInnerOsAccountManager::RestoreForegroundAccounts*;
+        *OHOS::AccountSA::IInnerOsAccountManager::RestoreAllForegroundAccounts*;
         *OHOS::AccountSA::IInnerOsAccountManager::SendMsgForAccountActivateInBackground*;
         *OHOS::AccountSA::IInnerOsAccountManager::ValidateDisplayForActivation*;
     };

@@ -724,23 +724,28 @@ ErrCode OhosAccountManager::DeleteOsAccountSubspace(int32_t osAccountId, int32_t
 }
 
 ErrCode OhosAccountManager::SwitchOsAccountSubspace(
-    int32_t osAccountId, int32_t subspaceId, int32_t &fromSubspaceId)
+    int32_t osAccountId, int32_t subspaceId, int32_t &fromSubspaceId, bool isActivate)
 {
     OsAccountInfo osAccountInfo;
     ErrCode err = IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(osAccountId, osAccountInfo);
-    if (err == ERR_OK && osAccountInfo.GetForegroundSubProfileId() == subspaceId) {
+    if (err == ERR_OK && osAccountInfo.GetForegroundSubProfileId() == subspaceId && !isActivate) {
         fromSubspaceId = subspaceId;
         ACCOUNT_LOGI("Target subspace is already foreground, no switch needed, osAccountId=%{public}d, "
             "subspaceId=%{public}d", osAccountId, subspaceId);
         return ERR_OK;
     }
-    fromSubspaceId = osAccountInfo.GetForegroundSubProfileId();
+    if (isActivate) {
+        // Activation: no previous foreground in runtime, fromSubspaceId=-1 for correct SWITCHING event
+        fromSubspaceId = -1;
+    } else {
+        fromSubspaceId = osAccountInfo.GetForegroundSubProfileId();
+    }
     SendSubProfileSwitchCES(osAccountId, subspaceId, fromSubspaceId, true);
     (void) OsAccountSubProfileSubscribeManager::GetInstance().Publish(
         OsAccountSubProfileEventType::SWITCHING, osAccountId, subspaceId, fromSubspaceId);
 
     ErrCode ret = OsAccountSubProfileManager::GetInstance().SwitchSubProfile(
-        osAccountId, subspaceId, fromSubspaceId);
+        osAccountId, subspaceId, fromSubspaceId, isActivate);
     if (ret != ERR_OK) {
         REPORT_OS_ACCOUNT_FAIL(osAccountId, Constants::OPERATION_SUBPROFILE_SWITCH, ret,
             "SwitchOsAccountSubspace failed");

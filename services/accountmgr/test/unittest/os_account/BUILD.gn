@@ -1654,7 +1654,7 @@ if (os_account_enable_multiple_foreground_os_accounts) {
     module_out_path = module_output_path
     use_exceptions = true
     sources = [
-      "${services_path}/accountmgr/src/display_user_zone_config/display_user_zone_config_manager.cpp",
+      "${services_path}/accountmgr/src/osaccount/display_user_zone_config/display_user_zone_config_manager.cpp",
       "display_user_zone_config_manager_test.cpp",
     ]
     configs = [

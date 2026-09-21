@@ -45,8 +45,10 @@ ErrCode OhosAccountManager::DeleteOsAccountSubspace(int32_t osAccountId, int32_t
     return ERR_OK;
 }
 
-ErrCode OhosAccountManager::SwitchOsAccountSubspace(int32_t osAccountId, int32_t subspaceId, int32_t &fromSubspaceId)
+ErrCode OhosAccountManager::SwitchOsAccountSubspace(int32_t osAccountId, int32_t subspaceId,
+    int32_t &fromSubspaceId, bool isActivate)
 {
+    (void)isActivate;
     return ERR_OK;
 }
 }  // namespace AccountSA

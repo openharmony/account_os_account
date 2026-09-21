@@ -124,7 +124,8 @@ public:
     void InitOsAccountSubProfileManager(const std::string &rootPath);
     ErrCode CreateOsAccountSubspace(int32_t osAccountId, OsAccountSubspaceResult &result);
     ErrCode DeleteOsAccountSubspace(int32_t osAccountId, int32_t subspaceId);
-    ErrCode SwitchOsAccountSubspace(int32_t osAccountId, int32_t subspaceId, int32_t &fromSubspaceId);
+    ErrCode SwitchOsAccountSubspace(int32_t osAccountId, int32_t subspaceId, int32_t &fromSubspaceId,
+        bool isActivate = false);
 
 #endif  // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 

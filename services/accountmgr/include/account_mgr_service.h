@@ -16,6 +16,7 @@
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_MGR_SERVICE_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_MGR_SERVICE_H
 
+#include <map>
 #include <memory>
 #include <mutex>
 
@@ -112,6 +113,10 @@ private:
     bool CreateDomainService();
     bool IsDefaultOsAccountVerified();
     void GetUncreatedInitAccounts(std::set<int32_t> &initAccounts);
+    void ActivateDefaultOsAccountAndRestore();
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+    void RetryForegroundAccountsRestore(std::map<uint64_t, int32_t> &pendingAccounts);
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
     ErrCode GetOsAccountDistributedInfoInner(int32_t localId, OhosAccountInfo &info);
     bool HasAccountRequestPermission(const std::string &permissionName);
     int32_t CheckUserIdValid(int32_t userId);
@@ -140,6 +145,9 @@ private:
     bool isAmsReady_ = false;
     bool isBmsReady_ = false;
     bool isDefaultOsAccountActivated_ = false;
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+    bool isProcessRestart_ = false;
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
 };
 }  // namespace AccountSA
 }  // namespace OHOS
