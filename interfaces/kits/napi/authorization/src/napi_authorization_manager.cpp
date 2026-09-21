@@ -374,6 +374,7 @@ napi_value NapiAuthorizationManager::HasAuthorization(napi_env env, napi_callbac
 {
     auto context = std::make_unique<HasAuthorizationContext>();
     context->env = env;
+    context->throwErr = true;
     if (!ParseContextForHasAuthorization(env, cbInfo, context.get())) {
         ACCOUNT_LOGE("Failed to parse parameter for HasAuthorizationContext");
         return nullptr;
