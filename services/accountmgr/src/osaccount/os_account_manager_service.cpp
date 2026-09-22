@@ -2060,6 +2060,10 @@ ErrCode OsAccountManagerService::SetDefaultActivatedOsAccount(const uint64_t dis
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
+    if (id < Constants::START_USER_ID) {
+        ACCOUNT_LOGE("Not allow set id:%{public}d default activated account!", id);
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
     return innerManager_.SetDefaultActivatedOsAccount(displayId, id);
 }
 

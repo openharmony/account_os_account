@@ -59,6 +59,7 @@
 #include <mutex>
 #include <thread>
 #include <unordered_set>
+#include <set>
 #ifdef SUPPORT_AUTHORIZATION
 #include "tee_auth_adapter.h"
 #endif
@@ -198,17 +199,13 @@ IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManager_(OsAccountSu
     osAccountControl_ = std::make_shared<OsAccountControlFileManager>();
     osAccountControl_->Init();
     osAccountControl_->GetDeviceOwnerId(deviceOwnerId_);
-    std::map<uint64_t, int32_t> activatedAccountsMap;
-    osAccountControl_->GetAllDefaultActivatedOsAccounts(activatedAccountsMap);
 #ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
     ErrCode errCode = DisplayUserZoneConfigManager::GetInstance().Init();
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Failed to initialize display user zone config, err=%{public}d", errCode);
     }
 #endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
-    for (const auto &[displayId, localId] : activatedAccountsMap) {
-        defaultActivatedIds_.EnsureInsert(displayId, localId);
-    }
+    ParseAllDefaultActivateIds();
     osAccountControl_->GetOsAccountConfig(config_);
     SetParameter(PARAM_LOGIN_NAME_MAX, std::to_string(Constants::LOCAL_NAME_MAX_SIZE - 1).c_str());
 
@@ -3903,6 +3900,52 @@ ErrCode IInnerOsAccountManager::GetDefaultActivatedOsAccount(const uint64_t disp
         return ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR;
     }
     return ERR_OK;
+}
+
+void IInnerOsAccountManager::ParseAllDefaultActivateIds()
+{
+    std::lock_guard<std::mutex> lock(operatingMutex_);
+    std::map<uint64_t, int32_t> rawIds;
+    osAccountControl_->GetAllDefaultActivatedOsAccounts(rawIds);
+    std::set<int32_t> claimedIds;
+    int32_t defaultDisplayAccount = Constants::START_USER_ID;
+    auto it = rawIds.find(Constants::DEFAULT_DISPLAY_ID);
+    if (it != rawIds.end()) {
+        defaultDisplayAccount = it->second;
+        if (!IsValidActivateOsAccountId(defaultDisplayAccount)) {
+            ACCOUNT_LOGE("Default activated account %{public}d for default display is invalid, degrade to 100.",
+                defaultDisplayAccount);
+            REPORT_OS_ACCOUNT_FAIL(defaultDisplayAccount, Constants::OPERATION_SA_INIT,
+                ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR, "Default activated account is invalid, degrade to 100.");
+            defaultDisplayAccount = Constants::START_USER_ID;
+        }
+    }
+    defaultActivatedIds_.EnsureInsert(Constants::DEFAULT_DISPLAY_ID, defaultDisplayAccount);
+    claimedIds.insert(defaultDisplayAccount);
+    for (const auto &[displayId, localId] : rawIds) {
+        if (displayId == Constants::DEFAULT_DISPLAY_ID || claimedIds.count(localId) > 0) {
+            continue;
+        }
+        if (!IsValidActivateOsAccountId(localId)) {
+            ACCOUNT_LOGE("Default activated account %{public}d for display %{public}llu is invalid, skip.",
+                localId, static_cast<unsigned long long>(displayId));
+            continue;
+        }
+        defaultActivatedIds_.EnsureInsert(displayId, localId);
+        claimedIds.insert(localId);
+    }
+}
+
+bool IInnerOsAccountManager::IsValidActivateOsAccountId(int32_t id)
+{
+    if (id < Constants::START_USER_ID) {
+        return false;
+    }
+    OsAccountInfo accountInfo;
+    if (osAccountControl_->GetOsAccountInfoById(id, accountInfo) == ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR) {
+        return false;
+    }
+    return IsValidOsAccount(accountInfo) == ERR_OK;
 }
 
 ErrCode IInnerOsAccountManager::GetAllDefaultActivatedOsAccounts(std::map<uint64_t, int32_t> &activatedIds)

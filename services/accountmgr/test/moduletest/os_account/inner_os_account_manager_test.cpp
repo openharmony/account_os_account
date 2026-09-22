@@ -1997,5 +1997,147 @@ HWTEST_F(IInnerOsAccountManagerTest, CreateOsAccountTypeCacheConsistencyAfterIdR
 #endif // SUPPORT_AUTHORIZATION
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
+struct ParseAllDefaultActivateIdsState {
+    std::shared_ptr<IOsAccountControl> originalControl;
+    int32_t oldDefault = Constants::INVALID_OS_ACCOUNT_ID;
+    bool hadDefault = false;
+};
+
+std::shared_ptr<MockOsAccountControlFileManager> PrepareParseAllDefaultActivateIdsTest(
+    IInnerOsAccountManager *innerMgrService, ParseAllDefaultActivateIdsState &state)
+{
+    state.originalControl = innerMgrService->osAccountControl_;
+    state.hadDefault = innerMgrService->defaultActivatedIds_.Find(Constants::DEFAULT_DISPLAY_ID, state.oldDefault);
+    auto control = std::make_shared<MockOsAccountControlFileManager>();
+    innerMgrService->osAccountControl_ = control;
+    EXPECT_CALL(*control, GetOsAccountInfoById(testing::_, testing::_))
+        .WillRepeatedly(testing::Return(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR));
+    return control;
+}
+
+void RestoreParseAllDefaultActivateIdsTest(IInnerOsAccountManager *innerMgrService,
+    const ParseAllDefaultActivateIdsState &state)
+{
+    if (state.hadDefault) {
+        innerMgrService->defaultActivatedIds_.EnsureInsert(Constants::DEFAULT_DISPLAY_ID, state.oldDefault);
+    } else {
+        innerMgrService->defaultActivatedIds_.Erase(Constants::DEFAULT_DISPLAY_ID);
+    }
+    innerMgrService->osAccountControl_ = state.originalControl;
+}
+
+/**
+ * @tc.name: ParseAllDefaultActivateIdsValidAndSkip001
+ * @tc.desc: Verify ParseAllDefaultActivateIds keeps the default display's valid id, inserts a valid
+ *           non-default id, and skips an invalid (< START_USER_ID) or duplicate non-default id.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(IInnerOsAccountManagerTest, ParseAllDefaultActivateIdsValidAndSkip001, TestSize.Level1)
+{
+    constexpr int32_t validIdA = Constants::START_USER_ID + 70;
+    constexpr int32_t validIdB = Constants::START_USER_ID + 71;
+    constexpr int32_t rangeInvalidId = Constants::START_USER_ID - 1;
+    constexpr uint64_t dispA = 1;
+    constexpr uint64_t dispB = 2;
+    constexpr uint64_t dispC = 3;
+    ParseAllDefaultActivateIdsState state;
+    auto control = PrepareParseAllDefaultActivateIdsTest(innerMgrService_, state);
+    OsAccountInfo validAccount;
+    validAccount.SetIsCreateCompleted(true);
+    EXPECT_CALL(*control, GetOsAccountInfoById(validIdA, testing::_))
+        .WillRepeatedly(testing::DoAll(testing::SetArgReferee<1>(validAccount), testing::Return(ERR_OK)));
+    EXPECT_CALL(*control, GetOsAccountInfoById(validIdB, testing::_))
+        .WillRepeatedly(testing::DoAll(testing::SetArgReferee<1>(validAccount), testing::Return(ERR_OK)));
+    innerMgrService_->defaultActivatedIds_.Erase(dispA);
+    innerMgrService_->defaultActivatedIds_.Erase(dispB);
+    innerMgrService_->defaultActivatedIds_.Erase(dispC);
+    std::map<uint64_t, int32_t> rawIds = {{Constants::DEFAULT_DISPLAY_ID, validIdA}, {dispA, validIdB},
+        {dispB, rangeInvalidId}, {dispC, validIdA}};
+    EXPECT_CALL(*control, GetAllDefaultActivatedOsAccounts(testing::_))
+        .WillOnce(testing::DoAll(testing::SetArgReferee<0>(rawIds), testing::Return(ERR_OK)));
+    innerMgrService_->ParseAllDefaultActivateIds();
+    int32_t id = -1;
+    ASSERT_TRUE(innerMgrService_->defaultActivatedIds_.Find(Constants::DEFAULT_DISPLAY_ID, id));
+    EXPECT_EQ(id, validIdA);
+    ASSERT_TRUE(innerMgrService_->defaultActivatedIds_.Find(dispA, id));
+    EXPECT_EQ(id, validIdB);
+    EXPECT_FALSE(innerMgrService_->defaultActivatedIds_.Find(dispB, id));
+    EXPECT_FALSE(innerMgrService_->defaultActivatedIds_.Find(dispC, id));
+    RestoreParseAllDefaultActivateIdsTest(innerMgrService_, state);
+}
+
+/**
+ * @tc.name: ParseAllDefaultActivateIdsInvalidDefaultRange001
+ * @tc.desc: Verify ParseAllDefaultActivateIds degrades a default id < START_USER_ID to START_USER_ID.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(IInnerOsAccountManagerTest, ParseAllDefaultActivateIdsInvalidDefaultRange001, TestSize.Level1)
+{
+    constexpr int32_t rangeInvalidId = Constants::START_USER_ID - 1;
+    ParseAllDefaultActivateIdsState state;
+    auto control = PrepareParseAllDefaultActivateIdsTest(innerMgrService_, state);
+    std::map<uint64_t, int32_t> rawIds = {{Constants::DEFAULT_DISPLAY_ID, rangeInvalidId}};
+    EXPECT_CALL(*control, GetAllDefaultActivatedOsAccounts(testing::_))
+        .WillOnce(testing::DoAll(testing::SetArgReferee<0>(rawIds), testing::Return(ERR_OK)));
+    innerMgrService_->ParseAllDefaultActivateIds();
+    int32_t id = -1;
+    ASSERT_TRUE(innerMgrService_->defaultActivatedIds_.Find(Constants::DEFAULT_DISPLAY_ID, id));
+    EXPECT_EQ(id, Constants::START_USER_ID);
+    RestoreParseAllDefaultActivateIdsTest(innerMgrService_, state);
+}
+
+/**
+ * @tc.name: ParseAllDefaultActivateIdsInvalidDefaultNonexist001
+ * @tc.desc: Verify ParseAllDefaultActivateIds degrades a default id whose account does not exist to START_USER_ID.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(IInnerOsAccountManagerTest, ParseAllDefaultActivateIdsInvalidDefaultNonexist001, TestSize.Level1)
+{
+    constexpr int32_t nonexistId = Constants::START_USER_ID + 72;
+    ParseAllDefaultActivateIdsState state;
+    auto control = PrepareParseAllDefaultActivateIdsTest(innerMgrService_, state);
+    std::map<uint64_t, int32_t> rawIds = {{Constants::DEFAULT_DISPLAY_ID, nonexistId}};
+    EXPECT_CALL(*control, GetAllDefaultActivatedOsAccounts(testing::_))
+        .WillOnce(testing::DoAll(testing::SetArgReferee<0>(rawIds), testing::Return(ERR_OK)));
+    innerMgrService_->ParseAllDefaultActivateIds();
+    int32_t id = -1;
+    ASSERT_TRUE(innerMgrService_->defaultActivatedIds_.Find(Constants::DEFAULT_DISPLAY_ID, id));
+    EXPECT_EQ(id, Constants::START_USER_ID);
+    RestoreParseAllDefaultActivateIdsTest(innerMgrService_, state);
+}
+
+/**
+ * @tc.name: ParseAllDefaultActivateIdsDefaultAbsent001
+ * @tc.desc: Verify ParseAllDefaultActivateIds keeps START_USER_ID for an absent default display and
+ *           inserts a valid non-default id.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(IInnerOsAccountManagerTest, ParseAllDefaultActivateIdsDefaultAbsent001, TestSize.Level1)
+{
+    constexpr int32_t validIdB = Constants::START_USER_ID + 71;
+    constexpr uint64_t dispA = 1;
+    ParseAllDefaultActivateIdsState state;
+    auto control = PrepareParseAllDefaultActivateIdsTest(innerMgrService_, state);
+    OsAccountInfo validAccount;
+    validAccount.SetIsCreateCompleted(true);
+    EXPECT_CALL(*control, GetOsAccountInfoById(validIdB, testing::_))
+        .WillRepeatedly(testing::DoAll(testing::SetArgReferee<1>(validAccount), testing::Return(ERR_OK)));
+    innerMgrService_->defaultActivatedIds_.Erase(dispA);
+    std::map<uint64_t, int32_t> rawIds = {{dispA, validIdB}};
+    EXPECT_CALL(*control, GetAllDefaultActivatedOsAccounts(testing::_))
+        .WillOnce(testing::DoAll(testing::SetArgReferee<0>(rawIds), testing::Return(ERR_OK)));
+    innerMgrService_->ParseAllDefaultActivateIds();
+    int32_t id = -1;
+    ASSERT_TRUE(innerMgrService_->defaultActivatedIds_.Find(Constants::DEFAULT_DISPLAY_ID, id));
+    EXPECT_EQ(id, Constants::START_USER_ID);
+    ASSERT_TRUE(innerMgrService_->defaultActivatedIds_.Find(dispA, id));
+    EXPECT_EQ(id, validIdB);
+    RestoreParseAllDefaultActivateIdsTest(innerMgrService_, state);
+}
+
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -3188,7 +3188,13 @@ HWTEST_F(OsAccountManagerModuleTest, SetDefaultActivatedOsAccountWithDisplayIdMo
         ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
     EXPECT_EQ(OsAccountManager::SetDefaultActivatedOsAccount(displayId, Constants::MAX_USER_ID + 1),
         ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
-    
+
+    // Test with id less than START_USER_ID - rejected to avoid setting an unstartable default (boot failure)
+    EXPECT_EQ(OsAccountManager::SetDefaultActivatedOsAccount(displayId, Constants::START_USER_ID - 1),
+        ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+    EXPECT_EQ(OsAccountManager::SetDefaultActivatedOsAccount(displayId, 0),
+        ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+
     // Test with valid account id on default display
     EXPECT_EQ(OsAccountManager::SetDefaultActivatedOsAccount(displayId, commonOsAccountInfo.GetLocalId()), ERR_OK);
     

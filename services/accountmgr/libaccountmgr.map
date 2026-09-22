@@ -436,6 +436,7 @@
         *OHOS::AccountSA::IInnerOsAccountManager::RestoreAllForegroundAccounts*;
         *OHOS::AccountSA::IInnerOsAccountManager::SendMsgForAccountActivateInBackground*;
         *OHOS::AccountSA::IInnerOsAccountManager::ValidateDisplayForActivation*;
+        *OHOS::AccountSA::IInnerOsAccountManager::ParseAllDefaultActivateIds*;
     };
   local:
     *;
