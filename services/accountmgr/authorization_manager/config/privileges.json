@@ -41,14 +41,14 @@
             "description":"Manage enterprise device management applications"
         },
         {
-            "name":"ohos.privilege.operate_raw_net_packets",
-            "description":"Privilege for operating the raw network packets",
-            "kernelPermission":"ohos.permission.kernel.NET_RAW"
-        },
-        {
             "name":"ohos.privilege.monitor_raw_usb_packets",
             "description":"Privilege for monitoring the raw usb packets",
             "kernelPermission":"ohos.permission.kernel.USB_CAPTURE"
+        },
+        {
+            "name":"ohos.privilege.operate_raw_net_packets",
+            "description":"Privilege for operating the raw network packets",
+            "kernelPermission":"ohos.permission.kernel.NET_RAW"
         },
         {
             "name":"ohos.privilege.set_device_security_level",
