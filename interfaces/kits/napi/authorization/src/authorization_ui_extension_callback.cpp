@@ -28,11 +28,12 @@ void UIExtensionCallbackBase::SetCallBack(const sptr<IRemoteObject>& callback) {
 void UIExtensionCallbackBase::OnRelease(int32_t releaseCode)
 {
     ACCOUNT_LOGI("enter OnRelease releaseCode:%{public}d", releaseCode);
-    if (isOnResult_.load()) {
-        return;
-    }
-    if (isReleased_.exchange(true)) {
-        return;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (isHandled_) {
+            return;
+        }
+        isHandled_ = true;
     }
     ReleaseHandler(ERR_AUTHORIZATION_CREATE_UI_EXTENSION_ERROR);
 }
@@ -41,11 +42,12 @@ void UIExtensionCallbackBase::OnError(int32_t code, const std::string& name, con
 {
     ACCOUNT_LOGI(
         "enter OnError errCode:%{public}d, name:%{private}s, message:%{private}s", code, name.c_str(), message.c_str());
-    if (isOnResult_.load()) {
-        return;
-    }
-    if (isReleased_.exchange(true)) {
-        return;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (isHandled_) {
+            return;
+        }
+        isHandled_ = true;
     }
     if (code == AuthorizationConstants::BACKGROUNT_ERROR) {
         ReleaseHandler(ERR_OK, AUTHORIZATION_INTERACTION_NOT_ALLOWED);
@@ -57,9 +59,13 @@ void UIExtensionCallbackBase::OnError(int32_t code, const std::string& name, con
 void UIExtensionCallbackBase::OnResult(int32_t resultCode, const OHOS::AAFwk::Want& result)
 {
     ACCOUNT_LOGI("enter OnResult resultCode:%{public}d", resultCode);
-    if (isReleased_.load() || isOnResult_.exchange(true)) {
-        ACCOUNT_LOGI("Already released or result received, ignore OnResult");
-        return;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (isHandled_) {
+            ACCOUNT_LOGI("Already handled, ignore OnResult");
+            return;
+        }
+        isHandled_ = true;
     }
 
     if (resultCode == AuthorizationConstants::CANCEL_ERROR) {
@@ -98,11 +104,12 @@ void UIExtensionCallbackBase::OnRemoteReady(const std::shared_ptr<OHOS::Ace::Mod
 void UIExtensionCallbackBase::OnDestroy()
 {
     ACCOUNT_LOGI("enter OnDestroy");
-    if (isOnResult_.load()) {
-        return;
-    }
-    if (isReleased_.exchange(true)) {
-        return;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (isHandled_) {
+            return;
+        }
+        isHandled_ = true;
     }
     ReleaseHandler(AuthorizationConstants::EXTENSION_ERROR, AUTHORIZATION_SERVICE_BUSY);
 }

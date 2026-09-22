@@ -192,11 +192,21 @@ static std::function<void()> DomainAuthResultWork(std::shared_ptr<DomainAccountA
             return;
         }
         napi_value argv[ARGS_SIZE_TWO] = { nullptr };
-        napi_create_int32(param->env, param->errCode, &argv[0]);
+        napi_status status = napi_create_int32(param->env, param->errCode, &argv[0]);
+        if (status != napi_ok) {
+            ACCOUNT_LOGE("Failed to create int32 for errCode, status: %{public}d", status);
+            napi_close_handle_scope(param->env, scope);
+            return;
+        }
         AuthResultContext context{param->authResult.token, param->authResult.authStatusInfo.remainingTimes,
             param->authResult.authStatusInfo.freezingTime, param->authResult.authStatusInfo.nextPhaseFreezingTime,
             param->authResult.accountId};
         argv[1] = CreateAuthResultForDomain(param->env, context);
+        if (argv[1] == nullptr) {
+            ACCOUNT_LOGE("Failed to create auth result for domain");
+            napi_close_handle_scope(param->env, scope);
+            return;
+        }
         NapiCallVoidFunction(param->env, argv, ARGS_SIZE_TWO, param->callback->onResult);
         napi_close_handle_scope(param->env, scope);
     };

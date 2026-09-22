@@ -78,8 +78,7 @@ static Ace::UIContent* GetUIContent(const std::shared_ptr<AcquireAuthorizationCo
 UIExtensionCallback::UIExtensionCallback(const std::shared_ptr<AcquireAuthorizationContext>& context)
     : context_(context)
 {
-    isOnResult_.exchange(false);
-    isReleased_.exchange(false);
+    isHandled_ = false;
 }
 
 void UIExtensionCallback::ReleaseHandler(int32_t errCode, AuthorizationResultCode resultCode,
