@@ -1803,5 +1803,36 @@ HWTEST_F(InnerAuthorizationManagerModuleTest, ExecuteUIExtensionTaskTest_0300, T
     ErrCode ret = manager_.StoreCallbackMaps(uiInfo, callback, connectCallback, nullptr);
     EXPECT_EQ(ret, ERR_OK);
 }
+
+/**
+ * @tc.name: ValidateUIExtensionParams_AsObjectNull_0100
+ * @tc.desc: Test ValidateUIExtensionParams with callback whose AsObject() returns nullptr.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InnerAuthorizationManagerModuleTest, ValidateUIExtensionParams_AsObjectNull_0100, TestSize.Level1)
+{
+    class MockAuthorizationCallbackNullAsObject : public AuthorizationCallbackStub {
+    public:
+        sptr<IRemoteObject> AsObject() override { return nullptr; }
+        ErrCode OnResult(int32_t resultCode, const AuthorizationResult& result) override { return ERR_OK; }
+        ErrCode OnConnectAbility(const ConnectAbilityInfo& info, const sptr<IRemoteObject>& callback) override
+        {
+            return ERR_OK;
+        }
+    };
+
+    ConnectAbilityInfo info;
+    info.callingUid = TEST_CALLING_UID;
+    info.callingPid = TEST_CALLING_PID;
+    info.privilege = TEST_PRIVILEGE;
+    info.sessionId = TEST_SESSIONID;
+    sptr<MockAuthorizationCallbackNullAsObject> callback = new (std::nothrow) MockAuthorizationCallbackNullAsObject();
+    ASSERT_NE(callback, nullptr);
+    sptr<IRemoteObject> requestObj = new MockAuthorizationCallbackStub();
+    ASSERT_NE(requestObj, nullptr);
+    ErrCode ret = manager_.ValidateUIExtensionParams(info, callback, requestObj);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT);
+}
 } // namespace AccountSA
 } // namespace OHOS

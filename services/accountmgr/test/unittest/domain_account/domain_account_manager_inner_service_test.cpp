@@ -891,5 +891,74 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, AddToContextMap001, TestSize.Leve
     EXPECT_FALSE(instance->AddToContextMap(1, callback));
     delete instance;
 }
+
+/**
+ * @tc.name: RegisterPlugin_AsObjectNull_0100
+ * @tc.desc: Test RegisterPlugin with plugin whose AsObject() returns nullptr.
+ *          Should not crash; returns ERR_OK (skips death recipient, continues registration).
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountManagerInnerServiceTest, RegisterPlugin_AsObjectNull_0100, TestSize.Level1)
+{
+    InnerDomainAccountManager::GetInstance().plugin_ = nullptr;
+    InnerDomainAccountManager::GetInstance().callingUid_ = TEST_UID;
+
+    class MockDomainPluginNullAsObject : public DomainAccountPluginStub {
+    public:
+        sptr<IRemoteObject> AsObject() override { return nullptr; }
+        ErrCode Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
+            const sptr<IDomainAccountCallback> &callback) override
+        {
+            return ERR_OK;
+        }
+        ErrCode AuthWithPopup(const DomainAccountInfo &info,
+            const sptr<IDomainAccountCallback> &callback) override
+        {
+            return ERR_OK;
+        }
+        ErrCode AuthWithToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token,
+            const sptr<IDomainAccountCallback> &callback) override
+        {
+            return ERR_OK;
+        }
+        ErrCode GetAuthStatusInfo(const DomainAccountInfo &info,
+            const sptr<IDomainAccountCallback> &callback) override
+        {
+            return ERR_OK;
+        }
+        ErrCode GetDomainAccountInfo(const GetDomainAccountInfoOptions &options,
+            const sptr<IDomainAccountCallback> &callback) override
+        {
+            return ERR_OK;
+        }
+        ErrCode OnAccountBound(const DomainAccountInfo &info, const int32_t localId,
+            const sptr<IDomainAccountCallback> &callback) override
+        {
+            return ERR_OK;
+        }
+        ErrCode OnAccountUnBound(const DomainAccountInfo &info,
+            const sptr<IDomainAccountCallback> &callback) override
+        {
+            return ERR_OK;
+        }
+        ErrCode IsAccountTokenValid(const DomainAccountInfo &info, const std::vector<uint8_t> &token,
+            const sptr<IDomainAccountCallback> &callback) override
+        {
+            return ERR_OK;
+        }
+        ErrCode GetAccessToken(const DomainAccountInfo &domainInfo, const std::vector<uint8_t> &accountToken,
+            const GetAccessTokenOptions &option, const sptr<IDomainAccountCallback> &callback) override
+        {
+            return ERR_OK;
+        }
+    };
+
+    sptr<MockDomainPluginNullAsObject> plugin = new (std::nothrow) MockDomainPluginNullAsObject();
+    ASSERT_NE(plugin, nullptr);
+    ErrCode ret = InnerDomainAccountManager::GetInstance().RegisterPlugin(plugin);
+    EXPECT_EQ(ret, ERR_OK);
+    InnerDomainAccountManager::GetInstance().plugin_ = nullptr;
+}
 }  // namespace AccountSA
 }  // namespace OHOS

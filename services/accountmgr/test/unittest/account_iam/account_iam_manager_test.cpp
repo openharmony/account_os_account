@@ -601,5 +601,39 @@ HWTEST_F(AccountIamManagerTest, testAuthUser002, TestSize.Level0)
     IInnerOsAccountManager::GetInstance().lockingAccounts_.Erase(TEST_EXIST_ID);
 }
 #endif
+
+/**
+ * @tc.name: AuthUser_AsObjectNull_0100
+ * @tc.desc: Auth user with callback whose AsObject() returns nullptr.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIamManagerTest, AuthUser_AsObjectNull_0100, TestSize.Level1)
+{
+    class MockIIDMCallbackNullAsObject : public IDMCallbackStub {
+    public:
+        sptr<IRemoteObject> AsObject() override { return nullptr; }
+        ErrCode OnResult(int32_t resultCode, const std::vector<uint8_t>& extraInfoBuffer) override
+        {
+            return ERR_OK;
+        }
+        ErrCode OnAcquireInfo(int32_t module, uint32_t acquireInfo,
+            const std::vector<uint8_t>& extraInfoBuffer) override
+        {
+            return ERR_OK;
+        }
+    };
+
+    sptr<MockIIDMCallbackNullAsObject> testCallback = new (std::nothrow) MockIIDMCallbackNullAsObject();
+    ASSERT_NE(testCallback, nullptr);
+    AccountSA::AuthParam authParam;
+    authParam.userId = TEST_EXIST_ID;
+    authParam.challenge = TEST_CHALLENGE;
+    authParam.authType = AuthType::PIN;
+    authParam.authTrustLevel = AuthTrustLevel::ATL1;
+    uint64_t contextId = 0;
+    ErrCode errCode = InnerAccountIAMManager::GetInstance().AuthUser(authParam, testCallback, contextId);
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT, errCode);
+}
 }  // namespace AccountTest
 }  // namespace OHOS

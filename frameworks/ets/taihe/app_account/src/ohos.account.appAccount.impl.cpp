@@ -217,6 +217,10 @@ public:
             return ERR_JS_SYSTEM_SERVICE_EXCEPTION;
         }
         auto requestObj = AppExecFwk::WrapWant(env, request);
+        if (requestObj == nullptr) {
+            ACCOUNT_LOGE("failed to wrap request want");
+            return ERR_JS_SYSTEM_SERVICE_EXCEPTION;
+        }
         auto requestPtr = reinterpret_cast<uintptr_t>(requestObj);
         taiheCallback_.onRequestRedirected(requestPtr);
         return ERR_OK;
