@@ -278,6 +278,7 @@ private:
     mutable std::mutex createOsAccountMutex_;
     // In user-zone mode, display keys are primary display IDs only.
     SafeMap<uint64_t, int32_t> foregroundAccountMap_;
+    mutable std::mutex foregroundAccountMapMutex_;
 #ifdef SUPPORT_AUTHORIZATION
     OsAccountCacheManager osAccountCacheManager_;  // Cache for OS account types
     OsAccountTeeAdapter teeAdapter_;  // TEE adapter for secure account operations
@@ -288,6 +289,7 @@ private:
 #endif
     OsAccountActivateLockPluginManager &activateLockPluginManager_;
     SafeMap<int32_t, bool> loggedInAccounts_;
+    mutable std::mutex loggedInAccountsMutex_;
     SafeMap<int32_t, bool> verifiedAccounts_;
     SafeMap<int32_t, bool> deactivatingAccounts_;
 #ifdef SUPPORT_LOCK_OS_ACCOUNT

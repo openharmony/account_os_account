@@ -1250,6 +1250,7 @@ ErrCode IInnerOsAccountManager::BindDomainAccount(const OsAccountType &type,
     const DomainAccountInfo &domainAccountInfo, OsAccountInfo &osAccountInfo,
     const CreateOsAccountForDomainOptions &options)
 {
+    std::lock_guard<std::mutex> lock(createOrBindDomainAccountMutex_);
     bool isBound = false;
     ErrCode errCode = CheckDomainAccountBound(domainAccountInfo, isBound);
     if (errCode != ERR_OK) {
@@ -1427,7 +1428,10 @@ ErrCode IInnerOsAccountManager::PrepareRemoveOsAccount(OsAccountInfo &osAccountI
     if (errCode != ERR_OK) {
         return errCode;
     }
-    loggedInAccounts_.Erase(id);
+    {
+        std::lock_guard<std::mutex> lock(loggedInAccountsMutex_);
+        loggedInAccounts_.Erase(id);
+    }
     verifiedAccounts_.Erase(id);
     // stop account
     OsAccountInterface::PublishCommonEvent(
@@ -1565,7 +1569,10 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountDeactivate(OsAccountInfo &osAcc
         errCode = OsAccountInterface::SendToStorageAccountStop(osAccountInfo);
         if (errCode != ERR_OK) {
             ACCOUNT_LOGE("SendToStorageAccountStop failed, id %{public}d, errCode %{public}d", localId, errCode);
-            loggedInAccounts_.Erase(localId);
+            {
+                std::lock_guard<std::mutex> lock(loggedInAccountsMutex_);
+                loggedInAccounts_.Erase(localId);
+            }
             verifiedAccounts_.Erase(localId);
             EraseIdFromActiveList(localId);
             return errCode;
@@ -2746,6 +2753,7 @@ void IInnerOsAccountManager::CleanForegroundAccountMap(const OsAccountInfo &osAc
     uint64_t displayId = osAccountInfo.GetDisplayId();
 
     int32_t currentForegroundId = -1;
+    std::lock_guard<std::mutex> lock(foregroundAccountMapMutex_);
     if (foregroundAccountMap_.Find(displayId, currentForegroundId) && currentForegroundId == localId) {
         ACCOUNT_LOGI("Removing foreground account id=%{public}d from display %{public}llu",
             localId, static_cast<unsigned long long>(displayId));
@@ -2756,7 +2764,10 @@ void IInnerOsAccountManager::CleanForegroundAccountMap(const OsAccountInfo &osAc
 ErrCode IInnerOsAccountManager::DeactivateOsAccountByInfo(OsAccountInfo &osAccountInfo)
 {
     int localId = osAccountInfo.GetLocalId();
-    loggedInAccounts_.Erase(localId);
+    {
+        std::lock_guard<std::mutex> lock(loggedInAccountsMutex_);
+        loggedInAccounts_.Erase(localId);
+    }
     verifiedAccounts_.Erase(localId);
     CleanForegroundAccountMap(osAccountInfo);
     EraseIdFromActiveList(localId);
@@ -3307,6 +3318,7 @@ ErrCode  IInnerOsAccountManager::SendToStorageAccountStart(OsAccountInfo &osAcco
         ReportUserDataSize(GetVerifiedAccountIds(verifiedAccounts_));
     }
     if (osAccountInfo.GetIsLoggedIn()) {
+        std::lock_guard<std::mutex> lock(loggedInAccountsMutex_);
         loggedInAccounts_.EnsureInsert(osAccountInfo.GetLocalId(), true);
     }
 
@@ -3335,12 +3347,14 @@ ErrCode  IInnerOsAccountManager::SendToAMSAndSamgrAccountStart(OsAccountInfo &os
         if (displayId == Constants::DEFAULT_DISPLAY_ID) {
             this->PushIdIntoActiveList(localId);
         } else {
+            std::lock_guard<std::mutex> lock(ativeMutex_);
             activeAccountId_.push_back(localId);
         }
 #else
         this->PushIdIntoActiveList(localId);
 #endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
         if (displayId != Constants::INVALID_DISPLAY_ID) {
+            std::lock_guard<std::mutex> lock(foregroundAccountMapMutex_);
             this->foregroundAccountMap_.EnsureInsert(displayId, localId);
         }
     };
@@ -3512,8 +3526,10 @@ ErrCode IInnerOsAccountManager::SetOsAccountIsLoggedIn(const int32_t id, const b
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR;
     }
     if (isLoggedIn) {
+        std::lock_guard<std::mutex> loggedInLock(loggedInAccountsMutex_);
         loggedInAccounts_.EnsureInsert(id, true);
     } else {
+        std::lock_guard<std::mutex> loggedInLock(loggedInAccountsMutex_);
         loggedInAccounts_.Erase(id);
     }
     if (!osAccountInfo.GetIsLoggedIn()) {
@@ -4075,6 +4091,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountToBeRemoved(int32_t localId, bool to
 
 ErrCode IInnerOsAccountManager::ResetDefaultActivatedAccount(int32_t localId)
 {
+    std::lock_guard<std::mutex> lock(operatingMutex_);
     int32_t defaultActivatedId = -1;
     if (defaultActivatedIds_.Find(Constants::DEFAULT_DISPLAY_ID, defaultActivatedId) &&
         defaultActivatedId == localId) {
