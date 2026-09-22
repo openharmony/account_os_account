@@ -309,6 +309,7 @@ private:
     // Helper functions for ActivateDefaultOsAccount
     ErrCode ActivateU1Account();
     ErrCode PrepareForDefaultAccount(int32_t activatedId, OsAccountInfo &osAccountInfo);
+    ErrCode SetAccountReadyParamWithRetry(const OsAccountInfo &osAccountInfo);
 
 public:
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
