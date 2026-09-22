@@ -50,6 +50,7 @@ const char USER_INFO_FILE_NAME[] = "account_info.json";
 const char SUBPROFILE_INFO_FILE_NAME[] = "subprofile_info.json";
 #endif // ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 const char USER_SECRET_FLAG_FILE_NAME[] = "iam_fault";
+const char OPERATION_SA_INIT[] = "sa_init";
 const char OPERATION_BOOT_ACTIVATED[] = "boot_activated";
 const char OPERATION_BOOT_CREATE[] = "boot_create";
 const char OPERATION_BOOT_ACTIVATING[] = "boot_activating";

@@ -83,7 +83,7 @@ public:
     ErrCode GetDeviceOwnerId(int32_t &deviceOwnerId) { return ERR_OK; }
     ErrCode GetDefaultActivatedOsAccount(int32_t &id) { return ERR_OK; }
     ErrCode GetDefaultActivatedOsAccount(const uint64_t displayId, int32_t &id) { return ERR_OK; }
-    ErrCode GetAllDefaultActivatedOsAccounts(std::map<uint64_t, int32_t> &ids) { return ERR_OK; }
+    MOCK_METHOD1(GetAllDefaultActivatedOsAccounts, ErrCode(std::map<uint64_t, int32_t> &ids));
     ErrCode SetDomainBoundFlag(
         const int32_t localId, const bool isBoundCompleted, const DomainAccountInfo domainInfo = {}) { return ERR_OK; }
     ErrCode GetDomainBoundFlag(const int32_t localId,

@@ -310,8 +310,10 @@ private:
     ErrCode ActivateU1Account();
     ErrCode PrepareForDefaultAccount(int32_t activatedId, OsAccountInfo &osAccountInfo);
     ErrCode SetAccountReadyParamWithRetry(const OsAccountInfo &osAccountInfo);
+    bool IsValidActivateOsAccountId(int32_t id);
 
 public:
+    void ParseAllDefaultActivateIds();
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
     std::mutex createOrBindDomainAccountMutex_;
 #endif // SUPPORT_DOMAIN_ACCOUNTS
