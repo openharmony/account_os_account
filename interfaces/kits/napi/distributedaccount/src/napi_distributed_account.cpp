@@ -250,8 +250,10 @@ void ProcessSetNamedProperty(napi_env env, const DistributedAccountAsyncContext 
         int32_t isLogin = (asyncContext->ohosAccountInfo.status_ == ACCOUNT_STATE_LOGIN) ? 1 : 0;
         napi_create_int32(env, isLogin, &value);
         napi_set_named_property(env, result[1], PROPERTY_KEY_STATUS.c_str(), value);
-        napi_value scalable = DeserializeScalableData(env, asyncContext->ohosAccountInfo.scalableData_);
+    napi_value scalable = DeserializeScalableData(env, asyncContext->ohosAccountInfo.scalableData_);
+    if (scalable != nullptr) {
         napi_set_named_property(env, result[1], PROPERTY_KEY_SCALABLE.c_str(), scalable);
+    }
     } else {
         if (asyncContext->throwErr) {
             result[0] = GenerateBusinessError(env, asyncContext->errCode);

@@ -346,6 +346,10 @@ void NapiAppAccountAuthenticator::CreateJsVerifyCredentialOptions(
     NAPI_CALL_RETURN_VOID(env, napi_create_string_utf8(env, options.credential.c_str(), NAPI_AUTO_LENGTH, &strVal));
     NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, *jsOptions, "credential", strVal));
     napi_value jsParam = AppExecFwk::WrapWantParams(env, options.parameters);
+    if (jsParam == nullptr) {
+        ACCOUNT_LOGE("Failed to wrap parameters");
+        return;
+    }
     NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, *jsOptions, "parameters", jsParam));
 }
 
@@ -354,8 +358,16 @@ void NapiAppAccountAuthenticator::CreateJsSetPropertiesOptions(
 {
     NAPI_CALL_RETURN_VOID(env, napi_create_object(env, jsOptions));
     napi_value jsProperties = AppExecFwk::WrapWantParams(env, options.properties);
+    if (jsProperties == nullptr) {
+        ACCOUNT_LOGE("Failed to wrap properties");
+        return;
+    }
     NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, *jsOptions, "properties", jsProperties));
     napi_value jsParam = AppExecFwk::WrapWantParams(env, options.parameters);
+    if (jsParam == nullptr) {
+        ACCOUNT_LOGE("Failed to wrap parameters");
+        return;
+    }
     NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, *jsOptions, "parameters", jsParam));
 }
 
@@ -386,6 +398,11 @@ std::function<void()> NapiAppAccountAuthenticator::AddAccountImplicitlyWork(
         napi_value jsCallerBundleName;
         napi_create_string_utf8(param->env, param->callerBundleName.c_str(), NAPI_AUTO_LENGTH, &jsCallerBundleName);
         napi_value jsOptions = AppExecFwk::WrapWantParams(param->env, param->options);
+        if (jsOptions == nullptr) {
+            ACCOUNT_LOGE("Failed to wrap options");
+            napi_close_handle_scope(param->env, scope);
+            return;
+        }
         napi_value jsCallback = CreateAuthenticatorCallback(param->env, param->callback);
         napi_value argv[] = { jsAuthType, jsCallerBundleName, jsOptions, jsCallback };
         CallJsFunction(param->env, param->jsAuthenticator.addAccountImplicitly, argv, ARGS_SIZE_FOUR);
@@ -410,6 +427,11 @@ std::function<void()> NapiAppAccountAuthenticator::AuthenticateWork(const std::s
         napi_value jsCallerBundleName;
         napi_create_string_utf8(param->env, param->callerBundleName.c_str(), NAPI_AUTO_LENGTH, &jsCallerBundleName);
         napi_value jsOptions = AppExecFwk::WrapWantParams(param->env, param->options);
+        if (jsOptions == nullptr) {
+            ACCOUNT_LOGE("Failed to wrap options");
+            napi_close_handle_scope(param->env, scope);
+            return;
+        }
         napi_value jsCallback = CreateAuthenticatorCallback(param->env, param->callback);
         napi_value argv[] = { jsName, jsAuthType, jsCallerBundleName, jsOptions, jsCallback };
         CallJsFunction(param->env, param->jsAuthenticator.authenticate, argv, ARGS_SIZE_FIVE);
@@ -440,6 +462,11 @@ std::function<void()> NapiAppAccountAuthenticator::CreateAccountImplicitlyWork(
             napi_set_named_property(param->env, jsObject, "requiredLabels", jsRequiredLabels);
         }
         napi_value jsParams = AppExecFwk::WrapWantParams(param->env, param->createOptions.parameters.GetParams());
+        if (jsParams == nullptr) {
+            ACCOUNT_LOGE("Failed to wrap parameters");
+            napi_close_handle_scope(param->env, scope);
+            return;
+        }
         napi_set_named_property(param->env, jsObject, "parameters", jsParams);
         napi_value jsCallback = CreateAuthenticatorCallback(param->env, param->callback);
         napi_value argv[] = { jsObject, jsCallback };
@@ -463,6 +490,11 @@ std::function<void()> NapiAppAccountAuthenticator::AuthWork(const std::shared_pt
         napi_value jsAuthType;
         napi_create_string_utf8(param->env, param->authType.c_str(), NAPI_AUTO_LENGTH, &jsAuthType);
         napi_value jsOptions = AppExecFwk::WrapWantParams(param->env, param->options);
+        if (jsOptions == nullptr) {
+            ACCOUNT_LOGE("Failed to wrap options");
+            napi_close_handle_scope(param->env, scope);
+            return;
+        }
         napi_value jsCallback = CreateAuthenticatorCallback(param->env, param->callback);
         napi_value argv[] = { jsName, jsAuthType, jsOptions, jsCallback};
         CallJsFunction(param->env, param->jsAuthenticator.auth, argv, ARGS_SIZE_FOUR);

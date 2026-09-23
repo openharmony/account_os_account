@@ -288,7 +288,13 @@ static std::function<void()> OnRequestRedirectedWork(const std::shared_ptr<Authe
             ACCOUNT_LOGE("Fail to open scope");
             return;
         }
-        napi_value results[ARGS_SIZE_ONE] = { AppExecFwk::WrapWant(env, data->request) };
+        napi_value wrappedWant = AppExecFwk::WrapWant(env, data->request);
+        if (wrappedWant == nullptr) {
+            ACCOUNT_LOGE("Failed to wrap request want");
+            napi_close_handle_scope(env, scope);
+            return;
+        }
+        napi_value results[ARGS_SIZE_ONE] = { wrappedWant };
         NapiCallVoidFunction(env, results, ARGS_SIZE_ONE, data->authCallback.onRequestRedirected->callbackRef);
         napi_close_handle_scope(env, scope);
     };
@@ -1346,6 +1352,10 @@ void ProcessOnResultCallback(
     napi_value results[ARGS_SIZE_TWO] = {nullptr};
     napi_create_int32(env, resultCode, &results[0]);
     results[ARGS_SIZE_ONE] = AppExecFwk::WrapWantParams(env, result);
+    if (results[ARGS_SIZE_ONE] == nullptr) {
+        ACCOUNT_LOGE("Failed to wrap result wantParams");
+        return;
+    }
     NapiCallVoidFunction(env, results, ARGS_SIZE_TWO, callback.onResult->callbackRef);
 }
 

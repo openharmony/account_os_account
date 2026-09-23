@@ -130,6 +130,10 @@ static napi_value CreateNapiGetAccessTokenOptions(const JsDomainPluginParam *par
         }
     }
     napi_value napiParam = AppExecFwk::WrapWantParams(param->env, wantParams);
+    if (napiParam == nullptr) {
+        ACCOUNT_LOGE("Failed to wrap businessParams");
+        return nullptr;
+    }
     NAPI_CALL(param->env, napi_set_named_property(param->env, napiOptions, "businessParams", napiParam));
     napi_value napiUid = nullptr;
     NAPI_CALL(param->env, napi_create_int32(param->env, param->option.callingUid_, &napiUid));
@@ -1586,6 +1590,11 @@ static std::function<void()> GetAccountInfoCompleteWork(GetAccountInfoAsyncConte
         napi_value dataJs = nullptr;
         if (asyncContext->errCode == ERR_OK) {
             dataJs = AppExecFwk::WrapWantParams(asyncContext->env, asyncContext->getAccountInfoParams);
+            if (dataJs == nullptr) {
+                ACCOUNT_LOGE("Failed to wrap getAccountInfoParams");
+                errJs = GenerateBusinessError(asyncContext->env, ERR_JS_SYSTEM_SERVICE_EXCEPTION);
+                dataJs = nullptr;
+            }
         } else {
             errJs = GenerateBusinessError(asyncContext->env, asyncContext->errCode);
         }
