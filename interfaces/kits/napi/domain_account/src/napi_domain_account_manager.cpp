@@ -1593,7 +1593,6 @@ static std::function<void()> GetAccountInfoCompleteWork(GetAccountInfoAsyncConte
             if (dataJs == nullptr) {
                 ACCOUNT_LOGE("Failed to wrap getAccountInfoParams");
                 errJs = GenerateBusinessError(asyncContext->env, ERR_JS_SYSTEM_SERVICE_EXCEPTION);
-                dataJs = nullptr;
             }
         } else {
             errJs = GenerateBusinessError(asyncContext->env, asyncContext->errCode);
