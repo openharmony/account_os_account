@@ -68,6 +68,8 @@ const char PERMISSION_MANAGE_DISTRIBUTED_ACCOUNTS[] = "ohos.permission.MANAGE_DI
 const char PERMISSION_GET_DISTRIBUTED_ACCOUNTS[] = "ohos.permission.GET_DISTRIBUTED_ACCOUNTS";
 const char PERMISSION_DISTRIBUTED_DATASYNC[] = "ohos.permission.DISTRIBUTED_DATASYNC";
 const char INTERACT_ACROSS_LOCAL_ACCOUNTS[] = "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS";
+const char INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION[] =
+    "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION";
 const std::set<std::int32_t> WHITE_LIST = {
     3012, // DISTRIBUTED_KV_DATA_SA_UID
     3019, // DLP_UID
@@ -376,11 +378,41 @@ ErrCode AccountMgrService::QueryOsAccountDistributedInfo(
     std::int32_t localId, std::string& accountName, std::string& uid, int32_t& status)
 {
     [[maybe_unused]] auto timerPtr = RequestTimer(Constants::OPERATION_GET_INFO);
-    if ((!HasAccountRequestPermission(PERMISSION_MANAGE_USERS)) &&
-        (!HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC)) &&
-        (IPCSkeleton::GetCallingUid() != DSOFTBUS_UID)) {
-        ACCOUNT_LOGE("Check permission failed");
-        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    auto callingUid = IPCSkeleton::GetCallingUid();
+    // Fast pass: caller has MANAGE_LOCAL_ACCOUNTS, is DSOFTBUS, or has
+    // INTERACT_ACROSS_LOCAL_ACCOUNTS + GET_DISTRIBUTED_ACCOUNTS combination.
+    if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS) &&
+        (callingUid != DSOFTBUS_UID) &&
+        !(HasAccountRequestPermission(INTERACT_ACROSS_LOCAL_ACCOUNTS) &&
+        HasAccountRequestPermission(PERMISSION_GET_DISTRIBUTED_ACCOUNTS))) {
+        // DATASYNC is required for any distributed info access.
+        if (!HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC)) {
+            ACCOUNT_LOGE("Check permission failed: DISTRIBUTED_DATASYNC required");
+            return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+        }
+        // queryOsAccountById (declared in @ohos.account.osAccount.d.ts)
+        // requires ohos.permission.MANAGE_LOCAL_ACCOUNTS or
+        // ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION. The
+        // MANAGE_LOCAL_ACCOUNTS case is already handled by the fast pass
+        // above; hasInteractExtPerm adapts to the scenario where the caller
+        // only holds INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION.
+        // queryOsAccountById and getCurrentOsAccount (declared in
+        // @ohos.account.osAccount.d.ts) require ohos.permission.
+        // MANAGE_LOCAL_ACCOUNTS or ohos.permission.GET_LOCAL_ACCOUNTS when
+        // querying the caller's own account. The MANAGE_LOCAL_ACCOUNTS case
+        // is already handled by the fast pass above; isQueryingOwnAccount
+        // (localId == callingUid / UID_TRANSFORM_DIVISOR) identifies the
+        // own-account scenario, and GET_LOCAL_ACCOUNTS is checked alongside
+        // it in the condition below to adapt to the caller who only holds
+        // GET_LOCAL_ACCOUNTS.
+        // The caller's OS account ID is derived from the calling UID here
+        bool hasInteractExtPerm = HasAccountRequestPermission(INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION);
+        bool isQueryingOwnAccount = (localId == callingUid / UID_TRANSFORM_DIVISOR);
+        if (!hasInteractExtPerm && !(isQueryingOwnAccount &&
+            HasAccountRequestPermission(PERMISSION_GET_LOCAL_ACCOUNTS))) {
+            ACCOUNT_LOGE("Check permission failed: account access permission required");
+            return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+        }
     }
     if (localId < 0) {
         ACCOUNT_LOGE("negative userID %{public}d detected!", localId);
