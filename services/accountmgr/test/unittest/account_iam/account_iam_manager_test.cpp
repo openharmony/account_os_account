@@ -142,6 +142,20 @@ public:
     uint32_t acquireInfo_ = 0;
 };
 
+class MockIIDMCallbackNullAsObject : public IDMCallbackStub {
+public:
+    sptr<IRemoteObject> AsObject() override { return nullptr; }
+    ErrCode OnResult(int32_t resultCode, const std::vector<uint8_t>& extraInfoBuffer) override
+    {
+        return ERR_OK;
+    }
+    ErrCode OnAcquireInfo(int32_t module, uint32_t acquireInfo,
+        const std::vector<uint8_t>& extraInfoBuffer) override
+    {
+        return ERR_OK;
+    }
+};
+
 class MockPreRemoteAuthCallback : public PreRemoteAuthCallbackStub {
 public:
     MOCK_METHOD1(OnResult, ErrCode(int32_t resultCode));
@@ -610,20 +624,6 @@ HWTEST_F(AccountIamManagerTest, testAuthUser002, TestSize.Level0)
  */
 HWTEST_F(AccountIamManagerTest, AuthUser_AsObjectNull_0100, TestSize.Level1)
 {
-    class MockIIDMCallbackNullAsObject : public IDMCallbackStub {
-    public:
-        sptr<IRemoteObject> AsObject() override { return nullptr; }
-        ErrCode OnResult(int32_t resultCode, const std::vector<uint8_t>& extraInfoBuffer) override
-        {
-            return ERR_OK;
-        }
-        ErrCode OnAcquireInfo(int32_t module, uint32_t acquireInfo,
-            const std::vector<uint8_t>& extraInfoBuffer) override
-        {
-            return ERR_OK;
-        }
-    };
-
     sptr<MockIIDMCallbackNullAsObject> testCallback = new (std::nothrow) MockIIDMCallbackNullAsObject();
     ASSERT_NE(testCallback, nullptr);
     AccountSA::AuthParam authParam;

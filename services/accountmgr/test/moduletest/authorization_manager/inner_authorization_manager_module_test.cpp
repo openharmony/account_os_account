@@ -60,6 +60,16 @@ static bool g_getPrivilegeBriefDef = true;
 static bool g_hasAuthorizationFail = false;
 static bool g_openSmartPidFdFail = false;
 static std::string g_kernelPermission = "test_kernel_perm";
+
+class MockAuthorizationCallbackNullAsObject : public AuthorizationCallbackStub {
+public:
+    sptr<IRemoteObject> AsObject() override { return nullptr; }
+    ErrCode OnResult(int32_t resultCode, const AuthorizationResult& result) override { return ERR_OK; }
+    ErrCode OnConnectAbility(const ConnectAbilityInfo& info, const sptr<IRemoteObject>& callback) override
+    {
+        return ERR_OK;
+    }
+};
 } // namespace
 
 /**
@@ -1812,16 +1822,6 @@ HWTEST_F(InnerAuthorizationManagerModuleTest, ExecuteUIExtensionTaskTest_0300, T
  */
 HWTEST_F(InnerAuthorizationManagerModuleTest, ValidateUIExtensionParams_AsObjectNull_0100, TestSize.Level1)
 {
-    class MockAuthorizationCallbackNullAsObject : public AuthorizationCallbackStub {
-    public:
-        sptr<IRemoteObject> AsObject() override { return nullptr; }
-        ErrCode OnResult(int32_t resultCode, const AuthorizationResult& result) override { return ERR_OK; }
-        ErrCode OnConnectAbility(const ConnectAbilityInfo& info, const sptr<IRemoteObject>& callback) override
-        {
-            return ERR_OK;
-        }
-    };
-
     ConnectAbilityInfo info;
     info.callingUid = TEST_CALLING_UID;
     info.callingPid = TEST_CALLING_PID;

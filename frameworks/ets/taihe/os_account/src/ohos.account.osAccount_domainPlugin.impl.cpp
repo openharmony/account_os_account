@@ -394,7 +394,7 @@ public:
         }
         auto parametersRef = AppExecFwk::WrapWantParams(env, getTokenParams);
         if (parametersRef == nullptr) {
-            ACCOUNT_LOGE("failed to wrap parameters");
+            ACCOUNT_LOGE("Failed to wrap parameters");
             return;
         }
         GetDomainAccessTokenOptions domainAccessTokenOptions {
