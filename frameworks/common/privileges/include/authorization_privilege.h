@@ -23,6 +23,7 @@ namespace OHOS {
 namespace AccountSA {
 inline const std::map<std::string, std::string> PRIVILEGE_MAP = {
     {"PRIVILEGE_OPERATE_RAW_NET_PACKETS", "ohos.privilege.operate_raw_net_packets"},
+    {"PRIVILEGE_MONITOR_RAW_USB_PACKETS", "ohos.privilege.monitor_raw_usb_packets"},
 };
 } // namespace AccountSA
 } // namespace OHOS
