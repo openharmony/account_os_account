@@ -663,7 +663,7 @@ ErrCode InnerAuthorizationManager::ValidateUIExtensionParams(const ConnectAbilit
         return ERR_AUTHORIZATION_GET_PROXY_ERROR;
     }
 
-    sptr<AppDeathRecipient> deathRecipient = new (std::nothrow) AppDeathRecipient();
+    auto deathRecipient = new (std::nothrow) AppDeathRecipient();
     if (deathRecipient == nullptr) {
         ACCOUNT_LOGE("DeathRecipient is nullptr");
         REPORT_OS_ACCOUNT_FAIL(info.callingUid / UID_TRANSFORM_DIVISOR, PRIVILEGE_OPT_ACQUIRE_AUTH,
@@ -671,11 +671,11 @@ ErrCode InnerAuthorizationManager::ValidateUIExtensionParams(const ConnectAbilit
         return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
     }
 
-    auto callbackObj = callback->AsObject();
-    if (callbackObj == nullptr || !callbackObj->AddDeathRecipient(deathRecipient)) {
+    if (callback->AsObject() == nullptr || !callback->AsObject()->AddDeathRecipient(deathRecipient)) {
         ACCOUNT_LOGE("Fail to AddDeathRecipient");
         REPORT_OS_ACCOUNT_FAIL(info.callingUid / UID_TRANSFORM_DIVISOR, PRIVILEGE_OPT_ACQUIRE_AUTH,
             ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT, "Fail to AddDeathRecipient");
+        deathRecipient = nullptr;
         return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
     }
 
