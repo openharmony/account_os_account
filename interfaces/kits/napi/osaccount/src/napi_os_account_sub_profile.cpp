@@ -871,8 +871,7 @@ static void GetSubProfileCompletedCB(napi_env env, napi_status status, void *dat
         NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, asyncContext->subspaceResult.osAccountId,
             &osAccountIdVal));
         NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, asyncContext->subspaceResult.index, &indexVal));
-        NAPI_CALL_RETURN_VOID(env, napi_create_int64(env,
-            asyncContext->subspaceResult.createTime, &createTimeVal));
+        NAPI_CALL_RETURN_VOID(env, napi_create_int64(env, asyncContext->subspaceResult.createTime, &createTimeVal));
         NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, obj, "id", idVal));
         NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, obj, "osAccountLocalId", osAccountIdVal));
         NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, obj, "index", indexVal));
