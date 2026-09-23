@@ -49,9 +49,9 @@ static void CreateOsAccountSubProfileExecuteCB(napi_env env, void *data)
 
 static void CreateOsAccountSubProfileCompletedCB(napi_env env, napi_status status, void *data)
 {
-    std::unique_ptr<SubProfileAsyncContext> ctxPtr(reinterpret_cast<SubProfileAsyncContext *>(data));
+    std::unique_ptr<SubProfileAsyncContext> ctx(reinterpret_cast<SubProfileAsyncContext *>(data));
     napi_value result[RESULT_COUNT] = {0};
-    if (ctxPtr->errCode == ERR_OK) {
+    if (ctx->errCode == ERR_OK) {
         NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &result[0]));
         napi_value obj;
         NAPI_CALL_RETURN_VOID(env, napi_create_object(env, &obj));
@@ -59,20 +59,20 @@ static void CreateOsAccountSubProfileCompletedCB(napi_env env, napi_status statu
         napi_value osAccountIdVal;
         napi_value indexVal;
         napi_value createTimeVal;
-        NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, ctxPtr->result.id, &idVal));
-        NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, ctxPtr->result.osAccountId, &osAccountIdVal));
-        NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, ctxPtr->result.index, &indexVal));
-        NAPI_CALL_RETURN_VOID(env, napi_create_int64(env, ctxPtr->result.createTime, &createTimeVal));
+        NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, ctx->result.id, &idVal));
+        NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, ctx->result.osAccountId, &osAccountIdVal));
+        NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, ctx->result.index, &indexVal));
+        NAPI_CALL_RETURN_VOID(env, napi_create_int64(env, ctx->result.createTime, &createTimeVal));
         NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, obj, "id", idVal));
         NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, obj, "osAccountLocalId", osAccountIdVal));
         NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, obj, "index", indexVal));
         NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, obj, "createTime", createTimeVal));
         result[1] = obj;
     } else {
-        result[0] = GenerateBusinessError(env, ctxPtr->errCode);
+        result[0] = GenerateBusinessError(env, ctx->errCode);
         NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &result[1]));
     }
-    ProcessCallbackOrPromise(env, ctxPtr.get(), result[0], result[1]);
+    ProcessCallbackOrPromise(env, ctx.get(), result[0], result[1]);
 }
 
 static void DeleteOsAccountSubProfileExecuteCB(napi_env env, void *data)
@@ -183,16 +183,16 @@ napi_value NapiOsAccountSubProfileManager::DeleteOsAccountSubProfile(napi_env en
     NAPI_CALL(env, napi_create_string_utf8(env, "DeleteOsAccountSubProfile", NAPI_AUTO_LENGTH, &resource));
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource, DeleteOsAccountSubProfileExecuteCB,
         [](napi_env env, napi_status status, void *data) {
-            std::unique_ptr<SubProfileAsyncContext> ctxPtr(reinterpret_cast<SubProfileAsyncContext *>(data));
+            std::unique_ptr<SubProfileAsyncContext> ctx(reinterpret_cast<SubProfileAsyncContext *>(data));
             napi_value result[RESULT_COUNT] = {0};
-            if (ctxPtr->errCode == ERR_OK) {
+            if (ctx->errCode == ERR_OK) {
                 NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &result[0]));
                 NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &result[1]));
             } else {
-                result[0] = GenerateBusinessError(env, ctxPtr->errCode);
+                result[0] = GenerateBusinessError(env, ctx->errCode);
                 NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &result[1]));
             }
-            ProcessCallbackOrPromise(env, ctxPtr.get(), result[0], result[1]);
+            ProcessCallbackOrPromise(env, ctx.get(), result[0], result[1]);
         },
         reinterpret_cast<void *>(ctx), &ctx->work));
     NAPI_CALL(env, napi_queue_async_work_with_qos(env, ctx->work, napi_qos_user_initiated));
@@ -236,16 +236,16 @@ napi_value NapiOsAccountSubProfileManager::SwitchOsAccountSubProfile(napi_env en
     NAPI_CALL(env, napi_create_string_utf8(env, "SwitchOsAccountSubProfile", NAPI_AUTO_LENGTH, &resource));
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource, SwitchOsAccountSubProfileExecuteCB,
         [](napi_env env, napi_status status, void *data) {
-            std::unique_ptr<SubProfileAsyncContext> ctxPtr(reinterpret_cast<SubProfileAsyncContext *>(data));
+            std::unique_ptr<SubProfileAsyncContext> ctx(reinterpret_cast<SubProfileAsyncContext *>(data));
             napi_value result[RESULT_COUNT] = {0};
-            if (ctxPtr->errCode == ERR_OK) {
+            if (ctx->errCode == ERR_OK) {
                 NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &result[0]));
                 NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &result[1]));
             } else {
-                result[0] = GenerateBusinessError(env, ctxPtr->errCode);
+                result[0] = GenerateBusinessError(env, ctx->errCode);
                 NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &result[1]));
             }
-            ProcessCallbackOrPromise(env, ctxPtr.get(), result[0], result[1]);
+            ProcessCallbackOrPromise(env, ctx.get(), result[0], result[1]);
         },
         reinterpret_cast<void *>(ctx), &ctx->work));
     NAPI_CALL(env, napi_queue_async_work_with_qos(env, ctx->work, napi_qos_user_initiated));
@@ -598,18 +598,18 @@ static void GetForegroundSubProfileIdExecuteCB(napi_env env, void *data)
 
 static void GetForegroundSubProfileIdCompletedCB(napi_env env, napi_status status, void *data)
 {
-    std::unique_ptr<GetOsAccountSubProfileInfoAsyncContext> asyncContextPtr(
+    std::unique_ptr<GetOsAccountSubProfileInfoAsyncContext> asyncContext(
         reinterpret_cast<GetOsAccountSubProfileInfoAsyncContext *>(data));
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;
-    if (asyncContextPtr->errCode == ERR_OK) {
+    if (asyncContext->errCode == ERR_OK) {
         NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &errJs));
-        NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, asyncContextPtr->subProfileId, &dataJs));
+        NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, asyncContext->subProfileId, &dataJs));
     } else {
-        errJs = GenerateBusinessError(env, asyncContextPtr->errCode);
+        errJs = GenerateBusinessError(env, asyncContext->errCode);
         NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &dataJs));
     }
-    ProcessCallbackOrPromise(env, asyncContextPtr.get(), errJs, dataJs);
+    ProcessCallbackOrPromise(env, asyncContext.get(), errJs, dataJs);
 }
 
 napi_value NapiOsAccountSubProfileManager::GetOsAccountForegroundSubProfileId(napi_env env, napi_callback_info cbInfo)
@@ -676,25 +676,25 @@ static void GetSubProfileIdsExecuteCB(napi_env env, void *data)
 
 static void GetSubProfileIdsCompletedCB(napi_env env, napi_status status, void *data)
 {
-    std::unique_ptr<GetOsAccountSubProfileInfoAsyncContext> asyncContextPtr(
+    std::unique_ptr<GetOsAccountSubProfileInfoAsyncContext> asyncContext(
         reinterpret_cast<GetOsAccountSubProfileInfoAsyncContext *>(data));
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;
-    if (asyncContextPtr->errCode == ERR_OK) {
+    if (asyncContext->errCode == ERR_OK) {
         NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &errJs));
         NAPI_CALL_RETURN_VOID(env, napi_create_array(env, &dataJs));
         uint32_t index = 0;
-        for (const auto& id : asyncContextPtr->subProfileIds) {
+        for (const auto& id : asyncContext->subProfileIds) {
             napi_value jsId = nullptr;
             NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, id, &jsId));
             NAPI_CALL_RETURN_VOID(env, napi_set_element(env, dataJs, index, jsId));
             index++;
         }
     } else {
-        errJs = GenerateBusinessError(env, asyncContextPtr->errCode, asyncContextPtr->throwErr);
+        errJs = GenerateBusinessError(env, asyncContext->errCode, asyncContext->throwErr);
         NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &dataJs));
     }
-    ProcessCallbackOrPromise(env, asyncContextPtr.get(), errJs, dataJs);
+    ProcessCallbackOrPromise(env, asyncContext.get(), errJs, dataJs);
 }
 
 napi_value NapiOsAccountSubProfileManager::GetOsAccountSubProfileIds(napi_env env, napi_callback_info cbInfo)
@@ -757,18 +757,18 @@ static void GetLocalIdForSubProfileExecuteCB(napi_env env, void *data)
 
 static void GetLocalIdForSubProfileCompletedCB(napi_env env, napi_status status, void *data)
 {
-    std::unique_ptr<GetOsAccountSubProfileInfoAsyncContext> asyncContextPtr(
+    std::unique_ptr<GetOsAccountSubProfileInfoAsyncContext> asyncContext(
         reinterpret_cast<GetOsAccountSubProfileInfoAsyncContext *>(data));
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;
-    if (asyncContextPtr->errCode == ERR_OK) {
+    if (asyncContext->errCode == ERR_OK) {
         NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &errJs));
-        NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, asyncContextPtr->localId, &dataJs));
+        NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, asyncContext->localId, &dataJs));
     } else {
-        errJs = GenerateBusinessError(env, asyncContextPtr->errCode);
+        errJs = GenerateBusinessError(env, asyncContext->errCode);
         NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &dataJs));
     }
-    ProcessCallbackOrPromise(env, asyncContextPtr.get(), errJs, dataJs);
+    ProcessCallbackOrPromise(env, asyncContext.get(), errJs, dataJs);
 }
 
 napi_value NapiOsAccountSubProfileManager::GetOsAccountLocalIdForSubProfile(napi_env env, napi_callback_info cbInfo)
@@ -855,11 +855,11 @@ static void GetSubProfileExecuteCB(napi_env env, void *data)
 
 static void GetSubProfileCompletedCB(napi_env env, napi_status status, void *data)
 {
-    std::unique_ptr<GetOsAccountSubProfileAsyncContext> asyncContextPtr(
+    std::unique_ptr<GetOsAccountSubProfileAsyncContext> asyncContext(
         reinterpret_cast<GetOsAccountSubProfileAsyncContext *>(data));
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;
-    if (asyncContextPtr->errCode == ERR_OK) {
+    if (asyncContext->errCode == ERR_OK) {
         NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &errJs));
         napi_value obj;
         NAPI_CALL_RETURN_VOID(env, napi_create_object(env, &obj));
@@ -867,26 +867,26 @@ static void GetSubProfileCompletedCB(napi_env env, napi_status status, void *dat
         napi_value osAccountIdVal;
         napi_value indexVal;
         napi_value createTimeVal;
-        NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, asyncContextPtr->subspaceResult.id, &idVal));
-        NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, asyncContextPtr->subspaceResult.osAccountId,
+        NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, asyncContext->subspaceResult.id, &idVal));
+        NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, asyncContext->subspaceResult.osAccountId,
             &osAccountIdVal));
-        NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, asyncContextPtr->subspaceResult.index, &indexVal));
+        NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, asyncContext->subspaceResult.index, &indexVal));
         NAPI_CALL_RETURN_VOID(env, napi_create_int64(env,
-            asyncContextPtr->subspaceResult.createTime, &createTimeVal));
+            asyncContext->subspaceResult.createTime, &createTimeVal));
         NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, obj, "id", idVal));
         NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, obj, "osAccountLocalId", osAccountIdVal));
         NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, obj, "index", indexVal));
         NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, obj, "createTime", createTimeVal));
-        if (asyncContextPtr->distributedInfo.status_ != ACCOUNT_STATE_UNBOUND) {
-            napi_value distInfo = BuildDistributedInfoFromOhosAccountInfo(env, asyncContextPtr->distributedInfo);
+        if (asyncContext->distributedInfo.status_ != ACCOUNT_STATE_UNBOUND) {
+            napi_value distInfo = BuildDistributedInfoFromOhosAccountInfo(env, asyncContext->distributedInfo);
             NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, obj, "distributedInfo", distInfo));
         }
         dataJs = obj;
     } else {
-        errJs = GenerateBusinessError(env, asyncContextPtr->errCode);
+        errJs = GenerateBusinessError(env, asyncContext->errCode);
         NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &dataJs));
     }
-    ProcessCallbackOrPromise(env, asyncContextPtr.get(), errJs, dataJs);
+    ProcessCallbackOrPromise(env, asyncContext.get(), errJs, dataJs);
 }
 
 napi_value NapiOsAccountSubProfileManager::GetOsAccountSubProfile(napi_env env, napi_callback_info cbInfo)
