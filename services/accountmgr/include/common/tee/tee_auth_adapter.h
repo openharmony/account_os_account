@@ -42,16 +42,16 @@ typedef struct {
 } __attribute__((__packed__)) VerifyTokenParam;
 
 typedef struct UserTokenDataPlain {
-    uint32_t pid;
-    uint32_t privilege;
-    uint32_t grantTime;
-    int32_t grantValidityPeriod;
+    uint32_t pid = 0;
+    uint32_t privilege = 0;
+    uint32_t grantTime = 0;
+    int32_t grantValidityPeriod = 0;
     uint8_t challenge[CHALLENGE_LEN];
     uint8_t authToken[AUTH_TOKEN_LEN];
-    size_t authTokenSize;
+    size_t authTokenSize = 0;
     ~UserTokenDataPlain()
     {
-        (void)memset_s(&authToken, authTokenSize * sizeof(uint8_t), 0, authTokenSize * sizeof(uint8_t));
+        (void)memset_s(&authToken, AUTH_TOKEN_LEN * sizeof(uint8_t), 0, AUTH_TOKEN_LEN * sizeof(uint8_t));
         (void)memset_s(&challenge, CHALLENGE_LEN * sizeof(uint8_t), 0, CHALLENGE_LEN * sizeof(uint8_t));
     }
 } __attribute__((__packed__)) UserTokenDataPlain;
@@ -82,17 +82,17 @@ struct VerifyGrantTimeResult {
 };
 
 typedef struct ApplyUserTokenParam {
-    uint32_t pid;
+    uint32_t pid = 0;
     uint8_t permission[PERMISSION_MAX_LEN + 1];
-    size_t permissionSize;
-    int32_t grantValidityPeriod;
-    int32_t grantUserId;
+    size_t permissionSize = 0;
+    int32_t grantValidityPeriod = 0;
+    int32_t grantUserId = 0;
     uint8_t authToken[AUTH_TOKEN_LEN];
-    size_t authTokenSize;
+    size_t authTokenSize = 0;
     uint8_t challenge[CHALLENGE_LEN];
     ~ApplyUserTokenParam()
     {
-        (void)memset_s(&authToken, authTokenSize * sizeof(uint8_t), 0, authTokenSize * sizeof(uint8_t));
+        (void)memset_s(&authToken, AUTH_TOKEN_LEN * sizeof(uint8_t), 0, AUTH_TOKEN_LEN * sizeof(uint8_t));
         (void)memset_s(&challenge, CHALLENGE_LEN * sizeof(uint8_t), 0, CHALLENGE_LEN * sizeof(uint8_t));
     }
 } __attribute__((__packed__)) ApplyUserTokenParam;
