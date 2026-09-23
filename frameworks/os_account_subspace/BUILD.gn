@@ -93,6 +93,7 @@ ohos_source_set("os_account_subspace_proxy_source") {
   sources = filter_include(output_values, [ "*os_account_sub_profile_proxy.cpp" ])
   deps = [ ":frameworks_os_account_subspace_interface" ]
   external_deps = [
+    "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
   ]
