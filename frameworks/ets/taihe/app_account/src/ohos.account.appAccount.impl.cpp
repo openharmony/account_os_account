@@ -1593,6 +1593,10 @@ public:
             ohos::account::appAccount::AuthCallback callback =
                 ConvertToAppAccountAuthenticatorCallback(remoteObjCallback);
             auto parameters = AppExecFwk::WrapWant(env, options.parameters);
+            if (parameters == nullptr) {
+                ACCOUNT_LOGE("failed to wrap parameters want");
+                return;
+            }
             auto tempParameters = reinterpret_cast<uintptr_t>(parameters);
             ohos::account::appAccount::CreateAccountImplicitlyOptions taiheOptions =
                 ohos::account::appAccount::CreateAccountImplicitlyOptions {
@@ -1631,6 +1635,10 @@ public:
             taihe::string taiheAuthType = taihe::string(authType.c_str());
             ani_env *env = guard.get_env();
             auto parameters = AppExecFwk::WrapWantParams(env, options);
+            if (parameters == nullptr) {
+                ACCOUNT_LOGE("failed to wrap parameters");
+                return;
+            }
             auto tempParameters = reinterpret_cast<uintptr_t>(parameters);
             ohos::account::appAccount::AuthCallback callback =
                 ConvertToAppAccountAuthenticatorCallback(remoteObjCallback);
@@ -1662,6 +1670,10 @@ public:
             taihe::string taiheName = taihe::string(name.c_str());
             ani_env *env = guard.get_env();
             auto parameters = AppExecFwk::WrapWantParams(env, options.parameters);
+            if (parameters == nullptr) {
+                ACCOUNT_LOGE("failed to wrap parameters");
+                return;
+            }
             auto tempParameters = reinterpret_cast<uintptr_t>(parameters);
             ohos::account::appAccount::VerifyCredentialOptions taiheOptions =
                 ohos::account::appAccount::VerifyCredentialOptions {
@@ -1732,8 +1744,16 @@ public:
             taihe::env_guard guard;
             ani_env *env = guard.get_env();
             auto properties = AppExecFwk::WrapWantParams(env, options.properties);
+            if (properties == nullptr) {
+                ACCOUNT_LOGE("failed to wrap properties");
+                return;
+            }
             auto tempProperties = reinterpret_cast<uintptr_t>(properties);
             auto parameters = AppExecFwk::WrapWantParams(env, options.parameters);
+            if (parameters == nullptr) {
+                ACCOUNT_LOGE("failed to wrap parameters");
+                return;
+            }
             auto tempParameters = reinterpret_cast<uintptr_t>(parameters);
             ohos::account::appAccount::SetPropertiesOptions taiheOptions =
                 ohos::account::appAccount::SetPropertiesOptions {
