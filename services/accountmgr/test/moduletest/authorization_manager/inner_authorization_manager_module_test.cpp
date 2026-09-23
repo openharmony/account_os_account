@@ -16,6 +16,7 @@
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "account_permission_manager.h"
+#include "admin_authorization_callback_stub.h"
 #include "authorization_callback.h"
 #include "authorization_callback_stub.h"
 #include "authorization_common.h"
@@ -61,14 +62,10 @@ static bool g_hasAuthorizationFail = false;
 static bool g_openSmartPidFdFail = false;
 static std::string g_kernelPermission = "test_kernel_perm";
 
-class MockAuthorizationCallbackNullAsObject : public AuthorizationCallbackStub {
+class MockAdminAuthorizationCallbackNullAsObject : public AdminAuthorizationCallbackStub {
 public:
     sptr<IRemoteObject> AsObject() override { return nullptr; }
-    ErrCode OnResult(int32_t resultCode, const AuthorizationResult& result) override { return ERR_OK; }
-    ErrCode OnConnectAbility(const ConnectAbilityInfo& info, const sptr<IRemoteObject>& callback) override
-    {
-        return ERR_OK;
-    }
+    ErrCode OnResult(const AdminAuthorizationResult &authResult) override { return ERR_OK; }
 };
 } // namespace
 
@@ -1815,23 +1812,19 @@ HWTEST_F(InnerAuthorizationManagerModuleTest, ExecuteUIExtensionTaskTest_0300, T
 }
 
 /**
- * @tc.name: ValidateUIExtensionParams_AsObjectNull_0100
- * @tc.desc: Test ValidateUIExtensionParams with callback whose AsObject() returns nullptr.
+ * @tc.name: AcquireAdminAuthorization_AsObjectNull_0100
+ * @tc.desc: Test AcquireAdminAuthorization with callback whose AsObject() returns nullptr.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InnerAuthorizationManagerModuleTest, ValidateUIExtensionParams_AsObjectNull_0100, TestSize.Level1)
+HWTEST_F(InnerAuthorizationManagerModuleTest, AcquireAdminAuthorization_AsObjectNull_0100, TestSize.Level1)
 {
-    ConnectAbilityInfo info;
-    info.callingUid = TEST_CALLING_UID;
-    info.callingPid = TEST_CALLING_PID;
-    info.privilege = TEST_PRIVILEGE;
-    info.sessionId = TEST_SESSIONID;
-    sptr<MockAuthorizationCallbackNullAsObject> callback = new (std::nothrow) MockAuthorizationCallbackNullAsObject();
+    sptr<MockAdminAuthorizationCallbackNullAsObject> callback =
+        new (std::nothrow) MockAdminAuthorizationCallbackNullAsObject();
     ASSERT_NE(callback, nullptr);
-    sptr<IRemoteObject> requestObj = new MockAuthorizationCallbackStub();
-    ASSERT_NE(requestObj, nullptr);
-    ErrCode ret = manager_.ValidateUIExtensionParams(info, callback, requestObj);
+    std::vector<uint8_t> challenge = {1, 2, 3};
+    ErrCode ret = manager_.AcquireAdminAuthorization(
+        TEST_USER_ID, challenge, callback, TEST_PRIVILEGE, TEST_CALLING_PID);
     EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT);
 }
 } // namespace AccountSA
