@@ -130,6 +130,10 @@ static napi_value CreateNapiGetAccessTokenOptions(const JsDomainPluginParam *par
         }
     }
     napi_value napiParam = AppExecFwk::WrapWantParams(param->env, wantParams);
+    if (napiParam == nullptr) {
+        ACCOUNT_LOGE("Failed to wrap businessParams");
+        return nullptr;
+    }
     NAPI_CALL(param->env, napi_set_named_property(param->env, napiOptions, "businessParams", napiParam));
     napi_value napiUid = nullptr;
     NAPI_CALL(param->env, napi_create_int32(param->env, param->option.callingUid_, &napiUid));
@@ -932,7 +936,8 @@ napi_value NapiDomainAccountManager::JsConstructor(napi_env env, napi_callback_i
 
 void IsDomainAccountSupportedCompletedCB(napi_env env, napi_status status, void *data)
 {
-    IsDomainAccountSupportContext *asyncContext = reinterpret_cast<IsDomainAccountSupportContext *>(data);
+    std::unique_ptr<IsDomainAccountSupportContext> asyncContext(
+        reinterpret_cast<IsDomainAccountSupportContext *>(data));
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;
     if (asyncContext->errCode == ERR_OK) {
@@ -942,8 +947,7 @@ void IsDomainAccountSupportedCompletedCB(napi_env env, napi_status status, void 
         errJs = GenerateBusinessError(env, asyncContext->errCode);
         NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &dataJs));
     }
-    ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
-    delete asyncContext;
+    ProcessCallbackOrPromise(env, asyncContext.get(), errJs, dataJs);
 }
 
 static void IsDomainAccountSupportedExecuteCB(napi_env env, void *data)
@@ -1586,6 +1590,10 @@ static std::function<void()> GetAccountInfoCompleteWork(GetAccountInfoAsyncConte
         napi_value dataJs = nullptr;
         if (asyncContext->errCode == ERR_OK) {
             dataJs = AppExecFwk::WrapWantParams(asyncContext->env, asyncContext->getAccountInfoParams);
+            if (dataJs == nullptr) {
+                ACCOUNT_LOGE("Failed to wrap getAccountInfoParams");
+                errJs = GenerateBusinessError(asyncContext->env, ERR_JS_SYSTEM_SERVICE_EXCEPTION);
+            }
         } else {
             errJs = GenerateBusinessError(asyncContext->env, asyncContext->errCode);
         }

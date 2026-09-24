@@ -49,7 +49,7 @@ static void CreateOsAccountSubProfileExecuteCB(napi_env env, void *data)
 
 static void CreateOsAccountSubProfileCompletedCB(napi_env env, napi_status status, void *data)
 {
-    auto *ctx = reinterpret_cast<SubProfileAsyncContext *>(data);
+    std::unique_ptr<SubProfileAsyncContext> ctx(reinterpret_cast<SubProfileAsyncContext *>(data));
     napi_value result[RESULT_COUNT] = {0};
     if (ctx->errCode == ERR_OK) {
         NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &result[0]));
@@ -72,8 +72,7 @@ static void CreateOsAccountSubProfileCompletedCB(napi_env env, napi_status statu
         result[0] = GenerateBusinessError(env, ctx->errCode);
         NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &result[1]));
     }
-    ProcessCallbackOrPromise(env, ctx, result[0], result[1]);
-    delete ctx;
+    ProcessCallbackOrPromise(env, ctx.get(), result[0], result[1]);
 }
 
 static void DeleteOsAccountSubProfileExecuteCB(napi_env env, void *data)
@@ -184,7 +183,7 @@ napi_value NapiOsAccountSubProfileManager::DeleteOsAccountSubProfile(napi_env en
     NAPI_CALL(env, napi_create_string_utf8(env, "DeleteOsAccountSubProfile", NAPI_AUTO_LENGTH, &resource));
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource, DeleteOsAccountSubProfileExecuteCB,
         [](napi_env env, napi_status status, void *data) {
-            auto *ctx = reinterpret_cast<SubProfileAsyncContext *>(data);
+            std::unique_ptr<SubProfileAsyncContext> ctx(reinterpret_cast<SubProfileAsyncContext *>(data));
             napi_value result[RESULT_COUNT] = {0};
             if (ctx->errCode == ERR_OK) {
                 NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &result[0]));
@@ -193,8 +192,7 @@ napi_value NapiOsAccountSubProfileManager::DeleteOsAccountSubProfile(napi_env en
                 result[0] = GenerateBusinessError(env, ctx->errCode);
                 NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &result[1]));
             }
-            ProcessCallbackOrPromise(env, ctx, result[0], result[1]);
-            delete ctx;
+            ProcessCallbackOrPromise(env, ctx.get(), result[0], result[1]);
         },
         reinterpret_cast<void *>(ctx), &ctx->work));
     NAPI_CALL(env, napi_queue_async_work_with_qos(env, ctx->work, napi_qos_user_initiated));
@@ -238,7 +236,7 @@ napi_value NapiOsAccountSubProfileManager::SwitchOsAccountSubProfile(napi_env en
     NAPI_CALL(env, napi_create_string_utf8(env, "SwitchOsAccountSubProfile", NAPI_AUTO_LENGTH, &resource));
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource, SwitchOsAccountSubProfileExecuteCB,
         [](napi_env env, napi_status status, void *data) {
-            auto *ctx = reinterpret_cast<SubProfileAsyncContext *>(data);
+            std::unique_ptr<SubProfileAsyncContext> ctx(reinterpret_cast<SubProfileAsyncContext *>(data));
             napi_value result[RESULT_COUNT] = {0};
             if (ctx->errCode == ERR_OK) {
                 NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &result[0]));
@@ -247,8 +245,7 @@ napi_value NapiOsAccountSubProfileManager::SwitchOsAccountSubProfile(napi_env en
                 result[0] = GenerateBusinessError(env, ctx->errCode);
                 NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &result[1]));
             }
-            ProcessCallbackOrPromise(env, ctx, result[0], result[1]);
-            delete ctx;
+            ProcessCallbackOrPromise(env, ctx.get(), result[0], result[1]);
         },
         reinterpret_cast<void *>(ctx), &ctx->work));
     NAPI_CALL(env, napi_queue_async_work_with_qos(env, ctx->work, napi_qos_user_initiated));
@@ -601,8 +598,8 @@ static void GetForegroundSubProfileIdExecuteCB(napi_env env, void *data)
 
 static void GetForegroundSubProfileIdCompletedCB(napi_env env, napi_status status, void *data)
 {
-    GetOsAccountSubProfileInfoAsyncContext *asyncContext =
-        reinterpret_cast<GetOsAccountSubProfileInfoAsyncContext *>(data);
+    std::unique_ptr<GetOsAccountSubProfileInfoAsyncContext> asyncContext(
+        reinterpret_cast<GetOsAccountSubProfileInfoAsyncContext *>(data));
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;
     if (asyncContext->errCode == ERR_OK) {
@@ -612,8 +609,7 @@ static void GetForegroundSubProfileIdCompletedCB(napi_env env, napi_status statu
         errJs = GenerateBusinessError(env, asyncContext->errCode);
         NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &dataJs));
     }
-    ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
-    delete asyncContext;
+    ProcessCallbackOrPromise(env, asyncContext.get(), errJs, dataJs);
 }
 
 napi_value NapiOsAccountSubProfileManager::GetOsAccountForegroundSubProfileId(napi_env env, napi_callback_info cbInfo)
@@ -680,8 +676,8 @@ static void GetSubProfileIdsExecuteCB(napi_env env, void *data)
 
 static void GetSubProfileIdsCompletedCB(napi_env env, napi_status status, void *data)
 {
-    GetOsAccountSubProfileInfoAsyncContext *asyncContext =
-        reinterpret_cast<GetOsAccountSubProfileInfoAsyncContext *>(data);
+    std::unique_ptr<GetOsAccountSubProfileInfoAsyncContext> asyncContext(
+        reinterpret_cast<GetOsAccountSubProfileInfoAsyncContext *>(data));
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;
     if (asyncContext->errCode == ERR_OK) {
@@ -698,8 +694,7 @@ static void GetSubProfileIdsCompletedCB(napi_env env, napi_status status, void *
         errJs = GenerateBusinessError(env, asyncContext->errCode, asyncContext->throwErr);
         NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &dataJs));
     }
-    ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
-    delete asyncContext;
+    ProcessCallbackOrPromise(env, asyncContext.get(), errJs, dataJs);
 }
 
 napi_value NapiOsAccountSubProfileManager::GetOsAccountSubProfileIds(napi_env env, napi_callback_info cbInfo)
@@ -762,8 +757,8 @@ static void GetLocalIdForSubProfileExecuteCB(napi_env env, void *data)
 
 static void GetLocalIdForSubProfileCompletedCB(napi_env env, napi_status status, void *data)
 {
-    GetOsAccountSubProfileInfoAsyncContext *asyncContext =
-        reinterpret_cast<GetOsAccountSubProfileInfoAsyncContext *>(data);
+    std::unique_ptr<GetOsAccountSubProfileInfoAsyncContext> asyncContext(
+        reinterpret_cast<GetOsAccountSubProfileInfoAsyncContext *>(data));
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;
     if (asyncContext->errCode == ERR_OK) {
@@ -773,8 +768,7 @@ static void GetLocalIdForSubProfileCompletedCB(napi_env env, napi_status status,
         errJs = GenerateBusinessError(env, asyncContext->errCode);
         NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &dataJs));
     }
-    ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
-    delete asyncContext;
+    ProcessCallbackOrPromise(env, asyncContext.get(), errJs, dataJs);
 }
 
 napi_value NapiOsAccountSubProfileManager::GetOsAccountLocalIdForSubProfile(napi_env env, napi_callback_info cbInfo)
@@ -861,8 +855,8 @@ static void GetSubProfileExecuteCB(napi_env env, void *data)
 
 static void GetSubProfileCompletedCB(napi_env env, napi_status status, void *data)
 {
-    GetOsAccountSubProfileAsyncContext *asyncContext =
-        reinterpret_cast<GetOsAccountSubProfileAsyncContext *>(data);
+    std::unique_ptr<GetOsAccountSubProfileAsyncContext> asyncContext(
+        reinterpret_cast<GetOsAccountSubProfileAsyncContext *>(data));
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;
     if (asyncContext->errCode == ERR_OK) {
@@ -891,8 +885,7 @@ static void GetSubProfileCompletedCB(napi_env env, napi_status status, void *dat
         errJs = GenerateBusinessError(env, asyncContext->errCode);
         NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &dataJs));
     }
-    ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
-    delete asyncContext;
+    ProcessCallbackOrPromise(env, asyncContext.get(), errJs, dataJs);
 }
 
 napi_value NapiOsAccountSubProfileManager::GetOsAccountSubProfile(napi_env env, napi_callback_info cbInfo)

@@ -93,5 +93,33 @@ HWTEST_F(DistributedAccountSubscribeManagerTest,
         DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGOUT, listener);
     EXPECT_EQ(unsubRet, ERR_OK);
 }
+
+/**
+ * @tc.name: Publish_WithNullEventListener_0100
+ * @tc.desc: Test Publish with a null eventListener_ record. Other valid subscribers
+ *          should still receive events (break→continue fix).
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DistributedAccountSubscribeManagerTest,
+    Publish_WithNullEventListener_0100, TestSize.Level1)
+{
+    auto &manager = DistributedAccountSubscribeManager::GetInstance();
+    auto validListener = sptr<MockDistributedAccountEventListener>(
+        new (std::nothrow) MockDistributedAccountEventListener());
+    ASSERT_NE(validListener, nullptr);
+    ASSERT_EQ(manager.SubscribeDistributedAccountEvent(
+        DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGIN, validListener), ERR_OK);
+
+    auto nullRecord = std::make_shared<DistributedSubscribeRecord>();
+    nullRecord->eventListener_ = nullptr;
+    nullRecord->types_.insert(DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGIN);
+    manager.subscribeRecords_.push_back(nullRecord);
+
+    ErrCode publishRet = manager.Publish(100, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGIN);
+    EXPECT_EQ(publishRet, ERR_OK);
+
+    manager.subscribeRecords_.clear();
+}
 }
 }

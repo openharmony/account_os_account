@@ -210,7 +210,7 @@ ErrCode DistributedAccountSubscribeManager::Publish(const int id, DISTRIBUTED_AC
             auto eventProxy = iface_cast<IDistributedAccountEvent>((*it)->eventListener_);
             if (eventProxy == nullptr) {
                 ACCOUNT_LOGE("Get eventProxy failed");
-                break;
+                continue;
             }
             auto task = [this, eventProxy, id, subscribeType, subProfileId] {
                 this->OnAccountsChanged(eventProxy, id, subscribeType, subProfileId);

@@ -16,6 +16,7 @@
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "account_permission_manager.h"
+#include "admin_authorization_callback_stub.h"
 #include "authorization_callback.h"
 #include "authorization_callback_stub.h"
 #include "authorization_common.h"
@@ -60,6 +61,12 @@ static bool g_getPrivilegeBriefDef = true;
 static bool g_hasAuthorizationFail = false;
 static bool g_openSmartPidFdFail = false;
 static std::string g_kernelPermission = "test_kernel_perm";
+
+class MockAdminAuthorizationCallbackNullAsObject : public AdminAuthorizationCallbackStub {
+public:
+    sptr<IRemoteObject> AsObject() override { return nullptr; }
+    ErrCode OnResult(const AdminAuthorizationResult &authResult) override { return ERR_OK; }
+};
 } // namespace
 
 /**
@@ -1802,6 +1809,23 @@ HWTEST_F(InnerAuthorizationManagerModuleTest, ExecuteUIExtensionTaskTest_0300, T
     manager_.ExecuteUIExtensionTask(uiInfo, connectCallback, callback, nullptr);
     ErrCode ret = manager_.StoreCallbackMaps(uiInfo, callback, connectCallback, nullptr);
     EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: AcquireAdminAuthorization_AsObjectNull_0100
+ * @tc.desc: Test AcquireAdminAuthorization with callback whose AsObject() returns nullptr.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InnerAuthorizationManagerModuleTest, AcquireAdminAuthorization_AsObjectNull_0100, TestSize.Level1)
+{
+    sptr<MockAdminAuthorizationCallbackNullAsObject> callback =
+        new (std::nothrow) MockAdminAuthorizationCallbackNullAsObject();
+    ASSERT_NE(callback, nullptr);
+    std::vector<uint8_t> challenge = {1, 2, 3};
+    ErrCode ret = manager_.AcquireAdminAuthorization(
+        TEST_USER_ID, challenge, callback, TEST_PRIVILEGE, TEST_CALLING_PID);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT);
 }
 } // namespace AccountSA
 } // namespace OHOS

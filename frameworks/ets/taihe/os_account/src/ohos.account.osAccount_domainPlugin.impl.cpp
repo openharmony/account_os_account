@@ -393,6 +393,10 @@ public:
             }
         }
         auto parametersRef = AppExecFwk::WrapWantParams(env, getTokenParams);
+        if (parametersRef == nullptr) {
+            ACCOUNT_LOGE("Failed to wrap parameters");
+            return;
+        }
         GetDomainAccessTokenOptions domainAccessTokenOptions {
             .domainAccountInfo = ConvertToDomainAccountInfo(domainInfo),
             .domainAccountToken = taiheToken,
