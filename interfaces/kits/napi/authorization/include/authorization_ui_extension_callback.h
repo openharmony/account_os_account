@@ -16,8 +16,8 @@
 #ifndef OS_ACCOUNT_INTERFACES_KITS_NAPI_AUTHORIZATION_AUTHORIZATION_UI_EXTENSION_CALLBACK_H
 #define OS_ACCOUNT_INTERFACES_KITS_NAPI_AUTHORIZATION_AUTHORIZATION_UI_EXTENSION_CALLBACK_H
 
-#include <atomic>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 #include "authorization_common.h"
@@ -182,10 +182,10 @@ protected:
         int32_t accountId = -1) = 0;
 
 protected:
-    /** Flag indicating whether OnResult has been called */
-    std::atomic<bool> isOnResult_{false};
-    /** Flag indicating whether the callback has been released */
-    std::atomic<bool> isReleased_{false};
+    /** Flag indicating whether a terminal callback (OnResult/OnRelease/OnError/OnDestroy) has been handled */
+    bool isHandled_ = false;
+    /** Mutex protecting the check-and-set of isHandled_ */
+    std::mutex mutex_;
     /** Session ID for the UI Extension */
     int32_t sessionId_{0};
     /** Remote callback object for IPC communication */

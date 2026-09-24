@@ -307,6 +307,41 @@ SubspaceSubscriber::~SubspaceSubscriber()
     }
 }
 
+static void CallSubspaceEventCallback(const std::shared_ptr<SubspaceEventWorker> &worker)
+{
+    napi_env env = worker->env;
+    napi_value result = nullptr;
+    NAPI_CALL_RETURN_VOID(env, napi_create_object(env, &result));
+    napi_value eventValue = nullptr;
+    NAPI_CALL_RETURN_VOID(env,
+        napi_create_int32(env, static_cast<int32_t>(worker->eventData.type_), &eventValue));
+    NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, result, "event", eventValue));
+    napi_value osAccountIdValue = nullptr;
+    NAPI_CALL_RETURN_VOID(env,
+        napi_create_int32(env, worker->eventData.osAccountId_, &osAccountIdValue));
+    NAPI_CALL_RETURN_VOID(env,
+        napi_set_named_property(env, result, "osAccountLocalId", osAccountIdValue));
+    napi_value subspaceIdValue = nullptr;
+    NAPI_CALL_RETURN_VOID(env,
+        napi_create_int32(env, worker->eventData.subProfileId_, &subspaceIdValue));
+    NAPI_CALL_RETURN_VOID(env,
+        napi_set_named_property(env, result, "subProfileId", subspaceIdValue));
+    napi_value previousSubspaceIdValue = nullptr;
+    if (worker->eventData.previousSubProfileId_ != -1) {
+        NAPI_CALL_RETURN_VOID(env,
+            napi_create_int32(env, worker->eventData.previousSubProfileId_, &previousSubspaceIdValue));
+        NAPI_CALL_RETURN_VOID(env,
+            napi_set_named_property(env, result, "previousSubProfileId", previousSubspaceIdValue));
+    }
+    napi_value undefined = nullptr;
+    NAPI_CALL_RETURN_VOID(env, napi_get_undefined(env, &undefined));
+    napi_value callback = nullptr;
+    NAPI_CALL_RETURN_VOID(env,
+        napi_get_reference_value(env, worker->callback->callbackRef, &callback));
+    napi_value args[1] = { result };
+    NAPI_CALL_RETURN_VOID(env, napi_call_function(env, undefined, callback, 1, args, nullptr));
+}
+
 std::function<void()> SubspaceEventNotifyTask(const std::shared_ptr<SubspaceEventWorker> &worker)
 {
     return [worker] {
@@ -321,37 +356,7 @@ std::function<void()> SubspaceEventNotifyTask(const std::shared_ptr<SubspaceEven
             ACCOUNT_LOGE("Fail to open scope");
             return;
         }
-
-        napi_value result = nullptr;
-        NAPI_CALL_RETURN_VOID(worker->env, napi_create_object(worker->env, &result));
-        napi_value eventValue = nullptr;
-        NAPI_CALL_RETURN_VOID(worker->env,
-            napi_create_int32(worker->env, static_cast<int32_t>(worker->eventData.type_), &eventValue));
-        NAPI_CALL_RETURN_VOID(worker->env, napi_set_named_property(worker->env, result, "event", eventValue));
-        napi_value osAccountIdValue = nullptr;
-        NAPI_CALL_RETURN_VOID(worker->env,
-            napi_create_int32(worker->env, worker->eventData.osAccountId_, &osAccountIdValue));
-        NAPI_CALL_RETURN_VOID(worker->env,
-            napi_set_named_property(worker->env, result, "osAccountLocalId", osAccountIdValue));
-        napi_value subspaceIdValue = nullptr;
-        NAPI_CALL_RETURN_VOID(worker->env,
-            napi_create_int32(worker->env, worker->eventData.subProfileId_, &subspaceIdValue));
-        NAPI_CALL_RETURN_VOID(worker->env,
-            napi_set_named_property(worker->env, result, "subProfileId", subspaceIdValue));
-        napi_value previousSubspaceIdValue = nullptr;
-        if (worker->eventData.previousSubProfileId_ != -1) {
-            NAPI_CALL_RETURN_VOID(worker->env,
-                napi_create_int32(worker->env, worker->eventData.previousSubProfileId_, &previousSubspaceIdValue));
-            NAPI_CALL_RETURN_VOID(worker->env,
-                napi_set_named_property(worker->env, result, "previousSubProfileId", previousSubspaceIdValue));
-        }
-        napi_value undefined = nullptr;
-        NAPI_CALL_RETURN_VOID(worker->env, napi_get_undefined(worker->env, &undefined));
-        napi_value callback = nullptr;
-        NAPI_CALL_RETURN_VOID(worker->env,
-            napi_get_reference_value(worker->env, worker->callback->callbackRef, &callback));
-        napi_value args[1] = { result };
-        NAPI_CALL_RETURN_VOID(worker->env, napi_call_function(worker->env, undefined, callback, 1, args, nullptr));
+        CallSubspaceEventCallback(worker);
         napi_close_handle_scope(worker->env, scope);
     };
 }

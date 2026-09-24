@@ -16,7 +16,6 @@
 #ifndef ANI_OS_ACCOUNT_UI_EXTENSION_H
 #define ANI_OS_ACCOUNT_UI_EXTENSION_H
 
-#include <atomic>
 #include <memory>
 #include <vector>
 #include "ani_base_context.h"

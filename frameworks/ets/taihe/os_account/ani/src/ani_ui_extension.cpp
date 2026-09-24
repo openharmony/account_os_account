@@ -37,8 +37,7 @@ std::mutex g_mutex;
 UIExtensionCallback::UIExtensionCallback(const std::shared_ptr<TaiheAcquireAuthorizationContext>& context)
     : context_(context)
 {
-    isOnResult_.exchange(false);
-    isReleased_.exchange(false);
+    isHandled_ = false;
 }
 
 void UIExtensionCallback::ReleaseHandler(int32_t errCode, AuthorizationResultCode resultCode,
