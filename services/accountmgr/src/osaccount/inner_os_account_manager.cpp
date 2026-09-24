@@ -597,9 +597,13 @@ ErrCode IInnerOsAccountManager::ActivateDefaultOsAccount()
     OsAccountInfo osAccountInfo;
     PrepareForDefaultAccount(activatedId, osAccountInfo);
 
+    bool preActivated = osAccountInfo.GetIsActived();
     // Activate account and set parameters
     errCode = SendMsgForAccountActivate(osAccountInfo, true, Constants::DEFAULT_DISPLAY_ID, true);
     if (errCode == ERR_OK) {
+        if (!preActivated) {
+            ActivateSubprofile(osAccountInfo);
+        }
         errCode = SetAccountReadyParamWithRetry(osAccountInfo);
         if (errCode == ERR_OK) {
             ReportOsAccountLifeCycle(osAccountInfo.GetLocalId(), Constants::OPERATION_BOOT_ACTIVATED);
@@ -3043,34 +3047,37 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR;
     }
 
-    // acquire the exclusive lock
-    std::lock_guard<std::mutex> lock(*GetOrInsertUpdateLock(id));
-
-    // prepare to activate the account
     OsAccountInfo osAccountInfo;
     int32_t foregroundId = -1;
-    ErrCode errCode = PrepareActivateOsAccount(id, displayId, osAccountInfo, foregroundId);
-    if (errCode != ERR_OK) {
+    bool preActivated = false;
+    ErrCode errCode;
+    {
+        std::lock_guard<std::mutex> lock(*GetOrInsertUpdateLock(id));
+        errCode = PrepareActivateOsAccount(id, displayId, osAccountInfo, foregroundId);
+        if (errCode != ERR_OK) {
+            RemoveLocalIdToOperating(id);
+            return errCode == ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_ALREADY_ACTIVE_ERROR ? ERR_OK : errCode;
+        }
+        preActivated = osAccountInfo.GetIsActived();
+
+        if (foregroundId != id) {
+            subscribeManager_.Publish(id, OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING);
+        }
+
+        int32_t activatedId;
+        if (defaultActivatedIds_.Find(displayId, activatedId)) {
+            SetAppRecovery(isAppRecovery, activeAccountId_, id, activatedId);
+        }
+
+        errCode = SendMsgForAccountActivate(osAccountInfo, startStorage, displayId, isAppRecovery);
         RemoveLocalIdToOperating(id);
-        return errCode == ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_ALREADY_ACTIVE_ERROR ? ERR_OK : errCode;
     }
-
-    // publish activating event
-    if (foregroundId != id) {
-        subscribeManager_.Publish(id, OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING);
-    }
-
-    // set the account as active
-    int32_t activatedId;
-    if (defaultActivatedIds_.Find(displayId, activatedId)) {
-        SetAppRecovery(isAppRecovery, activeAccountId_, id, activatedId);
-    }
-
-    // main func to send message for account activation
-    errCode = SendMsgForAccountActivate(osAccountInfo, startStorage, displayId, isAppRecovery);
-    RemoveLocalIdToOperating(id);
     if (errCode != ERR_OK) {
         return errCode;
+    }
+
+    if (!preActivated) {
+        ActivateSubprofile(osAccountInfo);
     }
 
     //domain account
@@ -3352,7 +3359,6 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
         int32_t activatedId = -1;
         if (defaultActivatedIds_.Find(displayId, activatedId))
             ReportOsAccountLifeCycle(activatedId, Constants::OPERATION_ACTIVATE);
-        ActivateSubprofile(osAccountInfo);
     }
 
     ACCOUNT_LOGI("SendMsgForAccountActivate end, localId=%{public}d", localId);
