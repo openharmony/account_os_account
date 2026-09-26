@@ -312,6 +312,7 @@ static void Wait(const std::shared_ptr<AccountTestEventSubscriber> &ptr)
 class MockOsAccountSubscriber {
 public:
     MOCK_METHOD1(OnAccountsChanged, void(const int &id));
+    MOCK_METHOD2(OnAccountsSwitch, void(const int &newId, const int &oldId));
 };
 
 class DeactivateOsAccountSubscriber final : public OsAccountSubscriber {
@@ -347,12 +348,43 @@ static void Wait(const std::shared_ptr<DeactivateOsAccountSubscriber> &ptr)
 
 class ActiveOsAccountSubscriber final : public OsAccountSubscriber {
 public:
-    explicit ActiveOsAccountSubscriber(const OsAccountSubscribeInfo &subscribeInfo)
-        : OsAccountSubscriber(subscribeInfo) {}
+    explicit ActiveOsAccountSubscriber(const OsAccountSubscribeInfo &subscribeInfo,
+        const std::shared_ptr<MockOsAccountSubscriber> &callback)
+        : OsAccountSubscriber(subscribeInfo), callback_(callback) {}
 
-    MOCK_METHOD1(OnAccountsChanged, void(const int &id));
-    MOCK_METHOD2(OnAccountsSwitch, void(const int &newId, const int &oldId));
+    void OnAccountsChanged(const int &id) override
+    {
+        callback_->OnAccountsChanged(id);
+        std::unique_lock<std::mutex> lock(mutex);
+        isReady = true;
+        cv.notify_one();
+        return;
+    }
+
+    void OnAccountsSwitch(const int &newId, const int &oldId) override
+    {
+        callback_->OnAccountsSwitch(newId, oldId);
+        std::unique_lock<std::mutex> lock(mutex);
+        isReady = true;
+        cv.notify_one();
+        return;
+    }
+    std::condition_variable cv;
+    bool isReady = false;
+    std::mutex mutex;
+
+private:
+    std::shared_ptr<MockOsAccountSubscriber> callback_;
 };
+
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
+static void Wait(const std::shared_ptr<ActiveOsAccountSubscriber> &ptr)
+{
+    std::unique_lock<std::mutex> lock(ptr->mutex);
+    ptr->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
+        [lockPtr = ptr]() { return lockPtr->isReady; });
+}
+#endif
 
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 /**
@@ -2279,27 +2311,31 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest116, TestSize.Lev
 
     // activing os account
     OsAccountSubscribeInfo subscribeActivingInfo(OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING, "subscribeActiving");
-    auto activingSubscriber = std::make_shared<ActiveOsAccountSubscriber>(subscribeActivingInfo);
+    auto activingPtr = std::make_shared<MockOsAccountSubscriber>();
+    auto activingSubscriber = std::make_shared<ActiveOsAccountSubscriber>(subscribeActivingInfo, activingPtr);
     EXPECT_EQ(ERR_OK, OsAccountManager::SubscribeOsAccount(activingSubscriber));
-    EXPECT_CALL(*activingSubscriber, OnAccountsChanged(commonOsAccountInfo.GetLocalId())).Times(Exactly(1));
+    EXPECT_CALL(*activingPtr, OnAccountsChanged(commonOsAccountInfo.GetLocalId())).Times(Exactly(1));
     // activated os account
-    OsAccountSubscribeInfo subscribeActivatedInfo(OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATED, "subscribeActivated");
-    auto activedSubscriber = std::make_shared<ActiveOsAccountSubscriber>(subscribeActivatedInfo);
+    OsAccountSubscribeInfo subscribeActivatedInfo(OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATED, "subscribeActived");
+    auto activedPtr = std::make_shared<MockOsAccountSubscriber>();
+    auto activedSubscriber = std::make_shared<ActiveOsAccountSubscriber>(subscribeActivatedInfo, activedPtr);
     EXPECT_EQ(ERR_OK, OsAccountManager::SubscribeOsAccount(activedSubscriber));
-    EXPECT_CALL(*activedSubscriber, OnAccountsChanged(commonOsAccountInfo.GetLocalId())).Times(Exactly(1));
+    EXPECT_CALL(*activedPtr, OnAccountsChanged(commonOsAccountInfo.GetLocalId())).Times(Exactly(1));
 
     // switched os account
     OsAccountSubscribeInfo subscribeSwitchedInfo(OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED, "subscribeSwitched");
-    auto switchedSubscriber = std::make_shared<ActiveOsAccountSubscriber>(subscribeSwitchedInfo);
+    auto switchedPtr = std::make_shared<MockOsAccountSubscriber>();
+    auto switchedSubscriber = std::make_shared<ActiveOsAccountSubscriber>(subscribeSwitchedInfo, switchedPtr);
     EXPECT_EQ(ERR_OK, OsAccountManager::SubscribeOsAccount(switchedSubscriber));
-    EXPECT_CALL(*switchedSubscriber, OnAccountsSwitch(
+    EXPECT_CALL(*switchedPtr, OnAccountsSwitch(
         commonOsAccountInfo.GetLocalId(), MAIN_ACCOUNT_ID)).Times(Exactly(1));
 
     // switching os account
     OsAccountSubscribeInfo subscribeSwitchingInfo(OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING, "subscribeSwitching");
-    auto switchingSubscriber = std::make_shared<ActiveOsAccountSubscriber>(subscribeSwitchingInfo);
+    auto switchingPtr = std::make_shared<MockOsAccountSubscriber>();
+    auto switchingSubscriber = std::make_shared<ActiveOsAccountSubscriber>(subscribeSwitchingInfo, switchingPtr);
     EXPECT_EQ(ERR_OK, OsAccountManager::SubscribeOsAccount(switchingSubscriber));
-    EXPECT_CALL(*switchingSubscriber, OnAccountsSwitch(
+    EXPECT_CALL(*switchingPtr, OnAccountsSwitch(
         commonOsAccountInfo.GetLocalId(), MAIN_ACCOUNT_ID)).Times(Exactly(1));
     OsAccount::GetInstance().RestoreListenerRecords();
 
@@ -2322,6 +2358,11 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest116, TestSize.Lev
 #ifndef BUNDLE_ADAPTER_MOCK
     Wait(subscriberPtr);
 #endif
+    Wait(activingSubscriber);
+    Wait(activedSubscriber);
+    Wait(switchedSubscriber);
+    Wait(switchingSubscriber);
+
     EXPECT_EQ(ERR_OK, OsAccountManager::UnsubscribeOsAccount(activingSubscriber));
     EXPECT_EQ(ERR_OK, OsAccountManager::UnsubscribeOsAccount(activedSubscriber));
     EXPECT_EQ(ERR_OK, OsAccountManager::UnsubscribeOsAccount(switchedSubscriber));
@@ -2438,26 +2479,30 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest118, TestSize.Lev
 
     // activing os account
     OsAccountSubscribeInfo subscribeActivingInfo(OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING, "subscribeActiving");
-    auto activingSubscriber = std::make_shared<ActiveOsAccountSubscriber>(subscribeActivingInfo);
+    auto activingPtr = std::make_shared<MockOsAccountSubscriber>();
+    auto activingSubscriber = std::make_shared<ActiveOsAccountSubscriber>(subscribeActivingInfo, activingPtr);
     EXPECT_EQ(ERR_OK, OsAccountManager::SubscribeOsAccount(activingSubscriber));
-    EXPECT_CALL(*activingSubscriber, OnAccountsChanged(commonOsAccountInfo.GetLocalId())).Times(Exactly(1));
+    EXPECT_CALL(*activingPtr, OnAccountsChanged(commonOsAccountInfo.GetLocalId())).Times(Exactly(1));
     // activated os account
     OsAccountSubscribeInfo subscribeActivatedInfo(OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATED, "subscribeActived");
-    auto activedSubscriber = std::make_shared<ActiveOsAccountSubscriber>(subscribeActivatedInfo);
+    auto activedPtr = std::make_shared<MockOsAccountSubscriber>();
+    auto activedSubscriber = std::make_shared<ActiveOsAccountSubscriber>(subscribeActivatedInfo, activedPtr);
     EXPECT_EQ(ERR_OK, OsAccountManager::SubscribeOsAccount(activedSubscriber));
-    EXPECT_CALL(*activedSubscriber, OnAccountsChanged(commonOsAccountInfo.GetLocalId())).Times(Exactly(1));
+    EXPECT_CALL(*activedPtr, OnAccountsChanged(commonOsAccountInfo.GetLocalId())).Times(Exactly(1));
 
     // switched os account
     OsAccountSubscribeInfo subscribeSwitchedInfo(OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED, "subscribeSwitched");
-    auto switchedSubscriber = std::make_shared<ActiveOsAccountSubscriber>(subscribeSwitchedInfo);
+    auto switchedPtr = std::make_shared<MockOsAccountSubscriber>();
+    auto switchedSubscriber = std::make_shared<ActiveOsAccountSubscriber>(subscribeSwitchedInfo, switchedPtr);
     EXPECT_EQ(ERR_OK, OsAccountManager::SubscribeOsAccount(switchedSubscriber));
-    EXPECT_CALL(*switchedSubscriber, OnAccountsSwitch(commonOsAccountInfo.GetLocalId(), _)).Times(Exactly(1));
+    EXPECT_CALL(*switchedPtr, OnAccountsSwitch(commonOsAccountInfo.GetLocalId(), _)).Times(Exactly(1));
 
     // switching os account
     OsAccountSubscribeInfo subscribeSwitchingInfo(OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING, "subscribeSwitching");
-    auto switchingSubscriber = std::make_shared<ActiveOsAccountSubscriber>(subscribeSwitchingInfo);
+    auto switchingPtr = std::make_shared<MockOsAccountSubscriber>();
+    auto switchingSubscriber = std::make_shared<ActiveOsAccountSubscriber>(subscribeSwitchingInfo, switchingPtr);
     EXPECT_EQ(ERR_OK, OsAccountManager::SubscribeOsAccount(switchingSubscriber));
-    EXPECT_CALL(*switchingSubscriber, OnAccountsSwitch(commonOsAccountInfo.GetLocalId(), _)).Times(Exactly(1));
+    EXPECT_CALL(*switchingPtr, OnAccountsSwitch(commonOsAccountInfo.GetLocalId(), _)).Times(Exactly(1));
     OsAccount::GetInstance().RestoreListenerRecords();
 
     // common event: COMMON_EVENT_USER_FOREGROUND 、 COMMON_EVENT_USER_BACKGROUND
@@ -2475,9 +2520,17 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest118, TestSize.Lev
 #endif
 
     EXPECT_EQ(OsAccountManager::DeactivateOsAccount(commonOsAccountInfo.GetLocalId()), ERR_OK);
+#ifndef BUNDLE_ADAPTER_MOCK
     sleep(1);
+#endif
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(commonOsAccountInfo.GetLocalId()), ERR_OK);
+#ifndef BUNDLE_ADAPTER_MOCK
     sleep(1);
+#endif
+    Wait(activingSubscriber);
+    Wait(activedSubscriber);
+    Wait(switchedSubscriber);
+    Wait(switchingSubscriber);
 
     EXPECT_EQ(ERR_OK, OsAccountManager::UnsubscribeOsAccount(activingSubscriber));
     EXPECT_EQ(ERR_OK, OsAccountManager::UnsubscribeOsAccount(activedSubscriber));
