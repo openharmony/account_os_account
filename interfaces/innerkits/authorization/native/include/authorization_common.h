@@ -16,6 +16,7 @@
 #ifndef AUTHORIZATION_INNERKITS_AUTHORIZATION_INCLUDE_AUTHORIZATION_COMMON_H
 #define AUTHORIZATION_INNERKITS_AUTHORIZATION_INCLUDE_AUTHORIZATION_COMMON_H
 
+#include <optional>
 #include <string>
 #include <vector>
 #include "parcel.h"
@@ -52,6 +53,7 @@ public:
         timeout = other.timeout;
         sessionId = other.sessionId;
         callingBundleName = other.callingBundleName;
+        customName = other.customName;
         isPublicApi = other.isPublicApi;
     }
     ~ConnectAbilityInfo();
@@ -76,6 +78,7 @@ public:
     /// Challenge data for the authorization request
     std::vector<uint8_t> challenge;
     std::string sessionId = "";
+    std::string customName = "";
     bool isPublicApi = false;
     bool ReadFromParcel(Parcel &parcel);
     bool Marshalling(Parcel &parcel) const override;
@@ -140,6 +143,58 @@ public:
 };
 
 /**
+ * @brief Subject information for proxy authorization.
+ *
+ * This struct identifies the target process for which authorization
+ * is being requested by a proxy system service.
+ */
+struct SubjectInfo : public Parcelable {
+    int32_t pid = -1;
+    int32_t uid = -1;
+    std::string customName = "";
+
+    ~SubjectInfo() = default;
+
+    bool ReadFromParcel(Parcel &parcel)
+    {
+        if (!parcel.ReadInt32(pid)) {
+            return false;
+        }
+        if (!parcel.ReadInt32(uid)) {
+            return false;
+        }
+        if (!parcel.ReadString(customName)) {
+            return false;
+        }
+        return true;
+    }
+
+    bool Marshalling(Parcel &parcel) const override
+    {
+        if (!parcel.WriteInt32(pid)) {
+            return false;
+        }
+        if (!parcel.WriteInt32(uid)) {
+            return false;
+        }
+        if (!parcel.WriteString(customName)) {
+            return false;
+        }
+        return true;
+    }
+
+    static SubjectInfo *Unmarshalling(Parcel &parcel)
+    {
+        SubjectInfo *info = new (std::nothrow) SubjectInfo();
+        if ((info != nullptr) && (!info->ReadFromParcel(parcel))) {
+            delete info;
+            info = nullptr;
+        }
+        return info;
+    }
+};
+
+/**
  * @brief Options for acquiring authorization.
  *
  * This class contains various options that control the authorization
@@ -162,6 +217,7 @@ public:
     bool isInteractionAllowed = true;
     bool isContextValid = false;
     bool isPublicApi = false;
+    std::optional<SubjectInfo> subjectInfo = std::nullopt;
     bool ReadFromParcel(Parcel &parcel);
     bool Marshalling(Parcel &parcel) const override;
     static AcquireAuthorizationOptions *Unmarshalling(Parcel &parcel);

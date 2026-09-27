@@ -146,6 +146,7 @@ private:
     ErrCode FindAccountIdByName(const std::string &adminNameName, int32_t &accountId);
 
     ErrCode CheckSystemAppAndPermission(int32_t localId);
+    ErrCode CheckPermissionAndIdentity(const AcquireAuthorizationOptions &options, int32_t localId);
     ErrCode ValidateChallengeAndContext(const AcquireAuthorizationOptions &options, int32_t localId);
     ErrCode CheckCallbackAndConnections(const sptr<IAuthorizationCallback> &callback,
         const AcquireAuthorizationOptions &options, int32_t localId, AuthorizationResult &authorizationResult);
