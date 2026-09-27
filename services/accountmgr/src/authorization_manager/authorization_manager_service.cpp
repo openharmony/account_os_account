@@ -15,9 +15,9 @@
 
 #include "authorization_manager_service.h"
 
+#include <fstream>
 #include <sstream>
 #include "account_error_no.h"
-#include "account_file_operator.h"
 #include "account_hisysevent_adapter.h"
 #include "account_log_wrapper.h"
 #include "account_permission_manager.h"
@@ -47,23 +47,21 @@ constexpr int32_t INVALID_UID = -1;
 ErrCode GetProcessUidFromProc(const int32_t pid, int32_t &uid)
 {
     std::string statusPath = "/proc/" + std::to_string(pid) + "/status";
-    AccountFileOperator fileOperator;
-    std::string content;
-    ErrCode errCode = fileOperator.GetFileContentByPath(statusPath, content);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Failed to read /proc/%{public}d/status, ret=%{public}d", pid, errCode);
-        return errCode;
+    std::ifstream statusFile(statusPath);
+    if (!statusFile.is_open()) {
+        ACCOUNT_LOGE("Failed to open /proc/%{public}d/status", pid);
+        return ERR_ACCOUNT_COMMON_FILE_OPEN_FAILED;
     }
-    uid = INVALID_UID;
-    std::istringstream iss(content);
     std::string line;
-    while (std::getline(iss, line)) {
+    uid = INVALID_UID;
+    while (std::getline(statusFile, line)) {
         if (line.compare(0, UID_PREFIX_LENGTH, "Uid:") == 0) {
-            std::istringstream uidIss(line.substr(UID_PREFIX_LENGTH));
-            uidIss >> uid;
+            std::istringstream iss(line.substr(UID_PREFIX_LENGTH));
+            iss >> uid;
             break;
         }
     }
+    statusFile.close();
     if (uid < 0) {
         ACCOUNT_LOGE("Failed to parse uid from /proc/%{public}d/status", pid);
         return ERR_ACCOUNT_COMMON_FILE_READ_FAILED;
