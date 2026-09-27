@@ -15,7 +15,9 @@
 
 #include "authorization_manager_service.h"
 
+#include <sstream>
 #include "account_error_no.h"
+#include "account_file_operator.h"
 #include "account_hisysevent_adapter.h"
 #include "account_log_wrapper.h"
 #include "account_permission_manager.h"
@@ -39,6 +41,60 @@ const char PERMISSION_ACQUIRE_AUTHORIZATION_FOR_PUBLIC[] =
 const char PERMISSION_START_SYSTEM_DIALOG[] = "ohos.permission.START_SYSTEM_DIALOG";
 const char PERMISSION_ACCESS_USER_AUTH_INTERNAL[] = "ohos.permission.ACCESS_USER_AUTH_INTERNAL";
 constexpr std::int32_t MAX_CHALLENGE_LEN = 32;
+constexpr int32_t UID_PREFIX_LENGTH = 4;
+constexpr int32_t INVALID_UID = -1;
+
+ErrCode GetProcessUidFromProc(const int32_t pid, int32_t &uid)
+{
+    std::string statusPath = "/proc/" + std::to_string(pid) + "/status";
+    AccountFileOperator fileOperator;
+    std::string content;
+    ErrCode errCode = fileOperator.GetFileContentByPath(statusPath, content);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to read /proc/%{public}d/status, ret=%{public}d", pid, errCode);
+        return errCode;
+    }
+    uid = INVALID_UID;
+    std::istringstream iss(content);
+    std::string line;
+    while (std::getline(iss, line)) {
+        if (line.compare(0, UID_PREFIX_LENGTH, "Uid:") == 0) {
+            std::istringstream uidIss(line.substr(UID_PREFIX_LENGTH));
+            uidIss >> uid;
+            break;
+        }
+    }
+    if (uid < 0) {
+        ACCOUNT_LOGE("Failed to parse uid from /proc/%{public}d/status", pid);
+        return ERR_ACCOUNT_COMMON_FILE_READ_FAILED;
+    }
+    return ERR_OK;
+}
+
+ErrCode VerifySubjectIdentity(const SubjectInfo &subjectInfo)
+{
+    if (subjectInfo.pid <= 0) {
+        ACCOUNT_LOGE("Invalid pid: %{public}d", subjectInfo.pid);
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    if (subjectInfo.uid < 0) {
+        ACCOUNT_LOGE("Invalid uid: %{public}d", subjectInfo.uid);
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    int32_t actualUid = INVALID_UID;
+    ErrCode ret = GetProcessUidFromProc(subjectInfo.pid, actualUid);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Failed to get process uid, pid=%{public}d, ret=%{public}d",
+            subjectInfo.pid, ret);
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    if (actualUid != subjectInfo.uid) {
+        ACCOUNT_LOGE("Pid uid mismatch: expected=%{public}d, actual=%{public}d",
+            subjectInfo.uid, actualUid);
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    return ERR_OK;
+}
 }
 AuthorizationManagerService::AuthorizationManagerService()
 {
@@ -119,13 +175,12 @@ ErrCode AuthorizationManagerService::AcquireAuthorization(const std::string &pri
     const AcquireAuthorizationOptions &options, const sptr<IRemoteObject> &authorizationResultCallback,
     const sptr<IRemoteObject> &requestRemoteObj)
 {
-    int32_t localId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
-
-    ErrCode result = CheckSystemAppAndPermission(localId);
+    int32_t localId = options.subjectInfo.has_value() ?
+        options.subjectInfo->uid / UID_TRANSFORM_DIVISOR : IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
+    ErrCode result = CheckPermissionAndIdentity(options, localId);
     if (result != ERR_OK) {
         return result;
     }
-
     result = ValidateChallengeAndContext(options, localId);
     if (result != ERR_OK) {
         return result;
@@ -164,6 +219,20 @@ ErrCode AuthorizationManagerService::AcquireAuthorization(const std::string &pri
         config_, authorizationResultCallback, requestRemoteObj);
 }
 
+ErrCode AuthorizationManagerService::CheckPermissionAndIdentity(const AcquireAuthorizationOptions &options,
+    int32_t localId)
+{
+    if (options.subjectInfo.has_value()) {
+        ErrCode result = AccountPermissionManager::VerifyPermission(PERMISSION_ACQUIRE_AUTHORIZATION);
+        if (result != ERR_OK) {
+            ACCOUNT_LOGE("Failed to verify permission, result = %{public}d", result);
+            return result;
+        }
+        return VerifySubjectIdentity(options.subjectInfo.value());
+    }
+    return CheckSystemAppAndPermission(localId);
+}
+
 ErrCode AuthorizationManagerService::CheckSystemAppAndPermission(int32_t localId)
 {
     ErrCode result = AccountPermissionManager::CheckSystemApp();
@@ -172,14 +241,12 @@ ErrCode AuthorizationManagerService::CheckSystemAppAndPermission(int32_t localId
         ACCOUNT_LOGE("The caller is not system application, err = %{public}d.", result);
         return result;
     }
-
     result = AccountPermissionManager::VerifyPermission(PERMISSION_ACQUIRE_AUTHORIZATION);
     if (result != ERR_OK) {
         REPORT_OS_ACCOUNT_FAIL(localId, PRIVILEGE_OPT_ACQUIRE_AUTH, result, "Failed to verify permission");
         ACCOUNT_LOGE("Failed to verify permission, result = %{public}d", result);
         return result;
     }
-
     return ERR_OK;
 }
 

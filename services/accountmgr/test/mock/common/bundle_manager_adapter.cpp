@@ -41,6 +41,7 @@ const std::string STRING_ABILITY_NAME_WITH_NO_PROXY = "com.example.MainAbilityWi
 constexpr int32_t TEST_ACCESS_TOKEN_ID_NORMAL_BUNDLE = 789012;
 constexpr int32_t TEST_ACCESS_TOKEN_ID_AUTH_APP = 100001;
 constexpr int32_t TEST_ACCESS_TOKEN_ID_OWNER = 123456;
+constexpr int32_t MOCK_UID_TRANSFORM_DIVISOR = 200000;
 }  // namespace
 
 BundleManagerAdapter *BundleManagerAdapter::GetInstance()
@@ -286,6 +287,9 @@ bool BundleManagerAdapter::QueryExtensionAbilityInfos(
 int BundleManagerAdapter::GetUidByBundleName(const std::string &bundleName, const int userId)
 {
     ACCOUNT_LOGI("mock enter, bundleName = %{public}s, userId = %{public}d.", bundleName.c_str(), userId);
+    if (bundleName == STRING_OWNER) {
+        return userId * MOCK_UID_TRANSFORM_DIVISOR;
+    }
     return -1;
 }
 

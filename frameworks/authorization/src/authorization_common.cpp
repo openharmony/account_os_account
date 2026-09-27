@@ -159,6 +159,7 @@ ConnectAbilityInfo& ConnectAbilityInfo::operator=(const ConnectAbilityInfo& othe
         timeout = other.timeout;
         isPublicApi = other.isPublicApi;
         callingBundleName = other.callingBundleName;
+        customName = other.customName;
     }
     return *this;
 }
@@ -292,6 +293,19 @@ bool AcquireAuthorizationOptions::ReadFromParcel(Parcel &parcel)
         ACCOUNT_LOGE("Read isContextValid failed.");
         return false;
     }
+    bool hasSubjectInfo = false;
+    if (!parcel.ReadBool(hasSubjectInfo)) {
+        ACCOUNT_LOGE("Read hasSubjectInfo failed.");
+        return false;
+    }
+    if (hasSubjectInfo) {
+        SubjectInfo info;
+        if (!info.ReadFromParcel(parcel)) {
+            ACCOUNT_LOGE("Read subjectInfo failed.");
+            return false;
+        }
+        subjectInfo = info;
+    }
     return true;
 }
 
@@ -317,7 +331,17 @@ bool AcquireAuthorizationOptions::Marshalling(Parcel &parcel) const
         ACCOUNT_LOGE("Failed to write isContextValid.");
         return false;
     }
-
+    bool hasSubjectInfo = subjectInfo.has_value();
+    if (!parcel.WriteBool(hasSubjectInfo)) {
+        ACCOUNT_LOGE("Failed to write hasSubjectInfo.");
+        return false;
+    }
+    if (hasSubjectInfo) {
+        if (!subjectInfo->Marshalling(parcel)) {
+            ACCOUNT_LOGE("Failed to write subjectInfo.");
+            return false;
+        }
+    }
     return true;
 }
 
