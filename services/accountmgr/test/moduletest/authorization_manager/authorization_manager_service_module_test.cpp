@@ -62,6 +62,7 @@ static ErrCode g_hasAuthorizationResult = ERR_OK;
 static bool g_hasAuthorizationAuthorized = true;
 static std::string g_kernelPermission = "test_kernel_perm";
 const ErrCode FAIL_CODE = -1;
+const uint32_t TEST_TIME_OUT = 300;
 } // namespace
 
 /**
@@ -206,8 +207,11 @@ bool GetPrivilegeBriefDef(const std::string& privilege, PrivilegeBriefDef& privi
     if (!g_getPrivilegeBriefDef) {
         return false;
     }
-    privilegeBriefDef.kernelPermission = g_kernelPermission.empty() ? nullptr :
-        const_cast<char*>(g_kernelPermission.c_str());
+    privilegeBriefDef.privilegeName = const_cast<char *>(privilege.c_str());
+    privilegeBriefDef.description = const_cast<char *>("test description");
+    privilegeBriefDef.timeout = TEST_TIME_OUT;
+    privilegeBriefDef.kernelPermission =
+        g_kernelPermission.empty() ? nullptr : const_cast<char *>(g_kernelPermission.c_str());
     return true;
 }
 
@@ -1212,6 +1216,110 @@ HWTEST_F(AuthorizationManagerServiceModuleTest, AcquireAuthorizationForPublicTes
     EXPECT_EQ(ret, ERR_OK);
     g_hasExtensionConnect = true;
     g_checkPrivilegeResult = ERR_OK;
+}
+
+/**
+ * @tc.name: AcquireAuthorizationTest_1600
+ * @tc.desc: test AcquireAuthorization with valid subjectInfo in options.
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(AuthorizationManagerServiceModuleTest, AcquireAuthorizationTest_1600, TestSize.Level0)
+{
+    ACCOUNT_LOGI("AcquireAuthorizationTest_1600");
+    EXPECT_CALL(MockAccountPermissionManager::GetInstance(), VerifyPermission(_))
+        .WillRepeatedly(Return(ERR_OK));
+    EXPECT_CALL(MockAccountPermissionManager::GetInstance(), CheckSystemApp(_))
+        .WillRepeatedly(Return(ERR_OK));
+    g_getPrivilegeBriefDef = true;
+    g_kernelPermission = "test_kernel_perm";
+    g_transferPrivilegeToCode = true;
+    g_hasConnect = false;
+    g_hasExtensionConnect = false;
+    g_checkPrivilegeResult = ERR_OK;
+
+    AcquireAuthorizationOptions options;
+    options.isReuseNeeded = false;
+    options.isInteractionAllowed = true;
+    options.subjectInfo = SubjectInfo{};
+    options.subjectInfo->pid = getpid();
+    options.subjectInfo->uid = IPCSkeleton::GetCallingUid();
+    auto callbackObj = new MockAuthorizationCallbackStub();
+    auto requestObj = new MockAuthorizationCallbackStub();
+    ErrCode ret = service_->AcquireAuthorization(
+        TEST_PUBLIC_PRIVILEGE, options, callbackObj->AsObject(), requestObj->AsObject());
+    EXPECT_EQ(ret, ERR_OK);
+    g_hasExtensionConnect = true;
+    g_checkPrivilegeResult = ERR_OK;
+}
+
+/**
+ * @tc.name: AcquireAuthorizationTest_1800
+ * @tc.desc: test AcquireAuthorization with subjectInfo invalid pid (<=0).
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(AuthorizationManagerServiceModuleTest, AcquireAuthorizationTest_1800, TestSize.Level0)
+{
+    ACCOUNT_LOGI("AcquireAuthorizationTest_1800");
+    EXPECT_CALL(MockAccountPermissionManager::GetInstance(), VerifyPermission(_))
+        .WillRepeatedly(Return(ERR_OK));
+
+    AcquireAuthorizationOptions options;
+    options.subjectInfo = SubjectInfo{};
+    options.subjectInfo->pid = 0;
+    options.subjectInfo->uid = 0;
+    auto callbackObj = new MockAuthorizationCallbackStub();
+    auto requestObj = new MockAuthorizationCallbackStub();
+    ErrCode ret = service_->AcquireAuthorization(
+        TEST_PUBLIC_PRIVILEGE, options, callbackObj->AsObject(), requestObj->AsObject());
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: AcquireAuthorizationTest_1900
+ * @tc.desc: test AcquireAuthorization with subjectInfo invalid uid (<0).
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(AuthorizationManagerServiceModuleTest, AcquireAuthorizationTest_1900, TestSize.Level0)
+{
+    ACCOUNT_LOGI("AcquireAuthorizationTest_1900");
+    EXPECT_CALL(MockAccountPermissionManager::GetInstance(), VerifyPermission(_))
+        .WillRepeatedly(Return(ERR_OK));
+
+    AcquireAuthorizationOptions options;
+    options.subjectInfo = SubjectInfo{};
+    options.subjectInfo->pid = getpid();
+    options.subjectInfo->uid = -1;
+    auto callbackObj = new MockAuthorizationCallbackStub();
+    auto requestObj = new MockAuthorizationCallbackStub();
+    ErrCode ret = service_->AcquireAuthorization(
+        TEST_PUBLIC_PRIVILEGE, options, callbackObj->AsObject(), requestObj->AsObject());
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: AcquireAuthorizationTest_2000
+ * @tc.desc: test AcquireAuthorization with subjectInfo pid-uid mismatch.
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(AuthorizationManagerServiceModuleTest, AcquireAuthorizationTest_2000, TestSize.Level0)
+{
+    ACCOUNT_LOGI("AcquireAuthorizationTest_2000");
+    EXPECT_CALL(MockAccountPermissionManager::GetInstance(), VerifyPermission(_))
+        .WillRepeatedly(Return(ERR_OK));
+
+    AcquireAuthorizationOptions options;
+    options.subjectInfo = SubjectInfo{};
+    options.subjectInfo->pid = getpid();
+    options.subjectInfo->uid = 999999;
+    auto callbackObj = new MockAuthorizationCallbackStub();
+    auto requestObj = new MockAuthorizationCallbackStub();
+    ErrCode ret = service_->AcquireAuthorization(
+        TEST_PUBLIC_PRIVILEGE, options, callbackObj->AsObject(), requestObj->AsObject());
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 } // namespace AccountSA

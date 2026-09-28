@@ -618,12 +618,18 @@ ErrCode InnerAuthorizationManager::InitializeConnectAbilityInfo(const PrivilegeB
     info.timeout = pdef.timeout;
     info.bundleName = config.authAppBundleName;
     info.challenge = options.challenge;
-    info.callingUid = IPCSkeleton::GetCallingUid();
-    info.callingPid = IPCSkeleton::GetCallingPid();
+    if (options.subjectInfo.has_value()) {
+        info.callingUid = options.subjectInfo->uid;
+        info.callingPid = options.subjectInfo->pid;
+        info.customName = options.subjectInfo->customName;
+    } else {
+        info.callingUid = IPCSkeleton::GetCallingUid();
+        info.callingPid = IPCSkeleton::GetCallingPid();
+    }
     info.sessionId = GenerateSessionId();
     if (info.sessionId.empty()) {
         ACCOUNT_LOGE("Failed to generate sessionId");
-        REPORT_OS_ACCOUNT_FAIL(IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR, PRIVILEGE_OPT_ACQUIRE_AUTH,
+        REPORT_OS_ACCOUNT_FAIL(info.callingUid / UID_TRANSFORM_DIVISOR, PRIVILEGE_OPT_ACQUIRE_AUTH,
             ERR_AUTHORIZATION_GET_CONTENT_ERROR, "Failed to generate sessionId");
         return ERR_AUTHORIZATION_GET_CONTENT_ERROR;
     }
