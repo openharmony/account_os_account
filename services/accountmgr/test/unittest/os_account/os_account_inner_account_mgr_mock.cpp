@@ -2539,5 +2539,58 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, IsAccountLoginOverLimit001, TestSize.Leve
 #endif // ENABLE_U1_ACCOUNT
     innerMgrService_->config_.maxLoggedInOsAccountNum = maxLoggedInOsAccountNum;
 }
+
+/**
+ * @tc.name: Init_AdminLocalIdInInitAccounts_001
+ * @tc.desc: When ADMIN_LOCAL_ID is in initAccounts, Init creates admin account and
+ *           IsOsAccountCompleted returns true for id=0.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, Init_AdminLocalIdInInitAccounts_001, TestSize.Level1)
+{
+    std::set<int32_t> idSet = {Constants::ADMIN_LOCAL_ID};
+    EXPECT_EQ(true, innerMgrService_->Init(idSet));
+
+    bool isCompleted = false;
+    EXPECT_EQ(ERR_OK, innerMgrService_->IsOsAccountCompleted(Constants::ADMIN_LOCAL_ID, isCompleted));
+    EXPECT_EQ(true, isCompleted);
+}
+
+/**
+ * @tc.name: IsOsAccountCompleted_AdminLocalId_001
+ * @tc.desc: After CreateBaseAdminAccount, IsOsAccountCompleted returns true for ADMIN_LOCAL_ID.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, IsOsAccountCompleted_AdminLocalId_001, TestSize.Level1)
+{
+    innerMgrService_->CreateBaseAdminAccount();
+    bool isCompleted = false;
+    ErrCode errCode = innerMgrService_->IsOsAccountCompleted(Constants::ADMIN_LOCAL_ID, isCompleted);
+    EXPECT_EQ(errCode, ERR_OK);
+    EXPECT_EQ(isCompleted, true);
+}
+
+/**
+ * @tc.name: IsOsAccountExists_AdminLocalId_001
+ * @tc.desc: After CreateBaseAdminAccount, IsOsAccountExists returns true for ADMIN_LOCAL_ID.
+ *           Uses a fresh real OsAccountControlFileManager to avoid mock pollution from prior tests.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, IsOsAccountExists_AdminLocalId_001, TestSize.Level1)
+{
+    auto realControl = std::make_shared<OsAccountControlFileManager>();
+    ASSERT_NE(realControl, nullptr);
+    realControl->Init();
+    auto oldControl = innerMgrService_->osAccountControl_;
+    innerMgrService_->osAccountControl_ = realControl;
+
+    innerMgrService_->CreateBaseAdminAccount();
+
+    bool isExists = false;
+    realControl->IsOsAccountExists(Constants::ADMIN_LOCAL_ID, isExists);
+    EXPECT_EQ(isExists, true);
+
+    innerMgrService_->osAccountControl_ = oldControl;
+}
 }  // namespace AccountSA
 }  // namespace OHOS
