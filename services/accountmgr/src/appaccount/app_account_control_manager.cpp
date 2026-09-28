@@ -31,6 +31,9 @@
 #include "bundle_manager_adapter.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
+#ifndef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+#include "parameters.h"
+#endif
 #include "ohos_account_kits.h"
 #include "singleton.h"
 #include "system_ability_definition.h"
@@ -61,32 +64,47 @@ const std::string HYPHEN = "#";
 const std::string ALIAS_SUFFIX_CREDENTIAL = "credential";
 const std::string ALIAS_SUFFIX_TOKEN = "token";
 #endif
+
+#ifndef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+const char DUAL_MODE_ISPCMODE_PARAM_KEY[] = "persist.sceneboard.ispcmode";
+const char DUAL_MODE_MAINMODE_PARAM_KEY[] = "const.sceneboard.mainmode";
+
+ErrCode IsDualModeMainMode(bool &isMainMode)
+{
+    isMainMode = true;
+    int32_t mainmode = OHOS::system::GetIntParameter(DUAL_MODE_MAINMODE_PARAM_KEY, -1);
+    if (mainmode == -1) {
+        return ERR_OK;
+    }
+    if (mainmode != 0 && mainmode != 1) {
+        ACCOUNT_LOGE("invalid mainmode value: %{public}d", mainmode);
+        return ERR_ACCOUNT_COMMON_SYSTEM_SERVICE_EXCEPTION;
+    }
+    bool isSubMode = OHOS::system::GetBoolParameter(DUAL_MODE_ISPCMODE_PARAM_KEY, false);
+    isMainMode = ((isSubMode ? 1 : 0) == mainmode);
+    return ERR_OK;
+}
+#endif
 }
 
 // Resolve the storage appIndex for an account owned by |bundleName|, from the
-// caller's foreground context. Under subspace it queries the visible+enabled
-// appIndex; otherwise 0. On query failure (bundle not installed / BMS unavailable)
-// it falls back to the caller's raw appIndex instead of erroring, so that acts
-// scenarios like getAuthToken/setAuthToken on a non-existent owner/account surface
+// caller's context. Queries the visible+enabled appIndex via BMS. On query
+// failure (bundle not installed / BMS unavailable) falls back to the device's
+// current mode (0 for main mode, DUAL_MODE_APP_INDEX for secondary mode) via
+// GetDefaultAppIndex and returns its result, so that not-installed bundles
+// resolve successfully without leaking bundle existence to the caller.
 static ErrCode ResolveAppIndex(const std::string &bundleName, uint32_t callerAppIndex,
     int32_t callerUid, uint32_t &appIndex)
 {
     appIndex = 0;
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
     int32_t osAccountId = callerUid / UID_TRANSFORM_DIVISOR;
     ErrCode ret = AppAccountControlManager::QueryVisibleEnabledAppIndex(
         bundleName, callerAppIndex, osAccountId, appIndex);
     if (ret != ERR_OK) {
-        ACCOUNT_LOGW("ResolveAppIndex QueryVisibleEnabledAppIndex failed, ret=%{public}d, fallback to callerAppIndex",
-            ret);
-        appIndex = callerAppIndex;
+        ACCOUNT_LOGW("ResolveAppIndex QueryVisibleEnabledAppIndex failed, ret=%{public}d", ret);
+        ret = AppAccountControlManager::GetDefaultAppIndex(callerAppIndex, appIndex);
     }
-#else
-    (void)bundleName;
-    (void)callerAppIndex;
-    (void)callerUid;
-#endif
-    return ERR_OK;
+    return ret;
 }
 
 #ifdef HAS_ASSET_PART
@@ -291,6 +309,42 @@ bool AppAccountControlManager::IsAppIndexVisibleWithFg(uint32_t callerAppIndex,
 }
 #endif
 
+#ifndef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+// Check whether an account with |targetAppIndex| is visible to a caller in
+// |callerAppIndex| mode. The owner's resolved visible appIndex is queried via
+// BMS. When |isCloneVisible| is true, clone apps (appIndex < DUAL_MODE_APP_INDEX
+// in main mode, or >= DUAL_MODE_APP_INDEX in secondary mode) share the owner
+// mode's visibility. When |isCloneVisible| is false (default), only accounts
+// whose appIndex exactly matches the owner's visible appIndex (0 or
+// DUAL_MODE_APP_INDEX) are visible.
+static bool IsAppIndexVisibleToCaller(const std::string &accountOwner, int32_t localId,
+    uint32_t callerAppIndex, uint32_t targetAppIndex, bool isCloneVisible = false)
+{
+    uint32_t ownerVisibleAppIndex = 0;
+    ErrCode ret = AppAccountControlManager::QueryVisibleEnabledAppIndex(accountOwner, callerAppIndex,
+        localId, ownerVisibleAppIndex);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("QueryVisibleEnabledAppIndex failed, bundle=%{public}s, ret=%{public}d",
+            accountOwner.c_str(), ret);
+        return false;
+    }
+    if (ownerVisibleAppIndex == 0) {
+        // Main mode: all clone main-mode accounts are visible to main-mode callers
+        if (isCloneVisible) {
+            return targetAppIndex < Constants::DUAL_MODE_APP_INDEX;
+        }
+        return targetAppIndex == 0;
+    }
+    if (ownerVisibleAppIndex ==  Constants::DUAL_MODE_APP_INDEX) {
+        if (isCloneVisible) {
+            return targetAppIndex >= Constants::DUAL_MODE_APP_INDEX;
+        }
+        return targetAppIndex == Constants::DUAL_MODE_APP_INDEX;
+    }
+    return false;
+}
+#endif
+
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
 bool AppAccountControlManager::GetForegroundIndex(int32_t osAccountId, int32_t &foregroundIndex)
 {
@@ -375,39 +429,56 @@ ErrCode AppAccountControlManager::QueryVisibleEnabledAppIndex(const std::string 
     }
     return ERR_OK;
 #else
-    appIndex = 0;
-    return ERR_OK;
+    appIndex = callerAppIndex;
+    ErrCode ret = BundleManagerAdapter::GetInstance()->GetMainAppIndex(
+        bundleName, osAccountId, appIndex);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGW("GetMainAppIndex failed, bundle=%{public}s, ret=%{public}d", bundleName.c_str(), ret);
+        return ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO;
+    }
+    return ret;
 #endif
 }
 
 ErrCode AppAccountControlManager::ResolveAndEncodeAuthorizedApp(const std::string &authorizedApp,
     uint32_t callerAppIndex, int32_t callerUid, std::string &encodedApp)
 {
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
     uint32_t appIndex = 0;
     int32_t osAccountId = callerUid / UID_TRANSFORM_DIVISOR;
     ErrCode ret = QueryVisibleEnabledAppIndex(authorizedApp, callerAppIndex, osAccountId, appIndex);
     if (ret != ERR_OK) {
         ACCOUNT_LOGW("ResolveAndEncodeAuthorizedApp QueryVisibleEnabledAppIndex failed, ret=%{public}d, fallback", ret);
-        appIndex = callerAppIndex;
+        ret = AppAccountControlManager::GetDefaultAppIndex(callerAppIndex, appIndex);
+    }
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGW("ResolveAndEncodeAuthorizedApp GetDefaultAppIndex failed, ret=%{public}d", ret);
+        return ret;
     }
     encodedApp = AppAccountInfo::EncodeAuthorizedApp(authorizedApp, appIndex);
-#else
-    (void)callerAppIndex;
-    (void)callerUid;
-    encodedApp = authorizedApp;
-#endif
     return ERR_OK;
 }
 
 void AppAccountControlManager::EncodeAuthorizedAppPrecise(const std::string &bundleName,
     uint32_t appIndex, std::string &encodedApp)
 {
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
     encodedApp = AppAccountInfo::EncodeAuthorizedApp(bundleName, appIndex);
+}
+
+int32_t AppAccountControlManager::GetDefaultAppIndex(const uint32_t &callingAppIndex, uint32_t &defaultAppIndex)
+{
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    defaultAppIndex = callingAppIndex;
+    return ERR_OK;
 #else
-    (void)appIndex;
-    encodedApp = bundleName;
+    defaultAppIndex = -1;
+    bool isMainMode = true;
+    ErrCode ret = IsDualModeMainMode(isMainMode);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGW("IsDualModeMainMode failed, ret=%{public}d, fallback", ret);
+        return ret;
+    }
+    defaultAppIndex = isMainMode ? 0 : Constants::DUAL_MODE_APP_INDEX;
+    return ERR_OK;
 #endif
 }
 
@@ -955,18 +1026,14 @@ ErrCode AppAccountControlManager::GetOAuthToken(
 ErrCode AppAccountControlManager::SetOAuthToken(const AuthenticatorSessionRequest &request)
 {
     // Resolve the storage appIndex BEFORE acquiring mutex_ so the BMS IPC inside
-    // ResolveAppIndex does not run under the lock (Pitfall 6). Under subspace the
-    // visible+enabled appIndex is queried; otherwise the caller's appIndex is kept
-    // (pre-subspace behaviour, macro-isolated to not affect old features).
+    // ResolveAppIndex does not run under the lock (Pitfall 6).
     uint32_t resolvedAppIndex = request.appIndex;
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
     ErrCode appIdxRet = ResolveAppIndex(
         request.callerBundleName, request.appIndex, request.callerUid, resolvedAppIndex);
     if (appIdxRet != ERR_OK) {
         ACCOUNT_LOGE("ResolveAppIndex failed, ret=%{public}d", appIdxRet);
         return appIdxRet;
     }
-#endif
     std::lock_guard<std::mutex> lock(mutex_);
     AppAccountInfo appAccountInfo(request.name, request.callerBundleName);
     appAccountInfo.SetAppIndex(resolvedAppIndex);
@@ -1003,8 +1070,7 @@ ErrCode AppAccountControlManager::DeleteOAuthToken(
     const AuthenticatorSessionRequest &request, const uint32_t apiVersion)
 {
     // Resolve the storage appIndex BEFORE acquiring mutex_ so the BMS IPC inside
-    // ResolveAppIndex does not run under the lock (Pitfall 6). Under non-subspace
-    // ResolveAppIndex is a no-op that returns 0 (pre-subspace behaviour).
+    // ResolveAppIndex does not run under the lock (Pitfall 6).
     uint32_t resolvedAppIndex = 0;
     ErrCode appIdxRet = ResolveAppIndex(request.owner, request.appIndex, request.callerUid, resolvedAppIndex);
     if (appIdxRet != ERR_OK) {
@@ -1072,6 +1138,22 @@ ErrCode AppAccountControlManager::DeleteOAuthToken(
 ErrCode AppAccountControlManager::SetOAuthTokenVisibility(
     const AuthenticatorSessionRequest &request, const uint32_t apiVersion)
 {
+    uint32_t targetAppIndex = request.appIndex;
+    int32_t osAccountId = request.callerUid / UID_TRANSFORM_DIVISOR;
+    ErrCode visRet = QueryVisibleEnabledAppIndex(
+        request.bundleName, request.appIndex, osAccountId, targetAppIndex);
+    if (visRet != ERR_OK) {
+        ACCOUNT_LOGE("QueryVisibleEnabledAppIndex failed, bundle=%{public}s, ret=%{public}d",
+            request.bundleName.c_str(), visRet);
+        visRet = AppAccountControlManager::GetDefaultAppIndex(request.appIndex, targetAppIndex);
+    }
+    if (visRet != ERR_OK) {
+        ACCOUNT_LOGE("GetDefaultAppIndex failed, bundle=%{public}s, ret=%{public}d",
+            request.bundleName.c_str(), visRet);
+        return visRet;
+    }
+    std::string bundleKey = request.bundleName + GetBundleKeySuffix(targetAppIndex);
+
     std::lock_guard<std::mutex> lock(mutex_);
     AppAccountInfo appAccountInfo(request.name, request.callerBundleName);
     appAccountInfo.SetAppIndex(request.appIndex);
@@ -1083,11 +1165,6 @@ ErrCode AppAccountControlManager::SetOAuthTokenVisibility(
             ret, "Get info from data storage failed");
         return ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST;
     }
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-    std::string bundleKey = request.bundleName + GetBundleKeySuffix(request.appIndex);
-#else
-    const std::string &bundleKey = request.bundleName;
-#endif
     ret = appAccountInfo.SetOAuthTokenVisibility(
         request.authType, bundleKey, request.isTokenVisible, apiVersion);
     if (ret != ERR_OK) {
@@ -1118,11 +1195,21 @@ ErrCode AppAccountControlManager::CheckOAuthTokenVisibility(
             result, "Get info from data storage failed");
         return ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST;
     }
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-    std::string bundleKey = request.bundleName + GetBundleKeySuffix(request.appIndex);
-#else
-    const std::string &bundleKey = request.bundleName;
-#endif
+    uint32_t targetAppIndex = request.appIndex;
+    int32_t osAccountId = request.callerUid / UID_TRANSFORM_DIVISOR;
+    ErrCode visRet = QueryVisibleEnabledAppIndex(
+        request.bundleName, request.appIndex, osAccountId, targetAppIndex);
+    if (visRet != ERR_OK) {
+        ACCOUNT_LOGE("QueryVisibleEnabledAppIndex failed, bundle=%{public}s, ret=%{public}d",
+            request.bundleName.c_str(), visRet);
+        visRet = AppAccountControlManager::GetDefaultAppIndex(request.appIndex, targetAppIndex);
+    }
+    if (visRet != ERR_OK) {
+        ACCOUNT_LOGE("GetDefaultAppIndex failed, bundle=%{public}s, ret=%{public}d",
+            request.bundleName.c_str(), visRet);
+        return visRet;
+    }
+    std::string bundleKey = request.bundleName + GetBundleKeySuffix(targetAppIndex);
     return appAccountInfo.CheckOAuthTokenVisibility(request.authType, bundleKey, isVisible, apiVersion);
 }
 
@@ -1145,11 +1232,10 @@ ErrCode AppAccountControlManager::GetAllOAuthTokens(
         return ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST;
     }
     std::string bundleKey = request.callerBundleName + GetBundleKeySuffix(request.appIndex);
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-    bool isSelf = (request.callerBundleName == request.owner);
-#else
-    bool isSelf = (bundleKey == request.owner);
-#endif
+    // isSelf requires both bundleName and appIndex to match the account owner,
+    // so a secondary-mode (appIndex=10000) caller is not treated as the self of
+    // a main-mode (appIndex=0) account and gain access to all its tokens.
+    bool isSelf = (request.callerBundleName == request.owner) && (request.appIndex == resolvedAppIndex);
     std::vector<OAuthTokenInfo> allTokenInfos;
     result = appAccountInfo.GetAllOAuthTokens(allTokenInfos);
     if (result != ERR_OK) {
@@ -1187,7 +1273,6 @@ ErrCode AppAccountControlManager::GetOAuthList(
         return ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST;
     }
     result = appAccountInfo.GetOAuthList(request.authType, oauthList, apiVersion);
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
     std::set<std::string> strippedList;
     for (const auto &entry : oauthList) {
         std::string rawBundle;
@@ -1199,7 +1284,6 @@ ErrCode AppAccountControlManager::GetOAuthList(
         }
     }
     oauthList = std::move(strippedList);
-#endif
     return result;
 }
 
@@ -1213,10 +1297,22 @@ std::string AppAccountControlManager::GetBundleKeySuffix(const uint32_t &appInde
 }
 
 ErrCode AppAccountControlManager::GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts,
-    const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)
+    const uid_t &uid, const std::string &bundleName, const uint32_t &callerAppIndex)
 {
     appAccounts.clear();
-
+    int32_t osAccountId = static_cast<int32_t>(uid / UID_TRANSFORM_DIVISOR);
+    uint32_t ownerAppIndex = 0;
+    ErrCode resolveRet = QueryVisibleEnabledAppIndex(owner, callerAppIndex, osAccountId, ownerAppIndex);
+    if (resolveRet != ERR_OK) {
+        ACCOUNT_LOGE("GetAllAccounts QueryVisibleEnabledAppIndex failed, appIndex=%{public}u",
+            callerAppIndex);
+        resolveRet = AppAccountControlManager::GetDefaultAppIndex(callerAppIndex, ownerAppIndex);
+    }
+    if (resolveRet != ERR_OK) {
+        ACCOUNT_LOGE("GetDefaultAppIndex failed, bundle=%{public}s, ret=%{public}d",
+            owner.c_str(), resolveRet);
+        return resolveRet;
+    }
     auto dataStoragePtr = GetDataStorage(uid);
     if (dataStoragePtr == nullptr) {
         ACCOUNT_LOGE("dataStoragePtr is nullptr");
@@ -1225,30 +1321,19 @@ ErrCode AppAccountControlManager::GetAllAccounts(const std::string &owner, std::
         return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
     }
     ErrCode result = AccountPermissionManager::VerifyPermission(GET_ALL_APP_ACCOUNTS);
-    std::string bundleKey = bundleName + GetBundleKeySuffix(appIndex);
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-    bool isOwner = (bundleName == owner);
-#else
-    bool isOwner = (bundleKey == owner);
-#endif
+    std::string bundleKey = bundleName + GetBundleKeySuffix(callerAppIndex);
+    bool isOwner = (bundleName == owner) && (callerAppIndex == ownerAppIndex);
     if (isOwner || (result == ERR_OK)) {
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-        std::string key = owner + Constants::HYPHEN + std::to_string(appIndex);
+        // Fast path: resolve owner's visible appIndex in the current mode and query
+        // owner#ownerAppIndex (covers cross-mode shared apps where owner is visible
+        // to the caller's mode under a different appIndex).
+        std::string key = owner + Constants::HYPHEN + std::to_string(ownerAppIndex);
         result = GetAllAccountsFromDataStorage(key, appAccounts, owner, dataStoragePtr);
         if (result != ERR_OK) {
             ACCOUNT_LOGE("failed to get all accounts from data storage, result = %{public}d", result);
             return result;
         }
         return ERR_OK;
-#else
-        std::string key = owner + Constants::HYPHEN + std::to_string(0);
-        result = GetAllAccountsFromDataStorage(key, appAccounts, owner, dataStoragePtr);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("failed to get all accounts from data storage, result = %{public}d", result);
-            return result;
-        }
-        return ERR_OK;
-#endif
     }
 
     std::vector<std::string> accessibleAccounts;
@@ -1260,7 +1345,7 @@ ErrCode AppAccountControlManager::GetAllAccounts(const std::string &owner, std::
         return result;
     }
     ErrCode filterRet = FilterAccessibleAccountsByOwner(
-        accessibleAccounts, owner, appIndex, dataStoragePtr, appAccounts);
+        accessibleAccounts, owner, callerAppIndex, dataStoragePtr, appAccounts);
     if (filterRet != ERR_OK) {
         return filterRet;
     }
@@ -1286,7 +1371,9 @@ ErrCode AppAccountControlManager::FilterAccessibleAccountsByOwner(
             continue;
         }
 #else
-        if (!AppAccountSubscribeManager::CheckAppIsMaster(account)) {
+        // Only main application (appIndex=0 or 10000) can be accessed
+        int32_t localId = static_cast<int32_t>(IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR);
+        if (!IsAppIndexVisibleToCaller(appAccountInfo.GetOwner(), localId, appIndex, appAccountInfo.GetAppIndex())) {
             continue;
         }
 #endif
@@ -1299,7 +1386,7 @@ ErrCode AppAccountControlManager::GetAllAccessibleAccounts(std::vector<AppAccoun
     const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)
 {
     appAccounts.clear();
-
+    int32_t osAccountId = static_cast<int32_t>(uid / UID_TRANSFORM_DIVISOR);
     auto dataStoragePtr = GetDataStorage(uid);
     if (dataStoragePtr == nullptr) {
         ACCOUNT_LOGE("dataStoragePtr is nullptr");
@@ -1309,32 +1396,7 @@ ErrCode AppAccountControlManager::GetAllAccessibleAccounts(std::vector<AppAccoun
     }
     ErrCode result = AccountPermissionManager::VerifyPermission(GET_ALL_APP_ACCOUNTS);
     if (result == ERR_OK) {
-        // Fast path: caller holds GET_ALL_APP_ACCOUNTS, load all accounts at once.
-        std::map<std::string, std::shared_ptr<IAccountInfo>> infos;
-        ErrCode loadRet = dataStoragePtr->LoadAllData(infos);
-        if (loadRet != ERR_OK) {
-            return loadRet;
-        }
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-        int32_t foregroundIndex = -1;
-        // foregroundIndex<0 is an abnormal foreground state; IsAppIndexVisibleWithFg then
-        // degrades to "only the caller's own appIndex is visible", which is acceptable.
-        (void)GetForegroundIndex(static_cast<int32_t>(uid / UID_TRANSFORM_DIVISOR), foregroundIndex);
-#endif
-        for (auto it = infos.begin(); it != infos.end(); ++it) {
-            if (it->first == AUTHORIZED_ACCOUNTS) {
-                continue;
-            }
-            auto appAccountInfo = *(std::static_pointer_cast<AppAccountInfo>(it->second));
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-            // Only return accounts whose storage appIndex is visible to the caller's appIndex.
-            if (!IsAppIndexVisibleWithFg(appIndex, appAccountInfo.GetAppIndex(), foregroundIndex)) {
-                continue;
-            }
-#endif
-            appAccounts.emplace_back(appAccountInfo);
-        }
-        return ERR_OK;
+        return GetAllAccessibleAccountsByPermission(appAccounts, osAccountId, appIndex, dataStoragePtr);
     }
     // Slow path: no permission, filter by authorization (subspace-aware).
     return GetAllAccessibleAccountsFromDataStorage(appAccounts, bundleName, dataStoragePtr, appIndex);
@@ -1561,27 +1623,64 @@ ErrCode AppAccountControlManager::FilterAccessibleAccounts(
     const std::vector<std::string> &accessibleAccounts, uint32_t appIndex,
     const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr, std::vector<AppAccountInfo> &appAccounts)
 {
+    (void)appIndex;
     for (auto account : accessibleAccounts) {
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
         AppAccountInfo appAccountInfo;
         ErrCode result = dataStoragePtr->GetAccountInfoById(account, appAccountInfo);
         if (result != ERR_OK) {
             ACCOUNT_LOGE("failed to get account info by id. result %{public}d.", result);
             return ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID;
         }
-        appAccounts.emplace_back(appAccountInfo);
-#else
-        if (!AppAccountSubscribeManager::CheckAppIsMaster(account)) {
+#ifndef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+        // Dual Mode: only main application (appIndex=0 or 10000) can be accessed
+        int32_t localId = static_cast<int32_t>(IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR);
+        if (!IsAppIndexVisibleToCaller(appAccountInfo.GetOwner(), localId, appIndex, appAccountInfo.GetAppIndex())) {
             continue;
         }
-        AppAccountInfo appAccountInfo;
-        ErrCode result = dataStoragePtr->GetAccountInfoById(account, appAccountInfo);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("failed to get account info by id. result %{public}d.", result);
-            return ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID;
-        }
-        appAccounts.emplace_back(appAccountInfo);
 #endif
+        appAccounts.emplace_back(appAccountInfo);
+    }
+    return ERR_OK;
+}
+
+ErrCode AppAccountControlManager::GetAllAccessibleAccountsByPermission(
+    std::vector<AppAccountInfo> &appAccounts, int32_t osAccountId, uint32_t appIndex,
+    const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr)
+{
+    // caller holds GET_ALL_APP_ACCOUNTS, load all accounts at once.
+    std::map<std::string, std::shared_ptr<IAccountInfo>> infos;
+    ErrCode loadRet = dataStoragePtr->LoadAllData(infos);
+    if (loadRet != ERR_OK) {
+        return loadRet;
+    }
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    int32_t foregroundIndex = -1;
+    // foregroundIndex<0 is an abnormal foreground state; IsAppIndexVisibleWithFg then
+    // degrades to "only the caller's own appIndex is visible", which is acceptable.
+    (void)GetForegroundIndex(osAccountId, foregroundIndex);
+#endif
+    for (auto it = infos.begin(); it != infos.end(); ++it) {
+        if (it->first == AUTHORIZED_ACCOUNTS) {
+            continue;
+        }
+        auto appAccountInfo = *(std::static_pointer_cast<AppAccountInfo>(it->second));
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+        // Only return accounts whose storage appIndex is visible to the caller's appIndex.
+        if (!IsAppIndexVisibleWithFg(appIndex, appAccountInfo.GetAppIndex(), foregroundIndex)) {
+            continue;
+        }
+#else
+        // Dual Mode: delegate to IsAppIndexVisibleToCaller which handles both App Clone
+        // visibility (clone accounts with appIndex < DUAL_MODE_APP_INDEX are
+        // visible to main-mode callers) and dual-mode isolation (accounts with
+        // appIndex >= DUAL_MODE_APP_INDEX require owner's visible appIndex match).
+        std::string accountOwner;
+        appAccountInfo.GetOwner(accountOwner);
+        if (!IsAppIndexVisibleToCaller(accountOwner, osAccountId, appIndex, appAccountInfo.GetAppIndex(), true)) {
+            continue;
+        }
+#endif
+        appAccounts.emplace_back(appAccountInfo);
     }
     return ERR_OK;
 }
@@ -1598,12 +1697,8 @@ ErrCode AppAccountControlManager::GetAllAccessibleAccountsFromDataStorage(
     }
 
     std::vector<std::string> accessibleAccounts;
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
     std::string bundleKey = AppAccountInfo::EncodeAuthorizedApp(bundleName, appIndex);
     ErrCode result = dataStoragePtr->GetAccessibleAccountsFromDataStorage(bundleKey, accessibleAccounts);
-#else
-    ErrCode result = dataStoragePtr->GetAccessibleAccountsFromDataStorage(bundleName, accessibleAccounts);
-#endif
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get accessible account from data storage, result = %{public}d.", result);
         return result;

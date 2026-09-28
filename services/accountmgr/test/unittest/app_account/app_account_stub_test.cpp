@@ -1069,7 +1069,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_047, Test
     EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_UNSUBSCRIBE_APP_ACCOUNT),
         data, reply, option), ERR_NONE);
     EXPECT_EQ(reply.ReadInt32(), ERR_OK);
-    EXPECT_EQ(reply.ReadInt32(), ERR_OK);
+    EXPECT_EQ(reply.ReadInt32(), ERR_APPACCOUNT_SERVICE_GET_APP_INDEX);
 }
 
 /**

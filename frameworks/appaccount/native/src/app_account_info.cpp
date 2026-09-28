@@ -371,18 +371,21 @@ bool AppAccountInfo::IsSelfBundle(const std::string &bundleName) const
     std::string rawBundle;
     uint32_t appIdx = 0;
     if (ParseAuthorizedApp(bundleName, rawBundle, appIdx)) {
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
         return rawBundle == owner_ && appIdx == appIndex_;
-#else
-        return rawBundle == owner_;
-#endif
     }
     return bundleName == owner_;
 }
 
 std::string AppAccountInfo::EncodeAuthorizedApp(const std::string &bundleName, uint32_t appIndex)
 {
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
     return bundleName + HYPHEN + std::to_string(appIndex);
+#else
+    if (appIndex == 0) {
+        return bundleName;
+    }
+    return bundleName + HYPHEN + std::to_string(appIndex);
+#endif
 }
 
 bool AppAccountInfo::ParseAuthorizedApp(const std::string &entry, std::string &bundleName, uint32_t &appIndex)

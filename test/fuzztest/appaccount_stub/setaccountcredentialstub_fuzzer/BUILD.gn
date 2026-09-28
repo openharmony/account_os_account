@@ -42,7 +42,6 @@ ohos_fuzztest("SetAccountCredentialStubFuzzTest") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
   sources = [
-    "${app_account_services_path}/src/appaccount/app_account_manager_service.cpp",
     "setaccountcredentialstub_fuzzer.cpp",
   ]
 
@@ -50,7 +49,7 @@ ohos_fuzztest("SetAccountCredentialStubFuzzTest") {
     "${app_account_innerkits_native_path}:app_account_stub",
     "${os_account_path}/frameworks/appaccount/native:app_account_innerkits",
     "${os_account_path}/frameworks/common:libaccount_common",
-    "${os_account_path}/services/accountmgr:accountmgr",
+    "${services_path}/accountmgr:accountmgr_test_source_set",
   ]
 
   external_deps = [

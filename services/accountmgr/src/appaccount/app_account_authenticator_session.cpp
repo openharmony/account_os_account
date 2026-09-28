@@ -136,8 +136,9 @@ ErrCode AppAccountAuthenticatorSession::Open()
         return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
     }
     AuthenticatorInfo info;
+    uint32_t authenticatorAppIndex = 0;
     ErrCode errCode = AppAccountAuthenticatorManager::GetAuthenticatorInfo(
-        request_.owner, request_.appIndex, userId_, info);
+        request_.owner, request_.appIndex, userId_, info, authenticatorAppIndex);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("authenticator not exist, owner: %{public}s, errCode: %{public}d.",
             request_.owner.c_str(), errCode);
@@ -145,6 +146,7 @@ ErrCode AppAccountAuthenticatorSession::Open()
             errCode, "Authenticator not exist");
         return errCode;
     }
+    request_.authenticatorAppIndex = authenticatorAppIndex;
     AAFwk::Want want;
     want.SetElementName(request_.owner, info.abilityName);
     want.SetParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY, static_cast<int32_t>(request_.appIndex));
@@ -365,7 +367,7 @@ int32_t AppAccountAuthenticatorSession::OnAddAccountImplicitlyDone(const AAFwk::
         return ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION;
     }
     AppAccountInfo info(name, request_.owner);
-    info.SetAppIndex(0);
+    info.SetAppIndex(request_.authenticatorAppIndex);
     AppAccountControlManager::GetInstance().AddAccount(name, "", ownerUid_, request_.owner, info);
     return ERR_OK;
 }

@@ -69,7 +69,8 @@ ErrCode MockInnerAppAccountManager::DeleteAccount(
 }
 
 ErrCode MockInnerAppAccountManager::SubscribeAppAccount(const AppAccountSubscribeInfo &subscribeInfo,
-    const sptr<IRemoteObject> &eventListener, const std::string &bundleName, const uint32_t &appIndex)
+    const sptr<IRemoteObject> &eventListener, const uid_t &uid, const std::string &bundleName,
+    const uint32_t &appIndex)
 {
     ACCOUNT_LOGI("mock enter");
 

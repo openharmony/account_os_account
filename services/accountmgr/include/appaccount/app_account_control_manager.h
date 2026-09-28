@@ -41,15 +41,18 @@ public:
 #endif
     static ErrCode QueryVisibleEnabledAppIndex(const std::string &bundleName,
         uint32_t callerAppIndex, int32_t osAccountId, uint32_t &appIndex);
-    // Resolve the visible-enabled appIndex for |authorizedApp| from the caller's foreground
-    // context and encode it as "bundleName#appIndex". Under subspace-off, |encodedApp| is set
-    // to |authorizedApp| unchanged. On query failure, falls back to callerAppIndex and returns ERR_OK.
+    // Resolve the appIndex for |authorizedApp| via BMS and encode it as
+    // "bundleName#appIndex" (or bare "bundleName" when appIndex is 0). On query
+    // failure, falls back to GetDefaultAppIndex (device's current mode) so that
+    // not-installed bundles still resolve successfully without leaking existence.
     static ErrCode ResolveAndEncodeAuthorizedApp(const std::string &authorizedApp,
         uint32_t callerAppIndex, int32_t callerUid, std::string &encodedApp);
-    // Encode |bundleName| + |appIndex| as "bundleName#appIndex" (precise, no visibility query).
-    // Under subspace-off, |encodedApp| is set to |bundleName| unchanged.
+    // Encode |bundleName| + |appIndex| precisely (no visibility query). When
+    // appIndex is 0, returns bare |bundleName| (OTA compatible); otherwise
+    // returns "bundleName#appIndex".
     static void EncodeAuthorizedAppPrecise(const std::string &bundleName,
         uint32_t appIndex, std::string &encodedApp);
+    static int32_t GetDefaultAppIndex(const uint32_t &callingAppIndex, uint32_t &defaultAppIndex);
     ErrCode AddAccount(const std::string &name, const std::string &extraInfo, const uid_t &uid,
         const std::string &bundleName, AppAccountInfo &appAccountInfo);
     ErrCode CreateAccount(const std::string &name, const CreateAccountOptions &options, const uid_t &uid,
@@ -101,7 +104,7 @@ public:
         std::set<std::string> &oauthList, const uint32_t apiVersion = Constants::API_VERSION8);
 
     ErrCode GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts, const uid_t &uid,
-        const std::string &bundleName, const uint32_t &appIndex);
+        const std::string &bundleName, const uint32_t &callerAppIndex);
     ErrCode GetAllAccessibleAccounts(std::vector<AppAccountInfo> &appAccounts,
         const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
 
@@ -118,6 +121,9 @@ public:
     ErrCode GetAllAccessibleAccountsFromDataStorage(std::vector<AppAccountInfo> &appAccounts,
         const std::string &bundleName, const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr,
         const uint32_t &appIndex);
+    ErrCode GetAllAccessibleAccountsByPermission(std::vector<AppAccountInfo> &appAccounts,
+        int32_t osAccountId, uint32_t appIndex,
+        const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
     ErrCode GetAccountInfoFromDataStorage(
         AppAccountInfo &appAccountInfo, std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
     std::shared_ptr<AppAccountDataStorage> GetDataStorage(const uid_t &uid, const bool &autoSync = false,

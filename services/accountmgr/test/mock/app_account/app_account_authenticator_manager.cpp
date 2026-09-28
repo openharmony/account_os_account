@@ -19,6 +19,13 @@
 namespace OHOS {
 namespace AccountSA {
 ErrCode AppAccountAuthenticatorManager::GetAuthenticatorInfo(
+    const std::string &owner, uint32_t appIndex, int32_t userId, AuthenticatorInfo &info, uint32_t &ownerAppIndex)
+{
+    ownerAppIndex = 0;
+    return ERR_OK;
+}
+
+ErrCode AppAccountAuthenticatorManager::GetAuthenticatorInfo(
     const std::string &owner, uint32_t appIndex, int32_t userId, AuthenticatorInfo &info)
 {
     return ERR_OK;

@@ -1257,9 +1257,15 @@ HWTEST_F(AppAccountInfoTest, ParseTokenInfosFromJson_OverFlow_001, TestSize.Leve
  */
 HWTEST_F(AppAccountInfoTest, AppAccountInfo_EncodeAuthorizedApp_001, TestSize.Level1)
 {
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
     EXPECT_EQ(AppAccountInfo::EncodeAuthorizedApp("com.example.app", 0), "com.example.app#0");
     EXPECT_EQ(AppAccountInfo::EncodeAuthorizedApp("com.example.app", 1), "com.example.app#1");
     EXPECT_EQ(AppAccountInfo::EncodeAuthorizedApp("com.example.app", 100), "com.example.app#100");
+#else
+    EXPECT_EQ(AppAccountInfo::EncodeAuthorizedApp("com.example.app", 0), "com.example.app");
+    EXPECT_EQ(AppAccountInfo::EncodeAuthorizedApp("com.example.app", 1), "com.example.app#1");
+    EXPECT_EQ(AppAccountInfo::EncodeAuthorizedApp("com.example.app", 100), "com.example.app#100");
+#endif
 }
 
 /**

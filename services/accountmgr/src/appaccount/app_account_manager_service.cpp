@@ -864,32 +864,20 @@ ErrCode AppAccountManagerService::GetAllAccounts(
         funcResult = ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
         return ERR_OK;
     }
-
+#ifndef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
     AppExecFwk::BundleInfo bundleInfo;
     int32_t userId = callingUid / UID_TRANSFORM_DIVISOR;
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-    uint32_t ownerAppIndex = 0;
-    bool bundleExist = (AppAccountControlManager::QueryVisibleEnabledAppIndex(
-        owner, appIndex, userId, ownerAppIndex) == ERR_OK);
-#else
-    bool result = BundleManagerAdapter::GetInstance()->GetBundleInfo(
+    bool bundleExist = BundleManagerAdapter::GetInstance()->GetBundleInfo(
         owner, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId);
-    bool bundleExist = result;
-#endif
     if (!bundleExist) {
         REPORT_APP_ACCOUNT_FAIL("", owner, Constants::APP_DFX_GET_ALL_ACCOUNTS,
             ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO, "Get bundle info failed");
         funcResult = ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO;
         return ERR_OK;
     }
-    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(callingUid);
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-    // Pass the owner's resolved appIndex (not the caller's) so the owner's accounts
-    // are loaded from owner#ownerAppIndex; otherwise keep the caller's appIndex.
-    funcResult = innerManager_->GetAllAccounts(owner, appAccounts, callingUid, bundleName, ownerAppIndex);
-#else
-    funcResult = innerManager_->GetAllAccounts(owner, appAccounts, callingUid, bundleName, appIndex);
 #endif
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(callingUid);
+    funcResult = innerManager_->GetAllAccounts(owner, appAccounts, callingUid, bundleName, appIndex);
     return ERR_OK;
 }
 
@@ -935,30 +923,20 @@ ErrCode AppAccountManagerService::QueryAllAccessibleAccounts(
         funcResult = innerManager_->GetAllAccessibleAccounts(appAccounts, callingUid, bundleName, appIndex);
         return ERR_OK;
     }
+#ifndef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
     AppExecFwk::BundleInfo bundleInfo;
     int32_t userId = callingUid / UID_TRANSFORM_DIVISOR;
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-    uint32_t ownerAppIndex = 0;
-    bool ret = (AppAccountControlManager::QueryVisibleEnabledAppIndex(
-        owner, appIndex, userId, ownerAppIndex) == ERR_OK);
-#else
     bool ret = BundleManagerAdapter::GetInstance()->GetBundleInfo(
         owner, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId);
-#endif
     if (!ret) {
         REPORT_APP_ACCOUNT_FAIL("", owner, Constants::APP_DFX_GET_ALL_ACCOUNTS,
             ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO, "Get bundle info failed");
         funcResult = ERR_OK;
         return ERR_OK;
     }
-    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(callingUid);
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-    // Pass the owner's resolved appIndex (not the caller's) so the owner's accounts
-    // are loaded from owner#ownerAppIndex; otherwise keep the caller's appIndex.
-    funcResult = innerManager_->GetAllAccounts(owner, appAccounts, callingUid, bundleName, ownerAppIndex);
-#else
-    funcResult = innerManager_->GetAllAccounts(owner, appAccounts, callingUid, bundleName, appIndex);
 #endif
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(callingUid);
+    funcResult = innerManager_->GetAllAccounts(owner, appAccounts, callingUid, bundleName, appIndex);
     return ERR_OK;
 }
 
@@ -1099,33 +1077,26 @@ ErrCode AppAccountManagerService::SetAuthenticatorProperties(const std::string &
     return ERR_OK;
 }
 
-void AppAccountManagerService::FilterEnabledOwners(const std::vector<std::string> &owners, int32_t userId,
-    uint32_t callerAppIndex, std::vector<std::string> &existOwners)
+// Encode each raw bundleName in |owners| into the canonical subscriber key via
+// EncodeAuthorizedApp(owner, ownerMainAppIndex). The main appIndex is resolved
+// per-owner from BMS so that, e.g., a dual-mode app is keyed as "bundle#10000"
+// instead of the bare "bundle". The encoded owners become both the
+// ownerSubscribeRecords_ map key (see InsertSubscribeRecord) and the owners
+// stored in subscribeInfoPtr, so publish-time matching is appIndex-aware.
+// Owners whose BMS lookup fails are skipped (cannot be keyed -> unmatchable).
+void AppAccountManagerService::EncodeOwners(const std::vector<std::string> &owners, uint32_t appIndex,
+    int32_t userId, std::vector<std::string> &encodedOwners)
 {
-    for (auto owner : owners) {
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-        uint32_t ownerAppIndex = 0;
-        if (AppAccountControlManager::QueryVisibleEnabledAppIndex(owner, callerAppIndex,
-            userId, ownerAppIndex) != ERR_OK) {
-            ACCOUNT_LOGE("Owner %{public}s is disabled or appIndex mismatch, skip", owner.c_str());
+    for (const auto &owner : owners) {
+        uint32_t ownerMainAppIndex = 0;
+        if (AppAccountControlManager::QueryVisibleEnabledAppIndex(
+            owner, appIndex, userId, ownerMainAppIndex) != ERR_OK) {
+            ACCOUNT_LOGW("skip owner=%{public}s, not found or disabled", owner.c_str());
             REPORT_APP_ACCOUNT_FAIL("", owner, Constants::APP_DFX_SUBSCRIBE,
-                ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO, "Owner disabled or appIndex mismatch");
+                ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO, "QueryVisibleEnabledAppIndex failed");
             continue;
         }
-        existOwners.push_back(owner);
-#else
-        AppExecFwk::BundleInfo bundleInfo;
-        int32_t bundleFlag = AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT;
-        bool bundleRet = BundleManagerAdapter::GetInstance()->GetBundleInfo(owner,
-            static_cast<AppExecFwk::BundleFlag>(bundleFlag), bundleInfo, userId);
-        if (!bundleRet) {
-            ACCOUNT_LOGE("Failed to get bundle info, name=%{public}s", owner.c_str());
-            REPORT_APP_ACCOUNT_FAIL("", owner, Constants::APP_DFX_SUBSCRIBE,
-                ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO, "Get bundle info failed");
-            continue;
-        }
-        existOwners.push_back(owner);
-#endif
+        encodedOwners.push_back(AppAccountInfo::EncodeAuthorizedApp(owner, ownerMainAppIndex));
     }
 }
 
@@ -1151,14 +1122,15 @@ ErrCode AppAccountManagerService::SubscribeAppAccount(
     }
 
     int32_t userId = callingUid / UID_TRANSFORM_DIVISOR;
-    std::vector<std::string> existOwners;
-    FilterEnabledOwners(owners, userId, appIndex, existOwners);
-    if (existOwners.size() == 0) {
-        ACCOUNT_LOGI("ExistOwners is empty.");
+    std::vector<std::string> encodedOwners;
+    EncodeOwners(owners, appIndex, userId, encodedOwners);
+    if (encodedOwners.size() == 0) {
+        ACCOUNT_LOGI("no valid owners after filtering");
         funcResult = ERR_OK;
         return ERR_OK;
     }
-    subscribeInfoCopy.SetOwners(existOwners);
+    subscribeInfoCopy.SetOwners(encodedOwners);
+
     std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(callingUid);
     funcResult = innerManager_->SubscribeAppAccount(subscribeInfoCopy, eventListener, callingUid, bundleName, appIndex);
     return ERR_OK;
@@ -1169,9 +1141,18 @@ ErrCode AppAccountManagerService::UnsubscribeAppAccount(const sptr<IRemoteObject
 {
     RETURN_IF_STRING_IS_OVERSIZE(
         owners, Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT, "owners array is empty or oversize", funcResult);
-    std::vector<std::string> ownerList = owners;
-    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(IPCSkeleton::GetCallingUid());
-    funcResult = innerManager_->UnsubscribeAppAccount(eventListener, ownerList);
+    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    uint32_t appIndex = 0;
+    ErrCode ret = GetCallingTokenInfoAndAppIndex(appIndex);
+    if (ret != ERR_OK) {
+        funcResult = ret;
+        return ERR_OK;
+    }
+    int32_t userId = callingUid / UID_TRANSFORM_DIVISOR;
+    std::vector<std::string> encodedOwners;
+    EncodeOwners(owners, appIndex, userId, encodedOwners);
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(callingUid);
+    funcResult = innerManager_->UnsubscribeAppAccount(eventListener, encodedOwners);
     return ERR_OK;
 }
 

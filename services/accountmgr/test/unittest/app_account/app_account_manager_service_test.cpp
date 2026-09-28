@@ -200,7 +200,13 @@ HWTEST_F(AppAccountManagerServiceTest, AppAccountManagerService_SubscribeAppAcco
     ErrCode result = g_appAccountProxy->SubscribeAppAccount(subscribeInfo, nullptr, funcResult);
     EXPECT_EQ(result, ERR_OK);
     // Extension appIndex(1) mismatches caller appIndex(0); owner is filtered out, existOwners is empty.
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    // Disabled owner is filtered out by QueryExtensionAbilityInfosV9, existOwners is empty.
     EXPECT_EQ(funcResult, ERR_OK);
+#else
+    // Disabled is not checked without subprofile flag; proceeds to nullptr eventListener check.
+    EXPECT_EQ(funcResult, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
+#endif
 }
 
 /**

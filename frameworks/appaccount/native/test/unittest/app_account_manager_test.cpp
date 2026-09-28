@@ -1999,7 +1999,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_QueryAllAccessibleAccounts_010
 
 /**
  * @tc.name: AppAccountManager_UnsubscribeAppAccount_0100
- * @tc.desc: Test func success UnsubscribeAppAccount.
+ * @tc.desc: Test func UnsubscribeAppAccount when caller token info unavailable.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -2012,5 +2012,5 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_UnsubscribeAppAccount_0100, Te
     AppAccountEventListener::GetInstance()->appAccountSubscriberList_.emplace_back(appAccountSubscriberPtr);
     AppAccountEventListener::GetInstance()->owner2Subscribers_["100001"] = {appAccountSubscriberPtr};
     ErrCode result = AppAccount::GetInstance().UnsubscribeAppAccount(appAccountSubscriberPtr);
-    ASSERT_EQ(result, ERR_OK);
+    ASSERT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_APP_INDEX);
 }

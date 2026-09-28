@@ -169,6 +169,28 @@ ErrCode BundleManagerAdapter::GetMainAndCloneBundleInfo(const std::string &bundl
     return ret;
 }
 
+ErrCode BundleManagerAdapter::GetMainAppIndex(const std::string &bundleName, int32_t userId, uint32_t &appIndex)
+{
+    appIndex = 0;
+    std::lock_guard<std::mutex> lock(proxyMutex_);
+    ErrCode result = Connect();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to connect bundle manager service.");
+        return result;
+    }
+    AppExecFwk::DualModeBundleInfo dualModeInfo;
+    StartTraceAdapter("BundleManagerAdapter, GetMainAppIndex");
+    auto ret = proxy_->GetDualModeBundleInfo(bundleName, userId, dualModeInfo);
+    if (ret == ERR_OK) {
+        appIndex = static_cast<uint32_t>(dualModeInfo.appIndex);
+    } else {
+        ACCOUNT_LOGW("GetDualModeBundleInfo failed, bundle=%{public}s, ret=%{public}d",
+            bundleName.c_str(), ret);
+    }
+    FinishTraceAdapter();
+    return ret;
+}
+
 ErrCode BundleManagerAdapter::CreateNewUser(int32_t userId, const std::vector<std::string> &disallowedHapList,
     const std::optional<std::vector<std::string>> &allowedHapList)
 {

@@ -31,7 +31,6 @@ public:
         const sptr<IRemoteObject> &eventListener, const uid_t &uid,
         const std::string &bundleName, const uint32_t &appIndex);
     ErrCode UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener, std::vector<std::string> &owners);
-    static bool CheckAppIsMaster(const std::string &account);
 
     bool PublishAccount(AppAccountInfo &appAccountInfo, const uid_t &uid, const std::string &bundleName);
 
@@ -52,8 +51,7 @@ private:
     ErrCode CheckAppAccess(const std::shared_ptr<AppAccountSubscribeInfo> &subscribeInfoPtr, const uid_t &uid,
         const std::string &bundleName, const uint32_t &appIndex);
     ErrCode CheckOwnersAccessible(const std::vector<std::string> &owners,
-        const std::string &bundleName, const std::string &bundleKey,
-        const std::vector<std::string> &accessibleAccounts);
+        const std::string &bundleKey, const std::vector<std::string> &accessibleAccounts);
 
     void ClearOldData(const sptr<IRemoteObject> &eventListener, const std::string &owner,
         std::map<std::string, std::multiset<AppAccountSubscribeRecordPtr>>::iterator &item);

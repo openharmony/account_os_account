@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "os_account_constants.h"
+#include "app_account_constants.h"
 #include "bundle_manager_adapter.h"
 #include "account_log_wrapper.h"
 
@@ -38,6 +39,8 @@ const std::string STRING_ABILITY_NAME_TWO = "com.example.owner.MainAbility2";
 const std::string STRING_ABILITY_NAME_WITH_NO_INFO = "com.example.owner.MainAbilityWithNoInfo";
 const std::string STRING_ABILITY_NAME_WITH_CONNECT_FAILED = "com.example.MainAbilityWithConnectFailed";
 const std::string STRING_ABILITY_NAME_WITH_NO_PROXY = "com.example.MainAbilityWithNoProxy";
+const std::string STRING_DUAL_MODE_SECONDARY = "com.example.dualmode.secondary";
+const std::string STRING_DUAL_MODE_AUTH_EXTENSION = "com.example.dualmode.auth.extension";
 constexpr int32_t TEST_ACCESS_TOKEN_ID_NORMAL_BUNDLE = 789012;
 constexpr int32_t TEST_ACCESS_TOKEN_ID_AUTH_APP = 100001;
 constexpr int32_t TEST_ACCESS_TOKEN_ID_OWNER = 123456;
@@ -140,9 +143,7 @@ bool BundleManagerAdapter::GetBundleInfo(const std::string &bundleName, const Ap
         return true;
     }
     // Subprofile extension/ability bundles are not installed as regular bundles
-    if (bundleName == STRING_SUBPROFILE_AUTH_EXTENSION ||
-        bundleName == STRING_SUBPROFILE_AUTH_ABILITY ||
-        bundleName == STRING_SUBPROFILE_AUTH_DISABLED) {
+    if (bundleName == STRING_SUBPROFILE_AUTH_DISABLED) {
         return false;
     }
     return true;
@@ -159,7 +160,26 @@ bool GetSubprofileBundleInfo(const std::string &bundleName, AppExecFwk::BundleIn
         bundleInfo.applicationInfo.enabled = false;
         return true;
     }
+    if (bundleName == STRING_SUBPROFILE_AUTH_EXTENSION ||
+        bundleName == STRING_SUBPROFILE_AUTH_ABILITY) {
+        bundleInfo.applicationInfo.enabled = true;
+        return true;
+    }
     return false;
+}
+
+ErrCode BundleManagerAdapter::GetMainAppIndex(const std::string &bundleName, int32_t userId, uint32_t &appIndex)
+{
+    appIndex = 0;
+    if (bundleName == STRING_BUNDLE_NAME_NOT_INSTALLED || bundleName == STRING_BUNDLE_GET_FAIL ||
+        bundleName == STRING_SUBPROFILE_AUTH_DISABLED) {
+        return ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST;
+    }
+    if (bundleName == STRING_SUBPROFILE_AUTH_EXTENSION || bundleName == STRING_DUAL_MODE_SECONDARY ||
+        bundleName == STRING_DUAL_MODE_AUTH_EXTENSION) {
+        appIndex = Constants::DUAL_MODE_APP_INDEX;
+    }
+    return ERR_OK;
 }
 
 ErrCode BundleManagerAdapter::IsBundleInstalled(const std::string &bundleName, int32_t userId,
@@ -225,11 +245,16 @@ bool BundleManagerAdapter::QueryExtensionAbilityInfos(const AAFwk::Want &want, c
         extensionInfo.name = STRING_SUBPROFILE_AUTH_ABILITY_NAME;
         extensionInfo.type = AppExecFwk::ExtensionAbilityType::SERVICE;
         extensionInfo.visible = true;
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
         extensionInfo.appIndex = 1;
+#else
+        extensionInfo.appIndex = Constants::DUAL_MODE_APP_INDEX;
+#endif
         extensionInfo.applicationInfo.enabled = true;
         extensionInfos.emplace_back(extensionInfo);
         return true;
     }
+#ifndef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
     if (bundleName == STRING_SUBPROFILE_AUTH_DISABLED) {
         AppExecFwk::ExtensionAbilityInfo extensionInfo;
         extensionInfo.name = STRING_SUBPROFILE_AUTH_ABILITY_NAME;
@@ -240,6 +265,7 @@ bool BundleManagerAdapter::QueryExtensionAbilityInfos(const AAFwk::Want &want, c
         extensionInfos.emplace_back(extensionInfo);
         return true;
     }
+#endif
     if (bundleName == STRING_DISABLED_OWNER) {
         AppExecFwk::ExtensionAbilityInfo extensionInfo;
         extensionInfo.name = STRING_SUBPROFILE_AUTH_ABILITY_NAME;
@@ -247,6 +273,16 @@ bool BundleManagerAdapter::QueryExtensionAbilityInfos(const AAFwk::Want &want, c
         extensionInfo.visible = true;
         extensionInfo.appIndex = 0;
         extensionInfo.applicationInfo.enabled = false;
+        extensionInfos.emplace_back(extensionInfo);
+        return true;
+    }
+    if (bundleName == STRING_DUAL_MODE_AUTH_EXTENSION) {
+        AppExecFwk::ExtensionAbilityInfo extensionInfo;
+        extensionInfo.name = STRING_SUBPROFILE_AUTH_ABILITY_NAME;
+        extensionInfo.type = AppExecFwk::ExtensionAbilityType::SERVICE;
+        extensionInfo.visible = true;
+        extensionInfo.appIndex = Constants::DUAL_MODE_APP_INDEX;
+        extensionInfo.applicationInfo.enabled = true;
         extensionInfos.emplace_back(extensionInfo);
         return true;
     }

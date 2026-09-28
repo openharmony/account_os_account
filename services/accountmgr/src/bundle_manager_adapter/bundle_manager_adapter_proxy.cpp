@@ -484,6 +484,59 @@ ErrCode BundleManagerAdapterProxy::GetMainAndCloneBundleInfo(const std::string &
     return ERR_OK;
 }
 
+ErrCode BundleManagerAdapterProxy::GetDualModeBundleInfo(const std::string &bundleName, int32_t userId,
+    DualModeBundleInfo &dualModeBundleInfo)
+{
+    if (bundleName.empty()) {
+        ACCOUNT_LOGE("fail to GetDualModeBundleInfo due to bundleName empty");
+        return ERR_APPEXECFWK_PARCEL_ERROR;
+    }
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("fail to GetDualModeBundleInfo due to write InterfaceToken fail");
+        return ERR_APPEXECFWK_PARCEL_ERROR;
+    }
+    if (!data.WriteString(bundleName)) {
+        ACCOUNT_LOGE("fail to GetDualModeBundleInfo due to write bundleName fail");
+        return ERR_APPEXECFWK_PARCEL_ERROR;
+    }
+    if (!data.WriteInt32(userId)) {
+        ACCOUNT_LOGE("fail to GetDualModeBundleInfo due to write userId fail");
+        return ERR_APPEXECFWK_PARCEL_ERROR;
+    }
+    MessageParcel reply;
+    if (!SendTransactCmd(BundleMgrInterfaceCode::GET_DUAL_MODE_BUNDLE_INFO, data, reply)) {
+        ACCOUNT_LOGE("GetDualModeBundleInfo failed");
+        return ERR_BUNDLE_MANAGER_IPC_TRANSACTION;
+    }
+    ErrCode ret = reply.ReadInt32();
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("GetDualModeBundleInfo reply read failed, ret = %{public}d", ret);
+        return ret;
+    }
+    size_t dataSize = static_cast<size_t>(reply.ReadInt32());
+    void *buffer = nullptr;
+    if (!GetData(buffer, dataSize, reply.ReadRawData(dataSize))) {
+        ACCOUNT_LOGE("GetDualModeBundleInfo getData failed");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    MessageParcel tmpParcel;
+    if (!tmpParcel.ParseFrom(reinterpret_cast<uintptr_t>(buffer), dataSize)) {
+        ACCOUNT_LOGE("GetDualModeBundleInfo ParseFrom failed");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    std::unique_ptr<DualModeBundleInfo> info(tmpParcel.ReadParcelable<DualModeBundleInfo>());
+    if (info == nullptr) {
+        ACCOUNT_LOGE("GetDualModeBundleInfo ReadParcelable failed");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    dualModeBundleInfo.bundleName = info->bundleName;
+    dualModeBundleInfo.appIndex = info->appIndex;
+    dualModeBundleInfo.deviceModeDistributionPolicy = info->deviceModeDistributionPolicy;
+    dualModeBundleInfo.appSandboxPolicy = info->appSandboxPolicy;
+    return ERR_OK;
+}
+
 bool BundleManagerAdapterProxy::GetData(void *&buffer, size_t size, const void *data)
 {
     if (data == nullptr) {
