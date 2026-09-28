@@ -148,6 +148,12 @@ bool SessionAbilityConnection::SessionAbilityConnectionStub::GenerateParameters(
         ACCOUNT_LOGE("Fail to add uid to json");
         return false;
     }
+    if (!info_.customName.empty()) {
+        if (!AddStringToJson(json, "customName", info_.customName)) {
+            ACCOUNT_LOGE("Fail to add customName to json");
+            return false;
+        }
+    }
     if (!AddStringToJson(json, "challenge", info_.sessionId)) {
         ACCOUNT_LOGE("Fail to add challenge to json");
         return false;

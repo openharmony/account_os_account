@@ -38,6 +38,8 @@ namespace {
 const std::string PRIVILEGE_NAME = "ohos.privilege.manage_local_accounts";
 const std::string PRIVILEGE_NAME_TEST = "test.privilege.manage_local_accounts";
 const std::string PRIVILEGE_PUBLIC_NAME = "ohos.privilege.operate_raw_net_packets";
+const int32_t TEST_PID_SUBJECT = 1;
+const int32_t TEST_USER_ID_SUBJECT = 100;
 }
 
 class AuthorizationClientModuleCovTest : public testing::Test {
@@ -1114,4 +1116,87 @@ HWTEST_F(AuthorizationClientModuleCovTest, RemoveOsAccountOptions_Marshalling_02
     Parcel parcel;
     EXPECT_TRUE(options.Marshalling(parcel));
     EXPECT_TRUE(options.ReadFromParcel(parcel));
+}
+
+/**
+ * @tc.name: SubjectInfoMarshalling001
+ * @tc.desc: SubjectInfo Parcelable marshalling and unmarshalling round-trip
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AuthorizationClientModuleCovTest, SubjectInfoMarshalling001, TestSize.Level0)
+{
+    SubjectInfo subjectInfo;
+    subjectInfo.pid = TEST_PID_SUBJECT;
+    subjectInfo.uid = TEST_USER_ID_SUBJECT;
+    subjectInfo.customName = "custom_display_name";
+
+    Parcel parcel;
+    ASSERT_TRUE(subjectInfo.Marshalling(parcel));
+    parcel.RewindRead(0);
+    SubjectInfo *unmarshalled = SubjectInfo::Unmarshalling(parcel);
+    ASSERT_NE(unmarshalled, nullptr);
+    EXPECT_EQ(unmarshalled->pid, subjectInfo.pid);
+    EXPECT_EQ(unmarshalled->uid, subjectInfo.uid);
+    EXPECT_EQ(unmarshalled->customName, subjectInfo.customName);
+    delete unmarshalled;
+}
+
+/**
+ * @tc.name: SubjectInfoDefaultValues001
+ * @tc.desc: SubjectInfo default field values
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AuthorizationClientModuleCovTest, SubjectInfoDefaultValues001, TestSize.Level0)
+{
+    SubjectInfo subjectInfo;
+    EXPECT_EQ(subjectInfo.pid, -1);
+    EXPECT_EQ(subjectInfo.uid, -1);
+    EXPECT_EQ(subjectInfo.customName, "");
+}
+
+/**
+ * @tc.name: AcquireAuthorizationOptions_SubjectInfo_001
+ * @tc.desc: AcquireAuthorizationOptions with optional SubjectInfo marshalling round-trip
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AuthorizationClientModuleCovTest, AcquireAuthorizationOptions_SubjectInfo_001, TestSize.Level0)
+{
+    AcquireAuthorizationOptions options;
+    options.subjectInfo = SubjectInfo{};
+    options.subjectInfo->pid = TEST_PID_SUBJECT;
+    options.subjectInfo->uid = TEST_USER_ID_SUBJECT;
+    options.subjectInfo->customName = "custom_name";
+
+    Parcel parcel;
+    ASSERT_TRUE(options.Marshalling(parcel));
+    parcel.RewindRead(0);
+    AcquireAuthorizationOptions *unmarshalled = AcquireAuthorizationOptions::Unmarshalling(parcel);
+    ASSERT_NE(unmarshalled, nullptr);
+    EXPECT_TRUE(unmarshalled->subjectInfo.has_value());
+    EXPECT_EQ(unmarshalled->subjectInfo->pid, TEST_PID_SUBJECT);
+    EXPECT_EQ(unmarshalled->subjectInfo->uid, TEST_USER_ID_SUBJECT);
+    EXPECT_EQ(unmarshalled->subjectInfo->customName, "custom_name");
+    delete unmarshalled;
+}
+
+/**
+ * @tc.name: AcquireAuthorizationOptions_SubjectInfo_002
+ * @tc.desc: AcquireAuthorizationOptions without SubjectInfo (nullopt) marshalling round-trip
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AuthorizationClientModuleCovTest, AcquireAuthorizationOptions_SubjectInfo_002, TestSize.Level0)
+{
+    AcquireAuthorizationOptions options;
+
+    Parcel parcel;
+    ASSERT_TRUE(options.Marshalling(parcel));
+    parcel.RewindRead(0);
+    AcquireAuthorizationOptions *unmarshalled = AcquireAuthorizationOptions::Unmarshalling(parcel);
+    ASSERT_NE(unmarshalled, nullptr);
+    EXPECT_FALSE(unmarshalled->subjectInfo.has_value());
+    delete unmarshalled;
 }
