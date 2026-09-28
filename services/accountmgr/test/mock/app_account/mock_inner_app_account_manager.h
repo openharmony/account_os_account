@@ -31,7 +31,7 @@ public:
     ErrCode DeleteAccount(const std::string &name, const std::string &bundleName, const uint32_t &appIndex);
 
     ErrCode SubscribeAppAccount(const AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener,
-        const std::string &bundleName, const uint32_t &appIndex);
+        const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
     ErrCode UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener, std::vector<std::string> &owners);
 };
 }  // namespace AccountSA

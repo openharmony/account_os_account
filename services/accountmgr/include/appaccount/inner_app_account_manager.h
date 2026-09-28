@@ -84,7 +84,7 @@ public:
     ErrCode GetAuthenticatorInfo(const AuthenticatorSessionRequest &request, AuthenticatorInfo &info);
 
     ErrCode GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts, const uid_t &uid,
-        const std::string &bundleName, const uint32_t &appIndex);
+        const std::string &bundleName, const uint32_t &callerAppIndex);
     ErrCode GetAllAccessibleAccounts(std::vector<AppAccountInfo> &appAccounts,
         const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
 

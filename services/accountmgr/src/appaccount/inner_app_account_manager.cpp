@@ -162,11 +162,15 @@ ErrCode InnerAppAccountManager::DisableAppAccess(const std::string &name, const 
 ErrCode InnerAppAccountManager::CheckAppAccess(const std::string &name, const std::string &authorizedApp,
     bool &isAccessible, const AppAccountCallingInfo &appAccountCallingInfo)
 {
-    // precise lookup: encode the caller's raw appIndex (no visibility query),
-    // consistent with the pre-refactor CheckAppAccess semantics.
+    // Resolve the authorizedApp's appIndex via BMS so the encoded key matches
+    // the storage key used by SetOAuthTokenVisibility / CheckOAuthTokenVisibility.
     std::string encodedApp;
-    AppAccountControlManager::EncodeAuthorizedAppPrecise(
-        authorizedApp, appAccountCallingInfo.appIndex, encodedApp);
+    ErrCode encRet = AppAccountControlManager::ResolveAndEncodeAuthorizedApp(
+        authorizedApp, appAccountCallingInfo.appIndex, appAccountCallingInfo.callingUid, encodedApp);
+    if (encRet != ERR_OK) {
+        ACCOUNT_LOGE("ResolveAndEncodeAuthorizedApp failed, ret=%{public}d", encRet);
+        return encRet;
+    }
     return controlManager_.CheckAppAccess(name, encodedApp, isAccessible, appAccountCallingInfo);
 }
 
@@ -375,9 +379,9 @@ ErrCode InnerAppAccountManager::GetAuthenticatorCallback(
 }
 
 ErrCode InnerAppAccountManager::GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts,
-    const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)
+    const uid_t &uid, const std::string &bundleName, const uint32_t &callerAppIndex)
 {
-    return controlManager_.GetAllAccounts(owner, appAccounts, uid, bundleName, appIndex);
+    return controlManager_.GetAllAccounts(owner, appAccounts, uid, bundleName, callerAppIndex);
 }
 
 ErrCode InnerAppAccountManager::GetAllAccessibleAccounts(std::vector<AppAccountInfo> &appAccounts,

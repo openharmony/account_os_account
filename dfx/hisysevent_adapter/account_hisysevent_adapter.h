@@ -136,21 +136,21 @@ void ReportOsAccountSwitch(int32_t currentId, int32_t oldId);
 void ReportOhosAccountStateChange(int32_t userId, int32_t operateType, int32_t oldStat, int32_t newStat);
 void ReportOsAccountDataTampered(int32_t id, const std::string& dataPath, const std::string& dataLabel);
 #else
-std::string AnonymizeName(const std::string& nameStr) { return ""; };
-void ReportServiceStartFail(int32_t errCode, const std::string& errMsg) {};
-void ReportOsAccountOperationFail(
-    int32_t id, const std::string& operationStr, int32_t errCode, const std::string& errMsg) {};
-void ReportDomainAccountOperationFail(const DomainHisysEventInfo &info, const int32_t errCode,
-    const std::string& errMsg) {};
-void ReportDomainAccountOperationStatistic(const DomainHisysEventInfo &info) {};
-void ReportOhosAccountOperationFail(
-    int32_t userId, const std::string& operationStr, int32_t errCode, const std::string& errMsg) {};
-void ReportAppAccountOperationFail(const std::string &name, const std::string &owner, const std::string& operationStr,
-    int32_t errCode, const std::string& errMsg) {};
-void ReportOsAccountLifeCycle(int32_t id, const std::string& operationStr) {};
-void ReportOsAccountSwitch(int32_t currentId, int32_t oldId) {};
-void ReportOhosAccountStateChange(int32_t userId, int32_t operateType, int32_t oldStat, int32_t newStat) {};
-void ReportOsAccountDataTampered(int32_t id, const std::string& dataPath, const std::string& dataLabel) {};
+inline std::string AnonymizeName(const std::string& nameStr) { return ""; }
+inline void ReportServiceStartFail(int32_t errCode, const std::string& errMsg) {}
+inline void ReportOsAccountOperationFail(
+    int32_t id, const std::string& operationStr, int32_t errCode, const std::string& errMsg) {}
+inline void ReportDomainAccountOperationFail(const DomainHisysEventInfo &info, const int32_t errCode,
+    const std::string& errMsg) {}
+inline void ReportDomainAccountOperationStatistic(const DomainHisysEventInfo &info) {}
+inline void ReportOhosAccountOperationFail(
+    int32_t userId, const std::string& operationStr, int32_t errCode, const std::string& errMsg) {}
+inline void ReportAppAccountOperationFail(const std::string &name, const std::string &owner,
+    const std::string& operationStr, int32_t errCode, const std::string& errMsg) {}
+inline void ReportOsAccountLifeCycle(int32_t id, const std::string& operationStr) {}
+inline void ReportOsAccountSwitch(int32_t currentId, int32_t oldId) {}
+inline void ReportOhosAccountStateChange(int32_t userId, int32_t operateType, int32_t oldStat, int32_t newStat) {}
+inline void ReportOsAccountDataTampered(int32_t id, const std::string& dataPath, const std::string& dataLabel) {}
 #endif // HAS_HISYSEVENT_PART
 
 #define ASSEMBLE_ERRMSG(str) \

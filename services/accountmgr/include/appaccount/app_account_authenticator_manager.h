@@ -26,13 +26,16 @@ namespace AccountSA {
 class AppAccountAuthenticatorManager {
 public:
     static ErrCode GetAuthenticatorInfo(const std::string &owner, uint32_t appIndex, int32_t userId,
+        AuthenticatorInfo &info, uint32_t &ownerAppIndex);
+    static ErrCode GetAuthenticatorInfo(const std::string &owner, uint32_t appIndex, int32_t userId,
         AuthenticatorInfo &info);
 private:
     static bool FillAuthenticatorInfoFromAbilities(const std::vector<AppExecFwk::AbilityInfo> &abilityInfos,
-        uint32_t callerAppIndex, int32_t userId, const std::string &owner, AuthenticatorInfo &info);
+        uint32_t callerAppIndex, int32_t userId, const std::string &owner, uint32_t ownerAppIndex,
+        AuthenticatorInfo &info);
     static bool FillAuthenticatorInfoFromExtensions(
         const std::vector<AppExecFwk::ExtensionAbilityInfo> &extensionInfos, uint32_t callerAppIndex,
-        int32_t userId, const std::string &owner, AuthenticatorInfo &info);
+        int32_t userId, const std::string &owner, uint32_t ownerAppIndex, AuthenticatorInfo &info);
 };
 }  // namespace AccountSA
 }  // namespace OHOS

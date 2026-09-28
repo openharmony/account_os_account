@@ -62,6 +62,15 @@ public:
         int32_t disableAppIndex, bool killProcess, bool needSendEvent);
 #endif
 
+    /**
+     * @brief Obtains the main appIndex for a given bundle name.
+     * @param bundleName Indicates the application bundle name to be queried.
+     * @param userId Indicates the userId in the system.
+     * @param appIndex Indicates the obtained main appIndex.
+     * @return Returns ERR_OK if successfully obtained; returns error code otherwise.
+     */
+    ErrCode GetMainAppIndex(const std::string &bundleName, int32_t userId, uint32_t &appIndex);
+
 private:
     ErrCode Connect();
     class BundleMgrDeathRecipient : public IRemoteObject::DeathRecipient {

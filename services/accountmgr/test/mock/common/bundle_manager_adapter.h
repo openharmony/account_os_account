@@ -42,6 +42,7 @@ public:
     ErrCode RemoveUser(int32_t userId);
     bool GetBundleInfo(const std::string &bundleName, const AppExecFwk::BundleFlag flag,
         AppExecFwk::BundleInfo &bundleInfo, int32_t userId);
+    ErrCode GetMainAppIndex(const std::string &bundleName, int32_t userId, uint32_t &appIndex);
     int GetUidByBundleName(const std::string &bundleName, const int userId);
     bool QueryAbilityInfos(const AAFwk::Want &want, int32_t flags, int32_t userId,
         std::vector<AppExecFwk::AbilityInfo> &abilityInfos);

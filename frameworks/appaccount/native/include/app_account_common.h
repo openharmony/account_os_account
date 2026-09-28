@@ -106,6 +106,7 @@ struct AuthenticatorSessionRequest {
     SetPropertiesOptions setPropOptions;
     CreateAccountImplicitlyOptions createOptions;
     sptr<IAppAccountAuthenticatorCallback> callback = nullptr;
+    uint32_t authenticatorAppIndex = 0;
 };
 
 enum AuthenticatorAction {

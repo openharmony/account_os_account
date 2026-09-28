@@ -910,6 +910,7 @@ ohos_unittest("OsAccountInnerAccmgrPluginMockTest") {
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
     "${services_path}/accountmgr/src/appaccount/app_account_control_manager.cpp",
+    "${services_path}/accountmgr/test/mock/common/bundle_manager_adapter.cpp",
     "${services_path}/accountmgr/test/mock/os_account/os_account_activate_lock_plugin_manager.cpp",
     "${services_path}/accountmgr/test/mock/os_account/os_account_interface.cpp",
     "${services_path}/accountmgr/test/mock/os_account/os_account_plugin_manager.cpp",
@@ -1081,6 +1082,7 @@ ohos_unittest("OsAccountInnerAccmgrMockCovTest") {
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
     "${services_path}/accountmgr/src/appaccount/app_account_control_manager.cpp",
+    "${services_path}/accountmgr/test/mock/common/bundle_manager_adapter.cpp",
     "${services_path}/accountmgr/test/mock/os_account/os_account_interface.cpp",
     "os_account_inner_account_mgr_mock_cov.cpp",
   ]

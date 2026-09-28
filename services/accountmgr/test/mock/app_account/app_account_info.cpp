@@ -178,7 +178,14 @@ void AppAccountInfo::SetExtraInfo(const std::string &extraInfo)
 
 std::string AppAccountInfo::EncodeAuthorizedApp(const std::string &bundleName, uint32_t appIndex)
 {
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
     return bundleName + HYPHEN + std::to_string(appIndex);
+#else
+    if (appIndex == 0) {
+        return bundleName;
+    }
+    return bundleName + HYPHEN + std::to_string(appIndex);
+#endif
 }
 
 bool AppAccountInfo::ParseAuthorizedApp(const std::string &entry, std::string &bundleName, uint32_t &appIndex)

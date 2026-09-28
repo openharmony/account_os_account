@@ -76,7 +76,8 @@ HWTEST_F(AppAccountSubprofileAuthenticatorTest,
     ASSERT_EQ(result, ERR_OK);
     EXPECT_EQ(info.abilityName, AUTH_ABILITY_NAME);
 #else
-    ASSERT_NE(result, ERR_OK);
+    ASSERT_EQ(result, ERR_OK);
+    EXPECT_EQ(info.abilityName, AUTH_ABILITY_NAME);
 #endif
 }
 
@@ -94,7 +95,8 @@ HWTEST_F(AppAccountSubprofileAuthenticatorTest,
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
     ASSERT_NE(result, ERR_OK);
 #else
-    ASSERT_NE(result, ERR_OK);
+    ASSERT_EQ(result, ERR_OK);
+    EXPECT_EQ(info.abilityName, AUTH_ABILITY_NAME);
 #endif
 }
 
@@ -124,11 +126,7 @@ HWTEST_F(AppAccountSubprofileAuthenticatorTest,
     AuthenticatorInfo info;
     ErrCode result = AppAccountAuthenticatorManager::GetAuthenticatorInfo(
         AUTH_DISABLED_OWNER, 1, TEST_USER_ID, info);
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
     ASSERT_NE(result, ERR_OK);
-#else
-    ASSERT_NE(result, ERR_OK);
-#endif
 }
 
 /**

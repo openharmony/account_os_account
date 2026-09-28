@@ -135,6 +135,16 @@ public:
     ErrCode GetMainAndCloneBundleInfo(const std::string &bundleName, uint32_t flags,
         int32_t userId, std::vector<BundleInfo> &bundleInfos) override;
 
+    /**
+     * @brief Obtains the dual mode bundle info for a given bundle name.
+     * @param bundleName Indicates the application bundle name to be queried.
+     * @param userId Indicates the userId in the system.
+     * @param dualModeBundleInfo Indicates the obtained DualModeBundleInfo object.
+     * @return Returns ERR_OK if successfully obtained; returns error code otherwise.
+     */
+    ErrCode GetDualModeBundleInfo(const std::string &bundleName, int32_t userId,
+        DualModeBundleInfo &dualModeBundleInfo) override;
+
     template<typename T>
     ErrCode GetParcelableInfosWithErrCode(BundleMgrInterfaceCode code, MessageParcel &data,
         std::vector<T> &parcelableInfos);

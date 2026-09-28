@@ -683,23 +683,26 @@ HWTEST_F(AppAccountControlManagerSubspaceModuleTest,
 }
 
 /**
- * @tc.name: Subspace_FilterEnabledOwners_MacroOn_001
- * @tc.desc: FilterEnabledOwners macro ON: uses QueryVisibleEnabledAppIndex to filter owners.
- *           STRING_OWNER exists in mock → passes; STRING_NOT_EXIST → BMS fails → skipped.
+ * @tc.name: Subspace_EncodeOwners_MacroOn_001
+ * @tc.desc: EncodeOwners macro ON: uses QueryVisibleEnabledAppIndex to encode owners.
+ *           STRING_OWNER exists in mock -> encoded as STRING_OWNER#appIndex;
+ *           STRING_NOT_EXIST -> BMS fails -> skipped.
  * @tc.type: FUNC
  */
 HWTEST_F(AppAccountControlManagerSubspaceModuleTest,
-    Subspace_FilterEnabledOwners_MacroOn_001, TestSize.Level1)
+    Subspace_EncodeOwners_MacroOn_001, TestSize.Level1)
 {
     auto service = new (std::nothrow) AppAccountManagerService();
     ASSERT_NE(service, nullptr);
     std::vector<std::string> owners = {STRING_OWNER, STRING_NOT_EXIST};
-    std::vector<std::string> existOwners;
-    service->FilterEnabledOwners(owners, 100, 0, existOwners);
-    // STRING_OWNER → GetMainAndCloneBundleInfo returns ERR_OK → passes
-    // STRING_NOT_EXIST → GetMainAndCloneBundleInfo fails → skipped
-    EXPECT_EQ(existOwners.size(), 1u);
-    EXPECT_EQ(existOwners[0], STRING_OWNER);
+    std::vector<std::string> encodedOwners;
+    service->EncodeOwners(owners, 0, 100, encodedOwners);
+    // STRING_OWNER -> GetMainAndCloneBundleInfo returns ERR_OK -> encoded
+    // STRING_NOT_EXIST -> GetMainAndCloneBundleInfo fails -> skipped
+    EXPECT_EQ(encodedOwners.size(), 1u);
+    // subspace EncodeAuthorizedApp always appends #appIndex to the bundleName
+    EXPECT_EQ(encodedOwners[0].find(STRING_OWNER), 0u);
+    EXPECT_NE(encodedOwners[0].find("#"), std::string::npos);
     delete service;
 }
 

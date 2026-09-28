@@ -80,6 +80,7 @@ ohos_moduletest("app_account_check_labels_module_test") {
     "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
+    "init:libbegetutil",
     "samgr:samgr_proxy",
   ]
 }
@@ -161,6 +162,7 @@ ohos_moduletest("app_account_manager_service_associated_data_test") {
     "kv_store:distributeddata_inner",
     "openssl:libcrypto_shared",
     "safwk:system_ability_fwk",
+    "init:libbegetutil",
     "samgr:samgr_proxy",
   ]
 
@@ -255,6 +257,7 @@ ohos_moduletest("app_account_authenticator_callback_test") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
+    "init:libbegetutil",
     "samgr:samgr_proxy",
   ]
 
@@ -297,6 +300,7 @@ ohos_moduletest("app_account_event_module_test") {
     "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
+    "init:libbegetutil",
     "samgr:samgr_proxy",
   ]
 
@@ -432,6 +436,7 @@ ohos_moduletest("app_account_control_manager_module_test") {
     "kv_store:distributeddata_inner",
     "openssl:libcrypto_shared",
     "safwk:system_ability_fwk",
+    "init:libbegetutil",
     "samgr:samgr_proxy",
   ]
 
@@ -578,6 +583,7 @@ ohos_moduletest("app_account_control_manager_subspace_module_test") {
     "kv_store:distributeddata_inner",
     "openssl:libcrypto_shared",
     "safwk:system_ability_fwk",
+    "init:libbegetutil",
     "samgr:samgr_proxy",
   ]
 
@@ -726,6 +732,7 @@ ohos_moduletest("app_account_control_manager_module_mock_test") {
     "kv_store:distributeddata_inner",
     "openssl:libcrypto_shared",
     "safwk:system_ability_fwk",
+    "init:libbegetutil",
     "samgr:samgr_proxy",
   ]
 
@@ -901,6 +908,7 @@ ohos_moduletest("app_account_authenticator_session_module_test") {
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
     "napi:ace_napi",
+    "init:libbegetutil",
     "samgr:samgr_proxy",
   ]
 
@@ -944,22 +952,10 @@ ohos_moduletest("app_account_manager_service_module_test") {
   cflags_cc = []
   cflags = []
   sources = [
-    "${app_account_services_path}/src/account_data_storage.cpp",
-    "${app_account_services_path}/src/appaccount/app_account_common_event_observer.cpp",
-    "${app_account_services_path}/src/appaccount/app_account_common_event_subscriber.cpp",
-    "${app_account_services_path}/src/appaccount/app_account_manager_service.cpp",
-    "${app_account_services_path}/src/appaccount/app_account_subscribe_death_recipient.cpp",
-    "${app_account_services_path}/src/appaccount/app_account_subscribe_manager.cpp",
     "${app_account_services_path}/test/mock/app_account/accesstoken_kit.cpp",
     "${app_account_services_path}/test/mock/common/bundle_manager_adapter.cpp",
     "${common_path}/utils/src/account_permission_manager.cpp",
-    "${os_account_core_path}/src/os_account_state_parcel.cpp",
-    "${services_path}/accountmgr/src/appaccount/app_account_control_manager.cpp",
-    "${services_path}/accountmgr/src/appaccount/os_account_state_subscriber.cpp",
-    "${services_path}/accountmgr/src/osaccount/os_account_subscribe_death_recipient.cpp",
-    "${services_path}/accountmgr/src/osaccount/os_account_subscribe_manager.cpp",
     "app_account_manager_service_module_test.cpp",
-    "${services_path}/accountmgr/src/common/database/kvstore/kvstore_adapter_impl.cpp",
   ]
 
   use_exceptions = true
@@ -972,7 +968,7 @@ ohos_moduletest("app_account_manager_service_module_test") {
   deps = [
     "${app_account_innerkits_native_path}:app_account_innerkits",
     "${app_account_innerkits_native_path}:app_account_stub",
-    "${app_account_services_path}:accountmgr",
+    "${app_account_services_path}:accountmgr_test_source_set_no_bms",
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_event_stub",
@@ -999,6 +995,7 @@ ohos_moduletest("app_account_manager_service_module_test") {
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
     "safwk:system_ability_fwk",
+    "init:libbegetutil",
     "samgr:samgr_proxy",
   ]
 
@@ -1033,7 +1030,6 @@ ohos_moduletest("app_account_manager_service_check_test") {
   cflags_cc = []
   cflags = []
   sources = [
-    "${app_account_services_path}/src/appaccount/app_account_manager_service.cpp",
     "app_account_manager_service_check_test.cpp",
   ]
 
@@ -1045,7 +1041,7 @@ ohos_moduletest("app_account_manager_service_check_test") {
   deps = [
     "${app_account_innerkits_native_path}:app_account_innerkits",
     "${app_account_innerkits_native_path}:app_account_stub",
-    "${app_account_services_path}:accountmgr",
+    "${app_account_services_path}:accountmgr_test_source_set",
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
   ]
@@ -1067,6 +1063,7 @@ ohos_moduletest("app_account_manager_service_check_test") {
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
     "safwk:system_ability_fwk",
+    "init:libbegetutil",
     "samgr:samgr_proxy",
   ]
 }
@@ -1084,7 +1081,6 @@ ohos_moduletest("app_account_manager_service_not_mock_module_test") {
   cflags_cc = []
   cflags = []
   sources = [
-    "${app_account_services_path}/src/appaccount/app_account_manager_service.cpp",
     "app_account_manager_service_module_not_mock_test.cpp",
   ]
 
@@ -1096,7 +1092,7 @@ ohos_moduletest("app_account_manager_service_not_mock_module_test") {
   deps = [
     "${app_account_innerkits_native_path}:app_account_innerkits",
     "${app_account_innerkits_native_path}:app_account_stub",
-    "${app_account_services_path}:accountmgr",
+    "${app_account_services_path}:accountmgr_test_source_set",
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
   ]
@@ -1118,6 +1114,7 @@ ohos_moduletest("app_account_manager_service_not_mock_module_test") {
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
     "safwk:system_ability_fwk",
+    "init:libbegetutil",
     "samgr:samgr_proxy",
   ]
 
@@ -1198,6 +1195,7 @@ ohos_moduletest("at_not_mock_app_account_manager_service_module_test") {
     "napi:ace_napi",
     "openssl:libcrypto_shared",
     "safwk:system_ability_fwk",
+    "init:libbegetutil",
     "samgr:samgr_proxy",
   ]
 
@@ -1260,7 +1258,6 @@ ohos_moduletest("app_account_manager_service_subscribe_module_test") {
   module_out_path = module_output_path
   cflags_cc = []
   sources = [
-    "${app_account_services_path}/src/appaccount/app_account_manager_service.cpp",
     "${app_account_services_path}/test/mock/app_account/accesstoken_kit.cpp",
     "${app_account_services_path}/test/mock/common/bundle_manager_adapter.cpp",
     "app_account_manager_service_subscribe_module_test.cpp",
@@ -1274,7 +1271,7 @@ ohos_moduletest("app_account_manager_service_subscribe_module_test") {
   deps = [
     "${app_account_innerkits_native_path}:app_account_innerkits",
     "${app_account_innerkits_native_path}:app_account_stub",
-    "${app_account_services_path}:accountmgr",
+    "${app_account_services_path}:accountmgr_test_source_set_no_bms",
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
   ]
@@ -1296,6 +1293,7 @@ ohos_moduletest("app_account_manager_service_subscribe_module_test") {
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
     "safwk:system_ability_fwk",
+    "init:libbegetutil",
     "samgr:samgr_proxy",
   ]
 
@@ -1318,7 +1316,6 @@ ohos_moduletest("app_account_manager_service_sync_module_test") {
   cflags_cc = []
   cflags = []
   sources = [
-    "${app_account_services_path}/src/appaccount/app_account_manager_service.cpp",
     "${app_account_services_path}/test/mock/app_account/accesstoken_kit.cpp",
     "${app_account_services_path}/test/mock/common/bundle_manager_adapter.cpp",
     "${common_path}/utils/src/account_permission_manager.cpp",
@@ -1333,7 +1330,7 @@ ohos_moduletest("app_account_manager_service_sync_module_test") {
   deps = [
     "${app_account_innerkits_native_path}:app_account_innerkits",
     "${app_account_innerkits_native_path}:app_account_stub",
-    "${app_account_services_path}:accountmgr",
+    "${app_account_services_path}:accountmgr_test_source_set_no_bms",
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
   ]
@@ -1355,6 +1352,7 @@ ohos_moduletest("app_account_manager_service_sync_module_test") {
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
     "safwk:system_ability_fwk",
+    "init:libbegetutil",
     "samgr:samgr_proxy",
   ]
 
@@ -1463,6 +1461,7 @@ ohos_moduletest("app_account_authenticator_session_manager_module_test") {
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
     "napi:ace_napi",
+    "init:libbegetutil",
     "samgr:samgr_proxy",
   ]
 
@@ -1506,6 +1505,7 @@ ohos_moduletest("app_account_subscribe_manager_test") {
   sources = [
     "${app_account_services_path}/test/mock/app_account/accesstoken_kit.cpp",
     "${app_account_services_path}/test/mock/app_account/account_data_storage.cpp",
+    "${app_account_services_path}/test/mock/app_account/app_account_authenticator_manager.cpp",
     "${app_account_services_path}/test/mock/common/bundle_manager_adapter.cpp",
     "${services_path}/accountmgr/src/appaccount/app_account_subscribe_death_recipient.cpp",
     "${services_path}/accountmgr/src/appaccount/app_account_subscribe_manager.cpp",
@@ -1542,6 +1542,7 @@ ohos_moduletest("app_account_subscribe_manager_test") {
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
     "safwk:system_ability_fwk",
+    "init:libbegetutil",
     "samgr:samgr_proxy",
   ]
 

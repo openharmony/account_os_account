@@ -110,6 +110,8 @@ HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_RestoreListe
     // unsubscribe app account
     ErrCode result = AppAccountManager::UnsubscribeAppAccount(subscriberTestPtr);
     ASSERT_NE(result, ERR_APPACCOUNT_KIT_NO_SPECIFIED_SUBSCRIBER_HAS_BEEN_REGISTERED);
+    AppAccountEventListener::GetInstance()->appAccountSubscriberList_.clear();
+    AppAccountEventListener::GetInstance()->owner2Subscribers_.clear();
 }
 
 /**

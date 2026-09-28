@@ -57,6 +57,7 @@ constexpr std::size_t MAX_CUSTOM_DATA_SIZE = 1024;
 constexpr uint32_t API_VERSION7 = 7;
 constexpr uint32_t API_VERSION8 = 8;
 constexpr uint32_t API_VERSION9 = 9;
+constexpr uint32_t DUAL_MODE_APP_INDEX = 10000;
 };  // namespace Constants
 }  // namespace AccountSA
 }  // namespace OHOS

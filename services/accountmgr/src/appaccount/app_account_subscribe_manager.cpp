@@ -86,11 +86,7 @@ ErrCode AppAccountSubscribeManager::SubscribeAppAccount(
     subscribeRecordPtr->eventListener = eventListener;
     subscribeRecordPtr->bundleName = bundleName;
     subscribeRecordPtr->appIndex = appIndex;
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
     subscribeRecordPtr->subscribedAppIndex = appIndex;
-#else
-    subscribeRecordPtr->subscribedAppIndex = 0;
-#endif
 
     if (subscribeDeathRecipient_ != nullptr) {
         eventListener->AddDeathRecipient(subscribeDeathRecipient_);
@@ -119,6 +115,9 @@ ErrCode AppAccountSubscribeManager::UnsubscribeAppAccount(const sptr<IRemoteObje
 std::vector<AppAccountSubscribeRecordPtr> AppAccountSubscribeManager::GetSubscribeRecords(const std::string &owner,
     const uint32_t &appIndex)
 {
+    // |owner| is the encoded subscriber key (same form as InsertSubscribeRecord
+    // keys), not a raw bundleName. ownerSubscribeRecords_ is keyed by that
+    // encoded form, so the lookup narrows to subscribers of one specific mode.
     auto records = std::vector<AppAccountSubscribeRecordPtr>();
 
     std::lock_guard<std::recursive_mutex> lock(mutex_);
@@ -133,6 +132,10 @@ std::vector<AppAccountSubscribeRecordPtr> AppAccountSubscribeManager::GetSubscri
 
     auto subscribeRecords = subscribeRecordsPtr->second;
     for (auto it = subscribeRecords.begin(); it != subscribeRecords.end(); it++) {
+        if ((*it)->subscribeInfoPtr == nullptr) {
+            ACCOUNT_LOGE("subscribeInfoPtr is nullptr, skip this record");
+            continue;
+        }
         std::vector<std::string> owners;
         ErrCode result = (*it)->subscribeInfoPtr->GetOwners(owners);
         if (result != ERR_OK) {
@@ -145,32 +148,10 @@ std::vector<AppAccountSubscribeRecordPtr> AppAccountSubscribeManager::GetSubscri
             return records;
         }
 
-        if (appIndex != (*it)->subscribedAppIndex) {
-            continue;
-        }
-
         records.emplace_back(*it);
     }
 
     return records;
-}
-
-bool AppAccountSubscribeManager::CheckAppIsMaster(const std::string &account)
-{
-    size_t firstHashPos = account.find('#');
-    if (firstHashPos == std::string::npos) {
-        return false;
-    }
-    size_t secondHashPos = account.find('#', firstHashPos + 1);
-    if (secondHashPos == std::string::npos) {
-        return false;
-    }
-    std::string indexStr = account.substr(firstHashPos + 1, secondHashPos - firstHashPos - 1);
-    int index = -1;
-    if (!StrToInt(indexStr, index)) {
-        return false;
-    }
-    return (index == 0);
 }
 
 ErrCode AppAccountSubscribeManager::CheckAppAccess(const std::shared_ptr<AppAccountSubscribeInfo> &subscribeInfoPtr,
@@ -188,38 +169,40 @@ ErrCode AppAccountSubscribeManager::CheckAppAccess(const std::shared_ptr<AppAcco
         return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
     }
     std::vector<std::string> accessibleAccounts;
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
+    // bundleKey encodes the caller itself (EncodeAuthorizedApp(bundleName,
+    // appIndex)). It is the AUTHORIZED_ACCOUNTS JSON key under which accounts
+    // authorized TO this caller are stored, so GetAccessibleAccountsFromDataStorage
+    // returns those accounts' PrimeKeys ("owner#appIndex#name#"). |owners| passed
+    // to CheckOwnersAccessible are the encoded subscriber targets.
     std::string bundleKey = AppAccountInfo::EncodeAuthorizedApp(bundleName, appIndex);
-#else
-    std::string bundleKey = bundleName + (appIndex == 0 ? "" : HYPHEN + std::to_string(appIndex));
-#endif
     ErrCode ret = dataStoragePtr->GetAccessibleAccountsFromDataStorage(bundleKey, accessibleAccounts);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("failed to get accessible account from data storage, ret %{public}d.", ret);
         return ret;
     }
-#ifndef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-    for (auto it = accessibleAccounts.begin(); it != accessibleAccounts.end();) {
-        if (!CheckAppIsMaster(*it)) {
-            it = accessibleAccounts.erase(it);
-        } else {
-            it++;
-        }
-    }
-#endif
-    return CheckOwnersAccessible(owners, bundleName, bundleKey, accessibleAccounts);
+    return CheckOwnersAccessible(owners, bundleKey, accessibleAccounts);
 }
 
 ErrCode AppAccountSubscribeManager::CheckOwnersAccessible(const std::vector<std::string> &owners,
-    const std::string &bundleName, const std::string &bundleKey,
-    const std::vector<std::string> &accessibleAccounts)
+    const std::string &bundleKey, const std::vector<std::string> &accessibleAccounts)
 {
+    // |owners|: encoded subscriber targets (form: bare "bundle" or "bundle#appIndex").
+    // |bundleKey|: the caller's own encoded key, same encoding as |owners|.
+    // |accessibleAccounts|: PrimeKeys ("owner#appIndex#name#") of accounts that
+    //   were authorized TO the caller (indexed by bundleKey in AUTHORIZED_ACCOUNTS).
+    //
+    // Self-subscribe shortcut: when an encoded owner equals the caller's
+    // bundleKey, the caller is subscribing to its own accounts -> no extra
+    // authorization needed (continue). Comparing against bundleKey (not the raw
+    // bundleName) is what makes dual-mode self-subscribe work: both sides carry
+    // the #appIndex suffix, so "com.B#10000" == "com.B#10000" matches.
+    //
+    // Cross-app subscribe: for a non-self owner, the account must have been
+    // authorized to the caller. A PrimeKey "targetOwner#appIndex#name#" starts
+    // with the encoded owner "targetOwner#appIndex" (or bare "targetOwner" for
+    // main mode), so account.find(owner) == 0 is the prefix match.
     for (auto owner : owners) {
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNT_SUBSPACE
-        if (owner == bundleName) {
-#else
         if (owner == bundleKey) {
-#endif
             continue;
         }
         auto it = std::find_if(accessibleAccounts.begin(), accessibleAccounts.end(),
@@ -268,6 +251,10 @@ ErrCode AppAccountSubscribeManager::InsertSubscribeRecord(
 
     std::lock_guard<std::recursive_mutex> lock(mutex_);
 
+    // |owners| here are already encoded by EncodeOwners (form: bare "bundle"
+    // for appIndex 0, or "bundle#appIndex" otherwise). They are used directly
+    // as the ownerSubscribeRecords_ map key, so subscription lookup at publish
+    // time matches on the same encoded form (see GetSubscribeRecords/PublishAccount).
     auto eventListener = subscribeRecordPtr->eventListener;
     for (auto owner : owners) {
         auto item = ownerSubscribeRecords_.find(owner);
@@ -366,7 +353,12 @@ bool AppAccountSubscribeManager::PublishAccount(
         return false;
     }
     eventRecordPtr->info = std::make_shared<AppAccountInfo>(appAccountInfo);
-    eventRecordPtr->receivers = GetSubscribeRecords(bundleName, appIndex);
+    // bundleKey = EncodeAuthorizedApp(account owner, account appIndex) has the
+    // same encoding as the subscriber-side owners stored by InsertSubscribeRecord,
+    // so GetSubscribeRecords finds exactly the subscribers of this app's mode
+    // (main-mode subscribers match bare key, dual-mode subscribers match #10000).
+    std::string bundleKey = AppAccountInfo::EncodeAuthorizedApp(bundleName, appIndex);
+    eventRecordPtr->receivers = GetSubscribeRecords(bundleKey, appIndex);
     eventRecordPtr->uid = uid;
     eventRecordPtr->bundleName = bundleName;
     eventRecordPtr->appIndex = appIndex;
@@ -465,13 +457,10 @@ ErrCode AppAccountSubscribeManager::GetAccessibleAccountsBySubscribeInfo(
     subscribeInfoPtr->GetOwners(owners);
 
     for (auto accessibleAccount : accessibleAccounts) {
-        std::string name;
-        accessibleAccount.GetName(name);
-
         std::string owner;
         accessibleAccount.GetOwner(owner);
-
-        if (std::find(owners.begin(), owners.end(), owner) != owners.end()) {
+        std::string encodedOwner = AppAccountInfo::EncodeAuthorizedApp(owner, accessibleAccount.GetAppIndex());
+        if (std::find(owners.begin(), owners.end(), encodedOwner) != owners.end()) {
             appAccounts.emplace_back(accessibleAccount);
         }
     }
