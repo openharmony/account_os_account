@@ -17,6 +17,7 @@
 #define OS_ACCOUNT_FRAMEWORKS_OSACCOUNT_CORE_INCLUDE_STRING_RAW_DATA_H
 
 #include "ipc_types.h"
+#include "os_account_constants.h"
 #include <sstream>
 
 namespace OHOS {
@@ -44,7 +45,7 @@ struct StringRawData {
         ss.write(reinterpret_cast<const char*>(data), size);
         uint32_t length = 0;
         ss.read(reinterpret_cast<char*>(&length), sizeof(length));
-        if (length > 0) {
+        if (length > 0 && length < Constants::IPC_WRITE_RAW_DATA_MAX_SIZE) {
             out.resize(length);
             ss.read(&out[0], length);
         }
