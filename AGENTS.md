@@ -31,6 +31,8 @@
 | GetOsAccountType loop | P10 | CE10 | GetOsAccountType / GetOsAccountInfoById |
 | Permission-based data filtering | P11 | CE11 | VerifyPermission / CheckPermission / data value branches |
 | Data consistency across callers | P12 | CE12 | Query/write/migration paths touching shared fields |
+| Callback not oneway | P13 | CE13 | callback IDL files / [oneway] / OnResult / OnAccountsChanged |
+| Unbounded wait on binder thread | P14 | CE14 | condition_variable::wait / wait_for / cv.wait |
 
 ### Non-greppable information (unique value of AGENTS.md)
 The following information **cannot be obtained via code grep** and must be sourced from this file:
@@ -449,6 +451,66 @@ data; a temporary value must not be persisted as a permanent one.
 - Verify that crash-recovery / OTA-migration paths handle dirty data (e.g., reading -1 from an old file) by normalizing to a valid value, not by propagating the dirty value.
 
 ⚠ **Common omissions**: ① only checking the immediate caller, not all consumers of a query ② not checking whether a cache entry with a temporary value can be read back as canonical ③ not verifying the OTA/migration read path normalizes dirty data.
+
+**Pitfall 13 — All accountmgr → client callback IPC methods must use `[oneway]`.**
+Every IPC method accountmgr (SA 200) invokes to call back a client must be
+declared `[oneway]` in its IDL. A synchronous (non-oneway) callback blocks
+the accountmgr binder thread waiting for the client to return; if the
+client responds slowly, has no registered callback implementation, or
+hangs, the binder thread is occupied for a long time, eventually
+exhausting the accountmgr binder thread pool and freezing the service
+(device black screen / unresponsive). When adding any callback
+interface, the method must carry the `[oneway]` attribute in the `.idl`,
+and the generated `*_proxy.cpp` / `*_stub.cpp` must take the async send
+path. Do not invoke callbacks while holding a lock — even oneway still
+marshalls and enqueues to the binder driver at the call instant, and
+calling under lock risks deadlock / order inversion. Also null-check the
+callback pointer before invoking it (see the `CallbackOnResult` pattern
+in Pitfall 9).
+  Historical: "accountmgr used a synchronous IPC callback to the client;
+  the client took too long to process, exhausting the binder threads and
+  freezing accountmgr — device black screen."
+
+**Code-level evidence checklist (CE13):**
+- Grep all `.idl` files for callback methods; confirm every client←accountmgr reverse-call method signature carries `[oneway]` (e.g. `OnResult`, `OnAccountsChanged`, `OnStateChanged`, `OnAcquireInfo`).
+- For the generated `*_proxy.cpp`, confirm oneway methods take the `SendRequest` `MessageOption::TF_ASYNC` path (no reply wait), not `TF_SYNC`.
+- When adding a callback, confirm the `.idl` has `[oneway]` and the `*_stub.cpp` `OnRemoteRequest` branch does not synchronously block waiting for the client to finish.
+- Confirm callback invocation points are not inside any lock critical section (`lock_guard` / `unique_lock` / `shared_lock` held); oneway only avoids waiting for a reply, not the resource cost during marshalling.
+- Confirm the callback pointer/proxy is null-checked before the call (a null pointer `->OnXxx()` crashes the accountmgr process).
+
+⚠ **Common omissions**: ① only checking the `.idl` source without verifying the generated `*_proxy.cpp` actually sends async ② adding a callback method without `[oneway]` ③ calling an oneway callback under lock, mistakenly thinking oneway bypasses the lock ④ not null-checking the callback proxy.
+
+**Pitfall 14 — Do not use `condition_variable::wait` (no timeout) on binder threads; use `wait_for`.**
+accountmgr's IPC requests are served by a binder thread pool (about 16
+threads by default). Calling `std::condition_variable::wait()` (the
+no-timeout overload) on a binder thread blocks that thread indefinitely
+until the condition is notified; if the notifier fails to trigger
+`notify_one`/`notify_all` along an exception path, that thread hangs
+permanently. Once the pool is exhausted, accountmgr cannot respond to
+any new IPC request — the service freezes and the device black-screens.
+All condition waits in binder-thread context (IPC handlers, callback
+handlers) must use `wait_for` / `wait_until` with a reasonable timeout
+and return an error code (e.g. `ERR_ACCOUNT_COMMON_BUSY` /
+`ERR_ACCOUNT_COMMON_*`) on the timeout path so the thread is released
+back to the pool. Note: the `wait(lock, pred)` predicate overload is
+also an unbounded wait (it blocks forever if the predicate is never
+satisfied) and must be replaced with `wait_for` + predicate or an
+explicit timeout loop. Other unbounded blocking primitives (e.g.
+`std::future::get`, `std::promise` unbounded wait) are likewise
+forbidden on binder threads.
+  Historical: "accountmgr called condition_variable::wait on a binder
+  thread to wait for a cross-process async result; the upstream never
+  notified, so the thread blocked permanently, the pool was exhausted,
+  and the service froze — device black screen."
+
+**Code-level evidence checklist (CE14):**
+- Grep all `condition_variable` usage in the service layer (`services/accountmgr/src/`); confirm no `wait(` no-timeout overload exists on any binder-thread-reachable path — only `wait_for(` / `wait_until(` are allowed.
+- Treat the `wait(lock, pred)` predicate overload with caution — it is an unbounded wait; confirm it is replaced with `wait_for` + predicate or a timeout loop.
+- Trace each `wait_for` call site to determine whether it truly runs in binder-thread context (IPC handler, `OnRemoteRequest` branch, callback `OnResult`, etc.); if so, confirm the timeout is reasonable and a failure-return path exists after timeout.
+- Confirm `notify_one`/`notify_all` trigger points cover all exception/failure branches (not only the success path), so the waiter never hangs forever.
+- Check for other unbounded blocking primitives on binder threads (`std::future::get`, `std::promise` unbounded wait, `pthread_join`, etc.).
+
+⚠ **Common omissions**: ① thinking `wait(lock, pred)` with a predicate is bounded (it is actually unbounded) ② only matching the literal `wait(` and ignoring that `wait_for` with an unsatisfied predicate still returns correctly on timeout ③ not confirming `notify` covers all exception branches, so the waiter never gets notified ④ ignoring other unbounded primitives like `future::get`/`promise` on binder threads.
 
 ---
 
