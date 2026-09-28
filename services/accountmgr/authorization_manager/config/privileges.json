@@ -53,6 +53,10 @@
         {
             "name":"ohos.privilege.set_device_security_level",
             "description":"Set device security level"
+        },
+        {
+            "name":"ohos.privilege.manage_global_scope_certificate",
+            "description":"Manage certificate in the global scope of a device"
         }
     ]
 }
