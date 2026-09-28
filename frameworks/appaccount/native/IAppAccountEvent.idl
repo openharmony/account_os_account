@@ -16,5 +16,5 @@
 sequenceable OHOS.AccountSA.AppAccountInfo;
 
 interface OHOS.AccountSA.IAppAccountEvent {
-    void OnAccountsChanged([in] AppAccountInfo[] accounts, [in] String ownerName);
+    [oneway]void OnAccountsChanged([in] AppAccountInfo[] accounts, [in] String ownerName);
 }

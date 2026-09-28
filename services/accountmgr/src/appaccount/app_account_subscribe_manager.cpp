@@ -428,12 +428,11 @@ ErrCode AppAccountSubscribeManager::OnAccountsChanged(const std::shared_ptr<AppA
         ErrCode errCode;
         while (retryTimes < Constants::MAX_RETRY_TIMES) {
             errCode = appAccountEventProxy->OnAccountsChanged(appAccounts, record->info->GetOwner());
-            if (errCode == ERR_OK || (errCode != Constants::E_IPC_ERROR &&
-                errCode != Constants::E_IPC_SA_DIED)) {
+            if (errCode != Constants::BR_FAILED_REPLY) {
                 break;
             }
             retryTimes++;
-            ACCOUNT_LOGE("Failed to SendRequest, code = %{public}d, retryTimes = %{public}d",
+            ACCOUNT_LOGE("OnAccountsChanged retry, errCode = %{public}d, retryTimes = %{public}d",
                 errCode, retryTimes);
             std::this_thread::sleep_for(std::chrono::milliseconds(Constants::DELAY_FOR_EXCEPTION));
         }
