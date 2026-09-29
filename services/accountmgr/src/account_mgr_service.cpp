@@ -93,6 +93,7 @@ constexpr std::int32_t RECOVERY_TIMEOUT = 6; // timeout 6s
 constexpr int32_t MAX_INIT_TIME = 120;
 #endif // HICOLLIE_ENABLE
 const std::set<int32_t> INIT_ACCOUNT_ID_SET = {
+    Constants::ADMIN_LOCAL_ID,
 #ifdef ENABLE_U1_ACCOUNT
     Constants::U1_ID,
 #endif // ENABLE_U1_ACCOUNT
