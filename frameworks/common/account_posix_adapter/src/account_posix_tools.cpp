@@ -97,7 +97,7 @@ ErrCode PosixDataMap::FromString(const std::string &dataStr)
             std::string name = line.substr(pos + 1);
             int32_t localId = -1;
             auto res = std::from_chars(localIdStr.data(), localIdStr.data() + localIdStr.size(), localId);
-            if (res.ec != std::errc()) {
+            if (res.ec != std::errc() || res.ptr != localIdStr.data() + localIdStr.size()) {
                 ACCOUNT_LOGE("Convert %{public}s to number failed, err=%{public}d", localIdStr.c_str(),
                     static_cast<int32_t>(res.ec));
                 return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
@@ -201,7 +201,7 @@ int32_t PosixTools::SplitGroupName(const std::string &groupName, std::string &ac
     accountName = groupName.substr(0, pos);
     std::string appIdxStr = groupName.substr(pos + GROUP_NAME_DELIMITER.size());
     auto res = std::from_chars(appIdxStr.data(), appIdxStr.data() + appIdxStr.size(), appIdx);
-    if (res.ec != std::errc()) {
+    if (res.ec != std::errc() || res.ptr != appIdxStr.data() + appIdxStr.size()) {
         ACCOUNT_LOGE("Convert %{public}s to number failed, err=%{public}d", appIdxStr.c_str(),
             static_cast<int32_t>(res.ec));
         accountName.clear();
